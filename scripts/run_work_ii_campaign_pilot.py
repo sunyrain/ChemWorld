@@ -27,6 +27,7 @@ from chemworld.eval.work_ii_blind import (
     validate_blind_evaluation_plan,
 )
 from chemworld.eval.work_ii_cost import validate_qualification_cost_ledger
+from chemworld.eval.work_ii_d1_execution import validate_d1_qualification_evidence
 from chemworld.eval.work_ii_execution_mode import validate_release_d1_config
 from chemworld.eval.work_ii_formal import (
     build_checkpoint_contract as _checkpoint_contract,
@@ -398,6 +399,11 @@ def _release_d1_execution_context(
     )
     if errors:
         raise RuntimeError("provider release D1 validation failed: " + "; ".join(errors))
+    evidence_errors = validate_d1_qualification_evidence(ROOT, config)
+    if evidence_errors:
+        raise RuntimeError(
+            "provider D1 qualification evidence failed: " + "; ".join(evidence_errors)
+        )
     return manifest_path
 
 
@@ -488,6 +494,9 @@ def _analyze(
     recipe_hashes = [str(item["recipe_sha256"]) for item in experiments]
     return {
         "operation_attempt_count": len(records),
+        "committed_operation_count": sum(
+            row.get("transaction_status") == "committed" for row in records
+        ),
         "complete_experiment_count": len(experiments),
         "right_censored_open_experiment": bool(actions),
         "experiments": experiments,

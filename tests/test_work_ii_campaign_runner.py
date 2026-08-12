@@ -342,9 +342,9 @@ def test_systemic_preoperation_guard_does_not_stop_on_cell_local_failure() -> No
     arms = ["opaque", "aligned_nominal", "misindexed_nominal"]
     one_failure = [{"arm": "aligned_nominal"}]
     results = [
-        {"arm": "opaque", "analysis": {"operation_attempt_count": 20}},
-        {"arm": "aligned_nominal", "analysis": {"operation_attempt_count": 0}},
-        {"arm": "misindexed_nominal", "analysis": {"operation_attempt_count": 22}},
+        {"arm": "opaque", "analysis": {"committed_operation_count": 20}},
+        {"arm": "aligned_nominal", "analysis": {"committed_operation_count": 0}},
+        {"arm": "misindexed_nominal", "analysis": {"committed_operation_count": 22}},
     ]
     assert (
         _systemic_preoperation_failure(
@@ -357,7 +357,7 @@ def test_systemic_preoperation_guard_does_not_stop_on_cell_local_failure() -> No
 
     all_failures = [{"arm": arm} for arm in arms]
     zero_operation_results = [
-        {"arm": arm, "analysis": {"operation_attempt_count": 0}} for arm in arms
+        {"arm": arm, "analysis": {"committed_operation_count": 0}} for arm in arms
     ]
     assert (
         _systemic_preoperation_failure(
@@ -368,7 +368,7 @@ def test_systemic_preoperation_guard_does_not_stop_on_cell_local_failure() -> No
         is True
     )
 
-    zero_operation_results[0]["analysis"]["operation_attempt_count"] = 1
+    zero_operation_results[0]["analysis"]["committed_operation_count"] = 1
     assert (
         _systemic_preoperation_failure(
             cell_failures=all_failures,
@@ -971,9 +971,14 @@ time.sleep(0.05)
 row = {
     "arm": args.prior_arm,
     "completed": True,
+    "analysis": {"committed_operation_count": 1},
     "qualification": {"passed": True, "failed_checks": []},
 }
+(args.output / "trajectory.jsonl").write_text(
+    json.dumps({"transaction_status": "committed"}) + "\\n", encoding="utf-8"
+)
 (args.output / "summary.json").write_text(json.dumps(row), encoding="utf-8")
+(args.output / "report.json").write_text(json.dumps({"results": [row]}), encoding="utf-8")
 completed = {
     "stage": "cell_completed",
     "world_seed": args.world_seed,
@@ -995,6 +1000,11 @@ print(json.dumps(completed), flush=True)
     monkeypatch.setattr(
         five_seed_runner,
         "validate_release_d1_config",
+        lambda *_args, **_kwargs: [],
+    )
+    monkeypatch.setattr(
+        five_seed_runner,
+        "validate_d1_qualification_evidence",
         lambda *_args, **_kwargs: [],
     )
     monkeypatch.setenv("WELLAU_API_KEY", "test-key")

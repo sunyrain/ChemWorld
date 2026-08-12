@@ -14,8 +14,20 @@ import threading
 from pathlib import Path
 from time import perf_counter
 from typing import Any, TextIO
+from uuid import uuid4
 
-from chemworld.eval.provenance import git_source_commit, git_worktree_dirty, write_json_atomic
+from chemworld.data.logging import load_jsonl
+from chemworld.eval.provenance import (
+    file_sha256,
+    git_source_commit,
+    git_worktree_dirty,
+    write_json_atomic,
+)
+from chemworld.eval.work_ii_d1_execution import (
+    D1_EXECUTION_CONTRACT,
+    D1CellStore,
+    validate_d1_qualification_evidence,
+)
 from chemworld.eval.work_ii_development_readiness import (
     validate_development_readiness_receipt,
 )
@@ -39,10 +51,19 @@ def _emit(path: Path, payload: dict[str, Any]) -> None:
         print(safe_rendered, flush=True)
 
 
-def _drain(stream: TextIO, events: queue.Queue[tuple[str, str | None]], arm: str) -> None:
-    for line in stream:
-        events.put((arm, line.rstrip("\r\n")))
-    events.put((arm, None))
+def _drain(
+    stream: TextIO,
+    events: queue.Queue[tuple[str, str | None]],
+    arm: str,
+    log_path: Path,
+) -> None:
+    log_path.parent.mkdir(parents=True, exist_ok=True)
+    with log_path.open("w", encoding="utf-8") as log:
+        for line in stream:
+            log.write(line)
+            log.flush()
+            events.put((arm, line.rstrip("\r\n")))
+        events.put((arm, None))
 
 
 def _terminate_processes(processes: dict[str, subprocess.Popen[str]]) -> None:
@@ -59,6 +80,53 @@ def _terminate_processes(processes: dict[str, subprocess.Popen[str]]) -> None:
             process.wait(timeout=10.0)
 
 
+def _load_terminal_state(store: D1CellStore, key: str) -> str:
+    path = store.terminals / f"{key}.json"
+    return str(json.loads(path.read_text(encoding="utf-8"))["state"])
+
+
+def _materialize_unfinalized_terminal(
+    attempt_root: Path,
+    *,
+    arm: str,
+    committed_operation_count: int,
+    return_code: int,
+) -> dict[str, Any]:
+    """Create an evaluator-readable retained failure without replacing trajectory bytes."""
+
+    summary = {
+        "arm": arm,
+        "completed": False,
+        "failure": {
+            "type": "UnfinalizedChildAfterCommittedOperation",
+            "message": "child ended after a committed operation without a terminal summary",
+        },
+        "analysis": {
+            "operation_attempt_count": len(load_jsonl(attempt_root / "trajectory.jsonl")),
+            "committed_operation_count": committed_operation_count,
+            "complete_experiment_count": 0,
+            "right_censored_open_experiment": True,
+        },
+        "exact_replay": {"verified": False},
+        "qualification": {
+            "passed": False,
+            "failed_checks": ["unfinalized_child_after_committed_operation"],
+        },
+    }
+    write_json_atomic(attempt_root / "summary.json", summary)
+    write_json_atomic(
+        attempt_root / "report.json",
+        {
+            "schema_version": "chemworld-work-ii-d1-unfinalized-cell-report-0.1",
+            "completed_cell_count": 0,
+            "cell_count": 1,
+            "return_code": return_code,
+            "results": [summary],
+        },
+    )
+    return summary
+
+
 def _systemic_preoperation_failure(
     *,
     cell_failures: list[dict[str, Any]],
@@ -71,7 +139,7 @@ def _systemic_preoperation_failure(
         return False
     by_arm = {str(row.get("arm")): row for row in results if isinstance(row, dict)}
     return all(
-        int(by_arm.get(arm, {}).get("analysis", {}).get("operation_attempt_count", 0)) == 0
+        int(by_arm.get(arm, {}).get("analysis", {}).get("committed_operation_count", 0)) == 0
         for arm in arms
     )
 
@@ -146,6 +214,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     if release_errors:
         raise RuntimeError("provider release D1 validation failed: " + "; ".join(release_errors))
+    evidence_errors = validate_d1_qualification_evidence(ROOT, config)
+    if evidence_errors:
+        raise RuntimeError(
+            "provider D1 qualification evidence failed: " + "; ".join(evidence_errors)
+        )
     readiness_errors = validate_development_readiness_receipt(
         ROOT,
         args.readiness_receipt.resolve(),
@@ -157,9 +230,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise RuntimeError("provider readiness failed: " + "; ".join(readiness_errors))
     output = args.output.resolve()
     progress = args.progress_file.resolve()
-    if output.exists():
+    resume = bool(getattr(args, "resume", False))
+    if output.exists() and not resume:
         raise FileExistsError(f"refusing to overwrite provider output: {output}")
-    output.mkdir(parents=True)
+    if not output.exists() and resume:
+        raise FileNotFoundError("D1 missing-only resume requires an existing output root")
+    output.mkdir(parents=True, exist_ok=resume)
     if not isinstance(config, dict) or not isinstance(config.get("prior_arms"), dict):
         raise ValueError("campaign config must define prior_arms")
     provider = config.get("provider")
@@ -185,8 +261,23 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("the frozen execution requires max_concurrency=3")
     execution_scope = _execution_scope(seeds)
     total_cells = len(seeds) * 3
-    completed_cells = 0
-    terminal_cells = 0
+    store = D1CellStore(
+        output / "store",
+        config_path=config_path,
+        task_id=str(config["task_id"]),
+        world_seeds=seeds,
+        arms=arms,
+    )
+    pending = store.pending(resume=resume)
+    pending_identities = {
+        (int(cell["world_seed"]), str(cell["prior_arm"])) for cell in pending
+    }
+    initial_audit = store.audit()
+    terminal_cells = int(initial_audit["terminal_count"])
+    completed_cells = sum(
+        _load_terminal_state(store, key) == "completed"
+        for key in initial_audit["terminal_cell_key_sha256"]
+    )
     started = perf_counter()
     seed_reports: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
@@ -194,7 +285,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     _emit(
         progress,
         {
-            "event": "matrix_started",
+            "event": "matrix_resumed" if resume else "matrix_started",
             "world_seeds": seeds,
             "completed_cells": 0,
             "terminal_cells": 0,
@@ -208,13 +299,21 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     for seed in seeds:
         seed_started = perf_counter()
         seed_output = output / f"seed-{seed}"
-        seed_output.mkdir()
+        seed_output.mkdir(exist_ok=True)
         events: queue.Queue[tuple[str, str | None]] = queue.Queue()
         processes: dict[str, subprocess.Popen[str]] = {}
         readers: dict[str, threading.Thread] = {}
-        active_arms = set(arms)
+        process_state: dict[str, dict[str, Any]] = {}
+        active_arms = {
+            arm for arm in arms if (seed, arm) in pending_identities
+        }
         try:
-            for arm in arms:
+            for arm in sorted(active_arms, key=arms.index):
+                key = store.key(seed, arm)
+                attempt_id = uuid4().hex
+                store.record_provider_attempt_launch(key, attempt_id=attempt_id)
+                attempt_root = output / "attempts" / key / attempt_id
+                log_path = output / "logs" / key / f"{attempt_id}.log"
                 child_progress = progress.with_name(f"{progress.stem}-seed-{seed}-{arm}.jsonl")
                 command = [
                     sys.executable,
@@ -222,7 +321,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     "--config",
                     str(args.config.resolve()),
                     "--output",
-                    str(seed_output / arm),
+                    str(attempt_root),
                     "--progress-file",
                     str(child_progress),
                     "--world-seed",
@@ -235,23 +334,47 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 kwargs: dict[str, Any] = {}
                 if os.name == "nt":
                     kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-                process = subprocess.Popen(
-                    command,
-                    cwd=ROOT,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    encoding="utf-8",
-                    errors="replace",
-                    **kwargs,
-                )
+                try:
+                    process = subprocess.Popen(
+                        command,
+                        cwd=ROOT,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.STDOUT,
+                        text=True,
+                        encoding="utf-8",
+                        errors="replace",
+                        **kwargs,
+                    )
+                except OSError as error:
+                    log_path.parent.mkdir(parents=True, exist_ok=True)
+                    log_path.write_text(
+                        f"provider process launch failed: {type(error).__name__}: {error}\n",
+                        encoding="utf-8",
+                    )
+                    store.record_infrastructure_failure(
+                        key,
+                        attempt_id=attempt_id,
+                        error_type=type(error).__name__,
+                        error_message=str(error),
+                        reason_code="provider_process_launch_failed",
+                        committed_operation_count=0,
+                        log_path=log_path,
+                    )
+                    active_arms.discard(arm)
+                    continue
                 if process.stdout is None:
                     process.kill()
                     raise RuntimeError("five-seed cell stdout was not created")
                 processes[arm] = process
+                process_state[arm] = {
+                    "key": key,
+                    "attempt_id": attempt_id,
+                    "attempt_root": attempt_root,
+                    "log_path": log_path,
+                }
                 reader = threading.Thread(
                     target=_drain,
-                    args=(process.stdout, events, arm),
+                    args=(process.stdout, events, arm, log_path),
                     daemon=True,
                 )
                 readers[arm] = reader
@@ -330,6 +453,77 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         return_codes = {arm: process.wait() for arm, process in processes.items()}
         for reader in readers.values():
             reader.join(timeout=5.0)
+        for arm, state in process_state.items():
+            attempt_root = state["attempt_root"]
+            summary_path = attempt_root / "summary.json"
+            row: dict[str, Any] | None = None
+            summary_error: Exception | None = None
+            if summary_path.is_file():
+                try:
+                    candidate = json.loads(summary_path.read_text(encoding="utf-8"))
+                    if not isinstance(candidate, dict) or candidate.get("arm") != arm:
+                        raise ValueError("summary is not bound to its scheduled arm")
+                    row = candidate
+                except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+                    summary_error = error
+            if row is not None:
+                committed = int(
+                    row.get("analysis", {}).get("committed_operation_count", 0)
+                )
+                state_name = (
+                    "completed"
+                    if row.get("completed") is True
+                    else "right_censored"
+                    if committed > 0
+                    else "failed"
+                )
+                store.write_terminal(
+                    state["key"],
+                    attempt_id=state["attempt_id"],
+                    state=state_name,
+                    result_root=attempt_root,
+                    committed_operation_count=committed,
+                )
+            else:
+                trajectory_path = attempt_root / "trajectory.jsonl"
+                records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
+                committed = sum(
+                    row.get("transaction_status") == "committed" for row in records
+                )
+                if committed:
+                    _materialize_unfinalized_terminal(
+                        attempt_root,
+                        arm=arm,
+                        committed_operation_count=committed,
+                        return_code=return_codes[arm],
+                    )
+                    store.write_terminal(
+                        state["key"],
+                        attempt_id=state["attempt_id"],
+                        state="right_censored",
+                        result_root=attempt_root,
+                        committed_operation_count=committed,
+                    )
+                else:
+                    store.record_infrastructure_failure(
+                        state["key"],
+                        attempt_id=state["attempt_id"],
+                        error_type="MissingTerminalSummary",
+                        error_message=str(summary_error or "child ended without terminal summary"),
+                        reason_code=(
+                            "unreadable_terminal_summary_zero_committed_operations"
+                            if summary_path.is_file()
+                            else "missing_terminal_summary_zero_committed_operations"
+                        ),
+                        committed_operation_count=0,
+                        log_path=state["log_path"],
+                    )
+        current_audit = store.audit()
+        terminal_cells = int(current_audit["terminal_count"])
+        completed_cells = sum(
+            _load_terminal_state(store, key) == "completed"
+            for key in current_audit["terminal_cell_key_sha256"]
+        )
         results: list[dict[str, Any]] = []
         cell_failures: list[dict[str, Any]] = []
         for arm in arms:
@@ -342,7 +536,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if isinstance(row, dict):
                 results.append(row)
             if (
-                return_codes[arm] != 0
+                return_codes.get(arm, 0) != 0
                 or not isinstance(row, dict)
                 or row.get("completed") is not True
             ):
@@ -350,7 +544,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     {
                         "world_seed": seed,
                         "arm": arm,
-                        "return_code": return_codes[arm],
+                        "return_code": return_codes.get(arm),
                         "summary_available": isinstance(row, dict),
                         "qualification_failed_checks": (
                             row.get("qualification", {}).get("failed_checks", [])
@@ -384,9 +578,19 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 arms=arms,
             ):
                 break
-    terminal_record_count = sum(
-        int(seed_report.get("terminal_cell_count", 0)) for seed_report in seed_reports
-    )
+    final_audit = store.audit()
+    terminal_record_count = int(final_audit["terminal_count"])
+    terminal_receipt_bindings = []
+    for key in final_audit["terminal_cell_key_sha256"]:
+        path = store.terminals / f"{key}.json"
+        receipt = json.loads(path.read_text(encoding="utf-8"))
+        terminal_receipt_bindings.append(
+            {
+                "path": path.relative_to(output).as_posix(),
+                "sha256": file_sha256(path),
+                "receipt_sha256": receipt["receipt_sha256"],
+            }
+        )
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
@@ -410,6 +614,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "systemic_preoperation_stop_triggered": (
             terminal_record_count < total_cells and bool(failures)
         ),
+        "d1_execution_contract": dict(D1_EXECUTION_CONTRACT),
+        "terminal_receipt_bindings": terminal_receipt_bindings,
+        "store_audit": final_audit,
         "failures": failures,
         "seed_reports": seed_reports,
     }
@@ -450,6 +657,7 @@ def main() -> int:
     parser.add_argument("--max-concurrency", type=int, default=3)
     parser.add_argument("--readiness-receipt", type=Path, required=True)
     parser.add_argument("--release-manifest", type=Path, required=True)
+    parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     report = run(args)
     return 0 if report["all_cells_terminal"] else 1

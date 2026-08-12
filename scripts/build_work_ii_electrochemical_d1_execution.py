@@ -9,18 +9,26 @@ import json
 from pathlib import Path
 
 from chemworld.eval.provenance import file_sha256, write_json_atomic
+from chemworld.eval.work_ii_d1_execution import (
+    D1_EXECUTION_CONTRACT,
+    build_d1_qualification_evidence_binding,
+)
 from chemworld.eval.work_ii_execution_mode import validate_release_d1_config
 
 ROOT = Path(__file__).resolve().parents[1]
 EVIDENCE_ROOT = ROOT / "workstreams/flagship_tasks/reports"
 DEFAULT_INPUT = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1.json"
 DEFAULT_OUTPUT = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1-execution.json"
+DEFAULT_PACKAGE = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-package.json"
+DEFAULT_PLAN = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-qualification.json"
 
 
 def build(
     source: dict,
     *,
     source_path: Path,
+    qualification_package_path: Path,
+    qualification_plan_path: Path,
     release_manifest: Path | dict,
 ) -> dict:
     source_errors = validate_release_d1_config(
@@ -43,6 +51,7 @@ def build(
                 "stop only when all three arms fail before the first committed operation"
             ),
             "pilot_expansion_headroom_fraction": 0.20,
+            "d1_execution_contract": D1_EXECUTION_CONTRACT,
         }
     )
     config["provider"].update(
@@ -99,6 +108,12 @@ def build(
         ),
         "formal_cap_status": "not_frozen_until_this_triplet_is_audited",
     }
+    config["qualification_evidence"] = build_d1_qualification_evidence_binding(
+        ROOT,
+        source_config_path=source_path,
+        qualification_package_path=qualification_package_path,
+        qualification_plan_path=qualification_plan_path,
+    )
     execution_errors = validate_release_d1_config(
         ROOT,
         config,
@@ -117,6 +132,8 @@ def main() -> int:
     parser.add_argument("--input", type=Path, default=DEFAULT_INPUT)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--release-manifest", type=Path, required=True)
+    parser.add_argument("--qualification-package", type=Path, default=DEFAULT_PACKAGE)
+    parser.add_argument("--qualification-plan", type=Path, default=DEFAULT_PLAN)
     args = parser.parse_args()
     source_path = args.input.resolve()
     output_path = args.output.resolve()
@@ -130,6 +147,8 @@ def main() -> int:
     generated = build(
         source,
         source_path=source_path,
+        qualification_package_path=args.qualification_package.resolve(),
+        qualification_plan_path=args.qualification_plan.resolve(),
         release_manifest=args.release_manifest.resolve(),
     )
     if output_path.exists():

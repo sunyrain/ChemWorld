@@ -10,6 +10,7 @@ import scripts.build_work_ii_reaction_safety_d1_execution as reaction_builder
 from scripts.build_work_ii_electrochemical_d1_execution import build
 
 import chemworld.eval.work_ii_execution_mode as execution_mode
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.work_ii_execution_mode import (
     build_execution_envelope,
     build_release_manifest,
@@ -19,6 +20,39 @@ from chemworld.eval.work_ii_execution_mode import (
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json"
 REACTION_SOURCE = ROOT / "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json"
+
+
+def _qualification_evidence(
+    tmp_path: Path,
+    source_path: Path,
+    source: dict[str, object],
+) -> tuple[Path, Path]:
+    package_path = tmp_path / "package.json"
+    package = {
+        "schema_version": "chemworld-work-ii-matched-prior-package-0.3",
+        "task_id": source["task_id"],
+        "qualification_passed": True,
+        "execution_context": source["execution_context"],
+    }
+    package["package_sha256"] = canonical_json_sha256(package)
+    write_json_atomic(package_path, package)
+    plan_path = tmp_path / "summary.json"
+    plan = {
+        "task_id": source["task_id"],
+        "qualification_passed": True,
+        "execution_context": source["execution_context"],
+        "generated_package": {
+            "path": package_path.relative_to(tmp_path).as_posix(),
+            "sha256": file_sha256(package_path),
+        },
+        "generated_d1_config": {
+            "path": source_path.relative_to(tmp_path).as_posix(),
+            "sha256": file_sha256(source_path),
+        },
+    }
+    plan["summary_sha256"] = canonical_json_sha256(plan)
+    write_json_atomic(plan_path, plan)
+    return package_path, plan_path
 
 
 def _release_source(
@@ -50,7 +84,14 @@ def test_electrochemical_d1_execution_builder_preserves_release_q2_pattern(
     source, manifest = _release_source(monkeypatch, tmp_path)
     source_path = tmp_path / "d1.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
-    config = build(source, source_path=source_path, release_manifest=manifest)
+    package_path, plan_path = _qualification_evidence(tmp_path, source_path, source)
+    config = build(
+        source,
+        source_path=source_path,
+        qualification_package_path=package_path,
+        qualification_plan_path=plan_path,
+        release_manifest=manifest,
+    )
 
     assert config["task_id"] == "electrochemical-conversion"
     assert config["world_seed"] == 0
@@ -86,9 +127,16 @@ def test_electrochemical_d1_execution_builder_rejects_nonrelease_q2(
         source["execution_context"]["freeze_id"] = "f" * 64
     source_path = tmp_path / "d1.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
+    package_path, plan_path = _qualification_evidence(tmp_path, source_path, source)
 
     with pytest.raises(ValueError, match="release D1 source validation failed"):
-        build(source, source_path=source_path, release_manifest=manifest)
+        build(
+            source,
+            source_path=source_path,
+            qualification_package_path=package_path,
+            qualification_plan_path=plan_path,
+            release_manifest=manifest,
+        )
 
 
 def test_reaction_d1_execution_builder_uses_the_same_release_gate(
@@ -109,10 +157,13 @@ def test_reaction_d1_execution_builder_uses_the_same_release_gate(
     source_path = tmp_path / "reaction-d1.json"
     source_path.write_text(json.dumps(source), encoding="utf-8")
     monkeypatch.setattr(reaction_builder, "ROOT", tmp_path)
+    package_path, plan_path = _qualification_evidence(tmp_path, source_path, source)
 
     config = reaction_builder.build(
         source,
         source_path=source_path,
+        qualification_package_path=package_path,
+        qualification_plan_path=plan_path,
         release_manifest=manifest,
     )
     assert config["qualification"]["execution_authorized"] is True
@@ -123,5 +174,7 @@ def test_reaction_d1_execution_builder_uses_the_same_release_gate(
         reaction_builder.build(
             source,
             source_path=source_path,
+            qualification_package_path=package_path,
+            qualification_plan_path=plan_path,
             release_manifest=manifest,
         )
