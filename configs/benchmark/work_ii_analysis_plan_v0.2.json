@@ -1,0 +1,312 @@
+{
+  "schema_version": "chemworld-work-ii-analysis-plan-0.3",
+  "analysis_plan_id": "work-ii-fixed-law-prior-analysis-v0.4",
+  "status": "execution_blocked_pending_failure_aware_analysis_freeze_prior_qualification_full_c2_admission_and_resource_calibration",
+  "formal_result": false,
+  "formal_execution_allowed": false,
+  "design_binding": {
+    "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+    "sha256": "8c11ace29b37151dda4eb2ce1565dc002fabc418527cfac1f9e65b5dac77debe"
+  },
+  "analysis_population": {
+    "scheduled_public_cells": 75,
+    "independent_task_world_clusters": 25,
+    "tasks": 5,
+    "worlds_per_task": 5,
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "provider_repeats_per_cell": 1,
+    "all_scheduled_cells_retained": true
+  },
+  "checkpoint_contract": {
+    "stage_ids": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_6", "final"],
+    "complete_experiments": [0, 2, 4, 6, 8],
+    "semantic_stage_hints_forbidden": true
+  },
+  "primary_prediction_error": {
+    "symbol": "E_arm_k",
+    "formula": "mean_over_registered_query_metric_pairs(min(abs(predicted_mean-evaluator_truth)/metric_scale,1))",
+    "lower_is_better": true,
+    "clipping": true,
+    "clipping_bounds": [0.0, 1.0],
+    "clipping_reason": "freeze_a_finite_symmetric_error_range_so_failed_or_unscorable_arms_have_implementable_adverse_bounds",
+    "default_metric_scale": 1.0,
+    "registered_metric_scale_overrides": {},
+    "metric_scales_are_fixed_before_participant_execution": true,
+    "evaluator_truth_unit": "one_keyed_complete_experiment_per_task_world_registered_query",
+    "evaluator_truth_shared_across_prior_arms_and_checkpoints": true,
+    "evaluator_truth_provider_calls": 0,
+    "evaluator_truth_feedback_returned_to_participant": false,
+    "query_weighting": "equal_within_task",
+    "task_weighting": "equal_across_five_tasks",
+    "interval_coverage_and_confidence_are_secondary_not_part_of_E": true
+  },
+  "primary_hypothesis": {
+    "id": "H3_selective_evidence_driven_correction",
+    "misindexed_improvement": "Delta_misindexed=E_misindexed_pre-E_misindexed_final",
+    "aligned_improvement": "Delta_aligned=E_aligned_pre-E_aligned_final",
+    "primary_contrast": "C_prior=Delta_misindexed-Delta_aligned",
+    "confirmatory_adverse_bound": "C_prior_lower=Delta_misindexed_lower-Delta_aligned_upper",
+    "test_model": "C_prior_lower ~ 1 + sum_coded_task_fixed_effects",
+    "alternative": "grand_mean_C_prior_greater_than_zero",
+    "alpha": 0.05,
+    "sidedness": "one_sided",
+    "success_is_intersection_union": true,
+    "required_conditions": [
+      "one_sided_95pct_lower_bound_C_prior_lower_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_misindexed_lower_greater_than_0",
+      "one_sided_95pct_lower_bound_Delta_aligned_lower_greater_than_-0.05"
+    ],
+    "aligned_noninferiority_tolerance_E_units": 0.05,
+    "no_multiplicity_adjustment_for_required_intersection_union_components": true
+  },
+  "secondary_hypotheses": {
+    "H1_prior_utility": "E_opaque_pre-E_aligned_pre_greater_than_zero",
+    "H2_prior_vulnerability": "E_misindexed_pre-E_opaque_pre_greater_than_zero",
+    "confirmatory_family": ["H1_prior_utility", "H2_prior_vulnerability"],
+    "multiplicity": "Holm_familywise_alpha_0.05",
+    "H1_H2_missing_contrast_rule": "set_missing_pre_evidence_pair_contrast_to_zero_and_retain_cluster",
+    "H4_knowledge_to_action_translation_status": "exploratory_descriptive_not_confirmatory",
+    "H4_reason": "not_separately_powered_and_complete_scorable_eligibility_can_condition_on_post_assignment_completion",
+    "H4_analysis_unit": "participant_cell_nested_in_task_world_cluster",
+    "H4_model": "descriptive_blind_recommendation_gain ~ epistemic_error_reduction + task_fixed_effects + prior_arm_fixed_effects",
+    "H4_covariance": "CR1_cluster_robust_by_task_world_cluster_for_descriptive_interval_only",
+    "H4_eligibility": "all_75_cells_reported_with_failed_or_missing_cells_explicitly_unclassified_no_confirmatory_complete_case_claim",
+    "H4_action_interpretation": "the participant_committed_final_recommendation_is_the_frozen_action_commitment; free_text_next_intent_and_unscored_operation_alignment_are_not_H4_inputs",
+    "all_other_task_arm_checkpoint_contrasts": "exploratory_with_interval_and_unadjusted_p_value_labels"
+  },
+  "outcome_channels": {
+    "O1_discovery": ["E_learning_curve", "information_gain", "counterfactual_prediction_error"],
+    "O2_prior_calibration": ["prior_reliability_probability", "Brier", "interval_coverage", "uncertainty"],
+    "O3_bias_rejection": ["wrong_prior_confidence_change", "selective_measurement", "misattribution", "prior_persistence"],
+    "O4_law_summary": ["schema_valid", "executable", "compression_stability", "prediction_consistency"],
+    "O5_transfer": ["within_mechanism", "across_mechanism", "world_held_out_prediction_and_control"],
+    "O6_autonomy_resource_safety": ["completion", "invalid_actions", "measurements", "risk", "sessions", "provider_attempts", "tokens", "cost", "wall_time"],
+    "O7_blind_outcome": ["blind_validated_recommendation", "validated_learning_curve_AUC", "incumbent_recommendation_gap"]
+  },
+  "law_summary_evaluation_contract": {
+    "evaluation_unit": "participant_cell_x_final_law_summary_x_registered_query_metric",
+    "query_source": "same_four_evaluator_held_out_queries_scored_at_belief_checkpoints",
+    "truth_source": "shared_task_world_evaluator_truth_pack",
+    "required_summary_schema": "chemworld-work-ii-law-summary-0.1",
+    "required_query_coverage": "exact_registered_query_metric_set",
+    "normalized_error": "mean_over_registered_query_metric_pairs_abs_law_prediction_minus_truth_over_metric_scale",
+    "compression_stability": "law_summary_normalized_error_minus_effective_final_checkpoint_error",
+    "prediction_consistency": "mean_normalized_absolute_difference_between_law_summary_and_final_checkpoint_predictions",
+    "pre_to_summary_improvement": "effective_pre_evidence_error_minus_law_summary_normalized_error",
+    "evaluator_provider_calls": 0,
+    "participant_feedback_allowed": false,
+    "binary_public_validity_threshold": null,
+    "public_interpretation": "descriptive_executability_error_compression_and_consistency_only",
+    "private_transfer_required_for_reusable_law_claim": true
+  },
+  "private_confirmation_contract": {
+    "identity_source": "external_ignored_private_seal",
+    "identity_commitment_hash": "canonical_json_sha256_of_complete_seal",
+    "task_count": 5,
+    "worlds_per_task": 5,
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "participant_cell_count": 75,
+    "same_participant_method_campaign_resources_and_metrics_as_public": true,
+    "private_participant_receives_public_outcomes_or_analysis": false,
+    "unseal_requires": [
+      "public_75_cell_matrix_terminal",
+      "public_confirmatory_analysis_completed_and_hash_bound",
+      "public_analysis_and_private_runner_source_frozen",
+      "separate_private_currency_ceiling_and_user_execution_signoff",
+      "private_seal_commitment_matches_preregistered_hash"
+    ],
+    "one_shot_policy": {
+      "result_direction_rerun_forbidden": true,
+      "accepted_or_failed_private_cell_replacement_forbidden": true,
+      "missing_infrastructure_only_resume_allowed": true,
+      "maximum_infrastructure_resume_attempts_per_cell": 1,
+      "all_failures_and_unstarted_cells_retained": true
+    },
+    "private_results_may_not_change": [
+      "public_hypotheses",
+      "public_estimands",
+      "analysis_thresholds",
+      "participant_method",
+      "task_roster",
+      "exclusion_or_missingness_rules"
+    ],
+    "transfer_reporting": "same_public_prediction_law_summary_blind_action_and_failure_metrics_with_private_world_split_label"
+  },
+  "joint_claim_rules": {
+    "selective_correction": "all_H3_required_conditions_pass",
+    "law_discovery_and_transfer": [
+      "selective_correction",
+      "final_typed_law_summary_schema_valid_and_executable",
+      "continuous_condition_counterfactual_predictions_valid",
+      "preregistered_transfer_validation_passes"
+    ],
+    "endpoint_heuristic_only": "blind_endpoint_success_without_the_joint_law_discovery_and_transfer_rule",
+    "id_dossier_mapping_recovery_alone_is_law_discovery": false,
+    "verbal_summary_alone_is_law_discovery": false
+  },
+  "missing_failure_and_censoring": {
+    "infrastructure_failure": "missing_only_resume_without_new_scientific_identity",
+    "scientific_or_method_failure": "retain_cell_no_replacement",
+    "bounded_prediction_error": "every_checkpoint_E_is_clipped_to_closed_interval_0_1",
+    "observed_point_summary_for_right_censored_with_last_checkpoint": "carry_last_checkpoint_error_forward_to_final_for_description_only",
+    "observed_point_summary_for_missing_final_with_valid_pre": "set_final_error_equal_to_pre_error_zero_improvement_for_description_only",
+    "observed_point_summary_for_missing_pre_or_unscorable_prediction": "set_primary_improvement_to_zero_and_flag_unscorable_for_description_only",
+    "confirmatory_arm_improvement_bounds": "observed_completed_scorable_pre_and_final_has_point_bound_Delta; otherwise_Delta_in_closed_interval_minus1_plus1",
+    "confirmatory_cluster_contrast_lower_bound": "Delta_misindexed_lower_minus_Delta_aligned_upper",
+    "confirmatory_misindexed_lower_bound": "Delta_misindexed_lower",
+    "confirmatory_aligned_noninferiority_lower_bound": "Delta_aligned_lower",
+    "paired_cluster_with_failed_arm": "retain_cluster_and_use_the_same_symmetric_minus1_plus1_arm_bound_regardless_of_arm_identity",
+    "provider_repeat": "nested_technical_observation_not_independent_sample",
+    "formal_cell_exclusion": "none_except_duplicate_or_cryptographically_invalid_artifact_which_remains_reported",
+    "sensitivity_analyses": ["observed_point_summary", "complete_case", "HC3", "task_stratified_cluster_bootstrap"],
+    "complete_case_definition": "all_three_arms_completed_with_scorable_pre_evidence_and_observed_final_predictions",
+    "failure_bound_decision_rule": "confirmatory_H3_uses_adverse_bounds_as_primary_and_never_substitutes_observed_zero_improvement_for_a_failed_arm",
+    "HC3_definition": "same_task_fixed_effect_estimands_with_HC3_sandwich_covariance_and_residual_t_reference",
+    "task_stratified_cluster_bootstrap_definition": {
+      "seed": 20260810,
+      "replicates": 10000,
+      "sampling": "resample_task_world_clusters_with_replacement_within_each_of_five_tasks_preserving_observed_task_counts",
+      "estimand": "equal_weighted_mean_of_five_bootstrap_task_means",
+      "one_sided_lower_bound_quantile": 0.05,
+      "p_value": "add_one_fraction_of_bootstrap_estimands_at_or_below_null"
+    }
+  },
+  "analysis_implementation_contract": {
+    "schema_version": "chemworld-work-ii-confirmatory-analysis-contract-0.1",
+    "input_dataset_schema": "chemworld-work-ii-formal-analysis-dataset-0.1",
+    "required_dataset_status": "passed",
+    "required_formal_result": true,
+    "expected_cluster_count": 25,
+    "expected_cell_count": 75,
+    "primary_model": {
+      "design_matrix": "five_task_indicator_columns_without_intercept",
+      "estimand": "equal_weighted_mean_of_five_task_specific_adverse_bound_means",
+      "row_fields": [
+        "H3_primary_contrast_lower_bound",
+        "H3_misindexed_improvement_lower_bound",
+        "H3_aligned_improvement_lower_bound"
+      ],
+      "covariance": "classical_OLS",
+      "residual_degrees_of_freedom": 20,
+      "reference_distribution": "Student_t",
+      "one_sided_alpha": 0.05,
+      "two_sided_interval_level": 0.95,
+      "intersection_union_p_value": "maximum_of_the_three_component_one_sided_p_values"
+    },
+    "confirmatory_secondary_model": {
+      "H1_H2_model": "five_task_indicator_columns_without_intercept_equal_weighted_task_mean",
+      "Holm_family": ["H1_prior_utility", "H2_prior_vulnerability"],
+      "familywise_alpha": 0.05,
+      "not_estimable_p_value": 1.0
+    },
+    "descriptive_phenotype": {
+      "eligibility": "completed_cells_with_numeric_epistemic_improvement_and_blind_recommendation_gain",
+      "epistemic_positive": "primary_improvement_greater_than_zero",
+      "action_positive": "blind_recommendation_gain_greater_than_zero",
+      "classes": ["understands_and_acts", "understands_but_cannot_act", "acts_without_understanding", "neither"],
+      "ineligible_class": "unclassified_failed_or_missing"
+    },
+    "claim_boundaries": {
+      "public_H3_can_support": "selective_evidence_driven_wrong_prior_correction_in_the_frozen_agent_system",
+      "public_H4_can_support": "descriptive_association_only_no_confirmatory_claim",
+      "law_discovery_requires_additional_public_evidence": ["typed_law_summary_executable", "continuous_counterfactual_predictions_valid"],
+      "transfer_requires_private_confirmation": true,
+      "free_text_next_intent_is_not_scored_as_confirmatory_action_alignment": true,
+      "single_leaderboard_score_forbidden": true
+    }
+  },
+  "public_C2_confirmatory_extension": {
+    "status": "outcome_blind_contract_frozen_no_results",
+    "input_locus_cell_report_schema": "chemworld-work-ii-public-c2-locus-cell-report-0.1",
+    "analysis_provider_call_count": 0,
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "failure_aware_arm_bounds": [-1.0, 1.0],
+    "locus_denominators": {
+      "A_E": {
+        "tasks": 5,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 25,
+        "scheduled_and_retained_cells": 75
+      },
+      "A_P": {
+        "tasks": 2,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 10,
+        "scheduled_and_retained_cells": 30
+      },
+      "A_S": {
+        "tasks": 2,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 10,
+        "scheduled_and_retained_cells": 30
+      }
+    },
+    "locus_gates": {
+      "A_E": {
+        "rule": "existing_H3_three_component_intersection_union_recomputed_from_bound_cell_rows",
+        "one_sided_alpha": 0.05,
+        "aligned_noninferiority_margin": -0.05
+      },
+      "A_P": {
+        "rule": "task_fixed_effect_C_prior_adverse_lower_bound_greater_than_zero",
+        "one_sided_alpha": 0.05,
+        "all_two_task_means_must_be_positive": true
+      },
+      "A_S": {
+        "rule": "task_fixed_effect_C_prior_adverse_lower_bound_greater_than_zero",
+        "one_sided_alpha": 0.05,
+        "all_two_task_means_must_be_positive": true
+      }
+    },
+    "task_fixed_effect_inference": {
+      "design_matrix": "task_indicator_columns_without_intercept",
+      "estimand": "equal_weighted_mean_of_task_specific_cluster_means",
+      "covariance": "classical_OLS",
+      "reference_distribution": "Student_t_residual_df",
+      "A_E_residual_degrees_of_freedom": 20,
+      "A_P_residual_degrees_of_freedom": 8,
+      "A_S_residual_degrees_of_freedom": 8,
+      "exact_zero_standard_error_limit": "se_le_1e-15_treated_as_numerically_zero_p_0_if_estimate_above_null_p_0.5_if_equal_p_1_if_below",
+      "nonfinite_or_materially_negative_variance": "fail_closed"
+    },
+    "global_intersection_union": {
+      "required_loci": ["A_E", "A_P", "A_S"],
+      "all_three_locus_gates_must_pass": true,
+      "overall_p_value": "maximum_of_A_E_A_P_A_S_effective_gate_p_values",
+      "direction_inconsistent_A_P_or_A_S_effective_p_value": 1.0,
+      "one_sided_alpha": 0.05,
+      "naive_nine_task_pooling_forbidden": true
+    }
+  },
+  "power_design": {
+    "test_family": "one_sided_task_fixed_effect_t_approximation",
+    "independent_clusters": 25,
+    "task_fixed_effect_degrees_of_freedom": 4,
+    "residual_degrees_of_freedom": 20,
+    "alpha": 0.05,
+    "planning_standardized_effect": 0.6,
+    "minimum_required_power_at_planning_effect": 0.8,
+    "secondary_hypotheses_separately_powered": false,
+    "H4_confirmatory_claim_allowed": false,
+    "small_effect_claim_allowed": false
+  },
+  "variance_component_contract": {
+    "world_cluster": "independent_random_sampling_unit_within_task",
+    "task_mechanism_family": "five_level_fixed_effect_and_reported_heterogeneity_axis",
+    "prior_arm": "within_world_cluster_paired_fixed_effect",
+    "participant_model_and_scaffold": "single_frozen_method_level_confounded_with_method_version_no_cross_model_generalization",
+    "provider_session": "one_session_nested_within_cell_no_separately_estimable_session_variance",
+    "provider_repeat": "one_nested_technical_observation_not_an_independent_sample",
+    "task_by_prior_interaction": "estimable_heterogeneity_not_a_separate_confirmatory_family",
+    "model_by_session_interaction": "not_identifiable_in_the_frozen_single_method_single_session_design",
+    "operations_experiments_and_checkpoints": "nested_measurements_not_independent_samples"
+  },
+  "multiplicity_and_reporting": {
+    "primary_family": "single_H3_intersection_union",
+    "secondary_family": "Holm",
+    "confidence_intervals": "95_percent",
+    "task_specific_results": "heterogeneity_intervals_not_separate_success_claims",
+    "phenotype_vector": ["prior_benefit", "prior_harm", "correction_recovery"],
+    "single_leaderboard_score_forbidden": true
+  }
+}

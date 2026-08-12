@@ -15,6 +15,10 @@ from chemworld.eval.mechanism_adaptation_execution import load_protocol_object
 from chemworld.eval.mechanism_gate_decision import gate_a_execution_contract_binding
 from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_ae_formal_cohort import (
+    load_ae_formal_cohort,
+    validate_ae_public_cells,
+)
 from chemworld.eval.work_ii_c2_admission import (
     C2_LOCI,
     C2_OUTCOME_BLIND_SELECTION_VERSION,
@@ -1139,7 +1143,10 @@ def build_formal_preflight(
     design_digest = canonical_json_sha256(design)
     analysis_digest = canonical_json_sha256(analysis)
     analysis_binding = _object(analysis.get("design_binding"), "analysis.design_binding")
-    if analysis_binding.get("sha256") != design_digest:
+    if (
+        analysis_binding.get("path") != _relative(root, design_path)
+        or analysis_binding.get("sha256") != design_digest
+    ):
         errors.append("analysis plan does not bind the current formal design")
     arms = tuple(_string_list(design.get("prior_arms"), "design.prior_arms"))
     if arms != FORMAL_ARMS:
@@ -1181,6 +1188,17 @@ def build_formal_preflight(
         "world_cohort.private_confirmation",
     )
     task_world_seeds = _object(public.get("task_world_seeds"), "task_world_seeds")
+    if design.get("schema_version") == "chemworld-work-ii-formal-design-0.2":
+        expected_ae_public, expected_ae_construction, cohort_errors = (
+            load_ae_formal_cohort(root, design)
+        )
+        errors.extend(cohort_errors)
+    else:
+        expected_ae_public = {
+            str(task_id): [int(seed) for seed in seeds]
+            for task_id, seeds in task_world_seeds.items()
+        }
+        expected_ae_construction = {}
     development_seeds = [int(item) for item in development.get("world_seeds", [])]
     public_namespace_start = int(public.get("namespace_start", -1))
     public_namespace_size = int(public.get("namespace_size", -1))
@@ -1313,6 +1331,9 @@ def build_formal_preflight(
     evaluator_truth_execution_count = 0
     evaluator_truth_query_metric_count = 0
     public_world_seeds: list[int] = []
+    construction_world_seeds = [
+        seed for seeds in expected_ae_construction.values() for seed in seeds
+    ]
     locus_task_counts = dict.fromkeys(FORMAL_C2_LOCI, 0)
 
     def add_task_to_schedule(spec: Mapping[str, Any], seeds: list[int]) -> None:
@@ -1519,6 +1540,8 @@ def build_formal_preflight(
         )
 
     ae_cells = [cell for cell in cells if cell.get("c2_locus") == "A_E"]
+    if design.get("schema_version") == "chemworld-work-ii-formal-design-0.2":
+        errors.extend(validate_ae_public_cells(root, design, ae_cells))
     c2_admission = build_c2_admission_report(
         root,
         c2_admission_plan_path,
@@ -1527,7 +1550,11 @@ def build_formal_preflight(
     )
     c2_specs, c2_schedule_errors = _resolve_c2_terminal_task_specs(root, c2_admission)
     prerequisite_errors.extend(f"C2 formal schedule: {item}" for item in c2_schedule_errors)
-    unavailable_seeds = {*development_seeds, *public_world_seeds}
+    unavailable_seeds = {
+        *development_seeds,
+        *construction_world_seeds,
+        *public_world_seeds,
+    }
     for spec in c2_specs:
         selection_binding = _object(spec["outcome_blind_selection"], "selection binding")
         selection_sha256 = str(selection_binding.get("embedded_sha256", ""))
@@ -1636,9 +1663,15 @@ def build_formal_preflight(
         "world_split_contract": {
             "manifest_split": "public_formal",
             "development_and_qualification_world_seeds": development_seeds,
+            "exposed_construction_only": {
+                "task_world_seeds": expected_ae_construction,
+                "world_identity_count": len(set(construction_world_seeds)),
+                "participant_cell_count": 0,
+            },
             "public_formal": {
                 "namespace_start": public_namespace_start,
                 "namespace_size": public_namespace_size,
+                "task_world_seeds": expected_ae_public,
                 "world_identity_count": len(set(public_world_seeds)),
             },
             "private_confirmation": {

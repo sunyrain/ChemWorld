@@ -15,6 +15,7 @@ from chemworld.eval.provenance import (
     git_source_commit,
     git_worktree_dirty,
 )
+from chemworld.eval.work_ii_ae_formal_cohort import validate_ae_public_cells
 from chemworld.eval.work_ii_execution_mode import (
     ExecutionMode,
     validate_execution_envelope,
@@ -1377,6 +1378,8 @@ def build_c2_admission_report(
     runtime_commit = release_cohort[1] if release_cohort is not None else None
 
     schedule = _schedule_binding(ae_public_cells)
+    if design.get("schema_version") == "chemworld-work-ii-formal-design-0.2":
+        evidence_errors.extend(validate_ae_public_cells(root, design, ae_public_cells))
     if (
         len(ae_public_cells) != C2_PUBLIC_AE_CELL_COUNT
         or ae_block.get("public_schedule_cell_count") != C2_PUBLIC_AE_CELL_COUNT
