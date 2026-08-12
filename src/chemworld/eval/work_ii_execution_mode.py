@@ -180,7 +180,12 @@ def validate_release_manifest(
         if current_surface_sha256 != surface_sha256:
             errors.append("Work II release execution surface changed after freeze")
 
-    if _is_hex_digest(tested_commit, 40) and _is_hex_digest(surface_sha256, 64):
+    if (
+        isinstance(tested_commit, str)
+        and _is_hex_digest(tested_commit, 40)
+        and isinstance(surface_sha256, str)
+        and _is_hex_digest(surface_sha256, 64)
+    ):
         if manifest.get("freeze_id") != _freeze_id(
             tested_commit=tested_commit,
             execution_surface_sha256=surface_sha256,

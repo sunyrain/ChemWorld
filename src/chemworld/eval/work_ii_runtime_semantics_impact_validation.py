@@ -142,11 +142,16 @@ def validate_runtime_semantics_impact_audit(report: Any) -> dict[str, Any]:
             if isinstance(artifacts, list)
             else []
         )
+        valid_artifact_action_counts = [
+            value
+            for value in artifact_action_counts
+            if isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        ]
         if (
             not isinstance(artifacts, list)
             or len(artifact_action_counts) != len(artifacts)
-            or not all(_nonnegative_integer(value) for value in artifact_action_counts)
-            or sum(artifact_action_counts) != action_count
+            or len(valid_artifact_action_counts) != len(artifact_action_counts)
+            or sum(valid_artifact_action_counts) != action_count
         ):
             failures.append(f"{prefix}:action_denominator_mismatch")
         has_trigger = bool(trigger_ids)

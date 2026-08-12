@@ -443,15 +443,14 @@ def _phenotypes(cell_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
         blind = blind if isinstance(blind, Mapping) else {}
         improvement = checkpoint.get("primary_improvement")
         gain = blind.get("recommendation_gain_over_incumbent")
-        eligible = (
-            row.get("terminal_state") == "completed"
-            and blind.get("completed_execution_count") == 6
-            and isinstance(improvement, int | float)
-            and not isinstance(improvement, bool)
-            and isinstance(gain, int | float)
-            and not isinstance(gain, bool)
-        )
-        if not eligible:
+        if (
+            row.get("terminal_state") != "completed"
+            or blind.get("completed_execution_count") != 6
+            or not isinstance(improvement, int | float)
+            or isinstance(improvement, bool)
+            or not isinstance(gain, int | float)
+            or isinstance(gain, bool)
+        ):
             label = "unclassified_failed_or_missing"
         elif float(improvement) > 0.0 and float(gain) > 0.0:
             label = "understands_and_acts"
@@ -477,14 +476,10 @@ def _phenotypes(cell_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
 
 
 def _law_summary_denominators(cell_rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
-    summaries = [
-        (
-            row.get("final_law_summary")
-            if isinstance(row.get("final_law_summary"), Mapping)
-            else {}
-        )
-        for row in cell_rows
-    ]
+    summaries: list[Mapping[str, Any]] = []
+    for row in cell_rows:
+        final_law_summary = row.get("final_law_summary")
+        summaries.append(final_law_summary if isinstance(final_law_summary, Mapping) else {})
     evaluated_rows = [
         (row, summary)
         for row, summary in zip(cell_rows, summaries, strict=True)

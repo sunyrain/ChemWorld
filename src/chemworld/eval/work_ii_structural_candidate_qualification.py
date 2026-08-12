@@ -490,9 +490,9 @@ def _model_qualification(
         metrics,
         groups=validation_groups,
     )
-    comparisons = []
-    aligned_errors = []
-    misspecified_errors = []
+    comparisons: list[dict[str, Any]] = []
+    aligned_errors: list[float] = []
+    misspecified_errors: list[float] = []
     for (axis_a, axis_b), observed in group_means.items():
         for metric in metrics:
             aligned_prediction = _predict(

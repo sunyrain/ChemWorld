@@ -121,9 +121,9 @@ def analyze_observation_world(
     if not all(checks.values()):
         return _early_result(screen_id, noisy_rows, truth_rows, checks)
 
-    metric_reports = {}
+    metric_reports: dict[str, dict[str, Any]] = {}
     for metric in spec["metrics"]:
-        by_level = []
+        by_level: list[dict[str, Any]] = []
         for level_index in range(3):
             observations = [
                 float(row["metrics"][metric])

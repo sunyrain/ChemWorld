@@ -98,11 +98,14 @@ def validate_private_seal(
     ):
         errors.append("private seal namespace contract is invalid")
         namespace_start, namespace_size, worlds_per_task = 0, 0, 0
-    namespace_end = int(namespace_start) + int(namespace_size)
+    assert isinstance(namespace_start, int)
+    assert isinstance(namespace_size, int)
+    assert isinstance(worlds_per_task, int)
+    namespace_end = namespace_start + namespace_size
     private_flat: list[int] = []
     for task_id in expected_tasks:
         values = raw_seeds.get(task_id)
-        if not isinstance(values, list) or len(values) != int(worlds_per_task):
+        if not isinstance(values, list) or len(values) != worlds_per_task:
             errors.append("private seal world denominator mismatch")
             continue
         for value in values:
@@ -110,7 +113,7 @@ def validate_private_seal(
                 errors.append("private seal contains a non-integer world identity")
                 continue
             private_flat.append(value)
-            if not int(namespace_start) <= value < namespace_end:
+            if not namespace_start <= value < namespace_end:
                 errors.append("private seal identity is outside its namespace")
 
     public_seeds = {
@@ -183,9 +186,11 @@ def build_private_confirmation_preflight(
         raise WorkIIPrivateConfirmationError("private confirmation contract drifted")
 
     templates: dict[tuple[str, str], Mapping[str, Any]] = {}
-    for cell in _sequence(public_manifest.get("cells"), "public cells"):
-        cell = _object(cell, "public cell")
-        templates.setdefault((str(cell["task_id"]), str(cell["prior_arm"])), cell)
+    for raw_cell in _sequence(public_manifest.get("cells"), "public cells"):
+        public_cell = _object(raw_cell, "public cell")
+        templates.setdefault(
+            (str(public_cell["task_id"]), str(public_cell["prior_arm"])), public_cell
+        )
     raw_seeds = _object(seal.get("task_world_seeds"), "private task worlds")
     task_rows = [_object(row, "design task") for row in _sequence(design.get("tasks"), "tasks")]
     cells: list[dict[str, Any]] = []

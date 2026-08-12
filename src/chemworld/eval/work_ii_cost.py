@@ -419,7 +419,8 @@ def build_formal_cost_contract(
     hard_cost = 0.0
     for task_id in task_ids:
         binding = binding_by_task.get(task_id)
-        campaign = binding.get("campaign_config") if isinstance(binding, Mapping) else None
+        binding_record: Mapping[str, Any] = binding if isinstance(binding, Mapping) else {}
+        campaign = binding_record.get("campaign_config")
         if not isinstance(campaign, Mapping):
             raise ValueError(f"formal task lacks campaign binding: {task_id}")
         relative = campaign.get("path")
@@ -464,8 +465,8 @@ def build_formal_cost_contract(
         per_task.append(
             {
                 "task_binding_key": task_id,
-                "c2_locus": binding.get("c2_locus"),
-                "task_id": binding.get("task_id"),
+                "c2_locus": binding_record.get("c2_locus"),
+                "task_id": binding_record.get("task_id"),
                 "campaign_config_path": relative,
                 "campaign_config_sha256": digest,
                 "participant_cell_count": initial_attempts,

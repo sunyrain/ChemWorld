@@ -164,7 +164,7 @@ def _target_coordinate(task_id: str, target_field: str) -> int:
         ) from error
 
 
-def _moved_pair(permutation: Sequence[object]) -> tuple[int, int]:
+def _moved_pair(permutation: Sequence[Any]) -> tuple[int, int]:
     values = [int(value) for value in permutation]
     moved = [index for index, source in enumerate(values) if index != source]
     if (
@@ -1210,9 +1210,13 @@ def validate_qualification_report(
             try:
                 records = load_jsonl(trajectory_path)
                 if release_mode:
+                    if not isinstance(execution_context, Mapping):
+                        raise AEPriorQualificationError(
+                            "release execution context must be an object"
+                        )
                     commit_errors = _validate_trajectory_commit(
-                    records,
-                    execution_context,
+                        records,
+                        execution_context,
                     )
                     errors.extend(
                         "A-E prior-qualification " + error + ": " + execution_id
@@ -1272,9 +1276,11 @@ def validate_qualification_report(
         "registered_metric_values": EXPECTED_REGISTERED_METRIC_VALUE_COUNT,
         "paired_metric_differences": EXPECTED_PAIRED_METRIC_DIFFERENCE_COUNT,
     }
-    for key, value in fixed_denominators.items():
-        if denominators.get(key) != value:
-            errors.append(f"A-E prior-qualification denominator mismatch: {key}")
+    for denominator_name, value in fixed_denominators.items():
+        if denominators.get(denominator_name) != value:
+            errors.append(
+                f"A-E prior-qualification denominator mismatch: {denominator_name}"
+            )
 
     region_rows = report.get("region_results")
     world_rows = report.get("world_results")
@@ -1318,19 +1324,21 @@ def validate_qualification_report(
         "all_executions_completed_and_replayable",
     }
     for row in region_rows:
-        key = (
+        region_key = (
             str(row.get("task_id", "")),
             int(row.get("world_seed", -1)),
             str(row.get("region_id", "")),
         )
-        if key in region_by_key:
+        if region_key in region_by_key:
             errors.append("A-E prior-qualification region identity is duplicated")
-        region_by_key[key] = row
-        metric_binding = binding_by_task.get(key[0], {})
+        region_by_key[region_key] = row
+        metric_binding = binding_by_task.get(region_key[0], {})
         if row.get("registered_metric_ids") != metric_binding.get(
             "registered_metric_ids"
         ):
-            errors.append(f"A-E prior-qualification region metric binding mismatch: {key}")
+            errors.append(
+                f"A-E prior-qualification region metric binding mismatch: {region_key}"
+            )
         vector = row.get("mean_metric_vector_separation")
         single = row.get("maximum_single_metric_separation")
         noise = row.get("paired_noise")
@@ -1360,12 +1368,12 @@ def validate_qualification_report(
             checks.get(name) is not expected
             for name, expected in expected_numeric_checks.items()
         ):
-            errors.append(f"A-E prior-qualification region checks mismatch: {key}")
+            errors.append(f"A-E prior-qualification region checks mismatch: {region_key}")
         recomputed_pass = set(checks) == check_names and all(
             value is True for value in checks.values()
         )
         if row.get("passed") is not recomputed_pass:
-            errors.append(f"A-E prior-qualification region pass mismatch: {key}")
+            errors.append(f"A-E prior-qualification region pass mismatch: {region_key}")
     if set(region_by_key) != expected_region_keys:
         errors.append("A-E prior-qualification region identity mismatch")
 
@@ -1380,12 +1388,14 @@ def validate_qualification_report(
     }
     world_by_key: dict[tuple[str, int], Mapping[str, Any]] = {}
     for row in world_rows:
-        key = (str(row.get("task_id", "")), int(row.get("world_seed", -1)))
-        if key in world_by_key:
+        world_key = (str(row.get("task_id", "")), int(row.get("world_seed", -1)))
+        if world_key in world_by_key:
             errors.append("A-E prior-qualification world identity is duplicated")
-        world_by_key[key] = row
+        world_by_key[world_key] = row
         child_rows = [
-            child for child_key, child in region_by_key.items() if child_key[:2] == key
+            child
+            for child_key, child in region_by_key.items()
+            if child_key[:2] == world_key
         ]
         passed_regions = sum(child.get("passed") is True for child in child_rows)
         recipes_needed = len(child_rows) * 2
@@ -1420,7 +1430,7 @@ def validate_qualification_report(
             "passed": recomputed_pass,
         }
         if any(row.get(name) != value for name, value in expected_fields.items()):
-            errors.append(f"A-E prior-qualification world aggregation mismatch: {key}")
+            errors.append(f"A-E prior-qualification world aggregation mismatch: {world_key}")
     if set(world_by_key) != expected_world_keys:
         errors.append("A-E prior-qualification world identity mismatch")
 
@@ -1450,9 +1460,12 @@ def validate_qualification_report(
         "passed_task_worlds": sum(row.get("passed") is True for row in world_rows),
         "passed_tasks": sum(row.get("passed") is True for row in task_rows),
     }
-    for key, value in recomputed_counts.items():
-        if denominators.get(key) != value:
-            errors.append(f"A-E prior-qualification derived denominator mismatch: {key}")
+    for denominator_name, value in recomputed_counts.items():
+        if denominators.get(denominator_name) != value:
+            errors.append(
+                "A-E prior-qualification derived denominator mismatch: "
+                + denominator_name
+            )
     completed = denominators.get("completed_execution_receipts")
     if (
         isinstance(completed, bool)

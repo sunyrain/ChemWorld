@@ -541,12 +541,12 @@ def build_development_analysis(
     rows: list[dict[str, Any]] = []
     source_records: list[dict[str, Any]] = []
     expected_by_group: dict[str, int] = defaultdict(int)
-    for source, report in loaded_sources:
+    for source, source_report in loaded_sources:
         source_id = str(source["source_id"])
         provider_group = str(source["provider_group"])
         provider_id = str(source["provider_id"])
         task_id = str(source["task_id"])
-        expected = int(report.get("expected_cell_count", 0))
+        expected = int(source_report.get("expected_cell_count", 0))
         expected_by_group[provider_group] += expected
         source_records.append(
             {
@@ -557,10 +557,10 @@ def build_development_analysis(
                 "path": source["path"],
                 "sha256": source["sha256"],
                 "expected_cell_count": expected,
-                "matrix_elapsed_s": report.get("elapsed_s"),
+                "matrix_elapsed_s": source_report.get("elapsed_s"),
             }
         )
-        seed_reports = report.get("seed_reports")
+        seed_reports = source_report.get("seed_reports")
         for seed_report in (seed_reports if isinstance(seed_reports, list) else ()):
             if not isinstance(seed_report, Mapping):
                 continue

@@ -330,14 +330,14 @@ def build_formal_analysis_dataset(
     }
     receipts: dict[str, Mapping[str, Any]] = {}
     errors: list[str] = []
-    for receipt in terminal_receipts:
-        key = str(receipt.get("cell_key_sha256", ""))
+    for terminal_receipt in terminal_receipts:
+        key = str(terminal_receipt.get("cell_key_sha256", ""))
         if key not in cells or key in receipts:
             errors.append("terminal receipts contain an unexpected or duplicate cell")
             continue
-        receipt_errors = _validate_terminal_receipt(receipt, cells[key])
+        receipt_errors = _validate_terminal_receipt(terminal_receipt, cells[key])
         errors.extend(f"{cells[key]['cell_id']}: {error}" for error in receipt_errors)
-        receipts[key] = receipt
+        receipts[key] = terminal_receipt
     if set(receipts) != set(cells):
         errors.append("terminal receipts do not cover all 75 formal cells")
 
@@ -353,10 +353,10 @@ def build_formal_analysis_dataset(
     cluster_arm_rows: dict[str, dict[str, dict[str, Any]]] = {}
     for cell in manifest["cells"]:
         key = str(cell["cell_key_sha256"])
-        receipt = receipts.get(key)
-        if receipt is None:
+        bound_receipt = receipts.get(key)
+        if bound_receipt is None:
             continue
-        result = receipt.get("result")
+        result = bound_receipt.get("result")
         result = result if isinstance(result, Mapping) else {}
         analysis = result.get("analysis")
         analysis = analysis if isinstance(analysis, Mapping) else {}
@@ -369,22 +369,19 @@ def build_formal_analysis_dataset(
         score = score_cell_checkpoint_errors(
             analysis,
             evaluator_truth,
-            terminal_state=str(receipt["state"]),
+            terminal_state=str(bound_receipt["state"]),
         )
+        exact_replay = result.get("exact_replay")
         participant_process, process_errors = _participant_process_record(
             analysis,
-            exact_replay=(
-                result.get("exact_replay")
-                if isinstance(result.get("exact_replay"), Mapping)
-                else {}
-            ),
-            terminal_state=str(receipt["state"]),
+            exact_replay=exact_replay if isinstance(exact_replay, Mapping) else {},
+            terminal_state=str(bound_receipt["state"]),
             cell_id=str(cell["cell_id"]),
         )
         errors.extend(process_errors)
         blind, blind_errors = _blind_report_record(
             cell,
-            str(receipt["state"]),
+            str(bound_receipt["state"]),
             blind_packs,
             manifest,
         )
@@ -398,9 +395,9 @@ def build_formal_analysis_dataset(
             "world_cluster_id": cell["world_cluster_id"],
             "task_id": cell["task_id"],
             "prior_arm": cell["prior_arm"],
-            "terminal_state": receipt["state"],
-            "terminal_reason_code": receipt["reason_code"],
-            "terminal_receipt_sha256": receipt["receipt_sha256"],
+            "terminal_state": bound_receipt["state"],
+            "terminal_reason_code": bound_receipt["reason_code"],
+            "terminal_receipt_sha256": bound_receipt["receipt_sha256"],
             "participant_trajectory": trajectory,
             "evaluator_truth_report_sha256": truth_report.get("report_sha256"),
             "checkpoint_error": score,

@@ -301,7 +301,9 @@ def audit_evidence_report(root: Path, report_path: Path) -> dict[str, Any]:
     execution_evidence_sources: list[str] = []
     task_ids = _task_ids(report)
     execution_evidence = _looks_like_execution_evidence(report)
-    queue = [(report_path, None, "file_sha256", report)]
+    queue: list[tuple[Path, str | None, str | None, Any]] = [
+        (report_path, None, "file_sha256", report)
+    ]
     queued = {report_path}
     while queue:
         path, expected_sha, hash_kind, value = queue.pop(0)

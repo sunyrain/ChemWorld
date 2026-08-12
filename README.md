@@ -45,6 +45,10 @@ cd ChemWorld
 python -m pip install -e ".[dev]"
 ```
 
+The commands above are the general editable-install route for users. Repository contributors should
+use the committed lockfile: run `uv sync --extra dev` once, then execute checks and repository tools
+with `uv run --no-sync ...`; see [CONTRIBUTING.md](CONTRIBUTING.md).
+
 The default development extra collects the complete suite and skips optional RL modules when their
 backend is absent. RL development and training use `python -m pip install -e ".[dev,rl]"`, which also
 installs the supported Stable-Baselines3/Torch stack.

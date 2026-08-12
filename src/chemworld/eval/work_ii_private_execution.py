@@ -297,13 +297,13 @@ class PrivateCellStore:
                     raise ValueError("invalid private infrastructure receipt")
             except (KeyError, OSError, TypeError, ValueError, json.JSONDecodeError):
                 invalid.append(path.as_posix())
-        for key, receipt in terminal.items():
-            if (key, str(receipt.get("attempt_id", ""))) not in provider_attempt_ids:
+        for key, terminal_receipt in terminal.items():
+            if (key, str(terminal_receipt.get("attempt_id", ""))) not in provider_attempt_ids:
                 invalid.append((self.receipts / f"{key}.json").as_posix())
                 continue
-            result = receipt.get("result")
+            result = terminal_receipt.get("result")
             result = result if isinstance(result, Mapping) else {}
-            state = receipt.get("state")
+            state = terminal_receipt.get("state")
             trajectory = result.get("trajectory")
             if state == "right_censored":
                 if not self._artifact_binding_valid(trajectory):

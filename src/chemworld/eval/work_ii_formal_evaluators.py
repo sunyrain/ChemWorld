@@ -462,7 +462,9 @@ def _blind_pack(
     }
     if observed_paths != expected_receipt_paths:
         raise ValueError(f"{unit_root.name}: blind evaluator receipt coverage drifted")
-    errors = validate_blind_evaluation_report(report, plan, receipts)
+    receipt_views: list[Mapping[str, Any]] = []
+    receipt_views.extend(receipts)
+    errors = validate_blind_evaluation_report(report, plan, receipt_views)
     if errors:
         raise ValueError(f"{unit_root.name}: invalid blind evaluator report: " + "; ".join(errors))
     return plan, report, receipts

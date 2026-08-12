@@ -176,7 +176,7 @@ def analyze(
         }
 
     passing_metric_count = sum(report["effect_passed"] for report in metric_reports.values())
-    supporting_cells = {
+    supporting_cells: set[tuple[int, int, int, str]] = {
         (
             int(cell["temperature_index"]),
             int(cell["duration_index"]),
@@ -188,7 +188,7 @@ def analyze(
         if cell["both_safe"] and abs(float(cell["signed_gap"])) >= float(report["effect_gate"])
     }
     separated_support = any(
-        sum(abs(left[index] - right[index]) for index in range(3)) >= 2
+        abs(left[0] - right[0]) + abs(left[1] - right[1]) + abs(left[2] - right[2]) >= 2
         for item_index, left in enumerate(sorted(supporting_cells))
         for right in sorted(supporting_cells)[item_index + 1 :]
     )
