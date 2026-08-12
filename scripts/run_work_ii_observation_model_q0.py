@@ -18,7 +18,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-observation-model-q0-20260811.json"
+    "work-ii-observation-model-q0-20260812.json"
 )
 SUMMARY_VERSION = "chemworld-work-ii-observation-model-q0-summary-0.1"
 
