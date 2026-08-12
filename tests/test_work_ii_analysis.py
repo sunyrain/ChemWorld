@@ -35,7 +35,7 @@ def _predictions() -> list[dict[str, object]]:
     ]
 
 
-def test_prediction_error_is_unclipped_normalized_mae() -> None:
+def test_prediction_error_is_bounded_normalized_mae() -> None:
     result = score_prediction_error(
         _predictions(),
         {"q1": {"yield": 0.9, "risk": 0.1}},
@@ -43,6 +43,13 @@ def test_prediction_error_is_unclipped_normalized_mae() -> None:
     )
     assert result.term_count == 2
     assert result.error == pytest.approx((0.4 + 0.1) / 2.0)
+
+    clipped = score_prediction_error(
+        _predictions(),
+        {"q1": {"yield": 2.0, "risk": 0.1}},
+        metric_scales={"yield": 0.5, "risk": 1.0},
+    )
+    assert clipped.terms[0]["normalized_absolute_error"] == 1.0
 
 
 def test_prediction_error_fails_closed_on_missing_or_duplicate_terms() -> None:
@@ -107,6 +114,7 @@ def test_cell_checkpoint_error_applies_censoring_and_missing_pre_rules() -> None
     assert missing_pre["effective_pre_error"] is None
     assert missing_pre["effective_final_error"] is None
     assert missing_pre["primary_improvement"] == 0.0
+    assert missing_pre["confirmatory_improvement_bounds"] == [-1.0, 1.0]
 
 
 def test_checkpoint_scoring_accepts_pattern_owned_snapshot_stages() -> None:
@@ -137,7 +145,7 @@ def test_checkpoint_scoring_accepts_pattern_owned_snapshot_stages() -> None:
     assert report["primary_improvement"] == pytest.approx(0.2)
 
 
-def test_cluster_record_uses_retained_zero_improvement_cells() -> None:
+def test_cluster_record_uses_symmetric_failure_bounds_not_zero_for_confirmation() -> None:
     records = {
         "opaque": {"effective_pre_error": 0.5, "primary_improvement": 0.1},
         "aligned_nominal": {
@@ -147,9 +155,31 @@ def test_cluster_record_uses_retained_zero_improvement_cells() -> None:
         "misindexed_nominal": {
             "effective_pre_error": None,
             "primary_improvement": 0.0,
+            "confirmatory_improvement_bounds": [-1.0, 1.0],
         },
     }
     cluster = build_cluster_correction_record(records)
     assert cluster["H1_prior_utility"] == pytest.approx(0.2)
     assert cluster["H2_prior_vulnerability"] is None
     assert cluster["H3_primary_contrast"] == pytest.approx(-0.05)
+    assert cluster["H3_primary_contrast_lower_bound"] == pytest.approx(-1.05)
+    assert cluster["H3_misindexed_improvement_lower_bound"] == -1.0
+
+
+def test_failed_aligned_and_misindexed_arms_receive_same_symmetric_bounds() -> None:
+    base = {
+        "opaque": {"effective_pre_error": 0.5, "primary_improvement": 0.1},
+        "aligned_nominal": {"effective_pre_error": 0.3, "primary_improvement": 0.05},
+        "misindexed_nominal": {"effective_pre_error": 0.7, "primary_improvement": 0.2},
+    }
+    failed_mis = {arm: dict(row) for arm, row in base.items()}
+    failed_mis["misindexed_nominal"]["confirmatory_improvement_bounds"] = [-1.0, 1.0]
+    failed_aligned = {arm: dict(row) for arm, row in base.items()}
+    failed_aligned["aligned_nominal"]["confirmatory_improvement_bounds"] = [-1.0, 1.0]
+
+    assert build_cluster_correction_record(failed_mis)[
+        "arm_confirmatory_improvement_bounds"
+    ]["misindexed_nominal"] == [-1.0, 1.0]
+    assert build_cluster_correction_record(failed_aligned)[
+        "arm_confirmatory_improvement_bounds"
+    ]["aligned_nominal"] == [-1.0, 1.0]

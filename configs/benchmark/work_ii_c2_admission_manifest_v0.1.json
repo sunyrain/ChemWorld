@@ -1,0 +1,34 @@
+{
+  "schema_version": "chemworld-work-ii-c2-admission-plan-0.1",
+  "program_scope": "C2",
+  "status": "not_ready_fail_closed",
+  "formal_execution_allowed": false,
+  "required_blocks": {
+    "A_E": {
+      "public_schedule_cell_count": 75,
+      "prior_qualification_report_path": null
+    },
+    "A_P": {
+      "required_terminal_task_count": 2,
+      "complete_experiments_per_cell": 10,
+      "task_admission_receipt_paths": []
+    },
+    "A_S": {
+      "required_terminal_task_count": 2,
+      "complete_experiments_per_cell": 12,
+      "task_admission_receipt_paths": []
+    }
+  },
+  "resource_calibration": {
+    "work_item": "W2-26",
+    "manifest_path": "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json",
+    "summary_path": null
+  },
+  "freeze_contract": {
+    "all_blocks_share_one_runtime_commit": true,
+    "clean_worktree_required_at_admission": true,
+    "partial_A_E_launch_forbidden": true,
+    "participant_outcomes_before_admission": 0,
+    "outcome_based_task_selection_forbidden": true
+  }
+}

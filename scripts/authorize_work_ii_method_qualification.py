@@ -13,10 +13,17 @@ from chemworld.eval.work_ii_qualification import (
     build_qualification_execution_authorization,
     validate_qualification_execution_authorization,
 )
+from chemworld.eval.work_ii_resource_calibration import (
+    build_resource_calibration_readiness,
+    validate_resource_calibration_readiness,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+CALIBRATION_MANIFEST = (
+    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+)
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -27,6 +34,7 @@ DEFAULT_OUTPUT = (
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--currency-ceiling-usd", type=float)
     parser.add_argument("--approved-at")
     parser.add_argument("--pricing-source")
@@ -43,6 +51,25 @@ def main() -> int:
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
+    calibration = build_resource_calibration_readiness(
+        ROOT,
+        CALIBRATION_MANIFEST,
+        summary_path=args.resource_calibration_summary,
+    )
+    calibration_errors = validate_resource_calibration_readiness(calibration)
+    if calibration_errors:
+        raise RuntimeError(
+            "W2-26 resource-calibration readiness failed: "
+            + "; ".join(calibration_errors)
+        )
+    if calibration.get("method_qualification_may_be_authorized") is not True:
+        missing = ",".join(
+            str(item) for item in calibration.get("missing_pattern_rounds", [])
+        )
+        raise RuntimeError(
+            "method qualification authorization is blocked until W2-26 passes; "
+            f"unresolved pattern rounds: {missing}"
+        )
     output = args.output.resolve()
     if args.check:
         if any(

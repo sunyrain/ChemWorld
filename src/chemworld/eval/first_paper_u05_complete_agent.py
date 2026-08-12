@@ -311,11 +311,10 @@ def resolve_existing_evidence(repository_root: str | Path) -> dict[str, Any]:
 
     generated = u05_report.get("generated_qualification")
     cases = generated.get("cases") if isinstance(generated, Mapping) else None
-    if not isinstance(cases, list):
+    if not isinstance(generated, Mapping) or not isinstance(cases, list):
         raise CompleteAgentQualificationError(
             "current composition qualification lacks generated cases"
         )
-    assert isinstance(generated, Mapping)
     unseen_pattern = generated.get("unseen_pattern")
     unseen_cases = [
         case

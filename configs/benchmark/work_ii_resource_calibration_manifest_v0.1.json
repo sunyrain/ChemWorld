@@ -1,0 +1,94 @@
+{
+  "schema_version": "chemworld-work-ii-resource-calibration-manifest-0.1",
+  "calibration_id": "work-ii-w2-26-pattern-resource-calibration-v0.1",
+  "status": "not_ready_fail_closed",
+  "formal_result": false,
+  "provider_execution_allowed": false,
+  "provider_calls_executed": 0,
+  "experiment_note_binding": {
+    "path": "workstreams/flagship_tasks/WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md",
+    "sha256": "1ea29a9c56197a70096b49e8087eff1389837fbdce84442fef977fccf668aa3f",
+    "hash_kind": "file_sha256"
+  },
+  "participant_method_binding": {
+    "path": "configs/methods/work_ii/participant_methods_work_ii_wellau_sol_medium_campaign.json",
+    "sha256": "3c9c46892f8b725b10974538c35a9120738bd845fb825ade7c91c5f3cd06b132",
+    "hash_kind": "canonical_json_sha256"
+  },
+  "provider_contract": {
+    "id": "wellau",
+    "wire_api": "responses",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium"
+  },
+  "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "patterns": [
+    {
+      "rounds": 8,
+      "locus": "A_E",
+      "representative_task_status": "frozen",
+      "task_id": "electrochemical-conversion",
+      "world_split": "development_and_qualification",
+      "world_seed": 0,
+      "campaign_config_binding": {
+        "path": "configs/benchmark/work_ii_campaign_pilot.json",
+        "sha256": "5b3dd3d6c6e9933b6dc1974ad32076508ca06ba020277607e783a820aaf0fd24",
+        "hash_kind": "canonical_json_sha256"
+      },
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "task_specific_resource_formula_frozen": true
+    },
+    {
+      "rounds": 10,
+      "locus": "A_P",
+      "representative_task_status": "pending_terminal_AP_admission",
+      "task_id": null,
+      "world_split": "development_and_qualification",
+      "world_seed": null,
+      "campaign_config_binding": null,
+      "checkpoint_complete_experiments": [0, 2, 4, 7, 10],
+      "task_specific_resource_formula_frozen": false
+    },
+    {
+      "rounds": 12,
+      "locus": "A_S",
+      "representative_task_status": "pending_two_terminal_AS_admissions",
+      "task_id": null,
+      "world_split": "development_and_qualification",
+      "world_seed": null,
+      "campaign_config_binding": null,
+      "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+      "task_specific_resource_formula_frozen": false
+    }
+  ],
+  "expected_denominators": {
+    "pattern_triplets": 3,
+    "cells": 9,
+    "complete_experiments": 90,
+    "belief_checkpoints": 45,
+    "accepted_provider_sessions": 9,
+    "accepted_participant_model_calls": 9
+  },
+  "measurement_contract": {
+    "participant_scientific_or_method_failure_retained": true,
+    "platform_defect_invalidates_entire_affected_triplet": true,
+    "affected_triplet_restart_from_first_cell_with_same_manifest": true,
+    "participant_exact_repeats_separate_from_provider_or_infrastructure_retries": true,
+    "planning_envelopes_non_authoritative_before_complete_calibration": true,
+    "observed_maxima_plus_protected_closeout_reserve_only_cap_inputs": true
+  },
+  "claim_boundary": {
+    "formal_participant_denominator": false,
+    "supports_H1_to_H4": false,
+    "supports_law_discovery_or_transfer": false,
+    "supports_model_ranking": false
+  },
+  "authorization_gate": {
+    "all_three_representative_tasks_hash_frozen_required": true,
+    "provider_contract_user_confirmation_required": true,
+    "credential_rotation_user_confirmation_required": true,
+    "calibration_currency_ceiling_required": true,
+    "clean_immutable_source_required": true,
+    "twelve_round_proxy_substitution_forbidden": true
+  }
+}

@@ -28,11 +28,9 @@ from chemworld.eval.work_ii_formal import (
     validate_formal_preflight,
 )
 from chemworld.eval.work_ii_qualification import (
-    qualification_receipt_sha256,
     validate_method_qualification_receipt,
 )
 from chemworld.eval.work_ii_release import (
-    preregistration_freeze_receipt_sha256,
     validate_preregistration_freeze_receipt,
 )
 
@@ -236,13 +234,13 @@ def execute_manifest(
         raise RuntimeError(
             "formal manifest validation failed: " + "; ".join(manifest_errors)
         )
+    if manifest.get("formal_execution_allowed") is not True:
+        raise RuntimeError("formal manifest does not authorize participant execution")
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError(
             "formal manifest binding validation failed: " + "; ".join(binding_errors)
         )
-    if manifest.get("formal_execution_allowed") is not True:
-        raise RuntimeError("formal manifest does not authorize participant execution")
     if manifest.get("blocking_requirements"):
         raise RuntimeError("formal manifest still contains blocking requirements")
     if formal_cost_contract is None:
@@ -634,13 +632,10 @@ def _run_execute(args: argparse.Namespace) -> int:
         raise RuntimeError("preregistration freeze lacks its formal currency budget")
     authorized_manifest = authorize_formal_preflight(
         manifest,
-        qualification_receipt_sha256=qualification_receipt_sha256(receipt),
-        preregistration_freeze_receipt_sha256=preregistration_freeze_receipt_sha256(
-            freeze_receipt
-        ),
-        formal_cost_contract_sha256=str(
-            formal_cost_contract.get("formal_cost_contract_sha256", "")
-        ),
+        qualification_receipt=receipt,
+        preregistration_freeze_receipt=freeze_receipt,
+        formal_cost_contract=formal_cost_contract,
+        root=ROOT,
     )
     report = execute_manifest(
         manifest=authorized_manifest,

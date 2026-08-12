@@ -32,6 +32,10 @@ from chemworld.eval.composition_qualification_design import (  # noqa: E402
     QUALIFICATION_DESIGN_VERSION,
 )
 from chemworld.eval.mechanism_adaptation_execution import load_json_object  # noqa: E402
+from chemworld.eval.mechanism_gate_decision import (  # noqa: E402
+    gate_a_execution_contract_binding,
+)
+from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION  # noqa: E402
 from chemworld.eval.provenance import (  # noqa: E402
     canonical_json_sha256 as _canonical_sha256,
 )
@@ -1142,8 +1146,9 @@ def _mechanism_structural_receipt_binding_current(
     protocol: Mapping[str, Any],
     plan: Mapping[str, Any],
 ) -> bool:
+    expected_execution_binding = gate_a_execution_contract_binding(protocol, plan)
     return bool(
-        receipt.get("schema_version") == "chemworld-mechanism-metric-embargo-receipt-0.1"
+        receipt.get("schema_version") == STRUCTURAL_RECEIPT_VERSION
         and receipt.get("stage") == stage
         and receipt.get("protocol_sha256") == _canonical_sha256(protocol)
         and receipt.get("gate_a_plan_sha256") == _canonical_sha256(plan)
@@ -1157,6 +1162,10 @@ def _mechanism_structural_receipt_binding_current(
         and isinstance(receipt.get("source_report_sha256"), str)
         and receipt.get("metric_embargo") == "active"
         and receipt.get("scientific_metrics_disclosed") is False
+        and receipt.get("execution_contract_binding_sha256")
+        == expected_execution_binding["binding_sha256"]
+        and receipt.get("runtime_source_tree_sha256")
+        == expected_execution_binding["runtime_source_tree_sha256"]
     )
 
 

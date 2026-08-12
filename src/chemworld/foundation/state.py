@@ -30,6 +30,7 @@ from chemworld.foundation.state_ledgers import (
     VesselThermalRecord,
     process_with_last_observation,
     process_with_metrics,
+    scale_species_initial_amounts,
     species_with_added_initial_amounts,
 )
 
@@ -282,6 +283,7 @@ __all__ = [
     "process_with_last_observation",
     "process_with_metrics",
     "scale_phase_ledger",
+    "scale_species_initial_amounts",
     "selected_phase_id",
     "species_with_added_initial_amounts",
     "upsert_equipment_record",

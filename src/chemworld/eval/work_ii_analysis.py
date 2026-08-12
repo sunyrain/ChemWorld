@@ -48,6 +48,9 @@ class ClusterCorrectionContrast:
         }
 
 
+FAILURE_AWARE_IMPROVEMENT_BOUNDS = (-1.0, 1.0)
+
+
 def _finite_number(value: Any, *, field: str) -> float:
     if isinstance(value, bool) or not isinstance(value, int | float):
         raise WorkIIAnalysisError(f"{field} must be numeric")
@@ -64,7 +67,7 @@ def score_prediction_error(
     metric_scales: Mapping[str, float] | None = None,
     default_metric_scale: float = 1.0,
 ) -> PredictionErrorSummary:
-    """Return the un-clipped mean normalized absolute error over exact query/metric pairs."""
+    """Return bounded normalized MAE over exact registered query/metric pairs."""
 
     if not math.isfinite(default_metric_scale) or default_metric_scale <= 0.0:
         raise WorkIIAnalysisError("default_metric_scale must be finite and positive")
@@ -118,7 +121,7 @@ def score_prediction_error(
                     "predicted_mean": predicted,
                     "evaluator_truth": truth,
                     "metric_scale": scale,
-                    "normalized_absolute_error": abs(predicted - truth) / scale,
+                    "normalized_absolute_error": min(abs(predicted - truth) / scale, 1.0),
                 }
             )
     if not terms:
@@ -294,6 +297,11 @@ def score_cell_checkpoint_errors(
         "effective_final_error": effective_final_error,
         "effective_final_stage": effective_final_stage,
         "primary_improvement": primary_improvement,
+        "confirmatory_improvement_bounds": (
+            [primary_improvement, primary_improvement]
+            if pre is not None and final is not None and terminal_state == "completed"
+            else list(FAILURE_AWARE_IMPROVEMENT_BOUNDS)
+        ),
         "missing_failure_rule": missing_rule,
     }
 
@@ -306,6 +314,7 @@ def build_cluster_correction_record(
     if set(arm_records) != set(WORK_II_ANALYSIS_ARMS):
         raise WorkIIAnalysisError("cluster analysis requires the exact three-arm triplet")
     improvements: dict[str, float] = {}
+    improvement_bounds: dict[str, tuple[float, float]] = {}
     pre_errors: dict[str, float | None] = {}
     for arm in WORK_II_ANALYSIS_ARMS:
         record = arm_records[arm]
@@ -313,6 +322,18 @@ def build_cluster_correction_record(
             record.get("primary_improvement"),
             field=f"{arm}.primary_improvement",
         )
+        raw_bounds = record.get("confirmatory_improvement_bounds")
+        if (
+            not isinstance(raw_bounds, Sequence)
+            or isinstance(raw_bounds, str | bytes)
+            or len(raw_bounds) != 2
+        ):
+            raw_bounds = [improvements[arm], improvements[arm]]
+        lower = _finite_number(raw_bounds[0], field=f"{arm}.improvement_lower")
+        upper = _finite_number(raw_bounds[1], field=f"{arm}.improvement_upper")
+        if not -1.0 <= lower <= upper <= 1.0:
+            raise WorkIIAnalysisError(f"{arm}.confirmatory_improvement_bounds are invalid")
+        improvement_bounds[arm] = (lower, upper)
         pre = record.get("effective_pre_error")
         pre_errors[arm] = (
             None
@@ -321,6 +342,8 @@ def build_cluster_correction_record(
         )
     misindexed_improvement = improvements["misindexed_nominal"]
     aligned_improvement = improvements["aligned_nominal"]
+    misindexed_lower, _ = improvement_bounds["misindexed_nominal"]
+    aligned_lower, aligned_upper = improvement_bounds["aligned_nominal"]
     h1 = (
         None
         if pre_errors["opaque"] is None or pre_errors["aligned_nominal"] is None
@@ -339,6 +362,12 @@ def build_cluster_correction_record(
         "H3_misindexed_improvement": misindexed_improvement,
         "H3_aligned_improvement": aligned_improvement,
         "H3_primary_contrast": misindexed_improvement - aligned_improvement,
+        "arm_confirmatory_improvement_bounds": {
+            arm: list(improvement_bounds[arm]) for arm in WORK_II_ANALYSIS_ARMS
+        },
+        "H3_primary_contrast_lower_bound": misindexed_lower - aligned_upper,
+        "H3_misindexed_improvement_lower_bound": misindexed_lower,
+        "H3_aligned_improvement_lower_bound": aligned_lower,
         "H3_primary_contrast_formula": (
             "(E_misindexed_pre-E_misindexed_final)-"
             "(E_aligned_pre-E_aligned_final)"
@@ -347,6 +376,7 @@ def build_cluster_correction_record(
 
 
 __all__ = [
+    "FAILURE_AWARE_IMPROVEMENT_BOUNDS",
     "WORK_II_ANALYSIS_ARMS",
     "WORK_II_ANALYSIS_SNAPSHOT_STAGES",
     "ClusterCorrectionContrast",

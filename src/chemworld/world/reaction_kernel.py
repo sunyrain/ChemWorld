@@ -531,11 +531,13 @@ def _hidden_reaction_modifier(
     solvent_index = solvent
     catalyst_reaction_index = min(reaction_index, catalyst_effects.shape[-1] - 1)
     solvent_reaction_index = min(reaction_index, solvent_effects.shape[-1] - 1)
+    reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+    catalyst_charged = float(reactor_settings.get("catalyst_amount_mol", 0.0)) > 0.0
     catalyst_factor = (
         catalyst_effects[catalyst_index, catalyst_reaction_index]
         if catalyst_effects.ndim == 2
         else catalyst_effects[catalyst_index]
-    )
+    ) if catalyst_charged else 1.0
     solvent_factor = (
         solvent_effects[solvent_index, solvent_reaction_index]
         if solvent_effects.ndim == 2

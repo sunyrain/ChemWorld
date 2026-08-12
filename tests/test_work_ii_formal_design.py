@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from pathlib import Path
 
-from scripts.audit_work_ii_formal_design import EXPECTED_TASKS, _public_selection
+from scripts.audit_work_ii_formal_design import (
+    EXPECTED_TASKS,
+    _public_selection,
+    _self_hash,
+)
 
 from chemworld.eval.work_ii_formal import (
     EXPECTED_METHOD_QUALIFICATION_CONTRACT,
@@ -62,3 +67,64 @@ def test_formal_design_freezes_five_tasks_three_arms_and_seventy_five_cells() ->
         "participant_cell",
         "blind_evaluator_execution",
     ]
+
+
+def test_ae_prior_qualification_is_multimetric_two_region_and_fail_closed() -> None:
+    contract = _design()["prior_distinguishability_qualification_contract"]
+    assert contract["participant_provider_calls"] == 0
+    assert contract["participant_outcomes_used"] is False
+    assert len(contract["frozen_counterevidence_regions"]) == 2
+    assert (
+        contract["region_pass_rules"][
+            "minimum_mean_normalized_L1_metric_vector_separation"
+        ]
+        > 0
+    )
+    assert contract["region_pass_rules"]["minimum_paired_noise_signal_to_noise_ratio"] > 0
+    assert contract["world_pass_rules"]["eight_round_falsifiability_required"] is True
+    assert contract["task_pass_rule"] == "all_five_frozen_public_worlds_pass"
+    assert "qualification_report_missing_or_stale" in contract["fail_closed_conditions"]
+
+
+def test_full_program_and_w2_26_gates_fail_closed_before_as_admission() -> None:
+    design = _design()
+    program = design["full_program_protocol_contract"]
+    assert program["primary_registered_scope"] == "C2"
+    assert set(program["C2"]["blocks"]) == {"A_E", "A_P", "A_S"}
+    assert program["C2"]["partial_AE_launch_while_AP_or_AS_can_still_change_runtime"] is False
+    assert program["C3"]["conditional"] is True
+    assert program["C4"]["conditional"] is True
+
+    calibration = design["resource_calibration_contract"]
+    assert calibration["status"] == "not_ready_fail_closed"
+    assert [row["rounds"] for row in calibration["triplets"]] == [8, 10, 12]
+    assert calibration["triplets"][2]["representative_task_status"] == (
+        "pending_two_terminal_AS_admissions"
+    )
+    assert calibration["twelve_round_proxy_substitution_before_AS_selection_forbidden"] is True
+
+
+def test_static_design_audit_cannot_claim_prior_qualification_pass(
+    tmp_path: Path, monkeypatch
+) -> None:
+    from scripts import audit_work_ii_formal_design as audit_module
+
+    monkeypatch.setattr(audit_module, "_run_score", lambda *args, **kwargs: 0.5)
+
+    # A missing private seal already makes this invocation fail, but the important
+    # invariant is independent: the strengthened scientific gate is never reported
+    # as passed by legacy scalar reachability diagnostics.
+    report = audit_module.audit(
+        ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json",
+        output_path=tmp_path / "audit.json",
+        private_seal_path=None,
+        create_private_seal=False,
+    )
+    qualification = report["prior_distinguishability_qualification"]
+    assert qualification["status"] == "pending_provider_free_qualification_execution"
+    assert qualification["formal_execution_gate_satisfied"] is False
+    assert report["audit_sha256"] == _self_hash(report, "audit_sha256")
+
+    tampered = deepcopy(report)
+    tampered["status"] = "passed"
+    assert tampered["audit_sha256"] != _self_hash(tampered, "audit_sha256")

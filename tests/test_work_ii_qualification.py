@@ -38,6 +38,25 @@ ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 SYNTHETIC_OBSERVED_COST_USD = 0.00004242
 
 
+@pytest.fixture(autouse=True)
+def _passed_resource_calibration_gate(monkeypatch: pytest.MonkeyPatch) -> None:
+    readiness = {
+        "status": "calibration_passed_method_qualification_eligible",
+        "method_qualification_may_be_authorized": True,
+        "missing_pattern_rounds": [],
+    }
+    monkeypatch.setattr(
+        qualification_runner,
+        "build_resource_calibration_readiness",
+        lambda *_args, **_kwargs: deepcopy(readiness),
+    )
+    monkeypatch.setattr(
+        qualification_runner,
+        "validate_resource_calibration_readiness",
+        lambda _report: [],
+    )
+
+
 @pytest.fixture
 def repo_tmp_path():
     path = Path(tempfile.mkdtemp(prefix=".pytest-workii-qualification-", dir=ROOT))

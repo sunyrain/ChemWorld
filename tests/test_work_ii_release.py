@@ -4,6 +4,7 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import chemworld.eval.work_ii_release as release
 from chemworld.eval.work_ii_release import (
     PREREGISTRATION_FREEZE_RECEIPT_VERSION,
     build_prerun_evidence_graph,
@@ -23,7 +24,7 @@ CLEAN_RELEASE = (
 
 def _clean_release_is_current() -> bool:
     receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
-    return validate_clean_release_receipt(receipt) == []
+    return validate_clean_release_receipt(receipt, root=ROOT) == []
 
 
 def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
@@ -68,6 +69,34 @@ def test_prerun_evidence_graph_rejects_cycle_even_with_refreshed_hash() -> None:
 
 def test_clean_release_receipt_validator_rejects_shallow_pass() -> None:
     assert validate_clean_release_receipt({"status": "passed"})
+
+
+def test_clean_release_receipt_is_not_current_for_a_dirty_repository(
+    monkeypatch,
+) -> None:
+    receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
+    monkeypatch.setattr(release, "git_worktree_dirty", lambda _root: True)
+    monkeypatch.setattr(release, "git_source_commit", lambda _root: "b" * 40)
+    monkeypatch.setattr(
+        release,
+        "_material_tree_changed_since",
+        lambda _root, _commit: (True, None),
+    )
+    monkeypatch.setattr(
+        release.subprocess,
+        "run",
+        lambda *args, **kwargs: type(
+            "Result",
+            (),
+            {"returncode": 0, "stderr": b""},
+        )(),
+    )
+    errors = validate_clean_release_receipt(receipt, root=ROOT)
+    assert "current Work II release worktree is dirty" in errors
+    assert (
+        "current Work II implementation differs from the clean-release tested commit"
+        in errors
+    )
 
 
 def test_preregistration_freeze_receipt_validator_rejects_shallow_pass(

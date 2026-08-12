@@ -44,6 +44,9 @@ from chemworld.eval.work_ii_qualification import (
     validate_qualification_attempt_authorization,
     validate_qualification_execution_authorization,
 )
+from chemworld.eval.work_ii_resource_calibration import (
+    validate_resource_calibration_authorization,
+)
 from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -148,11 +151,11 @@ def _formal_cell_context(
     manifest_errors = validate_formal_preflight(manifest)
     if manifest_errors:
         raise RuntimeError("formal manifest validation failed: " + "; ".join(manifest_errors))
+    if manifest.get("formal_execution_allowed") is not True:
+        raise RuntimeError("formal manifest does not authorize participant execution")
     errors = validate_formal_bindings(ROOT, manifest)
     if errors:
         raise RuntimeError("formal manifest binding validation failed: " + "; ".join(errors))
-    if manifest.get("formal_execution_allowed") is not True:
-        raise RuntimeError("formal manifest does not authorize participant execution")
     if manifest.get("blocking_requirements"):
         raise RuntimeError("formal manifest still contains blocking requirements")
     matches = [
@@ -264,6 +267,101 @@ def _qualification_execution_context(
     )
 
 
+def _resource_calibration_execution_context(
+    args: argparse.Namespace,
+    *,
+    config_path: Path,
+    world_seed: int,
+    arms: list[str],
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]] | None:
+    execute = bool(getattr(args, "resource_calibration_execution", False))
+    values = (
+        getattr(args, "resource_calibration_manifest", None),
+        getattr(args, "resource_calibration_authorization", None),
+        getattr(args, "resource_calibration_cost_reservation", None),
+    )
+    if not execute:
+        if any(value is not None for value in values):
+            raise RuntimeError(
+                "resource-calibration inputs require --resource-calibration-execution"
+            )
+        return None
+    if any(value is None for value in values):
+        raise RuntimeError("resource-calibration execution requires all gate artifacts")
+    if len(arms) != 1:
+        raise RuntimeError("resource calibration executes exactly one arm per child")
+    manifest_path, authorization_path, reservation_path = (
+        Path(value).resolve() for value in values
+    )
+    for path, label in (
+        (manifest_path, "resource-calibration manifest"),
+        (authorization_path, "resource-calibration authorization"),
+        (reservation_path, "resource-calibration reservation"),
+    ):
+        try:
+            path.relative_to(ROOT.resolve())
+        except ValueError as error:
+            raise RuntimeError(f"{label} must be inside the repository") from error
+    manifest = _load(manifest_path)
+    authorization = _load(authorization_path)
+    errors = validate_resource_calibration_authorization(
+        ROOT, authorization, manifest_path
+    )
+    if errors:
+        raise RuntimeError(
+            "resource-calibration authorization failed: " + "; ".join(errors)
+        )
+    matches = [
+        pattern
+        for pattern in manifest.get("patterns", [])
+        if isinstance(pattern, Mapping)
+        and pattern.get("world_seed") == world_seed
+        and pattern.get("campaign_config_binding", {}).get("path")
+        == config_path.relative_to(ROOT).as_posix()
+    ]
+    reservation = _load(reservation_path)
+    if (
+        len(matches) != 1
+        or canonical_json_sha256(_load(config_path))
+        != matches[0]["campaign_config_binding"].get("sha256")
+        or reservation.get("rounds") != matches[0].get("rounds")
+        or reservation.get("authorization_sha256")
+        != authorization.get("authorization_sha256")
+        or reservation.get("currency_ceiling_usd")
+        != authorization.get("currency_ceiling_usd")
+    ):
+        raise RuntimeError("resource-calibration child differs from its authorized pattern")
+    return manifest, authorization, {
+        "manifest": {
+            "path": manifest_path.relative_to(ROOT).as_posix(),
+            "file_sha256": file_sha256(manifest_path),
+            "canonical_json_sha256": canonical_json_sha256(manifest),
+        },
+        "authorization": {
+            "path": authorization_path.relative_to(ROOT).as_posix(),
+            "file_sha256": file_sha256(authorization_path),
+            "authorization_sha256": authorization["authorization_sha256"],
+        },
+        "cost_reservation": {
+            "path": reservation_path.relative_to(ROOT).as_posix(),
+            "file_sha256": file_sha256(reservation_path),
+            "rounds": reservation["rounds"],
+            "attempt_number": reservation["attempt_number"],
+            "authorization_sha256": reservation["authorization_sha256"],
+        },
+        "pattern": {
+            "rounds": matches[0]["rounds"],
+            "locus": matches[0]["locus"],
+            "task_id": matches[0]["task_id"],
+            "world_seed": matches[0]["world_seed"],
+            "prior_arm": arms[0],
+            "campaign_config_canonical_json_sha256": matches[0][
+                "campaign_config_binding"
+            ]["sha256"],
+        },
+    }
+
+
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     rendered = json.dumps(dict(payload), ensure_ascii=False, sort_keys=True)
@@ -312,6 +410,17 @@ def _analyze(
     resource_rejection_count = sum(
         1 for row in records if row.get("transaction_status") == "campaign_resource_rejected"
     )
+    unsafe_outcome_count = sum(
+        bool(row.get("observation", {}).get("flags", {}).get("unsafe"))
+        for row in records
+        if isinstance(row.get("observation"), Mapping)
+        and isinstance(row.get("observation", {}).get("flags"), Mapping)
+    )
+    dynamic_physical_failure_count = sum(
+        row.get("transaction_status") == "rolled_back"
+        and row.get("rollback_reason") == "constitution_failed"
+        for row in records
+    )
     final_campaign_resources: dict[str, Any] = {}
     if records:
         last_view = records[-1].get("agent_view", {})
@@ -347,6 +456,8 @@ def _analyze(
         "exact_repeat_count": len(recipe_hashes) - len(set(recipe_hashes)),
         "belief_snapshots": snapshots,
         "resource_rejection_count": resource_rejection_count,
+        "unsafe_outcome_count": unsafe_outcome_count,
+        "dynamic_physical_failure_count": dynamic_physical_failure_count,
         "final_campaign_resources": final_campaign_resources,
         "final_recommendation": recommendation,
         "final_recommendation_sha256": receipt.get("final_recommendation_sha256"),
@@ -838,6 +949,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         world_seed=world_seed,
         arms=arms,
     )
+    calibration_context = _resource_calibration_execution_context(
+        args,
+        config_path=config_path,
+        world_seed=world_seed,
+        arms=arms,
+    )
+    if qualification_context is not None and calibration_context is not None:
+        raise RuntimeError("one child cannot be both qualification and resource calibration")
     if args.prior_arm is not None:
         output.parent.mkdir(parents=True, exist_ok=True)
     else:
@@ -858,6 +977,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         if qualification_context is not None:
             row["qualification_attempt_authorization_binding"] = qualification_context[2]
+            write_json_atomic(cell_root / "summary.json", row)
+        if calibration_context is not None:
+            row["resource_calibration_execution_binding"] = calibration_context[2]
             write_json_atomic(cell_root / "summary.json", row)
         if formal_cell is not None:
             row["formal_cell"] = formal_cell
@@ -914,6 +1036,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_attempt_authorization_binding": (
             qualification_context[2] if qualification_context is not None else None
         ),
+        "resource_calibration_execution_binding": (
+            calibration_context[2] if calibration_context is not None else None
+        ),
         "config_sha256": canonical_json_sha256(config),
         "config_file_sha256": file_sha256(config_path),
         "world_seed": world_seed,
@@ -941,6 +1066,10 @@ def main() -> int:
     parser.add_argument("--qualification-authorization", type=Path)
     parser.add_argument("--qualification-attempt-authorization", type=Path)
     parser.add_argument("--qualification-cost-ledger", type=Path)
+    parser.add_argument("--resource-calibration-execution", action="store_true")
+    parser.add_argument("--resource-calibration-manifest", type=Path)
+    parser.add_argument("--resource-calibration-authorization", type=Path)
+    parser.add_argument("--resource-calibration-cost-reservation", type=Path)
     args = parser.parse_args()
     report = run(args)
     print(

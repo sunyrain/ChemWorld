@@ -10,7 +10,15 @@ from pathlib import Path
 from typing import Any
 from uuid import uuid4
 
+from chemworld.eval.mechanism_adaptation_execution import load_protocol_object
+from chemworld.eval.mechanism_gate_decision import gate_a_execution_contract_binding
+from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_c2_admission import (
+    build_c2_admission_report,
+    c2_admission_sha256,
+    validate_c2_admission_report,
+)
 
 FORMAL_PREFLIGHT_VERSION = "chemworld-work-ii-formal-matrix-preflight-0.1"
 FORMAL_CELL_VERSION = "chemworld-work-ii-formal-cell-0.1"
@@ -29,6 +37,9 @@ FORMAL_BELIEF_CHECKPOINTS_PER_CELL = len(FORMAL_SNAPSHOT_STAGES)
 FORMAL_RECEIPT_VERSION = "chemworld-work-ii-formal-cell-receipt-0.1"
 FORMAL_STORE_AUDIT_VERSION = "chemworld-work-ii-formal-store-audit-0.1"
 FORMAL_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
+DEFAULT_C2_ADMISSION_PLAN = Path(
+    "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json"
+)
 
 EXPECTED_PARTICIPANT_EXECUTION_CONTRACT: dict[str, Any] = {
     "execution_unit": "task_x_prior_arm_x_world_seed_cell",
@@ -231,8 +242,10 @@ FORMAL_BLOCKING_REQUIREMENTS = (
     "preregistration immutable execution package lacks its final freeze receipt",
 )
 
-_SOURCE_PATHS = (
+_FORMAL_ENTRYPOINT_PATHS = (
     "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
+    "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
+    "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json",
     "src/chemworld/agents/interactive_codex_experiment.py",
     "src/chemworld/agents/experiment_codex_ipc.py",
     "src/chemworld/agents/experiment_codex_mcp.py",
@@ -251,6 +264,7 @@ _SOURCE_PATHS = (
     "src/chemworld/eval/work_ii_preregistration.py",
     "src/chemworld/eval/work_ii_qualification.py",
     "src/chemworld/eval/work_ii_release.py",
+    "src/chemworld/eval/work_ii_resource_calibration.py",
     "src/chemworld/eval/work_ii_report.py",
     "src/chemworld/eval/work_ii_truth.py",
     "scripts/analyze_work_ii_confirmatory.py",
@@ -260,13 +274,132 @@ _SOURCE_PATHS = (
     "scripts/build_work_ii_private_confirmation_preflight.py",
     "scripts/build_work_ii_method_qualification_receipt.py",
     "scripts/build_work_ii_preregistration_freeze_receipt.py",
+    "scripts/build_work_ii_prerun_evidence_graph.py",
+    "scripts/audit_work_ii_clean_release.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",
     "scripts/run_work_ii_method_qualification_triplet.py",
     "scripts/run_work_ii_method_qualification.py",
+    "scripts/run_work_ii_resource_calibration.py",
     "pyproject.toml",
     "uv.lock",
 )
+
+_FORMAL_IMPLEMENTATION_SUFFIXES = frozenset({".json", ".py", ".yaml", ".yml"})
+_FORMAL_RUNTIME_CONFIG_DIRECTORIES = (
+    "configs/foundation",
+    "configs/mechanisms",
+    "configs/methods/work_ii",
+    "configs/scenarios",
+)
+
+
+def _formal_source_paths(root: Path, design: Mapping[str, Any]) -> tuple[str, ...]:
+    """Return the complete implementation surface that can affect a formal run.
+
+    The formal runner imports the ChemWorld package transitively, so maintaining a
+    hand-written list of selected modules is unsafe: a change in an environment,
+    world kernel, runtime service, task registry, schema, or physical model could
+    otherwise leave an old preflight looking current.  Bind the package and its
+    runtime configuration trees as one immutable implementation surface, together
+    with the explicit release/runner entry points.
+    """
+
+    paths = set(_FORMAL_ENTRYPOINT_PATHS)
+    package_root = root / "src/chemworld"
+    for path in package_root.rglob("*"):
+        if (
+            path.is_file()
+            and "__pycache__" not in path.parts
+            and path.suffix.lower() in _FORMAL_IMPLEMENTATION_SUFFIXES
+        ):
+            paths.add(_relative(root, path))
+    for relative_directory in _FORMAL_RUNTIME_CONFIG_DIRECTORIES:
+        directory = root / relative_directory
+        for path in directory.rglob("*"):
+            if path.is_file() and path.suffix.lower() in _FORMAL_IMPLEMENTATION_SUFFIXES:
+                paths.add(_relative(root, path))
+
+    paths.add("configs/current.json")
+    environment = design.get("environment_binding")
+    environment = environment if isinstance(environment, Mapping) else {}
+    for field in ("protocol", "gate_a_plan", "public_decision"):
+        value = environment.get(field)
+        if isinstance(value, str) and value:
+            paths.add(value)
+    return tuple(sorted(paths))
+
+
+def _validate_environment_binding(root: Path, design: Mapping[str, Any]) -> list[str]:
+    """Require the formal design to resolve the exact current Gate A evidence."""
+
+    errors: list[str] = []
+    environment = design.get("environment_binding")
+    environment = environment if isinstance(environment, Mapping) else {}
+    if environment.get("gate_a_evidence_current_required") is not True:
+        errors.append("formal design does not require current Gate A evidence")
+    for field in ("protocol", "gate_a_plan", "public_decision"):
+        relative = environment.get(field)
+        if not isinstance(relative, str) or not relative:
+            errors.append(f"formal design environment binding lacks {field}")
+            continue
+        path = (root / relative).resolve()
+        try:
+            path.relative_to(root)
+        except ValueError:
+            errors.append(f"formal design environment binding escapes repository: {field}")
+            continue
+        if not path.is_file():
+            errors.append(f"formal design environment binding is missing: {field}")
+
+    current_path = root / "configs/current.json"
+    if not current_path.is_file():
+        errors.append("current artifact registry is missing")
+        return errors
+    current = _load_object(current_path)
+    mechanism = current.get("mechanism_adaptation")
+    mechanism = mechanism if isinstance(mechanism, Mapping) else {}
+    if (
+        mechanism.get("gate_a_evidence_current") is not True
+        or mechanism.get("gate_a_pass") is not True
+        or mechanism.get("public_decision_report") != environment.get("public_decision")
+    ):
+        errors.append("formal design environment does not resolve current passed Gate A evidence")
+        return errors
+
+    protocol_path = root / str(environment.get("protocol", ""))
+    plan_path = root / str(environment.get("gate_a_plan", ""))
+    decision_path = root / str(environment.get("public_decision", ""))
+    a2_path = root / str(mechanism.get("a2_structural_receipt", ""))
+    a3_path = root / str(mechanism.get("a3_structural_receipt", ""))
+    gate_evidence_paths = (protocol_path, plan_path, decision_path, a2_path, a3_path)
+    if not all(path.is_file() for path in gate_evidence_paths):
+        errors.append("current Gate A runtime-binding evidence is incomplete")
+        return errors
+    protocol = load_protocol_object(protocol_path)
+    plan = _load_object(plan_path)
+    decision = _load_object(decision_path)
+    a2_receipt = _load_object(a2_path)
+    a3_receipt = _load_object(a3_path)
+    expected_binding = gate_a_execution_contract_binding(protocol, plan)
+    expected_binding_sha256 = expected_binding["binding_sha256"]
+    expected_runtime_sha256 = expected_binding["runtime_source_tree_sha256"]
+    receipt_rows = (("A2", a2_receipt), ("A3", a3_receipt))
+    if any(
+        receipt.get("schema_version") != STRUCTURAL_RECEIPT_VERSION
+        or receipt.get("execution_contract_binding_sha256") != expected_binding_sha256
+        or receipt.get("runtime_source_tree_sha256") != expected_runtime_sha256
+        for _, receipt in receipt_rows
+    ):
+        errors.append("current Gate A certificates do not bind the current runtime semantics")
+    if (
+        decision.get("a2_structural_receipt_sha256")
+        != canonical_json_sha256(a2_receipt)
+        or decision.get("a3_structural_receipt_sha256")
+        != canonical_json_sha256(a3_receipt)
+    ):
+        errors.append("current Gate A decision does not bind its structural receipts")
+    return errors
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -734,14 +867,21 @@ def build_formal_preflight(
     root: Path,
     design_path: Path,
     analysis_path: Path,
+    c2_admission_plan_path: Path | None = None,
 ) -> dict[str, Any]:
     """Build the deterministic 75-cell public schedule without provider execution."""
 
     root = root.resolve()
     design_path = design_path.resolve()
     analysis_path = analysis_path.resolve()
+    c2_admission_plan_path = (
+        root / DEFAULT_C2_ADMISSION_PLAN
+        if c2_admission_plan_path is None
+        else c2_admission_plan_path.resolve()
+    )
     design = _load_object(design_path)
     analysis = _load_object(analysis_path)
+    prerequisite_errors = _validate_environment_binding(root, design)
     errors: list[str] = []
 
     design_digest = canonical_json_sha256(design)
@@ -1122,7 +1262,18 @@ def build_formal_preflight(
     if int(population.get("independent_task_world_clusters", -1)) != len(cluster_ids):
         errors.append("analysis cluster denominator differs from the generated schedule")
 
-    source_bindings = [_binding(root, path) for path in _SOURCE_PATHS]
+    c2_admission = build_c2_admission_report(
+        root,
+        c2_admission_plan_path,
+        design_path,
+        cells,
+    )
+    c2_blockers = list(c2_admission.get("blocking_requirements", []))
+    prerequisite_errors.extend(f"C2 admission: {item}" for item in c2_blockers)
+
+    source_bindings = [
+        _binding(root, path) for path in _formal_source_paths(root, design)
+    ]
     blockers = list(FORMAL_BLOCKING_REQUIREMENTS)
     if (
         design.get("formal_execution_allowed") is True
@@ -1131,7 +1282,11 @@ def build_formal_preflight(
         errors.append("pre-registration inputs unexpectedly allow formal execution")
     report: dict[str, Any] = {
         "schema_version": FORMAL_PREFLIGHT_VERSION,
-        "status": "failed" if errors else "passed_execution_blocked",
+        "status": (
+            "failed_execution_blocked"
+            if errors or prerequisite_errors
+            else "passed_execution_blocked"
+        ),
         "formal_result": False,
         "formal_execution_allowed": False,
         "design_binding": {
@@ -1219,8 +1374,10 @@ def build_formal_preflight(
         },
         "task_bindings": task_bindings,
         "source_bindings": source_bindings,
+        "c2_admission": c2_admission,
         "cells": cells,
-        "blocking_requirements": blockers,
+        "blocking_requirements": [*blockers, *c2_blockers],
+        "prerequisite_errors": prerequisite_errors,
         "errors": errors,
     }
     report["preflight_sha256"] = _self_hash(report)
@@ -1231,6 +1388,11 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     """Validate self-hash, schedule uniqueness, and outcome-blind boundaries."""
 
     errors: list[str] = []
+    prerequisite_errors = report.get("prerequisite_errors")
+    if not isinstance(prerequisite_errors, list) or any(
+        not isinstance(item, str) or not item for item in prerequisite_errors
+    ):
+        errors.append("formal preflight prerequisite errors are malformed")
     if report.get("schema_version") != FORMAL_PREFLIGHT_VERSION:
         errors.append("unexpected formal preflight schema")
     if report.get("preflight_sha256") != _self_hash(report):
@@ -1239,9 +1401,15 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     if execution_allowed is True:
         authorization = report.get("authorization_bindings")
         authorization = authorization if isinstance(authorization, Mapping) else {}
+        c2_admission = report.get("c2_admission")
+        c2_admission = c2_admission if isinstance(c2_admission, Mapping) else {}
         if (
             report.get("status") != "passed_execution_authorized"
             or report.get("blocking_requirements") != []
+            or prerequisite_errors != []
+            or report.get("errors") != []
+            or c2_admission.get("status") != "ready_for_formal_authorization"
+            or c2_admission.get("formal_execution_allowed") is not True
             or any(
                 not isinstance(authorization.get(field), str)
                 or len(str(authorization.get(field))) != 64
@@ -1254,14 +1422,30 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
                     "qualification_receipt_sha256",
                     "preregistration_freeze_receipt_sha256",
                     "formal_cost_contract_sha256",
+                    "c2_admission_sha256",
                 )
             )
+            or authorization.get("c2_admission_sha256")
+            != c2_admission.get("admission_sha256")
         ):
             errors.append("formal execution manifest lacks exact authorization bindings")
     elif execution_allowed is False:
+        embedded_errors = report.get("errors")
+        embedded_errors = embedded_errors if isinstance(embedded_errors, list) else []
+        expected_status = (
+            "failed_execution_blocked"
+            if prerequisite_errors or embedded_errors
+            else "passed_execution_blocked"
+        )
+        c2_admission = report.get("c2_admission")
+        c2_admission = c2_admission if isinstance(c2_admission, Mapping) else {}
+        expected_blockers = [
+            *FORMAL_BLOCKING_REQUIREMENTS,
+            *list(c2_admission.get("blocking_requirements", [])),
+        ]
         if (
-            report.get("status") != "passed_execution_blocked"
-            or report.get("blocking_requirements") != list(FORMAL_BLOCKING_REQUIREMENTS)
+            report.get("status") != expected_status
+            or report.get("blocking_requirements") != expected_blockers
             or "authorization_bindings" in report
         ):
             errors.append("formal preflight does not preserve its blocked authorization state")
@@ -1419,15 +1603,31 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         errors.append("formal preflight prompt boundary is not fail-closed")
     if report.get("formal_result") is not False:
         errors.append("a preflight cannot be a formal result")
+    c2_admission = report.get("c2_admission")
+    if not isinstance(c2_admission, Mapping):
+        errors.append("formal preflight lacks its C2 admission report")
+    else:
+        if c2_admission.get("admission_sha256") != c2_admission_sha256(c2_admission):
+            errors.append("formal preflight C2 admission self-hash mismatch")
+        schedule = c2_admission.get("blocks", {}).get("A_E", {}).get(
+            "public_schedule", {}
+        )
+        if (
+            schedule.get("public_schedule_cell_count") != len(cells)
+            or schedule.get("public_schedule_sha256")
+            != canonical_json_sha256(cells)
+        ):
+            errors.append("formal preflight C2 admission changed the A_E subblock")
     return errors
 
 
 def authorize_formal_preflight(
     report: Mapping[str, Any],
     *,
-    qualification_receipt_sha256: str,
-    preregistration_freeze_receipt_sha256: str,
-    formal_cost_contract_sha256: str,
+    qualification_receipt: Mapping[str, Any],
+    preregistration_freeze_receipt: Mapping[str, Any],
+    formal_cost_contract: Mapping[str, Any],
+    root: Path | None = None,
 ) -> dict[str, Any]:
     """Derive the runtime manifest only after every external receipt validates."""
 
@@ -1436,27 +1636,84 @@ def authorize_formal_preflight(
         raise ValueError("cannot authorize an invalid formal preflight: " + "; ".join(errors))
     if report.get("formal_execution_allowed") is not False:
         raise ValueError("formal preflight has already crossed the authorization boundary")
-    receipt_hashes = (
-        qualification_receipt_sha256,
-        preregistration_freeze_receipt_sha256,
-        formal_cost_contract_sha256,
-    )
-    if any(
-        not isinstance(value, str)
-        or len(value) != 64
-        or any(character not in "0123456789abcdef" for character in value)
-        for value in receipt_hashes
+    if report.get("prerequisite_errors") != []:
+        raise ValueError("formal preflight has unresolved prerequisite failures")
+    if report.get("errors") != []:
+        raise ValueError("formal preflight has unresolved construction failures")
+    c2_admission = report.get("c2_admission")
+    c2_admission = c2_admission if isinstance(c2_admission, Mapping) else {}
+    if (
+        c2_admission.get("status") != "ready_for_formal_authorization"
+        or c2_admission.get("formal_execution_allowed") is not True
+        or c2_admission.get("blocking_requirements") != []
+        or c2_admission.get("evidence_validation_errors") != []
     ):
-        raise ValueError("formal authorization receipt hashes must be lowercase SHA-256 values")
+        raise ValueError("formal preflight lacks complete C2 admission evidence")
+    base_hash = report.get("preflight_sha256")
+    qualification_hash = canonical_json_sha256(
+        {
+            key: value
+            for key, value in qualification_receipt.items()
+            if key != "receipt_sha256"
+        }
+    )
+    cost_hash = canonical_json_sha256(
+        {
+            key: value
+            for key, value in formal_cost_contract.items()
+            if key != "formal_cost_contract_sha256"
+        }
+    )
+    freeze_hash = canonical_json_sha256(
+        {
+            key: value
+            for key, value in preregistration_freeze_receipt.items()
+            if key != "receipt_sha256"
+        }
+    )
+    freeze_bindings = preregistration_freeze_receipt.get("bindings")
+    freeze_bindings = freeze_bindings if isinstance(freeze_bindings, Mapping) else {}
+    freeze_qualification = freeze_bindings.get("method_qualification")
+    freeze_qualification = (
+        freeze_qualification if isinstance(freeze_qualification, Mapping) else {}
+    )
+    if (
+        qualification_receipt.get("schema_version")
+        != "chemworld-work-ii-method-qualification-receipt-0.4"
+        or qualification_receipt.get("status") != "passed"
+        or qualification_receipt.get("formal_execution_authorized") is not True
+        or qualification_receipt.get("formal_preflight_sha256") != base_hash
+        or qualification_receipt.get("receipt_sha256") != qualification_hash
+        or formal_cost_contract.get("schema_version")
+        != "chemworld-work-ii-formal-cost-contract-0.1"
+        or formal_cost_contract.get("formal_preflight_sha256") != base_hash
+        or formal_cost_contract.get("formal_cost_contract_sha256") != cost_hash
+        or preregistration_freeze_receipt.get("schema_version")
+        != "chemworld-work-ii-preregistration-freeze-receipt-0.1"
+        or preregistration_freeze_receipt.get("status") != "passed_final_freeze"
+        or preregistration_freeze_receipt.get("formal_execution_authorized") is not True
+        or preregistration_freeze_receipt.get("receipt_sha256") != freeze_hash
+        or freeze_bindings.get("formal_preflight_sha256") != base_hash
+        or freeze_qualification.get("receipt_sha256") != qualification_hash
+        or preregistration_freeze_receipt.get("formal_currency_budget")
+        != formal_cost_contract
+    ):
+        raise ValueError("formal authorization evidence is invalid or cross-bound incorrectly")
+    if root is not None:
+        from chemworld.eval.provenance import git_worktree_dirty
+
+        if git_worktree_dirty(root.resolve()):
+            raise ValueError("formal authorization requires a clean immutable worktree")
     authorized = dict(report)
     authorized["status"] = "passed_execution_authorized"
     authorized["formal_execution_allowed"] = True
     authorized["blocking_requirements"] = []
     authorized["authorization_bindings"] = {
         "base_preflight_sha256": report.get("preflight_sha256"),
-        "qualification_receipt_sha256": qualification_receipt_sha256,
-        "preregistration_freeze_receipt_sha256": preregistration_freeze_receipt_sha256,
-        "formal_cost_contract_sha256": formal_cost_contract_sha256,
+        "qualification_receipt_sha256": qualification_hash,
+        "preregistration_freeze_receipt_sha256": freeze_hash,
+        "formal_cost_contract_sha256": cost_hash,
+        "c2_admission_sha256": c2_admission["admission_sha256"],
     }
     authorized["preflight_sha256"] = _self_hash(authorized)
     authorized_errors = validate_formal_preflight(authorized)
@@ -1472,6 +1729,30 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
 
     root = root.resolve()
     errors = validate_formal_preflight(report)
+    c2 = report.get("c2_admission")
+    c2 = c2 if isinstance(c2, Mapping) else {}
+    c2_plan_binding = c2.get("plan_binding")
+    c2_plan_binding = (
+        c2_plan_binding if isinstance(c2_plan_binding, Mapping) else {}
+    )
+    design_binding = report.get("design_binding")
+    design_binding = design_binding if isinstance(design_binding, Mapping) else {}
+    c2_plan_path = root / str(c2_plan_binding.get("path", ""))
+    design_path = root / str(design_binding.get("path", ""))
+    cells = report.get("cells")
+    cells = cells if isinstance(cells, list) else []
+    if c2_plan_path.is_file() and design_path.is_file():
+        errors.extend(
+            validate_c2_admission_report(
+                root,
+                c2,
+                c2_plan_path,
+                design_path,
+                cells,
+            )
+        )
+    else:
+        errors.append("formal preflight C2 admission bindings are missing")
     bindings: list[Mapping[str, Any]] = []
     for name in ("design_binding", "analysis_binding"):
         candidate = report.get(name)

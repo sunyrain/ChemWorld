@@ -43,7 +43,7 @@ CLEAN_RELEASE = (
 
 def _clean_release_is_current() -> bool:
     receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
-    return validate_clean_release_receipt(receipt) == []
+    return validate_clean_release_receipt(receipt, root=ROOT) == []
 
 
 def _build() -> dict[str, object]:

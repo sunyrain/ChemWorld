@@ -11,6 +11,7 @@ from chemworld.foundation import (
     equipment_settings,
     process_with_metrics,
     scale_phase_ledger,
+    scale_species_initial_amounts,
     upsert_equipment_record,
 )
 from chemworld.runtime.species import MechanismSpeciesView
@@ -119,6 +120,7 @@ class ChemWorldPrimitiveOperationServices:
             ),
             volume_L=state.volume_L - volume,
             ledger=ledger,
+            species=scale_species_initial_amounts(state.species, 1.0 - fraction),
         )
 
     def quench(self, state: WorldState) -> WorldState:

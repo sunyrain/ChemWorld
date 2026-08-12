@@ -47,6 +47,7 @@ WORK_II_TEST_FILES = (
     "tests/test_work_ii_private.py",
     "tests/test_work_ii_process_profile.py",
     "tests/test_work_ii_qualification.py",
+    "tests/test_work_ii_resource_calibration.py",
     "tests/test_work_ii_release.py",
     "tests/test_work_ii_report.py",
     "tests/test_work_ii_truth.py",
@@ -130,10 +131,10 @@ def main() -> int:
     uv = shutil.which("uv")
     if git is None or uv is None:
         raise RuntimeError("git and uv are required for the clean-release audit")
-    if _run([git, "diff", "--quiet"], cwd=ROOT).returncode != 0:
-        raise RuntimeError("tracked working tree differs from HEAD")
-    if _run([git, "diff", "--cached", "--quiet"], cwd=ROOT).returncode != 0:
-        raise RuntimeError("index differs from HEAD")
+    if _git_output("status", "--porcelain", "--untracked-files=all", cwd=ROOT):
+        raise RuntimeError(
+            "clean-release audit requires a clean current worktree, including untracked files"
+        )
     tested_commit = _git_output("rev-parse", f"{args.commit}^{{commit}}", cwd=ROOT)
     if tested_commit != _git_output("rev-parse", "HEAD", cwd=ROOT):
         raise RuntimeError("clean-release audit must test the current HEAD")
@@ -355,6 +356,9 @@ def main() -> int:
             "failures": [],
         }
         receipt["receipt_sha256"] = clean_release_receipt_sha256(receipt)
+        # Validate the durable receipt shape here. The output file itself is not
+        # written yet, so repository-aware dirty-tree validation belongs to the
+        # downstream readiness/freeze consumers after this receipt is committed.
         errors = validate_clean_release_receipt(receipt)
         if errors:
             raise RuntimeError("invalid Work II clean-release receipt: " + "; ".join(errors))

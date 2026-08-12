@@ -48,12 +48,24 @@ def _dataset(*, primary_effect: float = 0.20) -> dict[str, object]:
                     "H3_misindexed_improvement": misindexed_improvement,
                     "H3_aligned_improvement": aligned_improvement,
                     "H3_primary_contrast": misindexed_improvement - aligned_improvement,
+                    "H3_misindexed_improvement_lower_bound": misindexed_improvement,
+                    "H3_aligned_improvement_lower_bound": aligned_improvement,
+                    "H3_primary_contrast_lower_bound": (
+                        misindexed_improvement - aligned_improvement
+                    ),
                 }
             )
             arm_improvements = {
                 "opaque": 0.03 + jitter,
                 "aligned_nominal": aligned_improvement,
                 "misindexed_nominal": misindexed_improvement,
+            }
+            h1 = 0.12 + 0.005 * task_index + jitter
+            h2 = 0.10 + 0.004 * task_index + jitter
+            pre_errors = {
+                "opaque": 0.50,
+                "aligned_nominal": 0.50 - h1,
+                "misindexed_nominal": 0.50 + h2,
             }
             for arm_index, arm in enumerate(ARMS):
                 improvement = arm_improvements[arm]
@@ -69,6 +81,11 @@ def _dataset(*, primary_effect: float = 0.20) -> dict[str, object]:
                         "terminal_state": "completed",
                         "checkpoint_error": {
                             "primary_improvement": improvement,
+                            "effective_pre_error": pre_errors[arm],
+                            "confirmatory_improvement_bounds": [
+                                improvement,
+                                improvement,
+                            ],
                             "missing_failure_rule": "observed_final",
                         },
                         "blind_outcome": {
@@ -129,11 +146,11 @@ def test_confirmatory_positive_fixture_passes_h3_and_is_deterministic() -> None:
         is True
     )
     assert (
-        first["confirmatory_secondary"]["unadjusted"]["H4_knowledge_to_action_translation"][
-            "status"
-        ]
+        first["exploratory_H4_knowledge_to_action_translation"]["status"]
         == "estimated"
     )
+    assert first["exploratory_H4_knowledge_to_action_translation"]["confirmatory"] is False
+    assert first["confirmatory_secondary"]["Holm"]["family_size"] == 2
     assert first["law_summary_and_transfer_boundary"]["typed_final_summary_present_count"] == 75
     assert (
         first["law_summary_and_transfer_boundary"][
@@ -164,27 +181,34 @@ def test_zero_primary_effect_does_not_pass_intersection_union() -> None:
     assert report["claim_decisions"]["selective_evidence_driven_wrong_prior_correction"] is False
 
 
-def test_failed_arm_makes_unclipped_worst_case_unbounded() -> None:
+def test_failed_arm_uses_finite_symmetric_adverse_bound_and_blocks_h3() -> None:
     dataset = _dataset(primary_effect=0.20)
     cluster_rows = dataset["cluster_rows"]
-    cluster_rows[0]["complete_case"] = False
     cell_rows = dataset["cell_rows"]
-    cell_rows[0]["terminal_state"] = "failed"
-    cell_rows[0]["checkpoint_error"]["missing_failure_rule"] = (
-        "missing_final_with_valid_pre_sets_zero_improvement"
-    )
-    dataset["state_counts"] = {"completed": 74, "right_censored": 0, "failed": 1}
+    for cluster_index, cell_index in ((0, 2), (1, 5)):
+        cluster_rows[cluster_index]["complete_case"] = False
+        cluster_rows[cluster_index]["H3_misindexed_improvement_lower_bound"] = -1.0
+        cluster_rows[cluster_index]["H3_primary_contrast_lower_bound"] = (
+            -1.0 - cluster_rows[cluster_index]["H3_aligned_improvement"]
+        )
+        cell_rows[cell_index]["terminal_state"] = "failed"
+        cell_rows[cell_index]["checkpoint_error"][
+            "confirmatory_improvement_bounds"
+        ] = [-1.0, 1.0]
+        cell_rows[cell_index]["checkpoint_error"]["missing_failure_rule"] = (
+            "missing_final_with_valid_pre_sets_zero_improvement"
+        )
+    dataset["state_counts"] = {"completed": 73, "right_censored": 0, "failed": 2}
     _rehash(dataset)
 
     report = build_confirmatory_analysis(dataset, _plan())
-    worst = report["sensitivity_analyses"]["worst_case_failed_arm"]
-    assert worst["status"] == "unbounded_adverse_due_to_unclipped_prediction_error"
-    assert worst["H3_primary_contrast_lower_bound"] == "-Infinity"
-    assert worst["passed"] is False
-    assert report["denominators"]["complete_case_cluster_count"] == 24
+    assert report["primary_H3"]["estimand"] == "symmetric_failure_aware_adverse_bounds"
+    assert report["primary_H3"]["passed"] is False
+    assert report["sensitivity_analyses"]["observed_point_summary"]["passed"] is True
+    assert report["denominators"]["complete_case_cluster_count"] == 23
 
 
-def test_missing_blind_outcomes_make_h4_not_estimable_and_not_rejected() -> None:
+def test_missing_blind_outcomes_keep_h4_exploratory_and_outside_holm() -> None:
     dataset = _dataset(primary_effect=0.20)
     for row in dataset["cell_rows"]:
         row["blind_outcome"] = {
@@ -195,13 +219,13 @@ def test_missing_blind_outcomes_make_h4_not_estimable_and_not_rejected() -> None
     _rehash(dataset)
 
     report = build_confirmatory_analysis(dataset, _plan())
-    h4 = report["confirmatory_secondary"]["unadjusted"]["H4_knowledge_to_action_translation"]
-    adjusted = report["confirmatory_secondary"]["Holm"]["results"][
-        "H4_knowledge_to_action_translation"
-    ]
+    h4 = report["exploratory_H4_knowledge_to_action_translation"]
     assert h4["status"] == "not_estimable_insufficient_complete_blind_cells"
     assert h4["one_sided_p_value"] == 1.0
-    assert adjusted["rejected"] is False
+    assert h4["confirmatory"] is False
+    assert "H4_knowledge_to_action_translation" not in report[
+        "confirmatory_secondary"
+    ]["Holm"]["results"]
 
 
 def test_confirmatory_analysis_rejects_development_or_tampered_input() -> None:
@@ -214,4 +238,16 @@ def test_confirmatory_analysis_rejects_development_or_tampered_input() -> None:
     tampered = deepcopy(_dataset())
     tampered["cluster_rows"][0]["H3_primary_contrast"] = 99.0
     with pytest.raises(WorkIIConfirmatoryAnalysisError, match="self-hash mismatch"):
+        build_confirmatory_analysis(tampered, _plan())
+
+
+def test_confirmatory_analysis_rejects_rehashed_cluster_bound_tampering() -> None:
+    tampered = deepcopy(_dataset())
+    tampered["cluster_rows"][0]["H3_primary_contrast_lower_bound"] = -2.0
+    _rehash(tampered)
+
+    with pytest.raises(
+        WorkIIConfirmatoryAnalysisError,
+        match="H3_primary_contrast_lower_bound differs from its three cell rows",
+    ):
         build_confirmatory_analysis(tampered, _plan())

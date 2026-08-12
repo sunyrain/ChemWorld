@@ -36,11 +36,20 @@ def _manifest() -> dict[str, object]:
     }
 
 
+def _execution_binding() -> dict[str, str]:
+    return {
+        "binding_sha256": "a" * 64,
+        "runtime_source_tree_sha256": "b" * 64,
+    }
+
+
 def test_metric_embargo_receipt_discloses_only_structure() -> None:
     report = {
         "schema_version": "science-report",
         "protocol_sha256": "p",
         "gate_a_plan_sha256": "g",
+        "execution_contract_binding": _execution_binding(),
+        "execution_contract_binding_sha256": "a" * 64,
         "trial_manifests": {"task": _manifest()},
         "secret_scientific_metric": 0.91,
     }
@@ -51,7 +60,25 @@ def test_metric_embargo_receipt_discloses_only_structure() -> None:
     )
     assert receipt["structurally_complete"] is True
     assert receipt["scientific_metrics_disclosed"] is False
+    assert receipt["execution_contract_binding_sha256"] == "a" * 64
+    assert receipt["runtime_source_tree_sha256"] == "b" * 64
     assert "secret_scientific_metric" not in receipt
+
+
+def test_metric_embargo_receipt_requires_a_consistent_runtime_binding() -> None:
+    report = {
+        "schema_version": "science-report",
+        "protocol_sha256": "p",
+        "gate_a_plan_sha256": "g",
+        "trial_manifests": {"task": _manifest()},
+    }
+    with pytest.raises(ValueError, match="lacks its Gate A execution binding"):
+        build_metric_embargo_receipt(report, stage="a2", expected_trial_count=2)
+
+    report["execution_contract_binding"] = _execution_binding()
+    report["execution_contract_binding_sha256"] = "c" * 64
+    with pytest.raises(ValueError, match="binding hashes disagree"):
+        build_metric_embargo_receipt(report, stage="a2", expected_trial_count=2)
 
 
 def test_formal_receipt_counts_match_frozen_job_matrices() -> None:
@@ -159,6 +186,7 @@ def test_primary_budget_covers_every_declared_relation_before_scheduling() -> No
 def test_public_decision_requires_both_complete_receipts() -> None:
     report = {
         "trial_manifests": {"task": _manifest()},
+        "execution_contract_binding": _execution_binding(),
         "certificate_decision": {
             "a1_physical_intervention_validity_pass": True,
             "a2_controlled_matched_identifiability_pass": True,
@@ -166,7 +194,10 @@ def test_public_decision_requires_both_complete_receipts() -> None:
             "gate_a_pass": False,
         },
     }
-    a3_report = {"trial_manifests": {"task": _manifest()}}
+    a3_report = {
+        "trial_manifests": {"task": _manifest()},
+        "execution_contract_binding": _execution_binding(),
+    }
     a2 = build_metric_embargo_receipt(
         report,
         stage="a2",

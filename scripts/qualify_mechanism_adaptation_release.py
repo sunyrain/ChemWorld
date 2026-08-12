@@ -144,13 +144,15 @@ def _run(command: list[str]) -> dict[str, Any]:
         cwd=ROOT,
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     return {
         "command": command,
         "exit_code": result.returncode,
         "wall_time_s": round(time.monotonic() - started, 3),
-        "stdout_tail": result.stdout[-4000:],
-        "stderr_tail": result.stderr[-4000:],
+        "stdout_tail": (result.stdout or "")[-4000:],
+        "stderr_tail": (result.stderr or "")[-4000:],
         "passed": result.returncode == 0,
     }
 

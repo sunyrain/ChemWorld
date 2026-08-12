@@ -427,24 +427,36 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ### P1 — 重冻正式矩阵
 
+- [ ] **W2-25Q** 在任何 participant outcome 前完成新版 outcome-blind A-E prior-distinguishability qualification：
+  对五个冻结 public worlds × 五个 A-E tasks 检查注册 metric-vector 分离、paired-noise SNR、至少两个独立
+  counterevidence regions、8-round 可证伪性和 exact replay。旧的 `delta > 1e-8` scalar reachability 只保留为
+  legacy diagnostic，不能授权 formal execution；任一 task-world 失败必须整体重设计并重冻 A-E，不能结果后删 task
+  或降低阈值。300-execution outcome-blind runner、机器报告、证据链 validator 与篡改测试已实现；正式 qualification
+  尚未执行，现有 audit 继续保持 pending。
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   manifest preflight、power/resource audit、method-qualification readiness 与 preregistration readiness 已同步重建；
   formal execution 仍被 W2-26/W2-27 和用户授权锁死。
-- [ ] **W2-26** 实验 note 已写入 `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；待用户确认当前
-  provider/credential/pricing/currency 边界后，分别运行 8/10/12-experiment resource calibration triplet，
-  冻结 task-pattern process time、repeat count、closeout reserve、token 和 currency ceilings。
+- [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
+  `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
+  triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
+  validator 与门禁测试已经实现。A-P 10-round 与 A-S 12-round 代表 task/config 仍未终选并 hash 冻结，
+  因此不得请求 provider/credential/pricing/currency 授权；A-S 不得用 proxy 代替，也不得把本项误记为 READY。
 - [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
 
-### P2 — 执行与条件扩展
+### P2 — 完整 C2 冻结、执行与条件扩展
 
+- [ ] 完整核心 scope 为 **C2 = A-E + 2 A-P + 2 A-S**。首次 C2 participant outcome 前，全部 block manifests、
+  task admission receipts、analysis/failure rules 和一个共同 immutable runtime commit 必须同时冻结；A-P/A-S 尚可
+  改 runtime 时不得先启动 A-E。
 - [ ] 执行 A-E public 25 triplets；只报告 blinded progress，完成后冻结 public analysis hash。
 - [ ] 一次性解封并执行 A-E private；不得因 public 结果方向调整。
 - [ ] 完成 Study C 和 C1 analysis。
 - [ ] 只有两个 A-P 和两个 A-S tasks 都通过完整资格漏斗后，才执行 C2 registered blocks。
-- [ ] 只有确需区分 seeking 与 updating 时执行 B；只有 C2 成立且保留 transfer claim 时执行 D。
+- [ ] C3/B 仅在 C2 后且仍需区分 seeking 与 updating 时执行；C4/D 仅在 C2 支持 executable-law formation 且
+  保留 transfer claim 时执行。两者均需独立 protocol freeze、预算和用户授权，不能按结果临时改为主实验。
 
 ## 11. Task tracker
 
@@ -461,8 +473,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
-| W2-25 | DONE | 8-experiment A-E formal redesign；600 public experiments、375 checkpoints、6 unique + 2 repeats/cell；静态审计通过，资源上限待 W2-26 校准 |
-| W2-26 | READY/BLOCKED | calibration experiment note 已完成；等待 provider contract、credential rotation、pricing/currency ceiling 授权后执行 |
+| W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
+| W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |

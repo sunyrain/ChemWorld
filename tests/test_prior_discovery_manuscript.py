@@ -3,14 +3,17 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[1]
 MANUSCRIPT = ROOT / "paper/prior_discovery_manuscript.md"
 EVIDENCE_MAP = ROOT / "paper/prior_discovery_evidence_map.md"
 DISPLAY_ITEMS = ROOT / "paper/prior_discovery_display_items.md"
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
-CLOSEOUT = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json"
+CLOSEOUT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-deepseek-five-task-development-complete-20260810.json"
+)
 
 
 def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() -> None:
@@ -64,7 +67,7 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
     assert manifest["formal_result"] is False
     assert manifest["status"] == "compiled_development_draft"
     limits = " ".join(manifest["interpretation_limits"])
-    assert "common three-task source" in limits
+    assert "common three-task provider-separated source" in limits
     assert "Public formal and private confirmation results remain uncollected." in limits
     sources = {row["path"] for row in manifest["sources"]}
     assert (

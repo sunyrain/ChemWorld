@@ -7,7 +7,7 @@ from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256
 
-STRUCTURAL_RECEIPT_VERSION = "chemworld-mechanism-metric-embargo-receipt-0.1"
+STRUCTURAL_RECEIPT_VERSION = "chemworld-mechanism-metric-embargo-receipt-0.2"
 PUBLIC_DECISION_VERSION = "chemworld-mechanism-public-decision-0.1"
 
 
@@ -34,6 +34,27 @@ def build_metric_embargo_receipt(
         and not item.get("invalid_receipts")
         for item in flattened
     )
+    execution_binding = report.get("execution_contract_binding")
+    if not isinstance(execution_binding, Mapping):
+        raise ValueError("scientific report lacks its Gate A execution binding")
+    execution_binding_sha256 = execution_binding.get("binding_sha256")
+    runtime_source_tree_sha256 = execution_binding.get("runtime_source_tree_sha256")
+    for label, digest in (
+        ("execution contract binding", execution_binding_sha256),
+        ("runtime source tree", runtime_source_tree_sha256),
+    ):
+        if (
+            not isinstance(digest, str)
+            or len(digest) != 64
+            or any(character not in "0123456789abcdef" for character in digest)
+        ):
+            raise ValueError(f"scientific report has an invalid {label} SHA-256")
+    recorded_binding_sha256 = report.get("execution_contract_binding_sha256")
+    if (
+        recorded_binding_sha256 is not None
+        and recorded_binding_sha256 != execution_binding_sha256
+    ):
+        raise ValueError("scientific report Gate A execution binding hashes disagree")
     return {
         "schema_version": STRUCTURAL_RECEIPT_VERSION,
         "stage": stage,
@@ -43,6 +64,8 @@ def build_metric_embargo_receipt(
         "source_schema_version": report.get("schema_version"),
         "protocol_sha256": report.get("protocol_sha256"),
         "gate_a_plan_sha256": report.get("gate_a_plan_sha256"),
+        "execution_contract_binding_sha256": execution_binding_sha256,
+        "runtime_source_tree_sha256": runtime_source_tree_sha256,
         "expected_trial_count": int(expected_trial_count),
         "observed_completed_trial_count": observed,
         "trial_manifest_count": len(flattened),

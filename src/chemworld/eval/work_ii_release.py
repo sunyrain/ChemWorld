@@ -3,11 +3,20 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.provenance import (
+    canonical_json_sha256,
+    file_sha256,
+    git_source_commit,
+    git_worktree_dirty,
+)
+from chemworld.eval.work_ii_ae_prior_qualification import (
+    validate_qualification_report as validate_ae_prior_qualification_report,
+)
 from chemworld.eval.work_ii_cost import (
     build_formal_cost_contract,
     validate_formal_cost_contract,
@@ -26,8 +35,8 @@ from chemworld.eval.work_ii_qualification import (
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
 # Keep the clean-release receipt tied to the full Work II release test set.
-# The audited set currently contains 113 tests across the 17 declared files.
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 113
+# The audited set currently contains 114 tests across the 17 declared files.
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 123
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
@@ -87,6 +96,15 @@ _EDGE_SPECS = (
     ("formal_preflight", "preregistration_readiness", "supports"),
     ("method_qualification_readiness", "preregistration_readiness", "blocks_until_passed"),
     ("preregistration_readiness", "preregistration_draft", "renders"),
+)
+
+_CLEAN_RELEASE_MATERIAL_PATHS = (
+    "configs",
+    "pyproject.toml",
+    "scripts",
+    "src/chemworld",
+    "tests",
+    "uv.lock",
 )
 
 
@@ -222,6 +240,52 @@ def build_prerun_evidence_graph(root: Path) -> dict[str, Any]:
             failures.append(f"{label} has not passed its non-formal boundary")
     if design_audit.get("failures") != [] or power_audit.get("failures") != []:
         failures.append("a prerequisite audit contains failures")
+    if design_audit.get("design_sha256") != canonical_json_sha256(design):
+        failures.append("formal-design audit does not bind the current design")
+    if design_audit.get("audit_sha256") != _self_hash(
+        design_audit, "audit_sha256"
+    ):
+        failures.append("formal-design audit self-hash mismatch")
+    qualification_container = design_audit.get("prior_distinguishability_qualification")
+    qualification_container = (
+        qualification_container if isinstance(qualification_container, Mapping) else {}
+    )
+    qualification_binding = qualification_container.get("qualification_report")
+    qualification_binding = (
+        qualification_binding if isinstance(qualification_binding, Mapping) else {}
+    )
+    qualification_relative = qualification_binding.get("path")
+    if not isinstance(qualification_relative, str) or not qualification_relative:
+        failures.append("formal-design audit lacks its A-E qualification evidence binding")
+    else:
+        qualification_path = (root / qualification_relative).resolve()
+        try:
+            qualification_path.relative_to(root)
+        except ValueError:
+            failures.append("A-E qualification evidence binding escapes repository")
+        else:
+            if not qualification_path.is_file():
+                failures.append("bound A-E qualification evidence is missing")
+            else:
+                qualification_report = _load_object(qualification_path)
+                qualification_errors = validate_ae_prior_qualification_report(
+                    root,
+                    qualification_report,
+                    design,
+                    report_path=qualification_path,
+                )
+                failures.extend(
+                    "A-E qualification: " + error for error in qualification_errors
+                )
+                if (
+                    qualification_binding.get("file_sha256")
+                    != file_sha256(qualification_path)
+                    or qualification_binding.get("report_sha256")
+                    != qualification_report.get("report_sha256")
+                    or qualification_binding.get("tested_commit")
+                    != qualification_report.get("source_binding", {}).get("tested_commit")
+                ):
+                    failures.append("formal-design audit A-E qualification binding is stale")
     if blind.get("failures") != [] or held_out.get("all_failures") != []:
         failures.append("an evaluator shakedown contains failures")
     if (
@@ -469,7 +533,36 @@ def validate_prerun_evidence_graph(root: Path, graph: Mapping[str, Any]) -> list
     return errors
 
 
-def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
+def _material_tree_changed_since(root: Path, tested_commit: str) -> tuple[bool, str | None]:
+    """Return material-tree change state and any Git diagnostic."""
+
+    completed = subprocess.run(
+        [
+            "git",
+            "diff",
+            "--quiet",
+            tested_commit,
+            "HEAD",
+            "--",
+            *_CLEAN_RELEASE_MATERIAL_PATHS,
+        ],
+        cwd=root,
+        capture_output=True,
+        check=False,
+    )
+    if completed.returncode == 0:
+        return False, None
+    if completed.returncode == 1:
+        return True, None
+    diagnostic = str(completed.stderr or "").strip()
+    return True, diagnostic or f"git diff exited with status {completed.returncode}"
+
+
+def validate_clean_release_receipt(
+    receipt: Mapping[str, Any],
+    *,
+    root: Path | None = None,
+) -> list[str]:
     """Validate the durable outcome-free receipt emitted by an independent checkout audit."""
 
     errors: list[str] = []
@@ -487,8 +580,38 @@ def validate_clean_release_receipt(receipt: Mapping[str, Any]) -> list[str]:
     ):
         errors.append("Work II clean-release receipt crossed the execution boundary")
     commit = receipt.get("tested_commit")
-    if not isinstance(commit, str) or len(commit) != 40:
+    if (
+        not isinstance(commit, str)
+        or len(commit) != 40
+        or any(character not in "0123456789abcdef" for character in commit)
+    ):
         errors.append("Work II clean-release receipt lacks a full tested commit")
+    elif root is not None:
+        root = root.resolve()
+        if git_worktree_dirty(root):
+            errors.append("current Work II release worktree is dirty")
+        current_commit = git_source_commit(root)
+        material_changed, material_error = _material_tree_changed_since(root, commit)
+        if material_changed:
+            errors.append(
+                "current Work II implementation differs from the clean-release tested commit"
+            )
+        if material_error is not None:
+            errors.append(f"clean-release material-tree comparison failed: {material_error}")
+        ancestor = subprocess.run(
+            ["git", "merge-base", "--is-ancestor", commit, current_commit],
+            cwd=root,
+            capture_output=True,
+            check=False,
+        )
+        if ancestor.returncode == 1:
+            errors.append("clean-release tested commit is not an ancestor of current HEAD")
+        elif ancestor.returncode != 0:
+            diagnostic = str(ancestor.stderr or "").strip()
+            errors.append(
+                "clean-release commit ancestry check failed: "
+                + (diagnostic or f"git merge-base exited with status {ancestor.returncode}")
+            )
     checkout = receipt.get("independent_checkout")
     checkout = checkout if isinstance(checkout, Mapping) else {}
     if (
@@ -608,7 +731,7 @@ def validate_preregistration_freeze_receipt(
         errors.append("clean-release receipt is missing")
     else:
         clean = _load_object(clean_path)
-        clean_errors = validate_clean_release_receipt(clean)
+        clean_errors = validate_clean_release_receipt(clean, root=root)
         errors.extend(f"clean release: {error}" for error in clean_errors)
         clean_binding = bindings.get("clean_release")
         clean_binding = clean_binding if isinstance(clean_binding, Mapping) else {}

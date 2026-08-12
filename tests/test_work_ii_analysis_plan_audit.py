@@ -33,3 +33,15 @@ def test_analysis_audit_freezes_resource_cards_denominators_and_hard_bounds(
         == EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
     )
     assert report["currency_budget"]["formal_currency_ceiling_approved"] is False
+
+
+def test_analysis_plan_is_bounded_failure_aware_and_h4_is_not_confirmatory(
+    tmp_path: Path,
+) -> None:
+    report = audit(PLAN, tmp_path / "audit.json")
+    assert report["status"] == "passed"
+    assert not {
+        "bounded_primary_prediction_error",
+        "symmetric_failure_aware_estimand",
+        "H4_excluded_from_confirmatory_family",
+    } & {row["check"] for row in report["failures"]}

@@ -10,6 +10,7 @@ import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_formal_matrix as formal_runner
 
+import chemworld.eval.work_ii_formal as work_ii_formal
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
 from chemworld.eval.work_ii_cost import build_formal_cost_contract
@@ -30,6 +31,67 @@ from chemworld.eval.work_ii_formal import (
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+_VALIDATE_ENVIRONMENT_BINDING = work_ii_formal._validate_environment_binding
+
+
+@pytest.fixture(autouse=True)
+def _isolate_runner_contract_from_current_gate_a_recertification(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Runner unit tests use a qualified environment fixture.
+
+    Current-repository Gate A freshness is tested separately below; the rest of
+    this module exercises cell/store behavior independently of that external
+    qualification state.
+    """
+
+    monkeypatch.setattr(work_ii_formal, "_validate_environment_binding", lambda *_: [])
+
+    def _ready_c2(root, plan, design, cells):
+        del design
+        report = {
+            "schema_version": "chemworld-work-ii-c2-admission-report-0.1",
+            "status": "ready_for_formal_authorization",
+            "formal_execution_allowed": True,
+            "blocking_requirements": [],
+            "evidence_validation_errors": [],
+            "plan_binding": {
+                "path": Path(plan).resolve().relative_to(root).as_posix(),
+                "sha256": file_sha256(Path(plan)),
+            },
+            "blocks": {
+                "A_E": {
+                    "public_schedule": {
+                        "public_schedule_cell_count": len(cells),
+                        "public_schedule_sha256": canonical_json_sha256(cells),
+                    }
+                }
+            },
+        }
+        report["admission_sha256"] = canonical_json_sha256(report)
+        return report
+
+    monkeypatch.setattr(work_ii_formal, "build_c2_admission_report", _ready_c2)
+    monkeypatch.setattr(work_ii_formal, "validate_c2_admission_report", lambda *_: [])
+
+
+def test_formal_environment_gate_rejects_stale_runtime_bound_certificates() -> None:
+    design = json.loads(DESIGN.read_text(encoding="utf-8"))
+    errors = _VALIDATE_ENVIRONMENT_BINDING(ROOT, design)
+    assert "current Gate A certificates do not bind the current runtime semantics" in errors
+
+    report = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    report["prerequisite_errors"] = errors
+    report["status"] = "failed_execution_blocked"
+    report["preflight_sha256"] = canonical_json_sha256(
+        {key: value for key, value in report.items() if key != "preflight_sha256"}
+    )
+    assert validate_formal_preflight(report) == []
+    with pytest.raises(ValueError, match="unresolved prerequisite failures"):
+        authorize_formal_preflight(
+            report,
+            **_authorization_evidence(report),
+        )
 
 
 def _fake_blind_plan(cell: dict[str, object]) -> dict[str, object]:
@@ -67,14 +129,43 @@ def _fake_blind_plan(cell: dict[str, object]) -> dict[str, object]:
     return plan
 
 
+def _authorization_evidence(manifest: dict[str, object]) -> dict[str, object]:
+    base = manifest["preflight_sha256"]
+    qualification = {
+        "schema_version": "chemworld-work-ii-method-qualification-receipt-0.4",
+        "status": "passed",
+        "formal_execution_authorized": True,
+        "formal_preflight_sha256": base,
+    }
+    qualification["receipt_sha256"] = canonical_json_sha256(qualification)
+    cost = {
+        "schema_version": "chemworld-work-ii-formal-cost-contract-0.1",
+        "formal_preflight_sha256": base,
+    }
+    cost["formal_cost_contract_sha256"] = canonical_json_sha256(cost)
+    freeze = {
+        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.1",
+        "status": "passed_final_freeze",
+        "formal_execution_authorized": True,
+        "bindings": {
+            "formal_preflight_sha256": base,
+            "method_qualification": {
+                "receipt_sha256": qualification["receipt_sha256"]
+            },
+        },
+        "formal_currency_budget": cost,
+    }
+    freeze["receipt_sha256"] = canonical_json_sha256(freeze)
+    return {
+        "qualification_receipt": qualification,
+        "preregistration_freeze_receipt": freeze,
+        "formal_cost_contract": cost,
+    }
+
+
 def _authorized_manifest() -> dict[str, object]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    return authorize_formal_preflight(
-        manifest,
-        qualification_receipt_sha256="a" * 64,
-        preregistration_freeze_receipt_sha256="b" * 64,
-        formal_cost_contract_sha256="c" * 64,
-    )
+    return authorize_formal_preflight(manifest, **_authorization_evidence(manifest))
 
 
 def _formal_cost_contract(manifest: dict[str, object]) -> dict[str, object]:
@@ -194,6 +285,22 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
     assert len(report["blocking_requirements"]) == 5
     source_paths = {row["path"] for row in report["source_bindings"]}
     assert "src/chemworld/eval/work_ii_confirmatory.py" in source_paths
+    assert "src/chemworld/envs/chemworld_env.py" in source_paths
+    assert "src/chemworld/foundation/state_ledgers.py" in source_paths
+    assert "src/chemworld/runtime/primitive_services.py" in source_paths
+    assert "src/chemworld/tasks.py" in source_paths
+    assert "src/chemworld/world/reaction_kernel.py" in source_paths
+    assert "src/chemworld/schemas/action_schema.json" in source_paths
+    assert "configs/current.json" in source_paths
+    assert (
+        "configs/methods/work_ii/"
+        "participant_methods_work_ii_wellau_sol_medium_campaign.json"
+    ) in source_paths
+    assert "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json" in source_paths
+    assert (
+        "workstreams/flagship_tasks/reports/"
+        "mechanism-adaptation-public-decision-v0.1-rc29.json"
+    ) in source_paths
     assert "scripts/analyze_work_ii_confirmatory.py" in source_paths
     assert (
         report["law_summary_evaluation_contract"]

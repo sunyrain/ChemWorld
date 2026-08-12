@@ -133,6 +133,45 @@ def audit(plan_path: Path, output_path: Path) -> dict[str, Any]:
     }
     if not isinstance(variance_contract, dict) or set(variance_contract) != expected_variance_keys:
         failures.append({"check": "variance_component_contract"})
+    primary_error = plan.get("primary_prediction_error")
+    if (
+        not isinstance(primary_error, dict)
+        or primary_error.get("clipping") is not True
+        or primary_error.get("clipping_bounds") != [0.0, 1.0]
+    ):
+        failures.append({"check": "bounded_primary_prediction_error"})
+    missingness = plan.get("missing_failure_and_censoring")
+    expected_arm_bounds = (
+        "observed_completed_scorable_pre_and_final_has_point_bound_Delta; "
+        "otherwise_Delta_in_closed_interval_minus1_plus1"
+    )
+    expected_failed_arm_rule = (
+        "retain_cluster_and_use_the_same_symmetric_minus1_plus1_arm_bound_"
+        "regardless_of_arm_identity"
+    )
+    if (
+        not isinstance(missingness, dict)
+        or missingness.get("confirmatory_arm_improvement_bounds")
+        != expected_arm_bounds
+        or missingness.get("paired_cluster_with_failed_arm")
+        != expected_failed_arm_rule
+    ):
+        failures.append({"check": "symmetric_failure_aware_estimand"})
+    secondary = plan.get("secondary_hypotheses")
+    implementation = plan.get("analysis_implementation_contract")
+    implementation = implementation if isinstance(implementation, dict) else {}
+    secondary_model = implementation.get("confirmatory_secondary_model")
+    if (
+        not isinstance(secondary, dict)
+        or secondary.get("confirmatory_family")
+        != ["H1_prior_utility", "H2_prior_vulnerability"]
+        or secondary.get("H4_knowledge_to_action_translation_status")
+        != "exploratory_descriptive_not_confirmatory"
+        or not isinstance(secondary_model, dict)
+        or secondary_model.get("Holm_family")
+        != ["H1_prior_utility", "H2_prior_vulnerability"]
+    ):
+        failures.append({"check": "H4_excluded_from_confirmatory_family"})
 
     resource_rows: list[dict[str, Any]] = []
     total_sessions = 0

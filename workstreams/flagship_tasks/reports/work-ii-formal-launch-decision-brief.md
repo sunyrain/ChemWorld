@@ -1,6 +1,10 @@
 # Work II formal-launch decision brief
 
-This is an execution decision sheet, not a scientific result and not an authorization by itself.
+**STALE — NOT AUTHORIZATION-ELIGIBLE.** This historical decision sheet predates the W2-25
+eight-experiment redesign and the W2-26 8/10/12-pattern calibration gate. It must not be used to
+approve a provider call. Current counts are machine-resolved from
+`work-ii-method-qualification-readiness-v0.1.json` only after W2-26 has a validated passing
+calibration summary.
 
 ## Current state
 
@@ -8,11 +12,11 @@ This is an execution decision sheet, not a scientific result and not an authoriz
   cohort, persistent-session runner, evaluator-truth compiler, blind evaluator and formal analysis
   dataset builder are complete.
 - No public-formal or private-confirmation participant outcome has been collected.
-- The next real provider call is the three-cell current-method qualification triplet. Formal
-  execution remains blocked until that triplet passes and the final preregistration receipt is
-  signed.
+- The next permitted real provider call is W2-26 resource calibration, but its 10-round A-P and
+  12-round A-S representatives are not terminal-selected and hash-frozen.
+- No calibration or method-qualification provider call is currently authorized.
 
-## Frozen qualification envelope
+## Retired qualification envelope
 
 | Item | Frozen value |
 |---|---:|
@@ -20,15 +24,16 @@ This is an execution decision sheet, not a scientific result and not an authoriz
 | Cells | 3 prior arms in one development world |
 | Accepted sessions/model calls | 3 |
 | Maximum provider-process attempts | 6 |
-| Complete experiments/checkpoints | 12 / 12 |
-| Operation-attempt hard cap | 84 |
+| Complete experiments/checkpoints | Retired; resolve from current readiness artifact |
+| Operation-attempt hard cap | Retired; resolve from current readiness artifact |
 | Accepted-cell input-token cap | 7,200,000 per cell |
 | Accepted-cell uncached-input cap | 960,000 per cell |
 | Accepted-cell output-token cap | 72,000 per cell |
 | Accepted-cell wall-time cap | 16,200 s per cell |
 
-The currency reservation uses the full per-attempt token envelope. Unknown billing never counts as
-zero, and observed cache use cannot reduce the pre-call reservation.
+The numeric entries in this historical section are non-authoritative planning values. The current
+method-qualification denominators and limits must be read from the deterministic readiness builder;
+resource caps remain non-authoritative until all three W2-26 triplets complete and reconcile.
 
 ## Decisions required before qualification
 
@@ -70,7 +75,7 @@ Output USD / 1M tokens: <value>
 Qualification currency ceiling USD: <value>
 ```
 
-After this approval, the sequence is fixed: generate write-once authorization, execute the three
-arms with progress reporting, build the qualification receipt, calibrate expected ETA, refresh the
-clean-release receipt, generate the final preregistration freeze receipt, then request the separate
-formal-matrix budget and command sign-off.
+This payload cannot currently unblock execution. First select and hash-freeze the 10-round A-P and
+12-round A-S representatives, run W2-26 under its own future write-once authorization, and validate
+its machine summary. Only then regenerate this brief from current readiness, request the separate
+method-qualification authorization, and continue through clean release and final freeze.

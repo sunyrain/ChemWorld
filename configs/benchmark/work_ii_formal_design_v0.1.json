@@ -1,7 +1,7 @@
 {
   "schema_version": "chemworld-work-ii-formal-design-0.1",
   "design_id": "work-ii-fixed-law-prior-formal-v0.1",
-  "status": "w2_25_eight_experiment_design_frozen_pending_w2_26_resource_calibration_and_w2_27_method_qualification",
+  "status": "execution_blocked_pending_outcome_blind_prior_qualification_full_c2_task_admission_w2_26_and_w2_27",
   "formal_result": false,
   "formal_execution_allowed": false,
   "environment_binding": {
@@ -24,6 +24,59 @@
     "misindexed_nominal": "same_property_bundle_multiset_with_one_frozen_two_row_transposition",
     "experimental_evidence_is_authoritative": true,
     "aligned_and_misindexed_wording_confidence_and_token_budget_matched": true
+  },
+  "prior_distinguishability_qualification_contract": {
+    "schema_version": "chemworld-work-ii-ae-prior-distinguishability-qualification-0.1",
+    "qualification_time": "before_any_public_or_private_participant_execution",
+    "participant_provider_calls": 0,
+    "participant_outcomes_used": false,
+    "experiment_note": "workstreams/flagship_tasks/WORK_II_AE_PRIOR_DISTINGUISHABILITY_QUALIFICATION_EXPERIMENT_NOTE.md",
+    "qualification_worlds": "all_five_frozen_public_formal_worlds_per_AE_task",
+    "registered_metric_source": "campaign_belief_checkpoint_allowed_metric_ids",
+    "target_categories": "the_exact_two_descriptor_rows_transposed_between_aligned_and_misindexed_arms",
+    "frozen_counterevidence_regions": [
+      {
+        "region_id": "low_background",
+        "non_target_recipe_coordinate": 0.25
+      },
+      {
+        "region_id": "high_background",
+        "non_target_recipe_coordinate": 0.75
+      }
+    ],
+    "noise_replicates_per_target_category_region": 3,
+    "metric_scale": "registered_metrics_are_bounded_to_0_1_and_use_fixed_scale_1",
+    "metric_vector_separation_formula": "mean_over_registered_metrics(abs(mean_right_metric_over_three_replicates-mean_left_metric_over_three_replicates))",
+    "single_metric_separation_formula": "max_over_registered_metrics(abs(mean_right_metric_over_three_replicates-mean_left_metric_over_three_replicates))",
+    "paired_noise_formula": "sqrt(mean_over_registered_metrics(sample_variance_ddof1_of_right_minus_left_across_three_paired_replicates))",
+    "paired_noise_snr_formula": "metric_vector_separation/max(paired_noise,1e-12)",
+    "region_pass_rules": {
+      "minimum_mean_normalized_L1_metric_vector_separation": 0.05,
+      "minimum_single_metric_absolute_separation": 0.03,
+      "minimum_paired_noise_signal_to_noise_ratio": 2.0,
+      "all_registered_metric_values_finite": true,
+      "all_executions_committed_and_exact_replayable": true
+    },
+    "world_pass_rules": {
+      "minimum_independent_counterevidence_regions_passed": 2,
+      "maximum_registered_experiments_needed_to_visit_both_choice_pairs": 4,
+      "participant_complete_experiment_budget": 8,
+      "participant_minimum_unique_recipe_budget": 6,
+      "eight_round_falsifiability_required": true
+    },
+    "task_pass_rule": "all_five_frozen_public_worlds_pass",
+    "matrix_pass_rule": "all_five_AE_tasks_pass",
+    "fail_closed_conditions": [
+      "missing_or_unscorable_registered_metric",
+      "nonfinite_metric_or_noise_statistic",
+      "platform_or_physical_execution_failure",
+      "exact_replay_failure",
+      "fewer_than_two_counterevidence_regions_pass",
+      "any_frozen_public_world_fails",
+      "qualification_report_missing_or_stale"
+    ],
+    "post_result_task_deletion_or_threshold_relaxation_forbidden": true,
+    "failure_consequence": "redesign_and_refreeze_the_complete_AE_block_before_participant_execution"
   },
   "tasks": [
     {
@@ -103,6 +156,62 @@
     "provider_repeats": 1,
     "matched_evidence_probe_in_primary_matrix": false,
     "shared_campaign_resource_ledger": true
+  },
+  "full_program_protocol_contract": {
+    "primary_registered_scope": "C2",
+    "C2": {
+      "blocks": {
+        "A_E": "five_entity_tasks_public_plus_private_fixed_law_prior_matrix",
+        "A_P": "exactly_two_terminal_parametric_tasks",
+        "A_S": "exactly_two_terminal_structural_tasks"
+      },
+      "execution_gate": "all_block_manifests_analysis_rules_task_admission_receipts_and_one_immutable_runtime_commit_frozen_before_first_C2_participant_outcome",
+      "cross_locus_runtime_version_must_match": true,
+      "partial_AE_launch_while_AP_or_AS_can_still_change_runtime": false
+    },
+    "C3": {
+      "adds": "B_matched_evidence_probe",
+      "conditional": true,
+      "trigger": "C2_completed_and_the_predeclared_seeking_versus_updating_discrimination_question_remains_necessary",
+      "separate_freeze_and_budget_authorization_required": true
+    },
+    "C4": {
+      "adds": "D_context_reset_compositional_transfer",
+      "conditional": true,
+      "trigger": "C2_supports_executable_law_formation_and_the_transfer_claim_is_retained",
+      "separate_freeze_and_budget_authorization_required": true
+    },
+    "outcome_based_block_addition_removal_or_redefinition_forbidden": true
+  },
+  "resource_calibration_contract": {
+    "work_item": "W2-26",
+    "status": "not_ready_fail_closed",
+    "triplets": [
+      {
+        "rounds": 8,
+        "representative_locus": "A_E",
+        "representative_task_status": "frozen"
+      },
+      {
+        "rounds": 10,
+        "representative_locus": "A_P",
+        "representative_task_status": "pending_terminal_AP_admission"
+      },
+      {
+        "rounds": 12,
+        "representative_locus": "A_S",
+        "representative_task_status": "pending_two_terminal_AS_admissions"
+      }
+    ],
+    "ready_requires": [
+      "all_three_representative_task_configs_selected_and_hash_frozen",
+      "eight_ten_twelve_round_manifests_and_runner_implemented",
+      "provider_contract_and_credential_rotation_confirmed",
+      "calibration_currency_ceiling_approved"
+    ],
+    "authorization_before_ready_forbidden": true,
+    "twelve_round_proxy_substitution_before_AS_selection_forbidden": true,
+    "formal_execution_allowed_before_passed_calibration": false
   },
   "participant_execution_contract": {
     "execution_unit": "task_x_prior_arm_x_world_seed_cell",

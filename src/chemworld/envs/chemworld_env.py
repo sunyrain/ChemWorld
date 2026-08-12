@@ -581,6 +581,19 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "status": "not_observed",
         }
         if operation_committed and not is_campaign_discard:
+            observation_state = self._state
+            if operation_record.is_instrument_measurement:
+                # Instruments analyse the withdrawn sample, whose composition is
+                # defined by the pre-withdrawal mother liquor.  The committed
+                # state retains the destructive volume/material debit and the
+                # post-measurement cost/equipment ledgers, while the observation
+                # must not reinterpret sampling itself as conversion or yield.
+                observation_state = self._state.replace(
+                    species_amounts=previous_state.species_amounts,
+                    volume_L=previous_state.volume_L,
+                    species=previous_state.species,
+                    phases=previous_state.phases,
+                )
             if self.observation_noise_mode == "keyed":
                 operation_type = str(action.get("operation") or "unknown")
                 instrument = str(operation_record.instrument or action.get("instrument") or "none")
@@ -608,7 +621,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 }
             try:
                 observation = self.observation_kernel.observe(
-                    self._state,
+                    observation_state,
                     action,
                     observation_rng,
                 )

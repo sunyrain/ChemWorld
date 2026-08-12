@@ -21,6 +21,10 @@ from chemworld.eval.work_ii_formal import (
     build_formal_preflight,
     validate_formal_preflight,
 )
+from chemworld.eval.work_ii_resource_calibration import (
+    build_resource_calibration_readiness,
+    validate_resource_calibration_readiness,
+)
 
 METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0.4"
 METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.1"
@@ -73,9 +77,12 @@ def _is_finite_number(value: object, *, minimum: float = 0.0) -> bool:
 
 
 def _finite_float(value: object, *, minimum: float = 0.0) -> float | None:
-    if not _is_finite_number(value, minimum=minimum):
+    if (
+        not _is_finite_number(value, minimum=minimum)
+        or isinstance(value, bool)
+        or not isinstance(value, int | float)
+    ):
         return None
-    assert not isinstance(value, bool) and isinstance(value, int | float)
     return float(value)
 
 
@@ -1268,6 +1275,18 @@ def build_method_qualification_readiness(
     root = root.resolve()
     manifest = build_formal_preflight(root, design_path, analysis_path)
     internal_errors = [*manifest.get("errors", []), *validate_formal_preflight(manifest)]
+    calibration_manifest_path = (
+        root / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+    )
+    calibration_readiness = build_resource_calibration_readiness(
+        root, calibration_manifest_path
+    )
+    calibration_errors = validate_resource_calibration_readiness(
+        calibration_readiness
+    )
+    internal_errors.extend(
+        f"resource calibration: {error}" for error in calibration_errors
+    )
     contract = manifest.get("method_qualification_contract")
     contract = contract if isinstance(contract, Mapping) else {}
     task_id = str(contract.get("qualification_task_id", ""))
@@ -1347,7 +1366,7 @@ def build_method_qualification_readiness(
         "accepted_cell_wall_time_cap_s": cell_count * float(limits.get("wall_time_limit_s", 0.0)),
     }
     blockers = [
-        "the eight-experiment pattern resource calibration block W2-26 has not been completed",
+        "the 8/10/12-pattern resource calibration block W2-26 has not been completed",
         "user must confirm the current provider contract or approve an explicit amendment",
         "user must confirm that the provider credential was rotated after exposure",
         "user must approve a qualification currency ceiling bound to the frozen gate contract",
@@ -1372,6 +1391,23 @@ def build_method_qualification_readiness(
         "held_out_evaluator_contract_sha256": canonical_json_sha256(
             manifest.get("held_out_evaluator_contract")
         ),
+        "resource_calibration_readiness": {
+            "manifest_path": calibration_manifest_path.relative_to(root).as_posix(),
+            "readiness_sha256": calibration_readiness.get("readiness_sha256"),
+            "status": calibration_readiness.get("status"),
+            "calibration_summary_binding": calibration_readiness.get(
+                "calibration_summary_binding"
+            ),
+            "calibration_summary_source_commit": calibration_readiness.get(
+                "calibration_summary_source_commit"
+            ),
+            "missing_pattern_rounds": calibration_readiness.get(
+                "missing_pattern_rounds"
+            ),
+            "method_qualification_may_be_authorized": calibration_readiness.get(
+                "method_qualification_may_be_authorized"
+            ),
+        },
         "qualification_schedule": {
             "task_id": task_id,
             "world_cohort": contract.get("qualification_world_cohort"),
@@ -1436,10 +1472,13 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
         errors.append("unexpected method qualification readiness schema")
     if report.get("readiness_sha256") != method_qualification_readiness_sha256(report):
         errors.append("method qualification readiness self-hash mismatch")
-    if report.get("status") != "passed_provider_execution_blocked":
+    if report.get("status") not in {"failed", "passed_provider_execution_blocked"}:
         errors.append("method qualification readiness did not pass internal checks")
-    if report.get("internal_errors") != []:
+    internal_errors = report.get("internal_errors")
+    if not isinstance(internal_errors, list):
         errors.append("method qualification readiness has internal errors")
+    elif bool(internal_errors) != (report.get("status") == "failed"):
+        errors.append("method qualification readiness status differs from internal errors")
     if (
         report.get("formal_result") is not False
         or report.get("provider_execution_allowed") is not False
@@ -1472,6 +1511,21 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
         or schedule.get("runtime_cost_reservation_required") is not True
     ):
         errors.append("method qualification readiness lacks its executable resume contract")
+    calibration = report.get("resource_calibration_readiness")
+    calibration = calibration if isinstance(calibration, Mapping) else {}
+    if (
+        calibration.get("status") not in {
+            "not_ready_fail_closed",
+            "ready_authorization_blocked",
+            "calibration_passed_method_qualification_eligible",
+            "calibration_failed_fail_closed",
+        }
+        or not isinstance(
+            calibration.get("method_qualification_may_be_authorized"), bool
+        )
+        or not isinstance(calibration.get("missing_pattern_rounds"), list)
+    ):
+        errors.append("method qualification readiness does not retain the W2-26 gate")
     blockers = report.get("blocking_requirements")
     if not isinstance(blockers, list) or len(blockers) != 5:
         errors.append("method qualification readiness lacks its external blockers")

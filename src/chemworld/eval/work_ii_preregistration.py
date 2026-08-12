@@ -8,6 +8,9 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_ae_prior_qualification import (
+    validate_qualification_report as validate_ae_prior_qualification_report,
+)
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
     build_formal_preflight,
@@ -152,6 +155,53 @@ def build_preregistration_readiness(
         internal_errors.append("Work II power/resource audit has not passed")
     if design_audit.get("status") != "passed" or design_audit.get("failures") != []:
         internal_errors.append("Work II formal-design audit has not passed")
+    expected_design_sha256 = canonical_json_sha256(design)
+    if design_audit.get("design_sha256") != expected_design_sha256:
+        internal_errors.append("Work II formal-design audit does not bind the current design")
+    expected_audit_sha256 = _self_hash(design_audit, "audit_sha256")
+    if design_audit.get("audit_sha256") != expected_audit_sha256:
+        internal_errors.append("Work II formal-design audit self-hash mismatch")
+    qualification_container = design_audit.get("prior_distinguishability_qualification")
+    qualification_container = (
+        qualification_container if isinstance(qualification_container, Mapping) else {}
+    )
+    qualification_binding = qualification_container.get("qualification_report")
+    qualification_binding = (
+        qualification_binding if isinstance(qualification_binding, Mapping) else {}
+    )
+    qualification_relative = qualification_binding.get("path")
+    if not isinstance(qualification_relative, str) or not qualification_relative:
+        internal_errors.append("formal-design audit lacks its A-E qualification evidence binding")
+    else:
+        qualification_path = (root / qualification_relative).resolve()
+        try:
+            qualification_path.relative_to(root)
+        except ValueError:
+            internal_errors.append("A-E qualification evidence binding escapes repository")
+        else:
+            if not qualification_path.is_file():
+                internal_errors.append("bound A-E qualification evidence is missing")
+            else:
+                qualification_report = _load_object(qualification_path)
+                qualification_errors = validate_ae_prior_qualification_report(
+                    root,
+                    qualification_report,
+                    design,
+                    report_path=qualification_path,
+                )
+                if qualification_errors:
+                    internal_errors.extend(
+                        "A-E qualification: " + error for error in qualification_errors
+                    )
+                if (
+                    qualification_binding.get("file_sha256")
+                    != file_sha256(qualification_path)
+                    or qualification_binding.get("report_sha256")
+                    != qualification_report.get("report_sha256")
+                    or qualification_binding.get("tested_commit")
+                    != qualification_report.get("source_binding", {}).get("tested_commit")
+                ):
+                    internal_errors.append("formal-design audit A-E qualification binding is stale")
     if design.get("formal_execution_allowed") is not False:
         internal_errors.append("formal design unexpectedly allows execution")
     if analysis.get("formal_execution_allowed") is not False:
@@ -209,7 +259,7 @@ def build_preregistration_readiness(
     clean_release_satisfied = False
     if clean_release_path.is_file():
         clean_release = _load_object(clean_release_path)
-        clean_errors = validate_clean_release_receipt(clean_release)
+        clean_errors = validate_clean_release_receipt(clean_release, root=root)
         clean_graph = clean_release.get("evidence_graph")
         clean_graph = clean_graph if isinstance(clean_graph, Mapping) else {}
         clean_release_satisfied = (

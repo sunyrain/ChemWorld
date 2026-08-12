@@ -6,6 +6,7 @@ from dataclasses import replace
 from pathlib import Path
 
 import gymnasium as gym
+import numpy as np
 import pytest
 
 import chemworld  # noqa: F401
@@ -818,6 +819,85 @@ def test_reagent_charge_does_not_implicitly_add_catalyst() -> None:
         assert catalyst_state.species_amounts["Cat_active"] == pytest.approx(0.00020)
     finally:
         env.close()
+
+
+def test_uncharged_catalyst_category_does_not_modify_reaction_rates() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-safety-constrained", seed=0)
+    try:
+        env.reset(seed=0)
+        env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 0})
+        env.step({"operation": "add_reagent", "amount_mol": 0.015})
+        base = env.unwrapped
+        state = base._state
+        from chemworld.world.reaction_kernel import _hidden_reaction_modifier
+
+        stirring_factor = 0.70 + 0.30 * (1.0 - np.exp(-675.0 / 420.0))
+        factors = [
+            _hidden_reaction_modifier(
+                base.world,
+                catalyst=catalyst,
+                solvent=0,
+                reaction_index=1,
+                stirring_factor=stirring_factor,
+                state=state,
+            )
+            for catalyst in range(4)
+        ]
+
+        assert factors == pytest.approx([factors[0]] * 4)
+        assert factors[0] == pytest.approx(
+            float(base.world.solvent_effects[0, 1]) * stirring_factor
+        )
+    finally:
+        env.close()
+
+
+def test_zero_dose_catalyst_categories_produce_identical_reaction_trajectories() -> None:
+    terminal_states = []
+    for catalyst in (0, 3):
+        env = gym.make("ChemWorld", task_id="reaction-safety-constrained", seed=0)
+        try:
+            env.reset(seed=0)
+            for action in (
+                {"operation": "add_solvent", "volume_L": 0.025, "solvent": 0},
+                {"operation": "add_reagent", "amount_mol": 0.015},
+            ):
+                _observation, _reward, _terminated, _truncated, info = env.step(action)
+                assert info["transaction_status"] == "committed"
+            base = env.unwrapped
+            state = base._state
+            base._state = state.replace(
+                equipment=upsert_equipment_record(
+                    state.equipment,
+                    equipment_id="batch_reactor",
+                    equipment_type="batch_reactor",
+                    attached_vessel_id=state.vessel_id,
+                    status="configured",
+                    settings={
+                        **equipment_settings(state.equipment, "batch_reactor"),
+                        "catalyst": catalyst,
+                        "catalyst_amount_mol": 0.0,
+                    },
+                )
+            )
+            _observation, _reward, _terminated, _truncated, info = env.step(
+                {
+                    "operation": "heat",
+                    "target_temperature_K": 385.0,
+                    "duration_s": 1_500.0,
+                    "stirring_speed_rpm": 675.0,
+                }
+            )
+            assert info["transaction_status"] == "committed"
+            terminal_states.append(env.unwrapped._state)
+        finally:
+            env.close()
+
+    left, right = terminal_states
+    assert left.species_amounts == pytest.approx(right.species_amounts)
+    assert left.temperature_K == pytest.approx(right.temperature_K)
+    assert left.pressure_Pa == pytest.approx(right.pressure_Pa)
+    assert left.ledger.to_dict() == pytest.approx(right.ledger.to_dict())
 
 
 def test_domain_services_apply_mechanism_roles_for_reagent_and_electrolysis() -> None:

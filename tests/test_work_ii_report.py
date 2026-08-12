@@ -4,7 +4,11 @@ import json
 from copy import deepcopy
 from pathlib import Path
 
+import pytest
+
+import chemworld.eval.work_ii_formal as work_ii_formal
 from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.work_ii_cost import build_formal_cost_contract
 from chemworld.eval.work_ii_formal import authorize_formal_preflight, build_formal_preflight
 from chemworld.eval.work_ii_report import build_formal_analysis_dataset
 from chemworld.eval.work_ii_truth import build_evaluator_truth_plan
@@ -14,13 +18,67 @@ DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 
 
+@pytest.fixture(autouse=True)
+def _qualified_formal_prerequisites(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(work_ii_formal, "_validate_environment_binding", lambda *_: [])
+
+    def ready_c2(_root, _plan, _design, cells):
+        report = {
+            "schema_version": "chemworld-work-ii-c2-admission-report-0.1",
+            "status": "ready_for_formal_authorization",
+            "formal_execution_allowed": True,
+            "blocking_requirements": [],
+            "evidence_validation_errors": [],
+            "plan_binding": {
+                "path": Path(_plan).resolve().relative_to(_root).as_posix(),
+            },
+            "blocks": {"A_E": {"public_schedule": {
+                "public_schedule_cell_count": len(cells),
+                "public_schedule_sha256": canonical_json_sha256(cells),
+            }}},
+        }
+        report["admission_sha256"] = canonical_json_sha256(report)
+        return report
+
+    monkeypatch.setattr(work_ii_formal, "build_c2_admission_report", ready_c2)
+    monkeypatch.setattr(work_ii_formal, "validate_c2_admission_report", lambda *_: [])
+
+
 def _authorized_manifest() -> dict[str, object]:
     manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    qualification = {
+        "schema_version": "chemworld-work-ii-method-qualification-receipt-0.4",
+        "status": "passed",
+        "formal_execution_authorized": True,
+        "formal_preflight_sha256": manifest["preflight_sha256"],
+    }
+    qualification["receipt_sha256"] = canonical_json_sha256(qualification)
+    cost = build_formal_cost_contract(
+        ROOT,
+        manifest,
+        formal_currency_ceiling_usd=20.0,
+        pricing_source="https://provider.example/pricing",
+        pricing_observed_at="2026-08-10T12:00:00+08:00",
+        cache_hit_input_usd_per_million=0.0028,
+        cache_miss_input_usd_per_million=0.14,
+        output_usd_per_million=0.28,
+    )
+    freeze = {
+        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.1",
+        "status": "passed_final_freeze",
+        "formal_execution_authorized": True,
+        "bindings": {
+            "formal_preflight_sha256": manifest["preflight_sha256"],
+            "method_qualification": {"receipt_sha256": qualification["receipt_sha256"]},
+        },
+        "formal_currency_budget": cost,
+    }
+    freeze["receipt_sha256"] = canonical_json_sha256(freeze)
     return authorize_formal_preflight(
         manifest,
-        qualification_receipt_sha256="a" * 64,
-        preregistration_freeze_receipt_sha256="b" * 64,
-        formal_cost_contract_sha256="c" * 64,
+        qualification_receipt=qualification,
+        preregistration_freeze_receipt=freeze,
+        formal_cost_contract=cost,
     )
 
 

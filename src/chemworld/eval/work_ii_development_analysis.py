@@ -73,7 +73,10 @@ def _experiment_scores(analysis: Mapping[str, Any]) -> list[float]:
     experiments = analysis.get("experiments")
     scores: list[float] = []
     for item in (experiments if isinstance(experiments, list) else ()):
-        if isinstance(item, Mapping) and (score := _number(item.get("leaderboard_score"))) is not None:
+        if (
+            isinstance(item, Mapping)
+            and (score := _number(item.get("leaderboard_score"))) is not None
+        ):
             scores.append(score)
     return scores
 
@@ -416,7 +419,9 @@ def _paired_contrast(
     }
 
 
-def _provider_summary(rows: Sequence[Mapping[str, Any]], expected_cell_count: int) -> dict[str, Any]:
+def _provider_summary(
+    rows: Sequence[Mapping[str, Any]], expected_cell_count: int
+) -> dict[str, Any]:
     failed = [row for row in rows if row.get("qualification_passed") is not True]
     usage_fields = (
         "input_token_count",
@@ -627,7 +632,8 @@ def build_development_analysis(
                 "one retained WellAU failed cell",
                 "no evaluator-truth prediction-error scoring",
                 "no blind recommendation replay",
-                "DeepSeek partial attempts are harness evidence and are not mixed into prior contrasts",
+                "DeepSeek partial attempts are harness evidence and are not mixed into "
+                "prior contrasts",
             ],
         },
     }

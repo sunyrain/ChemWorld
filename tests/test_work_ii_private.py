@@ -8,6 +8,7 @@ import pytest
 
 import chemworld.eval.work_ii_private as private_module
 from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.work_ii_analysis import build_cluster_correction_record
 from chemworld.eval.work_ii_confirmatory import build_confirmatory_analysis
 from chemworld.eval.work_ii_formal import (
     FORMAL_ARMS,
@@ -41,23 +42,11 @@ def _formal_dataset(
 ) -> dict[str, object]:
     cluster_rows: list[dict[str, object]] = []
     cell_rows: list[dict[str, object]] = []
-    for task_index, task_id in enumerate(task_ids):
+    for task_id in task_ids:
         for world_index in range(5):
             cluster_id = f"{task_id}-formal-{world_index}"
             aligned = 0.04 + 0.002 * world_index
             misindexed = aligned + 0.20
-            cluster_rows.append(
-                {
-                    "world_cluster_id": cluster_id,
-                    "task_id": task_id,
-                    "complete_case": True,
-                    "H1_prior_utility": 0.12 + 0.005 * task_index,
-                    "H2_prior_vulnerability": 0.10 + 0.004 * task_index,
-                    "H3_misindexed_improvement": misindexed,
-                    "H3_aligned_improvement": aligned,
-                    "H3_primary_contrast": misindexed - aligned,
-                }
-            )
             improvements = {
                 "opaque": 0.03,
                 "aligned_nominal": aligned,
@@ -74,6 +63,11 @@ def _formal_dataset(
                         "terminal_state": "completed",
                         "checkpoint_error": {
                             "primary_improvement": improvement,
+                            "effective_pre_error": 0.50 + 0.10 * arm_index,
+                            "confirmatory_improvement_bounds": [
+                                improvement,
+                                improvement,
+                            ],
                             "missing_failure_rule": "observed_final",
                         },
                         "blind_outcome": {
@@ -96,6 +90,18 @@ def _formal_dataset(
                         },
                     }
                 )
+            arm_records = {
+                str(row["prior_arm"]): row["checkpoint_error"]
+                for row in cell_rows[-len(FORMAL_ARMS) :]
+            }
+            cluster_rows.append(
+                {
+                    "world_cluster_id": cluster_id,
+                    "task_id": task_id,
+                    "complete_case": True,
+                    **build_cluster_correction_record(arm_records),
+                }
+            )
     dataset: dict[str, object] = {
         "schema_version": "chemworld-work-ii-formal-analysis-dataset-0.1",
         "formal_result": True,

@@ -39,11 +39,18 @@ from chemworld.eval.work_ii_qualification import (
     validate_qualification_execution_authorization,
     validate_qualification_execution_journal,
 )
+from chemworld.eval.work_ii_resource_calibration import (
+    build_resource_calibration_readiness,
+    validate_resource_calibration_readiness,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
+CALIBRATION_MANIFEST = (
+    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+)
 TRIPLET_PROGRESS_VERSION = "chemworld-work-ii-qualification-triplet-progress-0.1"
 TERMINAL_RECEIPT_VERSION = "chemworld-work-ii-qualification-terminal-receipt-0.1"
 INFRASTRUCTURE_RECEIPT_VERSION = (
@@ -622,6 +629,7 @@ def execute_triplet(
     progress_path: Path,
     resume: bool,
     cell_runner: Path = CELL_RUNNER,
+    resource_calibration_summary_path: Path | None = None,
 ) -> dict[str, Any]:
     """Run or missing-only resume the exact qualification arm triplet."""
 
@@ -629,6 +637,25 @@ def execute_triplet(
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
+    calibration = build_resource_calibration_readiness(
+        ROOT,
+        CALIBRATION_MANIFEST,
+        summary_path=resource_calibration_summary_path,
+    )
+    calibration_errors = validate_resource_calibration_readiness(calibration)
+    if calibration_errors:
+        raise RuntimeError(
+            "W2-26 resource-calibration readiness failed: "
+            + "; ".join(calibration_errors)
+        )
+    if calibration.get("method_qualification_may_be_authorized") is not True:
+        missing = ",".join(
+            str(item) for item in calibration.get("missing_pattern_rounds", [])
+        )
+        raise RuntimeError(
+            "method qualification execution is blocked until W2-26 passes; "
+            f"unresolved pattern rounds: {missing}"
+        )
     authorization_path = _inside_root(
         authorization_path, label="qualification execution authorization"
     )
@@ -913,6 +940,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--authorization", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--progress-file", type=Path, required=True)
+    parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--allow-provider-execution", action="store_true")
     parser.add_argument("--resume", action="store_true")
     return parser.parse_args()
@@ -927,6 +955,7 @@ def main() -> int:
         output_root=args.output_root,
         progress_path=args.progress_file,
         resume=bool(args.resume),
+        resource_calibration_summary_path=args.resource_calibration_summary,
     )
     return 0 if progress["status"] == "passed" else 1
 

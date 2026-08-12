@@ -56,6 +56,7 @@ def test_formal_measure_runtime_dynamically_calls_validated_provider(
         base.observation_kernel.instrument_provider = provider
         env.step({"operation": "add_solvent", "volume_L": 0.028, "solvent": 2})
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
+        volume_before = float(base._state.volume_L)
 
         _observation, _reward, _terminated, _truncated, info = env.step(
             {"operation": "measure", "instrument": instrument_id}
@@ -64,6 +65,8 @@ def test_formal_measure_runtime_dynamically_calls_validated_provider(
         assert info["transaction_status"] == "committed"
         assert len(provider.calls) == 1
         assert provider.calls[0]["instrument_id"] == instrument_id
+        assert provider.calls[0]["sample_basis_volume_L"] == pytest.approx(volume_before)
+        assert base._state.volume_L < volume_before
         assert set(provider.calls[0].get("public_species_amounts_mol") or {}) <= {
             "reactant_public",
             "target_public",
@@ -167,6 +170,109 @@ def test_repeated_nonterminal_measurements_retain_each_execution_record() -> Non
             record["provider_contract_hash"] == instrument_runtime_contract_hash()
             for record in settings["execution_history"]
         )
+    finally:
+        env.close()
+
+
+def test_destructive_measurement_observes_pre_withdrawal_sample_composition(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=9, debug_truth=True)
+    try:
+        env.reset(seed=9)
+        base: Any = env.unwrapped
+        env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 2})
+        env.step({"operation": "add_reagent", "amount_mol": 0.008})
+        env.step({"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1})
+        env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1_500.0,
+                "stirring_speed_rpm": 720.0,
+            }
+        )
+        truth_before = base.observation_kernel._truth_values(base._state)
+        species_before = dict(base._state.species_amounts)
+        phase_amounts_before = base._state.phases.total_amounts_mol()
+        volume_before = base._state.volume_L
+        observed_states: list[tuple[dict[str, float], float]] = []
+        original_truth_values = base.observation_kernel._truth_values
+
+        def record_truth_state(state: Any) -> dict[str, float]:
+            observed_states.append((dict(state.species_amounts), float(state.volume_L)))
+            return original_truth_values(state)
+
+        monkeypatch.setattr(base.observation_kernel, "_truth_values", record_truth_state)
+
+        _observation, _reward, _terminated, _truncated, info = env.step(
+            {"operation": "measure", "instrument": "hplc"}
+        )
+
+        assert info["transaction_status"] == "committed"
+        assert observed_states == [(species_before, volume_before)]
+        assert base._state.volume_L < volume_before
+        remaining_fraction = base._state.volume_L / volume_before
+        assert base._state.species_amounts == pytest.approx(
+            {
+                species_id: amount_mol * remaining_fraction
+                for species_id, amount_mol in species_before.items()
+            }
+        )
+        assert base._state.phases.total_amounts_mol() == pytest.approx(
+            {
+                species_id: amount_mol * remaining_fraction
+                for species_id, amount_mol in phase_amounts_before.items()
+            }
+        )
+        truth_after = original_truth_values(base._state)
+        for metric in ("yield", "conversion", "selectivity"):
+            assert truth_after[metric] == pytest.approx(truth_before[metric])
+    finally:
+        env.close()
+
+
+def test_sequential_hplc_and_final_assay_preserve_composition_metrics() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=11, debug_truth=True)
+    try:
+        env.reset(seed=11)
+        base: Any = env.unwrapped
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.025, "solvent": 2},
+            {"operation": "add_reagent", "amount_mol": 0.008},
+            {"operation": "add_catalyst", "catalyst_amount_mol": 0.00025, "catalyst": 1},
+            {
+                "operation": "heat",
+                "target_temperature_K": 385.0,
+                "duration_s": 1_500.0,
+                "stirring_speed_rpm": 720.0,
+            },
+            {"operation": "quench"},
+        ):
+            env.step(action)
+        truth_before = base.observation_kernel._truth_values(base._state)
+        initial_before = dict(base._state.species.initial_amounts_mol)
+        volume_before = float(base._state.volume_L)
+        samples_before = float(base._state.ledger.sample_consumed_L)
+
+        env.step({"operation": "measure", "instrument": "hplc"})
+        truth_after_hplc = base.observation_kernel._truth_values(base._state)
+        initial_after_hplc = dict(base._state.species.initial_amounts_mol)
+        expected_remaining_fraction = base._state.volume_L / volume_before
+        env.step({"operation": "terminate"})
+        env.step({"operation": "measure", "instrument": "final_assay"})
+        truth_after_final = base.observation_kernel._truth_values(base._state)
+
+        for metric in ("yield", "conversion", "selectivity"):
+            assert truth_after_hplc[metric] == pytest.approx(truth_before[metric])
+            assert truth_after_final[metric] == pytest.approx(truth_before[metric])
+        assert initial_after_hplc == pytest.approx(
+            {
+                species_id: amount_mol * expected_remaining_fraction
+                for species_id, amount_mol in initial_before.items()
+            }
+        )
+        assert base._state.ledger.sample_consumed_L > samples_before
     finally:
         env.close()
 
@@ -312,6 +418,9 @@ def test_provider_failure_rolls_back_cost_sample_and_signal() -> None:
         env.step({"operation": "add_reagent", "amount_mol": 0.008})
         volume_before = float(base._state.volume_L)
         samples_before = float(base._state.ledger.sample_consumed_L)
+        species_before = dict(base._state.species_amounts)
+        initial_before = dict(base._state.species.initial_amounts_mol)
+        phases_before = base._state.phases.to_dict()
         base.observation_kernel.instrument_provider = FailingProvider()
 
         _obs, _reward, _terminated, _truncated, info = env.step(
@@ -324,6 +433,9 @@ def test_provider_failure_rolls_back_cost_sample_and_signal() -> None:
         assert info["sample_consumed"] == 0.0
         assert base._state.volume_L == pytest.approx(volume_before)
         assert base._state.ledger.sample_consumed_L == pytest.approx(samples_before)
+        assert base._state.species_amounts == species_before
+        assert base._state.species.initial_amounts_mol == initial_before
+        assert base._state.phases.to_dict() == phases_before
     finally:
         env.close()
 

@@ -244,6 +244,23 @@ def species_with_added_initial_amounts(
     return replace(species, initial_amounts_mol=merged)
 
 
+def scale_species_initial_amounts(
+    species: SpeciesLedger | None,
+    factor: float,
+) -> SpeciesLedger | None:
+    """Scale the remaining sample's initial-charge basis after proportional withdrawal."""
+
+    if species is None:
+        return None
+    return replace(
+        species,
+        initial_amounts_mol={
+            species_id: float(amount_mol) * factor
+            for species_id, amount_mol in species.initial_amounts_mol.items()
+        },
+    )
+
+
 def process_with_last_observation(
     process: ProcessLedger | None,
     values: dict[str, float | None],
@@ -272,4 +289,5 @@ __all__ = [
     "VesselThermalRecord",
     "process_with_last_observation",
     "process_with_metrics",
+    "scale_species_initial_amounts",
 ]

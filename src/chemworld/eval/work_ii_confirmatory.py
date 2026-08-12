@@ -11,11 +11,15 @@ import numpy as np
 from scipy import stats
 
 from chemworld.eval.provenance import canonical_json_sha256
-from chemworld.eval.work_ii_analysis import WORK_II_ANALYSIS_ARMS
+from chemworld.eval.work_ii_analysis import (
+    WORK_II_ANALYSIS_ARMS,
+    WorkIIAnalysisError,
+    build_cluster_correction_record,
+)
 from chemworld.eval.work_ii_report import WORK_II_FORMAL_ANALYSIS_DATASET_VERSION
 
 WORK_II_CONFIRMATORY_ANALYSIS_VERSION = "chemworld-work-ii-confirmatory-analysis-0.1"
-EXPECTED_ANALYSIS_PLAN_VERSION = "chemworld-work-ii-analysis-plan-0.2"
+EXPECTED_ANALYSIS_PLAN_VERSION = "chemworld-work-ii-analysis-plan-0.3"
 EXPECTED_TASK_COUNT = 5
 EXPECTED_CLUSTER_COUNT = 25
 EXPECTED_CELL_COUNT = 75
@@ -211,23 +215,38 @@ def _bootstrap_task_stratified(
     }
 
 
-def _primary_family(rows: Sequence[Mapping[str, Any]], *, covariance: str) -> dict[str, Any]:
+def _primary_family(
+    rows: Sequence[Mapping[str, Any]], *, covariance: str, failure_aware: bool = True
+) -> dict[str, Any]:
+    fields = (
+        {
+            "H3_primary_contrast": "H3_primary_contrast_lower_bound",
+            "H3_misindexed_improvement": "H3_misindexed_improvement_lower_bound",
+            "H3_aligned_noninferiority": "H3_aligned_improvement_lower_bound",
+        }
+        if failure_aware
+        else {
+            "H3_primary_contrast": "H3_primary_contrast",
+            "H3_misindexed_improvement": "H3_misindexed_improvement",
+            "H3_aligned_noninferiority": "H3_aligned_improvement",
+        }
+    )
     components = {
         "H3_primary_contrast": _task_fixed_effect_fit(
             rows,
-            value_field="H3_primary_contrast",
+            value_field=fields["H3_primary_contrast"],
             null=0.0,
             covariance=covariance,
         ),
         "H3_misindexed_improvement": _task_fixed_effect_fit(
             rows,
-            value_field="H3_misindexed_improvement",
+            value_field=fields["H3_misindexed_improvement"],
             null=0.0,
             covariance=covariance,
         ),
         "H3_aligned_noninferiority": _task_fixed_effect_fit(
             rows,
-            value_field="H3_aligned_improvement",
+            value_field=fields["H3_aligned_noninferiority"],
             null=ALIGNED_NONINFERIORITY_MARGIN,
             covariance=covariance,
         ),
@@ -239,6 +258,11 @@ def _primary_family(rows: Sequence[Mapping[str, Any]], *, covariance: str) -> di
         if all(result.get("status") == "estimated" for result in components.values())
         else "not_fully_estimable",
         "method": covariance,
+        "estimand": (
+            "symmetric_failure_aware_adverse_bounds"
+            if failure_aware
+            else "observed_point_summary_not_confirmatory"
+        ),
         "success_is_intersection_union": True,
         "intersection_union_p_value": max(p_values),
         "passed": passed,
@@ -249,14 +273,14 @@ def _primary_family(rows: Sequence[Mapping[str, Any]], *, covariance: str) -> di
 def _bootstrap_primary_family(rows: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
     components = {
         "H3_primary_contrast": _bootstrap_task_stratified(
-            rows, value_field="H3_primary_contrast", null=0.0
+            rows, value_field="H3_primary_contrast_lower_bound", null=0.0
         ),
         "H3_misindexed_improvement": _bootstrap_task_stratified(
-            rows, value_field="H3_misindexed_improvement", null=0.0
+            rows, value_field="H3_misindexed_improvement_lower_bound", null=0.0
         ),
         "H3_aligned_noninferiority": _bootstrap_task_stratified(
             rows,
-            value_field="H3_aligned_improvement",
+            value_field="H3_aligned_improvement_lower_bound",
             null=ALIGNED_NONINFERIORITY_MARGIN,
         ),
     }
@@ -265,39 +289,12 @@ def _bootstrap_primary_family(rows: Sequence[Mapping[str, Any]]) -> dict[str, An
         if all(result.get("status") == "estimated" for result in components.values())
         else "not_fully_estimable",
         "method": "task_stratified_cluster_bootstrap",
+        "estimand": "symmetric_failure_aware_adverse_bounds",
         "intersection_union_p_value": max(
             float(result.get("one_sided_p_value", 1.0)) for result in components.values()
         ),
         "passed": all(result.get("passed") is True for result in components.values()),
         "components": components,
-    }
-
-
-def _worst_case_sensitivity(
-    rows: Sequence[Mapping[str, Any]], primary: Mapping[str, Any]
-) -> dict[str, Any]:
-    incomplete = [
-        str(row.get("world_cluster_id")) for row in rows if row.get("complete_case") is not True
-    ]
-    if incomplete:
-        return {
-            "status": "unbounded_adverse_due_to_unclipped_prediction_error",
-            "incomplete_or_unscorable_cluster_count": len(incomplete),
-            "incomplete_or_unscorable_cluster_ids": incomplete,
-            "H3_primary_contrast_lower_bound": "-Infinity",
-            "H3_misindexed_improvement_lower_bound": "-Infinity",
-            "H3_aligned_improvement_lower_bound": "-Infinity",
-            "passed": False,
-            "interpretation": (
-                "At least one non-complete or unscorable arm makes the adverse "
-                "worst case unbounded because E is not clipped."
-            ),
-        }
-    return {
-        "status": "identical_to_primary_all_clusters_complete",
-        "incomplete_or_unscorable_cluster_count": 0,
-        "passed": primary.get("passed") is True,
-        "primary_family": dict(primary),
     }
 
 
@@ -567,6 +564,108 @@ def validate_confirmatory_inputs(
             or contract.get("input_dataset_schema") != WORK_II_FORMAL_ANALYSIS_DATASET_VERSION
         ):
             errors.append("analysis implementation contract denominator or schema mismatch")
+    cell_rows = dataset.get("cell_rows")
+    cluster_rows = dataset.get("cluster_rows")
+    if not isinstance(cell_rows, list) or len(cell_rows) != EXPECTED_CELL_COUNT:
+        errors.append("formal analysis dataset does not contain exactly 75 cell rows")
+        cell_rows = []
+    if not isinstance(cluster_rows, list) or len(cluster_rows) != EXPECTED_CLUSTER_COUNT:
+        errors.append("formal analysis dataset does not contain exactly 25 cluster rows")
+        cluster_rows = []
+    cells_by_cluster: dict[str, dict[str, Mapping[str, Any]]] = defaultdict(dict)
+    for index, row in enumerate(cell_rows):
+        if not isinstance(row, Mapping):
+            errors.append(f"cell_rows[{index}] is not an object")
+            continue
+        cluster_id = str(row.get("world_cluster_id", ""))
+        arm = str(row.get("prior_arm", ""))
+        if not cluster_id or arm not in WORK_II_ANALYSIS_ARMS:
+            errors.append(f"cell_rows[{index}] has an invalid cluster or arm identity")
+            continue
+        if arm in cells_by_cluster[cluster_id]:
+            errors.append(f"{cluster_id} contains a duplicate {arm} cell")
+        cells_by_cluster[cluster_id][arm] = row
+        checkpoint = row.get("checkpoint_error")
+        if not isinstance(checkpoint, Mapping):
+            errors.append(f"{cluster_id}/{arm} lacks checkpoint_error")
+            continue
+        try:
+            improvement = _finite(
+                checkpoint.get("primary_improvement"),
+                f"{cluster_id}/{arm}.primary_improvement",
+            )
+            if not -1.0 <= improvement <= 1.0:
+                errors.append(f"{cluster_id}/{arm} primary improvement is outside [-1,1]")
+            pre_error = checkpoint.get("effective_pre_error")
+            if pre_error is not None and not 0.0 <= _finite(
+                pre_error, f"{cluster_id}/{arm}.effective_pre_error"
+            ) <= 1.0:
+                errors.append(f"{cluster_id}/{arm} pre error is outside [0,1]")
+        except WorkIIConfirmatoryAnalysisError as error:
+            errors.append(str(error))
+
+    cluster_by_id: dict[str, Mapping[str, Any]] = {}
+    rebuilt_fields = (
+        "H1_prior_utility",
+        "H2_prior_vulnerability",
+        "H3_misindexed_improvement",
+        "H3_aligned_improvement",
+        "H3_primary_contrast",
+        "H3_primary_contrast_lower_bound",
+        "H3_misindexed_improvement_lower_bound",
+        "H3_aligned_improvement_lower_bound",
+    )
+    for index, row in enumerate(cluster_rows):
+        if not isinstance(row, Mapping):
+            errors.append(f"cluster_rows[{index}] is not an object")
+            continue
+        cluster_id = str(row.get("world_cluster_id", ""))
+        if not cluster_id or cluster_id in cluster_by_id:
+            errors.append(f"cluster_rows[{index}] has a missing or duplicate identity")
+            continue
+        cluster_by_id[cluster_id] = row
+        arm_cells = cells_by_cluster.get(cluster_id, {})
+        if set(arm_cells) != set(WORK_II_ANALYSIS_ARMS):
+            errors.append(f"{cluster_id} does not contain its exact three-arm cell triplet")
+            continue
+        task_ids = {str(cell.get("task_id", "")) for cell in arm_cells.values()}
+        if task_ids != {str(row.get("task_id", ""))}:
+            errors.append(f"{cluster_id} task identity differs between cell and cluster rows")
+        arm_records = {
+            arm: arm_cells[arm].get("checkpoint_error", {})
+            for arm in WORK_II_ANALYSIS_ARMS
+        }
+        try:
+            rebuilt = build_cluster_correction_record(arm_records)
+        except (WorkIIAnalysisError, TypeError, ValueError) as error:
+            errors.append(f"{cluster_id} cannot rebuild frozen contrasts: {error}")
+            continue
+        for field in rebuilt_fields:
+            observed = row.get(field)
+            expected = rebuilt[field]
+            if observed is None or expected is None:
+                matches = observed is expected
+            else:
+                try:
+                    matches = math.isclose(
+                        _finite(observed, f"{cluster_id}.{field}"),
+                        _finite(expected, f"{cluster_id}.rebuilt.{field}"),
+                        rel_tol=0.0,
+                        abs_tol=1.0e-12,
+                    )
+                except WorkIIConfirmatoryAnalysisError:
+                    matches = False
+            if not matches:
+                errors.append(f"{cluster_id}.{field} differs from its three cell rows")
+        expected_complete_case = all(
+            arm_cells[arm].get("terminal_state") == "completed"
+            and arm_records[arm].get("missing_failure_rule") == "observed_final"
+            for arm in WORK_II_ANALYSIS_ARMS
+        )
+        if row.get("complete_case") is not expected_complete_case:
+            errors.append(f"{cluster_id}.complete_case differs from its three cell rows")
+    if set(cluster_by_id) != set(cells_by_cluster):
+        errors.append("formal analysis cell/cluster identity roster mismatch")
     if errors:
         raise WorkIIConfirmatoryAnalysisError("; ".join(errors))
 
@@ -579,12 +678,14 @@ def build_confirmatory_analysis(
     validate_confirmatory_inputs(dataset, analysis_plan)
     cluster_rows = [dict(row) for row in dataset["cluster_rows"]]
     cell_rows = [dict(row) for row in dataset["cell_rows"]]
-    primary = _primary_family(cluster_rows, covariance="classical_OLS")
+    primary = _primary_family(cluster_rows, covariance="classical_OLS", failure_aware=True)
+    observed_point_summary = _primary_family(
+        cluster_rows, covariance="classical_OLS", failure_aware=False
+    )
     complete_case_rows = [row for row in cluster_rows if row.get("complete_case") is True]
     complete_case = _primary_family(complete_case_rows, covariance="classical_OLS")
-    hc3 = _primary_family(cluster_rows, covariance="HC3")
+    hc3 = _primary_family(cluster_rows, covariance="HC3", failure_aware=True)
     bootstrap = _bootstrap_primary_family(cluster_rows)
-    worst_case = _worst_case_sensitivity(cluster_rows, primary)
 
     h1_rows = [
         {**row, "H1_value": 0.0 if row.get("H1_prior_utility") is None else row["H1_prior_utility"]}
@@ -612,10 +713,9 @@ def build_confirmatory_analysis(
         row.get("H2_prior_vulnerability") is None for row in cluster_rows
     )
     h4 = _h4_fit(cell_rows)
-    secondary_raw = {
+    confirmatory_secondary_raw = {
         "H1_prior_utility": h1,
         "H2_prior_vulnerability": h2,
-        "H4_knowledge_to_action_translation": h4,
     }
     report: dict[str, Any] = {
         "schema_version": WORK_II_CONFIRMATORY_ANALYSIS_VERSION,
@@ -642,15 +742,23 @@ def build_confirmatory_analysis(
         },
         "primary_H3": primary,
         "sensitivity_analyses": {
+            "observed_point_summary": observed_point_summary,
             "complete_case": complete_case,
-            "worst_case_failed_arm": worst_case,
             "HC3": hc3,
             "task_stratified_cluster_bootstrap": bootstrap,
             "primary_decision_is_not_replaced_by_sensitivity_results": True,
         },
         "confirmatory_secondary": {
-            "unadjusted": secondary_raw,
-            "Holm": _holm_family(secondary_raw),
+            "unadjusted": confirmatory_secondary_raw,
+            "Holm": _holm_family(confirmatory_secondary_raw),
+        },
+        "exploratory_H4_knowledge_to_action_translation": {
+            **h4,
+            "confirmatory": False,
+            "interpretation": (
+                "descriptive_only_due_to_post_assignment_eligibility_"
+                "and_no_separate_power"
+            ),
         },
         "descriptive_task_heterogeneity": {
             "H3_primary_contrast_task_means": primary.get("components", {})
@@ -667,12 +775,7 @@ def build_confirmatory_analysis(
         "law_summary_and_transfer_boundary": _law_summary_denominators(cell_rows),
         "claim_decisions": {
             "selective_evidence_driven_wrong_prior_correction": primary.get("passed") is True,
-            "knowledge_to_action_translation": (
-                h4.get("passed") is True
-                and _holm_family(secondary_raw)["results"]["H4_knowledge_to_action_translation"][
-                    "rejected"
-                ]
-            ),
+            "knowledge_to_action_translation": "not_confirmatory_exploratory_only",
             "reusable_law_discovery": False,
             "private_transfer": "not_collected_by_public_analysis",
             "single_leaderboard_score_used": False,

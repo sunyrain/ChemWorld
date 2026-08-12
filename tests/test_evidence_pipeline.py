@@ -5,6 +5,13 @@ import json
 import runpy
 from pathlib import Path
 
+from chemworld.eval.mechanism_adaptation_execution import (
+    load_json_object,
+    load_protocol_object,
+)
+from chemworld.eval.mechanism_gate_decision import gate_a_execution_contract_binding
+from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION
+
 
 def _pipeline() -> dict[str, object]:
     return runpy.run_path("scripts/evidence_pipeline.py", run_name="evidence_pipeline")
@@ -93,6 +100,38 @@ def test_current_evidence_dag_has_unique_acyclic_materializations() -> None:
         else (node.command is not None) == (pipeline["_node_lifecycle"](node) == "generated")
         for node in nodes
     )
+
+
+def test_gate_a_structural_receipts_fail_closed_on_runtime_binding_drift() -> None:
+    pipeline = _pipeline()
+    protocol = load_protocol_object(
+        Path("configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json")
+    )
+    plan = load_json_object(
+        Path("configs/benchmark/mechanism_adaptation_gate_a_v0.3.0_rc29.json")
+    )
+    binding = gate_a_execution_contract_binding(protocol, plan)
+    receipt = {
+        "schema_version": STRUCTURAL_RECEIPT_VERSION,
+        "stage": "a2",
+        "protocol_sha256": pipeline["_canonical_sha256"](protocol),
+        "gate_a_plan_sha256": pipeline["_canonical_sha256"](plan),
+        "structurally_complete": True,
+        "expected_trial_count": 1,
+        "observed_completed_trial_count": 1,
+        "trial_manifest_count": 1,
+        "trial_manifests_sha256": "c" * 64,
+        "source_report_sha256": "d" * 64,
+        "metric_embargo": "active",
+        "scientific_metrics_disclosed": False,
+        "execution_contract_binding_sha256": binding["binding_sha256"],
+        "runtime_source_tree_sha256": binding["runtime_source_tree_sha256"],
+    }
+    validator = pipeline["_mechanism_structural_receipt_binding_current"]
+    assert validator(receipt, stage="a2", protocol=protocol, plan=plan) is True
+
+    receipt["runtime_source_tree_sha256"] = "e" * 64
+    assert validator(receipt, stage="a2", protocol=protocol, plan=plan) is False
 
 
 def test_work_i_fvl_nodes_have_current_fail_closed_source_bindings() -> None:
@@ -314,23 +353,36 @@ def test_frozen_current_evidence_is_not_regenerated_after_task_contract_drift() 
         assert pipeline["_node_producer"](node) == "frozen_current_preregistration_evidence"
 
 
-def test_current_evidence_pipeline_records_formal_gate_a_pass() -> None:
+def test_current_evidence_pipeline_detects_stale_gate_a_registry_state() -> None:
     pipeline = _pipeline()
     current = json.loads(pipeline["CURRENT_REGISTRY"].read_text(encoding="utf-8"))
 
     mechanism = current["mechanism_adaptation"]
-    assert mechanism["status"] == "gate_a_passed_remaining_gates_pending"
-    assert mechanism["gate_a_pass"] is True
-    assert mechanism["gate_a_certificate_status"] == {
-        "a1_physical_intervention_validity": "passed",
-        "a2_controlled_matched_identifiability": "passed",
-        "a3_online_attainability": "passed",
-    }
-    assert mechanism["gate_a_evidence_current"] is (
-        current["evidence_dag"]["nodes"]["mechanism_public_gate_a_decision"]["artifact_state"]
-        == "current"
+    nodes = current["evidence_dag"]["nodes"]
+    protocol = load_protocol_object(Path(nodes["mechanism_protocol"]["path"]))
+    plan = load_json_object(Path(nodes["mechanism_gate_a_plan"]["path"]))
+    decision = load_json_object(Path(nodes["mechanism_public_gate_a_decision"]["path"]))
+    a2_receipt = load_json_object(Path(nodes["mechanism_a2_structural_receipt"]["path"]))
+    a3_receipt = load_json_object(Path(nodes["mechanism_a3_structural_receipt"]["path"]))
+    qualification = load_json_object(Path(nodes["mechanism_release_qualification"]["path"]))
+    binding_current = pipeline["_mechanism_public_decision_binding_current"](
+        decision,
+        a2_receipt,
+        a3_receipt,
+        qualification,
+        protocol,
+        plan,
     )
-    assert pipeline["check_current_evidence"]() == []
+    expected_current = bool(
+        binding_current
+        and nodes["mechanism_public_gate_a_decision"]["artifact_state"] == "current"
+    )
+    errors = pipeline["check_current_evidence"]()
+    if mechanism["gate_a_evidence_current"] is expected_current:
+        assert "current registry mechanism Gate A freshness is inconsistent" not in errors
+    else:
+        assert "current registry mechanism Gate A freshness is inconsistent" in errors
+        assert "current registry mechanism Gate A state is inconsistent" in errors
 
 
 def test_current_state_model_separates_validation_freeze_and_publication() -> None:

@@ -20,7 +20,10 @@ from chemworld.agents.task_recipes import (
     task_recipe_dimension,
     task_recipe_from_unit_vector,
 )
-from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
+from chemworld.eval.work_ii_ae_prior_qualification import (
+    validate_qualification_report,
+)
 from chemworld.materials import static_material_information_dossier
 from chemworld.tasks import get_task
 
@@ -42,6 +45,15 @@ EXPECTED_TASKS = (
     "reaction-safety-constrained",
 )
 EXPECTED_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
+EXPECTED_PRIOR_QUALIFICATION_VERSION = (
+    "chemworld-work-ii-ae-prior-distinguishability-qualification-0.1"
+)
+
+
+def _self_hash(payload: Mapping[str, Any], field: str) -> str:
+    return canonical_json_sha256(
+        {key: value for key, value in payload.items() if key != field}
+    )
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -180,6 +192,7 @@ def audit(
     output_path: Path,
     private_seal_path: Path | None,
     create_private_seal: bool,
+    prior_qualification_report_path: Path | None = None,
 ) -> dict[str, Any]:
     design = _load(design_path)
     failures: list[dict[str, Any]] = []
@@ -191,6 +204,101 @@ def audit(
         failures.append({"check": "exact_task_roster", "observed": list(task_ids)})
     if tuple(design.get("prior_arms", ())) != EXPECTED_ARMS:
         failures.append({"check": "exact_prior_arm_roster"})
+    qualification = design.get("prior_distinguishability_qualification_contract")
+    if not isinstance(qualification, Mapping):
+        failures.append({"check": "prior_distinguishability_qualification_contract"})
+        qualification = {}
+    if qualification.get("schema_version") != EXPECTED_PRIOR_QUALIFICATION_VERSION:
+        failures.append({"check": "prior_distinguishability_qualification_version"})
+    region_contracts = qualification.get("frozen_counterevidence_regions")
+    if not isinstance(region_contracts, list) or len(region_contracts) < 2:
+        failures.append({"check": "two_frozen_counterevidence_regions"})
+    region_rules = qualification.get("region_pass_rules")
+    world_rules = qualification.get("world_pass_rules")
+    if (
+        not isinstance(region_rules, Mapping)
+        or float(region_rules.get("minimum_mean_normalized_L1_metric_vector_separation", 0.0))
+        <= 0.0
+        or float(region_rules.get("minimum_single_metric_absolute_separation", 0.0)) <= 0.0
+        or float(region_rules.get("minimum_paired_noise_signal_to_noise_ratio", 0.0)) <= 0.0
+    ):
+        failures.append({"check": "frozen_metric_vector_and_noise_thresholds"})
+    if (
+        not isinstance(world_rules, Mapping)
+        or int(world_rules.get("minimum_independent_counterevidence_regions_passed", 0)) < 2
+        or int(world_rules.get("participant_complete_experiment_budget", -1)) != 8
+        or world_rules.get("eight_round_falsifiability_required") is not True
+    ):
+        failures.append({"check": "eight_round_two_region_falsifiability_contract"})
+
+    # This script validates the static contract and legacy scalar reachability only.
+    # The strengthened qualification requires a separate immutable report containing
+    # registered metric-vector, paired-noise, counterevidence-region and replay rows.
+    # Do not turn an existing scalar delta into a scientific qualification result.
+    qualification_status = "pending_provider_free_qualification_execution"
+    qualification_ready = not any(
+        item["check"]
+        in {
+            "prior_distinguishability_qualification_contract",
+            "prior_distinguishability_qualification_version",
+            "two_frozen_counterevidence_regions",
+            "frozen_metric_vector_and_noise_thresholds",
+            "eight_round_two_region_falsifiability_contract",
+        }
+        for item in failures
+    )
+    qualification_result: dict[str, Any] = {
+        "provided": prior_qualification_report_path is not None,
+        "status": qualification_status,
+        "report_sha256": None,
+        "validation_errors": [],
+    }
+    if prior_qualification_report_path is not None:
+        if not prior_qualification_report_path.is_file():
+            qualification_errors = ["A-E prior-qualification report is missing"]
+            qualification_report: dict[str, Any] = {}
+        else:
+            qualification_report = _load(prior_qualification_report_path)
+            qualification_errors = validate_qualification_report(
+                ROOT,
+                qualification_report,
+                design,
+                report_path=prior_qualification_report_path,
+            )
+        if qualification_report.get("status") != "passed":
+            qualification_errors.append("A-E prior-qualification report did not pass")
+        if qualification_report.get("failures") != []:
+            qualification_errors.append("A-E prior-qualification report retains failures")
+        qualification_errors = sorted(set(qualification_errors))
+        qualification_result = {
+            "provided": True,
+            "path": (
+                prior_qualification_report_path.resolve().relative_to(ROOT).as_posix()
+            ),
+            "file_sha256": (
+                file_sha256(prior_qualification_report_path)
+                if prior_qualification_report_path.is_file()
+                else None
+            ),
+            "status": (
+                "passed" if not qualification_errors else "failed_validation"
+            ),
+            "report_sha256": qualification_report.get("report_sha256"),
+            "tested_commit": qualification_report.get("source_binding", {}).get(
+                "tested_commit"
+            ),
+            "validation_errors": qualification_errors,
+            "denominators": qualification_report.get("denominators"),
+        }
+        if qualification_errors:
+            failures.append(
+                {
+                    "check": "prior_distinguishability_qualification_report",
+                    "errors": qualification_errors,
+                }
+            )
+        else:
+            qualification_status = "passed"
 
     cohort = design["world_cohort"]
     development = [int(item) for item in cohort["development_and_qualification"]["world_seeds"]]
@@ -345,7 +453,7 @@ def audit(
                     ),
                     flush=True,
                 )
-                if not np.isfinite(delta) or delta <= 1.0e-8:
+                if not np.isfinite(delta):
                     failures.append(
                         {
                             "check": "target_field_changes_executable_response",
@@ -359,7 +467,7 @@ def audit(
                 "world_count": len(seeds),
                 "minimum_absolute_score_delta": min(deltas),
                 "maximum_absolute_score_delta": max(deltas),
-                "all_distinguishable": all(delta > 1.0e-8 for delta in deltas),
+                "all_finite_legacy_scalar_diagnostics": all(np.isfinite(delta) for delta in deltas),
             }
         task_results.append(
             {
@@ -382,7 +490,13 @@ def audit(
         "design_id": design["design_id"],
         "design_path": str(design_path.resolve().relative_to(ROOT)).replace("\\", "/"),
         "design_sha256": canonical_json_sha256(design),
-        "status": "passed" if not failures else "failed",
+        "status": (
+            "failed"
+            if failures
+            else "passed"
+            if qualification_status == "passed"
+            else "pending_provider_free_prior_distinguishability_qualification"
+        ),
         "formal_result": False,
         "participant_provider_calls": 0,
         "task_count": len(task_rows),
@@ -391,15 +505,41 @@ def audit(
         "public_formal_world_count": len(public_flat),
         "planned_public_participant_cell_count": len(public_flat) * len(design["prior_arms"]),
         "prior_identifiability_diagnostic_count": diagnostic_count,
+        "prior_distinguishability_qualification": {
+            "status": qualification_status,
+            "static_contract_ready": qualification_ready,
+            "formal_execution_gate_satisfied": qualification_status == "passed",
+            "required_result_axes": [
+                "registered_metric_vector_separation",
+                "paired_noise_signal_to_noise",
+                "two_independent_counterevidence_regions",
+                "eight_round_falsifiability",
+                "all_executions_exact_replayable",
+            ],
+            "participant_provider_calls": 0,
+            "participant_outcomes_used": False,
+            "qualification_report": qualification_result,
+        },
         "private_confirmation": private_result,
         "task_results": task_results,
         "failures": failures,
         "claim_boundary": (
-            "This audit qualifies matched prior/world/resource design and deterministic "
-            "target-field "
-            "reachability. It does not execute a participant or estimate H3."
-        ),
+            (
+                "This audit validates the static matched-prior/world/resource contract, "
+                "legacy scalar reachability, and the supplied frozen metric-vector, "
+                "paired-noise, two-region, eight-round prior-distinguishability report. "
+            )
+            if qualification_status == "passed"
+            else (
+                "This audit validates the static matched-prior/world/resource contract and "
+                "reports legacy scalar reachability. It does not satisfy the frozen "
+                "metric-vector, paired-noise, two-region, eight-round "
+                "prior-distinguishability qualification. "
+            )
+        )
+        + "It does not execute a participant or estimate H3.",
     }
+    report["audit_sha256"] = _self_hash(report, "audit_sha256")
     write_json_atomic(output_path, report)
     return report
 
@@ -410,6 +550,7 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--private-seal", type=Path)
     parser.add_argument("--create-private-seal", action="store_true")
+    parser.add_argument("--prior-qualification-report", type=Path)
     args = parser.parse_args()
     if args.create_private_seal and args.private_seal is None:
         parser.error("--create-private-seal requires --private-seal")
@@ -418,6 +559,11 @@ def main() -> int:
         output_path=args.output.resolve(),
         private_seal_path=args.private_seal.resolve() if args.private_seal else None,
         create_private_seal=bool(args.create_private_seal),
+        prior_qualification_report_path=(
+            args.prior_qualification_report.resolve()
+            if args.prior_qualification_report
+            else None
+        ),
     )
     print(
         json.dumps(
