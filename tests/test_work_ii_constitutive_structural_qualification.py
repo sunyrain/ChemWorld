@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import sys
+from collections import Counter
 from pathlib import Path
 from typing import Any
 
@@ -9,9 +10,12 @@ import scripts.run_work_ii_constitutive_structural_qualification as runner
 from scripts.run_work_ii_campaign_pilot import _campaign_card
 from scripts.run_work_ii_constitutive_structural_qualification import (
     BASE_CONFIGS,
+    DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0,
+    DEFAULT_DEVELOPMENT_PARTITION_Q0,
     _compile_actions,
     _d1_config,
     _load,
+    _validate_q0_inputs,
 )
 
 from chemworld.eval.work_ii_c2_admission import C2_MATERIAL_SOURCE_EXCLUSIONS
@@ -21,6 +25,7 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     CRYSTALLIZATION_CANDIDATE_ID,
     EXACT_REPLAYS_TOTAL,
     PARTITION_CANDIDATE_ID,
+    PARTITION_NOMINAL_PAIR_STRATA,
     PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD,
     PRIMARY_EXECUTIONS_TOTAL,
     WORLD_SEEDS,
@@ -222,6 +227,56 @@ def test_actions_vary_the_registered_intervention_families(candidate_id: str) ->
     assert len(second_actions) > 1
 
 
+def _partition_pair_counts(rows: list[dict[str, Any]]) -> Counter[tuple[int, int]]:
+    return Counter(
+        (
+            int(row["feature_values"]["solvent"]),
+            int(row["feature_values"]["extractant"]),
+        )
+        for row in rows
+    )
+
+
+def test_partition_identity_roster_is_explicitly_stratified_over_all_pairs() -> None:
+    identity = [
+        row
+        for row in registered_coordinates(PARTITION_CANDIDATE_ID)
+        if row["intervention_family"] == "identity"
+    ]
+    q1 = [row for row in identity if row["phase"] == "q1_coverage"]
+    heldout = [row for row in identity if row["phase"] == "q2_heldout"]
+    assert _partition_pair_counts(q1) == Counter(
+        dict.fromkeys(PARTITION_NOMINAL_PAIR_STRATA, 12)
+    )
+    assert _partition_pair_counts(heldout) == Counter(
+        dict.fromkeys(PARTITION_NOMINAL_PAIR_STRATA, 4)
+    )
+    assert all(
+        row["feature_values"]["aqueous_phase_volume_L"] == 0.015
+        and row["feature_values"]["extractant_volume_L"] == 0.019
+        and row["feature_values"]["mix_duration_s"] == 420.0
+        and row["feature_values"]["settle_duration_s"] == 900.0
+        and row["feature_values"]["stirring_speed_rpm"] == 800.0
+        for row in identity
+    )
+
+
+def test_partition_identity_q2_selection_is_balanced_not_single_extractant() -> None:
+    selected = [
+        row
+        for row in selected_q2_queries(PARTITION_CANDIDATE_ID)
+        if row["intervention_family"] == "identity"
+    ]
+    counts = _partition_pair_counts(selected)
+    assert len(selected) == 8
+    assert len(counts) == 8
+    assert set(counts.values()) == {1}
+    assert {pair[0] for pair in counts} == {0, 1, 2, 3}
+    assert {pair[1] for pair in counts} == {0, 1, 2, 3}
+    assert Counter(pair[0] for pair in counts) == Counter(dict.fromkeys(range(4), 2))
+    assert Counter(pair[1] for pair in counts) == Counter(dict.fromkeys(range(4), 2))
+
+
 def _action_signature(actions: list[dict[str, Any]]) -> str:
     return repr(actions)
 
@@ -300,5 +355,67 @@ def test_cli_defaults_keep_all_development_artifacts_under_runs(
     assert args.execution_mode == "development"
     assert args.summary == output_root.resolve() / "summary.json"
     assert args.package == output_root.resolve() / "q2-package.json"
-    assert "runs/development" in args.partition_q0_summary.as_posix()
-    assert "runs/development" in args.crystallization_q0_summary.as_posix()
+    assert args.partition_q0_summary == DEFAULT_DEVELOPMENT_PARTITION_Q0.resolve()
+    assert args.crystallization_q0_summary == (
+        DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0.resolve()
+    )
+    assert "partition-nominal-pair-q0" in args.partition_q0_summary.as_posix()
+
+
+def test_q0_binding_accepts_new_nominal_pair_and_rejects_old_summary(
+    monkeypatch: Any,
+) -> None:
+    context = prepare_execution_context(Path.cwd(), mode="development")
+    args = type(
+        "Args",
+        (),
+        {
+            "partition_q0_summary": DEFAULT_DEVELOPMENT_PARTITION_Q0,
+            "crystallization_q0_summary": DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0,
+        },
+    )()
+    new_partition = {
+        "schema_version": "nominal-pair",
+        "analysis": {"passed": True},
+        "summary_sha256": "n" * 64,
+    }
+    crystallization = {
+        "schema_version": "crystallization",
+        "analysis": {"passed": True},
+        "summary_sha256": "c" * 64,
+    }
+    payloads = {
+        DEFAULT_DEVELOPMENT_PARTITION_Q0: new_partition,
+        DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0: crystallization,
+    }
+    monkeypatch.setattr(runner, "_load", lambda path: payloads[path])
+    monkeypatch.setattr(
+        runner,
+        "validate_partition_q0",
+        lambda payload, **kwargs: (
+            []
+            if payload.get("schema_version") == "nominal-pair"
+            else ["unexpected partition nominal-pair Q0 summary schema"]
+        ),
+    )
+    monkeypatch.setattr(
+        runner,
+        "validate_crystallization_q0",
+        lambda root, payload, **kwargs: [],
+    )
+    monkeypatch.setattr(runner, "file_sha256", lambda path: "f" * 64)
+    bindings = _validate_q0_inputs(args, context)
+    assert bindings[PARTITION_CANDIDATE_ID]["path"] == (
+        "runs/development/"
+        "work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
+    )
+
+    old_path = Path.cwd() / "old-nine-cell-summary.json"
+    payloads[old_path] = {
+        "schema_version": "old-nine-cell",
+        "analysis": {"passed": True},
+        "summary_sha256": "o" * 64,
+    }
+    args.partition_q0_summary = old_path
+    with pytest.raises(RuntimeError, match="nominal-pair Q0"):
+        _validate_q0_inputs(args, context)

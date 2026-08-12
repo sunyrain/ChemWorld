@@ -42,6 +42,9 @@ Q2_QUERY_COUNT_PER_FAMILY = 8
 Q2_QUERY_COUNT_PER_CANDIDATE = 16
 MINIMUM_SUPPORT_PER_Q2_FAMILY = 4
 MINIMUM_RESOLVED_METRICS_PER_WORLD = 2
+PARTITION_NOMINAL_PAIR_STRATA = tuple(
+    (solvent, extractant) for solvent in range(4) for extractant in range(4)
+)
 
 PARTITION_CANDIDATE_ID = "partition_power_response"
 CRYSTALLIZATION_CANDIDATE_ID = "crystallization_reversible_topology"
@@ -158,15 +161,7 @@ def _scale(value: float, low: float, high: float) -> float:
 
 def _partition_features(family: str, vector: Sequence[float]) -> dict[str, Any]:
     if family == "identity":
-        return {
-            "solvent": _category(vector[0], 4),
-            "aqueous_phase_volume_L": 0.015,
-            "extractant": _category(vector[1], 4),
-            "extractant_volume_L": 0.019,
-            "mix_duration_s": 420.0,
-            "settle_duration_s": 900.0,
-            "stirring_speed_rpm": 800.0,
-        }
+        raise ValueError("identity features require an explicit categorical stratum")
     return {
         "solvent": 0,
         "aqueous_phase_volume_L": _scale(vector[0], 0.006, 0.024),
@@ -175,6 +170,23 @@ def _partition_features(family: str, vector: Sequence[float]) -> dict[str, Any]:
         "mix_duration_s": _scale(vector[2], 120.0, 900.0),
         "settle_duration_s": _scale(vector[3], 420.0, 1800.0),
         "stirring_speed_rpm": _scale(vector[4], 400.0, 1100.0),
+    }
+
+
+def _partition_identity_features(family_index: int) -> dict[str, Any]:
+    """Assign the nominal pair as an explicit balanced categorical stratum."""
+
+    solvent, extractant = PARTITION_NOMINAL_PAIR_STRATA[
+        family_index % len(PARTITION_NOMINAL_PAIR_STRATA)
+    ]
+    return {
+        "solvent": solvent,
+        "aqueous_phase_volume_L": 0.015,
+        "extractant": extractant,
+        "extractant_volume_L": 0.019,
+        "mix_duration_s": 420.0,
+        "settle_duration_s": 900.0,
+        "stirring_speed_rpm": 800.0,
     }
 
 
@@ -213,7 +225,11 @@ def registered_coordinates(candidate_id: str) -> list[dict[str, Any]]:
         family_counts[family] += 1
         phase = "q1_coverage" if family_index < Q1_COORDINATES_PER_FAMILY else "q2_heldout"
         features = (
-            _partition_features(family, vector)
+            (
+                _partition_identity_features(family_index)
+                if family == "identity"
+                else _partition_features(family, vector)
+            )
             if candidate_id == PARTITION_CANDIDATE_ID
             else _crystallization_features(family, vector)
         )
@@ -850,6 +866,7 @@ __all__ = [
     "EXACT_REPLAYS_TOTAL",
     "PACKAGE_VERSION",
     "PARTITION_CANDIDATE_ID",
+    "PARTITION_NOMINAL_PAIR_STRATA",
     "PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD",
     "PRIMARY_EXECUTIONS_TOTAL",
     "Q2_QUERY_COUNT_PER_CANDIDATE",
