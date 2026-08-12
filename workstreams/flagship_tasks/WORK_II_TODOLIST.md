@@ -525,6 +525,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-P 现可解析；A-S full Q2 与静态 config
   尚未生成，因此不得请求 provider/credential/pricing/currency 授权，不得用 proxy 代替，也不得误记为 READY。
 - [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
+- [x] **W2-38** 两项 A-P 独立 terminal D1 已完成 provider-free readiness：不再维护人工历史报告清单，
+  而是语义发现已有 participant provider 暴露，并按事前确定的 `最小 Q2-passed 未暴露 seed` 规则为
+  reaction-safety 与 electrochemical 均选择 seed 2。两份三臂、10-experiment、`0/2/4/7/10`
+  checkpoint 静态配置已生成；仅表示执行设计 ready，provider/R5 仍锁定，旧失败/混淆结果不被替换。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
 
@@ -558,6 +562,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
 | W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
+| W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
