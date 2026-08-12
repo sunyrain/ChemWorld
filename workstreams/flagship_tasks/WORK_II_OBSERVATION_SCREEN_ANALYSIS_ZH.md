@@ -1,6 +1,6 @@
 # Work II observation/measurement seed-0 screen：阶段分析
 
-日期：2026-08-12  
+日期：2026-08-12
 状态：provider-free seed-0 probe 已完成；不扩展至 worlds `0–4`。
 
 ## 结论先行
