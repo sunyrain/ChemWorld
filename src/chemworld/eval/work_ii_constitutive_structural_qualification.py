@@ -439,7 +439,7 @@ def build_qualification_plan(
     note_path.relative_to(root.resolve())
     candidates = {}
     for candidate_id in CANDIDATE_IDS:
-        spec = candidate_specs()[candidate_id]
+        spec = json.loads(json.dumps(candidate_specs()[candidate_id], sort_keys=True))
         roster = registered_coordinates(candidate_id)
         candidates[candidate_id] = {
             "spec": spec,

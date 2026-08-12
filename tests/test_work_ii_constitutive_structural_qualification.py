@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 from collections import Counter
 from pathlib import Path
@@ -439,6 +440,29 @@ def test_package_self_hash_excludes_its_own_field() -> None:
     package = {"schema_version": "test", "candidate_laws": {}}
     package["package_sha256"] = package_sha256(package)
     assert package["package_sha256"] == package_sha256(package)
+
+
+def test_qualification_plan_survives_disk_roundtrip(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    context = prepare_execution_context(Path.cwd(), mode="development")
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_constitutive_structural_qualification._validated_q0_bindings",
+        lambda *args, **kwargs: [],
+    )
+    plan = build_qualification_plan(
+        Path.cwd(),
+        q0_bindings={},
+        execution_context=build_execution_envelope(context),
+    )
+    plan_path = tmp_path / "plan.json"
+    plan_path.write_text(json.dumps(plan), encoding="utf-8")
+    reopened = json.loads(plan_path.read_text(encoding="utf-8"))
+
+    assert reopened == plan
+    assert (
+        validate_qualification_plan(Path.cwd(), reopened, expected_execution_context=context) == []
+    )
 
 
 @pytest.mark.skipif(
