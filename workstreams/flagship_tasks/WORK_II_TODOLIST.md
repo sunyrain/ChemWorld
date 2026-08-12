@@ -22,6 +22,10 @@ W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free exec
 0 physical/platform failures。Electrochemical 通过，而 crystallization 仅因 seed-mass effect 未超过冻结噪声门
 被科学拒绝；因此不扩展至五 worlds、不生成 A-O participant D1。若保留 A-O participant claim，需独立重建
 至少两个可识别候选，不能降低当前门槛或只保留通过任务。
+新的 static reversible-path A-S Q0 已完成 `36/36` paired executions 与 exact replay，0 physical/platform
+failures。Reaction-to-crystallization 通过全部 topology gates；flow 的 mechanism binding 正确，但最大公开效应
+`0.024–0.054` 低于 UV/Vis gates `0.120–0.135`，因此整体科学拒绝、不扩展五 worlds。该结果明确研究固定世界
+中的初始结构认识，不恢复旧“运行中物理变化”故事。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -344,6 +348,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | W2-28 structural candidate qualification v0.2 | `180/180` provider-free、`180/180` exact replay、0 physical/platform failures；electrochemical `3/5` worlds pass、crystallization `0/5` | electrochemical 五 world 均有强 current/potential response，但 world 0/3 的 Q2 disagreement 仅 `2/9`；crystallization cooling `5/5` 通过而 seed effect 仅 `1/5` 通过、Q2 disagreement `0/9`；两项均不生成 D1。详见 `WORK_II_STRUCTURAL_CANDIDATE_QUALIFICATION_ANALYSIS_ZH.md` |
 | W2-31 observation/measurement Q0 | 五类 spectral instruments、pH、三种 disclosure conditions 与 request-only archive 的 `12/12` controls 通过；0 provider | 观测层同时保留可识别、不可识别和低信号退化区域，允许进入两个 task family 的 seed-0 provider-free screen；不授权 participant/D1。详见 `WORK_II_OBSERVATION_MODEL_Q0_ANALYSIS_ZH.md` |
 | W2-31 observation/measurement seed-0 screen | `18/18` noisy + `6/6` truth，`24/24` exact replay；0 physical/platform/unsafe；electrochemical pass、crystallization reject | Electrochemical transport/Faradaic/energy effects 明显超过噪声门；crystallization seed-mass 的最大 CSD effect `0.0390 < 0.0950`，yield `0.0143 < 0.0303`。保留科学拒绝，不扩展五 worlds，不生成 D1。详见 `WORK_II_OBSERVATION_SCREEN_ANALYSIS_ZH.md` |
+| static reversible-path A-S seed-0 Q0 | `36/36` paired executions/exact replay；0 physical/platform/unsafe；crystallization pass、flow reject | 两任务均正确增加固定 reverse target channel，且 action/noise 完全配对。Crystallization yield/conversion/selectivity effects 为 `0.1757/0.0730/0.1703`，yield accumulation `0.1176`；flow 最大效应仅 `0.0245/0.0269/0.0538`，低于 UV/Vis gates。保留科学拒绝，不扩展。详见 `WORK_II_STATIC_TOPOLOGY_Q0_ANALYSIS_ZH.md` |
 
 正式 A-E 尚未执行，因此可以在不污染 participant outcomes 的情况下把 4 轮改为 8 轮；但已有 formal design、
 analysis plan、manifest preflight 和 power/resource 文件在重新生成前只视为历史 planning artifacts，不能作为执行授权。
@@ -380,6 +385,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   completed/exact replay、0 physical/platform/unsafe；electrochemical 通过，crystallization 因 seed-mass
   effect 低于冻结噪声门被科学拒绝。按预注册规则不扩展到 seeds `0–4`、不生成 participant D1。若继续 A-O，
   必须独立冻结新的双任务候选；不得只扩展 electrochemical 或降低当前门槛。
+- [x] **W2-32** static reversible-path A-S seed-0 Q0 已完成：batch crystallization 与 continuous flow
+  各 9 个 grid cells × baseline/reversible laws，共 `36/36` completed/exact replay、0 physical/platform。
+  Crystallization 通过全部 topology/accumulation gates；flow 因公开效应低于 UV/Vis 噪声门科学拒绝。
+  按冻结规则不扩展五 worlds；若继续 A-S，需把保留的 crystallization 与一个新的独立 task 候选重新组对，
+  不得放大当前 intervention、降低门槛或删除 flow 结果。
 
 ### P1 — 重冻正式矩阵
 
@@ -423,6 +433,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
+| W2-32 | DONE | static reversible-path seed-0 Q0 `36/36` completed/exact replay；crystallization pass、flow scientific reject；固定世界语义通过，整体不扩展 |
 
 ## 12. 不可违反的规则
 

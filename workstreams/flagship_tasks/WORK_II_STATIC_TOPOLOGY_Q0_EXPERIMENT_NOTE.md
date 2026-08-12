@@ -1,6 +1,7 @@
 # Work II static reversible-path topology Q0 — experiment note
 
-状态：**seed-0 provider-free design freeze；尚未产生本 block 数据**
+状态：**seed-0 provider-free Q0 已完成；crystallization 通过、flow 科学拒绝，
+不扩展至五 worlds**
 
 ## Question
 
@@ -57,3 +58,19 @@ tasks, grid cells and world seed are not changed after seeing the outcome.
 1. One machine-readable seed-0 report with all 36 executions, exact denominators and failures.
 2. One readable analysis with an explicit proceed/do-not-proceed decision.
 3. No prior package, participant config or provider execution authorization from Q0 alone.
+
+## Phase conclusion
+
+The complete seed-0 block finished `36/36` executions and `36/36` intervention-aware exact replays
+in `208.443 s`, with zero physical failures, platform failures, unsafe outcomes or participant-visible
+leakage. Batch reaction-to-crystallization passed every gate: yield, conversion and selectivity
+maximum paired effects were `0.1757`, `0.0730` and `0.1703`; six separated cells supported the
+topology, and the longest-minus-shortest yield-gap increase was `0.1176` against a `0.0300` gate.
+
+Continuous flow failed scientifically. Its maximum paired effects were only `0.0245` yield,
+`0.0269` flow conversion and `0.0538` selectivity, below the frozen UV/Vis gates `0.135`, `0.120`
+and `0.120`; its largest duration-accumulation increase was about `0.0137`. Mechanism compilation,
+execution binding, paired noise and replay all passed, so this is not a platform defect.
+
+The frozen decision is `retain_q0_scientific_rejection_and_do_not_expand`. The candidate pair does
+not enter five-world Q1/Q2, prior construction, participant D1 or provider execution.

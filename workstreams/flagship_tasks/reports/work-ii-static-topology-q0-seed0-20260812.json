@@ -1,0 +1,621 @@
+{
+  "all_tasks_passed": false,
+  "coverage": {
+    "grid_cells_per_task": 9,
+    "law_count": 2,
+    "planned_execution_count": 36,
+    "task_count": 2
+  },
+  "decision": "retain_q0_scientific_rejection_and_do_not_expand",
+  "denominators": {
+    "attempted": 36,
+    "completed": 36,
+    "exact_replay": 36,
+    "physical_failures": 0,
+    "platform_failures": 0,
+    "unsafe_completed": 0
+  },
+  "elapsed_s": 208.443,
+  "five_world_expansion_authorized": false,
+  "formal_result": false,
+  "participant_d1_authorized": false,
+  "participant_session_count": 0,
+  "provider_call_count": 0,
+  "provider_execution_authorized": false,
+  "qualification_schema_version": "chemworld-work-ii-static-topology-q0-0.1",
+  "raw_bindings": [
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-static-topology-q0-seed0-20260812/reaction-to-crystallization/task-report.json",
+      "sha256": "5bc05fffc42b6015cb90ab19f03383839f30dfdbdec7c7625fe5f61ef4cc02b6",
+      "task_id": "reaction-to-crystallization"
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-static-topology-q0-seed0-20260812/flow-reaction-optimization/task-report.json",
+      "sha256": "c90dc88e5e8a911f1fdaa3fd5ba33a63473544b50c1202c5def7a652f1570c0e",
+      "task_id": "flow-reaction-optimization"
+    }
+  ],
+  "schema_version": "chemworld-work-ii-static-topology-q0-summary-0.1",
+  "source_commit": "804dee2397d5ab047c45b4a7ab72050f9a3dc734",
+  "summary_sha256": "26cf89b4e0cbaa4f79da4ab415589ac019a86fcacde921b0003ec8a578891060",
+  "tasks": {
+    "flow-reaction-optimization": {
+      "accumulation_reports": {
+        "flow_conversion": {
+          "increase": 0.013011617310672678,
+          "longest_time_mean_signed_gap": 0.01346978189115762,
+          "passed": false,
+          "shortest_time_mean_signed_gap": 0.00045816458048494245,
+          "threshold": 0.08
+        },
+        "yield": {
+          "increase": 0.013674011873851985,
+          "longest_time_mean_signed_gap": 0.014129656008723993,
+          "passed": false,
+          "shortest_time_mean_signed_gap": 0.0004556441348720075,
+          "threshold": 0.09
+        }
+      },
+      "denominators": {
+        "attempted": 18,
+        "completed": 18,
+        "exact_replay": 18,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0
+      },
+      "failures": [
+        "at_least_two_direct_metrics_resolve_topology",
+        "duration_accumulation_signature",
+        "two_separated_supporting_cells"
+      ],
+      "mechanism_audit": {
+        "added_reaction_count": 1,
+        "baseline_mechanism_hash": "c87ba98ea671bacc2a8787c4ac589e87e9d9f5bfb15ddd6690a1823fa3b042f0",
+        "effective_reverse_rate_constant_s_inv": 0.0005,
+        "execution_mechanism_binding_matches": true,
+        "mechanism_hash_changed": true,
+        "reversible_hash_deterministic": true,
+        "reversible_mechanism_hash": "ff420920b301b275e4f8e9ed1fe530b0a45fc1fcb048e4a819b93e38f9137b29",
+        "target_reaction_id": "target_exothermic",
+        "transform_id": "reversible_target_pathway_stress_v1"
+      },
+      "metric_reports": {
+        "flow_conversion": {
+          "cell_gaps": [
+            {
+              "baseline": 0.0,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.0,
+              "signed_gap": 0.0,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.0,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.0,
+              "signed_gap": 0.0,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.0,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.0,
+              "signed_gap": 0.0,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.020623414957340824,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.0201707926574445,
+              "signed_gap": 0.0004526222998963228,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.0019264954985600512,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.0,
+              "signed_gap": 0.0019264954985600512,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.038381214196814506,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.024822340208143678,
+              "signed_gap": 0.013558873988670828,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.011255337585930694,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.010333466144372189,
+              "signed_gap": 0.0009218714415585045,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.02672101886221334,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.01882172313022485,
+              "signed_gap": 0.007899295731988491,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.03402565142406146,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.007175179739259428,
+              "signed_gap": 0.02685047168480203,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.04,
+          "effect_gate": 0.12,
+          "effect_passed": false,
+          "max_absolute_paired_gap": 0.02685047168480203
+        },
+        "selectivity": {
+          "cell_gaps": [
+            {
+              "baseline": 0.5586666459095389,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.5409507578147743,
+              "signed_gap": 0.017715888094764543,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.7660503291307685,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.727057975337252,
+              "signed_gap": 0.03899235379351651,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.8902802679077106,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.8365036656916757,
+              "signed_gap": 0.053776602216034974,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.7345916324185117,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.7212569035949641,
+              "signed_gap": 0.013334728823547581,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.8591067683497612,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.8367860860221111,
+              "signed_gap": 0.022320682327650054,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.9136447842377827,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.8856400073708994,
+              "signed_gap": 0.028004776866883296,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.8493597626288953,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.8401712042532722,
+              "signed_gap": 0.009188558375623157,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.9172178553415771,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.9025248243907295,
+              "signed_gap": 0.014693030950847619,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.8551374482326065,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.8390923197048449,
+              "signed_gap": 0.016045128527761632,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.04,
+          "effect_gate": 0.12,
+          "effect_passed": false,
+          "max_absolute_paired_gap": 0.053776602216034974
+        },
+        "yield": {
+          "cell_gaps": [
+            {
+              "baseline": 0.0,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.0,
+              "signed_gap": 0.0,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.03336456792777842,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.031924102840974536,
+              "signed_gap": 0.0014404650868038854,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.07021394661603322,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.06522337055257667,
+              "signed_gap": 0.004990576063456556,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.06372156891072843,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.06327090422271903,
+              "signed_gap": 0.00045066468800940285,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.027835750662367553,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.023994579144033336,
+              "signed_gap": 0.0038411715183342167,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.02272392029370746,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.009814749835292097,
+              "signed_gap": 0.012909170458415362,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.023654367941771975,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.022738100225165356,
+              "signed_gap": 0.0009162677166066197,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.04905078189006723,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.04137515678660181,
+              "signed_gap": 0.007675625103465422,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.0755535908379324,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.05106436933363233,
+              "signed_gap": 0.024489221504300066,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.045,
+          "effect_gate": 0.135,
+          "effect_passed": false,
+          "max_absolute_paired_gap": 0.024489221504300066
+        }
+      },
+      "passed": false,
+      "supporting_cells": []
+    },
+    "reaction-to-crystallization": {
+      "accumulation_reports": {
+        "conversion": {
+          "increase": -0.0008434850995584844,
+          "longest_time_mean_signed_gap": 0.0379380632103636,
+          "passed": false,
+          "shortest_time_mean_signed_gap": 0.03878154830992209,
+          "threshold": 0.03
+        },
+        "yield": {
+          "increase": 0.11764558429586205,
+          "longest_time_mean_signed_gap": 0.1524497073642448,
+          "passed": true,
+          "shortest_time_mean_signed_gap": 0.03480412306838274,
+          "threshold": 0.03
+        }
+      },
+      "denominators": {
+        "attempted": 18,
+        "completed": 18,
+        "exact_replay": 18,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0
+      },
+      "failures": [],
+      "mechanism_audit": {
+        "added_reaction_count": 1,
+        "baseline_mechanism_hash": "f437e1b8b8d100562751fe45b209ab4208e46e097fcedc637d3a476959f2203b",
+        "effective_reverse_rate_constant_s_inv": 0.0005,
+        "execution_mechanism_binding_matches": true,
+        "mechanism_hash_changed": true,
+        "reversible_hash_deterministic": true,
+        "reversible_mechanism_hash": "b2d45ee2c6d5ca7f7f6ee79d1109983af0f2e85c03d0e22b952495d855b58601",
+        "target_reaction_id": "target_formation",
+        "transform_id": "reversible_target_pathway_stress_v1"
+      },
+      "metric_reports": {
+        "conversion": {
+          "cell_gaps": [
+            {
+              "baseline": 0.4944019301614119,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.46130940544733257,
+              "signed_gap": 0.03309252471407931,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.922309937202975,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.8493379089026226,
+              "signed_gap": 0.07297202830035243,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 1.0,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.9475052025235885,
+              "signed_gap": 0.0524947974764115,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.7131906547250185,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.6721400254693686,
+              "signed_gap": 0.04105062925564995,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.9876995937455367,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.9299486048809728,
+              "signed_gap": 0.05775098886456398,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 1.0,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.961149700693138,
+              "signed_gap": 0.03885029930686201,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.8373768146372295,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.7951753236771925,
+              "signed_gap": 0.042201490960037,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 1.0,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.9579042070379902,
+              "signed_gap": 0.042095792962009826,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 1.0,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.9775309071521827,
+              "signed_gap": 0.022469092847817285,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.012,
+          "effect_gate": 0.05,
+          "effect_passed": true,
+          "max_absolute_paired_gap": 0.07297202830035243
+        },
+        "selectivity": {
+          "cell_gaps": [
+            {
+              "baseline": 0.37265994849948136,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.35430254133735384,
+              "signed_gap": 0.018357407162127526,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.2781153668972655,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.21431468472707532,
+              "signed_gap": 0.06380068217019019,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.22514039108354642,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.11396047970583009,
+              "signed_gap": 0.11117991137771632,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.4991833785991198,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.47487960595870016,
+              "signed_gap": 0.024303772640419663,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.3134215105750461,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.2100186877103009,
+              "signed_gap": 0.10340282286474517,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.30171791188349334,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.14326886674496536,
+              "signed_gap": 0.15844904513852798,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.5396238581319005,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.5101488371056505,
+              "signed_gap": 0.029475021026249992,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.4349038023787268,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.31092835935923063,
+              "signed_gap": 0.12397544301949615,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.334353956101483,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.16405312688282248,
+              "signed_gap": 0.17030082921866052,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.018,
+          "effect_gate": 0.05399999999999999,
+          "effect_passed": true,
+          "max_absolute_paired_gap": 0.17030082921866052
+        },
+        "yield": {
+          "cell_gaps": [
+            {
+              "baseline": 0.1949073236536587,
+              "cell_id": "temperature-0-time-0",
+              "reversible": 0.17267228918321442,
+              "signed_gap": 0.02223503447044428,
+              "temperature_index": 0,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.2387111907233161,
+              "cell_id": "temperature-0-time-1",
+              "reversible": 0.16507327088606755,
+              "signed_gap": 0.07363791983724854,
+              "temperature_index": 0,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.24515350734293512,
+              "cell_id": "temperature-0-time-2",
+              "reversible": 0.12784624518246912,
+              "signed_gap": 0.117307262160466,
+              "temperature_index": 0,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.3336300659804609,
+              "cell_id": "temperature-1-time-0",
+              "reversible": 0.29792995314746673,
+              "signed_gap": 0.03570011283299418,
+              "temperature_index": 1,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.3604640635105927,
+              "cell_id": "temperature-1-time-1",
+              "reversible": 0.24311852295877134,
+              "signed_gap": 0.11734554055182134,
+              "temperature_index": 1,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.3121691272043839,
+              "cell_id": "temperature-1-time-2",
+              "reversible": 0.14784174201568057,
+              "signed_gap": 0.16432738518870332,
+              "temperature_index": 1,
+              "time_index": 2
+            },
+            {
+              "baseline": 0.45507423002384606,
+              "cell_id": "temperature-2-time-0",
+              "reversible": 0.4085970081221363,
+              "signed_gap": 0.046477221901709775,
+              "temperature_index": 2,
+              "time_index": 0
+            },
+            {
+              "baseline": 0.4248705586156974,
+              "cell_id": "temperature-2-time-1",
+              "reversible": 0.287078516872191,
+              "signed_gap": 0.1377920417435064,
+              "temperature_index": 2,
+              "time_index": 1
+            },
+            {
+              "baseline": 0.35573229703908654,
+              "cell_id": "temperature-2-time-2",
+              "reversible": 0.1800178222955215,
+              "signed_gap": 0.17571447474356505,
+              "temperature_index": 2,
+              "time_index": 2
+            }
+          ],
+          "declared_sigma": 0.012,
+          "effect_gate": 0.05,
+          "effect_passed": true,
+          "max_absolute_paired_gap": 0.17571447474356505
+        }
+      },
+      "passed": true,
+      "supporting_cells": [
+        "temperature-0-time-1",
+        "temperature-0-time-2",
+        "temperature-1-time-1",
+        "temperature-1-time-2",
+        "temperature-2-time-1",
+        "temperature-2-time-2"
+      ]
+    }
+  },
+  "world_seed": 0
+}
