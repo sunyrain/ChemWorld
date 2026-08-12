@@ -1,6 +1,6 @@
 # Work II TODO — Experimental Intelligence
 
-最后更新：2026-08-11
+最后更新：2026-08-12
 
 当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
 Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2
@@ -18,6 +18,10 @@ experiments、375 个 belief checkpoints，并为 private confirmation 保留相
 preregistration readiness 已同步重建。资源数值仍明确标为 W2-26 calibration 前的 planning envelope，formal
 execution 继续锁死。当前 WellAU 三臂 method-qualification readiness 还额外受 W2-26 未完成及四项外部授权要求
 阻断；没有启动新的真实 provider call。
+W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free executions 与 exact replay，
+0 physical/platform failures。Electrochemical 通过，而 crystallization 仅因 seed-mass effect 未超过冻结噪声门
+被科学拒绝；因此不扩展至五 worlds、不生成 A-O participant D1。若保留 A-O participant claim，需独立重建
+至少两个可识别候选，不能降低当前门槛或只保留通过任务。
 
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
@@ -339,6 +343,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | W2-28 structural candidate screen v0.1 | `180/180` provider-free、`180/180` exact replay、0 physical/platform failures | diagonal validation 同时改变两个干预轴，Q2 identification contract 无效；不作科学 rejection；两项 candidate 从 world 0 重跑 |
 | W2-28 structural candidate qualification v0.2 | `180/180` provider-free、`180/180` exact replay、0 physical/platform failures；electrochemical `3/5` worlds pass、crystallization `0/5` | electrochemical 五 world 均有强 current/potential response，但 world 0/3 的 Q2 disagreement 仅 `2/9`；crystallization cooling `5/5` 通过而 seed effect 仅 `1/5` 通过、Q2 disagreement `0/9`；两项均不生成 D1。详见 `WORK_II_STRUCTURAL_CANDIDATE_QUALIFICATION_ANALYSIS_ZH.md` |
 | W2-31 observation/measurement Q0 | 五类 spectral instruments、pH、三种 disclosure conditions 与 request-only archive 的 `12/12` controls 通过；0 provider | 观测层同时保留可识别、不可识别和低信号退化区域，允许进入两个 task family 的 seed-0 provider-free screen；不授权 participant/D1。详见 `WORK_II_OBSERVATION_MODEL_Q0_ANALYSIS_ZH.md` |
+| W2-31 observation/measurement seed-0 screen | `18/18` noisy + `6/6` truth，`24/24` exact replay；0 physical/platform/unsafe；electrochemical pass、crystallization reject | Electrochemical transport/Faradaic/energy effects 明显超过噪声门；crystallization seed-mass 的最大 CSD effect `0.0390 < 0.0950`，yield `0.0143 < 0.0303`。保留科学拒绝，不扩展五 worlds，不生成 D1。详见 `WORK_II_OBSERVATION_SCREEN_ANALYSIS_ZH.md` |
 
 正式 A-E 尚未执行，因此可以在不污染 participant outcomes 的情况下把 4 轮改为 8 轮；但已有 formal design、
 analysis plan、manifest preflight 和 power/resource 文件在重新生成前只视为历史 planning artifacts，不能作为执行授权。
@@ -371,10 +376,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [x] **W2-29** 运行 mechanism-oracle relative qualification：先直接求 reaction-safety 的安全相对最优、
   Pareto/局部规律和独立 noisy replay，再以同一原则审计 electrochemical。旧 Q1-v0.2 artifact 永久保留为
   platform-defect audit，不再称为 scientific rejection；historical leaderboard threshold 只作诊断，不直接改值。
-- [x] **W2-31** A-O observation/measurement Q0 已完成：五类 spectral instruments、pH、disclosure pairing、
-  archive retrieval/failure ledger 与 leakage controls 全部通过。下一步按独立 note 先运行两个 task family 的
-  seed-0 screen；只有 seed 0 的 observation bias/effect/replay gates 都通过才扩展到 seeds `0–4`。本 block 不进入
-  A-E/A-P/A-S 分母，也不授权 participant/provider execution。
+- [x] **W2-31** A-O observation/measurement Q0 与 two-task seed-0 screen 均已完成。Seed 0 为 `24/24`
+  completed/exact replay、0 physical/platform/unsafe；electrochemical 通过，crystallization 因 seed-mass
+  effect 低于冻结噪声门被科学拒绝。按预注册规则不扩展到 seeds `0–4`、不生成 participant D1。若继续 A-O，
+  必须独立冻结新的双任务候选；不得只扩展 electrochemical 或降低当前门槛。
 
 ### P1 — 重冻正式矩阵
 
@@ -417,7 +422,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
-| W2-31 | DOING | observation/measurement Q0 `12/12` controls passed；seed-0 two-task screen 已冻结，尚未执行 |
+| W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
 
 ## 12. 不可违反的规则
 

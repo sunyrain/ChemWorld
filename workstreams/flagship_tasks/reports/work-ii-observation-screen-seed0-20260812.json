@@ -1,0 +1,656 @@
+{
+  "all_screens_passed": false,
+  "coverage": {
+    "noisy_replicates_per_world": 9,
+    "planned_execution_count": 24,
+    "screen_count": 2,
+    "truth_queries_per_world": 3,
+    "world_count": 2
+  },
+  "decision": "retain_probe_and_do_not_expand",
+  "denominators": {
+    "completed": 24,
+    "exact_replay": 24,
+    "noisy_attempted": 18,
+    "physical_failures": 0,
+    "platform_failures": 0,
+    "truth_attempted": 6,
+    "unsafe_completed": 0
+  },
+  "elapsed_s": 134.375,
+  "expand_to_five_worlds": false,
+  "formal_result": false,
+  "participant_d1_authorized": false,
+  "participant_session_count": 0,
+  "provider_call_count": 0,
+  "provider_execution_authorized": false,
+  "qualification_schema_version": "chemworld-work-ii-observation-screen-0.1",
+  "raw_bindings": [
+    {
+      "passed": true,
+      "path": "runs/development/work-ii-observation-screen-seed0-20260812/electrochemical_observation/world-0/world-report.json",
+      "screen_id": "electrochemical_observation",
+      "sha256": "51416272ac33ddea9f3e82b707b40116320c3f0bcc8d1fc4985a68d356ceb4ae",
+      "world_seed": 0
+    },
+    {
+      "passed": false,
+      "path": "runs/development/work-ii-observation-screen-seed0-20260812/crystallization_observation/world-0/world-report.json",
+      "screen_id": "crystallization_observation",
+      "sha256": "72bdc38b1e2becad529eedaa36dbf928243910af523a08936794c62c7d0ddc66",
+      "world_seed": 0
+    }
+  ],
+  "schema_version": "chemworld-work-ii-observation-screen-summary-0.1",
+  "screens": {
+    "crystallization_observation": {
+      "denominators": {
+        "completed": 12,
+        "exact_replay": 12,
+        "noisy_attempted": 9,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "truth_attempted": 3,
+        "unsafe_completed": 0
+      },
+      "passed_world_count": 0,
+      "screen_passed": false,
+      "task_id": "reaction-to-crystallization",
+      "world_count": 1,
+      "worlds": [
+        {
+          "best_effect_metric": "crystal_yield",
+          "failures": [
+            "task_owned_effect_above_noise"
+          ],
+          "metric_reports": {
+            "crystal_csd_quality": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.09499381872405857,
+              "levels": [
+                {
+                  "bias": 0.019505624458735382,
+                  "level_index": 0,
+                  "mean": 0.46240806579589844,
+                  "observations": [
+                    0.4468759596347809,
+                    0.4818473756313324,
+                    0.45850086212158203
+                  ],
+                  "sigma": 0.01781010007314413,
+                  "truth": 0.44290244133716306
+                },
+                {
+                  "bias": -0.008606473004461657,
+                  "level_index": 1,
+                  "mean": 0.4260791540145874,
+                  "observations": [
+                    0.45603683590888977,
+                    0.40076759457588196,
+                    0.4214330315589905
+                  ],
+                  "sigma": 0.027926011168547975,
+                  "truth": 0.43468562701904906
+                },
+                {
+                  "bias": -0.003437725014300397,
+                  "level_index": 2,
+                  "mean": 0.4234078824520111,
+                  "observations": [
+                    0.38706353306770325,
+                    0.4381212294101715,
+                    0.44503888487815857
+                  ],
+                  "sigma": 0.03166460624135286,
+                  "truth": 0.4268456074663115
+                }
+              ],
+              "max_absolute_bias": 0.019505624458735382,
+              "max_replicate_sigma": 0.03166460624135286,
+              "three_level_effect": 0.03900018334388733
+            },
+            "crystal_fines_fraction": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03,
+              "levels": [
+                {
+                  "bias": -0.00037740627641902336,
+                  "level_index": 0,
+                  "mean": 0.9996036887168884,
+                  "observations": [
+                    1.0,
+                    0.9988110661506653,
+                    1.0
+                  ],
+                  "sigma": 0.0006864312779620567,
+                  "truth": 0.9999810949933075
+                },
+                {
+                  "bias": -0.0008806043100019201,
+                  "level_index": 1,
+                  "mean": 0.9989664951960245,
+                  "observations": [
+                    0.9968994855880737,
+                    1.0,
+                    1.0
+                  ],
+                  "sigma": 0.0017900828303519462,
+                  "truth": 0.9998470995060265
+                },
+                {
+                  "bias": -0.005685532561870765,
+                  "level_index": 2,
+                  "mean": 0.9940246144930521,
+                  "observations": [
+                    0.9856570959091187,
+                    0.9964167475700378,
+                    1.0
+                  ],
+                  "sigma": 0.0074646801628443496,
+                  "truth": 0.9997101470549229
+                }
+              ],
+              "max_absolute_bias": 0.005685532561870765,
+              "max_replicate_sigma": 0.0074646801628443496,
+              "three_level_effect": 0.0055790742238363
+            },
+            "crystal_size": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.08494170610020388,
+              "levels": [
+                {
+                  "bias": -0.006598675603032907,
+                  "level_index": 0,
+                  "mean": 0.05132116377353668,
+                  "observations": [
+                    0.04330042377114296,
+                    0.057375382632017136,
+                    0.05328768491744995
+                  ],
+                  "sigma": 0.007240616050511074,
+                  "truth": 0.05791983937656959
+                },
+                {
+                  "bias": 0.008527277420863726,
+                  "level_index": 1,
+                  "mean": 0.06643097226818402,
+                  "observations": [
+                    0.047126416116952896,
+                    0.053232043981552124,
+                    0.09893445670604706
+                  ],
+                  "sigma": 0.02831390203340129,
+                  "truth": 0.057903694847320296
+                },
+                {
+                  "bias": -0.004101413715144338,
+                  "level_index": 2,
+                  "mean": 0.053782968471447624,
+                  "observations": [
+                    0.07071061432361603,
+                    0.05626906454563141,
+                    0.034369226545095444
+                  ],
+                  "sigma": 0.0182978037393769,
+                  "truth": 0.05788438218659196
+                }
+              ],
+              "max_absolute_bias": 0.008527277420863726,
+              "max_replicate_sigma": 0.02831390203340129,
+              "three_level_effect": 0.01510980849464734
+            },
+            "crystal_yield": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03025783657071262,
+              "levels": [
+                {
+                  "bias": -0.007314813423317079,
+                  "level_index": 0,
+                  "mean": 0.5492421785990397,
+                  "observations": [
+                    0.5587247014045715,
+                    0.546566903591156,
+                    0.5424349308013916
+                  ],
+                  "sigma": 0.008467997334193704,
+                  "truth": 0.5565569920223568
+                },
+                {
+                  "bias": -0.013017057655605457,
+                  "level_index": 1,
+                  "mean": 0.5432101090749105,
+                  "observations": [
+                    0.5368799567222595,
+                    0.5510087013244629,
+                    0.541741669178009
+                  ],
+                  "sigma": 0.007177923990032331,
+                  "truth": 0.556227166730516
+                },
+                {
+                  "bias": 0.0016141260062672025,
+                  "level_index": 2,
+                  "mean": 0.5575112899144491,
+                  "observations": [
+                    0.5674975514411926,
+                    0.5577077865600586,
+                    0.547328531742096
+                  ],
+                  "sigma": 0.010085945523570873,
+                  "truth": 0.5558971639081819
+                }
+              ],
+              "max_absolute_bias": 0.013017057655605457,
+              "max_replicate_sigma": 0.010085945523570873,
+              "three_level_effect": 0.014301180839538574
+            },
+            "score": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03,
+              "levels": [
+                {
+                  "bias": 0.002837926685760217,
+                  "level_index": 0,
+                  "mean": 0.3873895082113568,
+                  "observations": [
+                    0.3879889526050049,
+                    0.3916296298784434,
+                    0.38254994215062216
+                  ],
+                  "sigma": 0.004569429121290101,
+                  "truth": 0.3845515815255966
+                },
+                {
+                  "bias": -0.005009151184488969,
+                  "level_index": 1,
+                  "mean": 0.37937569123291653,
+                  "observations": [
+                    0.38140555065368104,
+                    0.37452530398252165,
+                    0.3821962190625471
+                  ],
+                  "sigma": 0.004219120938334196,
+                  "truth": 0.3843848424174055
+                },
+                {
+                  "bias": 0.00039543174382217217,
+                  "level_index": 2,
+                  "mean": 0.3846754573733217,
+                  "observations": [
+                    0.3826403304971134,
+                    0.38929357831379297,
+                    0.3820924633090589
+                  ],
+                  "sigma": 0.004008780410492797,
+                  "truth": 0.38428002562949953
+                }
+              ],
+              "max_absolute_bias": 0.005009151184488969,
+              "max_replicate_sigma": 0.004569429121290101,
+              "three_level_effect": 0.00801381697844028
+            }
+          },
+          "passed": false,
+          "world_seed": 0
+        }
+      ]
+    },
+    "electrochemical_observation": {
+      "denominators": {
+        "completed": 12,
+        "exact_replay": 12,
+        "noisy_attempted": 9,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "truth_attempted": 3,
+        "unsafe_completed": 0
+      },
+      "passed_world_count": 1,
+      "screen_passed": true,
+      "task_id": "electrochemical-conversion",
+      "world_count": 1,
+      "worlds": [
+        {
+          "best_effect_metric": "transport_efficiency",
+          "failures": [],
+          "metric_reports": {
+            "energy_efficiency": {
+              "bias_passed": true,
+              "effect_passed": true,
+              "gate": 0.062020041987052604,
+              "levels": [
+                {
+                  "bias": 0.009807712721936757,
+                  "level_index": 0,
+                  "mean": 0.41842588782310486,
+                  "observations": [
+                    0.4207066595554352,
+                    0.4378642737865448,
+                    0.3967067301273346
+                  ],
+                  "sigma": 0.020673347329017534,
+                  "truth": 0.4086181751011681
+                },
+                {
+                  "bias": -0.004994998854544394,
+                  "level_index": 1,
+                  "mean": 0.10043646891911824,
+                  "observations": [
+                    0.08999234437942505,
+                    0.09856024384498596,
+                    0.11275681853294373
+                  ],
+                  "sigma": 0.01149762959344912,
+                  "truth": 0.10543146777366263
+                },
+                {
+                  "bias": -0.0039807183157743245,
+                  "level_index": 2,
+                  "mean": 0.04963230465849241,
+                  "observations": [
+                    0.05326211079955101,
+                    0.054819636046886444,
+                    0.040815167129039764
+                  ],
+                  "sigma": 0.007675474375176006,
+                  "truth": 0.05361302297426673
+                }
+              ],
+              "max_absolute_bias": 0.009807712721936757,
+              "max_replicate_sigma": 0.020673347329017534,
+              "three_level_effect": 0.36879358316461247
+            },
+            "faradaic_efficiency": {
+              "bias_passed": true,
+              "effect_passed": true,
+              "gate": 0.05625726694116388,
+              "levels": [
+                {
+                  "bias": -0.008981915122866113,
+                  "level_index": 0,
+                  "mean": 0.44565632939338684,
+                  "observations": [
+                    0.45455431938171387,
+                    0.4440612494945526,
+                    0.43835341930389404
+                  ],
+                  "sigma": 0.008217390141986953,
+                  "truth": 0.45463824451625295
+                },
+                {
+                  "bias": -0.0021413214101542732,
+                  "level_index": 1,
+                  "mean": 0.12652987986803055,
+                  "observations": [
+                    0.10953538864850998,
+                    0.14664795994758606,
+                    0.1234062910079956
+                  ],
+                  "sigma": 0.018752422313721293,
+                  "truth": 0.12867120127818482
+                },
+                {
+                  "bias": -0.006667755988545465,
+                  "level_index": 2,
+                  "mean": 0.05986467003822327,
+                  "observations": [
+                    0.07060079276561737,
+                    0.03966948390007019,
+                    0.06932373344898224
+                  ],
+                  "sigma": 0.017501196458829287,
+                  "truth": 0.06653242602676873
+                }
+              ],
+              "max_absolute_bias": 0.008981915122866113,
+              "max_replicate_sigma": 0.018752422313721293,
+              "three_level_effect": 0.3857916593551636
+            },
+            "ohmic_efficiency": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03,
+              "levels": [
+                {
+                  "bias": -0.008451316886864402,
+                  "level_index": 0,
+                  "mean": 0.9794468283653259,
+                  "observations": [
+                    0.9854430556297302,
+                    0.9828891754150391,
+                    0.9700082540512085
+                  ],
+                  "sigma": 0.008273184988266959,
+                  "truth": 0.9878981452521903
+                },
+                {
+                  "bias": 0.0012301600001939361,
+                  "level_index": 1,
+                  "mean": 0.9821362296740214,
+                  "observations": [
+                    0.9804022312164307,
+                    0.984652042388916,
+                    0.9813544154167175
+                  ],
+                  "sigma": 0.0022301679085077954,
+                  "truth": 0.9809060696738274
+                },
+                {
+                  "bias": 0.0038399544986812417,
+                  "level_index": 2,
+                  "mean": 0.9660848379135132,
+                  "observations": [
+                    0.9757853150367737,
+                    0.956089973449707,
+                    0.9663792252540588
+                  ],
+                  "sigma": 0.009850970408417358,
+                  "truth": 0.9622448834148319
+                }
+              ],
+              "max_absolute_bias": 0.008451316886864402,
+              "max_replicate_sigma": 0.009850970408417358,
+              "three_level_effect": 0.016051391760508182
+            },
+            "safety_risk": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03,
+              "levels": [
+                {
+                  "bias": 2.02242306235334e-09,
+                  "level_index": 0,
+                  "mean": 0.06936915963888168,
+                  "observations": [
+                    0.06936915963888168,
+                    0.06936915963888168,
+                    0.06936915963888168
+                  ],
+                  "sigma": 0.0,
+                  "truth": 0.06936915761645862
+                },
+                {
+                  "bias": 2.02242306235334e-09,
+                  "level_index": 1,
+                  "mean": 0.06936915963888168,
+                  "observations": [
+                    0.06936915963888168,
+                    0.06936915963888168,
+                    0.06936915963888168
+                  ],
+                  "sigma": 0.0,
+                  "truth": 0.06936915761645862
+                },
+                {
+                  "bias": 2.02242306235334e-09,
+                  "level_index": 2,
+                  "mean": 0.06936915963888168,
+                  "observations": [
+                    0.06936915963888168,
+                    0.06936915963888168,
+                    0.06936915963888168
+                  ],
+                  "sigma": 0.0,
+                  "truth": 0.06936915761645862
+                }
+              ],
+              "max_absolute_bias": 2.02242306235334e-09,
+              "max_replicate_sigma": 0.0,
+              "three_level_effect": 0.0
+            },
+            "score": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.3656019094619458,
+              "levels": [
+                {
+                  "bias": 0.2111023235826788,
+                  "level_index": 0,
+                  "mean": 0.37724137787209644,
+                  "observations": [
+                    0.3842131833301131,
+                    0.3836013093841692,
+                    0.36390964090200717
+                  ],
+                  "sigma": 0.011549675554368016,
+                  "truth": 0.16613905428941764
+                },
+                {
+                  "bias": -0.01397289523072616,
+                  "level_index": 1,
+                  "mean": 0.10094256143033936,
+                  "observations": [
+                    0.23632314108818175,
+                    0.0,
+                    0.06650454320283634
+                  ],
+                  "sigma": 0.12186730315398195,
+                  "truth": 0.11491545666106552
+                },
+                {
+                  "bias": -0.035938225870554966,
+                  "level_index": 2,
+                  "mean": 0.06899954021485576,
+                  "observations": [
+                    0.10389632562078484,
+                    0.029854533093785687,
+                    0.07324776192999675
+                  ],
+                  "sigma": 0.03720325659076828,
+                  "truth": 0.10493776608541072
+                }
+              ],
+              "max_absolute_bias": 0.2111023235826788,
+              "max_replicate_sigma": 0.12186730315398195,
+              "three_level_effect": 0.30824183765724067
+            },
+            "selective_product_yield": {
+              "bias_passed": true,
+              "effect_passed": false,
+              "gate": 0.03,
+              "levels": [
+                {
+                  "bias": 0.011938876439094312,
+                  "level_index": 0,
+                  "mean": 0.020639266197880108,
+                  "observations": [
+                    0.021106109023094177,
+                    0.021625738590955734,
+                    0.019185950979590416
+                  ],
+                  "sigma": 0.001285144958646032,
+                  "truth": 0.008700389758785796
+                },
+                {
+                  "bias": -0.0009767241177859225,
+                  "level_index": 1,
+                  "mean": 0.007723665640999873,
+                  "observations": [
+                    0.018117209896445274,
+                    0.0,
+                    0.005053787026554346
+                  ],
+                  "sigma": 0.009349038050509198,
+                  "truth": 0.008700389758785796
+                },
+                {
+                  "bias": -0.0029905103480222144,
+                  "level_index": 2,
+                  "mean": 0.005709879410763581,
+                  "observations": [
+                    0.008571302518248558,
+                    0.002510801889002323,
+                    0.006047533825039864
+                  ],
+                  "sigma": 0.0030443266656000794,
+                  "truth": 0.008700389758785796
+                }
+              ],
+              "max_absolute_bias": 0.011938876439094312,
+              "max_replicate_sigma": 0.009349038050509198,
+              "three_level_effect": 0.014929386787116528
+            },
+            "transport_efficiency": {
+              "bias_passed": true,
+              "effect_passed": true,
+              "gate": 0.04152255089907281,
+              "levels": [
+                {
+                  "bias": -0.002983363277315576,
+                  "level_index": 0,
+                  "mean": 0.4516548812389374,
+                  "observations": [
+                    0.4592905640602112,
+                    0.4599960446357727,
+                    0.43567803502082825
+                  ],
+                  "sigma": 0.013840850299690937,
+                  "truth": 0.45463824451625295
+                },
+                {
+                  "bias": -0.016817852566058403,
+                  "level_index": 1,
+                  "mean": 0.11185334871212642,
+                  "observations": [
+                    0.10533702373504639,
+                    0.1125938668847084,
+                    0.11762915551662445
+                  ],
+                  "sigma": 0.006179433736748336,
+                  "truth": 0.12867120127818482
+                },
+                {
+                  "bias": 0.007213962130440024,
+                  "level_index": 2,
+                  "mean": 0.07374638815720876,
+                  "observations": [
+                    0.06656888872385025,
+                    0.07728844881057739,
+                    0.07738182693719864
+                  ],
+                  "sigma": 0.006216072188732136,
+                  "truth": 0.06653242602676873
+                }
+              ],
+              "max_absolute_bias": 0.016817852566058403,
+              "max_replicate_sigma": 0.013840850299690937,
+              "three_level_effect": 0.37790849308172864
+            }
+          },
+          "passed": true,
+          "world_seed": 0
+        }
+      ]
+    }
+  },
+  "source_commit": "a0128e916e4c4b23682d07e99ad2398be1a34ab9",
+  "summary_sha256": "20120c3e18de2a8f9c5a9fe565283aa45ed1374ae8af64dac2e450d1fa59f218",
+  "world_seeds": [
+    0
+  ]
+}

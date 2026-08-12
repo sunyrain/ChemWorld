@@ -1,6 +1,7 @@
 # Work II observation/measurement screen — experiment note
 
-状态：**seed-0 development probe freeze；尚未产生新 screen 结果**
+状态：**seed-0 development probe 已完成；electrochemical 通过、crystallization 科学拒绝，
+不扩展至五 worlds**
 
 ## Question
 
@@ -54,3 +55,17 @@ screen; it does not authorize participant/provider execution.
 1. One machine-readable seed-0 screen report with exact denominators and all failures.
 2. One readable probe analysis and an explicit expand/do-not-expand decision.
 3. No participant config and no provider execution authorization.
+
+## Phase conclusion
+
+The seed-0 probe completed all `24/24` registered executions and deterministic replays in
+`134.375 s`, with zero physical failures, platform failures, unsafe outcomes or participant-visible
+leakage. Electrochemical observation passed: transport, Faradaic and energy-efficiency effects were
+well above their replicate-noise gates. Crystallization failed only
+`task_owned_effect_above_noise`: its largest registered seed-mass signal was CSD quality `0.0390`
+against a `0.0950` gate, while crystal-yield effect was `0.0143` against `0.0303`.
+
+The frozen decision is `retain_probe_and_do_not_expand`. This is a scientific rejection of the
+current crystallization seed-mass observation candidate, not a platform failure. Thresholds and
+task/world selection remain unchanged; no five-world expansion, participant config or provider call
+is authorized.
