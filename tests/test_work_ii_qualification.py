@@ -9,6 +9,10 @@ from pathlib import Path
 from typing import ClassVar
 
 import pytest
+import scripts.authorize_work_ii_method_qualification as qualification_authorizer
+import scripts.build_work_ii_method_qualification_receipt as qualification_receipt_builder
+import scripts.run_work_ii_campaign_pilot as qualification_cell_runner
+import scripts.run_work_ii_method_qualification as qualification_readiness_runner
 import scripts.run_work_ii_method_qualification_triplet as qualification_runner
 
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
@@ -34,8 +38,8 @@ from chemworld.eval.work_ii_qualification import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 SYNTHETIC_OBSERVED_COST_USD = 0.00004242
 _REAL_POPEN = subprocess.Popen
 
@@ -497,6 +501,21 @@ def test_method_qualification_readiness_is_zero_call_and_execution_blocked() -> 
         item["eligible_for_current_method_receipt"] is False
         for item in first["historical_evidence_assessment"]
     )
+
+
+def test_w2_27_entrypoints_bind_the_canonical_v02_contract() -> None:
+    bindings = (
+        (
+            qualification_readiness_runner.DEFAULT_DESIGN,
+            qualification_readiness_runner.DEFAULT_ANALYSIS,
+        ),
+        (qualification_runner.DESIGN, qualification_runner.ANALYSIS),
+        (qualification_authorizer.DESIGN, qualification_authorizer.ANALYSIS),
+        (qualification_receipt_builder.DESIGN, qualification_receipt_builder.ANALYSIS),
+        (qualification_cell_runner.DEFAULT_DESIGN, qualification_cell_runner.DEFAULT_ANALYSIS),
+    )
+
+    assert all(design == DESIGN and analysis == ANALYSIS for design, analysis in bindings)
 
 
 def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(

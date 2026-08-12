@@ -17,8 +17,8 @@ from chemworld.eval.work_ii_qualification import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 DEFAULT_REPORT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"

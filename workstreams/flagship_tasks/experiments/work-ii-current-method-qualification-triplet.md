@@ -14,10 +14,10 @@ replay semantics before any formal participant outcome is collected?
 - Development/qualification world seed: 0; excluded from every formal denominator.
 - Prior arms: opaque, aligned nominal and misindexed nominal.
 - One persistent Codex process/session per arm.
-- Four complete experiments and four typed belief checkpoints per arm.
+- Eight complete experiments and five typed belief checkpoints at experiments `0/2/4/6/8` per arm.
 - Initial provider-process count: 3; hard cap: 6, allowing at most one infrastructure-only resume
   per arm.
-- Operation-attempt hard cap: 84 across the triplet.
+- Operation-attempt hard cap: 168 across the triplet.
 
 ## Measurements
 

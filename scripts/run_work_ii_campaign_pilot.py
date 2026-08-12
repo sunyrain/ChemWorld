@@ -54,8 +54,8 @@ from chemworld.tasks import get_task
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
-DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 
 
 def _load(path: Path) -> dict[str, Any]:

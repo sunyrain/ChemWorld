@@ -597,8 +597,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 ## 13. 当前证据入口
 
-- Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.1.json`
-- Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.1.json`
+- Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.2.json`
+- Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.2.json`
 - Power/resource audit（W2-25 planning envelope）：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
 - Formal preflight（当前仅 A-E 75 public cells / 600 complete experiments，execution blocked；四份
   A-P/A-S terminal receipts、A-E qualification 与 W2-26 同提交证据齐全后，确定性扩展为 C2 135 cells /

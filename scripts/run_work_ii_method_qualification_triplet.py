@@ -45,8 +45,8 @@ from chemworld.eval.work_ii_resource_calibration import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
 CALIBRATION_MANIFEST = (
     ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
