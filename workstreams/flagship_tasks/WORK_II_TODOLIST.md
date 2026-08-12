@@ -509,7 +509,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
   `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
   triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
-  validator 与门禁测试已经实现。代表选择不依赖下游 D1 terminal receipt：8-round 绑定 formal v0.2；
+  validator 与门禁测试已经实现。Development calibration 只直接绑定三个实际执行的 campaign config 及其
+  selection/Q2 输入；clean worktree、全量 material-tree hash 和共同 immutable runtime commit 已移至最终
+  release-freeze，不再作为 W2-26 开发执行前置。代表选择不依赖下游 D1 terminal receipt：8-round 绑定 formal v0.2；
   10/12-round 分别绑定受保护 A-P/A-S selection protocol 的 rank-1 task 及 provider-free Q2 直接生成的
   静态 D1 config。A-P protocol 的 `reaction-safety` 已仅作 canonical identifier correction 为
   `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-P 现可解析；A-S full Q2 与静态 config

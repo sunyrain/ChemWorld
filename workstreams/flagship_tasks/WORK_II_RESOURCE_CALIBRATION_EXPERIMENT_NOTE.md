@@ -19,6 +19,10 @@ scientific outcomes or select a more favorable trajectory.
 - The representative task configuration for each pattern, its world seed, provider contract,
   and task-specific resource formula must be written into the calibration manifest before the
   first provider call. No task, arm, seed, pattern size, or pass rule may be changed after launch.
+- Because this is a development resource calibration rather than release evidence, execution binds
+  those three selected campaign configurations and their selection/Q2 inputs directly. It does not
+  require a clean worktree or a whole-tree source hash; the common immutable runtime freeze is
+  performed once later, at the release boundary.
 - Participant-selected exact repeats are measured separately from provider retries, MCP schema
   recovery, and infrastructure resume. Those operational retries are never new experiments.
 
@@ -58,4 +62,3 @@ For every cell and triplet, record:
    closeout reserve, token ceilings, and currency ceilings.
 4. A zero-provider/readiness receipt that records whether the formal method-qualification triplet
    may be authorized.
-

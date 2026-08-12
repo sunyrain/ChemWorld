@@ -16,10 +16,8 @@ from uuid import uuid4
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
     write_json_atomic,
 )
-from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
 from chemworld.eval.work_ii_resource_calibration import (
     RESOURCE_CALIBRATION_ARMS,
     build_resource_calibration_authorization,
@@ -206,7 +204,8 @@ def _validate_triplet_report(
         or report.get("config_file_sha256")
         != pattern["campaign_config_binding"]["sha256"]
         or report.get("manifest_sha256") != canonical_json_sha256(manifest)
-        or report.get("source_commit") != authorization.get("source_commit")
+        or report.get("development_runtime_commit_observed")
+        != authorization.get("development_runtime_commit_observed")
         or report.get("authorization_sha256")
         != authorization.get("authorization_sha256")
         or sorted(
@@ -333,7 +332,9 @@ def execute_calibration(
         summary_errors = validate_resource_calibration_summary(
             summary,
             manifest=manifest,
-            expected_source_commit=str(authorization["source_commit"]),
+            expected_source_commit=str(
+                authorization["development_runtime_commit_observed"]
+            ),
             root=ROOT,
         )
         if summary_errors:
@@ -558,7 +559,9 @@ def execute_calibration(
             "config_file_sha256": pattern["campaign_config_binding"]["sha256"],
             "world_seed": pattern["world_seed"],
             "manifest_sha256": canonical_json_sha256(manifest),
-            "source_commit": authorization["source_commit"],
+            "development_runtime_commit_observed": authorization[
+                "development_runtime_commit_observed"
+            ],
             "authorization_sha256": authorization["authorization_sha256"],
             "results": rows,
         }
@@ -599,8 +602,7 @@ def execute_calibration(
     summary = build_resource_calibration_summary(
         manifest,
         accepted_reports,
-        source_commit=git_source_commit(ROOT),
-        c2_source_binding=build_c2_source_binding(ROOT),
+        source_commit=str(authorization["development_runtime_commit_observed"]),
         observed_currency_usd_by_cell=currency_by_cell,
     )
     summary_errors = validate_resource_calibration_summary(
@@ -646,7 +648,9 @@ def main() -> int:
             json.dumps(
                 {
                     "status": payload["status"],
-                    "tested_commit": payload["c2_source_binding"]["tested_commit"],
+                    "whole_tree_hash_required": payload[
+                        "development_binding_policy"
+                    ]["whole_tree_hash_required"],
                     "output": str(output),
                 },
                 ensure_ascii=False,

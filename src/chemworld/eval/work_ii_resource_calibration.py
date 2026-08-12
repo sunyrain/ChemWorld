@@ -11,7 +11,6 @@ from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
     git_source_commit,
-    git_worktree_dirty,
 )
 
 RESOURCE_CALIBRATION_MANIFEST_VERSION = (
@@ -146,11 +145,6 @@ def build_resource_calibration_execution_manifest(
     protocol = _load_object(protocol_manifest_path)
     if validate_resource_calibration_manifest(root, protocol):
         raise ValueError("resource calibration protocol manifest is invalid")
-    from chemworld.eval.work_ii_c2_admission import (
-        build_c2_source_binding,
-        c2_material_dirty_paths,
-    )
-
     patterns, resolution = resolve_resource_calibration_representatives(
         root,
         protocol,
@@ -163,12 +157,6 @@ def build_resource_calibration_execution_manifest(
             "resource calibration representatives are not ready: "
             + "; ".join(resolution["blocking_requirements"])
         )
-    dirty = c2_material_dirty_paths(root)
-    if dirty:
-        raise ValueError(
-            "resource calibration execution manifest requires clean protected material: "
-            + ", ".join(dirty)
-        )
     manifest = json.loads(json.dumps(protocol))
     manifest["patterns"] = patterns
     manifest["status"] = "ready_authorization_blocked"
@@ -178,7 +166,13 @@ def build_resource_calibration_execution_manifest(
         "sha256": file_sha256(protocol_manifest_path),
         "hash_kind": "file_sha256",
     }
-    manifest["c2_source_binding"] = build_c2_source_binding(root)
+    manifest["development_binding_policy"] = {
+        "exact_selected_campaign_configs_bound": True,
+        "selection_and_q2_inputs_bound": True,
+        "whole_tree_hash_required": False,
+        "clean_worktree_required": False,
+        "release_freeze_deferred": True,
+    }
     errors = validate_resource_calibration_manifest(root, manifest)
     if errors:
         raise ValueError("execution manifest failed: " + "; ".join(errors))
@@ -679,14 +673,6 @@ def resource_calibration_authorization_sha256(
     return _self_hash(authorization, "authorization_sha256")
 
 
-def _calibration_material_dirty_paths(root: Path) -> list[str]:
-    if not git_worktree_dirty(root):
-        return []
-    from chemworld.eval.work_ii_c2_admission import c2_material_dirty_paths
-
-    return c2_material_dirty_paths(root)
-
-
 def build_resource_calibration_authorization(
     root: Path,
     manifest_path: Path,
@@ -710,10 +696,6 @@ def build_resource_calibration_authorization(
     readiness = build_resource_calibration_readiness(root, manifest_path)
     if readiness.get("status") != "ready_authorization_blocked":
         raise ValueError("resource calibration manifest is not ready for authorization")
-    if _calibration_material_dirty_paths(root):
-        raise ValueError(
-            "resource calibration authorization requires a clean protected material tree"
-        )
     rates = (
         cache_hit_input_usd_per_million,
         cache_miss_input_usd_per_million,
@@ -787,8 +769,9 @@ def build_resource_calibration_authorization(
             "file_sha256": file_sha256(manifest_path),
             "canonical_json_sha256": canonical_json_sha256(manifest),
         },
-        "source_commit": git_source_commit(root),
-        "source_tree_clean_at_authorization": not _calibration_material_dirty_paths(root),
+        "development_runtime_commit_observed": git_source_commit(root),
+        "clean_worktree_required": False,
+        "whole_tree_hash_required": False,
         "approved_at": approved_at,
         "provider_contract": manifest["provider_contract"],
         "provider_contract_confirmed_by_user": True,
@@ -855,21 +838,13 @@ def validate_resource_calibration_authorization(
         or authorization.get("formal_result") is not False
         or authorization.get("provider_execution_allowed") is not True
         or authorization.get("formal_execution_authorized") is not False
-        or authorization.get("source_tree_clean_at_authorization") is not True
-        or authorization.get("source_commit") != git_source_commit(root)
+        or authorization.get("clean_worktree_required") is not False
+        or authorization.get("whole_tree_hash_required") is not False
     ):
-        errors.append("resource calibration authorization is not valid for this source tree")
-    from chemworld.eval.work_ii_c2_admission import (
-        validate_c2_source_binding,
-    )
-
-    if _calibration_material_dirty_paths(root):
-        errors.append("resource calibration protected material tree is dirty")
-    c2_binding = manifest.get("c2_source_binding")
-    errors.extend(validate_c2_source_binding(root, c2_binding))
-    c2_binding = c2_binding if isinstance(c2_binding, Mapping) else {}
-    if authorization.get("source_commit") != c2_binding.get("tested_commit"):
-        errors.append("resource calibration authorization source differs from C2 binding")
+        errors.append("resource calibration authorization boundary is invalid")
+    observed_commit = authorization.get("development_runtime_commit_observed")
+    if not isinstance(observed_commit, str) or not observed_commit:
+        errors.append("resource calibration lacks an observed development runtime commit")
     runtime = authorization.get("runtime_enforcement")
     runtime = runtime if isinstance(runtime, Mapping) else {}
     if any(
@@ -1172,9 +1147,20 @@ def validate_resource_calibration_manifest(
                 "protocol manifest",
             )
         )
-        from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
-
-        errors.extend(validate_c2_source_binding(root, manifest.get("c2_source_binding")))
+        policy = manifest.get("development_binding_policy")
+        policy = policy if isinstance(policy, Mapping) else {}
+        if any(
+            policy.get(field) is not True
+            for field in (
+                "exact_selected_campaign_configs_bound",
+                "selection_and_q2_inputs_bound",
+                "release_freeze_deferred",
+            )
+        ) or any(
+            policy.get(field) is not False
+            for field in ("whole_tree_hash_required", "clean_worktree_required")
+        ):
+            errors.append("resource calibration development binding policy is invalid")
     denominators = manifest.get("expected_denominators")
     denominators = denominators if isinstance(denominators, Mapping) else {}
     if denominators != EXPECTED_RESOURCE_CALIBRATION_DENOMINATORS:
@@ -1184,11 +1170,11 @@ def validate_resource_calibration_manifest(
     if any(
         gate.get(field) is not True
         for field in (
-            "all_three_representative_tasks_hash_frozen_required",
+            "all_three_representative_tasks_resolved_required",
+            "exact_campaign_configs_bound_required",
             "provider_contract_user_confirmation_required",
             "credential_rotation_user_confirmation_required",
             "calibration_currency_ceiling_required",
-            "clean_immutable_source_required",
             "twelve_round_proxy_substitution_forbidden",
         )
     ):
@@ -1259,8 +1245,6 @@ def build_resource_calibration_readiness(
                     "blocking_requirements", []
                 )
             )
-    dirty_paths = _calibration_material_dirty_paths(root)
-    dirty = bool(dirty_paths)
     source_commit = git_source_commit(root)
     summary: dict[str, Any] | None = None
     summary_errors: list[str] = []
@@ -1297,7 +1281,7 @@ def build_resource_calibration_readiness(
         and summary.get("calibration_passed") is True
         and summary.get("method_qualification_may_be_authorized") is True
     )
-    base_ready = not missing_rounds and not internal_errors and not dirty
+    base_ready = not missing_rounds and not internal_errors
     method_qualification_may_be_authorized = base_ready and summary_passed
     if not base_ready:
         status = "not_ready_fail_closed"
@@ -1317,7 +1301,6 @@ def build_resource_calibration_readiness(
                 for rounds in missing_rounds
             ]
         ),
-        *(["current source tree must be clean and immutable"] if dirty else []),
         *(
             ["user must confirm the provider contract and credential rotation"]
             if not summary_present
@@ -1347,8 +1330,9 @@ def build_resource_calibration_readiness(
             "file_sha256": file_sha256(manifest_path),
             "canonical_json_sha256": canonical_json_sha256(manifest),
         },
-        "source_commit": source_commit,
-        "source_tree_clean": not dirty,
+        "development_runtime_commit_observed": source_commit,
+        "clean_worktree_required": False,
+        "whole_tree_hash_required": False,
         "pattern_readiness": pattern_rows,
         "representative_resolution": representative_resolution,
         "expected_denominators": manifest.get("expected_denominators"),
@@ -1412,7 +1396,11 @@ def validate_resource_calibration_readiness(report: Mapping[str, Any]) -> list[s
         if not isinstance(summary_errors, list):
             errors.append("resource calibration readiness lacks summary validation errors")
             summary_errors = ["malformed"]
-        if report.get("source_tree_clean") is not True or missing:
+        if (
+            report.get("clean_worktree_required") is not False
+            or report.get("whole_tree_hash_required") is not False
+            or missing
+        ):
             expected_status = "not_ready_fail_closed"
         elif not summary_present and report.get("calibration_summary_requested") is not True:
             expected_status = "ready_authorization_blocked"
@@ -1607,7 +1595,7 @@ def validate_resource_calibration_summary(
         "source_commit"
     ) != expected_source_commit:
         errors.append("resource calibration summary source commit is stale")
-    if root is not None:
+    if root is not None and isinstance(summary.get("c2_source_binding"), Mapping):
         from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
 
         c2_binding = summary.get("c2_source_binding")
@@ -2169,9 +2157,8 @@ def build_resource_calibration_summary(
         "provider_process_attempts_executed": provider_attempts,
         "manifest_sha256": canonical_json_sha256(manifest),
         "source_commit": source_commit,
-        "c2_source_binding": (
-            dict(c2_source_binding) if c2_source_binding is not None else None
-        ),
+        "c2_source_binding": None,
+        "development_binding_policy": manifest.get("development_binding_policy"),
         "expected_denominators": manifest.get("expected_denominators"),
         "observed_denominators": observed,
         "pattern_summaries": patterns,
