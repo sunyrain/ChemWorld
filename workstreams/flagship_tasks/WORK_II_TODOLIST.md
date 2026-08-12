@@ -408,6 +408,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   completed/exact replay、0 physical/platform/unsafe。Stable catalyst 的结构绑定、动作/噪声配对和 effect 方向均
   正确，但最大 direct gap 只有 `0.0053–0.0062`，未达到 `0.050–0.054` gates，duration accumulation 也失败。
   保留任务—机制可辨识性科学拒绝，不扩展、不生成 D1/provider；下一候选不得通过调大该机制继续试探。
+- [ ] **W2-34** 按用户要求执行一个真实 provider 反证 probe：reaction-safety seed 0、隐藏失活基线、一个
+  WellAU `gpt-5.6-sol` medium 持久 Codex session、自主完成两次实验并在失活/稳定/无法判断中提交结论。
+  该单 cell 只检验真实 participant 在极小预算下能否利用公开证据，不替换 W2-33 的 `54/54` 冻结判定。
 
 ### P1 — 重冻正式矩阵
 
@@ -453,6 +456,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
 | W2-32 | DONE | static reversible-path seed-0 Q0 `36/36` completed/exact replay；crystallization pass、flow scientific reject；固定世界语义通过，整体不扩展 |
 | W2-33 | DONE | reaction-safety deactivating-vs-stable catalyst static A-S seed-0 Q0；`54/54` completed/exact replay，结构真实但公开效应不足，科学拒绝 |
+| W2-34 | READY | 用户授权的 seed-0 两实验真实 WellAU participant probe；定义已冻结，待 clean-commit 后执行 |
 
 ## 12. 不可违反的规则
 
