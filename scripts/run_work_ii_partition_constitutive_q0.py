@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import json
 import math
-import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from time import perf_counter
@@ -21,6 +20,10 @@ from chemworld.eval.provenance import (
 )
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_c2_admission import (
+    build_c2_source_binding,
+    c2_material_dirty_paths,
+)
 from chemworld.eval.work_ii_partition_constitutive_q0 import (
     BASELINE_EXPONENT,
     INSTRUMENTS,
@@ -59,29 +62,6 @@ DEFAULT_SUMMARY = (
     / "work-ii-partition-constitutive-q0-seed0-20260812.json"
 )
 TOTAL_EXECUTIONS = len(registered_cells()) * len(LAW_IDS)
-SCOPED_RUNTIME_PREFIXES = ("src/", "scripts/", "configs/", "workstreams/flagship_tasks/")
-
-
-def _scoped_dirty_paths() -> list[str]:
-    completed = subprocess.run(
-        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    dirty = []
-    for line in completed.stdout.splitlines():
-        path = line[3:].strip().replace("\\", "/")
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        if path.startswith(SCOPED_RUNTIME_PREFIXES):
-            dirty.append(path)
-    return sorted(dirty)
-
-
 def compile_actions(cell: Mapping[str, Any]) -> list[dict[str, Any]]:
     return frozen_action_plan(cell)
 
@@ -360,6 +340,7 @@ def _write_outputs(
     output_root: Path,
     summary_path: Path,
     started: float,
+    source_binding: Mapping[str, Any],
 ) -> dict[str, Any]:
     baseline_hashes = {
         row["constitutive_intervention_hash"]
@@ -391,6 +372,7 @@ def _write_outputs(
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "c2_source_binding": dict(source_binding),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
         "frozen_exponents": {
@@ -417,6 +399,7 @@ def _write_outputs(
         "provider_call_count": 0,
         "participant_session_count": 0,
         "source_commit": git_source_commit(ROOT),
+        "c2_source_binding": dict(source_binding),
         "task_id": TASK_ID,
         "world_seed": WORLD_SEED,
         "coverage": {
@@ -454,13 +437,14 @@ def _write_outputs(
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = _scoped_dirty_paths()
+    dirty = c2_material_dirty_paths(ROOT)
     if dirty:
         raise RuntimeError(
             "partition constitutive Q0 requires clean scoped sources: " + ", ".join(dirty)
         )
     if args.output_root.exists() or args.summary.exists():
         raise FileExistsError("refusing to overwrite partition constitutive Q0 outputs")
+    source_binding = build_c2_source_binding(ROOT)
     args.output_root.mkdir(parents=True)
     started = perf_counter()
     audit = constitutive_audit()
@@ -497,6 +481,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     output_root=args.output_root,
                     summary_path=args.summary,
                     started=started,
+                    source_binding=source_binding,
                 )
     return _write_outputs(
         rows=rows,
@@ -504,6 +489,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         output_root=args.output_root,
         summary_path=args.summary,
         started=started,
+        source_binding=source_binding,
     )
 
 

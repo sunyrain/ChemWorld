@@ -23,6 +23,7 @@ from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
 from chemworld.eval.work_ii_resource_calibration import (
     RESOURCE_CALIBRATION_ARMS,
     build_resource_calibration_authorization,
+    build_resource_calibration_execution_manifest,
     build_resource_calibration_readiness,
     build_resource_calibration_summary,
     empty_resource_calibration_summary,
@@ -57,6 +58,10 @@ def _parse_args() -> argparse.Namespace:
     mode.add_argument("--summary-template", action="store_true")
     mode.add_argument("--authorize", action="store_true")
     mode.add_argument("--execute", action="store_true")
+    mode.add_argument("--build-execution-manifest", action="store_true")
+    parser.add_argument("--rounds-8-config", type=Path)
+    parser.add_argument("--rounds-10-config", type=Path)
+    parser.add_argument("--rounds-12-config", type=Path)
     parser.add_argument("--authorization", type=Path)
     parser.add_argument("--allow-provider-execution", action="store_true")
     parser.add_argument("--resume", action="store_true")
@@ -595,6 +600,50 @@ def execute_calibration(
 def main() -> int:
     args = _parse_args()
     manifest_path = args.manifest.resolve()
+    if args.build_execution_manifest:
+        if args.output is None:
+            raise RuntimeError("--output is required for --build-execution-manifest")
+        config_paths = {
+            8: args.rounds_8_config,
+            10: args.rounds_10_config,
+            12: args.rounds_12_config,
+        }
+        missing = [
+            f"--rounds-{rounds}-config"
+            for rounds, path in config_paths.items()
+            if path is None
+        ]
+        if missing:
+            raise RuntimeError(
+                "execution manifest requires final selected configs: " + ", ".join(missing)
+            )
+        output = _inside_root(args.output, label="W2-26 execution manifest")
+        dynamic_root = (ROOT / "workstreams/flagship_tasks/reports").resolve()
+        if not output.is_relative_to(dynamic_root):
+            raise RuntimeError("W2-26 execution manifest must use the dynamic evidence root")
+        payload = build_resource_calibration_execution_manifest(
+            ROOT,
+            manifest_path,
+            campaign_config_paths={
+                rounds: Path(path).resolve()
+                for rounds, path in config_paths.items()
+                if path is not None
+            },
+        )
+        _write_once(output, payload)
+        print(
+            json.dumps(
+                {
+                    "status": payload["status"],
+                    "tested_commit": payload["c2_source_binding"]["tested_commit"],
+                    "output": str(output),
+                },
+                ensure_ascii=False,
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        return 0
     manifest = _load(manifest_path)
     manifest_errors = validate_resource_calibration_manifest(ROOT, manifest)
     if manifest_errors:

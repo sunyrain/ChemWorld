@@ -127,6 +127,27 @@ def _source_binding_command(
     ]
 
 
+def _source_binding_preflight(command: list[str]) -> list[str]:
+    """Reject missing/untracked inputs before `git diff` can silently ignore them."""
+
+    delimiter = command.index("--")
+    errors: list[str] = []
+    for relative in command[delimiter + 1 :]:
+        path = ROOT / relative
+        if not path.exists():
+            errors.append(f"release bound path is missing: {relative}")
+            continue
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", relative],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if tracked.returncode != 0:
+            errors.append(f"release bound path is not Git tracked: {relative}")
+    return errors
+
+
 def _git(*args: str) -> str:
     return subprocess.run(
         ["git", *args],
@@ -302,14 +323,25 @@ def build_qualification(
     sample_size = load_json_object(ROOT / plan["sample_size_audit"]["report"])
     resolved_semantics_path = _semantics_audit_path(plan, semantics_path)
     semantics = load_json_object(resolved_semantics_path)
-    source_binding = _run(
-        _source_binding_command(
+    source_command = _source_binding_command(
             source_commit,
             protocol_path=protocol_path,
             plan_path=plan_path,
             plan=plan,
             semantics_path=resolved_semantics_path,
         )
+    source_preflight_errors = _source_binding_preflight(source_command)
+    source_binding = (
+        _run(source_command)
+        if not source_preflight_errors
+        else {
+            "command": source_command,
+            "exit_code": None,
+            "wall_time_s": 0.0,
+            "stdout_tail": "",
+            "stderr_tail": "; ".join(source_preflight_errors),
+            "passed": False,
+        }
     )
     static_errors = validate_diagnostic_relation_graph(
         protocol,
@@ -433,14 +465,18 @@ def validate_recorded_qualification(
         ):
             errors.append("requested source commit differs from recorded receipt")
         resolved_semantics_path = _semantics_audit_path(plan, semantics_path)
-        source_binding = _run(
-            _source_binding_command(
+        source_command = _source_binding_command(
                 source_commit,
                 protocol_path=protocol_path,
                 plan_path=plan_path,
                 plan=plan,
                 semantics_path=resolved_semantics_path,
             )
+        source_preflight_errors = _source_binding_preflight(source_command)
+        source_binding = (
+            _run(source_command)
+            if not source_preflight_errors
+            else {"passed": False, "stderr_tail": "; ".join(source_preflight_errors)}
         )
         if not source_binding["passed"]:
             errors.append("qualified source paths drifted from source_commit")

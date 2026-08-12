@@ -23,6 +23,78 @@ from chemworld.tasks import get_task
 BLIND_EVALUATOR_VERSION = "chemworld-work-ii-blind-evaluator-plan-0.1"
 BLIND_EVALUATION_REPORT_VERSION = "chemworld-work-ii-blind-evaluation-report-0.1"
 
+_BLIND_ISOLATION_CONTRACT = {
+    "paired_noise_within_replicate": True,
+    "participant_feedback_from_blind_evaluator": False,
+    "evaluator_provider_calls": 0,
+    "evaluator_trajectory_separate_from_participant": True,
+    "evaluator_resources_excluded_from_participant_ledger": True,
+}
+
+
+def effective_blind_evaluator_contract(
+    cell: Mapping[str, Any],
+    global_contract: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Derive one cell's blind denominator while preserving global isolation.
+
+    C2 blocks have different participant experiment denominators (8/10/12), so
+    those values cannot be inherited from one A_E-shaped global contract.  The
+    cell is authoritative for all counts; the global contract remains
+    authoritative for the fixed target identities and evaluator isolation.
+    """
+
+    for field, expected in _BLIND_ISOLATION_CONTRACT.items():
+        if field not in global_contract or global_contract.get(field) != expected:
+            raise ValueError(f"blind evaluator global isolation invariant failed: {field}")
+    targets = global_contract.get("blind_targets_per_cell")
+    if targets != ["observed_incumbent", "participant_final_recommendation"]:
+        raise ValueError("blind evaluator global target identities drifted")
+
+    cell_fields = (
+        "complete_experiment_count",
+        "participant_final_recommendation_count",
+        "blind_validation_target_count",
+        "blind_replicates_per_target",
+        "blind_validation_execution_count",
+    )
+    counts: dict[str, int] = {}
+    for field in cell_fields:
+        value = cell.get(field)
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise ValueError(f"formal cell has an invalid or missing {field}")
+        counts[field] = value
+    if counts["participant_final_recommendation_count"] != 1:
+        raise ValueError("blind evaluator requires exactly one final recommendation")
+    if counts["blind_validation_target_count"] != len(targets):
+        raise ValueError("blind evaluator cell target count differs from global targets")
+    if counts["blind_replicates_per_target"] != 3:
+        raise ValueError("blind evaluator requires three paired replicates per target")
+    if (
+        counts["blind_validation_target_count"]
+        * counts["blind_replicates_per_target"]
+        != counts["blind_validation_execution_count"]
+    ):
+        raise ValueError("blind evaluator cell target/replicate/execution counts disagree")
+
+    effective = dict(global_contract)
+    experiment_count = counts["complete_experiment_count"]
+    effective.update(
+        {
+            "participant_complete_experiments_per_cell": experiment_count,
+            "candidate_experiment_indices": list(range(1, experiment_count + 1)),
+            "participant_final_recommendations_per_cell": counts[
+                "participant_final_recommendation_count"
+            ],
+            "blind_targets_per_cell": list(targets),
+            "blind_replicates_per_target": counts["blind_replicates_per_target"],
+            "blind_validation_execution_count": counts[
+                "blind_validation_execution_count"
+            ],
+        }
+    )
+    return effective
+
 
 def blind_execution_directory_name(execution: Mapping[str, Any]) -> str:
     """Return a short deterministic directory name while receipts keep the full ID."""
@@ -592,6 +664,7 @@ __all__ = [
     "BLIND_EVALUATOR_VERSION",
     "blind_execution_directory_name",
     "build_blind_evaluation_plan",
+    "effective_blind_evaluator_contract",
     "execute_blind_evaluation_plan",
     "validate_blind_evaluation_plan",
     "validate_blind_evaluation_report",

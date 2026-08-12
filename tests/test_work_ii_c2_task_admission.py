@@ -7,12 +7,12 @@ import pytest
 
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
 from chemworld.eval.work_ii_c2_admission import (
-    C2_OUTCOME_BLIND_SELECTION_VERSION,
     C2_TASK_STAGE_ORDER,
     _task_receipt_errors,
+    build_c2_outcome_blind_selection_record,
     build_c2_task_admission_receipt,
-    c2_outcome_blind_selection_sha256,
     c2_task_admission_receipt_sha256,
+    validate_c2_outcome_blind_selection_pair,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -81,6 +81,8 @@ def _stage(stage: str, task_id: str) -> dict[str, object]:
 
 def _fixtures(tmp_path: Path, locus: str = "A_P") -> tuple[Path, dict[str, Path], Path]:
     task_id = "synthetic-task"
+    reports = tmp_path / "workstreams/flagship_tasks/reports"
+    reports.mkdir(parents=True, exist_ok=True)
     campaign = {
         "schema_version": "chemworld-work-ii-campaign-pilot-0.4",
         "formal_result": False,
@@ -96,25 +98,40 @@ def _fixtures(tmp_path: Path, locus: str = "A_P") -> tuple[Path, dict[str, Path]
         },
         "qualification": {"q2_passed": True},
     }
-    campaign_path = tmp_path / "campaign.json"
+    campaign_path = reports / "campaign.json"
     write_json_atomic(campaign_path, campaign)
     stages: dict[str, Path] = {}
     for stage in C2_TASK_STAGE_ORDER:
-        path = tmp_path / f"{stage.lower()}.json"
+        path = reports / f"{stage.lower()}.json"
         write_json_atomic(path, _stage(stage, task_id))
         stages[stage] = path
-    selection = {
-        "schema_version": C2_OUTCOME_BLIND_SELECTION_VERSION,
-        "locus": locus,
-        "task_id": task_id,
-        "selected_before_formal_participant_outcomes": True,
-        "formal_participant_outcomes_observed": 0,
-        "formal_participant_outcomes_used": False,
-        "selection_rule_frozen_before_evidence_review": True,
-        "source_binding": _source_binding(),
-    }
-    selection["selection_sha256"] = c2_outcome_blind_selection_sha256(selection)
-    selection_path = tmp_path / "selection.json"
+    selection = build_c2_outcome_blind_selection_record(
+        tmp_path,
+        locus=locus,
+        task_id=task_id,
+        candidate_roster=[
+            {
+                "task_id": task_id,
+                "frozen_rank": 1,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "terminal Q1/Q2/D1 required",
+            },
+            {
+                "task_id": "second-terminal-candidate",
+                "frozen_rank": 2,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "terminal Q1/Q2/D1 required",
+            },
+        ],
+        selection_rule={
+            "method": "eligible_then_ascending_frozen_rank",
+            "formal_participant_outcomes_permitted": False,
+            "selection_slot": 1,
+            "required_selected_task_count": 2,
+        },
+        source_binding=_source_binding(),
+    )
+    selection_path = reports / "selection.json"
     write_json_atomic(selection_path, selection)
     return campaign_path, stages, selection_path
 
@@ -203,7 +220,9 @@ def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
     assert any("Q2 evidence is stale" in error for error in errors)
 
 
-def test_missing_stage_roster_is_rejected(tmp_path: Path) -> None:
+def test_missing_stage_roster_is_rejected(
+    tmp_path: Path, binding_stubs: None
+) -> None:
     campaign, stages, selection = _fixtures(tmp_path)
     del stages["D1"]
 
@@ -217,3 +236,208 @@ def test_missing_stage_roster_is_rejected(tmp_path: Path) -> None:
             selection_record_path=selection,
             source_binding=_source_binding(),
         )
+
+
+def test_outcome_blind_selection_builder_rejects_cherry_picking(
+    tmp_path: Path,
+    binding_stubs: None,
+) -> None:
+    roster = [
+        {
+            "task_id": "first-eligible",
+            "frozen_rank": 1,
+            "eligible_before_formal_outcomes": True,
+            "eligibility_basis": "terminal qualification",
+        },
+        {
+            "task_id": "second-eligible",
+            "frozen_rank": 2,
+            "eligible_before_formal_outcomes": True,
+            "eligibility_basis": "terminal qualification",
+        },
+    ]
+    with pytest.raises(ValueError, match="eligible frozen slot"):
+        build_c2_outcome_blind_selection_record(
+            tmp_path,
+            locus="A_S",
+            task_id="second-eligible",
+            candidate_roster=roster,
+            selection_rule={
+                "method": "eligible_then_ascending_frozen_rank",
+                "formal_participant_outcomes_permitted": False,
+                "selection_slot": 1,
+                "required_selected_task_count": 2,
+            },
+            source_binding=_source_binding(),
+        )
+
+
+def test_terminal_receipt_rejects_dynamic_evidence_inside_protected_tree(
+    tmp_path: Path, binding_stubs: None
+) -> None:
+    campaign, stages, selection = _fixtures(tmp_path)
+    protected_campaign = tmp_path / "configs/benchmark/generated-campaign.json"
+    protected_campaign.parent.mkdir(parents=True, exist_ok=True)
+    protected_campaign.write_bytes(campaign.read_bytes())
+
+    receipt = build_c2_task_admission_receipt(
+        tmp_path,
+        locus="A_P",
+        task_id="synthetic-task",
+        campaign_config_path=protected_campaign,
+        stage_report_paths=stages,
+        selection_record_path=selection,
+        source_binding=_source_binding(),
+    )
+
+    assert receipt["status"] == "not_ready_fail_closed"
+    assert any(
+        "campaign config must be under workstreams/flagship_tasks/reports" in error
+        for error in receipt["validation_errors"]
+    )
+
+
+def _selection_pair(
+    tmp_path: Path,
+    *,
+    second_roster: list[dict[str, object]] | None = None,
+    second_method: str = "eligible_then_ascending_frozen_rank",
+) -> list[dict[str, object]]:
+    roster = [
+        {
+            "task_id": "first-eligible",
+            "frozen_rank": 1,
+            "eligible_before_formal_outcomes": True,
+            "eligibility_basis": "terminal qualification",
+        },
+        {
+            "task_id": "second-eligible",
+            "frozen_rank": 2,
+            "eligible_before_formal_outcomes": True,
+            "eligibility_basis": "terminal qualification",
+        },
+        {
+            "task_id": "rejected-flow",
+            "frozen_rank": 3,
+            "eligible_before_formal_outcomes": False,
+            "eligibility_basis": "Q0 scientific rejection retained",
+        },
+    ]
+    records = []
+    for slot, task_id in ((1, "first-eligible"), (2, "second-eligible")):
+        rule = {
+            "method": (
+                "eligible_then_ascending_frozen_rank"
+                if slot == 1
+                else second_method
+            ),
+            "formal_participant_outcomes_permitted": False,
+            "selection_slot": slot,
+            "required_selected_task_count": 2,
+        }
+        records.append(
+            build_c2_outcome_blind_selection_record(
+                tmp_path,
+                locus="A_S",
+                task_id=task_id,
+                candidate_roster=(
+                    roster if slot == 1 or second_roster is None else second_roster
+                ),
+                selection_rule=rule,
+                source_binding=_source_binding(),
+            )
+        )
+    return records
+
+
+def test_selection_pair_requires_shared_roster_rule_and_exact_slots(
+    tmp_path: Path, binding_stubs: None
+) -> None:
+    records = _selection_pair(tmp_path)
+    assert validate_c2_outcome_blind_selection_pair(records, locus="A_S") == []
+
+    different_roster = deepcopy(records)
+    different_roster[1]["candidate_roster"][2]["task_id"] = "rejected-crystallization"
+    different_roster[1]["selection_sha256"] = canonical_json_sha256(
+        {
+            key: value
+            for key, value in different_roster[1].items()
+            if key != "selection_sha256"
+        }
+    )
+    assert any(
+        "exact candidate roster" in error
+        for error in validate_c2_outcome_blind_selection_pair(
+            different_roster, locus="A_S"
+        )
+    )
+
+    duplicate_slot = deepcopy(records)
+    duplicate_slot[1]["selection_slot"] = 1
+    duplicate_slot[1]["selection_rule"]["selection_slot"] = 1
+    assert any(
+        "exactly {1,2}" in error
+        for error in validate_c2_outcome_blind_selection_pair(
+            duplicate_slot, locus="A_S"
+        )
+    )
+
+
+def test_selection_pair_rejects_independently_forged_rejected_task_rosters(
+    tmp_path: Path, binding_stubs: None
+) -> None:
+    first = build_c2_outcome_blind_selection_record(
+        tmp_path,
+        locus="A_S",
+        task_id="retained-crystallization",
+        candidate_roster=[
+            {
+                "task_id": "retained-crystallization",
+                "frozen_rank": 1,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "independent receipt claim",
+            },
+            {
+                "task_id": "placeholder",
+                "frozen_rank": 2,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "independent receipt claim",
+            },
+        ],
+        selection_rule={
+            "method": "eligible_then_ascending_frozen_rank",
+            "formal_participant_outcomes_permitted": False,
+            "selection_slot": 1,
+            "required_selected_task_count": 2,
+        },
+        source_binding=_source_binding(),
+    )
+    second = build_c2_outcome_blind_selection_record(
+        tmp_path,
+        locus="A_S",
+        task_id="rejected-flow",
+        candidate_roster=[
+            {
+                "task_id": "placeholder",
+                "frozen_rank": 1,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "independent receipt claim",
+            },
+            {
+                "task_id": "rejected-flow",
+                "frozen_rank": 2,
+                "eligible_before_formal_outcomes": True,
+                "eligibility_basis": "independent receipt claim",
+            },
+        ],
+        selection_rule={
+            "method": "eligible_then_ascending_frozen_rank",
+            "formal_participant_outcomes_permitted": False,
+            "selection_slot": 2,
+            "required_selected_task_count": 2,
+        },
+        source_binding=_source_binding(),
+    )
+
+    errors = validate_c2_outcome_blind_selection_pair([first, second], locus="A_S")
+    assert any("exact candidate roster" in error for error in errors)

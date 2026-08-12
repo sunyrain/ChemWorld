@@ -34,9 +34,38 @@ from chemworld.eval.work_ii_qualification import (
 
 PRERUN_EVIDENCE_GRAPH_VERSION = "chemworld-work-ii-prerun-evidence-graph-0.1"
 CLEAN_RELEASE_RECEIPT_VERSION = "chemworld-work-ii-clean-release-receipt-0.1"
-# Keep the clean-release receipt tied to the full Work II release test set.
-# The audited set currently contains 114 tests across the 17 declared files.
-EXPECTED_WORK_II_RELEASE_TEST_COUNT = 123
+# Keep the clean-release receipt tied to one exact, reviewable Work II test roster.
+WORK_II_RELEASE_TEST_FILES = (
+    "tests/test_work_ii_analysis.py",
+    "tests/test_work_ii_analysis_plan_audit.py",
+    "tests/test_work_ii_blind_evaluator.py",
+    "tests/test_work_ii_campaign_runner.py",
+    "tests/test_work_ii_catalyst_deactivation_q0.py",
+    "tests/test_work_ii_c2_admission.py",
+    "tests/test_work_ii_c2_task_admission.py",
+    "tests/test_work_ii_confirmatory.py",
+    "tests/test_work_ii_cost.py",
+    "tests/test_work_ii_development_confirmation.py",
+    "tests/test_work_ii_distillation_additional_rollback_q0.py",
+    "tests/test_work_ii_crystallization_reversible_q0.py",
+    "tests/test_work_ii_formal_design.py",
+    "tests/test_work_ii_formal_evaluators.py",
+    "tests/test_work_ii_formal_runner.py",
+    "tests/test_work_ii_law_summary.py",
+    "tests/test_work_ii_partition_constitutive_q0.py",
+    "tests/test_work_ii_preregistration.py",
+    "tests/test_work_ii_private.py",
+    "tests/test_work_ii_private_execution.py",
+    "tests/test_work_ii_process_profile.py",
+    "tests/test_work_ii_public_c2.py",
+    "tests/test_work_ii_qualification.py",
+    "tests/test_work_ii_resource_calibration.py",
+    "tests/test_work_ii_release.py",
+    "tests/test_work_ii_report.py",
+    "tests/test_work_ii_static_topology_q0.py",
+    "tests/test_work_ii_truth.py",
+)
+EXPECTED_WORK_II_RELEASE_TEST_COUNT = 210
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.1"
 )
@@ -636,8 +665,14 @@ def validate_clean_release_receipt(
     tests = tests if isinstance(tests, Mapping) else {}
     if (
         tests.get("status") != "passed"
+        or tests.get("test_files") != list(WORK_II_RELEASE_TEST_FILES)
+        or tests.get("test_file_count") != len(WORK_II_RELEASE_TEST_FILES)
+        or tests.get("collected") != EXPECTED_WORK_II_RELEASE_TEST_COUNT
         or tests.get("passed") != EXPECTED_WORK_II_RELEASE_TEST_COUNT
+        or tests.get("skipped") != 0
         or tests.get("failed") != 0
+        or not isinstance(tests.get("collection_stdout_sha256"), str)
+        or not isinstance(tests.get("collection_stderr_sha256"), str)
     ):
         errors.append("Work II clean-release receipt lacks the exact release test result")
     checks = receipt.get("frozen_checks")
@@ -964,6 +999,7 @@ __all__ = [
     "EXPECTED_WORK_II_RELEASE_TEST_COUNT",
     "PREREGISTRATION_FREEZE_RECEIPT_VERSION",
     "PRERUN_EVIDENCE_GRAPH_VERSION",
+    "WORK_II_RELEASE_TEST_FILES",
     "build_preregistration_freeze_receipt",
     "build_prerun_evidence_graph",
     "clean_release_receipt_sha256",

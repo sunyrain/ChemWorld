@@ -12,7 +12,7 @@ import pytest
 import scripts.run_work_ii_resource_calibration as calibration_runner
 
 import chemworld.eval.work_ii_resource_calibration as calibration_module
-from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
 from chemworld.eval.work_ii_resource_calibration import (
     RESOURCE_CALIBRATION_ARMS,
@@ -77,6 +77,12 @@ def _future_manifest(tmp_path: Path) -> tuple[Path, dict[str, object]]:
             "hash_kind": "canonical_json_sha256",
         }
     manifest["status"] = "ready_authorization_blocked"
+    manifest["protocol_manifest_binding"] = {
+        "path": MANIFEST.relative_to(ROOT).as_posix(),
+        "sha256": file_sha256(MANIFEST),
+        "hash_kind": "file_sha256",
+    }
+    manifest["c2_source_binding"] = build_c2_source_binding(ROOT)
     manifest_path = tmp_path / "manifest.json"
     manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
     return manifest_path, manifest

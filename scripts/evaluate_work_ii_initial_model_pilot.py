@@ -16,7 +16,6 @@ from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
     git_source_commit,
-    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.work_ii_analysis import score_cell_checkpoint_errors
@@ -24,6 +23,10 @@ from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
     execute_blind_evaluation_plan,
     validate_blind_evaluation_report,
+)
+from chemworld.eval.work_ii_c2_admission import (
+    build_c2_source_binding,
+    c2_material_dirty_paths,
 )
 from chemworld.eval.work_ii_development_confirmation import build_cluster_rows
 from chemworld.eval.work_ii_direction import (
@@ -693,8 +696,12 @@ def main() -> int:
     parser.add_argument("--markdown", type=Path, required=True)
     args = parser.parse_args()
 
-    if git_worktree_dirty(ROOT):
-        raise RuntimeError("initial-model evaluator requires a clean committed worktree")
+    dirty_material = c2_material_dirty_paths(ROOT)
+    if dirty_material:
+        raise RuntimeError(
+            "initial-model evaluator requires clean protected material: "
+            + ", ".join(dirty_material)
+        )
     participant_root = args.participant_run.resolve()
     config_path = args.config.resolve()
     raw_root = args.raw_output.resolve()
@@ -1100,6 +1107,7 @@ def main() -> int:
         "formal_result": False,
         "status": "passed" if not failures else "failed_retained",
         "source_commit": git_source_commit(ROOT),
+        "c2_source_binding": build_c2_source_binding(ROOT),
         "participant_source_commit": matrix.get("source_commit"),
         "participant_run": {
             "path": participant_root.relative_to(ROOT).as_posix(),

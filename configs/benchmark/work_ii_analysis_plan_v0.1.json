@@ -215,6 +215,69 @@
       "single_leaderboard_score_forbidden": true
     }
   },
+  "public_C2_confirmatory_extension": {
+    "status": "outcome_blind_contract_frozen_no_results",
+    "input_locus_cell_report_schema": "chemworld-work-ii-public-c2-locus-cell-report-0.1",
+    "analysis_provider_call_count": 0,
+    "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+    "failure_aware_arm_bounds": [-1.0, 1.0],
+    "locus_denominators": {
+      "A_E": {
+        "tasks": 5,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 25,
+        "scheduled_and_retained_cells": 75
+      },
+      "A_P": {
+        "tasks": 2,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 10,
+        "scheduled_and_retained_cells": 30
+      },
+      "A_S": {
+        "tasks": 2,
+        "worlds_per_task": 5,
+        "matched_task_world_clusters": 10,
+        "scheduled_and_retained_cells": 30
+      }
+    },
+    "locus_gates": {
+      "A_E": {
+        "rule": "existing_H3_three_component_intersection_union_recomputed_from_bound_cell_rows",
+        "one_sided_alpha": 0.05,
+        "aligned_noninferiority_margin": -0.05
+      },
+      "A_P": {
+        "rule": "task_fixed_effect_C_prior_adverse_lower_bound_greater_than_zero",
+        "one_sided_alpha": 0.05,
+        "all_two_task_means_must_be_positive": true
+      },
+      "A_S": {
+        "rule": "task_fixed_effect_C_prior_adverse_lower_bound_greater_than_zero",
+        "one_sided_alpha": 0.05,
+        "all_two_task_means_must_be_positive": true
+      }
+    },
+    "task_fixed_effect_inference": {
+      "design_matrix": "task_indicator_columns_without_intercept",
+      "estimand": "equal_weighted_mean_of_task_specific_cluster_means",
+      "covariance": "classical_OLS",
+      "reference_distribution": "Student_t_residual_df",
+      "A_E_residual_degrees_of_freedom": 20,
+      "A_P_residual_degrees_of_freedom": 8,
+      "A_S_residual_degrees_of_freedom": 8,
+      "exact_zero_standard_error_limit": "se_le_1e-15_treated_as_numerically_zero_p_0_if_estimate_above_null_p_0.5_if_equal_p_1_if_below",
+      "nonfinite_or_materially_negative_variance": "fail_closed"
+    },
+    "global_intersection_union": {
+      "required_loci": ["A_E", "A_P", "A_S"],
+      "all_three_locus_gates_must_pass": true,
+      "overall_p_value": "maximum_of_A_E_A_P_A_S_effective_gate_p_values",
+      "direction_inconsistent_A_P_or_A_S_effective_p_value": 1.0,
+      "one_sided_alpha": 0.05,
+      "naive_nine_task_pooling_forbidden": true
+    }
+  },
   "power_design": {
     "test_family": "one_sided_task_fixed_effect_t_approximation",
     "independent_clusters": 25,

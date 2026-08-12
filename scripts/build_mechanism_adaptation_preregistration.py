@@ -96,6 +96,18 @@ def _source_commit_binding_errors(
             f"mechanism_adaptation_participant_preregistration_{release_candidate}.json"
         ),
     ]
+    for relative in bound_paths:
+        path = ROOT / relative
+        if not path.exists():
+            return [f"preregistration bound path is missing: {relative}"]
+        tracked = subprocess.run(
+            ["git", "ls-files", "--error-unmatch", "--", relative],
+            cwd=ROOT,
+            capture_output=True,
+            text=True,
+        )
+        if tracked.returncode != 0:
+            return [f"preregistration bound path is not Git tracked: {relative}"]
     source_diff = subprocess.run(
         ["git", "diff", "--quiet", source_commit, "--", *bound_paths],
         cwd=ROOT,

@@ -6,7 +6,9 @@ from pathlib import Path
 
 import chemworld.eval.work_ii_release as release
 from chemworld.eval.work_ii_release import (
+    EXPECTED_WORK_II_RELEASE_TEST_COUNT,
     PREREGISTRATION_FREEZE_RECEIPT_VERSION,
+    WORK_II_RELEASE_TEST_FILES,
     build_prerun_evidence_graph,
     preregistration_freeze_receipt_sha256,
     prerun_evidence_graph_sha256,
@@ -69,6 +71,37 @@ def test_prerun_evidence_graph_rejects_cycle_even_with_refreshed_hash() -> None:
 
 def test_clean_release_receipt_validator_rejects_shallow_pass() -> None:
     assert validate_clean_release_receipt({"status": "passed"})
+
+
+def test_clean_release_roster_freezes_new_execution_and_q0_tests() -> None:
+    assert len(WORK_II_RELEASE_TEST_FILES) == 28
+    assert EXPECTED_WORK_II_RELEASE_TEST_COUNT == 210
+    assert {
+        "tests/test_work_ii_formal_evaluators.py",
+        "tests/test_work_ii_private_execution.py",
+        "tests/test_work_ii_public_c2.py",
+        "tests/test_work_ii_catalyst_deactivation_q0.py",
+        "tests/test_work_ii_c2_admission.py",
+        "tests/test_work_ii_c2_task_admission.py",
+        "tests/test_work_ii_crystallization_reversible_q0.py",
+        "tests/test_work_ii_distillation_additional_rollback_q0.py",
+        "tests/test_work_ii_partition_constitutive_q0.py",
+        "tests/test_work_ii_static_topology_q0.py",
+    }.issubset(WORK_II_RELEASE_TEST_FILES)
+
+
+def test_clean_release_validator_rejects_test_roster_drift() -> None:
+    receipt = json.loads(CLEAN_RELEASE.read_text(encoding="utf-8"))
+    receipt["work_ii_tests"]["test_files"] = list(WORK_II_RELEASE_TEST_FILES[:-1])
+    receipt["work_ii_tests"]["test_file_count"] = len(WORK_II_RELEASE_TEST_FILES) - 1
+    receipt["work_ii_tests"]["collected"] = EXPECTED_WORK_II_RELEASE_TEST_COUNT
+    receipt["work_ii_tests"]["passed"] = EXPECTED_WORK_II_RELEASE_TEST_COUNT
+    receipt["work_ii_tests"]["collection_stdout_sha256"] = "a" * 64
+    receipt["work_ii_tests"]["collection_stderr_sha256"] = "b" * 64
+    receipt["receipt_sha256"] = release.clean_release_receipt_sha256(receipt)
+    assert "Work II clean-release receipt lacks the exact release test result" in (
+        validate_clean_release_receipt(receipt)
+    )
 
 
 def test_clean_release_receipt_is_not_current_for_a_dirty_repository(

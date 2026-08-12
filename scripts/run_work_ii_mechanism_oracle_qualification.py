@@ -22,6 +22,7 @@ from chemworld.eval.provenance import (
     git_source_commit,
     write_json_atomic,
 )
+from chemworld.eval.work_ii_c2_admission import build_c2_source_binding
 from chemworld.eval.work_ii_mechanism_oracle_qualification import (
     EXPECTED_OPTIMIZER_REQUESTS,
     FULL_PERTURBATION_COUNT,
@@ -782,6 +783,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_schema_version": MECHANISM_ORACLE_VERSION,
         "formal_result": False,
         "source_commit": git_source_commit(ROOT),
+        "c2_source_binding": build_c2_source_binding(ROOT),
         "scoped_runtime_clean": True,
         "unrelated_dirty_paths_excluded": [
             line[3:].strip().replace("\\", "/")

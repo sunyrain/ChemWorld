@@ -133,6 +133,43 @@ def test_release_qualification_source_binding_tracks_selected_candidate() -> Non
     ) in command
 
 
+def test_release_source_binding_preflight_rejects_missing_or_untracked_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = runpy.run_path(
+        ROOT / "scripts" / "qualify_mechanism_adaptation_release.py",
+        run_name="mechanism_release_qualification_missing_path",
+    )
+    (ROOT / ".pytest-untracked-release-binding.py").write_text("pass\n", encoding="utf-8")
+    calls: list[list[str]] = []
+
+    def fake_run(command: list[str], **kwargs: object):
+        calls.append(command)
+        return __import__("subprocess").CompletedProcess(command, 1, "", "")
+
+    monkeypatch.setattr(runner["subprocess"], "run", fake_run)
+    errors = runner["_source_binding_preflight"](
+        [
+            "git",
+            "diff",
+            "--exit-code",
+            "commit",
+            "--",
+            ".pytest-untracked-release-binding.py",
+            "missing.py",
+        ]
+    )
+    try:
+        assert (
+            "release bound path is not Git tracked: .pytest-untracked-release-binding.py"
+            in errors
+        )
+        assert "release bound path is missing: missing.py" in errors
+        assert all("diff" not in call for call in calls)
+    finally:
+        (ROOT / ".pytest-untracked-release-binding.py").unlink()
+
+
 def test_formal_paired_contrast_encoding_is_accepted() -> None:
     plan = load_json_object(
         ROOT

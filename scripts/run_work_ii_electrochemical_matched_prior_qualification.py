@@ -16,6 +16,12 @@ from chemworld.eval.provenance import (
     git_source_commit,
     write_json_atomic,
 )
+from chemworld.eval.work_ii_c2_admission import (
+    C2_DYNAMIC_EVIDENCE_ROOT,
+    build_c2_source_binding,
+    c2_material_dirty_paths,
+    validate_c2_source_binding,
+)
 from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     MATCHED_PRIOR_VERSION,
     analyze_matched_prior_world,
@@ -32,7 +38,6 @@ try:
         TASK_SPECS,
         _emit,
         _load,
-        _scoped_dirty_paths,
     )
 except ModuleNotFoundError:
     from run_work_ii_mechanism_oracle_qualification import (
@@ -42,7 +47,6 @@ except ModuleNotFoundError:
         TASK_SPECS,
         _emit,
         _load,
-        _scoped_dirty_paths,
     )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -58,8 +62,12 @@ DEFAULT_SUMMARY = (
     ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-electrochemical-matched-prior-qualification-20260811.json"
 )
-DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_package.json"
-DEFAULT_D1_CONFIG = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json"
+DEFAULT_PACKAGE = (
+    ROOT / C2_DYNAMIC_EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-package.json"
+)
+DEFAULT_D1_CONFIG = (
+    ROOT / C2_DYNAMIC_EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1.json"
+)
 SUMMARY_VERSION = "chemworld-work-ii-electrochemical-matched-prior-five-world-summary-0.3"
 WORLD_REPORT_VERSION = "chemworld-work-ii-electrochemical-matched-prior-world-report-0.3"
 PACKAGE_VERSION = "chemworld-work-ii-electrochemical-matched-prior-package-0.3"
@@ -116,6 +124,8 @@ def _source_reports(source_summary: Mapping[str, Any]) -> list[dict[str, Any]]:
     if not isinstance(bindings, list) or len(bindings) != 5:
         raise ValueError("electrochemical mechanism-oracle source must bind five raw reports")
     reports = []
+    if source_summary.get("source_commit") != build_c2_source_binding(ROOT)["tested_commit"]:
+        raise ValueError("electrochemical mechanism-oracle source commit drifted")
     for binding in sorted(bindings, key=lambda item: int(item["world_seed"])):
         path = (ROOT / str(binding["path"])).resolve()
         if not path.is_file() or file_sha256(path) != str(binding["sha256"]):
@@ -317,19 +327,28 @@ def _d1_config(base: Mapping[str, Any], world_package: Mapping[str, Any]) -> dic
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    dirty = _scoped_dirty_paths()
+    dirty = c2_material_dirty_paths(ROOT)
     if dirty:
         raise RuntimeError(
             "electrochemical matched-prior qualification requires clean scoped sources: "
             + ", ".join(dirty)
         )
+    source_summary_path = args.source_summary.resolve()
     paths = [args.output_root, args.summary, args.package, args.d1_config]
+    dynamic_root = (ROOT / C2_DYNAMIC_EVIDENCE_ROOT).resolve()
+    for path in (args.summary, args.package, args.d1_config):
+        if not path.resolve().is_relative_to(dynamic_root):
+            raise ValueError("matched-prior tracked outputs must use the dynamic evidence root")
     if any(path.exists() for path in paths):
         raise FileExistsError(
             "refusing to overwrite electrochemical matched-prior qualification outputs"
         )
-    source_summary = _load(SOURCE_SUMMARY)
+    source_summary = _load(source_summary_path)
     source_reports = _source_reports(source_summary)
+    c2_source_binding = build_c2_source_binding(ROOT)
+    binding_errors = validate_c2_source_binding(ROOT, c2_source_binding)
+    if binding_errors:
+        raise RuntimeError("invalid C2 source binding: " + "; ".join(binding_errors))
     spec = TASK_SPECS[TASK_ID]
     base_config = _load((ROOT / str(spec["config"])).resolve())
     args.output_root.mkdir(parents=True)
@@ -376,8 +395,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "formal_result": False,
         "task_id": TASK_ID,
         "source_summary": {
-            "path": SOURCE_SUMMARY.relative_to(ROOT).as_posix(),
-            "sha256": file_sha256(SOURCE_SUMMARY),
+            "path": source_summary_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(source_summary_path),
         },
         "qualification_passed": qualification_passed,
         "arm_semantics": {
@@ -402,6 +421,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_schema_version": MATCHED_PRIOR_VERSION,
         "formal_result": False,
         "source_commit": git_source_commit(ROOT),
+        "c2_source_binding": c2_source_binding,
         "task_id": TASK_ID,
         "world_seeds": list(get_task(TASK_ID).seeds),
         "provider_call_count": 0,
@@ -498,6 +518,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output-root", type=Path, default=DEFAULT_OUTPUT_ROOT)
+    parser.add_argument("--source-summary", type=Path, default=SOURCE_SUMMARY)
     parser.add_argument("--summary", type=Path, default=DEFAULT_SUMMARY)
     parser.add_argument("--package", type=Path, default=DEFAULT_PACKAGE)
     parser.add_argument("--d1-config", type=Path, default=DEFAULT_D1_CONFIG)

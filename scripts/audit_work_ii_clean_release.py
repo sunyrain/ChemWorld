@@ -21,6 +21,7 @@ from chemworld.eval.provenance import file_sha256, write_json_atomic
 from chemworld.eval.work_ii_release import (
     CLEAN_RELEASE_RECEIPT_VERSION,
     EXPECTED_WORK_II_RELEASE_TEST_COUNT,
+    WORK_II_RELEASE_TEST_FILES,
     clean_release_receipt_sha256,
     validate_clean_release_receipt,
 )
@@ -31,26 +32,6 @@ DEFAULT_GRAPH = (
 )
 DEFAULT_OUTPUT = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json"
-)
-WORK_II_TEST_FILES = (
-    "tests/test_work_ii_analysis.py",
-    "tests/test_work_ii_analysis_plan_audit.py",
-    "tests/test_work_ii_blind_evaluator.py",
-    "tests/test_work_ii_campaign_runner.py",
-    "tests/test_work_ii_confirmatory.py",
-    "tests/test_work_ii_cost.py",
-    "tests/test_work_ii_development_confirmation.py",
-    "tests/test_work_ii_formal_design.py",
-    "tests/test_work_ii_formal_runner.py",
-    "tests/test_work_ii_law_summary.py",
-    "tests/test_work_ii_preregistration.py",
-    "tests/test_work_ii_private.py",
-    "tests/test_work_ii_process_profile.py",
-    "tests/test_work_ii_qualification.py",
-    "tests/test_work_ii_resource_calibration.py",
-    "tests/test_work_ii_release.py",
-    "tests/test_work_ii_report.py",
-    "tests/test_work_ii_truth.py",
 )
 FROZEN_CHECKS = (
     ("formal_preflight", "scripts/run_work_ii_formal_matrix.py", "--preflight", "--check"),
@@ -210,6 +191,28 @@ def main() -> int:
         completed += 1
         _progress("evidence_graph", completed, total_stages, started)
 
+        collection = _run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "--collect-only",
+                "-q",
+                "-o",
+                "addopts=",
+                *WORK_II_RELEASE_TEST_FILES,
+            ],
+            cwd=checkout,
+            env=source_env,
+        )
+        collection_output = collection.stdout + "\n" + collection.stderr
+        collection_match = re.search(r"(\d+) tests? collected in ", collection_output)
+        if collection_match is None:
+            raise RuntimeError("could not parse the Work II pytest collection denominator")
+        collected = int(collection_match.group(1))
+        if collected != EXPECTED_WORK_II_RELEASE_TEST_COUNT:
+            raise RuntimeError(f"unexpected Work II pytest collection: collected={collected}")
+
         tests = _run(
             [
                 sys.executable,
@@ -218,7 +221,7 @@ def main() -> int:
                 "-q",
                 "-o",
                 "addopts=",
-                *WORK_II_TEST_FILES,
+                *WORK_II_RELEASE_TEST_FILES,
             ],
             cwd=checkout,
             env=source_env,
@@ -320,12 +323,16 @@ def main() -> int:
             "evidence_graph": graph_record,
             "work_ii_tests": {
                 "status": "passed",
-                "test_file_count": len(WORK_II_TEST_FILES),
+                "test_files": list(WORK_II_RELEASE_TEST_FILES),
+                "test_file_count": len(WORK_II_RELEASE_TEST_FILES),
+                "collected": collected,
                 "passed": passed,
                 "skipped": skipped,
                 "failed": 0,
                 "stdout_sha256": _text_sha256(tests.stdout),
                 "stderr_sha256": _text_sha256(tests.stderr),
+                "collection_stdout_sha256": _text_sha256(collection.stdout),
+                "collection_stderr_sha256": _text_sha256(collection.stderr),
             },
             "wheel": {
                 "status": "passed",

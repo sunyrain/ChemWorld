@@ -435,7 +435,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   尚未执行，现有 audit 继续保持 pending。
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
-  manifest preflight、power/resource audit、method-qualification readiness 与 preregistration readiness 已同步重建；
+  135-cell C2 manifest/preflight、task-aware analysis 与 private/public evaluator 均已实现；派生的
+  power/resource audit、method-qualification readiness 与 preregistration readiness 仍须在最终源码提交上重建；
   formal execution 仍被 W2-26/W2-27 和用户授权锁死。
 - [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
   `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
@@ -476,6 +477,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
 | W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
+| W2-37 | DOING/BLOCKED | 严格 A-S 已否决旧 equilibrium 双轴方案；当前冻结候选为 partition constitutive power 与 reaction-to-crystallization reversible topology。两个 seed-0 Q0 runner/validator 已实现但尚未在最终干净提交上执行；five-world 成对基线/改律 Q1/Q2（每 task-world 512 paired coordinates）仍须四文件一致重建，旧半成品未纳入发布。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
@@ -492,6 +494,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `18/18` exact replay、0 physical/platform/unsafe；原生可逆反应保留且仅新增一条 `0.0005 s^-1` rollback
   path。最大 yield/conversion gap 为 `0.02324 < 0.05`，最长减最短时长的平均 accumulation gap 为
   `0.01505 < 0.03`，科学拒绝且不扩展。
+- [ ] **W2-37** 先在最终干净源码提交上分别运行 partition 与 crystallization seed-0 Q0；仅当两者按冻结门槛
+  通过，才实现并冻结严格 five-world A-S paired-law qualification。不得恢复 equilibrium load/volume 共线设计，
+  不得使用 generic quadratic surrogate 代替已注册可执行 laws，也不得把 Q0 当作正式 admission。
 
 ## 12. 不可违反的规则
 
@@ -509,7 +514,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.1.json`
 - Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.1.json`
 - Power/resource audit（W2-25 planning envelope）：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
-- Formal preflight（600 public experiments；execution blocked）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`
+- Formal preflight（C2 135 public cells / 1,260 complete experiments；当前派生产物待最终提交后重建，execution blocked）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`
 - WellAU development timing：`workstreams/flagship_tasks/reports/work-ii-three-task-five-seed-campaign.md`
 - Electrochemical parametric reports：
   `workstreams/flagship_tasks/reports/work-ii-parametric-initial-model-diagnostic-seed1-v2-20260811.json`、

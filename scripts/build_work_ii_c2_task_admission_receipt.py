@@ -9,6 +9,7 @@ from pathlib import Path
 
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_c2_admission import (
+    C2_DYNAMIC_EVIDENCE_ROOT,
     C2_TASK_STAGE_ORDER,
     build_c2_task_admission_receipt,
 )
@@ -22,6 +23,13 @@ def _inside_root(path: Path) -> Path:
         resolved.relative_to(ROOT)
     except ValueError as error:
         raise ValueError("C2 task-admission output must remain inside repository") from error
+    dynamic_root = (ROOT / C2_DYNAMIC_EVIDENCE_ROOT).resolve()
+    try:
+        resolved.relative_to(dynamic_root)
+    except ValueError as error:
+        raise ValueError(
+            f"C2 task-admission output must remain under {C2_DYNAMIC_EVIDENCE_ROOT}"
+        ) from error
     return resolved
 
 

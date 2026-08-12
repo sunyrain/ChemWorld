@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 from scripts.run_work_ii_partition_constitutive_q0 import (
     _measurement,
@@ -39,6 +40,18 @@ def _audit() -> dict[str, object]:
     audit = constitutive_audit()
     audit["execution_constitutive_binding_matches"] = True
     return audit
+
+
+def _source_binding() -> dict[str, object]:
+    return {
+        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
+        "tested_commit": "a" * 40,
+        "material_tree": {
+            "relative_roots": [],
+            "excluded_relative_paths": [],
+            "sha256": "b" * 64,
+        },
+    }
 
 
 def _rows() -> list[dict[str, object]]:
@@ -111,6 +124,7 @@ def _task_report() -> dict[str, object]:
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "c2_source_binding": _source_binding(),
         "task_id": TASK_ID,
         "world_seed": 0,
         "frozen_exponents": {
@@ -134,6 +148,7 @@ def _summary(report_path: Path, report: dict[str, object], root: Path) -> dict[s
         "formal_result": False,
         "provider_call_count": 0,
         "participant_session_count": 0,
+        "c2_source_binding": _source_binding(),
         "task_id": TASK_ID,
         "world_seed": 0,
         "coverage": {
@@ -272,7 +287,13 @@ def test_analysis_rejects_exponent_drift_and_incomplete_execution() -> None:
     assert "all_executions_completed" in result["failures"]
 
 
-def test_task_report_and_summary_validators_bind_raw_evidence(tmp_path: Path) -> None:
+def test_task_report_and_summary_validators_bind_raw_evidence(
+    tmp_path: Path, monkeypatch: Any
+) -> None:
+    monkeypatch.setattr(
+        "chemworld.eval.work_ii_partition_constitutive_q0.validate_c2_source_binding",
+        lambda _root, binding: [] if binding == _source_binding() else ["wrong binding"],
+    )
     report = _task_report()
     report_path = tmp_path / "raw" / "task-report.json"
     report_path.parent.mkdir()

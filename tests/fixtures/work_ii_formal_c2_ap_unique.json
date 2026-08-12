@@ -1,0 +1,36 @@
+{
+  "formal_result": false,
+  "task_id": "c2-parametric-task",
+  "episode_mode": "campaign",
+  "prior_arms": {
+    "opaque": {"mode": "opaque_codes"},
+    "aligned_nominal": {"mode": "anonymous_nominal_properties"},
+    "misindexed_nominal": {"mode": "anonymous_misindexed_properties"}
+  },
+  "snapshot_stages": ["pre_evidence", "after_experiment_2", "after_experiment_4", "after_experiment_7", "final"],
+  "campaign": {
+    "complete_experiments": 10,
+    "operation_attempt_limit": 70,
+    "checkpoint_complete_experiments": [0, 2, 4, 7, 10]
+  },
+  "method_resources": {
+    "operation_limit": 70,
+    "complete_experiment_limit": 10,
+    "checkpoint_complete_experiments": [2, 4, 7, 10],
+    "model_call_limit": 1,
+    "input_token_limit": 2400000,
+    "uncached_input_token_limit": 320000,
+    "output_token_limit": 24000
+  },
+  "qualification": {"q2_passed": true},
+  "execution": {
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1
+  },
+  "provider": {
+    "id": "wellau", "name": "WellAU", "base_url": "https://api.wellau.com/v1",
+    "wire_api": "responses", "model": "gpt-5.6-sol", "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0, "finalization_timeout_s": 600.0
+  }
+}

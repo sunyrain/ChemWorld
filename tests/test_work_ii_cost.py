@@ -177,7 +177,7 @@ def test_formal_cost_contract_rejects_rehashed_semantic_tampering() -> None:
     )
 
 
-def test_formal_cost_reservations_survive_runtime_manifest_authorization() -> None:
+def test_incomplete_c2_schedule_cost_contract_cannot_authorize_runtime() -> None:
     base, contract = _contract()
     forged = deepcopy(base)
     forged["status"] = "passed_execution_authorized"
@@ -190,18 +190,19 @@ def test_formal_cost_reservations_survive_runtime_manifest_authorization() -> No
         "formal execution manifest lacks exact authorization bindings"
         in validate_formal_preflight(forged)
     )
-    authorized = authorize_formal_preflight(
-        base,
-        **_authorization_evidence(base, contract),
-    )
-    first = authorized["cells"][0]
+    with pytest.raises(ValueError, match="unresolved prerequisite failures"):
+        authorize_formal_preflight(
+            base,
+            **_authorization_evidence(base, contract),
+        )
+    first = base["cells"][0]
     ledger = build_formal_cost_ledger(
-        authorized,
+        base,
         contract,
         {first["cell_key_sha256"]: 1},
     )
 
-    assert validate_formal_cost_contract(ROOT, authorized, contract) == []
+    assert validate_formal_cost_contract(ROOT, base, contract) == []
     assert ledger["provider_attempt_count"] == 1
     assert ledger["reserved_cost_usd"] == 0.057344
     assert ledger["remaining_unreserved_usd"] == 19.942656
@@ -210,7 +211,7 @@ def test_formal_cost_reservations_survive_runtime_manifest_authorization() -> No
 
     with pytest.raises(ValueError, match="non-integer attempt count"):
         build_formal_cost_ledger(
-            authorized,
+            base,
             contract,
             {first["cell_key_sha256"]: 1.5},
         )

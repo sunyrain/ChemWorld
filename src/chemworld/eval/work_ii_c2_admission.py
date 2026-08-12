@@ -56,6 +56,7 @@ C2_MATERIAL_SOURCE_ROOTS = (
 C2_MATERIAL_SOURCE_EXCLUSIONS = (
     "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
 )
+C2_DYNAMIC_EVIDENCE_ROOT = "workstreams/flagship_tasks/reports"
 
 
 def _load_object(path: Path) -> dict[str, Any]:
@@ -81,6 +82,103 @@ def c2_task_admission_receipt_sha256(receipt: Mapping[str, Any]) -> str:
 
 def c2_outcome_blind_selection_sha256(record: Mapping[str, Any]) -> str:
     return _self_hash(record, "selection_sha256")
+
+
+def build_c2_outcome_blind_selection_record(
+    root: Path,
+    *,
+    locus: str,
+    task_id: str,
+    candidate_roster: Sequence[Mapping[str, Any]],
+    selection_rule: Mapping[str, Any],
+    source_binding: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Freeze one task choice without using formal participant outcomes.
+
+    The caller supplies the complete pre-outcome candidate roster and a declarative
+    selection rule.  The selected task must occupy the declared slot among eligible
+    rows ordered by frozen rank.  This builder does not inspect participant artifacts.
+    """
+
+    if locus not in C2_LOCI:
+        raise ValueError(f"unsupported C2 locus: {locus}")
+    if not isinstance(task_id, str) or not task_id:
+        raise ValueError("C2 selection task_id must be non-empty")
+    binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
+    binding_errors = validate_c2_source_binding(root, binding)
+    if binding_errors:
+        raise ValueError("invalid C2 source binding: " + "; ".join(binding_errors))
+    if selection_rule.get("method") != "eligible_then_ascending_frozen_rank":
+        raise ValueError("unsupported C2 outcome-blind selection rule")
+    if selection_rule.get("formal_participant_outcomes_permitted") is not False:
+        raise ValueError("C2 selection rule must forbid formal participant outcomes")
+    selection_slot = selection_rule.get("selection_slot")
+    selected_count = selection_rule.get("required_selected_task_count")
+    if (
+        isinstance(selection_slot, bool)
+        or not isinstance(selection_slot, int)
+        or isinstance(selected_count, bool)
+        or not isinstance(selected_count, int)
+        or selected_count != C2_REQUIRED_TASK_COUNTS[locus]
+        or not 1 <= selection_slot <= selected_count
+    ):
+        raise ValueError("C2 selection rule has an invalid frozen slot contract")
+    rows: list[dict[str, Any]] = []
+    identities: set[str] = set()
+    ranks: set[int] = set()
+    for raw in candidate_roster:
+        row = dict(raw)
+        candidate_task = row.get("task_id")
+        rank = row.get("frozen_rank")
+        if (
+            not isinstance(candidate_task, str)
+            or not candidate_task
+            or candidate_task in identities
+            or isinstance(rank, bool)
+            or not isinstance(rank, int)
+            or rank < 1
+            or rank in ranks
+            or not isinstance(row.get("eligible_before_formal_outcomes"), bool)
+            or not isinstance(row.get("eligibility_basis"), str)
+            or not row["eligibility_basis"]
+        ):
+            raise ValueError("C2 candidate roster is malformed or not uniquely ranked")
+        identities.add(candidate_task)
+        ranks.add(rank)
+        rows.append(
+            {
+                "task_id": candidate_task,
+                "frozen_rank": rank,
+                "eligible_before_formal_outcomes": row["eligible_before_formal_outcomes"],
+                "eligibility_basis": row["eligibility_basis"],
+            }
+        )
+    eligible = sorted(
+        (row for row in rows if row["eligible_before_formal_outcomes"]),
+        key=lambda row: int(row["frozen_rank"]),
+    )
+    if (
+        len(eligible) < selected_count
+        or eligible[selection_slot - 1]["task_id"] != task_id
+    ):
+        raise ValueError("selected C2 task does not occupy its eligible frozen slot")
+    record: dict[str, Any] = {
+        "schema_version": C2_OUTCOME_BLIND_SELECTION_VERSION,
+        "locus": locus,
+        "task_id": task_id,
+        "selected_before_formal_participant_outcomes": True,
+        "formal_participant_outcomes_observed": 0,
+        "formal_participant_outcomes_used": False,
+        "selection_rule_frozen_before_evidence_review": True,
+        "selection_rule": dict(selection_rule),
+        "candidate_roster": sorted(rows, key=lambda row: int(row["frozen_rank"])),
+        "selection_slot": selection_slot,
+        "required_selected_task_count": selected_count,
+        "selected_frozen_rank": eligible[selection_slot - 1]["frozen_rank"],
+        "source_binding": binding,
+    }
+    record["selection_sha256"] = c2_outcome_blind_selection_sha256(record)
+    return record
 
 
 def _is_commit(value: object) -> bool:
@@ -145,6 +243,47 @@ def validate_c2_source_binding(root: Path, binding: object) -> list[str]:
     return errors
 
 
+def c2_material_dirty_paths(root: Path) -> list[str]:
+    """Return dirty paths that belong to the protected C2 material surface.
+
+    Dynamic reports are deliberately outside ``C2_MATERIAL_SOURCE_ROOTS`` and may
+    accumulate between Q1, Q2, D1 and W2-26 without changing the tested runtime.
+    This check still includes untracked files under every protected root.
+    """
+
+    root = root.resolve()
+    if not git_worktree_dirty(root):
+        return []
+    completed = subprocess.run(
+        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=True,
+    )
+    exclusions = set(C2_MATERIAL_SOURCE_EXCLUSIONS)
+    file_roots = {path for path in C2_MATERIAL_SOURCE_ROOTS if Path(path).suffix}
+    directory_roots = tuple(
+        f"{path.rstrip('/')} /".replace(" /", "/")
+        for path in C2_MATERIAL_SOURCE_ROOTS
+        if path not in file_roots
+    )
+    dirty: list[str] = []
+    for line in completed.stdout.splitlines():
+        if not line:
+            continue
+        path = line[3:].strip('"').replace("\\", "/")
+        if " -> " in path:
+            path = path.split(" -> ", 1)[1]
+        if path in exclusions:
+            continue
+        if path in file_roots or any(path.startswith(item) for item in directory_roots):
+            dirty.append(path)
+    return sorted(set(dirty))
+
+
 def _binding(root: Path, path: Path, *, embedded_hash: str | None = None) -> dict[str, Any]:
     value: dict[str, Any] = {
         "path": path.resolve().relative_to(root.resolve()).as_posix(),
@@ -162,6 +301,21 @@ def _inside_root(root: Path, path: Path, *, label: str) -> Path:
     except ValueError as error:
         raise ValueError(f"{label} escapes repository") from error
     return resolved
+
+
+def _dynamic_evidence_path_errors(root: Path, path: Path, *, label: str) -> list[str]:
+    """Keep post-freeze generated evidence outside the protected material tree."""
+
+    resolved = _inside_root(root, path, label=label)
+    dynamic_root = (root.resolve() / C2_DYNAMIC_EVIDENCE_ROOT).resolve()
+    try:
+        resolved.relative_to(dynamic_root)
+    except ValueError:
+        return [
+            f"{label} must be under {C2_DYNAMIC_EVIDENCE_ROOT} to preserve the "
+            "immutable execution source binding"
+        ]
+    return []
 
 
 def _embedded_hash_contract(report: Mapping[str, Any]) -> tuple[str | None, list[str]]:
@@ -261,8 +415,8 @@ def _stage_evidence_row(
     task_id: str,
     source_binding: Mapping[str, Any],
 ) -> tuple[dict[str, Any], list[str]]:
-    errors: list[str] = []
     path = _inside_root(root, path, label=f"{stage} evidence")
+    errors = _dynamic_evidence_path_errors(root, path, label=f"{stage} evidence")
     report: dict[str, Any] = {}
     embedded_hash: str | None = None
     if not path.is_file():
@@ -352,6 +506,27 @@ def _selection_errors(
         or record.get("selection_rule_frozen_before_evidence_review") is not True
     ):
         errors.append("selection record does not prove outcome-blind task selection")
+    selection_rule = record.get("selection_rule")
+    roster = record.get("candidate_roster")
+    if not isinstance(selection_rule, Mapping) or not isinstance(roster, list):
+        errors.append("selection record lacks its frozen rule or candidate roster")
+    else:
+        try:
+            rebuilt = build_c2_outcome_blind_selection_record(
+                root,
+                locus=locus,
+                task_id=task_id,
+                candidate_roster=[
+                    dict(row) if isinstance(row, Mapping) else {} for row in roster
+                ],
+                selection_rule=selection_rule,
+                source_binding=source_binding,
+            )
+        except (TypeError, ValueError) as error:
+            errors.append(f"selection record cannot be deterministically rebuilt: {error}")
+        else:
+            if dict(record) != rebuilt:
+                errors.append("selection record differs from deterministic outcome-blind rebuild")
     record_binding = record.get("source_binding")
     if not isinstance(record_binding, Mapping):
         errors.append("selection record lacks its C2 source binding")
@@ -360,6 +535,103 @@ def _selection_errors(
         if record_binding.get("tested_commit") != source_binding.get("tested_commit"):
             errors.append("selection record does not share the receipt runtime commit")
     return errors
+
+
+def validate_c2_outcome_blind_selection_pair(
+    records: Sequence[Mapping[str, Any]], *, locus: str
+) -> list[str]:
+    """Require one shared roster/rule and the exact two frozen slots per locus."""
+
+    if locus not in C2_LOCI:
+        return [f"unsupported C2 locus: {locus}"]
+    errors: list[str] = []
+    if len(records) != C2_REQUIRED_TASK_COUNTS[locus]:
+        return [f"{locus} requires exactly two outcome-blind selection records"]
+
+    slots: list[object] = []
+    task_ids: list[object] = []
+    rosters: list[object] = []
+    slot_neutral_rules: list[object] = []
+    for record in records:
+        slots.append(record.get("selection_slot"))
+        task_ids.append(record.get("task_id"))
+        rosters.append(record.get("candidate_roster"))
+        rule = record.get("selection_rule")
+        if not isinstance(rule, Mapping):
+            slot_neutral_rules.append(None)
+        else:
+            slot_neutral_rules.append(
+                {key: value for key, value in rule.items() if key != "selection_slot"}
+            )
+            if rule.get("selection_slot") != record.get("selection_slot"):
+                errors.append(f"{locus} selection slot differs from its frozen rule")
+    if set(slots) != {1, 2} or len(slots) != len(set(slots)):
+        errors.append(f"{locus} outcome-blind selection slots must be exactly {{1,2}}")
+    if (
+        any(not isinstance(task_id, str) or not task_id for task_id in task_ids)
+        or len(set(task_ids)) != C2_REQUIRED_TASK_COUNTS[locus]
+    ):
+        errors.append(f"{locus} outcome-blind selected task identities must be distinct")
+    if (
+        not isinstance(rosters[0], list)
+        or not isinstance(rosters[1], list)
+        or rosters[0] != rosters[1]
+    ):
+        errors.append(
+            f"{locus} selection records do not share the exact candidate roster"
+        )
+    if (
+        slot_neutral_rules[0] is None
+        or slot_neutral_rules[1] is None
+        or slot_neutral_rules[0] != slot_neutral_rules[1]
+    ):
+        errors.append(
+            f"{locus} selection records do not share one rule apart from selection_slot"
+        )
+    return errors
+
+
+def _selection_pair_summary(
+    records: Sequence[Mapping[str, Any]], *, locus: str
+) -> tuple[dict[str, Any], list[str]]:
+    errors = validate_c2_outcome_blind_selection_pair(records, locus=locus)
+    common_roster = (
+        records[0].get("candidate_roster")
+        if len(records) == 2
+        and records[0].get("candidate_roster") == records[1].get("candidate_roster")
+        else None
+    )
+    rules = [
+        (
+            {key: value for key, value in rule.items() if key != "selection_slot"}
+            if isinstance(rule, Mapping)
+            else None
+        )
+        for record in records
+        for rule in (record.get("selection_rule"),)
+    ]
+    common_rule = rules[0] if len(rules) == 2 and rules[0] == rules[1] else None
+    summary = {
+        "required_selection_slots": [1, 2],
+        "observed_selection_slots": sorted(
+            slot
+            for slot in (record.get("selection_slot") for record in records)
+            if isinstance(slot, int) and not isinstance(slot, bool)
+        ),
+        "selected_task_ids": [record.get("task_id") for record in records],
+        "shared_candidate_roster_sha256": (
+            canonical_json_sha256(common_roster) if common_roster is not None else None
+        ),
+        "shared_selection_rule_without_slot_sha256": (
+            canonical_json_sha256(common_rule) if common_rule is not None else None
+        ),
+        "selection_record_sha256": [
+            record.get("selection_sha256") for record in records
+        ],
+        "passed": not errors,
+        "validation_errors": errors,
+    }
+    return summary, errors
 
 
 def build_c2_task_admission_receipt(
@@ -382,6 +654,12 @@ def build_c2_task_admission_receipt(
     campaign_path = _inside_root(root, campaign_config_path, label="campaign config")
     selection_path = _inside_root(root, selection_record_path, label="selection record")
     errors: list[str] = []
+    errors.extend(
+        _dynamic_evidence_path_errors(root, campaign_path, label="campaign config")
+    )
+    errors.extend(
+        _dynamic_evidence_path_errors(root, selection_path, label="selection record")
+    )
     binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
     errors.extend(validate_c2_source_binding(root, binding))
 
@@ -491,12 +769,13 @@ def _plan_errors(plan: Mapping[str, Any]) -> list[str]:
             errors.append(f"C2 admission plan changed the frozen {locus} contract")
     calibration = plan.get("resource_calibration")
     calibration = calibration if isinstance(calibration, Mapping) else {}
-    if (
-        calibration.get("work_item") != "W2-26"
-        or calibration.get("manifest_path")
-        != "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+    calibration_manifest_path = calibration.get("manifest_path")
+    if calibration.get("work_item") != "W2-26" or not isinstance(
+        calibration_manifest_path, str
     ):
         errors.append("C2 admission plan changed the W2-26 contract")
+    elif not calibration_manifest_path.startswith(f"{C2_DYNAMIC_EVIDENCE_ROOT}/"):
+        errors.append("W2-26 execution manifest must use the dynamic evidence root")
     freeze = plan.get("freeze_contract")
     freeze = freeze if isinstance(freeze, Mapping) else {}
     expected_freeze = {
@@ -589,6 +868,11 @@ def _task_receipt_errors(
         except ValueError:
             errors.append(f"{locus} task selection binding escapes repository: {task_id}")
         else:
+            errors.extend(
+                _dynamic_evidence_path_errors(
+                    root, selection_path, label="selection record"
+                )
+            )
             if not selection_path.is_file():
                 errors.append(f"{locus} task selection record is missing: {task_id}")
             else:
@@ -623,6 +907,9 @@ def _task_receipt_errors(
         except ValueError:
             errors.append(f"{locus} task admission binding escapes repository: {task_id}")
             continue
+        errors.extend(
+            _dynamic_evidence_path_errors(root, path, label="campaign config")
+        )
         if not path.is_file() or file_sha256(path) != digest:
             errors.append(f"{locus} task admission binding is stale: {task_id}.{label}")
             continue
@@ -708,12 +995,20 @@ def build_c2_admission_report(
     blockers: list[str] = []
     evidence_errors: list[str] = _plan_errors(plan)
     evidence_commits: list[str] = []
-    if git_worktree_dirty(root):
-        blockers.append("C2 admission requires a clean worktree")
+    dirty_material = c2_material_dirty_paths(root)
+    if dirty_material:
+        blockers.append(
+            "C2 admission requires a clean protected material tree: "
+            + ", ".join(dirty_material)
+        )
 
     required = plan.get("required_blocks")
     required = required if isinstance(required, Mapping) else {}
     task_rows: dict[str, list[dict[str, Any]]] = {locus: [] for locus in C2_LOCI}
+    selection_records: dict[str, list[dict[str, Any]]] = {
+        locus: [] for locus in C2_LOCI
+    }
+    selection_pair_summaries: dict[str, dict[str, Any]] = {}
     for locus in C2_LOCI:
         block = required.get(locus)
         block = block if isinstance(block, Mapping) else {}
@@ -734,6 +1029,11 @@ def build_c2_admission_report(
             except ValueError:
                 evidence_errors.append(f"{locus} task admission path escapes repository")
                 continue
+            evidence_errors.extend(
+                _dynamic_evidence_path_errors(
+                    root, path, label="task admission receipt"
+                )
+            )
             if not path.is_file():
                 evidence_errors.append(f"{locus} task admission receipt is missing: {relative}")
                 continue
@@ -748,6 +1048,20 @@ def build_c2_admission_report(
             if _is_commit(source.get("tested_commit")):
                 evidence_commits.append(str(source["tested_commit"]))
             evidence_errors.extend(receipt_errors)
+            selection_binding = receipt.get("outcome_blind_selection_binding")
+            selection_binding = (
+                selection_binding if isinstance(selection_binding, Mapping) else {}
+            )
+            selection_relative = selection_binding.get("path")
+            if isinstance(selection_relative, str):
+                selection_path = (root / selection_relative).resolve()
+                try:
+                    selection_path.relative_to(root)
+                except ValueError:
+                    pass
+                else:
+                    if selection_path.is_file():
+                        selection_records[locus].append(_load_object(selection_path))
             task_rows[locus].append(
                 {
                     "task_id": receipt.get("task_id"),
@@ -762,6 +1076,11 @@ def build_c2_admission_report(
         task_ids = [row.get("task_id") for row in task_rows[locus]]
         if len(task_ids) != len(set(task_ids)):
             evidence_errors.append(f"{locus} task admission roster contains duplicates")
+        pair_summary, pair_errors = _selection_pair_summary(
+            selection_records[locus], locus=locus
+        )
+        selection_pair_summaries[locus] = pair_summary
+        evidence_errors.extend(pair_errors)
 
     ae_block = required.get("A_E")
     ae_block = ae_block if isinstance(ae_block, Mapping) else {}
@@ -794,6 +1113,20 @@ def build_c2_admission_report(
     elif not isinstance(manifest_value, str) or not manifest_value:
         evidence_errors.append("W2-26 resource calibration manifest path is invalid")
     else:
+        evidence_errors.extend(
+            _dynamic_evidence_path_errors(
+                root,
+                (root / manifest_value).resolve(),
+                label="W2-26 execution manifest",
+            )
+        )
+        evidence_errors.extend(
+            _dynamic_evidence_path_errors(
+                root,
+                (root / summary_value).resolve(),
+                label="W2-26 calibration summary",
+            )
+        )
         calibration_summary, calibration_errors = _resource_calibration_errors(
             root,
             (root / manifest_value).resolve(),
@@ -857,14 +1190,18 @@ def build_c2_admission_report(
             "A_P": {
                 "required_terminal_task_count": 2,
                 "task_admissions": task_rows["A_P"],
+                "outcome_blind_selection_pair": selection_pair_summaries["A_P"],
                 "passed": len(task_rows["A_P"]) == 2
-                and all(row["passed"] for row in task_rows["A_P"]),
+                and all(row["passed"] for row in task_rows["A_P"])
+                and selection_pair_summaries["A_P"]["passed"] is True,
             },
             "A_S": {
                 "required_terminal_task_count": 2,
                 "task_admissions": task_rows["A_S"],
+                "outcome_blind_selection_pair": selection_pair_summaries["A_S"],
                 "passed": len(task_rows["A_S"]) == 2
-                and all(row["passed"] for row in task_rows["A_S"]),
+                and all(row["passed"] for row in task_rows["A_S"])
+                and selection_pair_summaries["A_S"]["passed"] is True,
             },
         },
         "resource_calibration": {
@@ -918,17 +1255,21 @@ def validate_c2_admission_report(
 __all__ = [
     "C2_ADMISSION_PLAN_VERSION",
     "C2_ADMISSION_REPORT_VERSION",
+    "C2_DYNAMIC_EVIDENCE_ROOT",
     "C2_MATERIAL_SOURCE_EXCLUSIONS",
     "C2_MATERIAL_SOURCE_ROOTS",
     "C2_OUTCOME_BLIND_SELECTION_VERSION",
     "C2_TASK_ADMISSION_RECEIPT_VERSION",
     "C2_TASK_STAGE_ORDER",
     "build_c2_admission_report",
+    "build_c2_outcome_blind_selection_record",
     "build_c2_source_binding",
     "build_c2_task_admission_receipt",
     "c2_admission_sha256",
+    "c2_material_dirty_paths",
     "c2_outcome_blind_selection_sha256",
     "c2_task_admission_receipt_sha256",
     "validate_c2_admission_report",
+    "validate_c2_outcome_blind_selection_pair",
     "validate_c2_source_binding",
 ]

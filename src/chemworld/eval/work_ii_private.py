@@ -268,8 +268,12 @@ def build_private_confirmation_preflight(
             "tasks": 5,
             "independent_task_world_clusters": 25,
             "participant_cells": 75,
-            "complete_experiments": 300,
-            "belief_checkpoints": 300,
+            "complete_experiments": sum(
+                int(cell["complete_experiment_count"]) for cell in cells
+            ),
+            "belief_checkpoints": sum(
+                int(cell["belief_checkpoint_count"]) for cell in cells
+            ),
             "provider_sessions": 75,
             "provider_attempts_initial_planned": 75,
             "provider_attempts_hard_cap": 150,
@@ -349,6 +353,48 @@ def validate_private_confirmation_preflight(
     }
     if len(set(ids)) != 75 or len(set(keys)) != 75 or len(clusters) != 25:
         errors.append("private preflight identities are not unique")
+    expected_counts = report.get("expected_counts")
+    expected_counts = expected_counts if isinstance(expected_counts, Mapping) else {}
+    observed_counts = {
+        "tasks": len(
+            {
+                str(cell.get("task_id"))
+                for cell in cells
+                if isinstance(cell, Mapping)
+            }
+        ),
+        "independent_task_world_clusters": len(clusters),
+        "participant_cells": len(cells),
+        "complete_experiments": sum(
+            int(cell.get("complete_experiment_count", 0))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "belief_checkpoints": sum(
+            int(cell.get("belief_checkpoint_count", 0))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "provider_sessions": sum(
+            int(cell.get("provider_session_limit", 0))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "provider_attempts_initial_planned": len(cells),
+        "provider_attempts_hard_cap": sum(
+            int(cell.get("provider_attempt_limit", 0))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "evaluator_truth_executions": len(clusters) * 4,
+        "blind_validation_executions": sum(
+            int(cell.get("blind_validation_execution_count", 0))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+    }
+    if dict(expected_counts) != observed_counts:
+        errors.append("private preflight expected counts differ from its exact cell schedule")
     seal_seeds = _object(seal.get("task_world_seeds"), "private task worlds")
     expected_triplets = {
         (str(task_id), int(seed), arm)

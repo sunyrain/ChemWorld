@@ -11,6 +11,7 @@ from typing import Any
 
 from chemworld.envs.observation_noise import ObservationNoiseCoordinate
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
 
 QUALIFICATION_VERSION = "chemworld-work-ii-partition-constitutive-q0-0.1"
 TASK_REPORT_VERSION = "chemworld-work-ii-partition-constitutive-q0-task-report-0.1"
@@ -535,6 +536,7 @@ def validate_summary(
     summary: Mapping[str, Any],
     *,
     root: Path | None = None,
+    expected_source_binding: Mapping[str, Any] | None = None,
 ) -> list[str]:
     errors: list[str] = []
     if summary.get("schema_version") != SUMMARY_VERSION:
@@ -549,6 +551,11 @@ def validate_summary(
         errors.append("partition constitutive Q0 summary task/world binding mismatch")
     if summary.get("provider_call_count") != 0 or summary.get("participant_session_count") != 0:
         errors.append("partition constitutive Q0 summary must be provider-free")
+    source_binding = summary.get("c2_source_binding")
+    if root is not None:
+        errors.extend(validate_c2_source_binding(root, source_binding))
+    if expected_source_binding is not None and source_binding != expected_source_binding:
+        errors.append("partition constitutive Q0 C2 source binding differs from cohort")
     analysis = summary.get("analysis")
     if not isinstance(analysis, Mapping):
         errors.append("partition constitutive Q0 summary lacks analysis")
@@ -605,6 +612,8 @@ def validate_summary(
                 errors.extend(validate_task_report(payload))
                 if binding.get("report_sha256") != payload.get("report_sha256"):
                     errors.append("partition constitutive Q0 embedded report hash mismatch")
+                if payload.get("c2_source_binding") != source_binding:
+                    errors.append("partition constitutive Q0 raw/source binding mismatch")
                 if summary.get("analysis") != payload.get("analysis"):
                     errors.append("partition constitutive Q0 summary/raw analysis mismatch")
             except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:

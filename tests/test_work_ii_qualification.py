@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import shutil
+import subprocess
 import tempfile
 from copy import deepcopy
 from pathlib import Path
@@ -36,6 +37,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 SYNTHETIC_OBSERVED_COST_USD = 0.00004242
+_REAL_POPEN = subprocess.Popen
 
 
 @pytest.fixture(autouse=True)
@@ -70,6 +72,11 @@ class _FakeQualificationProcess:
     rows: ClassVar[dict[str, dict[str, object]]] = {}
     fail_once_arms: ClassVar[set[str]] = set()
     launched_arms: ClassVar[list[str]] = []
+
+    def __new__(cls, command, **kwargs):
+        if "--prior-arm" not in command:
+            return _REAL_POPEN(command, **kwargs)
+        return super().__new__(cls)
 
     def __init__(self, command, **kwargs) -> None:
         del kwargs

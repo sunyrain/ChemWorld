@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from time import perf_counter
@@ -31,6 +30,10 @@ from chemworld.eval.provenance import (
 )
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_c2_admission import (
+    build_c2_source_binding,
+    c2_material_dirty_paths,
+)
 from chemworld.eval.work_ii_response_surface_qualification import (
     ADAPTIVE_RECIPE_COUNT,
     BROAD_RECIPE_COUNT,
@@ -167,23 +170,7 @@ def _load(path: Path) -> dict[str, Any]:
 
 
 def _scoped_dirty_paths() -> list[str]:
-    completed = subprocess.run(
-        ["git", "status", "--porcelain"],
-        cwd=ROOT,
-        check=True,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-    )
-    dirty: list[str] = []
-    for line in completed.stdout.splitlines():
-        path = line[3:].strip().replace("\\", "/")
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        if path.startswith(SCOPED_RUNTIME_PREFIXES):
-            dirty.append(path)
-    return sorted(dirty)
+    return c2_material_dirty_paths(ROOT)
 
 
 def _emit(path: Path, payload: Mapping[str, Any]) -> None:
@@ -795,22 +782,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "qualification_schema_version": WORK_II_Q1_RESPONSE_SURFACE_VERSION,
         "formal_result": False,
         "source_commit": git_source_commit(ROOT),
+        "c2_source_binding": build_c2_source_binding(ROOT),
         "scoped_runtime_clean": True,
-        "unrelated_dirty_paths_excluded": [
-            line[3:].strip().replace("\\", "/")
-            for line in subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=ROOT,
-                check=True,
-                capture_output=True,
-                text=True,
-                encoding="utf-8",
-                errors="replace",
-            ).stdout.splitlines()
-            if not line[3:].strip().replace("\\", "/").startswith(
-                SCOPED_RUNTIME_PREFIXES
-            )
-        ],
+        "dynamic_evidence_excluded_from_material_cleanliness": True,
         "task_id": task_id,
         "world_seeds": list(get_task(task_id).seeds),
         "q0": q0,

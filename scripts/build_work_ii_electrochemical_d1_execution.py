@@ -11,8 +11,9 @@ from pathlib import Path
 from chemworld.eval.provenance import file_sha256, write_json_atomic
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_INPUT = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json"
-DEFAULT_OUTPUT = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1_execution.json"
+EVIDENCE_ROOT = ROOT / "workstreams/flagship_tasks/reports"
+DEFAULT_INPUT = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1.json"
+DEFAULT_OUTPUT = EVIDENCE_ROOT / "work-ii-electrochemical-matched-prior-d1-execution.json"
 
 
 def build(source: dict, *, source_path: Path) -> dict:
@@ -92,6 +93,10 @@ def main() -> int:
     args = parser.parse_args()
     source_path = args.input.resolve()
     output_path = args.output.resolve()
+    if not source_path.is_relative_to(EVIDENCE_ROOT.resolve()) or not output_path.is_relative_to(
+        EVIDENCE_ROOT.resolve()
+    ):
+        raise ValueError("D1 generated configs must use the dynamic evidence root")
     source = json.loads(source_path.read_text(encoding="utf-8"))
     if not isinstance(source, dict):
         raise ValueError("D1 source config must contain an object")

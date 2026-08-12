@@ -11,6 +11,7 @@ from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_blind import (
     blind_execution_directory_name,
     build_blind_evaluation_plan,
+    effective_blind_evaluator_contract,
     execute_blind_evaluation_plan,
     validate_blind_evaluation_plan,
     validate_blind_evaluation_report,
@@ -66,6 +67,86 @@ def _summary() -> dict[str, object]:
             "observed_incumbent_experiment_index": 2,
         },
     }
+
+
+def _formal_cell_contract(experiment_count: int) -> dict[str, object]:
+    return {
+        "complete_experiment_count": experiment_count,
+        "participant_final_recommendation_count": 1,
+        "blind_validation_target_count": 2,
+        "blind_replicates_per_target": 3,
+        "blind_validation_execution_count": 6,
+    }
+
+
+@pytest.mark.parametrize("experiment_count", [8, 10, 12])
+def test_effective_contract_uses_cell_denominator_and_global_isolation(
+    experiment_count: int,
+) -> None:
+    effective = effective_blind_evaluator_contract(
+        _formal_cell_contract(experiment_count),
+        _contract(),
+    )
+
+    assert effective["participant_complete_experiments_per_cell"] == experiment_count
+    assert effective["candidate_experiment_indices"] == list(
+        range(1, experiment_count + 1)
+    )
+    assert effective["participant_final_recommendations_per_cell"] == 1
+    assert effective["blind_replicates_per_target"] == 3
+    assert effective["blind_validation_execution_count"] == 6
+    assert effective["evaluator_provider_calls"] == 0
+    assert effective["participant_feedback_from_blind_evaluator"] is False
+
+    summary = _summary()
+    summary["analysis"]["experiments"] = [
+        {
+            "experiment_index": index,
+            "leaderboard_score": 0.8 if index == 2 else 0.1,
+            "operations": [
+                {"operation": "wait", "duration_s": index},
+                {"operation": "measure", "instrument": "final_assay"},
+            ],
+        }
+        for index in range(1, experiment_count + 1)
+    ]
+    plan = build_blind_evaluation_plan(_cell(), summary, effective)
+    assert validate_blind_evaluation_plan(plan) == []
+    assert plan["participant_complete_experiment_count"] == experiment_count
+    assert plan["candidate_experiment_indices"] == list(range(1, experiment_count + 1))
+
+
+@pytest.mark.parametrize(
+    ("mutation", "message"),
+    [
+        (lambda cell, contract: cell.pop("complete_experiment_count"), "invalid or missing"),
+        (
+            lambda cell, contract: cell.__setitem__("blind_validation_execution_count", 5),
+            "counts disagree",
+        ),
+        (
+            lambda cell, contract: contract.__setitem__("evaluator_provider_calls", 1),
+            "global isolation invariant failed",
+        ),
+        (
+            lambda cell, contract: contract.__setitem__(
+                "blind_targets_per_cell",
+                ["participant_final_recommendation", "observed_incumbent"],
+            ),
+            "global target identities drifted",
+        ),
+    ],
+)
+def test_effective_contract_fails_closed_on_missing_or_inconsistent_fields(
+    mutation,
+    message: str,
+) -> None:
+    cell = _formal_cell_contract(10)
+    contract = _contract()
+    mutation(cell, contract)
+
+    with pytest.raises(ValueError, match=message):
+        effective_blind_evaluator_contract(cell, contract)
 
 
 def test_blind_plan_freezes_two_targets_three_paired_replicates() -> None:

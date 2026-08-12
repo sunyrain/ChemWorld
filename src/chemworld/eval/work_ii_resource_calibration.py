@@ -72,6 +72,67 @@ RESOURCE_CALIBRATION_OBSERVED_FIELDS = {
 }
 
 
+def build_resource_calibration_execution_manifest(
+    root: Path,
+    protocol_manifest_path: Path,
+    *,
+    campaign_config_paths: Mapping[int, Path],
+) -> dict[str, Any]:
+    """Materialize the final 8/10/12 manifest outside the protected source tree."""
+
+    root = root.resolve()
+    protocol_manifest_path = protocol_manifest_path.resolve()
+    protocol = _load_object(protocol_manifest_path)
+    if validate_resource_calibration_manifest(root, protocol):
+        raise ValueError("resource calibration protocol manifest is invalid")
+    if set(campaign_config_paths) != set(RESOURCE_CALIBRATION_ROUNDS):
+        raise ValueError("execution manifest requires exactly the 8/10/12 configs")
+    from chemworld.eval.work_ii_c2_admission import (
+        build_c2_source_binding,
+        c2_material_dirty_paths,
+    )
+
+    dirty = c2_material_dirty_paths(root)
+    if dirty:
+        raise ValueError(
+            "resource calibration execution manifest requires clean protected material: "
+            + ", ".join(dirty)
+        )
+    manifest = json.loads(json.dumps(protocol))
+    for pattern in manifest["patterns"]:
+        rounds = int(pattern["rounds"])
+        config_path = campaign_config_paths[rounds].resolve()
+        try:
+            relative = config_path.relative_to(root).as_posix()
+        except ValueError as error:
+            raise ValueError("resource calibration config escapes repository") from error
+        config = _load_object(config_path)
+        pattern.update(
+            {
+                "representative_task_status": "frozen",
+                "task_id": config.get("task_id"),
+                "world_seed": config.get("world_seed"),
+                "campaign_config_binding": {
+                    "path": relative,
+                    "sha256": canonical_json_sha256(config),
+                    "hash_kind": "canonical_json_sha256",
+                },
+                "task_specific_resource_formula_frozen": True,
+            }
+        )
+    manifest["status"] = "ready_authorization_blocked"
+    manifest["protocol_manifest_binding"] = {
+        "path": protocol_manifest_path.relative_to(root).as_posix(),
+        "sha256": file_sha256(protocol_manifest_path),
+        "hash_kind": "file_sha256",
+    }
+    manifest["c2_source_binding"] = build_c2_source_binding(root)
+    errors = validate_resource_calibration_manifest(root, manifest)
+    if errors:
+        raise ValueError("execution manifest failed: " + "; ".join(errors))
+    return manifest
+
+
 def _load_object(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     if not isinstance(value, dict):
@@ -99,6 +160,14 @@ def resource_calibration_authorization_sha256(
     return _self_hash(authorization, "authorization_sha256")
 
 
+def _calibration_material_dirty_paths(root: Path) -> list[str]:
+    if not git_worktree_dirty(root):
+        return []
+    from chemworld.eval.work_ii_c2_admission import c2_material_dirty_paths
+
+    return c2_material_dirty_paths(root)
+
+
 def build_resource_calibration_authorization(
     root: Path,
     manifest_path: Path,
@@ -122,8 +191,10 @@ def build_resource_calibration_authorization(
     readiness = build_resource_calibration_readiness(root, manifest_path)
     if readiness.get("status") != "ready_authorization_blocked":
         raise ValueError("resource calibration manifest is not ready for authorization")
-    if git_worktree_dirty(root):
-        raise ValueError("resource calibration authorization requires a clean source tree")
+    if _calibration_material_dirty_paths(root):
+        raise ValueError(
+            "resource calibration authorization requires a clean protected material tree"
+        )
     rates = (
         cache_hit_input_usd_per_million,
         cache_miss_input_usd_per_million,
@@ -198,7 +269,7 @@ def build_resource_calibration_authorization(
             "canonical_json_sha256": canonical_json_sha256(manifest),
         },
         "source_commit": git_source_commit(root),
-        "source_tree_clean_at_authorization": not git_worktree_dirty(root),
+        "source_tree_clean_at_authorization": not _calibration_material_dirty_paths(root),
         "approved_at": approved_at,
         "provider_contract": manifest["provider_contract"],
         "provider_contract_confirmed_by_user": True,
@@ -267,9 +338,19 @@ def validate_resource_calibration_authorization(
         or authorization.get("formal_execution_authorized") is not False
         or authorization.get("source_tree_clean_at_authorization") is not True
         or authorization.get("source_commit") != git_source_commit(root)
-        or git_worktree_dirty(root)
     ):
         errors.append("resource calibration authorization is not valid for this source tree")
+    from chemworld.eval.work_ii_c2_admission import (
+        validate_c2_source_binding,
+    )
+
+    if _calibration_material_dirty_paths(root):
+        errors.append("resource calibration protected material tree is dirty")
+    c2_binding = manifest.get("c2_source_binding")
+    errors.extend(validate_c2_source_binding(root, c2_binding))
+    c2_binding = c2_binding if isinstance(c2_binding, Mapping) else {}
+    if authorization.get("source_commit") != c2_binding.get("tested_commit"):
+        errors.append("resource calibration authorization source differs from C2 binding")
     runtime = authorization.get("runtime_enforcement")
     runtime = runtime if isinstance(runtime, Mapping) else {}
     if any(
@@ -414,6 +495,17 @@ def validate_resource_calibration_manifest(
     expected_status = "ready_authorization_blocked" if ready else "not_ready_fail_closed"
     if manifest.get("status") != expected_status:
         errors.append("resource calibration manifest status differs from task selection state")
+    if ready:
+        errors.extend(
+            _validate_binding(
+                root,
+                manifest.get("protocol_manifest_binding"),
+                "protocol manifest",
+            )
+        )
+        from chemworld.eval.work_ii_c2_admission import validate_c2_source_binding
+
+        errors.extend(validate_c2_source_binding(root, manifest.get("c2_source_binding")))
     denominators = manifest.get("expected_denominators")
     denominators = denominators if isinstance(denominators, Mapping) else {}
     if denominators != EXPECTED_RESOURCE_CALIBRATION_DENOMINATORS:
@@ -470,7 +562,8 @@ def build_resource_calibration_readiness(
             }
         )
     missing_rounds = [row["rounds"] for row in pattern_rows if not row["ready"]]
-    dirty = git_worktree_dirty(root)
+    dirty_paths = _calibration_material_dirty_paths(root)
+    dirty = bool(dirty_paths)
     source_commit = git_source_commit(root)
     summary: dict[str, Any] | None = None
     summary_errors: list[str] = []
@@ -1390,6 +1483,7 @@ __all__ = [
     "RESOURCE_CALIBRATION_READINESS_VERSION",
     "RESOURCE_CALIBRATION_SUMMARY_VERSION",
     "build_resource_calibration_authorization",
+    "build_resource_calibration_execution_manifest",
     "build_resource_calibration_readiness",
     "build_resource_calibration_summary",
     "empty_resource_calibration_summary",

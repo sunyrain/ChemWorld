@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import tempfile
@@ -15,8 +16,16 @@ from chemworld.eval.mechanism_gate_decision import gate_a_execution_contract_bin
 from chemworld.eval.mechanism_release import STRUCTURAL_RECEIPT_VERSION
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_c2_admission import (
+    C2_LOCI,
+    C2_OUTCOME_BLIND_SELECTION_VERSION,
+    C2_REQUIRED_CHECKPOINTS,
+    C2_REQUIRED_ROUNDS,
+    C2_REQUIRED_TASK_COUNTS,
+    C2_TASK_ADMISSION_RECEIPT_VERSION,
     build_c2_admission_report,
     c2_admission_sha256,
+    c2_outcome_blind_selection_sha256,
+    c2_task_admission_receipt_sha256,
     validate_c2_admission_report,
 )
 
@@ -34,6 +43,52 @@ FORMAL_CHECKPOINT_EXPERIMENTS = (0, 2, 4, 6, 8)
 FORMAL_METHOD_CHECKPOINT_EXPERIMENTS = (2, 4, 6, 8)
 FORMAL_COMPLETE_EXPERIMENTS_PER_CELL = 8
 FORMAL_BELIEF_CHECKPOINTS_PER_CELL = len(FORMAL_SNAPSHOT_STAGES)
+FORMAL_C2_LOCI = ("A_E", *C2_LOCI)
+FORMAL_C2_LOCUS_CONTRACT: dict[str, dict[str, Any]] = {
+    "A_E": {
+        "task_count": 5,
+        "complete_experiments_per_cell": 8,
+        "checkpoint_complete_experiments": FORMAL_CHECKPOINT_EXPERIMENTS,
+        "snapshot_stages": FORMAL_SNAPSHOT_STAGES,
+    },
+    "A_P": {
+        "task_count": C2_REQUIRED_TASK_COUNTS["A_P"],
+        "complete_experiments_per_cell": C2_REQUIRED_ROUNDS["A_P"],
+        "checkpoint_complete_experiments": C2_REQUIRED_CHECKPOINTS["A_P"],
+        "snapshot_stages": (
+            "pre_evidence",
+            "after_experiment_2",
+            "after_experiment_4",
+            "after_experiment_7",
+            "final",
+        ),
+    },
+    "A_S": {
+        "task_count": C2_REQUIRED_TASK_COUNTS["A_S"],
+        "complete_experiments_per_cell": C2_REQUIRED_ROUNDS["A_S"],
+        "checkpoint_complete_experiments": C2_REQUIRED_CHECKPOINTS["A_S"],
+        "snapshot_stages": (
+            "pre_evidence",
+            "after_experiment_3",
+            "after_experiment_6",
+            "after_experiment_9",
+            "final",
+        ),
+    },
+}
+FORMAL_EXPECTED_TOTALS = {
+    "tasks": 9,
+    "independent_task_world_clusters": 45,
+    "participant_cells": 135,
+    "provider_sessions": 135,
+    "provider_attempts_initial_planned": 135,
+    "provider_attempts_hard_cap": 270,
+    "complete_experiments": 1260,
+    "belief_checkpoints": 675,
+    "participant_final_recommendations": 135,
+    "blind_validation_targets": 270,
+    "blind_validation_executions": 810,
+}
 FORMAL_RECEIPT_VERSION = "chemworld-work-ii-formal-cell-receipt-0.1"
 FORMAL_STORE_AUDIT_VERSION = "chemworld-work-ii-formal-store-audit-0.1"
 FORMAL_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
@@ -529,6 +584,198 @@ def _binding(root: Path, relative_path: str) -> dict[str, str]:
     }
 
 
+def formal_task_binding_key(c2_locus: str, task_id: str) -> str:
+    """Return the locus-qualified task key used by every formal binding."""
+
+    if c2_locus not in FORMAL_C2_LOCI or not task_id:
+        raise ValueError("formal task binding requires a canonical locus and task ID")
+    return f"{c2_locus}:{task_id}"
+
+
+def _bound_object(
+    root: Path,
+    binding: Mapping[str, Any],
+    *,
+    label: str,
+    embedded_field: str | None = None,
+    embedded_hash: Any = None,
+) -> tuple[dict[str, Any] | None, list[str]]:
+    """Load one repository-local file binding without trusting its path or digest."""
+
+    errors: list[str] = []
+    relative = binding.get("path")
+    digest = binding.get("sha256")
+    if not isinstance(relative, str) or not relative or not isinstance(digest, str):
+        return None, [f"{label} binding is incomplete"]
+    path = (root / relative).resolve()
+    try:
+        path.relative_to(root)
+    except ValueError:
+        return None, [f"{label} binding escapes the repository"]
+    if not path.is_file():
+        return None, [f"{label} binding is missing: {relative}"]
+    if file_sha256(path) != digest:
+        return None, [f"{label} binding is stale: {relative}"]
+    try:
+        payload = _load_object(path)
+    except (OSError, ValueError, json.JSONDecodeError) as error:
+        return None, [f"{label} binding cannot be loaded: {error}"]
+    if embedded_field is not None:
+        value = payload.get(embedded_field)
+        if value != binding.get("embedded_sha256") or value != embedded_hash(payload):
+            errors.append(f"{label} embedded self-hash is invalid")
+    return payload, errors
+
+
+def _resolve_c2_terminal_task_specs(
+    root: Path,
+    admission: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], list[str]]:
+    """Resolve A_P/A_S formal tasks only from validated terminal receipts.
+
+    The expansion is all-or-nothing: if any one of the four admitted tasks cannot
+    be reconstructed through its receipt, outcome-blind selection, and campaign
+    bindings, no C2 extension task is returned.
+    """
+
+    errors: list[str] = []
+    specs: list[dict[str, Any]] = []
+    blocks = admission.get("blocks")
+    blocks = blocks if isinstance(blocks, Mapping) else {}
+    for locus in C2_LOCI:
+        block = blocks.get(locus)
+        block = block if isinstance(block, Mapping) else {}
+        rows = block.get("task_admissions")
+        rows = rows if isinstance(rows, list) else []
+        required = C2_REQUIRED_TASK_COUNTS[locus]
+        if len(rows) != required:
+            errors.append(f"{locus} requires exactly {required} terminal task receipts")
+            continue
+        locus_specs: list[dict[str, Any]] = []
+        for index, row in enumerate(rows, start=1):
+            label = f"{locus} terminal task {index}"
+            if not isinstance(row, Mapping) or row.get("passed") is not True:
+                errors.append(f"{label} is not a passed terminal admission")
+                continue
+            task_id = row.get("task_id")
+            receipt_binding = row.get("receipt_binding")
+            if not isinstance(task_id, str) or not task_id:
+                errors.append(f"{label} lacks a task ID")
+                continue
+            if not isinstance(receipt_binding, Mapping):
+                errors.append(f"{label} lacks its receipt binding")
+                continue
+            receipt, binding_errors = _bound_object(
+                root,
+                receipt_binding,
+                label=f"{label} receipt",
+                embedded_field="receipt_sha256",
+                embedded_hash=c2_task_admission_receipt_sha256,
+            )
+            errors.extend(binding_errors)
+            if receipt is None:
+                continue
+            if (
+                receipt.get("schema_version") != C2_TASK_ADMISSION_RECEIPT_VERSION
+                or receipt.get("terminal_qualification_passed") is not True
+                or receipt.get("validation_errors") != []
+                or receipt.get("locus") != locus
+                or receipt.get("task_id") != task_id
+                or receipt.get("complete_experiments_per_cell")
+                != C2_REQUIRED_ROUNDS[locus]
+                or receipt.get("participant_outcomes_used_for_selection") is not False
+                or receipt.get("formal_participant_outcomes_observed") != 0
+            ):
+                errors.append(f"{label} receipt is not an admissible terminal receipt")
+                continue
+            config_binding = receipt.get("campaign_config_binding")
+            selection_binding = receipt.get("outcome_blind_selection_binding")
+            if not isinstance(config_binding, Mapping):
+                errors.append(f"{label} lacks its campaign config binding")
+                continue
+            if not isinstance(selection_binding, Mapping):
+                errors.append(f"{label} lacks its outcome-blind selection binding")
+                continue
+            config, config_errors = _bound_object(
+                root,
+                config_binding,
+                label=f"{label} campaign config",
+            )
+            selection, selection_errors = _bound_object(
+                root,
+                selection_binding,
+                label=f"{label} selection",
+                embedded_field="selection_sha256",
+                embedded_hash=c2_outcome_blind_selection_sha256,
+            )
+            errors.extend(config_errors)
+            errors.extend(selection_errors)
+            if config is None or selection is None:
+                continue
+            if config.get("task_id") != task_id:
+                errors.append(f"{label} campaign config task identity drifted")
+                continue
+            if (
+                selection.get("schema_version") != C2_OUTCOME_BLIND_SELECTION_VERSION
+                or selection.get("locus") != locus
+                or selection.get("task_id") != task_id
+                or selection.get("selected_before_formal_participant_outcomes") is not True
+                or selection.get("formal_participant_outcomes_observed") != 0
+                or selection.get("formal_participant_outcomes_used") is not False
+                or selection.get("selection_rule_frozen_before_evidence_review") is not True
+            ):
+                errors.append(f"{label} selection is not outcome blind")
+                continue
+            locus_specs.append(
+                {
+                    "c2_locus": locus,
+                    "task_id": task_id,
+                    "campaign_config": dict(config_binding),
+                    "task_admission_receipt": dict(receipt_binding),
+                    "outcome_blind_selection": dict(selection_binding),
+                }
+            )
+        if len(locus_specs) == required:
+            specs.extend(locus_specs)
+    expected_total = sum(C2_REQUIRED_TASK_COUNTS.values())
+    keys = [formal_task_binding_key(row["c2_locus"], row["task_id"]) for row in specs]
+    if len(specs) != expected_total or len(set(keys)) != expected_total:
+        if len(specs) == expected_total:
+            errors.append("C2 terminal task roster contains duplicate locus-qualified keys")
+        return [], errors
+    return specs, errors
+
+
+def _derive_c2_public_world_seeds(
+    *,
+    selection_sha256: str,
+    c2_locus: str,
+    task_id: str,
+    namespace_start: int,
+    namespace_size: int,
+    unavailable: set[int],
+) -> list[int]:
+    """Derive five outcome-blind public identities from a frozen selection receipt."""
+
+    seeds: list[int] = []
+    for world_index in range(1, 6):
+        collision_index = 0
+        while True:
+            payload = (
+                "chemworld-work-ii-c2-public-world-v0.1:"
+                f"{selection_sha256}:{c2_locus}:{task_id}:"
+                f"{world_index}:{collision_index}"
+            )
+            digest = hashlib.sha256(payload.encode("utf-8")).digest()
+            seed = namespace_start + int.from_bytes(digest[:8], "big") % namespace_size
+            if seed not in unavailable:
+                unavailable.add(seed)
+                seeds.append(seed)
+                break
+            collision_index += 1
+    return seeds
+
+
 def _self_hash(payload: Mapping[str, Any]) -> str:
     return canonical_json_sha256(
         {key: value for key, value in payload.items() if key != "preflight_sha256"}
@@ -869,7 +1116,12 @@ def build_formal_preflight(
     analysis_path: Path,
     c2_admission_plan_path: Path | None = None,
 ) -> dict[str, Any]:
-    """Build the deterministic 75-cell public schedule without provider execution."""
+    """Build the deterministic C2 public schedule without provider execution.
+
+    A_E is always materialized as the admission-bound 75-cell subblock.  The
+    additional 60 A_P/A_S cells appear only when all four terminal task receipts
+    can be reconstructed exactly from the C2 admission report.
+    """
 
     root = root.resolve()
     design_path = design_path.resolve()
@@ -994,7 +1246,7 @@ def build_formal_preflight(
     attempt_contract = dict(
         _object(design.get("provider_attempt_contract"), "provider_attempt_contract")
     )
-    expected_attempt_contract = {
+    expected_attempt_invariants = {
         "attempt_unit": "host_codex_process_launch",
         "initial_attempts_per_cell": 1,
         "maximum_infrastructure_resume_attempts_per_cell": 1,
@@ -1002,20 +1254,18 @@ def build_formal_preflight(
         "pre_action_restart_limit_within_attempt": 0,
         "any_persisted_trajectory_forbids_replacement": True,
         "retry_after_scientific_operation_forbidden": True,
-        "public_matrix_initial_attempt_count": 75,
-        "public_matrix_provider_attempt_hard_cap": 150,
     }
-    if attempt_contract != expected_attempt_contract:
+    if any(
+        attempt_contract.get(key) != value
+        for key, value in expected_attempt_invariants.items()
+    ):
         errors.append("formal provider-attempt contract differs from the frozen cap")
     blind_contract = dict(
         _object(design.get("blind_evaluator_contract"), "blind_evaluator_contract")
     )
-    expected_blind_contract = {
+    expected_blind_invariants = {
         "participant_final_recommendations_per_cell": 1,
         "recommendation_unit": "one_selected_completed_experiment_index",
-        "candidate_experiment_indices": list(
-            range(1, FORMAL_COMPLETE_EXPERIMENTS_PER_CELL + 1)
-        ),
         "incumbent_definition": (
             "highest_participant_observed_leaderboard_score_tie_smallest_index"
         ),
@@ -1029,11 +1279,11 @@ def build_formal_preflight(
         "evaluator_provider_calls": 0,
         "evaluator_trajectory_separate_from_participant": True,
         "evaluator_resources_excluded_from_participant_ledger": True,
-        "public_matrix_final_recommendation_count": 75,
-        "public_matrix_blind_target_count": 150,
-        "public_matrix_blind_execution_count": 450,
     }
-    if blind_contract != expected_blind_contract:
+    if any(
+        blind_contract.get(key) != value
+        for key, value in expected_blind_invariants.items()
+    ):
         errors.append("formal blind-evaluator contract differs from the frozen denominator")
     truth_contract = dict(
         _object(
@@ -1041,11 +1291,8 @@ def build_formal_preflight(
             "held_out_evaluator_contract",
         )
     )
-    expected_truth_contract = {
+    expected_truth_invariants = {
         "truth_unit": "task_x_world_cluster_x_registered_query",
-        "queries_per_task_world_cluster": 4,
-        "public_matrix_truth_execution_count": 100,
-        "public_matrix_truth_query_metric_count": 340,
         "shared_across_prior_arms_and_checkpoints": True,
         "one_frozen_complete_experiment_per_query": True,
         "keyed_observation_coordinate_per_query": True,
@@ -1055,96 +1302,82 @@ def build_formal_preflight(
         "participant_feedback_from_truth_evaluator": False,
         "evaluator_trajectory_separate_from_participant": True,
         "evaluator_resources_excluded_from_participant_ledger": True,
-        "frozen_unregistered_controls": {
-            "reaction-to-crystallization": {
-                "stirring_speed_rpm": 675.0,
-                "catalyst_amount_mol": 0.000315,
-            },
-            "reaction-to-distillation": {
-                "stirring_speed_rpm": 675.0,
-                "catalyst_amount_mol": 0.000315,
-                "evaporation_temperature_K": 332.5,
-                "evaporation_duration_s": 900.0,
-                "transfer_fraction": 0.77,
-            },
-            "partition-discovery": {"solvent_volume_L": 0.02},
-            "reaction-safety-constrained": {"stirring_speed_rpm": 675.0},
-        },
-        "query_field_aliases": {
-            "partition-discovery": {"aqueous_phase_volume_L": "aqueous_volume_L"}
-        },
     }
-    if truth_contract != expected_truth_contract:
+    if any(
+        truth_contract.get(key) != value
+        for key, value in expected_truth_invariants.items()
+    ):
         errors.append("formal held-out evaluator contract differs from the frozen denominator")
     total_query_count = 0
     total_query_metric_count = 0
     evaluator_truth_execution_count = 0
     evaluator_truth_query_metric_count = 0
     public_world_seeds: list[int] = []
-    for task_index, task in enumerate(tasks, start=1):
-        task_id = str(task.get("task_id"))
-        relative_config = str(task.get("campaign_config"))
-        config_path = root / relative_config
-        config = _load_object(config_path)
+    locus_task_counts = dict.fromkeys(FORMAL_C2_LOCI, 0)
+
+    def add_task_to_schedule(spec: Mapping[str, Any], seeds: list[int]) -> None:
+        nonlocal provider_contract
+        nonlocal total_query_count, total_query_metric_count
+        nonlocal evaluator_truth_execution_count, evaluator_truth_query_metric_count
+        locus = str(spec["c2_locus"])
+        task_id = str(spec["task_id"])
+        task_key = formal_task_binding_key(locus, task_id)
+        locus_contract = FORMAL_C2_LOCUS_CONTRACT[locus]
+        complete_experiments = int(locus_contract["complete_experiments_per_cell"])
+        checkpoints = tuple(locus_contract["checkpoint_complete_experiments"])
+        snapshots = tuple(locus_contract["snapshot_stages"])
+        config_binding = dict(_object(spec["campaign_config"], f"{task_key}.binding"))
+        config_binding["hash_kind"] = "file_sha256"
+        relative_config = str(config_binding.get("path"))
+        config = _load_object(root / relative_config)
+        label = task_key
         if config.get("task_id") != task_id:
-            errors.append(f"{task_id}: campaign task identity mismatch")
+            errors.append(f"{label}: campaign task identity mismatch")
         if tuple(config.get("prior_arms", {})) != FORMAL_ARMS:
-            errors.append(f"{task_id}: campaign prior-arm order mismatch")
+            errors.append(f"{label}: campaign prior-arm order mismatch")
         opaque_contract = build_checkpoint_contract(config, "opaque")
         aligned_contract = build_checkpoint_contract(config, "aligned_nominal")
         misindexed_contract = build_checkpoint_contract(config, "misindexed_nominal")
         if aligned_contract != misindexed_contract:
-            errors.append(f"{task_id}: informed checkpoint contracts are not matched")
-        if tuple(opaque_contract["snapshot_stages"]) != FORMAL_SNAPSHOT_STAGES:
-            errors.append(f"{task_id}: checkpoint stage IDs are not the neutral formal IDs")
-        if (
-            tuple(opaque_contract["checkpoint_complete_experiments"])
-            != FORMAL_CHECKPOINT_EXPERIMENTS
-        ):
-            errors.append(f"{task_id}: checkpoint experiment schedule differs from formal design")
-        if (
-            int(_object(config["campaign"], "campaign")["complete_experiments"])
-            != FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
-        ):
-            errors.append(
-                f"{task_id}: formal campaign must contain "
-                f"{FORMAL_COMPLETE_EXPERIMENTS_PER_CELL} experiments"
-            )
-        campaign = _object(config["campaign"], f"{task_id}.campaign")
-        method_resources = _object(config.get("method_resources"), f"{task_id}.method_resources")
-        execution = _object(config.get("execution"), f"{task_id}.execution")
+            errors.append(f"{label}: informed checkpoint contracts are not matched")
+        if tuple(opaque_contract["snapshot_stages"]) != snapshots:
+            errors.append(f"{label}: checkpoint stage IDs differ from the locus contract")
+        if tuple(opaque_contract["checkpoint_complete_experiments"]) != checkpoints:
+            errors.append(f"{label}: checkpoint schedule differs from the locus contract")
+        campaign = _object(config["campaign"], f"{label}.campaign")
+        method_resources = _object(
+            config.get("method_resources"), f"{label}.method_resources"
+        )
+        execution = _object(config.get("execution"), f"{label}.execution")
+        if int(campaign.get("complete_experiments", -1)) != complete_experiments:
+            errors.append(f"{label}: formal campaign experiment denominator differs")
         if config.get("episode_mode") != "campaign":
-            errors.append(f"{task_id}: participant session scope is not campaign")
+            errors.append(f"{label}: participant session scope is not campaign")
         if int(method_resources.get("model_call_limit", -1)) != 1:
-            errors.append(f"{task_id}: model-call limit is not one per cell")
+            errors.append(f"{label}: model-call limit is not one per cell")
         if int(method_resources.get("operation_limit", -1)) != int(
             campaign.get("operation_attempt_limit", -2)
         ):
-            errors.append(f"{task_id}: method and campaign operation limits differ")
-        if (
-            int(method_resources.get("complete_experiment_limit", -1))
-            != FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
-        ):
-            errors.append(f"{task_id}: method complete-experiment limit differs")
-        if tuple(method_resources.get("checkpoint_complete_experiments", ())) != (
-            FORMAL_METHOD_CHECKPOINT_EXPERIMENTS
-        ):
-            errors.append(f"{task_id}: method checkpoint resource schedule differs")
-        qualification = _object(
-            config.get("qualification", {}), f"{task_id}.qualification"
-        )
-        if (
+            errors.append(f"{label}: method and campaign operation limits differ")
+        if int(method_resources.get("complete_experiment_limit", -1)) != complete_experiments:
+            errors.append(f"{label}: method complete-experiment limit differs")
+        if tuple(method_resources.get("checkpoint_complete_experiments", ())) != checkpoints[1:]:
+            errors.append(f"{label}: method checkpoint resource schedule differs")
+        qualification = _object(config.get("qualification", {}), f"{label}.qualification")
+        if locus == "A_E" and (
             int(qualification.get("minimum_unique_recipes", -1)) != 6
             or int(qualification.get("maximum_exact_repeats", -1)) != 2
         ):
-            errors.append(f"{task_id}: formal recipe-diversity contract differs")
+            errors.append(f"{label}: formal recipe-diversity contract differs")
+        if locus in C2_LOCI and qualification.get("q2_passed") is not True:
+            errors.append(f"{label}: terminal campaign is not bound to passed Q2")
         if (
             int(execution.get("max_concurrency", -1)) != 3
             or int(execution.get("within_cell_concurrency", -1)) != 1
             or execution.get("parallelization_unit") != "same_seed_prior_arm_triplet"
         ):
-            errors.append(f"{task_id}: execution concurrency contract differs")
-        provider = dict(_object(config.get("provider"), f"{task_id}.provider"))
+            errors.append(f"{label}: execution concurrency contract differs")
+        provider = dict(_object(config.get("provider"), f"{label}.provider"))
         reduced_provider = {
             key: provider.get(key)
             for key in (
@@ -1162,54 +1395,70 @@ def build_formal_preflight(
         sampling_contract = participant_execution_contract["sampling_contract"]
         if (
             provider.get("reasoning_effort") != sampling_contract["reasoning_effort"]
-            or float(provider.get("request_timeout_s", -1.0)) != float(timeout_contract["request"])
+            or float(provider.get("request_timeout_s", -1.0))
+            != float(timeout_contract["request"])
             or float(provider.get("finalization_timeout_s", -1.0))
             != float(timeout_contract["finalization"])
         ):
-            errors.append(f"{task_id}: provider sampling or timeout contract differs")
+            errors.append(f"{label}: provider sampling or timeout contract differs")
         if provider_contract is None:
             provider_contract = reduced_provider
         elif provider_contract != reduced_provider:
-            errors.append(f"{task_id}: provider/model/scaffold axis drift")
-        seeds = [int(item) for item in task_world_seeds.get(task_id, [])]
+            errors.append(f"{label}: provider/model/scaffold axis drift")
         if len(seeds) != 5 or len(set(seeds)) != 5:
-            errors.append(f"{task_id}: public world schedule must contain five unique seeds")
+            errors.append(f"{label}: public world schedule must contain five unique seeds")
         public_world_seeds.extend(seeds)
         for seed in seeds:
             if not public_namespace_start <= seed < public_namespace_end:
-                errors.append(f"{task_id}: public world seed is outside its namespace")
+                errors.append(f"{label}: public world seed is outside its namespace")
             if seed in development_seeds:
-                errors.append(f"{task_id}: public world seed overlaps qualification")
+                errors.append(f"{label}: public world seed overlaps qualification")
             if private_namespace_start <= seed < private_namespace_end:
-                errors.append(f"{task_id}: public world seed enters the private namespace")
-        config_binding = _binding(root, relative_config)
+                errors.append(f"{label}: public world seed enters the private namespace")
         checkpoint_digest = canonical_json_sha256(opaque_contract)
         query_count = len(opaque_contract["query_metric_contract"])
         query_metric_count = sum(
-            len(metric_ids) for metric_ids in opaque_contract["query_metric_contract"].values()
+            len(metric_ids)
+            for metric_ids in opaque_contract["query_metric_contract"].values()
         )
         evaluator_truth_execution_count += query_count * len(seeds)
         evaluator_truth_query_metric_count += query_metric_count * len(seeds)
-        task_bindings.append(
-            {
-                "task_id": task_id,
-                "campaign_config": config_binding,
-                "checkpoint_contract_sha256": checkpoint_digest,
-                "held_out_query_count_per_snapshot": query_count,
-                "held_out_query_metric_count_per_snapshot": query_metric_count,
-            }
-        )
+        task_binding: dict[str, Any] = {
+            "c2_locus": locus,
+            "task_id": task_id,
+            "task_binding_key": task_key,
+            "campaign_config": config_binding,
+            "checkpoint_contract_sha256": checkpoint_digest,
+            "complete_experiments_per_cell": complete_experiments,
+            "checkpoint_complete_experiments": list(checkpoints),
+            "held_out_query_count_per_snapshot": query_count,
+            "held_out_query_metric_count_per_snapshot": query_metric_count,
+        }
+        if locus in C2_LOCI:
+            task_binding["task_admission_receipt"] = dict(
+                _object(spec["task_admission_receipt"], f"{label}.receipt")
+            )
+            task_binding["outcome_blind_selection"] = dict(
+                _object(spec["outcome_blind_selection"], f"{label}.selection")
+            )
+        task_bindings.append(task_binding)
+        locus_task_counts[locus] += 1
+        locus_task_index = locus_task_counts[locus]
         for world_index, world_seed in enumerate(seeds, start=1):
-            cluster_id = f"work-ii-public-{task_index:02d}-{world_index:02d}"
+            cluster_id = (
+                f"work-ii-public-{locus.lower().replace('_', '')}-"
+                f"{locus_task_index:02d}-{world_index:02d}"
+            )
             for arm_index, arm in enumerate(FORMAL_ARMS, start=1):
-                cell_id = f"{cluster_id}-arm-{arm_index:02d}"
                 checkpoint = build_checkpoint_contract(config, arm)
-                cell = {
+                cell: dict[str, Any] = {
                     "schema_version": FORMAL_CELL_VERSION,
                     "schedule_index": len(cells) + 1,
-                    "cell_id": cell_id,
+                    "cell_id": f"{cluster_id}-arm-{arm_index:02d}",
                     "world_cluster_id": cluster_id,
+                    "c2_locus": locus,
                     "task_id": task_id,
+                    "task_binding_key": task_key,
                     "world_index": world_index,
                     "world_seed": world_seed,
                     "world_split": "public_formal",
@@ -1226,8 +1475,9 @@ def build_formal_preflight(
                     "private_confirmation_contract_sha256": (
                         private_confirmation_contract_sha256
                     ),
-                    "complete_experiment_count": FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
-                    "belief_checkpoint_count": FORMAL_BELIEF_CHECKPOINTS_PER_CELL,
+                    "complete_experiment_count": complete_experiments,
+                    "belief_checkpoint_count": len(checkpoints),
+                    "checkpoint_complete_experiments": list(checkpoints),
                     "held_out_query_count_per_snapshot": query_count,
                     "held_out_query_metric_count_per_snapshot": query_metric_count,
                     "provider_session_limit": 1,
@@ -1241,33 +1491,79 @@ def build_formal_preflight(
                     "blind_validation_execution_count": 6,
                     "terminal_states": ["completed", "right_censored", "failed"],
                 }
+                if locus in C2_LOCI:
+                    receipt_binding = _object(
+                        spec["task_admission_receipt"], f"{label}.receipt"
+                    )
+                    selection_binding = _object(
+                        spec["outcome_blind_selection"], f"{label}.selection"
+                    )
+                    cell["task_admission_receipt_binding"] = dict(receipt_binding)
+                    cell["outcome_blind_selection_binding"] = dict(selection_binding)
                 cell["cell_key_sha256"] = _cell_key_hash(cell)
                 cells.append(cell)
-                total_query_count += query_count * FORMAL_BELIEF_CHECKPOINTS_PER_CELL
-                total_query_metric_count += (
-                    query_metric_count * FORMAL_BELIEF_CHECKPOINTS_PER_CELL
-                )
+                total_query_count += query_count * len(checkpoints)
+                total_query_metric_count += query_metric_count * len(checkpoints)
 
-    cell_ids = [str(cell["cell_id"]) for cell in cells]
-    cell_keys = [str(cell["cell_key_sha256"]) for cell in cells]
-    cluster_ids = {str(cell["world_cluster_id"]) for cell in cells}
-    if len(cells) != 75 or len(set(cell_ids)) != 75 or len(set(cell_keys)) != 75:
-        errors.append("formal schedule does not contain 75 unique cells")
-    if len(cluster_ids) != 25:
-        errors.append("formal schedule does not contain 25 independent world clusters")
-    if len(public_world_seeds) != 25 or len(set(public_world_seeds)) != 25:
-        errors.append("public formal world schedule does not contain 25 unique identities")
-    if int(population.get("scheduled_public_cells", -1)) != len(cells):
-        errors.append("analysis cell denominator differs from the generated schedule")
-    if int(population.get("independent_task_world_clusters", -1)) != len(cluster_ids):
-        errors.append("analysis cluster denominator differs from the generated schedule")
+    for task in tasks:
+        task_id = str(task.get("task_id"))
+        relative_config = str(task.get("campaign_config"))
+        seeds = [int(item) for item in task_world_seeds.get(task_id, [])]
+        add_task_to_schedule(
+            {
+                "c2_locus": "A_E",
+                "task_id": task_id,
+                "campaign_config": _binding(root, relative_config),
+            },
+            seeds,
+        )
 
+    ae_cells = [cell for cell in cells if cell.get("c2_locus") == "A_E"]
     c2_admission = build_c2_admission_report(
         root,
         c2_admission_plan_path,
         design_path,
-        cells,
+        ae_cells,
     )
+    c2_specs, c2_schedule_errors = _resolve_c2_terminal_task_specs(root, c2_admission)
+    prerequisite_errors.extend(f"C2 formal schedule: {item}" for item in c2_schedule_errors)
+    unavailable_seeds = {*development_seeds, *public_world_seeds}
+    for spec in c2_specs:
+        selection_binding = _object(spec["outcome_blind_selection"], "selection binding")
+        selection_sha256 = str(selection_binding.get("embedded_sha256", ""))
+        seeds = _derive_c2_public_world_seeds(
+            selection_sha256=selection_sha256,
+            c2_locus=str(spec["c2_locus"]),
+            task_id=str(spec["task_id"]),
+            namespace_start=public_namespace_start,
+            namespace_size=public_namespace_size,
+            unavailable=unavailable_seeds,
+        )
+        add_task_to_schedule(spec, seeds)
+
+    cell_ids = [str(cell["cell_id"]) for cell in cells]
+    cell_keys = [str(cell["cell_key_sha256"]) for cell in cells]
+    cluster_ids = {str(cell["world_cluster_id"]) for cell in cells}
+    schedule_complete = len(c2_specs) == sum(C2_REQUIRED_TASK_COUNTS.values())
+    expected_cells = FORMAL_EXPECTED_TOTALS["participant_cells"] if schedule_complete else 75
+    expected_clusters = (
+        FORMAL_EXPECTED_TOTALS["independent_task_world_clusters"]
+        if schedule_complete
+        else 25
+    )
+    if (
+        len(cells) != expected_cells
+        or len(set(cell_ids)) != expected_cells
+        or len(set(cell_keys)) != expected_cells
+    ):
+        errors.append("formal schedule does not contain the expected unique cells")
+    if len(cluster_ids) != expected_clusters:
+        errors.append("formal schedule has an invalid independent cluster denominator")
+    if (
+        len(public_world_seeds) != expected_clusters
+        or len(set(public_world_seeds)) != expected_clusters
+    ):
+        errors.append("public formal world schedule has an invalid identity denominator")
     c2_blockers = list(c2_admission.get("blocking_requirements", []))
     prerequisite_errors.extend(f"C2 admission: {item}" for item in c2_blockers)
 
@@ -1318,6 +1614,11 @@ def build_formal_preflight(
         "held_out_evaluator_contract": truth_contract,
         "schedule_policy": {
             "order": "task_then_public_world_then_prior_arm",
+            "canonical_c2_locus_order": list(FORMAL_C2_LOCI),
+            "schedule_complete": schedule_complete,
+            "extension_policy": (
+                "all_four_terminal_receipts_or_no_A_P_A_S_formal_cells"
+            ),
             "same_world_arm_triplet_max_concurrency": 3,
             "within_cell_concurrency": 1,
             "one_persistent_session_per_cell": True,
@@ -1352,18 +1653,25 @@ def build_formal_preflight(
             "public_private_namespace_disjoint": namespace_disjoint,
         },
         "expected_counts": {
-            "tasks": len(tasks),
+            "tasks": len(task_bindings),
+            "tasks_by_c2_locus": dict(locus_task_counts),
             "independent_task_world_clusters": len(cluster_ids),
             "participant_cells": len(cells),
+            "participant_cells_by_c2_locus": {
+                locus: sum(cell["c2_locus"] == locus for cell in cells)
+                for locus in FORMAL_C2_LOCI
+            },
             "provider_sessions": len(cells),
             "provider_attempts_initial_planned": len(cells),
             "provider_attempts_hard_cap": len(cells)
             * int(attempt_contract["maximum_total_provider_attempts_per_cell"]),
             "provider_repeats_per_cell": 1,
-            "complete_experiments": (
-                len(cells) * FORMAL_COMPLETE_EXPERIMENTS_PER_CELL
+            "complete_experiments": sum(
+                int(cell["complete_experiment_count"]) for cell in cells
             ),
-            "belief_checkpoints": len(cells) * FORMAL_BELIEF_CHECKPOINTS_PER_CELL,
+            "belief_checkpoints": sum(
+                int(cell["belief_checkpoint_count"]) for cell in cells
+            ),
             "checkpoint_held_out_queries": total_query_count,
             "checkpoint_held_out_query_metrics": total_query_metric_count,
             "evaluator_truth_executions": evaluator_truth_execution_count,
@@ -1455,13 +1763,104 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     if not isinstance(cells, list):
         errors.append("formal preflight cells are missing")
         return errors
+    schedule_policy = report.get("schedule_policy")
+    schedule_policy = schedule_policy if isinstance(schedule_policy, Mapping) else {}
+    schedule_complete = schedule_policy.get("schedule_complete") is True
+    expected_cell_count = (
+        FORMAL_EXPECTED_TOTALS["participant_cells"] if schedule_complete else 75
+    )
     ids = [cell.get("cell_id") for cell in cells if isinstance(cell, Mapping)]
     keys = [cell.get("cell_key_sha256") for cell in cells if isinstance(cell, Mapping)]
-    if len(cells) != 75 or len(set(ids)) != 75 or len(set(keys)) != 75:
-        errors.append("formal preflight must contain 75 unique cell identities")
+    if (
+        len(cells) != expected_cell_count
+        or len(set(ids)) != expected_cell_count
+        or len(set(keys)) != expected_cell_count
+    ):
+        errors.append("formal preflight has an invalid unique cell denominator")
+    if execution_allowed is True and not schedule_complete:
+        errors.append("formal execution cannot authorize an incomplete C2 schedule")
     counts = report.get("expected_counts")
     if not isinstance(counts, Mapping) or counts.get("participant_cells") != len(cells):
         errors.append("formal preflight cell count is inconsistent")
+        counts = {}
+    task_bindings = report.get("task_bindings")
+    task_bindings = task_bindings if isinstance(task_bindings, list) else []
+    binding_by_key: dict[str, Mapping[str, Any]] = {}
+    for row in task_bindings:
+        if not isinstance(row, Mapping):
+            errors.append("formal preflight contains a malformed task binding")
+            continue
+        locus = row.get("c2_locus")
+        task_id = row.get("task_id")
+        key = row.get("task_binding_key")
+        if (
+            locus not in FORMAL_C2_LOCI
+            or not isinstance(task_id, str)
+            or key != formal_task_binding_key(str(locus), task_id)
+            or key in binding_by_key
+        ):
+            errors.append("formal preflight task binding is not locus-qualified and unique")
+            continue
+        binding_by_key[str(key)] = row
+        if locus in C2_LOCI and (
+            not isinstance(row.get("task_admission_receipt"), Mapping)
+            or not isinstance(row.get("outcome_blind_selection"), Mapping)
+        ):
+            errors.append(f"formal C2 extension task lacks admission bindings: {key}")
+    expected_task_count = FORMAL_EXPECTED_TOTALS["tasks"] if schedule_complete else 5
+    if len(binding_by_key) != expected_task_count:
+        errors.append("formal preflight task binding denominator is invalid")
+    locus_cell_counts = dict.fromkeys(FORMAL_C2_LOCI, 0)
+    locus_task_keys = {locus: set() for locus in FORMAL_C2_LOCI}
+    dynamic_counts = {
+        "tasks": len(binding_by_key),
+        "independent_task_world_clusters": len(
+            {
+                cell.get("world_cluster_id")
+                for cell in cells
+                if isinstance(cell, Mapping)
+            }
+        ),
+        "participant_cells": len(cells),
+        "provider_sessions": len(cells),
+        "provider_attempts_initial_planned": len(cells),
+        "provider_attempts_hard_cap": sum(
+            int(cell.get("provider_attempt_limit", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "complete_experiments": sum(
+            int(cell.get("complete_experiment_count", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "belief_checkpoints": sum(
+            int(cell.get("belief_checkpoint_count", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "participant_final_recommendations": sum(
+            int(cell.get("participant_final_recommendation_count", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "blind_validation_targets": sum(
+            int(cell.get("blind_validation_target_count", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+        "blind_validation_executions": sum(
+            int(cell.get("blind_validation_execution_count", -1))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        ),
+    }
+    if any(counts.get(key) != value for key, value in dynamic_counts.items()):
+        errors.append("formal preflight dynamic denominators are inconsistent")
+    if schedule_complete and any(
+        dynamic_counts.get(key) != value for key, value in FORMAL_EXPECTED_TOTALS.items()
+    ):
+        errors.append("complete formal C2 schedule differs from the frozen 135-cell totals")
     participant_contract = report.get("participant_execution_contract")
     participant_contract_hash = report.get("participant_execution_contract_sha256")
     if (
@@ -1511,6 +1910,59 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
                 "formal cell private-confirmation contract mismatch: "
                 f"{cell.get('cell_id')}"
             )
+        locus = cell.get("c2_locus")
+        task_id = cell.get("task_id")
+        if locus not in FORMAL_C2_LOCI or not isinstance(task_id, str):
+            errors.append(f"formal cell lacks a canonical C2 locus: {cell.get('cell_id')}")
+            continue
+        task_key = formal_task_binding_key(str(locus), task_id)
+        binding = binding_by_key.get(task_key)
+        contract = FORMAL_C2_LOCUS_CONTRACT[str(locus)]
+        locus_cell_counts[str(locus)] += 1
+        locus_task_keys[str(locus)].add(task_key)
+        if (
+            cell.get("task_binding_key") != task_key
+            or binding is None
+            or cell.get("campaign_config_path")
+            != binding.get("campaign_config", {}).get("path")
+            or cell.get("campaign_config_sha256")
+            != binding.get("campaign_config", {}).get("sha256")
+            or cell.get("complete_experiment_count")
+            != contract["complete_experiments_per_cell"]
+            or cell.get("belief_checkpoint_count") != 5
+            or cell.get("checkpoint_complete_experiments")
+            != list(contract["checkpoint_complete_experiments"])
+            or cell.get("participant_final_recommendation_count") != 1
+            or cell.get("blind_validation_target_count") != 2
+            or cell.get("blind_replicates_per_target") != 3
+            or cell.get("blind_validation_execution_count") != 6
+        ):
+            errors.append(f"formal cell denominator or task binding drifted: {cell.get('cell_id')}")
+        if locus in C2_LOCI and (
+            cell.get("task_admission_receipt_binding")
+            != binding.get("task_admission_receipt")
+            or cell.get("outcome_blind_selection_binding")
+            != binding.get("outcome_blind_selection")
+        ):
+            errors.append(f"formal C2 cell lacks exact admission bindings: {cell.get('cell_id')}")
+    expected_locus_cells = {
+        "A_E": 75,
+        "A_P": 30 if schedule_complete else 0,
+        "A_S": 30 if schedule_complete else 0,
+    }
+    expected_locus_tasks = {
+        "A_E": 5,
+        "A_P": 2 if schedule_complete else 0,
+        "A_S": 2 if schedule_complete else 0,
+    }
+    if locus_cell_counts != expected_locus_cells or {
+        locus: len(keys) for locus, keys in locus_task_keys.items()
+    } != expected_locus_tasks:
+        errors.append("formal C2 locus roster is incomplete or malformed")
+    if counts.get("participant_cells_by_c2_locus") != expected_locus_cells:
+        errors.append("formal C2 cell denominators are not reported by locus")
+    if counts.get("tasks_by_c2_locus") != expected_locus_tasks:
+        errors.append("formal C2 task denominators are not reported by locus")
     split = report.get("world_split_contract")
     if not isinstance(split, Mapping):
         errors.append("formal preflight world-split contract is missing")
@@ -1555,7 +2007,15 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
                     for seed in raw_cell_seeds
                     if isinstance(seed, int) and not isinstance(seed, bool)
                 }
-                if len(cell_seeds) != 25 or public.get("world_identity_count") != 25:
+                expected_identities = (
+                    FORMAL_EXPECTED_TOTALS["independent_task_world_clusters"]
+                    if schedule_complete
+                    else 25
+                )
+                if (
+                    len(cell_seeds) != expected_identities
+                    or public.get("world_identity_count") != expected_identities
+                ):
                     errors.append("formal preflight public identity denominator is invalid")
                 if any(
                     not isinstance(seed, int)
@@ -1612,10 +2072,15 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         schedule = c2_admission.get("blocks", {}).get("A_E", {}).get(
             "public_schedule", {}
         )
+        ae_cells = [
+            cell
+            for cell in cells
+            if isinstance(cell, Mapping) and cell.get("c2_locus") == "A_E"
+        ]
         if (
-            schedule.get("public_schedule_cell_count") != len(cells)
+            schedule.get("public_schedule_cell_count") != len(ae_cells)
             or schedule.get("public_schedule_sha256")
-            != canonical_json_sha256(cells)
+            != canonical_json_sha256(ae_cells)
         ):
             errors.append("formal preflight C2 admission changed the A_E subblock")
     return errors
@@ -1742,13 +2207,18 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
     cells = report.get("cells")
     cells = cells if isinstance(cells, list) else []
     if c2_plan_path.is_file() and design_path.is_file():
+        ae_cells = [
+            cell
+            for cell in cells
+            if isinstance(cell, Mapping) and cell.get("c2_locus") == "A_E"
+        ]
         errors.extend(
             validate_c2_admission_report(
                 root,
                 c2,
                 c2_plan_path,
                 design_path,
-                cells,
+                ae_cells,
             )
         )
     else:
@@ -1774,6 +2244,31 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
                 bindings.append(candidate)
             else:
                 errors.append(f"formal preflight {name} contains a malformed binding")
+            if name == "task_bindings" and row.get("c2_locus") in C2_LOCI:
+                for field, embedded_field, hash_function in (
+                    (
+                        "task_admission_receipt",
+                        "receipt_sha256",
+                        c2_task_admission_receipt_sha256,
+                    ),
+                    (
+                        "outcome_blind_selection",
+                        "selection_sha256",
+                        c2_outcome_blind_selection_sha256,
+                    ),
+                ):
+                    extra = row.get(field)
+                    if not isinstance(extra, Mapping):
+                        errors.append(f"formal C2 task lacks {field}")
+                        continue
+                    _, extra_errors = _bound_object(
+                        root,
+                        extra,
+                        label=f"formal C2 task {row.get('task_binding_key')} {field}",
+                        embedded_field=embedded_field,
+                        embedded_hash=hash_function,
+                    )
+                    errors.extend(extra_errors)
     seen: dict[str, str] = {}
     for binding in bindings:
         relative = binding.get("path")
@@ -1824,8 +2319,11 @@ __all__ = [
     "EXPECTED_REFERENCE_POLICY_CONTRACT",
     "FORMAL_ARMS",
     "FORMAL_BLOCKING_REQUIREMENTS",
+    "FORMAL_C2_LOCI",
+    "FORMAL_C2_LOCUS_CONTRACT",
     "FORMAL_CELL_VERSION",
     "FORMAL_CHECKPOINT_EXPERIMENTS",
+    "FORMAL_EXPECTED_TOTALS",
     "FORMAL_PREFLIGHT_VERSION",
     "FORMAL_RECEIPT_VERSION",
     "FORMAL_SNAPSHOT_STAGES",
@@ -1838,6 +2336,7 @@ __all__ = [
     "authorize_formal_preflight",
     "build_checkpoint_contract",
     "build_formal_preflight",
+    "formal_task_binding_key",
     "validate_formal_bindings",
     "validate_formal_preflight",
 ]

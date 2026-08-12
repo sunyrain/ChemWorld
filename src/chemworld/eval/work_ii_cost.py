@@ -401,11 +401,17 @@ def build_formal_cost_contract(
     if not isinstance(task_bindings, list):
         raise ValueError("formal manifest lacks task bindings")
     binding_by_task = {
-        str(row.get("task_id")): row
+        str(row.get("task_binding_key")): row
         for row in task_bindings
         if isinstance(row, Mapping)
     }
-    task_ids = sorted({str(cell.get("task_id")) for cell in cells if isinstance(cell, Mapping)})
+    task_ids = sorted(
+        {
+            str(cell.get("task_binding_key"))
+            for cell in cells
+            if isinstance(cell, Mapping)
+        }
+    )
     per_task: list[dict[str, Any]] = []
     accepted_totals = {"input_tokens": 0, "uncached_input_tokens": 0, "output_tokens": 0}
     hard_totals = {"input_tokens": 0, "uncached_input_tokens": 0, "output_tokens": 0}
@@ -440,7 +446,7 @@ def build_formal_cost_contract(
         task_cells = [
             cell
             for cell in cells
-            if isinstance(cell, Mapping) and cell.get("task_id") == task_id
+            if isinstance(cell, Mapping) and cell.get("task_binding_key") == task_id
         ]
         initial_attempts = len(task_cells)
         hard_attempts = sum(int(cell.get("provider_attempt_limit", -1)) for cell in task_cells)
@@ -457,7 +463,9 @@ def build_formal_cost_contract(
         hard_cost += per_attempt_cost * hard_attempts
         per_task.append(
             {
-                "task_id": task_id,
+                "task_binding_key": task_id,
+                "c2_locus": binding.get("c2_locus"),
+                "task_id": binding.get("task_id"),
                 "campaign_config_path": relative,
                 "campaign_config_sha256": digest,
                 "participant_cell_count": initial_attempts,
@@ -585,7 +593,7 @@ def build_formal_cost_ledger(
         cost = _finite_float(row.get("per_attempt_cost_cap_usd"))
         if cost is None:
             raise ValueError("cost ledger contains an invalid per-attempt cost cap")
-        task_cost[str(row.get("task_id"))] = cost
+        task_cost[str(row.get("task_binding_key"))] = cost
     normalized_counts: dict[str, int] = {}
     reserved = 0.0
     for key, raw_count in provider_attempt_counts.items():
@@ -597,7 +605,7 @@ def build_formal_cost_ledger(
         cell = cell_by_key[key]
         if count < 0 or count > int(cell.get("provider_attempt_limit", -1)):
             raise ValueError(f"cost ledger exceeds the provider-attempt cap: {key}")
-        task_id = str(cell.get("task_id"))
+        task_id = str(cell.get("task_binding_key"))
         if task_id not in task_cost:
             raise ValueError(f"cost ledger lacks task pricing: {task_id}")
         normalized_counts[key] = count

@@ -13,11 +13,15 @@ import scripts.run_work_ii_formal_matrix as formal_runner
 import chemworld.eval.work_ii_formal as work_ii_formal
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
+from chemworld.eval.work_ii_c2_admission import (
+    c2_outcome_blind_selection_sha256,
+    c2_task_admission_receipt_sha256,
+)
 from chemworld.eval.work_ii_cost import build_formal_cost_contract
 from chemworld.eval.work_ii_formal import (
     EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT,
     FORMAL_ARMS,
-    FORMAL_SNAPSHOT_STAGES,
+    FORMAL_C2_LOCUS_CONTRACT,
     DuplicateFormalCellError,
     InvalidFormalCellReceiptError,
     ProviderAttemptLimitError,
@@ -32,6 +36,7 @@ ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
 _VALIDATE_ENVIRONMENT_BINDING = work_ii_formal._validate_environment_binding
+_BUILD_C2_ADMISSION_REPORT = work_ii_formal.build_c2_admission_report
 
 
 @pytest.fixture(autouse=True)
@@ -46,6 +51,95 @@ def _isolate_runner_contract_from_current_gate_a_recertification(
     """
 
     monkeypatch.setattr(work_ii_formal, "_validate_environment_binding", lambda *_: [])
+
+    fixtures = ROOT / "tests/fixtures"
+    roster = {
+        "A_P": (
+            ("c2-shared-task", fixtures / "work_ii_formal_c2_ap_shared.json"),
+            ("c2-parametric-task", fixtures / "work_ii_formal_c2_ap_unique.json"),
+        ),
+        "A_S": (
+            ("c2-shared-task", fixtures / "work_ii_formal_c2_as_shared.json"),
+            ("c2-structural-task", fixtures / "work_ii_formal_c2_as_unique.json"),
+        ),
+    }
+
+    def _binding(path: Path, embedded: str | None = None) -> dict[str, object]:
+        value: dict[str, object] = {
+            "path": path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(path),
+        }
+        if embedded is not None:
+            value["embedded_sha256"] = embedded
+        return value
+
+    task_rows: dict[str, list[dict[str, object]]] = {"A_P": [], "A_S": []}
+    virtual_payloads: dict[Path, dict[str, object]] = {}
+    for locus, tasks in roster.items():
+        for task_id, config_path in tasks:
+            selection_path = config_path.with_name(f"{config_path.stem}_selection.json")
+            selection = json.loads(selection_path.read_text(encoding="utf-8"))
+            selection["selection_sha256"] = c2_outcome_blind_selection_sha256(selection)
+            virtual_payloads[selection_path.resolve()] = selection
+            selection_binding = {
+                "path": selection_path.relative_to(ROOT).as_posix(),
+                "sha256": canonical_json_sha256(selection),
+                "embedded_sha256": selection["selection_sha256"],
+            }
+            receipt = {
+                "schema_version": "chemworld-work-ii-c2-task-admission-receipt-0.1",
+                "status": "passed_terminal_task_admission",
+                "formal_result": False,
+                "terminal_qualification_passed": True,
+                "locus": locus,
+                "task_id": task_id,
+                "complete_experiments_per_cell": 10 if locus == "A_P" else 12,
+                "campaign_config_binding": _binding(config_path),
+                "outcome_blind_selection_binding": selection_binding,
+                "participant_outcomes_used_for_selection": False,
+                "formal_participant_outcomes_observed": 0,
+                "validation_errors": [],
+            }
+            receipt["receipt_sha256"] = c2_task_admission_receipt_sha256(receipt)
+            receipt_path = selection_path.with_name(
+                selection_path.name.replace("_selection.json", "_receipt.json")
+            )
+            virtual_payloads[receipt_path.resolve()] = receipt
+            task_rows[locus].append(
+                {
+                    "task_id": task_id,
+                    "receipt_binding": {
+                        "path": receipt_path.relative_to(ROOT).as_posix(),
+                        "sha256": canonical_json_sha256(receipt),
+                        "embedded_sha256": receipt["receipt_sha256"],
+                    },
+                    "passed": True,
+                }
+            )
+
+    original_load = work_ii_formal._load_object
+    original_file_sha = work_ii_formal.file_sha256
+    original_bound_object = work_ii_formal._bound_object
+
+    def _virtual_load(path: Path) -> dict[str, object]:
+        payload = virtual_payloads.get(path.resolve())
+        return deepcopy(payload) if payload is not None else original_load(path)
+
+    def _virtual_file_sha(path: Path) -> str:
+        payload = virtual_payloads.get(Path(path).resolve())
+        return canonical_json_sha256(payload) if payload is not None else original_file_sha(path)
+
+    def _virtual_bound_object(root, binding, **kwargs):
+        relative = binding.get("path")
+        path = (root / relative).resolve() if isinstance(relative, str) else None
+        payload = virtual_payloads.get(path) if path is not None else None
+        if payload is not None and str(path).endswith("_receipt.json"):
+            return deepcopy(payload), []
+        return original_bound_object(root, binding, **kwargs)
+
+    monkeypatch.setattr(work_ii_formal, "_load_object", _virtual_load)
+    monkeypatch.setattr(work_ii_formal, "file_sha256", _virtual_file_sha)
+    monkeypatch.setattr(work_ii_formal, "_bound_object", _virtual_bound_object)
 
     def _ready_c2(root, plan, design, cells):
         del design
@@ -65,7 +159,9 @@ def _isolate_runner_contract_from_current_gate_a_recertification(
                         "public_schedule_cell_count": len(cells),
                         "public_schedule_sha256": canonical_json_sha256(cells),
                     }
-                }
+                },
+                "A_P": {"task_admissions": task_rows["A_P"], "passed": True},
+                "A_S": {"task_admissions": task_rows["A_S"], "passed": True},
             },
         }
         report["admission_sha256"] = canonical_json_sha256(report)
@@ -92,6 +188,32 @@ def test_formal_environment_gate_rejects_stale_runtime_bound_certificates() -> N
             report,
             **_authorization_evidence(report),
         )
+
+
+def test_current_c2_plan_fails_closed_without_terminal_task_receipts(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        work_ii_formal,
+        "build_c2_admission_report",
+        _BUILD_C2_ADMISSION_REPORT,
+    )
+    report = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+
+    assert report["formal_execution_allowed"] is False
+    assert report["schedule_policy"]["schedule_complete"] is False
+    assert report["expected_counts"]["participant_cells"] == 75
+    assert report["expected_counts"]["participant_cells_by_c2_locus"] == {
+        "A_E": 75,
+        "A_P": 0,
+        "A_S": 0,
+    }
+    assert all(cell["c2_locus"] == "A_E" for cell in report["cells"])
+    assert any(
+        "terminal task receipts" in error
+        for error in report["prerequisite_errors"]
+    )
+    assert validate_formal_preflight(report) == []
 
 
 def _fake_blind_plan(cell: dict[str, object]) -> dict[str, object]:
@@ -172,7 +294,7 @@ def _formal_cost_contract(manifest: dict[str, object]) -> dict[str, object]:
     return build_formal_cost_contract(
         ROOT,
         manifest,
-        formal_currency_ceiling_usd=20.0,
+        formal_currency_ceiling_usd=30.0,
         pricing_source="https://api-docs.deepseek.com/quick_start/pricing",
         pricing_observed_at="2026-08-10T12:00:00+08:00",
         cache_hit_input_usd_per_million=0.0028,
@@ -230,8 +352,12 @@ class _FakeFormalCellProcess:
                     "formal_preflight_sha256": manifest["preflight_sha256"],
                     "participant_operational_qualification_passed": True,
                     "development_terminal_trajectory_override": False,
-                    "participant_complete_experiment_count": 8,
-                    "candidate_experiment_indices": list(range(1, 9)),
+                    "participant_complete_experiment_count": cell[
+                        "complete_experiment_count"
+                    ],
+                    "candidate_experiment_indices": list(
+                        range(1, cell["complete_experiment_count"] + 1)
+                    ),
                 }
             )
             plan["plan_sha256"] = canonical_json_sha256(
@@ -256,7 +382,7 @@ class _FakeFormalCellProcess:
         return self.return_code
 
 
-def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> None:
+def test_formal_preflight_materializes_complete_135_cell_c2_denominators() -> None:
     report = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
 
     assert report["status"] == "passed_execution_blocked"
@@ -265,22 +391,24 @@ def test_formal_preflight_materializes_exact_outcome_blind_denominators() -> Non
     assert report["errors"] == []
     assert validate_formal_preflight(report) == []
     assert report["expected_counts"] == {
-        "tasks": 5,
-        "independent_task_world_clusters": 25,
-        "participant_cells": 75,
-        "provider_sessions": 75,
-        "provider_attempts_initial_planned": 75,
-        "provider_attempts_hard_cap": 150,
+        "tasks": 9,
+        "tasks_by_c2_locus": {"A_E": 5, "A_P": 2, "A_S": 2},
+        "independent_task_world_clusters": 45,
+        "participant_cells": 135,
+        "participant_cells_by_c2_locus": {"A_E": 75, "A_P": 30, "A_S": 30},
+        "provider_sessions": 135,
+        "provider_attempts_initial_planned": 135,
+        "provider_attempts_hard_cap": 270,
         "provider_repeats_per_cell": 1,
-        "complete_experiments": 600,
-        "belief_checkpoints": 375,
-        "checkpoint_held_out_queries": 1500,
-        "checkpoint_held_out_query_metrics": 5100,
-        "evaluator_truth_executions": 100,
-        "evaluator_truth_query_metrics": 340,
-        "participant_final_recommendations": 75,
-        "blind_validation_targets": 150,
-        "blind_validation_executions": 450,
+        "complete_experiments": 1260,
+        "belief_checkpoints": 675,
+        "checkpoint_held_out_queries": 2700,
+        "checkpoint_held_out_query_metrics": 8700,
+        "evaluator_truth_executions": 180,
+        "evaluator_truth_query_metrics": 580,
+        "participant_final_recommendations": 135,
+        "blind_validation_targets": 270,
+        "blind_validation_executions": 810,
     }
     assert len(report["blocking_requirements"]) == 5
     source_paths = {row["path"] for row in report["source_bindings"]}
@@ -349,12 +477,12 @@ def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:
 
     assert [cell["prior_arm"] for cell in cells[:3]] == list(FORMAL_ARMS)
     assert {cell["world_cluster_id"] for cell in cells[:3]} == {
-        "work-ii-public-01-01"
+        "work-ii-public-ae-01-01"
     }
     assert cells[0]["world_seed"] == 672326802
-    assert cells[-1]["world_seed"] == 930008953
-    assert len({cell["cell_id"] for cell in cells}) == 75
-    assert len({cell["cell_key_sha256"] for cell in cells}) == 75
+    assert cells[74]["world_seed"] == 930008953
+    assert len({cell["cell_id"] for cell in cells}) == 135
+    assert len({cell["cell_key_sha256"] for cell in cells}) == 135
     assert all(cell["provider_session_limit"] == 1 for cell in cells)
     assert all(cell["provider_attempt_limit"] == 2 for cell in cells)
     assert all(cell["world_split"] == "public_formal" for cell in cells)
@@ -394,7 +522,9 @@ def test_all_formal_task_configs_use_neutral_checkpoint_ids() -> None:
         config_path = ROOT / binding["campaign_config"]["path"]
         config = json.loads(config_path.read_text(encoding="utf-8"))
         contract = build_checkpoint_contract(config, "opaque")
-        assert tuple(contract["snapshot_stages"]) == FORMAL_SNAPSHOT_STAGES
+        assert tuple(contract["snapshot_stages"]) == FORMAL_C2_LOCUS_CONTRACT[
+            binding["c2_locus"]
+        ]["snapshot_stages"]
         assert contract["physical_experiment_selection_authority"] == "participant"
 
 
@@ -417,7 +547,7 @@ def test_formal_cell_store_is_write_once_and_missing_only_resumable(
     before = store.audit()
     assert before["terminal_count"] == 0
     assert before["infrastructure_attempt_count"] == 1
-    assert len(store.pending_cells(resume=True)) == 75
+    assert len(store.pending_cells(resume=True)) == 135
 
     store.write_terminal(
         first_key,
@@ -435,7 +565,7 @@ def test_formal_cell_store_is_write_once_and_missing_only_resumable(
     with pytest.raises(DuplicateFormalCellError):
         store.pending_cells(resume=False)
     pending = store.pending_cells(resume=True)
-    assert len(pending) == 74
+    assert len(pending) == 134
     assert all(cell["cell_key_sha256"] != first_key for cell in pending)
     assert store.load_terminal(first_key)["result"]["exact_replay"] is True
     after = store.audit()
@@ -468,7 +598,7 @@ def test_formal_cell_store_preserves_right_censored_and_failed_cells(
         "right_censored": 1,
     }
     assert audit["terminal_count"] == 2
-    assert len(audit["missing_cell_key_sha256"]) == 73
+    assert len(audit["missing_cell_key_sha256"]) == 133
 
 
 def test_formal_cell_store_enforces_two_launch_provider_attempt_cap(
@@ -573,19 +703,19 @@ def test_manifest_executor_terminalizes_all_cells_without_arm_replacement(
         formal_cost_contract=cost_contract,
     )
     assert report["status"] == "all_cells_terminal"
-    assert report["terminal_count"] == 75
+    assert report["terminal_count"] == 135
     assert report["state_counts"] == {
-        "completed": 25,
-        "failed": 25,
-        "right_censored": 25,
+        "completed": 45,
+        "failed": 45,
+        "right_censored": 45,
     }
-    assert len(_FakeFormalCellProcess.launched_keys) == 75
-    assert len(set(_FakeFormalCellProcess.launched_keys)) == 75
+    assert len(_FakeFormalCellProcess.launched_keys) == 135
+    assert len(set(_FakeFormalCellProcess.launched_keys)) == 135
     cost_ledger = json.loads(
         (output / "formal_cost_ledger.json").read_text(encoding="utf-8")
     )
-    assert cost_ledger["provider_attempt_count"] == 75
-    assert cost_ledger["reserved_cost_usd"] == 7.74144
+    assert cost_ledger["provider_attempt_count"] == 135
+    assert cost_ledger["reserved_cost_usd"] == 11.18208
     assert cost_ledger["within_ceiling"] is True
     assert report["formal_cost_ledger_sha256"] == cost_ledger[
         "formal_cost_ledger_sha256"
@@ -653,9 +783,9 @@ def test_manifest_executor_never_replaces_unfinalized_partial_trajectory(
         formal_cost_contract=cost_contract,
     )
     assert report["status"] == "all_cells_terminal"
-    assert report["terminal_count"] == 75
+    assert report["terminal_count"] == 135
     assert report["infrastructure_failure_count_this_attempt"] == 0
-    assert report["state_counts"]["right_censored"] == 26
+    assert report["state_counts"]["right_censored"] == 46
     assert _FakeFormalCellProcess.launched_keys.count(partial_key) == 1
     receipt = json.loads(
         (output / "store" / "terminal_receipts" / f"{partial_key}.json").read_text(
@@ -698,7 +828,7 @@ def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
     )
     assert first["terminal_count"] == 2
     assert first["infrastructure_failure_count_this_attempt"] == 1
-    assert first["missing_cell_count"] == 73
+    assert first["missing_cell_count"] == 133
     second = formal_runner.execute_manifest(
         manifest=manifest,
         manifest_path=manifest_path,
@@ -709,10 +839,10 @@ def test_manifest_executor_records_process_spawn_failure_and_resumes_once(
         formal_cost_contract=cost_contract,
     )
     assert second["status"] == "all_cells_terminal"
-    assert second["terminal_count"] == 75
+    assert second["terminal_count"] == 135
     assert _FakeFormalCellProcess.launched_keys.count(failed_key) == 2
     audit = json.loads((output / "store_audit.json").read_text(encoding="utf-8"))
-    assert audit["provider_attempt_count"] == 76
+    assert audit["provider_attempt_count"] == 136
     assert audit["provider_attempt_counts_by_cell_key_sha256"][failed_key] == 2
 
 
@@ -742,7 +872,7 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
     )
     assert first["status"] == "infrastructure_incomplete_missing_only_resume_required"
     assert first["terminal_count"] == 2
-    assert first["missing_cell_count"] == 73
+    assert first["missing_cell_count"] == 133
     assert len(_FakeFormalCellProcess.launched_keys) == 3
 
     second = formal_runner.execute_manifest(
@@ -755,8 +885,8 @@ def test_manifest_executor_resumes_only_missing_cells_after_triplet_failure(
         formal_cost_contract=cost_contract,
     )
     assert second["status"] == "all_cells_terminal"
-    assert second["terminal_count"] == 75
-    assert len(_FakeFormalCellProcess.launched_keys) == 76
+    assert second["terminal_count"] == 135
+    assert len(_FakeFormalCellProcess.launched_keys) == 136
     assert _FakeFormalCellProcess.launched_keys.count(manifest["cells"][0]["cell_key_sha256"]) == 1
     assert _FakeFormalCellProcess.launched_keys.count(manifest["cells"][1]["cell_key_sha256"]) == 1
     assert _FakeFormalCellProcess.launched_keys.count(failed_key) == 2

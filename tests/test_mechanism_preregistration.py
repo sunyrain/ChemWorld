@@ -2,7 +2,10 @@ from __future__ import annotations
 
 import copy
 import json
+import runpy
 from pathlib import Path
+
+import pytest
 
 from chemworld.eval.mechanism_adaptation import (
     load_mechanism_adaptation_protocol,
@@ -100,3 +103,22 @@ def test_rc28_preregistration_rejects_threshold_drift() -> None:
     assert errors == [
         "preregistration manifest is stale or differs from its bound inputs"
     ]
+
+
+def test_preregistration_source_binding_rejects_missing_bound_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    runner = runpy.run_path(
+        ROOT / "scripts/build_mechanism_adaptation_preregistration.py",
+        run_name="mechanism_preregistration_missing_path",
+    )
+    plan = load_json_object(PLAN_PATH)
+    changed = copy.deepcopy(plan)
+    changed["diagnostic_relation_graph"]["report"] = "missing-report.json"
+    errors = runner["_source_commit_binding_errors"](
+        "0" * 40,
+        protocol_path=PROTOCOL_PATH,
+        plan_path=PLAN_PATH,
+        plan=changed,
+    )
+    assert errors

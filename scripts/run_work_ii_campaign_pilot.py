@@ -23,6 +23,7 @@ from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
+    effective_blind_evaluator_contract,
     validate_blind_evaluation_plan,
 )
 from chemworld.eval.work_ii_cost import validate_qualification_cost_ledger
@@ -986,10 +987,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             row["formal_result"] = True
             row["formal_preflight_sha256"] = formal_manifest["preflight_sha256"]
             if row["completed"]:
+                blind_contract = effective_blind_evaluator_contract(
+                    formal_cell,
+                    formal_manifest["blind_evaluator_contract"],
+                )
                 plan = build_blind_evaluation_plan(
                     formal_cell,
                     row,
-                    formal_manifest["blind_evaluator_contract"],
+                    blind_contract,
                 )
                 plan_errors = validate_blind_evaluation_plan(plan)
                 if plan_errors:
@@ -1007,7 +1012,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             else:
                 row["blind_evaluation_plan"] = {
                     "status": "not_materialized_for_noncompleted_cell",
-                    "scheduled_execution_count": 6,
+                    "scheduled_execution_count": formal_cell[
+                        "blind_validation_execution_count"
+                    ],
                     "executed_count": 0,
                     "denominator_retained": True,
                 }
