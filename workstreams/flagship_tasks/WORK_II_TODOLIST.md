@@ -488,6 +488,10 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   最大真实 yield 效应为 `0.36470`，但 stable-vs-deactivating 最大 yield gap 仅 `0.00620`，9 个高温比较均未达到
   冻结 tradeoff gate；归因为 fresh-batch 设计遮蔽、endpoint compression、机制可辨识性与参数校准不足，继续拒绝
   该 A-S 候选且不降低阈值。
+- [x] **W2-36** reaction-to-distillation additional-rollback A-S seed-0 Q0 已完成：`18/18` completed、
+  `18/18` exact replay、0 physical/platform/unsafe；原生可逆反应保留且仅新增一条 `0.0005 s^-1` rollback
+  path。最大 yield/conversion gap 为 `0.02324 < 0.05`，最长减最短时长的平均 accumulation gap 为
+  `0.01505 < 0.03`，科学拒绝且不扩展。
 
 ## 12. 不可违反的规则
 
