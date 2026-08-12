@@ -71,6 +71,20 @@ D1 admission 现在还要求 action layer 可解释且未替换 participant reco
 confounded D1 与 electrochemical incomplete D1 均不能误入正式矩阵。严格 A-S five-world runner、validator、
 12-experiment D1 生成器与实验 note 已完成但尚未执行；发布测试 roster 现为 `29` files / `225` tests。
 
+2026-08-12 development qualification 更新：两项 A-P matched-prior Q2 已在新 development execution mode
+从头完成，reaction-safety 与 electrochemical 均为 `605/605` classified、`5/5` worlds 通过且 0 platform
+failures；两项仅生成未授权执行的 D1 静态配置，不能升级为 release evidence。A-E prior-distinguishability
+qualification 已完成 `300/300` executions 与 exact replay，0 physical/platform failures，但仅 `14/50` regions、
+`5/25` task-worlds、`0/5` tasks 通过，因此原 A-E block 科学拒绝。诊断同时发现现有三指标平均会稀释仅由一个
+注册指标承载的强可观测反差、paired-noise 坐标会使左右 recipe 的噪声近乎完全抵消、8-round reachability
+只证明 oracle recipe 数量可容纳而未证明盲策略可达；该结果保留，不原样重跑、不放宽阈值，另写 v0.2 新问题。
+
+严格 A-S 的旧 partition load-by-phase-volume Q0 保留科学拒绝。新的 nominal-pair partition Q0 已在执行前
+冻结为完整 `4 x 4` categorical solvent-by-extractant 表，并完成 `32/32` primary 与 `32/32` exact replay，
+0 physical/platform/unsafe failures。Final-assay 与 HPLC 的公开 allocation log-ratio slopes 分别为 `1.5224`
+和 `1.4895`，均越过冻结的 `abs(slope - 1) >= 0.20` 门；4 个 product-allocation channels 满足至少
+`8/16` pairs 的效应门。该 Q0 只授权进入不变的 five-world provider-free qualification，不授权 D1/C2。
+
 论文作者顺序固定为 **Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li, Xiaonan Wang**。
 Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为通讯作者，通讯邮箱为
 `wangxiaonan@tsinghua.edu.cn`。稿件 front matter 是作者信息的唯一当前入口，后续构建不得改变顺序、共同一作
@@ -502,7 +516,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-25 | REOPENED | 8-experiment A-E topology 已冻结；新版 metric-vector/SNR/two-region/8-round qualification 尚未执行，legacy scalar audit 不再构成 formal admission |
 | W2-26 | NOT READY/BLOCKED | 8/10/12 calibration harness 已实现；A-P/A-S 代表配置尚未终选并 hash 冻结，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
-| W2-37 | READY TO EXECUTE/BLOCKED | 严格 A-S 已否决旧 equilibrium 双轴方案；当前冻结候选为 partition constitutive power 与 reaction-to-crystallization reversible topology。两个 seed-0 Q0 runner/validator 与 five-world 成对基线/改律 Q1/Q2 四件套均已实现并通过定向测试；每 task-world 固定 512 paired coordinates、两条真实可执行律，完整分母为 10,240 primary + 10,240 exact replay。尚须在最终干净提交上先跑两个 Q0，再执行完整 qualification；未生成 D1、未启动 provider。 |
+| W2-37 | IN PROGRESS | crystallization reversible-topology 与新 nominal-pair partition constitutive-power seed-0 Q0 均已通过；旧 equilibrium load/volume partition Q0 保留科学拒绝。Five-world 成对基线/改律 Q1/Q2 runner 与 validator 已实现；正在核对新 categorical partition Q0 与冻结的 `10,240` primary + `10,240` exact replay 完整 qualification 语义后启动。未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
@@ -519,8 +533,9 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   `18/18` exact replay、0 physical/platform/unsafe；原生可逆反应保留且仅新增一条 `0.0005 s^-1` rollback
   path。最大 yield/conversion gap 为 `0.02324 < 0.05`，最长减最短时长的平均 accumulation gap 为
   `0.01505 < 0.03`，科学拒绝且不扩展。
-- [ ] **W2-37** 在最终干净源码提交上分别运行 partition 与 crystallization seed-0 Q0；仅当两者按冻结门槛
-  通过，才执行已经实现并冻结的严格 five-world A-S paired-law qualification。该 block 固定为 2 candidates ×
+- [ ] **W2-37** crystallization reversible-topology 与新 nominal-pair partition constitutive-power seed-0 Q0
+  均已按各自事前冻结门槛通过；旧 load/volume partition Q0 的科学拒绝保持不变。完成 categorical partition
+  与 strict runner 的语义一致性复核后，执行已经实现的 five-world A-S paired-law qualification。该 block 固定为 2 candidates ×
   5 worlds × 512 coordinates × 2 laws = `10,240` primary，并逐条做 `10,240` exact replay；Q2 每 task-world
   以 coordinate-only 规则盲选 16 个 held-out queries，直接比较注册可执行律。不得恢复 equilibrium load/volume
   共线设计，不得使用 generic quadratic surrogate，也不得把 Q0 当作正式 admission。

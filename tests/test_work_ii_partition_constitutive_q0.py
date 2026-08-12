@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import math
 import sys
 from copy import deepcopy
 from pathlib import Path
@@ -24,19 +25,28 @@ from chemworld.eval.work_ii_partition_constitutive_q0 import (
     INSTRUMENTS,
     LAW_IDS,
     METRICS,
+    NOMINAL_PAIR_QUALIFICATION_VERSION,
+    NOMINAL_PAIR_SUMMARY_VERSION,
+    NOMINAL_PAIR_TASK_REPORT_VERSION,
     POWER_RESPONSE_EXPONENT,
     QUALIFICATION_VERSION,
     SUMMARY_VERSION,
     TASK_ID,
     TASK_REPORT_VERSION,
     analyze,
+    analyze_nominal_pairs,
     constitutive_intervention,
     effect_gate,
     frozen_action_plan,
+    frozen_nominal_pair_action_plan,
     noise_coordinate,
+    nominal_pair_noise_coordinate,
     registered_cells,
+    registered_nominal_pair_cells,
     summary_sha256,
     task_report_sha256,
+    validate_nominal_pair_summary,
+    validate_nominal_pair_task_report,
     validate_summary,
     validate_task_report,
 )
@@ -113,6 +123,100 @@ def _rows() -> list[dict[str, object]]:
                 }
             )
     return rows
+
+
+def _nominal_pair_rows() -> list[dict[str, object]]:
+    audit = constitutive_audit()
+    nominal_coefficients = (
+        (1.20, 3.40, 2.00, 3.80),
+        (2.80, 1.50, 3.60, 2.20),
+        (3.20, 2.60, 1.80, 3.50),
+        (2.40, 3.30, 3.00, 1.60),
+    )
+    rows = []
+    for cell in registered_nominal_pair_cells():
+        coefficient = 1.35 * nominal_coefficients[int(cell["solvent"])][
+            int(cell["extractant"])
+        ]
+        for law_id in LAW_IDS:
+            exponent = 1.0 if law_id == LAW_IDS[0] else 1.75
+            distribution = coefficient**exponent
+            organic = distribution / (1.0 + distribution)
+            measurements = {
+                instrument: {
+                    "product_in_organic": organic,
+                    "product_in_aqueous": 1.0 - organic,
+                    "phase_ratio": 0.55,
+                }
+                for instrument in INSTRUMENTS
+            }
+            rows.append(
+                {
+                    **cell,
+                    "task_id": TASK_ID,
+                    "world_seed": 0,
+                    "law_id": law_id,
+                    "status": "completed",
+                    "safe": True,
+                    "measurements": measurements,
+                    "observed_masks": {
+                        instrument: dict.fromkeys(METRICS, True)
+                        for instrument in INSTRUMENTS
+                    },
+                    "action_plan_sha256": canonical_json_sha256(
+                        frozen_nominal_pair_action_plan(cell)
+                    ),
+                    "observation_coordinate_sha256": {
+                        instrument: canonical_json_sha256(
+                            nominal_pair_noise_coordinate(
+                                str(cell["cell_id"]), instrument
+                            ).to_audit_dict()
+                        )
+                        for instrument in INSTRUMENTS
+                    },
+                    "noise_key_sha256": {
+                        instrument: nominal_pair_noise_coordinate(
+                            str(cell["cell_id"]), instrument
+                        ).key_sha256
+                        for instrument in INSTRUMENTS
+                    },
+                    "constitutive_intervention_hash": (
+                        None
+                        if law_id == LAW_IDS[0]
+                        else audit["power_response_intervention_hash"]
+                    ),
+                    "task_contract_hash": audit["baseline_public_task_contract_hash"],
+                    "mechanism_hash": audit["baseline_mechanism_hash"],
+                    "exact_replay": True,
+                    "participant_visible_leakage_matches": [],
+                    "participant_visible_payload": {"measurements": measurements},
+                }
+            )
+    return rows
+
+
+def _nominal_pair_task_report() -> dict[str, object]:
+    rows = _nominal_pair_rows()
+    audit = _audit()
+    report: dict[str, object] = {
+        "schema_version": NOMINAL_PAIR_TASK_REPORT_VERSION,
+        "qualification_schema_version": NOMINAL_PAIR_QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "participant_session_count": 0,
+        "execution_context": _development_context(),
+        "task_id": TASK_ID,
+        "world_seed": 0,
+        "frozen_exponents": {
+            LAW_IDS[0]: BASELINE_EXPONENT,
+            LAW_IDS[1]: POWER_RESPONSE_EXPONENT,
+        },
+        "constitutive_audit": audit,
+        "rows": rows,
+        "analysis": analyze_nominal_pairs(rows, audit),
+    }
+    report["report_sha256"] = task_report_sha256(report)
+    return report
 
 
 def _task_report() -> dict[str, object]:
@@ -285,6 +389,119 @@ def test_analysis_rejects_exponent_drift_and_incomplete_execution() -> None:
     result = analyze(incomplete, _audit())
     assert result["passed"] is False
     assert "all_executions_completed" in result["failures"]
+
+
+def test_nominal_pair_design_resolves_public_log_ratio_slope() -> None:
+    cells = registered_nominal_pair_cells()
+    assert len(cells) == 16
+    assert {(cell["solvent"], cell["extractant"]) for cell in cells} == {
+        (solvent, extractant) for solvent in range(4) for extractant in range(4)
+    }
+    result = analyze_nominal_pairs(_nominal_pair_rows(), _audit())
+    assert result["passed"] is True
+    assert result["checks"]["solvent_identity_axis_observable"] is True
+    assert result["checks"]["extractant_identity_axis_observable"] is True
+    assert (
+        result["checks"]["at_least_two_product_channels_support_eight_pairs"]
+        is True
+    )
+    assert result["checks"]["public_log_ratio_slope_signature_resolved"] is True
+    assert math.isclose(
+        result["slope_reports"]["final_assay"]["slope"],
+        1.75,
+        rel_tol=0.0,
+        abs_tol=1.0e-12,
+    )
+    assert result["denominators"] == {
+        "planned": 32,
+        "attempted": 32,
+        "completed": 32,
+        "exact_replay": 32,
+        "physical_failures": 0,
+        "platform_failures": 0,
+        "unsafe_completed": 0,
+    }
+
+
+def test_nominal_pair_analysis_rejects_uniform_offset_and_unpaired_noise() -> None:
+    uniform = _nominal_pair_rows()
+    for row in uniform:
+        if row["law_id"] == LAW_IDS[1]:
+            paired = next(
+                candidate
+                for candidate in uniform
+                if candidate["cell_id"] == row["cell_id"]
+                and candidate["law_id"] == LAW_IDS[0]
+            )
+            for instrument in INSTRUMENTS:
+                baseline = paired["measurements"][instrument]
+                baseline_log_ratio = math.log(
+                    baseline["product_in_organic"]
+                    / baseline["product_in_aqueous"]
+                )
+                shifted_organic = 1.0 / (
+                    1.0 + math.exp(-(baseline_log_ratio + 0.5))
+                )
+                row["measurements"][instrument] = {
+                    **baseline,
+                    "product_in_organic": shifted_organic,
+                    "product_in_aqueous": 1.0 - shifted_organic,
+                }
+    result = analyze_nominal_pairs(uniform, _audit())
+    assert result["passed"] is False
+    assert "public_log_ratio_slope_signature_resolved" in result["failures"]
+
+    unpaired = _nominal_pair_rows()
+    unpaired[0]["noise_key_sha256"]["hplc"] = "not-paired"
+    result = analyze_nominal_pairs(unpaired, _audit())
+    assert result["passed"] is False
+    assert "paired_hplc_noise" in result["failures"]
+
+
+def test_nominal_pair_validators_bind_raw_evidence(tmp_path: Path) -> None:
+    report = _nominal_pair_task_report()
+    report_path = tmp_path / "raw" / "task-report.json"
+    report_path.parent.mkdir()
+    report_path.write_text(json.dumps(report, sort_keys=True), encoding="utf-8")
+    analysis = report["analysis"]
+    assert isinstance(analysis, dict)
+    summary: dict[str, object] = {
+        "schema_version": NOMINAL_PAIR_SUMMARY_VERSION,
+        "qualification_schema_version": NOMINAL_PAIR_QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "participant_session_count": 0,
+        "execution_context": _development_context(),
+        "task_id": TASK_ID,
+        "world_seed": 0,
+        "coverage": {
+            "law_ids": list(LAW_IDS),
+            "grid_axes": {"solvent": list(range(4)), "extractant": list(range(4))},
+            "fixed_coordinates": {
+                "aqueous_volume_L": 0.015,
+                "extractant_volume_L": 0.019,
+                "solvent_volume_L": 0.020,
+            },
+            "grid_cell_count": 16,
+            "planned_execution_count": 32,
+            "attempted_execution_count": 32,
+        },
+        "denominators": analysis["denominators"],
+        "analysis": analysis,
+        "platform_stop_triggered": False,
+        "five_world_provider_free_expansion_authorized": True,
+        "participant_d1_authorized": False,
+        "provider_execution_authorized": False,
+        "decision": "proceed_to_unchanged_five_world_provider_free_qualification",
+        "raw_binding": {
+            "path": report_path.relative_to(tmp_path).as_posix(),
+            "sha256": file_sha256(report_path),
+            "report_sha256": report["report_sha256"],
+        },
+    }
+    summary["summary_sha256"] = summary_sha256(summary)
+    assert validate_nominal_pair_task_report(report) == []
+    assert validate_nominal_pair_summary(summary, root=tmp_path) == []
 
 
 def test_task_report_and_summary_validators_bind_raw_evidence(

@@ -26,6 +26,13 @@ from chemworld.eval.work_ii_partition_constitutive_q0 import (
     INSTRUMENTS,
     LAW_IDS,
     METRICS,
+    NOMINAL_IDENTITIES,
+    NOMINAL_PAIR_AQUEOUS_VOLUME_L,
+    NOMINAL_PAIR_EXTRACTANT_VOLUME_L,
+    NOMINAL_PAIR_QUALIFICATION_VERSION,
+    NOMINAL_PAIR_SOLVENT_VOLUME_L,
+    NOMINAL_PAIR_SUMMARY_VERSION,
+    NOMINAL_PAIR_TASK_REPORT_VERSION,
     POWER_RESPONSE_EXPONENT,
     QUALIFICATION_VERSION,
     SUMMARY_VERSION,
@@ -33,13 +40,20 @@ from chemworld.eval.work_ii_partition_constitutive_q0 import (
     TASK_REPORT_VERSION,
     WORLD_SEED,
     analyze,
+    analyze_nominal_pairs,
     constitutive_intervention,
     frozen_action_plan,
+    frozen_nominal_pair_action_plan,
     noise_coordinate,
+    nominal_pair_noise_coordinate,
+    nominal_pair_observation_binding,
     observation_binding,
     registered_cells,
+    registered_nominal_pair_cells,
     summary_sha256,
     task_report_sha256,
+    validate_nominal_pair_summary,
+    validate_nominal_pair_task_report,
     validate_summary,
     validate_task_report,
 )
@@ -51,16 +65,23 @@ from chemworld.world.scoring import PARTITION_S0_EXTRACTION_EFFICIENCY_V3
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = (
-    ROOT / "runs/development/work-ii-partition-constitutive-q0-seed0-20260812"
+    ROOT / "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812"
 )
 DEFAULT_SUMMARY = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    / "work-ii-partition-constitutive-q0-seed0-20260812.json"
+    / "work-ii-partition-nominal-pair-q0-seed0-20260812.json"
 )
 TOTAL_EXECUTIONS = len(registered_cells()) * len(LAW_IDS)
+NOMINAL_PAIR_TOTAL_EXECUTIONS = len(registered_nominal_pair_cells()) * len(LAW_IDS)
+
+
 def compile_actions(cell: Mapping[str, Any]) -> list[dict[str, Any]]:
     return frozen_action_plan(cell)
+
+
+def compile_nominal_pair_actions(cell: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return frozen_nominal_pair_action_plan(cell)
 
 
 def constitutive_audit() -> dict[str, Any]:
@@ -170,13 +191,27 @@ def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
 
 
 def execute(
-    *, cell: Mapping[str, Any], law_id: str, output_root: Path
+    *,
+    cell: Mapping[str, Any],
+    law_id: str,
+    output_root: Path,
+    nominal_pair: bool = False,
 ) -> dict[str, Any]:
-    actions = compile_actions(cell)
+    actions = (
+        compile_nominal_pair_actions(cell) if nominal_pair else compile_actions(cell)
+    )
     action_hash = canonical_json_sha256(actions)
-    observation_seed, namespace = observation_binding(str(cell["cell_id"]))
+    observation_seed, namespace = (
+        nominal_pair_observation_binding(str(cell["cell_id"]))
+        if nominal_pair
+        else observation_binding(str(cell["cell_id"]))
+    )
     noise_coordinates = {
-        instrument: noise_coordinate(str(cell["cell_id"]), instrument)
+        instrument: (
+            nominal_pair_noise_coordinate(str(cell["cell_id"]), instrument)
+            if nominal_pair
+            else noise_coordinate(str(cell["cell_id"]), instrument)
+        )
         for instrument in INSTRUMENTS
     }
     interventions = [] if law_id == LAW_IDS[0] else [constitutive_intervention()]
@@ -438,6 +473,122 @@ def _write_outputs(
     return summary
 
 
+def _write_nominal_pair_outputs(
+    *,
+    rows: list[dict[str, Any]],
+    audit: dict[str, Any],
+    output_root: Path,
+    summary_path: Path,
+    started: float,
+    execution_context: WorkIIExecutionContext,
+) -> dict[str, Any]:
+    baseline_hashes = {
+        row["constitutive_intervention_hash"]
+        for row in rows
+        if row["law_id"] == LAW_IDS[0]
+    }
+    power_hashes = {
+        row["constitutive_intervention_hash"]
+        for row in rows
+        if row["law_id"] == LAW_IDS[1]
+    }
+    audit["execution_constitutive_binding_matches"] = (
+        len(rows) == NOMINAL_PAIR_TOTAL_EXECUTIONS
+        and baseline_hashes == {None}
+        and power_hashes == {audit["power_response_intervention_hash"]}
+    )
+    analysis = analyze_nominal_pairs(rows, audit)
+    platform_stopped = any(row["status"] == "platform_failure" for row in rows)
+    decision = (
+        "platform_defect_stop_and_rerun_whole_block_after_fix"
+        if platform_stopped
+        else "proceed_to_unchanged_five_world_provider_free_qualification"
+        if analysis["passed"]
+        else "retain_q0_scientific_rejection_and_do_not_expand"
+    )
+    task_report: dict[str, Any] = {
+        "schema_version": NOMINAL_PAIR_TASK_REPORT_VERSION,
+        "qualification_schema_version": NOMINAL_PAIR_QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "participant_session_count": 0,
+        "execution_context": build_execution_envelope(execution_context),
+        "task_id": TASK_ID,
+        "world_seed": WORLD_SEED,
+        "frozen_exponents": {
+            LAW_IDS[0]: BASELINE_EXPONENT,
+            LAW_IDS[1]: POWER_RESPONSE_EXPONENT,
+        },
+        "constitutive_audit": audit,
+        "rows": rows,
+        "analysis": analysis,
+    }
+    task_report["report_sha256"] = task_report_sha256(task_report)
+    report_path = output_root / "task-report.json"
+    write_json_atomic(report_path, task_report)
+    report_errors = validate_nominal_pair_task_report(
+        task_report,
+        root=ROOT,
+        expected_execution_context=execution_context,
+    )
+    if report_errors:
+        raise RuntimeError(
+            "invalid partition nominal-pair Q0 task report: "
+            + "; ".join(report_errors)
+        )
+    summary: dict[str, Any] = {
+        "schema_version": NOMINAL_PAIR_SUMMARY_VERSION,
+        "qualification_schema_version": NOMINAL_PAIR_QUALIFICATION_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "participant_session_count": 0,
+        "execution_context": build_execution_envelope(execution_context),
+        "task_id": TASK_ID,
+        "world_seed": WORLD_SEED,
+        "coverage": {
+            "law_ids": list(LAW_IDS),
+            "grid_axes": {
+                "solvent": list(NOMINAL_IDENTITIES),
+                "extractant": list(NOMINAL_IDENTITIES),
+            },
+            "fixed_coordinates": {
+                "aqueous_volume_L": NOMINAL_PAIR_AQUEOUS_VOLUME_L,
+                "extractant_volume_L": NOMINAL_PAIR_EXTRACTANT_VOLUME_L,
+                "solvent_volume_L": NOMINAL_PAIR_SOLVENT_VOLUME_L,
+            },
+            "grid_cell_count": len(registered_nominal_pair_cells()),
+            "planned_execution_count": NOMINAL_PAIR_TOTAL_EXECUTIONS,
+            "attempted_execution_count": len(rows),
+        },
+        "denominators": analysis["denominators"],
+        "analysis": analysis,
+        "platform_stop_triggered": platform_stopped,
+        "five_world_provider_free_expansion_authorized": analysis["passed"],
+        "participant_d1_authorized": False,
+        "provider_execution_authorized": False,
+        "decision": decision,
+        "raw_binding": {
+            "path": report_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(report_path),
+            "report_sha256": task_report["report_sha256"],
+        },
+        "elapsed_s": round(perf_counter() - started, 3),
+    }
+    summary["summary_sha256"] = summary_sha256(summary)
+    write_json_atomic(summary_path, summary)
+    summary_errors = validate_nominal_pair_summary(
+        summary,
+        root=ROOT,
+        expected_execution_context=execution_context,
+    )
+    if summary_errors:
+        raise RuntimeError(
+            "invalid partition nominal-pair Q0 summary: "
+            + "; ".join(summary_errors)
+        )
+    return summary
+
+
 def run(args: argparse.Namespace) -> dict[str, Any]:
     execution_context = prepare_execution_context(
         ROOT,
@@ -450,9 +601,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     started = perf_counter()
     audit = constitutive_audit()
     rows: list[dict[str, Any]] = []
-    for cell in registered_cells():
+    for cell in registered_nominal_pair_cells():
         for law_id in LAW_IDS:
-            row = execute(cell=cell, law_id=law_id, output_root=args.output_root)
+            row = execute(
+                cell=cell,
+                law_id=law_id,
+                output_root=args.output_root,
+                nominal_pair=True,
+            )
             rows.append(row)
             elapsed = perf_counter() - started
             rate = len(rows) / elapsed if elapsed else 0.0
@@ -461,9 +617,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     {
                         "stage": "paired_execution",
                         "completed": len(rows),
-                        "total": TOTAL_EXECUTIONS,
+                        "total": NOMINAL_PAIR_TOTAL_EXECUTIONS,
                         "throughput_executions_per_minute": round(rate * 60.0, 2),
-                        "eta_s": round((TOTAL_EXECUTIONS - len(rows)) / rate, 1)
+                        "eta_s": round(
+                            (NOMINAL_PAIR_TOTAL_EXECUTIONS - len(rows)) / rate, 1
+                        )
                         if rate
                         else None,
                         "failure_count": sum(item["status"] != "completed" for item in rows),
@@ -476,7 +634,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 flush=True,
             )
             if row["status"] == "platform_failure":
-                return _write_outputs(
+                return _write_nominal_pair_outputs(
                     rows=rows,
                     audit=audit,
                     output_root=args.output_root,
@@ -484,7 +642,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     started=started,
                     execution_context=execution_context,
                 )
-    return _write_outputs(
+    return _write_nominal_pair_outputs(
         rows=rows,
         audit=audit,
         output_root=args.output_root,

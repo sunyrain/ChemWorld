@@ -56,7 +56,7 @@ from chemworld.eval.work_ii_execution_mode import (
 )
 from chemworld.eval.work_ii_formal import build_checkpoint_contract
 from chemworld.eval.work_ii_partition_constitutive_q0 import (
-    validate_summary as validate_partition_q0,
+    validate_nominal_pair_summary as validate_partition_q0,
 )
 from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 from chemworld.tasks import get_task
@@ -75,7 +75,7 @@ DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_as_paired_law_q2_package_v0.
 DEFAULT_PARTITION_Q0 = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-partition-constitutive-q0-seed0-20260812.json"
+    "work-ii-partition-nominal-pair-q0-seed0-20260812.json"
 )
 DEFAULT_CRYSTALLIZATION_Q0 = (
     ROOT
@@ -83,7 +83,8 @@ DEFAULT_CRYSTALLIZATION_Q0 = (
     "work-ii-crystallization-reversible-topology-q0-seed0-20260812.json"
 )
 DEFAULT_DEVELOPMENT_PARTITION_Q0 = (
-    ROOT / "runs/development/work-ii-partition-constitutive-q0-seed0-20260812/summary.json"
+    ROOT
+    / "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812/summary.json"
 )
 DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0 = (
     ROOT
