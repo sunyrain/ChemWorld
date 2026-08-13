@@ -568,6 +568,22 @@ release freeze 后，才一次性重建 current-source Gate A 并在不再改设
 receipt replay/tamper 以及 method-failure/missing-only-resume 测试仍需要其 provider-free producer，待 staged runner
 提供等价 mock seam 后整组退役，不把 26 KB runner 复制进 fixture。
 
+### CD-46：退役 Work I v0.6 scope-stop 自证 producer — DONE
+
+`archive_work_i_v06_scope_stop.py` 是 W1-M04 在 2026-08-04 使用的一次性行政归档器：它把未跟踪 raw manifest
+中的 `7 completed / 1 right-censored / 152 pending`、三对完成身份与一对右删失身份写成已提交 JSON/Markdown
+receipt。任务和第一篇论文边界已归档；该 receipt 不在 current registry、evidence DAG、figure、ledger、latent
+contract、runner 或发布入口中，只有退役协调表与当日 coordinator acceptance 提到它。
+
+旧实现仍留在 current `scripts/`，专属测试则用 synthetic raw manifest 重建同一行政状态，并要求 receipt 自哈希、
+当前脚本 SHA 与 Markdown 逐字一致。它们没有继续保护科学执行语义，反而让历史 receipt 反向要求一次性 producer
+永久存在。现删除 22 KB producer 和 4 个专属自证测试，保留五份冻结设计输入、原始 JSON/Markdown scope-stop
+结果及其中不利/未完成状态；旧 `tracked_source_bindings` 原样保留为当时快照，不刷新 SHA。精确 producer 仍可从
+Git 恢复。与本批直接相关的 tracked-entrypoint、paper-scope、current-DAG 与状态边界测试 4/4 通过；较宽的
+Work I ledger/figure/current 组为 11/18 通过，7 项既存失败分别来自 composition 已标 stale、task-design SHA
+漂移、当前 manuscript 已重写而旧测试仍锁定旧标题/章节/六图文件名，以及 story-architecture 旧 hash。它们均不
+引用被删 producer；本批不刷新旧 SHA 或改稿换绿灯，转入下一批历史集成测试债审计。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -580,7 +596,7 @@ receipt replay/tamper 以及 method-failure/missing-only-resume 测试仍需要�
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | DONE | pytest `fast and current` 自动规则接近全套测试，每次聚焦测试默认扫描 71k 行 coverage，两份指南又要求每个小改动全包 mypy | 删除自动 marker 分类器；改为 6 个行为测试的显式 smoke；coverage 按需显式启用；mypy 常规按受影响模块运行、跨包或集成时全包一次 | smoke 覆盖 import/step、事务回滚、replay 篡改、task registry、resource ledger 与 packaged schema；5-test plain pytest 2.22 秒；明确 smoke/coverage/type-check 均不替代受影响面 acceptance |
-| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol、A-E prior v0.1、旧 power/resource audit、A-S/A-P/impact-audit、preregistration/graph 闭环、零消费者 dirty 别名测试及 campaign-resource 转发层自证入口，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
+| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol、A-E prior v0.1、旧 power/resource audit、A-S/A-P/impact-audit、preregistration/graph 闭环、零消费者兼容层测试及 Work I v0.6 scope-stop producer 自证测试，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | DOING | current status 同时散落于 registry、TODO、README 和报告 | 已将 W2-26 partial/provider-blocked 与 W2-37 terminal 状态收束至 Work II TODO，并链接唯一机器 summary；`configs/current.json` 只管理稳定 current/release artifact | 不再新增同步 checker；其余活跃实验也从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
