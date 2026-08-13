@@ -478,6 +478,20 @@ note 并追加 closeout，说明精确内容可从 Git 恢复且不得继续补�
 通过、失败、superseded attempts、provider certificates 与 current rc29 formal receipts 全部保留；本批没有
 重写 rc29、刷新 hash 或删除任何不利结果。
 
+### CD-39：删除 DeepSeek G2 development 的全仓 clean gate — DONE
+
+DeepSeek G2 parallel wrapper 执行的是 `development-exploratory-frozen` 描述性矩阵，输出始终写入
+`formal_result=false`、`confirmatory_claim_allowed=false`，并逐次记录 source commit、dirty 状态、精确 config
+file SHA、parallel runner SHA 以及只覆盖 `src/chemworld`、共享 G2 runner、parallel runner 和 config 的
+material-source tree SHA。共享 G2 runner 本身已经允许 development dirty tree；只有这个薄包装器额外用全仓
+任意脏改动阻断执行，因此测试、文档或其他 workstream 会在不改变上述 semantic inputs 时阻塞开发实验。
+
+现删除 wrapper-local clean gate，继续把 `worktree_dirty` 作为历史 provenance 写入 manifest，不将结果升级为
+release evidence。新增零 provider 测试证明 dirty source 能通过该冗余层，随后在缺 DeepSeek credential 时、
+输出目录创建前 fail closed。保留 config/runner/material-tree hashes、显式 `--allow-external-provider`、credential、
+不可覆盖输出、paired schedule、pre-action-only retry、全部失败、资源账本与 exact replay；未启动 provider，
+也未修改已完成 v0.6 结果或 A-E 活跃导入面。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

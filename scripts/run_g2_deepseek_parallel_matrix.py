@@ -376,8 +376,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0 if report["passed"] else 2
     if not args.allow_external_provider:
         raise RuntimeError("external execution requires --allow-external-provider")
-    if source["worktree_dirty"]:
-        raise RuntimeError("DeepSeek matrix requires a clean source worktree")
     runtime = _provider_runtime(protocol)
     env_key = str(runtime["provider_env_key"])
     if not os.environ.get(env_key, "").strip():

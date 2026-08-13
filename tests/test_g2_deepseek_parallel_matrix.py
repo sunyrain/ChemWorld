@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from scripts import run_g2_deepseek_parallel_matrix as campaign
 
 
@@ -36,6 +37,29 @@ def test_parallel_dry_run_qualifies_all_five_pairs() -> None:
     assert report["planned_physical_experiments"] == 60
     assert report["maximum_concurrent_pairs"] == 5
     assert len(report["pair_audits"]) == 5
+
+
+def test_dirty_development_source_is_recorded_but_not_a_launch_gate(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    source = campaign._source_manifest(campaign.DEFAULT_CONFIG)
+    source["worktree_dirty"] = True
+    monkeypatch.setattr(campaign, "_source_manifest", lambda _path: source)
+    monkeypatch.delenv("DEEPSEEK_API_KEY", raising=False)
+    output = tmp_path / "matrix"
+
+    with pytest.raises(RuntimeError, match="required provider environment variable"):
+        campaign.main(
+            [
+                "--allow-external-provider",
+                "--output-root",
+                str(output),
+            ]
+        )
+
+    assert source["worktree_dirty"] is True
+    assert not output.exists()
 
 
 def test_only_pre_action_provider_failure_can_be_retried(
