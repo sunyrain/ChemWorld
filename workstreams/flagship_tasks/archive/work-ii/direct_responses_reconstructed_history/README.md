@@ -33,3 +33,8 @@ produced:
 
 Git history remains the primary provenance record. The files here are intentionally not imported
 by the current Work II runner.
+
+The retired provider runners and their exclusive tests were removed from the working tree during
+the 2026-08-14 control-debt cleanup. Their exact source remains recoverable from Git commit
+`d9dbbc7a081c5a2abd56d7e4b8bb5b85d4c85949`. The preserved plans and reports document the legacy
+execution contract and observed development results; they do not provide a supported rerun entrypoint.

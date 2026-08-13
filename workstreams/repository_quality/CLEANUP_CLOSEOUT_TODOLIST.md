@@ -429,9 +429,27 @@ runner、plan、专属测试三个 path 在 qualification 后变化；到当前 
 `test_five_task_campaign.py` 只相互引用；`configs/current.json` 指向的是已完成 v0.1 summary 和 v0.1 run，不消费
 三者。仅删除入口 dirty gate 会留下下一层同样不可满足的 ancestry/path gate，不能恢复任何有效工作流。
 
-现已整组删除这 3 个执行孤岛文件，共 1,334 行。保留 current v0.1 summary、历史 run binding、seed-0 v0.1-v0.5
-qualification plans/runner/tests、v1.9 participant method config、exact replay/postrun audit 实现与 Git 历史；没有删除
-raw result 或把 v0.2 伪装为已完成。保留的 qualification 测试 12/12 与 Ruff 通过，非 archive 残留引用为 0。
+现已整组删除这 3 个执行孤岛文件，共 1,334 行。该批提交时仍保留 current v0.1 summary、历史 run binding、
+seed-0 v0.1-v0.5 qualification plans/runner/tests、v1.9 participant method config、exact replay/postrun audit 实现与
+Git 历史；没有删除 raw result 或把 v0.2 伪装为已完成。qualification 测试当时 12/12 与 Ruff 通过，非 archive
+残留引用为 0。随后 CD-36 在证明 current consumer 边界后进一步退役其中未晋升的 v0.2-v0.5 历史版本链；
+v0.1 hash-bound 输入仍保留。
+
+### CD-36：退役 Static S0 seed-0 qualification 历史版本链 — DONE
+
+现行证据管线只消费 v0.1 five-task campaign plan、v1.5 participant method config 与已完成的
+postqualification summary；其中 v0.1 campaign plan 仍按 path + SHA 绑定 v0.1 qualification plan，因此该
+不可变输入继续保留。v0.2-v0.5 qualification plans、v1.6-v1.9 seed-0 method configs、qualification runner 与
+专属测试没有 current registry、当前 runner 或证据生产者消费者，只组成未晋升的历史版本链。旧 runner 还同时
+承担协议构造、baseline execution、participant qualification、hash/source gate 与报告渲染，继续保留只会让其
+私有 `_participant_protocol` 被 archive runner 借用，形成一个看似可重放、实则 root/config 路径均已迁移的断链入口。
+
+现已删除上述 10 个 current-tree 孤岛文件，并同步退役 archive 中两个 Direct Responses 旧 runner 与两个专属
+测试；archive 保留原计划、方法配置、历史报告和 README，精确旧源码由 Git commit 恢复，不再伪装为受支持入口。
+保留 v0.1 qualification plan、current v0.1 campaign plan、v1.5 method、完成 summary、raw/history 与通用
+Static S0 replay/validator。现行 summary 的 schema、campaign-plan hash、method id、150-result 分母、3,900 次
+物理实验、526 次 provider calls、五任务集合、replay 与阈值失败任务均由 evidence pipeline 直接验证通过；
+archive 外残留引用为 0。该批共删除 14 个执行/测试/config 文件，避免为历史入口再复制一套协议构造权威。
 
 ## 4. 当前优先队列
 
