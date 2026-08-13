@@ -15,8 +15,8 @@ or legacy tools refer to them.
 
 The active repository-level engineering cleanup entry point is
 `workstreams/repository_quality/CLEANUP_CLOSEOUT_TODOLIST.md`. It does not authorize scientific
-experiments or release freeze. `MAIN_QUALITY_TODOLIST.md` and the repository-quality claim files are
-historical records from the previous quality-gate pass; do not create new claim files from them.
+experiments or release freeze. Superseded quality plans, audit snapshots, baselines, and claim files
+live in Git history; do not restore them as current gates or create new claim files from them.
 
 The former master plan, readiness/provenance/incident audits and related-work audit are legacy
 evidence inputs, not current execution plans. The machine-readable historical experiment accounting

@@ -22,9 +22,11 @@ requires explicit protocol and method inputs and is not an active experiment roa
 work follows the staged v0.3 protocol and must restore the current-source Gate A binding before Participant
 Gates B–E; the completed fixed-world S0 campaigns remain a separate evidence track.
 
-Use `python scripts/evidence_pipeline.py --refresh` to regenerate the current deterministic evidence in dependency
-order, and `python scripts/evidence_pipeline.py --check` to reject stale bindings without rewriting files. Do not run
-individual current-report generators and then update parent ledgers by hand.
+`scripts/evidence_pipeline.py` belongs to current-artifact maintenance and release freeze. Use `--refresh` only after
+the execution-relevant surface is stable and the relevant release/current-artifact update is authorized; use
+`--check` for that same integration boundary. Neither command is a prerequisite for ordinary feature development,
+focused tests, or labelled development experiments. Do not repair stale historical bindings after every edit, and
+do not run individual current-report generators before updating parent ledgers by hand.
 
 Mechanism adaptation v0.3 has one staged entry point plus a required design audit. The calibrated track guarantees
 an old-world reference opportunity and certifies relation coverage before scoring change attribution; static
