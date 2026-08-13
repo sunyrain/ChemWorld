@@ -1519,7 +1519,6 @@ print(json.dumps(completed), flush=True)
         encoding="utf-8",
     )
     monkeypatch.setattr(five_seed_runner, "RUNNER", fake_runner)
-    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
     monkeypatch.setattr(five_seed_runner, "git_source_commit", lambda _root: "test-commit")
     monkeypatch.setattr(
         five_seed_runner,
@@ -1575,7 +1574,6 @@ def test_five_seed_runner_requires_readiness_before_creating_output(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
     output = tmp_path / "must-not-exist"
     args = argparse.Namespace(
         config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",
@@ -1595,7 +1593,6 @@ def test_provider_runner_requires_release_manifest_before_creating_output(
     monkeypatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(five_seed_runner, "git_worktree_dirty", lambda _root: False)
     output = tmp_path / "must-not-exist"
     args = argparse.Namespace(
         config=ROOT / "configs/benchmark/work_ii_campaign_pilot.json",

@@ -20,7 +20,6 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     file_sha256,
     git_source_commit,
-    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.work_ii_ap_d1_development import (
@@ -349,8 +348,6 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     else:
         ap_parent_bindings = None
         ap_cost_budget = None
-        if git_worktree_dirty(ROOT):
-            raise RuntimeError("provider execution requires a clean committed worktree")
         if args.readiness_receipt is None:
             raise RuntimeError("provider execution requires a zero-provider readiness receipt")
         if getattr(args, "release_manifest", None) is None:

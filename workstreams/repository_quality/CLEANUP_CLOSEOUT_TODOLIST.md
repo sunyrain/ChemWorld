@@ -373,6 +373,17 @@ dirty/HEAD/clean 字段及 manifest 透传；authorization/manifest schema 均�
 contract、pricing provenance、75→150 attempt caps、currency ceiling、write-once store 与 resume/tamper 语义均保留。
 private execution 5/5、clean-release 文件授权后篡改拒绝与 Ruff 通过。
 
+### CD-31：删除 five-seed provider launcher 的第二个 clean-tree gate — DONE
+
+five-seed provider 入口原先先独立调用 `git_worktree_dirty`，随后立即调用 canonical
+`validate_release_d1_config`；后者已经通过 release manifest 校验 current clean state、exact HEAD、execution
+surface hash、config envelope 与 provider authorization。同一调用栈的前置 dirty probe 不增加不变量，只产生第二
+条错误路径和三处测试 mock。
+
+现已删除 launcher-local dirty gate 与 mock；执行开始/终态报告中的 `source_commit` 继续作为历史事实保留。
+release manifest/config、qualification evidence、zero-provider readiness、credential、三臂 schedule 与 pre-output
+ordering 均未削弱。缺 readiness、缺 manifest 与 development context 的聚焦入口测试 3/3、Ruff 通过。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
