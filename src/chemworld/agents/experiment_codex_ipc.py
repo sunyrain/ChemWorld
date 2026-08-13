@@ -29,6 +29,8 @@ DEFAULT_HISTORY_BYTE_LIMIT = 131_072
 DEFAULT_MAX_ARTIFACT_BYTES = 8_388_608
 ATOMIC_REPLACE_RETRY_LIMIT = 40
 ATOMIC_REPLACE_RETRY_INTERVAL_S = 0.025
+SESSION_RETIRE_RETRY_LIMIT = 20
+SESSION_RETIRE_RETRY_INTERVAL_S = 0.05
 
 
 class ExperimentCodexIPCError(RuntimeError):
@@ -496,8 +498,15 @@ class ExperimentCodexWorkspace:
                 raise ExperimentCodexIPCError(
                     "refusing to retire a session outside its protocol root"
                 ) from error
-            if path.exists():
-                shutil.rmtree(path)
+            for attempt in range(SESSION_RETIRE_RETRY_LIMIT):
+                try:
+                    if path.exists():
+                        shutil.rmtree(path)
+                    break
+                except OSError:
+                    if attempt + 1 == SESSION_RETIRE_RETRY_LIMIT:
+                        raise
+                    time.sleep(SESSION_RETIRE_RETRY_INTERVAL_S)
         active = (
             _read_json_object(self.active_session_path) if self.active_session_path.exists() else {}
         )

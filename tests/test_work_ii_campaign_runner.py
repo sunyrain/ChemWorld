@@ -4,6 +4,7 @@ import argparse
 import json
 from copy import deepcopy
 from pathlib import Path
+from typing import Any
 
 import pytest
 import scripts.run_work_ii_campaign_pilot as campaign_runner
@@ -1420,6 +1421,73 @@ def test_progress_files_survive_closed_stdout(monkeypatch, tmp_path: Path) -> No
     child_progress = tmp_path / "child.jsonl"
     campaign_runner._progress(child_progress, {"stage": "operation", "step": 1})
     assert json.loads(child_progress.read_text(encoding="utf-8"))["step"] == 1
+
+
+def test_cell_cleanup_failure_cannot_preempt_durable_summary(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cell_root = tmp_path / "cell"
+    temporary_root = tmp_path / "temporary"
+    cleanup_calls = 0
+
+    class FailingTemporaryDirectory:
+        name = str(temporary_root)
+
+        def __init__(self, *, prefix: str) -> None:
+            del prefix
+            temporary_root.mkdir()
+
+        def cleanup(self) -> None:
+            nonlocal cleanup_calls
+            cleanup_calls += 1
+            assert (cell_root / "summary.json").exists()
+            raise OSError(145, "directory not empty")
+
+    class FakeAgent:
+        def __init__(self, **kwargs: Any) -> None:
+            del kwargs
+
+        def provider_receipts(self) -> list[dict[str, Any]]:
+            return [{"status": "completed"}]
+
+        def method_resource_usage(self) -> dict[str, Any]:
+            return {}
+
+    config = _config()
+    monkeypatch.setattr(campaign_runner.tempfile, "TemporaryDirectory", FailingTemporaryDirectory)
+    monkeypatch.setattr(campaign_runner, "InteractiveCodexExperimentAgent", FakeAgent)
+    monkeypatch.setattr(campaign_runner, "run_agent", lambda **kwargs: [])
+    monkeypatch.setattr(
+        campaign_runner,
+        "_analyze",
+        lambda records, receipts, final_metric_ids: {
+            "complete_experiment_count": 0,
+            "right_censored_open_experiment": False,
+        },
+    )
+    monkeypatch.setattr(campaign_runner, "build_work_ii_execution_artifacts", lambda *a, **k: {})
+    monkeypatch.setattr(
+        campaign_runner,
+        "_qualification",
+        lambda **kwargs: {"passed": False, "failed_checks": ["complete_experiment_count"]},
+    )
+    monkeypatch.setattr(campaign_runner, "TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT", 2)
+    monkeypatch.setattr(campaign_runner.time, "sleep", lambda seconds: None)
+
+    row = campaign_runner._run_cell(
+        config=config,
+        world_seed=0,
+        arm="opaque",
+        cell_index=1,
+        total_cells=1,
+        cell_root=cell_root,
+        progress_path=tmp_path / "progress.jsonl",
+    )
+
+    assert cleanup_calls == 2
+    assert row["temporary_workspace_cleanup"]["status"] == "deferred"
+    assert json.loads((cell_root / "summary.json").read_text(encoding="utf-8")) == row
 
 
 def test_parent_failure_terminates_and_reaps_active_children() -> None:
