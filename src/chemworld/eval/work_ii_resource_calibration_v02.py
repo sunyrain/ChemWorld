@@ -40,7 +40,7 @@ SUMMARY_VERSION = "chemworld-work-ii-resource-calibration-summary-0.2"
 AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.2"
 READINESS_VERSION = "chemworld-work-ii-resource-calibration-readiness-0.2"
 RUNTIME_CONFIG_ROOT = Path(
-    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.4"
+    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.5"
 )
 RESOURCE_CALIBRATION_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 METHOD_RESOURCE_LIMIT_FIELDS = frozenset(
