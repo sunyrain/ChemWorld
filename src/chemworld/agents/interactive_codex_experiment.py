@@ -193,9 +193,7 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             str(call.get("result_sha256") or ""),
         )
 
-    def is_staged_begin_failure(
-        call: Mapping[str, Any], category: MCPToolFailureCategory
-    ) -> bool:
+    def is_staged_begin_failure(call: Mapping[str, Any], category: MCPToolFailureCategory) -> bool:
         argument_keys = call.get("argument_keys")
         return bool(
             category == "agent_invalid"
@@ -335,9 +333,7 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             ),
             "duplicate_failure_burst_window_ms": MCP_DUPLICATE_FAILURE_BURST_WINDOW_MS,
             "dependent_batch_cascade_window_ms": MCP_DEPENDENT_BATCH_CASCADE_WINDOW_MS,
-            "dependent_batch_cascade_failure_count": (
-                dependent_batch_cascade_failure_count
-            ),
+            "dependent_batch_cascade_failure_count": (dependent_batch_cascade_failure_count),
             "dependent_batch_cascade_group_count": dependent_batch_cascade_group_count,
             "maximum_dependent_batch_cascade_size": maximum_dependent_batch_cascade_size,
             "dependent_batch_cascades": dependent_batch_cascades,
@@ -613,8 +609,9 @@ _CAMPAIGN_SYSTEM_PROMPT = """You are the sole operation-level scientific agent i
 ChemWorld discovery campaign. One Codex process controls the full campaign across multiple fresh
 batches that share one fixed hidden world, one public prior condition, and one campaign resource
 ledger. Call material_information once. Before the first physical operation and at every required
-checkpoint, call commit_belief_snapshot with the exact typed contract in
-../reference/belief_checkpoint_contract.json. Submit every physical operation through step and use
+checkpoint, use commit_belief_snapshot only through its staged tools/list protocol: action=begin,
+then every published prediction page and law page in order, then action=finalize. Submit every
+physical operation through step and use
 its public outcome before deciding the next operation. Every step call must include the bounded
 decision_audit requested by the tool schema: expected effect, diagnostic target, expected
 information gain, explicit supported/not-supported belief updates, uncertainty, and the public
@@ -1066,6 +1063,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._global_runner_action_count = 0
         self._experiment_action_count = 0
         self._session_action_count = 0
+        self._campaign_ended_experiment_count = 0
         self._belief_snapshots: list[dict[str, Any]] = []
         self._cumulative_usage = _empty_usage()
         self._completed_session_elapsed_s = 0.0
@@ -1216,11 +1214,14 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         batch_discarded = bool(info.get("batch_discarded", False))
         experiment_completed = bool(info.get("experiment_completed", not batch_discarded))
         budget_exhausted = self._last_context_remaining <= 1 and not ended
-        completed_count = (
-            len(info.get("experiment_summaries", []))
-            if isinstance(info.get("experiment_summaries"), list)
-            else 0
-        )
+        completed_count = self._campaign_ended_experiment_count
+        if self.session_scope == "campaign" and ended:
+            summaries = info.get("experiment_summaries")
+            if not isinstance(summaries, list) or len(summaries) != completed_count + 1:
+                raise InteractiveCodexExperimentError(
+                    "campaign terminal summary count did not advance by exactly one"
+                )
+            completed_count = len(summaries)
         evidence_id = (
             f"experiment-{completed_count}-final-assay"
             if ended and experiment_completed and completed_count > 0
@@ -1231,6 +1232,14 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if self.session_scope == "experiment"
             else info.get("campaign_terminal", False) or budget_exhausted
         )
+        if self.session_scope == "campaign":
+            self.workspace.publish_campaign_progress(
+                session_id=self._pending_request.session_id,
+                completed_experiment_count=completed_count,
+                observed_evidence_id=evidence_id,
+                campaign_ended=campaign_ended,
+            )
+            self._campaign_ended_experiment_count = completed_count
         next_experiment_index = info.get("next_experiment_index")
         if (
             info.get("next_experiment_ready") is True
@@ -2556,6 +2565,12 @@ def _initial_prompt(
                 **to_builtin(dict(belief_checkpoint_manifest or {})),
                 "relative_path": "../reference/belief_checkpoint_contract.json",
                 "submit_with": "chemworld_lab.commit_belief_snapshot",
+                "submission_protocol": [
+                    "action=begin",
+                    "append every host-published prediction page in order",
+                    "append every host-published law page in order",
+                    "action=finalize",
+                ],
             }
             if campaign
             else None

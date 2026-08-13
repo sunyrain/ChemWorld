@@ -1,6 +1,6 @@
 # Work II staged-belief snapshot seed-2 qualification
 
-Date: 2026-08-13. Status: protocol frozen; replacement provider execution pending. This is a
+Date: 2026-08-13. Status: protocol frozen; full replacement provider execution pending. This is a
 development platform/method qualification block, not formal or publication evidence.
 
 Question: Can a persistent provider session complete the frozen Work II campaign after the
@@ -55,3 +55,13 @@ episode-headroom rule at four total and three consecutive episodes. The 10-exper
 five-checkpoint, task, arm, seed,
 measurement, pass/failure and stop-rule denominators above are unchanged. The replacement starts
 from all six fresh cells; no prior physical result or partial checkpoint is reused.
+
+The next replacement retained 6/6 terminal cells, 60/60 physical experiments, 29/30 finalized
+checkpoints and 5/6 qualifying cells. In the failed electrochemical/aligned cell the runner
+completed all 10 experiments, but the MCP closeout reconstructed only 8 completions from a bounded
+64-event display history after its two earliest final-assay rows were evicted. This is a platform
+state-loss defect, not a scientific or provider result. The functional correction adds a small
+host-owned monotonic campaign-progress ledger independent of bounded display history and makes the
+already-frozen staged submission protocol explicit in the participant instructions; it does not
+change any task, arm, seed, budget, checkpoint, pass/failure or stop rule. The corrected block
+therefore restarts all six cells from the first cell and retains the failed 29/30 run unchanged.

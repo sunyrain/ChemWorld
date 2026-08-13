@@ -23,6 +23,7 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 EXPERIMENT_CODEX_IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
+CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.1"
 DEFAULT_MAX_TOOL_OUTPUT_BYTES = 32_768
 DEFAULT_HISTORY_EVENT_LIMIT = 64
 DEFAULT_HISTORY_BYTE_LIMIT = 131_072
@@ -262,10 +263,7 @@ class ExperimentCodexWorkspace:
                 manifest_path = draft_root / "manifest.json"
                 fragments_root = draft_root / "fragments"
                 fragments = (
-                    [
-                        _read_json_object(path)
-                        for path in sorted(fragments_root.glob("*.json"))
-                    ]
+                    [_read_json_object(path) for path in sorted(fragments_root.glob("*.json"))]
                     if fragments_root.is_dir()
                     else []
                 )
@@ -275,9 +273,7 @@ class ExperimentCodexWorkspace:
                     {
                         "draft_id": draft_root.name,
                         "manifest": (
-                            _read_json_object(manifest_path)
-                            if manifest_path.is_file()
-                            else None
+                            _read_json_object(manifest_path) if manifest_path.is_file() else None
                         ),
                         "fragments": fragments,
                         "fragment_count": len(fragments),
@@ -338,9 +334,76 @@ class ExperimentCodexWorkspace:
             "session_scope": session_scope,
         }
         _atomic_write_json(session_root / "session.json", descriptor)
+        if session_scope == "campaign":
+            _atomic_write_json(
+                session_root / "campaign_progress.json",
+                {
+                    "schema_version": CAMPAIGN_PROGRESS_VERSION,
+                    "completed_experiment_count": 0,
+                    "observed_evidence_ids": [],
+                    "campaign_ended": False,
+                },
+            )
         _atomic_write_json(self.active_session_path, descriptor)
         self._session_descriptors[session_id] = deepcopy(descriptor)
         return deepcopy(descriptor)
+
+    def publish_campaign_progress(
+        self,
+        *,
+        session_id: str,
+        completed_experiment_count: int,
+        observed_evidence_id: str | None,
+        campaign_ended: bool,
+    ) -> dict[str, Any]:
+        """Advance the small host-owned campaign ledger independently of bounded history."""
+
+        descriptor = self._session_descriptor(session_id)
+        if descriptor.get("session_scope") != "campaign":
+            raise ExperimentCodexIPCError("campaign progress requires a campaign session")
+        if (
+            isinstance(completed_experiment_count, bool)
+            or not isinstance(completed_experiment_count, int)
+            or completed_experiment_count < 0
+        ):
+            raise ExperimentCodexIPCError("completed experiment count must be non-negative")
+        path = self.session_root(session_id) / "campaign_progress.json"
+        current = _read_json_object(path)
+        if current.get("schema_version") != CAMPAIGN_PROGRESS_VERSION:
+            raise ExperimentCodexIPCError("campaign progress schema is invalid")
+        prior_count = current.get("completed_experiment_count")
+        prior_evidence = current.get("observed_evidence_ids")
+        prior_ended = current.get("campaign_ended")
+        if (
+            isinstance(prior_count, bool)
+            or not isinstance(prior_count, int)
+            or not isinstance(prior_evidence, list)
+            or any(not isinstance(item, str) or not item for item in prior_evidence)
+            or len(set(prior_evidence)) != len(prior_evidence)
+            or not isinstance(prior_ended, bool)
+        ):
+            raise ExperimentCodexIPCError("campaign progress state is malformed")
+        if completed_experiment_count not in {prior_count, prior_count + 1}:
+            raise ExperimentCodexIPCError("campaign progress count is not monotonic")
+        evidence = list(prior_evidence)
+        if completed_experiment_count == prior_count + 1:
+            expected = f"experiment-{completed_experiment_count}-final-assay"
+            if observed_evidence_id not in {None, expected}:
+                raise ExperimentCodexIPCError("campaign progress evidence ID is invalid")
+            if observed_evidence_id is not None:
+                evidence.append(expected)
+        elif observed_evidence_id is not None:
+            raise ExperimentCodexIPCError("campaign progress added evidence without completion")
+        if prior_ended and not campaign_ended:
+            raise ExperimentCodexIPCError("campaign terminal state cannot be reversed")
+        state = {
+            "schema_version": CAMPAIGN_PROGRESS_VERSION,
+            "completed_experiment_count": completed_experiment_count,
+            "observed_evidence_ids": evidence,
+            "campaign_ended": campaign_ended,
+        }
+        _atomic_write_json(path, state)
+        return deepcopy(state)
 
     def publish_current(self, packet: Mapping[str, Any]) -> dict[str, Any]:
         """Publish a bounded reconstructable view for ``lab_tool status``."""
@@ -418,11 +481,7 @@ class ExperimentCodexWorkspace:
         next_progress = time.monotonic() + progress_interval_s
         while time.monotonic() < deadline:
             request_paths = sorted(
-                (
-                    path
-                    for root in request_roots
-                    for path in root.glob("*.json")
-                ),
+                (path for root in request_roots for path in root.glob("*.json")),
                 key=lambda item: (item.name, item.parent.as_posix()),
             )
             for path in request_paths:
@@ -558,9 +617,7 @@ class ExperimentCodexWorkspace:
                 "required_file": True,
                 "required_files": ["lab_tool.py"],
                 "file_count": len(self.snapshot_agent_files()),
-                "file_count_scope": (
-                    "agent_authored_memory_excluding_bridge_and_transport"
-                ),
+                "file_count_scope": ("agent_authored_memory_excluding_bridge_and_transport"),
             },
             "transport": {
                 "relative_path": "agent/.transport",
@@ -623,11 +680,7 @@ class ExperimentCodexWorkspace:
             valid_regular_file = (
                 self.lab_tool_path.is_file() and not self.lab_tool_path.is_symlink()
             )
-            actual = (
-                str(_fingerprint(self.lab_tool_path)["sha256"])
-                if valid_regular_file
-                else None
-            )
+            actual = str(_fingerprint(self.lab_tool_path)["sha256"]) if valid_regular_file else None
         except OSError:
             actual = None
         if actual != _lab_tool_sha256():

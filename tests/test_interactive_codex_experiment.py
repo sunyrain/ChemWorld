@@ -247,11 +247,7 @@ def test_mcp_tool_failure_audit_classifies_rejected_begin_batch_cascade() -> Non
     calls.extend(
         failed(
             f"2026-08-13T10:09:15.{millisecond:06d}+00:00",
-            argument_keys=(
-                ["action"]
-                if offset == 7
-                else ["action", "page_id", "predictions"]
-            ),
+            argument_keys=(["action"] if offset == 7 else ["action", "page_id", "predictions"]),
             detail="begin must be accepted before belief snapshot pages",
             detail_hash="begin-not-accepted",
         )
@@ -426,6 +422,134 @@ def test_codex_campaign_view_uses_one_based_experiment_indices() -> None:
         "vessel_started": False,
         "experiment_index_base": 1,
     }
+
+
+def test_campaign_update_publishes_progress_before_terminal_response(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    contract = {
+        "snapshot_stages": ["pre_evidence", "final"],
+        "checkpoint_complete_experiments": [0, 2],
+        "query_metric_contract": {"q0": ["score"]},
+        "allowed_feature_ids": ["potential_V"],
+        "allowed_metric_ids": ["score"],
+        "allowed_prior_fields": ["solvent"],
+        "evidence_catalog": [
+            "experiment-1-final-assay",
+            "experiment-2-final-assay",
+        ],
+        "nominal_information_available": False,
+        "snapshot_submission_protocol": {
+            "protocol": "staged_pages_v1",
+            "prediction_pages": [],
+            "law_pages": [],
+            "submission_order": [],
+        },
+    }
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="campaign-progress-test",
+        session_scope="campaign",
+        belief_checkpoint_contract=contract,
+        process_factory=lambda command, prompt, cwd: None,
+    )
+    agent.reset({"task_id": "campaign-progress", "budget": 20}, seed=0)
+    session_id = "campaign-progress-session"
+    agent.workspace.start_session(
+        session_id=session_id,
+        expected_step=1,
+        response_timeout_s=5.0,
+        session_scope="campaign",
+    )
+    progress_path = agent.workspace.session_root(session_id) / "campaign_progress.json"
+
+    def pending(index: int, action: dict[str, Any]) -> None:
+        agent._pending_request = experiment_ipc.IPCRequest(
+            session_id=session_id,
+            request_id=f"request-{index}",
+            expected_step=index,
+            action=action,
+            payload_sha256=f"payload-{index}",
+        )
+        agent._session_action_count = index
+        agent._global_runner_action_count = index
+        agent._last_context_remaining = 10
+
+    ordinary = {"operation": "heat", "temperature_K": 300.0, "duration_s": 1.0}
+    pending(1, ordinary)
+    agent.update(
+        ordinary,
+        {"score": 0.0},
+        0.0,
+        {"transaction_status": "committed", "experiment_ended": False},
+    )
+    assert json.loads(progress_path.read_text(encoding="utf-8"))["completed_experiment_count"] == 0
+
+    assay = {"operation": "measure", "instrument": "final_assay"}
+    pending(2, assay)
+    agent.update(
+        assay,
+        {"score": 0.8},
+        0.8,
+        {
+            "transaction_status": "committed",
+            "experiment_ended": True,
+            "experiment_completed": True,
+            "leaderboard_score": 0.8,
+            "experiment_summaries": [{"outcome": "completed"}],
+            "next_experiment_ready": True,
+        },
+    )
+    assert json.loads(progress_path.read_text(encoding="utf-8")) == {
+        "schema_version": experiment_ipc.CAMPAIGN_PROGRESS_VERSION,
+        "completed_experiment_count": 1,
+        "observed_evidence_ids": ["experiment-1-final-assay"],
+        "campaign_ended": False,
+    }
+
+    discard = {"operation": "terminate", "reason": "discard candidate"}
+    pending(3, discard)
+    agent.update(
+        discard,
+        {"score": 0.0},
+        0.0,
+        {
+            "transaction_status": "committed",
+            "experiment_ended": True,
+            "experiment_completed": False,
+            "batch_discarded": True,
+            "experiment_summaries": [
+                {"outcome": "completed"},
+                {"outcome": "discarded"},
+            ],
+            "next_experiment_ready": True,
+        },
+    )
+    discarded_progress = json.loads(progress_path.read_text(encoding="utf-8"))
+    assert discarded_progress["completed_experiment_count"] == 2
+    assert discarded_progress["observed_evidence_ids"] == ["experiment-1-final-assay"]
+
+    observed_at_response: list[dict[str, Any]] = []
+    real_write_response = agent.workspace.write_response
+
+    def capture_response(**kwargs: Any) -> None:
+        observed_at_response.append(json.loads(progress_path.read_text(encoding="utf-8")))
+        real_write_response(**kwargs)
+
+    monkeypatch.setattr(agent.workspace, "write_response", capture_response)
+    monkeypatch.setattr(agent, "_finalize_session", lambda **kwargs: None)
+    pending(4, ordinary)
+    agent._last_context_remaining = 1
+    agent.update(
+        ordinary,
+        {"score": 0.0},
+        0.0,
+        {"transaction_status": "committed", "experiment_ended": False},
+    )
+
+    assert observed_at_response[0]["campaign_ended"] is True
+    assert observed_at_response[0]["completed_experiment_count"] == 2
 
 
 @pytest.mark.parametrize(

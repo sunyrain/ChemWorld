@@ -9,6 +9,7 @@ from pathlib import Path
 import pytest
 
 from chemworld.agents.experiment_codex_ipc import (
+    CAMPAIGN_PROGRESS_VERSION,
     EXPERIMENT_CODEX_IPC_VERSION,
     ExperimentCodexIPCError,
     ExperimentCodexWorkspace,
@@ -75,6 +76,55 @@ def test_agent_transport_cannot_contain_host_response_by_topology(
     manifest = workspace.manifest()
     assert manifest["transport"]["contains_host_responses"] is False
     assert workspace.snapshot_agent_files() == {}
+
+
+def test_campaign_progress_is_monotonic_and_independent_of_public_history(
+    tmp_path: Path,
+) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "cell", history_event_limit=2)
+    workspace.initialize_fresh()
+    workspace.start_session(
+        session_id="campaign-a",
+        response_timeout_s=5.0,
+        session_scope="campaign",
+    )
+
+    first = workspace.publish_campaign_progress(
+        session_id="campaign-a",
+        completed_experiment_count=1,
+        observed_evidence_id="experiment-1-final-assay",
+        campaign_ended=False,
+    )
+    second = workspace.publish_campaign_progress(
+        session_id="campaign-a",
+        completed_experiment_count=2,
+        observed_evidence_id=None,
+        campaign_ended=True,
+    )
+    for index in range(5):
+        workspace.append_public_history({"event_id": f"noise-{index}"})
+
+    assert first["schema_version"] == CAMPAIGN_PROGRESS_VERSION
+    assert second == {
+        "schema_version": CAMPAIGN_PROGRESS_VERSION,
+        "completed_experiment_count": 2,
+        "observed_evidence_ids": ["experiment-1-final-assay"],
+        "campaign_ended": True,
+    }
+    with pytest.raises(ExperimentCodexIPCError, match="not monotonic"):
+        workspace.publish_campaign_progress(
+            session_id="campaign-a",
+            completed_experiment_count=1,
+            observed_evidence_id=None,
+            campaign_ended=True,
+        )
+    with pytest.raises(ExperimentCodexIPCError, match="cannot be reversed"):
+        workspace.publish_campaign_progress(
+            session_id="campaign-a",
+            completed_experiment_count=2,
+            observed_evidence_id=None,
+            campaign_ended=False,
+        )
 
 
 def test_lab_tool_status_history_and_artifact_inspection_are_bounded(

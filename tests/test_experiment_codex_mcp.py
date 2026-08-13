@@ -324,14 +324,16 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
         metric_laws = snapshot["properties"]["metric_laws"]
         assert metric_laws["maxItems"] == 2
         assert "link" in metric_laws["items"]["required"]
-        assert "sole participant-facing authority" in by_name[
-            "commit_belief_snapshot"
-        ]["description"]
+        assert (
+            "sole participant-facing authority" in by_name["commit_belief_snapshot"]["description"]
+        )
         assert STAGED_BELIEF_SNAPSHOT_GUIDE in by_name["commit_belief_snapshot"]["description"]
         assert BELIEF_SNAPSHOT_SHAPE_GUIDE not in by_name["commit_belief_snapshot"]["description"]
-        assert snapshot["properties"]["predictions"]["items"]["properties"]["metrics"][
-            "items"
-        ]["required"] == [
+        assert "legacy" not in by_name["commit_belief_snapshot"]["description"].lower()
+        assert "snapshot={" not in by_name["commit_belief_snapshot"]["description"]
+        assert snapshot["properties"]["predictions"]["items"]["properties"]["metrics"]["items"][
+            "required"
+        ] == [
             "metric_id",
             "mean",
             "interval_lower",
@@ -390,6 +392,12 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
                 "campaign_ended": index == 3,
                 "evidence_id": f"experiment-{index + 1}-final-assay",
             }
+        )
+        workspace.publish_campaign_progress(
+            session_id="campaign-final-recommendation-test",
+            completed_experiment_count=index + 1,
+            observed_evidence_id=f"experiment-{index + 1}-final-assay",
+            campaign_ended=index == 3,
         )
     server = ChemWorldMCPServer(workspace.root)
     recommendation = {
@@ -474,6 +482,12 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
             "campaign_ended": True,
             "evidence_id": "experiment-1-final-assay",
         }
+    )
+    workspace.publish_campaign_progress(
+        session_id="campaign-status-test",
+        completed_experiment_count=1,
+        observed_evidence_id="experiment-1-final-assay",
+        campaign_ended=True,
     )
     terminal = server._status()
     assert terminal["campaign_closeout"]["campaign_ended"] is True
@@ -642,9 +656,7 @@ def test_staged_belief_snapshot_is_exact_immutable_and_canonical(tmp_path: Path)
         },
     )
     assert bad_page["isError"] is True
-    assert json.loads(bad_page["content"][0]["text"])["error_code"] == (
-        "invalid_belief_snapshot"
-    )
+    assert json.loads(bad_page["content"][0]["text"])["error_code"] == ("invalid_belief_snapshot")
 
     prediction = server._call_tool(
         "commit_belief_snapshot",
@@ -723,9 +735,9 @@ def test_staged_partial_draft_does_not_cross_session_or_count_checkpoint(
     )
     assert prediction["isError"] is False
     assert workspace.belief_snapshot_audit("campaign-staged-partial-test") == []
-    assert workspace.belief_snapshot_draft_audit("campaign-staged-partial-test")[
-        "fragment_count"
-    ] == 1
+    assert (
+        workspace.belief_snapshot_draft_audit("campaign-staged-partial-test")["fragment_count"] == 1
+    )
 
     workspace.start_session(
         session_id="campaign-staged-new-session-test",
@@ -737,9 +749,10 @@ def test_staged_partial_draft_does_not_cross_session_or_count_checkpoint(
     new_state = new_server._status()["campaign_closeout"]["belief_snapshot_submission"]
     assert new_state["draft_started"] is False
     assert new_state["accepted_page_count"] == 0
-    assert workspace.belief_snapshot_draft_audit("campaign-staged-new-session-test")[
-        "draft_count"
-    ] == 0
+    assert (
+        workspace.belief_snapshot_draft_audit("campaign-staged-new-session-test")["draft_count"]
+        == 0
+    )
 
 
 def test_staged_final_checkpoint_returns_final_response_contract(tmp_path: Path) -> None:
@@ -757,32 +770,45 @@ def test_staged_final_checkpoint_returns_final_response_contract(tmp_path: Path)
                 "evidence_id": f"experiment-{index + 1}-final-assay",
             }
         )
+        workspace.publish_campaign_progress(
+            session_id="campaign-staged-final-test",
+            completed_experiment_count=index + 1,
+            observed_evidence_id=f"experiment-{index + 1}-final-assay",
+            campaign_ended=index == 3,
+        )
     server = ChemWorldMCPServer(workspace.root)
     snapshot = _minimal_snapshot(stage="final")
-    snapshot["evidence_ids"] = [
-        f"experiment-{index}-final-assay" for index in range(1, 5)
-    ]
+    snapshot["evidence_ids"] = [f"experiment-{index}-final-assay" for index in range(1, 5)]
     snapshot["law_summary"]["evidence_ids"] = list(snapshot["evidence_ids"])
-    assert server._call_tool(
-        "commit_belief_snapshot",
-        {"action": "begin", "snapshot_header": _staged_header(snapshot)},
-    )["isError"] is False
-    assert server._call_tool(
-        "commit_belief_snapshot",
-        {
-            "action": "append_prediction_page",
-            "page_id": "predictions-001",
-            "predictions": snapshot["predictions"],
-        },
-    )["isError"] is False
-    assert server._call_tool(
-        "commit_belief_snapshot",
-        {
-            "action": "append_law_page",
-            "page_id": "laws-001",
-            "metric_laws": snapshot["law_summary"]["metric_laws"],
-        },
-    )["isError"] is False
+    assert (
+        server._call_tool(
+            "commit_belief_snapshot",
+            {"action": "begin", "snapshot_header": _staged_header(snapshot)},
+        )["isError"]
+        is False
+    )
+    assert (
+        server._call_tool(
+            "commit_belief_snapshot",
+            {
+                "action": "append_prediction_page",
+                "page_id": "predictions-001",
+                "predictions": snapshot["predictions"],
+            },
+        )["isError"]
+        is False
+    )
+    assert (
+        server._call_tool(
+            "commit_belief_snapshot",
+            {
+                "action": "append_law_page",
+                "page_id": "laws-001",
+                "metric_laws": snapshot["law_summary"]["metric_laws"],
+            },
+        )["isError"]
+        is False
+    )
     finalized = server._call_tool("commit_belief_snapshot", {"action": "finalize"})
     payload = json.loads(finalized["content"][0]["text"])
     assert payload["remaining_checkpoint_count"] == 0
@@ -809,6 +835,53 @@ def test_belief_snapshot_error_returns_authoritative_repair_context(tmp_path: Pa
     assert "schema_version" in payload["expected"]["required_fields"]
     assert "schema_version" not in payload["observed"]["fields"]
     assert payload["schema_fragment"]["additionalProperties"] is False
+
+
+def test_formal_staged_contract_rejects_legacy_one_shot(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-only-test")
+    contract_path = workspace.reference_directory / "belief_checkpoint_contract.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["snapshot_submission_protocol"] = ChemWorldMCPServer._page_plan(contract)
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    server = ChemWorldMCPServer(workspace.root)
+
+    result = server._call_tool("commit_belief_snapshot", {"snapshot": _minimal_snapshot()})
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert "action is required" in payload["error"]
+    assert payload["schema_authority"] == "tools/list -> commit_belief_snapshot.inputSchema"
+    assert payload["submission_state"]["draft_started"] is False
+    assert "properties.snapshot" not in json.dumps(payload)
+    assert "snapshot={" not in json.dumps(payload)
+    assert "current staged action (begin)" in payload["recovery_action"]
+
+
+def test_campaign_progress_survives_bounded_history_eviction(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-eviction-test")
+    for index in range(4):
+        workspace.publish_campaign_progress(
+            session_id="campaign-eviction-test",
+            completed_experiment_count=index + 1,
+            observed_evidence_id=f"experiment-{index + 1}-final-assay",
+            campaign_ended=index == 3,
+        )
+        workspace.append_public_history(
+            {
+                "experiment_ended": True,
+                "campaign_ended": index == 3,
+                "evidence_id": f"experiment-{index + 1}-final-assay",
+            }
+        )
+    for index in range(70):
+        workspace.append_public_history({"event_id": f"later-operation-{index}"})
+    server = ChemWorldMCPServer(workspace.root)
+
+    assert server._completed_experiment_state() == (
+        4,
+        {f"experiment-{index}-final-assay" for index in range(1, 5)},
+    )
+    assert server._campaign_terminal_observed() is True
 
 
 def test_step_checkpoint_rejection_is_structured_and_actionable(tmp_path: Path) -> None:

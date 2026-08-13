@@ -31,8 +31,9 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_prediction_page,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.11"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.12"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
+CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.1"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
     "material_information",
@@ -69,8 +70,7 @@ STAGED_BELIEF_SNAPSHOT_GUIDE = (
     "Use action=begin, then append_prediction_page and append_law_page in the exact "
     "host-published page order, then action=finalize. Partial drafts never count as "
     "checkpoints and step remains blocked until finalize. The staged inputSchema is the sole "
-    "participant-facing authority. Legacy snapshot={...} one-shot arguments remain accepted "
-    "only for internal historical replay compatibility."
+    "participant-facing authority."
 )
 
 BELIEF_DRAFT_VERSION = "chemworld-work-ii-belief-snapshot-draft-0.1"
@@ -279,9 +279,7 @@ class ChemWorldMCPServer:
                 }
                 for index in range(0, len(metrics), LAW_PAGE_SIZE)
             ]
-            submission_order = [
-                page["page_id"] for page in (*prediction_pages, *law_pages)
-            ]
+            submission_order = [page["page_id"] for page in (*prediction_pages, *law_pages)]
         if not isinstance(prediction_pages, list) or not isinstance(law_pages, list):
             raise ValueError("belief snapshot page plan is invalid")
         pages = [*prediction_pages, *law_pages]
@@ -438,9 +436,7 @@ class ChemWorldMCPServer:
                 if descriptor.get("session_scope") == "campaign":
                     payload = {
                         **payload,
-                        "belief_snapshot_submission": self._belief_submission_state(
-                            descriptor
-                        ),
+                        "belief_snapshot_submission": self._belief_submission_state(descriptor),
                     }
             elif name == "status":
                 payload = self._status()
@@ -640,10 +636,20 @@ class ChemWorldMCPServer:
         arguments: dict[str, Any],
         detail: str,
     ) -> dict[str, Any]:
-        if "action" in arguments:
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        if isinstance(contract.get("snapshot_submission_protocol"), dict):
+            state = self._belief_submission_state(self._descriptor())
+            if not state.get("draft_started"):
+                next_action = "begin"
+            elif state.get("next_page_id") is not None:
+                next_action = str(state["next_page_id"])
+            elif state.get("ready_to_finalize") is True:
+                next_action = "finalize"
+            else:
+                next_action = "status"
             return {
                 "schema_authority": "tools/list -> commit_belief_snapshot.inputSchema",
-                "submission_state": self._belief_submission_state(self._descriptor()),
+                "submission_state": state,
                 "observed": {
                     "action": arguments.get("action"),
                     "page_id": arguments.get("page_id"),
@@ -651,11 +657,10 @@ class ChemWorldMCPServer:
                 },
                 "participant_payload_auto_repair": False,
                 "recovery_action": (
-                    "Resubmit one exact rejected page from the host-published page plan; "
-                    "accepted pages cannot be replaced."
+                    f"Submit only the current staged action ({next_action}) using the root "
+                    "inputSchema and submission_state. Accepted pages cannot be replaced."
                 ),
             }
-        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         snapshot = arguments.get("snapshot")
         snapshot = snapshot if isinstance(snapshot, dict) else {}
         schema = self._belief_snapshot_schema()
@@ -983,12 +988,16 @@ class ChemWorldMCPServer:
     ) -> dict[str, Any]:
         if descriptor.get("session_scope") != "campaign":
             raise RuntimeError("belief checkpoints are available only in campaign sessions")
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         if "action" in arguments:
             return self._commit_staged_belief_snapshot(descriptor, arguments)
+        if isinstance(contract.get("snapshot_submission_protocol"), dict):
+            raise ValueError(
+                "action is required: use begin, the published pages in order, then finalize"
+            )
         snapshot = arguments.get("snapshot")
         if not isinstance(snapshot, dict):
             raise ValueError("snapshot must be an object")
-        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         stages = contract.get("snapshot_stages")
         if not isinstance(stages, list) or not stages:
             raise ValueError("checkpoint contract has no snapshot stages")
@@ -1055,11 +1064,7 @@ class ChemWorldMCPServer:
 
     @staticmethod
     def _law_page_map(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
-        return {
-            str(page["page_id"]): page
-            for page in plan["law_pages"]
-            if isinstance(page, dict)
-        }
+        return {str(page["page_id"]): page for page in plan["law_pages"] if isinstance(page, dict)}
 
     def _draft_payloads(self, context: dict[str, Any]) -> dict[str, dict[str, Any]]:
         root = context["draft_root"] / "fragments"
@@ -1198,8 +1203,7 @@ class ChemWorldMCPServer:
                 raise ValueError("belief snapshot cites evidence that has not yet been observed")
             context["snapshot_root"].mkdir(parents=True, exist_ok=True)
             target = (
-                context["snapshot_root"]
-                / f"{context['committed'] + 1:02d}-{context['stage']}.json"
+                context["snapshot_root"] / f"{context['committed'] + 1:02d}-{context['stage']}.json"
             )
             _write_json_once(target, parsed.to_dict())
             _write_json_once(
@@ -1212,14 +1216,10 @@ class ChemWorldMCPServer:
                 "stage": context["stage"],
                 "complete_experiment_count": context["completed_count"],
                 "committed_checkpoint_count": context["committed"] + 1,
-                "remaining_checkpoint_count": context["stage_count"]
-                - context["committed"]
-                - 1,
+                "remaining_checkpoint_count": context["stage_count"] - context["committed"] - 1,
             }
             if result["remaining_checkpoint_count"] == 0:
-                result["final_response_contract"] = self._final_response_contract(
-                    campaign=True
-                )
+                result["final_response_contract"] = self._final_response_contract(campaign=True)
             return result
         page_id = arguments.get("page_id")
         if not isinstance(page_id, str):
@@ -1242,9 +1242,7 @@ class ChemWorldMCPServer:
             if not isinstance(predictions, list):
                 raise ValueError("predictions must be a list")
             expected = prediction_pages[page_id]["query_metric_contract"]
-            observed = [
-                item.get("query_id") for item in predictions if isinstance(item, dict)
-            ]
+            observed = [item.get("query_id") for item in predictions if isinstance(item, dict)]
             if len(observed) != len(predictions) or observed != list(expected):
                 raise ValueError("prediction page does not contain its exact ordered query IDs")
             parse_work_ii_prediction_page(
@@ -1267,9 +1265,7 @@ class ChemWorldMCPServer:
             if not isinstance(laws, list):
                 raise ValueError("metric_laws must be a list")
             expected_metrics = law_pages[page_id]["metric_ids"]
-            observed_metrics = [
-                item.get("metric_id") for item in laws if isinstance(item, dict)
-            ]
+            observed_metrics = [item.get("metric_id") for item in laws if isinstance(item, dict)]
             if len(observed_metrics) != len(laws) or observed_metrics != expected_metrics:
                 raise ValueError("law page does not contain its exact ordered metric IDs")
             law_header = manifest["snapshot_header"]["law_summary"]
@@ -1361,6 +1357,9 @@ class ChemWorldMCPServer:
     def _campaign_terminal_observed(self) -> bool:
         if self._terminal_outcome is not None:
             return self._terminal_outcome.get("campaign_ended") is True
+        progress = self._campaign_progress()
+        if progress is not None:
+            return progress["campaign_ended"] is True
         path = self.public / "history.jsonl"
         if not path.exists():
             return False
@@ -1372,6 +1371,11 @@ class ChemWorldMCPServer:
         return False
 
     def _completed_experiment_state(self) -> tuple[int, set[str]]:
+        progress = self._campaign_progress()
+        if progress is not None:
+            return int(progress["completed_experiment_count"]), {
+                str(item) for item in progress["observed_evidence_ids"]
+            }
         rows: list[dict[str, Any]] = []
         path = self.public / "history.jsonl"
         if path.exists():
@@ -1385,6 +1389,40 @@ class ChemWorldMCPServer:
             str(row["evidence_id"]) for row in ended if isinstance(row.get("evidence_id"), str)
         }
         return len(ended), evidence
+
+    def _campaign_progress(self) -> dict[str, Any] | None:
+        descriptor = self._descriptor()
+        if descriptor.get("session_scope") != "campaign":
+            return None
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        path = self.ipc / "sessions" / session_id / "campaign_progress.json"
+        if not path.is_file():
+            return None
+        progress = _read_object(path)
+        count = progress.get("completed_experiment_count")
+        evidence = progress.get("observed_evidence_ids")
+        ended = progress.get("campaign_ended")
+        count_valid = isinstance(count, int) and not isinstance(count, bool) and count >= 0
+        expected_catalog = (
+            [f"experiment-{index}-final-assay" for index in range(1, count + 1)]
+            if count_valid
+            else []
+        )
+        evidence_valid = isinstance(evidence, list) and all(
+            isinstance(item, str) and item for item in evidence
+        )
+        canonical_evidence = (
+            [item for item in expected_catalog if item in evidence] if evidence_valid else None
+        )
+        if (
+            progress.get("schema_version") != CAMPAIGN_PROGRESS_VERSION
+            or not count_valid
+            or not evidence_valid
+            or evidence != canonical_evidence
+            or not isinstance(ended, bool)
+        ):
+            raise ValueError("campaign progress ledger is invalid")
+        return progress
 
     def _inspect(
         self,
@@ -1894,9 +1932,7 @@ class ChemWorldMCPServer:
                             "type": "object",
                             "description": "Complete law summary except metric_laws.",
                             "properties": {
-                                "schema_version": {
-                                    "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
-                                },
+                                "schema_version": {"const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION},
                                 "summary_id": string_id,
                                 "feature_ids": {
                                     **string_ids,
@@ -2021,9 +2057,7 @@ class ChemWorldMCPServer:
     def _tool_definitions(self) -> list[dict[str, Any]]:
         campaign = self._descriptor().get("session_scope") == "campaign"
         snapshot_schema = (
-            self._staged_belief_snapshot_tool_schema()
-            if campaign
-            else {"type": "object"}
+            self._staged_belief_snapshot_tool_schema() if campaign else {"type": "object"}
         )
         contract = (
             _read_object(self.reference / "belief_checkpoint_contract.json") if campaign else {}
