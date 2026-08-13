@@ -39,7 +39,7 @@ MANIFEST_VERSION = "chemworld-work-ii-resource-calibration-manifest-0.2"
 SUMMARY_VERSION = "chemworld-work-ii-resource-calibration-summary-0.2"
 AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.2"
 RUNTIME_CONFIG_ROOT = Path(
-    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.5"
+    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.6"
 )
 RESOURCE_CALIBRATION_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 METHOD_RESOURCE_LIMIT_FIELDS = frozenset(
@@ -233,6 +233,10 @@ def _materialize_runtime_config(
     config["provider"] = provider
     resources = config.get("method_resources")
     resources = resources if isinstance(resources, dict) else {}
+    # One accepted campaign thread may contain the initial model turn plus one
+    # bounded same-thread continuation.  The method ledger must admit both
+    # turns or it would reject the first post-resume action before execution.
+    resources["model_call_limit"] = 2
     # The source-level planning label is metadata, while the production runner
     # passes this mapping directly into MethodResourceLimits.
     resources.pop("resource_status", None)
@@ -307,6 +311,7 @@ def _config_errors(
         or provider.get("pre_action_restart_limit") != 1
         or provider.get("accepted_turn_continuation_limit") != 1
         or provider.get("provider_process_attempt_limit") != 3
+        or resources.get("model_call_limit") != 2
         or runtime_identity.get("locus") != locus
         or runtime_identity.get("task_id") != task_id
         or runtime_identity.get("rounds") != rounds

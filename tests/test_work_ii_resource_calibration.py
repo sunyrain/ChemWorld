@@ -179,6 +179,7 @@ def test_runtime_config_requires_current_execution_semantics() -> None:
     assert config["w2_26_runtime_identity"]["provider_error_enforcement"] == "measure_only"
     assert config["provider"]["accepted_turn_continuation_limit"] == 1
     assert config["provider"]["provider_process_attempt_limit"] == 3
+    assert config["method_resources"]["model_call_limit"] == 2
     assert config["qualification"]["required_operation_counts"] == {}
     assert calibration._config_errors(
         config,
@@ -250,6 +251,9 @@ def test_task_materialization_reaches_typed_resource_constructor(
         operation_limit=int(config["method_resources"]["operation_limit"]),
     )
     assert limits.complete_experiment_limit == rounds
+    assert limits.model_call_limit == 2
+    assert config["provider"]["accepted_turn_continuation_limit"] == 1
+    assert config["provider"]["provider_process_attempt_limit"] == 3
 
     stale = deepcopy(config)
     stale["method_resources"]["resource_status"] = "legacy_metadata"

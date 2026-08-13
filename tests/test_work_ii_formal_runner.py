@@ -37,6 +37,8 @@ from chemworld.eval.work_ii_formal import (
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
+CURRENT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
+CURRENT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 _VALIDATE_ENVIRONMENT_BINDING = work_ii_formal._validate_environment_binding
 _BUILD_C2_ADMISSION_REPORT = work_ii_formal.build_c2_admission_report
 
@@ -460,6 +462,30 @@ def test_formal_preflight_materializes_complete_135_cell_c2_denominators() -> No
             }
         },
     }
+
+
+def test_current_formal_method_is_bounded_and_requires_w2_26_cards() -> None:
+    report = build_formal_preflight(ROOT, CURRENT_DESIGN, CURRENT_ANALYSIS)
+
+    assert report["status"] == "failed_execution_blocked"
+    assert report["formal_execution_allowed"] is False
+    assert any(
+        "formal config lacks its W2-26 task resource card" in error
+        for error in report["errors"]
+    )
+    assert report["participant_execution_contract"] == {
+        **work_ii_formal.EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+    }
+    assert report["expected_counts"]["accepted_participant_model_calls_minimum"] == 135
+    assert report["expected_counts"]["accepted_participant_model_calls_maximum"] == 270
+    assert all(cell["provider_session_limit"] == 1 for cell in report["cells"])
+    assert all(
+        cell["accepted_participant_model_call_minimum"] == 1
+        and cell["accepted_participant_model_call_maximum"] == 2
+        and cell["accepted_turn_continuation_limit"] == 1
+        and cell["provider_process_attempt_limit_per_cell_attempt"] == 3
+        for cell in report["cells"]
+    )
 
 
 def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:

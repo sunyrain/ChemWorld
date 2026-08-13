@@ -7,6 +7,7 @@ import json
 import os
 import tempfile
 from collections.abc import Mapping, Sequence
+from copy import deepcopy
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -91,6 +92,8 @@ FORMAL_EXPECTED_TOTALS = {
     "independent_task_world_clusters": 45,
     "participant_cells": 135,
     "provider_sessions": 135,
+    "accepted_participant_model_calls_minimum": 135,
+    "accepted_participant_model_calls_maximum": 270,
     "provider_attempts_initial_planned": 135,
     "provider_attempts_hard_cap": 270,
     "complete_experiments": 1260,
@@ -109,9 +112,12 @@ DEFAULT_C2_ADMISSION_PLAN = Path(
 EXPECTED_PARTICIPANT_EXECUTION_CONTRACT: dict[str, Any] = {
     "execution_unit": "task_x_prior_arm_x_world_seed_cell",
     "session_scope": "campaign",
-    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_scientific_codex_threads_per_cell": 1,
     "accepted_participant_provider_sessions_per_cell": 1,
-    "accepted_participant_model_calls_per_cell": 1,
+    "accepted_participant_model_calls_per_cell_minimum": 1,
+    "accepted_participant_model_calls_per_cell_maximum": 2,
+    "accepted_turn_continuation_limit": 1,
+    "provider_process_attempt_limit_per_cell_attempt": 3,
     "same_session_bindings": [
         "operation_tool_loop",
         "complete_experiments",
@@ -182,6 +188,27 @@ EXPECTED_PARTICIPANT_EXECUTION_CONTRACT: dict[str, Any] = {
     ],
 }
 
+# The v0.1 design is retained as historical evidence and remains readable by
+# the validator.  Only the current v0.2 design may authorize the bounded
+# same-thread continuation method.
+LEGACY_EXPECTED_PARTICIPANT_EXECUTION_CONTRACT = deepcopy(
+    EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+)
+for _field in (
+    "accepted_scientific_codex_threads_per_cell",
+    "accepted_participant_model_calls_per_cell_minimum",
+    "accepted_participant_model_calls_per_cell_maximum",
+    "accepted_turn_continuation_limit",
+    "provider_process_attempt_limit_per_cell_attempt",
+):
+    LEGACY_EXPECTED_PARTICIPANT_EXECUTION_CONTRACT.pop(_field)
+LEGACY_EXPECTED_PARTICIPANT_EXECUTION_CONTRACT.update(
+    {
+        "accepted_scientific_codex_processes_per_cell": 1,
+        "accepted_participant_model_calls_per_cell": 1,
+    }
+)
+
 EXPECTED_REFERENCE_POLICY_CONTRACT: dict[str, Any] = {
     "role": "calibration_or_mechanism_reference_only",
     "participant_formal_denominator": False,
@@ -217,9 +244,12 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
     "maximum_participant_selected_exact_repeats_per_cell": 2,
     "resource_calibration_required": True,
     "resource_calibration_status": "pending_w2_26",
-    "accepted_scientific_codex_processes_per_cell": 1,
+    "accepted_scientific_codex_threads_per_cell": 1,
     "accepted_participant_provider_sessions_per_cell": 1,
-    "accepted_participant_model_calls_per_cell": 1,
+    "accepted_participant_model_calls_per_cell_minimum": 1,
+    "accepted_participant_model_calls_per_cell_maximum": 2,
+    "accepted_turn_continuation_limit": 1,
+    "provider_process_attempt_limit_per_cell_attempt": 3,
     "maximum_infrastructure_resume_attempts_per_cell": 1,
     "maximum_total_provider_attempts": 6,
     "triplet_failure_semantics": "finish_all_three_arms_then_fail_qualification",
@@ -234,6 +264,24 @@ EXPECTED_METHOD_QUALIFICATION_CONTRACT: dict[str, Any] = {
     "currency_approval_required": True,
     "qualification_worlds_excluded_from_formal": True,
 }
+
+LEGACY_EXPECTED_METHOD_QUALIFICATION_CONTRACT = deepcopy(
+    EXPECTED_METHOD_QUALIFICATION_CONTRACT
+)
+for _field in (
+    "accepted_scientific_codex_threads_per_cell",
+    "accepted_participant_model_calls_per_cell_minimum",
+    "accepted_participant_model_calls_per_cell_maximum",
+    "accepted_turn_continuation_limit",
+    "provider_process_attempt_limit_per_cell_attempt",
+):
+    LEGACY_EXPECTED_METHOD_QUALIFICATION_CONTRACT.pop(_field)
+LEGACY_EXPECTED_METHOD_QUALIFICATION_CONTRACT.update(
+    {
+        "accepted_scientific_codex_processes_per_cell": 1,
+        "accepted_participant_model_calls_per_cell": 1,
+    }
+)
 
 EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT: dict[str, Any] = {
     "evaluation_unit": "participant_cell_x_final_law_summary_x_registered_query_metric",
@@ -1318,7 +1366,12 @@ def build_formal_preflight(
             "participant_execution_contract",
         )
     )
-    if participant_execution_contract != EXPECTED_PARTICIPANT_EXECUTION_CONTRACT:
+    expected_participant_execution_contract = (
+        EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+        if design_version == FORMAL_DESIGN_VERSION
+        else LEGACY_EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+    )
+    if participant_execution_contract != expected_participant_execution_contract:
         errors.append("formal participant execution contract differs from the frozen method")
     reference_policy_contract = dict(
         _object(design.get("reference_policy_contract"), "reference_policy_contract")
@@ -1331,7 +1384,12 @@ def build_formal_preflight(
             "method_qualification_contract",
         )
     )
-    if method_qualification_contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT:
+    expected_method_qualification_contract = (
+        EXPECTED_METHOD_QUALIFICATION_CONTRACT
+        if design_version == FORMAL_DESIGN_VERSION
+        else LEGACY_EXPECTED_METHOD_QUALIFICATION_CONTRACT
+    )
+    if method_qualification_contract != expected_method_qualification_contract:
         errors.append("formal method-qualification contract differs from the frozen gate")
     participant_execution_contract_sha256 = canonical_json_sha256(participant_execution_contract)
     method_qualification_contract_sha256 = canonical_json_sha256(method_qualification_contract)
@@ -1452,8 +1510,23 @@ def build_formal_preflight(
             errors.append(f"{label}: formal campaign experiment denominator differs")
         if config.get("episode_mode") != "campaign":
             errors.append(f"{label}: participant session scope is not campaign")
-        if int(method_resources.get("model_call_limit", -1)) != 1:
-            errors.append(f"{label}: model-call limit is not one per cell")
+        if design_version == FORMAL_DESIGN_VERSION:
+            provider = _object(config.get("provider"), f"{label}.provider")
+            if not isinstance(config.get("resource_calibration_card_binding"), Mapping):
+                errors.append(f"{label}: formal config lacks its W2-26 task resource card")
+            if int(method_resources.get("model_call_limit", -1)) != 2:
+                errors.append(
+                    f"{label}: model-call limit does not admit one continuation"
+                )
+            if (
+                int(provider.get("accepted_turn_continuation_limit", -1)) != 1
+                or int(provider.get("provider_process_attempt_limit", -1)) != 3
+            ):
+                errors.append(
+                    f"{label}: bounded same-thread continuation contract differs"
+                )
+        elif int(method_resources.get("model_call_limit", -1)) != 1:
+            errors.append(f"{label}: legacy model-call limit is not one per cell")
         if int(method_resources.get("operation_limit", -1)) != int(
             campaign.get("operation_attempt_limit", -2)
         ):
@@ -1599,6 +1672,15 @@ def build_formal_preflight(
                     )
                     cell["task_admission_receipt_binding"] = dict(receipt_binding)
                     cell["outcome_blind_selection_binding"] = dict(selection_binding)
+                if design_version == FORMAL_DESIGN_VERSION:
+                    cell.update(
+                        {
+                            "accepted_participant_model_call_minimum": 1,
+                            "accepted_participant_model_call_maximum": 2,
+                            "accepted_turn_continuation_limit": 1,
+                            "provider_process_attempt_limit_per_cell_attempt": 3,
+                        }
+                    )
                 cell["cell_key_sha256"] = _cell_key_hash(cell)
                 cells.append(cell)
                 total_query_count += query_count * len(checkpoints)
@@ -1791,7 +1873,15 @@ def build_formal_preflight(
             "participant_final_recommendations": len(cells),
             "blind_validation_targets": len(cells) * 2,
             "blind_validation_executions": len(cells) * 2 * 3,
-        },
+        }
+        | (
+            {
+                "accepted_participant_model_calls_minimum": len(cells),
+                "accepted_participant_model_calls_maximum": len(cells) * 2,
+            }
+            if design_version == FORMAL_DESIGN_VERSION
+            else {}
+        ),
         "task_bindings": task_bindings,
         "c2_admission": c2_admission,
         "cells": cells,
@@ -1923,6 +2013,10 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
         errors.append("formal preflight task binding denominator is invalid")
     locus_cell_counts = dict.fromkeys(FORMAL_C2_LOCI, 0)
     locus_task_keys: dict[str, set[str]] = {locus: set() for locus in FORMAL_C2_LOCI}
+    participant_contract = report.get("participant_execution_contract")
+    current_method_contract = (
+        participant_contract == EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+    )
     dynamic_counts = {
         "tasks": len(binding_by_key),
         "independent_task_world_clusters": len(
@@ -1966,18 +2060,32 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
             if isinstance(cell, Mapping)
         ),
     }
+    if current_method_contract:
+        dynamic_counts.update(
+            {
+                "accepted_participant_model_calls_minimum": len(cells),
+                "accepted_participant_model_calls_maximum": len(cells) * 2,
+            }
+        )
     if any(counts.get(key) != value for key, value in dynamic_counts.items()):
         errors.append("formal preflight dynamic denominators are inconsistent")
+    frozen_totals = FORMAL_EXPECTED_TOTALS.copy()
+    if not current_method_contract:
+        frozen_totals.pop("accepted_participant_model_calls_minimum")
+        frozen_totals.pop("accepted_participant_model_calls_maximum")
     if schedule_complete and any(
-        dynamic_counts.get(key) != value for key, value in FORMAL_EXPECTED_TOTALS.items()
+        dynamic_counts.get(key) != value for key, value in frozen_totals.items()
     ):
         errors.append("complete formal C2 schedule differs from the frozen 135-cell totals")
-    participant_contract = report.get("participant_execution_contract")
     participant_contract_hash = report.get("participant_execution_contract_sha256")
     if (
-        participant_contract != EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
+        participant_contract
+        not in (
+            EXPECTED_PARTICIPANT_EXECUTION_CONTRACT,
+            LEGACY_EXPECTED_PARTICIPANT_EXECUTION_CONTRACT,
+        )
         or participant_contract_hash
-        != canonical_json_sha256(EXPECTED_PARTICIPANT_EXECUTION_CONTRACT)
+        != canonical_json_sha256(participant_contract)
     ):
         errors.append("formal preflight participant execution contract is invalid")
     if report.get("reference_policy_contract") != EXPECTED_REFERENCE_POLICY_CONTRACT:
@@ -2001,9 +2109,14 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     qualification_contract = report.get("method_qualification_contract")
     qualification_contract_hash = report.get("method_qualification_contract_sha256")
     if (
-        qualification_contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT
-        or qualification_contract_hash
-        != canonical_json_sha256(EXPECTED_METHOD_QUALIFICATION_CONTRACT)
+        qualification_contract
+        not in (
+            EXPECTED_METHOD_QUALIFICATION_CONTRACT,
+            LEGACY_EXPECTED_METHOD_QUALIFICATION_CONTRACT,
+        )
+        or qualification_contract_hash != canonical_json_sha256(qualification_contract)
+        or current_method_contract
+        != (qualification_contract == EXPECTED_METHOD_QUALIFICATION_CONTRACT)
     ):
         errors.append("formal preflight method-qualification contract is invalid")
     for cell in cells:
