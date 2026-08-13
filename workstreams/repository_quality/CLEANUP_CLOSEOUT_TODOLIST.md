@@ -421,6 +421,18 @@ write-once authorization、user/provider/pricing/cost/attempt contracts、triple
 所有失败与 exact replay。新增 CLI 测试证明 summary-template 直接生成零 provider 的精确分母 summary，以及
 incomplete manifest 在 authorization 输出创建前被拒绝；W2-26 及下游聚焦测试 51/51、Ruff 通过。
 
+### CD-35：退役不可达的 Static S0 v0.2 development campaign 孤岛 — DONE
+
+`run_static_s0_five_task_campaign.py` 的默认 v0.2 plan 绑定 2026-07-30 seed-0 qualification commit，并只允许
+runner、plan、专属测试三个 path 在 qualification 后变化；到当前 HEAD 已有 1,215 个 changed paths，因此即使
+全仓 clean，入口也必然被 qualification-source allowlist 拒绝。该 v0.2 campaign 从未执行，runner、plan 与
+`test_five_task_campaign.py` 只相互引用；`configs/current.json` 指向的是已完成 v0.1 summary 和 v0.1 run，不消费
+三者。仅删除入口 dirty gate 会留下下一层同样不可满足的 ancestry/path gate，不能恢复任何有效工作流。
+
+现已整组删除这 3 个执行孤岛文件，共 1,334 行。保留 current v0.1 summary、历史 run binding、seed-0 v0.1-v0.5
+qualification plans/runner/tests、v1.9 participant method config、exact replay/postrun audit 实现与 Git 历史；没有删除
+raw result 或把 v0.2 伪装为已完成。保留的 qualification 测试 12/12 与 Ruff 通过，非 archive 残留引用为 0。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
