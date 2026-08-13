@@ -8,7 +8,7 @@ import contextlib
 import json
 import tempfile
 import time
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from time import perf_counter
 from typing import Any, cast
@@ -1139,6 +1139,7 @@ def _run_cell(
     progress_path: Path,
     agent_invalid_enforcement: str | None = None,
     provider_error_enforcement: str | None = None,
+    agent_factory: Callable[..., Any] | None = None,
 ) -> dict[str, Any]:
     cell_started = perf_counter()
     _progress(
@@ -1188,7 +1189,7 @@ def _run_cell(
                 },
             )
 
-        agent = InteractiveCodexExperimentAgent(
+        agent = (agent_factory or InteractiveCodexExperimentAgent)(
             workspace=Path(temporary) / "workspace",
             role_id=f"work_ii_{provider['id']}_{provider['model']}_persistent_campaign",
             model=str(provider["model"]),

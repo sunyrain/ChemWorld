@@ -122,18 +122,26 @@ summary、provider receipt taxonomy、qualification 和 denominator 字段，并
 覆盖。真实 config→campaign runner→raw→validator canary 仍单独列为 CD-P0-02，不能再由 synthetic summary
 替代。
 
+### CD-10：补齐 W2-26 最小 production-path semantic canary — DONE
+
+新增一条 provider-free scripted-participant canary。测试只在 participant factory 边界注入确定性动作，仍由
+production materializer 生成任务配置，并穿过真实 campaign runner、ChemWorld 环境、trajectory writer、
+exact replay、execution audit、qualification validator 和 summary writer。测试不 monkeypatch analyzer/validator，
+也不手写 `qualification.passed` 或最终 summary；因此 operation-count、环境动作、回放或资格语义再次漂移时，
+会在真实生产路径上失败。该 canary 不替代 provider contract canary 或科学资格实验。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
 |---|---|---|---|---|
 | CD-P0-01 | DONE | W2-26 production runner 曾保留历史 operation-count fallback | 已删除旧 `electrolyze=4..5` 权威；W2-26 config 缺字段立即失败，普通历史/development config 不再套用任务特定规则 | production runner 根因回归测试通过；真实 semantic canary 仍与 CD-P0-02 合并执行 |
-| CD-P0-02 | DOING | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner；下一步用一条真实 runner canary 覆盖 config→raw→validator | production materializer 和 runner 生成真实 raw/summary；不得 monkeypatch summary builder 或手写 pass 字段 |
+| CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
 | CD-P0-04 | TODO | readiness/manifest/authorization/status 多处复制 pass 状态 | 找出每个字段的 writers/readers，选择 machine summary 为唯一派生权威 | 删除自证明 pass 字段或改为派生；状态副本数量净减少 |
 | CD-P1-01 | DOING | development 与 release provenance 仍有交叉入口；已复现旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | 开发态绕开 clean-tree、全树/说明文档 hash、旧 readiness；先区分仍可执行的 current protocol 与历史 manifest，再把 prose binding 移出 development authorization | 改说明文档/测试不使 development run stale；改 runner/evaluator/config 必须被语义 canary 捕获；不刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | TODO | pytest `fast and current` 仍接近全套测试 | 先建立小于 60 秒的显式 smoke roster；不增加逐测试五维 marker 审计 | smoke 覆盖 import、事务、无效动作回滚、replay、task registry、package resource |
-| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 首批已删除 W2-26 复制 production schema 的 27-cell synthetic test；继续按生产消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
+| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 首批已删除 W2-26 复制 production schema 的 27-cell synthetic test，并补入不复制生产 summary schema 的真实路径 canary；继续按生产消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | TODO | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 只审计公共执行边界，收窄为已知 domain/transient errors | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | TODO | current status 同时散落于 registry、TODO、README 和报告 | `configs/current.json` 只管理稳定 current/release artifact；活跃实验状态只在对应 TODO/summary | 不再新增同步 checker；读者状态从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |

@@ -33,8 +33,12 @@ from scripts.run_work_ii_five_seed_campaign import (
     _systemic_preoperation_failure,
 )
 
+from chemworld.agents.base import BaseAgent
 from chemworld.campaign_resources import CampaignResourceLedger
 from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    _materialize_runtime_config,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -48,6 +52,170 @@ def test_w226_operation_counts_have_no_historical_runner_fallback() -> None:
         _required_operation_counts(
             {"w2_26_runtime_identity": {}, "qualification": {}}
         )
+
+
+def test_w226_scripted_participant_traverses_production_semantic_path(
+    tmp_path: Path,
+) -> None:
+    source = _config()
+    config = _materialize_runtime_config(
+        source,
+        locus="A_E",
+        task_id="electrochemical-conversion",
+        rounds=8,
+    )
+    config["snapshot_stages"] = ["pre_evidence", "final"]
+    config["campaign"].update(
+        {
+            "complete_experiments": 1,
+            "operation_attempt_limit": 6,
+            "vessel_start_limit": 1,
+            "final_assay_limit": 1,
+            "operation_repeat_limits": {"electrolyze": 1},
+            "checkpoint_complete_experiments": [0, 1],
+        }
+    )
+    config["campaign"]["closeout_policy"].update(
+        {
+            "planned_batches": 1,
+            "final_assay_path_total_operation_reserve": 2,
+            "discard_path_total_operation_reserve": 1,
+        }
+    )
+    config["method_resources"].update(
+        {
+            "operation_limit": 6,
+            "complete_experiment_limit": 1,
+            "checkpoint_complete_experiments": [1],
+        }
+    )
+    config["qualification"].update(
+        {
+            "minimum_unique_recipes": 1,
+            "maximum_exact_repeats": 0,
+        }
+    )
+    recommendation = {
+        "selected_experiment_index": 1,
+        "selection_rationale": "only completed canary experiment",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
+
+    class ScriptedCampaignParticipant(BaseAgent):
+        name = "scripted-production-semantic-canary"
+
+        def __init__(self, **_kwargs: Any) -> None:
+            self.actions = [
+                {"operation": "add_solvent", "volume_L": 0.025, "solvent": 1},
+                {"operation": "add_reagent", "amount_mol": 0.012},
+                {
+                    "operation": "set_potential",
+                    "potential_V": 1.10,
+                    "current_mA": 70.0,
+                    "electrolyte_profile": 2,
+                },
+                {"operation": "electrolyze", "duration_s": 180.0},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+
+        def act(self, history: list[Any]) -> dict[str, Any]:
+            return self.actions[len(history)]
+
+        def method_resource_usage(self) -> dict[str, Any]:
+            return {
+                "schema_version": "chemworld-method-resource-usage-0.1",
+                "accounting_complete": True,
+                "provider_usage_pending": False,
+                "provider_usage_accounting_complete": True,
+                "provider_call_accounting_complete": True,
+                "provider_token_accounting_complete": True,
+                "provider_cache_accounting_complete": True,
+                "monetary_accounting_complete": True,
+                "in_flight_model_call_count": 0,
+                "model_call_count": 1,
+                "input_token_count": 10,
+                "cached_input_token_count": 0,
+                "uncached_input_token_count": 10,
+                "output_token_count": 5,
+                "training_environment_step_count": 0,
+                "monetary_cost_usd": 0.0,
+                "cpu_time_s": 0.0,
+                "gpu_time_s": 0.0,
+                "model_provenance": {},
+                "provider_session_count": 1,
+                "provider_process_attempt_count": 1,
+                "accepted_provider_session_count": 1,
+                "accepted_participant_model_call_count": 1,
+                "unattributed_pre_action_process_attempt_count": 0,
+            }
+
+        def provider_receipts(self) -> list[dict[str, Any]]:
+            return [
+                {
+                    "session_scope": "campaign",
+                    "status": "completed",
+                    "return_code": 0,
+                    "final_payload_valid": True,
+                    "final_payload_status": "campaign_complete",
+                    "final_recommendation": recommendation,
+                    "final_recommendation_sha256": recommendation_sha256,
+                    "belief_snapshots": [
+                        {
+                            "stage": "pre_evidence",
+                            "prior_assessment": {
+                                "reliability_probability": 0.5,
+                                "suspected_misindexed_fields": [],
+                            },
+                        },
+                        {
+                            "stage": "final",
+                            "prior_assessment": {
+                                "reliability_probability": 0.5,
+                                "suspected_misindexed_fields": [],
+                            },
+                        },
+                    ],
+                    "experiment_tool_integrity_verified_after_session": True,
+                    "lab_tool_integrity_verified_after_session": True,
+                    "mcp_tool_integrity_verified_after_session": True,
+                    "recovered_mcp_tool_failure_count": 0,
+                    "current_consecutive_mcp_tool_failure_count": 0,
+                    "maximum_consecutive_mcp_tool_failure_count": 0,
+                    "provider_error_event_count": 0,
+                    "session_elapsed_s": 0.0,
+                    "pre_action_retry_classification": "terminal_accepted",
+                    "accepted_action_count": 6,
+                }
+            ]
+
+    cell_root = tmp_path / "cell"
+    row = campaign_runner._run_cell(
+        config=config,
+        world_seed=0,
+        arm="opaque",
+        cell_index=1,
+        total_cells=1,
+        cell_root=cell_root,
+        progress_path=tmp_path / "progress.jsonl",
+        agent_invalid_enforcement="measure_only",
+        provider_error_enforcement="measure_only",
+        agent_factory=ScriptedCampaignParticipant,
+    )
+
+    trajectory = [
+        json.loads(line)
+        for line in (cell_root / "trajectory.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert [record["action"] for record in trajectory] == ScriptedCampaignParticipant().actions
+    assert row["analysis"]["complete_experiment_count"] == 1
+    assert row["analysis"]["committed_operation_count"] == 6
+    assert row["exact_replay"]["verified"] is True
+    assert row["analysis"]["execution_audit"]["passed"] is True
+    assert row["qualification"]["passed"] is True
+    assert row["completed"] is True
+    assert json.loads((cell_root / "summary.json").read_text(encoding="utf-8")) == row
+    assert "synthetic" not in json.dumps(row, sort_keys=True).lower()
 
 
 def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:
