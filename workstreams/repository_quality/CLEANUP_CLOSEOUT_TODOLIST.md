@@ -542,6 +542,19 @@ package，并与仓库的 development-first、focused validation、freeze-once �
 `provenance.py` 通过，普通 smoke/聚焦 pytest 继续走轻量默认路径；没有删除类型检查、放宽 mypy 配置或新增
 另一套 generated type-check roster。
 
+### CD-44：退役两份未执行的 Static S0 distillation pilot 设计 — DONE
+
+Static S0 早期配置中有两份 2026-07-29 reaction-distillation 20×1 development pilot：一份 Codex participant，
+一份 classic-baseline comparison。它们随 five-task qualification 一同写入仓库，但从未进入 current registry、
+runner default、tracked report 或实验 ledger；精确文件名、protocol/method id、byte SHA 与 canonical SHA 均没有
+仓库消费者，本地 `runs/development` 也没有对应 manifest、receipt 或 report。引入提交中的 v14 participant method
+和 five-task qualification 是另一条有消费者的证据链，未与这两份配置混同。
+
+现删除这两份共 296 行的未执行设计，精确内容由 Git 历史保留。审计同时明确保留 v0.2 known-horizon、v0.3
+medium-quick 与 medium-s0-20：三者虽然文件名未被 tracked code 引用，却有真实本地运行，其中 medium-quick 还有
+tracked 完成结果说明；也保留 current v0.1、v1.0-v1.2 formal configs、所有 raw/receipt/failure 和现行 runner。
+Static S0 runner/baseline 与 current evidence 聚焦测试通过，零消费者扫描保持为零。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -558,7 +571,7 @@ package，并与仓库的 development-first、focused validation、freeze-once �
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | DOING | current status 同时散落于 registry、TODO、README 和报告 | 已将 W2-26 partial/provider-blocked 与 W2-37 terminal 状态收束至 Work II TODO，并链接唯一机器 summary；`configs/current.json` 只管理稳定 current/release artifact | 不再新增同步 checker；其余活跃实验也从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
-| CD-P2-03 | DOING | tracked 大型明细和多个版本副本增加 checkout 与选择歧义 | 已删除 Static S0 未晋升 qualification/campaign 链与 8 个无消费者 G2 连续修订 config；继续只迁移无 current/immutable/hash/raw-result 消费者的 superseded payload | current registry 和冻结 replay 零断链；不利结果保留；历史从 Git/release asset 恢复 |
+| CD-P2-03 | DOING | tracked 大型明细和多个版本副本增加 checkout 与选择歧义 | 已删除 Static S0 未晋升 qualification/campaign 链、两份从未执行的 distillation pilot 设计与 8 个无消费者 G2 连续修订 config；继续只迁移无 current/immutable/hash/raw-result 消费者的 superseded payload | current registry 和冻结 replay 零断链；不利结果保留；历史从 Git/release asset 恢复 |
 
 ## 5. 必须保留的控制
 
