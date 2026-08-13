@@ -428,6 +428,26 @@ def test_checkpoint_contract_supports_frozen_ten_experiment_pattern() -> None:
     assert len(contract["evidence_catalog"]) == 10
 
 
+def test_staged_snapshot_qualification_note_matches_seed2_checkpoint_configs() -> None:
+    schedule = [0, 2, 4, 7, 10]
+    for config_name in (
+        "work_ii_electrochemical_independent_terminal_d1_execution_seed2.json",
+        "work_ii_reaction_safety_independent_terminal_d1_execution_seed2.json",
+    ):
+        assert _task_config(config_name)["campaign"]["checkpoint_complete_experiments"] == (
+            schedule
+        )
+    note = (
+        ROOT
+        / "workstreams"
+        / "flagship_tasks"
+        / "experiments"
+        / "work-ii-staged-belief-snapshot-seed2-qualification.md"
+    ).read_text(encoding="utf-8")
+    assert "0/2/4/7/10" in note
+    assert "60 physical experiments and 30" in note
+
+
 def test_deepseek_configs_freeze_bounded_recovery_and_schedule_completion() -> None:
     for config_name in (
         "work_ii_electrochemical_deepseek_v4_flash_campaign.json",

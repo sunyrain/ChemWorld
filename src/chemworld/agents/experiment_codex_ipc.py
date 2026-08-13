@@ -249,6 +249,50 @@ class ExperimentCodexWorkspace:
             return []
         return [_read_json_object(path) for path in sorted(root.glob("*.json"))]
 
+    def belief_snapshot_draft_audit(self, session_id: str) -> dict[str, Any]:
+        """Retain participant-authored staged fragments, including incomplete drafts."""
+
+        root = self.session_root(session_id) / "belief_snapshot_drafts"
+        drafts: list[dict[str, Any]] = []
+        fragment_count = 0
+        if root.exists():
+            for draft_root in sorted(path for path in root.iterdir() if path.is_dir()):
+                manifest_path = draft_root / "manifest.json"
+                fragments_root = draft_root / "fragments"
+                fragments = (
+                    [
+                        _read_json_object(path)
+                        for path in sorted(fragments_root.glob("*.json"))
+                    ]
+                    if fragments_root.is_dir()
+                    else []
+                )
+                fragment_count += len(fragments)
+                finalization_path = draft_root / "finalization.json"
+                drafts.append(
+                    {
+                        "draft_id": draft_root.name,
+                        "manifest": (
+                            _read_json_object(manifest_path)
+                            if manifest_path.is_file()
+                            else None
+                        ),
+                        "fragments": fragments,
+                        "fragment_count": len(fragments),
+                        "finalization": (
+                            _read_json_object(finalization_path)
+                            if finalization_path.is_file()
+                            else None
+                        ),
+                    }
+                )
+        return {
+            "schema_version": "chemworld-work-ii-belief-snapshot-draft-audit-0.1",
+            "drafts": drafts,
+            "draft_count": len(drafts),
+            "fragment_count": fragment_count,
+        }
+
     def final_recommendation_audit(self, session_id: str) -> dict[str, Any] | None:
         """Return the host-owned participant recommendation committed in one session."""
 

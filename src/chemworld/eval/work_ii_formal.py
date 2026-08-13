@@ -538,6 +538,23 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
         str(item["query_id"]): [str(metric) for metric in item.get("metric_ids", metric_ids)]
         for item in held_out_queries
     }
+    prediction_pages = [
+        {
+            "page_id": f"predictions-{index // 4 + 1:03d}",
+            "query_metric_contract": {
+                query_id: query_metric_contract[query_id]
+                for query_id in list(query_metric_contract)[index : index + 4]
+            },
+        }
+        for index in range(0, len(query_metric_contract), 4)
+    ]
+    law_pages = [
+        {
+            "page_id": f"laws-{index // 2 + 1:03d}",
+            "metric_ids": metric_ids[index : index + 2],
+        }
+        for index in range(0, len(metric_ids), 2)
+    ]
     complete_experiments = int(_object(config["campaign"], "campaign")["complete_experiments"])
     snapshot_stages = [
         str(item)
@@ -573,6 +590,17 @@ def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, 
         "nominal_information_available": nominal,
         "stage_labels_are_checkpoint_ids_only": True,
         "physical_experiment_selection_authority": "participant",
+        "snapshot_submission_protocol": {
+            "protocol": "staged_pages_v1",
+            "prediction_pages": prediction_pages,
+            "law_pages": law_pages,
+            "submission_order": [
+                page["page_id"] for page in (*prediction_pages, *law_pages)
+            ],
+            "finalize_requires_exact_full_snapshot": True,
+            "partial_draft_counts_as_checkpoint": False,
+            "participant_payload_auto_repair": False,
+        },
     }
 
 

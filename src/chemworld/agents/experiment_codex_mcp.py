@@ -26,9 +26,12 @@ from chemworld.eval.work_ii_prior_discovery import (
     WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
     WORK_II_SNAPSHOT_SCHEMA_VERSION,
     parse_work_ii_belief_snapshot,
+    parse_work_ii_belief_snapshot_header,
+    parse_work_ii_law_summary,
+    parse_work_ii_prediction_page,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.10"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.11"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -62,6 +65,18 @@ BELIEF_SNAPSHOT_SHAPE_GUIDE = (
     "from inputSchema."
 )
 
+STAGED_BELIEF_SNAPSHOT_GUIDE = (
+    "Use action=begin, then append_prediction_page and append_law_page in the exact "
+    "host-published page order, then action=finalize. Partial drafts never count as "
+    "checkpoints and step remains blocked until finalize. The staged inputSchema is the sole "
+    "participant-facing authority. Legacy snapshot={...} one-shot arguments remain accepted "
+    "only for internal historical replay compatibility."
+)
+
+BELIEF_DRAFT_VERSION = "chemworld-work-ii-belief-snapshot-draft-0.1"
+PREDICTION_PAGE_SIZE = 4
+LAW_PAGE_SIZE = 2
+
 
 def _encode(value: Any) -> bytes:
     return json.dumps(
@@ -93,6 +108,16 @@ def _atomic_json(path: Path, value: Any) -> None:
     finally:
         if temporary.exists():
             temporary.unlink()
+
+
+def _write_json_once(path: Path, value: Any) -> None:
+    """Durably create one immutable protocol artifact without replacement."""
+
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("xb") as handle:
+        handle.write(_encode(value) + b"\n")
+        handle.flush()
+        os.fsync(handle.fileno())
 
 
 def _replace_with_retry(temporary: Path, path: Path) -> None:
@@ -225,6 +250,133 @@ class ChemWorldMCPServer:
             raise ValueError("unsupported active experiment session")
         return descriptor
 
+    @staticmethod
+    def _page_plan(contract: dict[str, Any]) -> dict[str, Any]:
+        configured = contract.get("snapshot_submission_protocol")
+        if isinstance(configured, dict):
+            prediction_pages = configured.get("prediction_pages")
+            law_pages = configured.get("law_pages")
+            submission_order = configured.get("submission_order")
+        else:
+            query_contract = contract.get("query_metric_contract", {})
+            query_ids = list(query_contract) if isinstance(query_contract, dict) else []
+            prediction_pages = [
+                {
+                    "page_id": f"predictions-{index // PREDICTION_PAGE_SIZE + 1:03d}",
+                    "query_metric_contract": {
+                        query_id: query_contract[query_id]
+                        for query_id in query_ids[index : index + PREDICTION_PAGE_SIZE]
+                    },
+                }
+                for index in range(0, len(query_ids), PREDICTION_PAGE_SIZE)
+            ]
+            metrics = contract.get("allowed_metric_ids", [])
+            metrics = metrics if isinstance(metrics, list) else []
+            law_pages = [
+                {
+                    "page_id": f"laws-{index // LAW_PAGE_SIZE + 1:03d}",
+                    "metric_ids": metrics[index : index + LAW_PAGE_SIZE],
+                }
+                for index in range(0, len(metrics), LAW_PAGE_SIZE)
+            ]
+            submission_order = [
+                page["page_id"] for page in (*prediction_pages, *law_pages)
+            ]
+        if not isinstance(prediction_pages, list) or not isinstance(law_pages, list):
+            raise ValueError("belief snapshot page plan is invalid")
+        pages = [*prediction_pages, *law_pages]
+        page_ids = [page.get("page_id") for page in pages if isinstance(page, dict)]
+        if (
+            len(page_ids) != len(pages)
+            or not all(isinstance(item, str) and item for item in page_ids)
+            or len(set(page_ids)) != len(page_ids)
+            or submission_order != page_ids
+        ):
+            raise ValueError("belief snapshot page IDs/order are invalid")
+        return {
+            "protocol": "staged_pages_v1",
+            "prediction_pages": prediction_pages,
+            "law_pages": law_pages,
+            "submission_order": page_ids,
+            "prediction_page_count": len(prediction_pages),
+            "law_page_count": len(law_pages),
+            "total_page_count": len(pages),
+            "participant_payload_auto_repair": False,
+            "partial_draft_counts_as_checkpoint": False,
+        }
+
+    def _belief_stage_context(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = contract.get("snapshot_stages")
+        required_counts = contract.get("checkpoint_complete_experiments")
+        if (
+            not isinstance(stages, list)
+            or not stages
+            or not isinstance(required_counts, list)
+            or len(required_counts) != len(stages)
+        ):
+            raise ValueError("checkpoint experiment-count schedule is invalid")
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        session_root = self.ipc / "sessions" / session_id
+        snapshot_root = session_root / "belief_snapshots"
+        committed = len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
+        if committed >= len(stages):
+            raise RuntimeError("all required belief checkpoints are already committed")
+        completed_count, observed_evidence = self._completed_experiment_state()
+        stage = str(stages[committed])
+        required_count = int(required_counts[committed])
+        draft_root = session_root / "belief_snapshot_drafts" / f"{committed + 1:02d}-{stage}"
+        return {
+            "contract": contract,
+            "stage": stage,
+            "required_count": required_count,
+            "completed_count": completed_count,
+            "observed_evidence": observed_evidence,
+            "committed": committed,
+            "stage_count": len(stages),
+            "snapshot_root": snapshot_root,
+            "draft_root": draft_root,
+            "page_plan": self._page_plan(contract),
+        }
+
+    def _belief_submission_state(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        try:
+            context = self._belief_stage_context(descriptor)
+        except RuntimeError as error:
+            if "already committed" not in str(error):
+                raise
+            return {
+                "protocol": "staged_pages_v1",
+                "all_checkpoints_committed": True,
+                "participant_payload_auto_repair": False,
+                "partial_draft_counts_as_checkpoint": False,
+            }
+        plan = context["page_plan"]
+        draft_root = context["draft_root"]
+        accepted: list[str] = []
+        if (draft_root / "manifest.json").is_file():
+            for ordinal, page_id in enumerate(plan["submission_order"], start=1):
+                if (draft_root / "fragments" / f"{ordinal:03d}-{page_id}.json").is_file():
+                    accepted.append(page_id)
+                else:
+                    break
+        next_page = (
+            plan["submission_order"][len(accepted)]
+            if len(accepted) < len(plan["submission_order"])
+            else None
+        )
+        return {
+            **plan,
+            "stage": context["stage"],
+            "checkpoint_complete_experiment_count": context["required_count"],
+            "draft_started": (draft_root / "manifest.json").is_file(),
+            "accepted_page_ids": accepted,
+            "accepted_page_count": len(accepted),
+            "next_page_id": next_page,
+            "ready_to_finalize": next_page is None and (draft_root / "manifest.json").is_file(),
+            "finalized_checkpoint_count": context["committed"],
+        }
+
     def _audit(
         self,
         descriptor: dict[str, Any],
@@ -283,6 +435,13 @@ class ChemWorldMCPServer:
         try:
             if name == "material_information":
                 payload = _read_object(self.reference / "material_information.json")
+                if descriptor.get("session_scope") == "campaign":
+                    payload = {
+                        **payload,
+                        "belief_snapshot_submission": self._belief_submission_state(
+                            descriptor
+                        ),
+                    }
             elif name == "status":
                 payload = self._status()
             elif name == "history":
@@ -309,6 +468,8 @@ class ChemWorldMCPServer:
             error_type = type(error).__name__
             error_detail = detail[:1000] if detail else error_type
             error_code = self._error_code(error_type, error_detail)
+            if name == "commit_belief_snapshot" and error_code == "validation_error":
+                error_code = "invalid_belief_snapshot"
             error_field_path = self._error_field_path(error_detail)
             error_payload = self._actionable_error_payload(
                 descriptor=descriptor,
@@ -469,13 +630,31 @@ class ChemWorldMCPServer:
     @staticmethod
     def _submitted_snapshot_stage(arguments: dict[str, Any]) -> Any:
         snapshot = arguments.get("snapshot")
-        return snapshot.get("stage") if isinstance(snapshot, dict) else None
+        if isinstance(snapshot, dict):
+            return snapshot.get("stage")
+        header = arguments.get("snapshot_header")
+        return header.get("stage") if isinstance(header, dict) else None
 
     def _belief_snapshot_repair_context(
         self,
         arguments: dict[str, Any],
         detail: str,
     ) -> dict[str, Any]:
+        if "action" in arguments:
+            return {
+                "schema_authority": "tools/list -> commit_belief_snapshot.inputSchema",
+                "submission_state": self._belief_submission_state(self._descriptor()),
+                "observed": {
+                    "action": arguments.get("action"),
+                    "page_id": arguments.get("page_id"),
+                    "argument_keys": sorted(arguments),
+                },
+                "participant_payload_auto_repair": False,
+                "recovery_action": (
+                    "Resubmit one exact rejected page from the host-published page plan; "
+                    "accepted pages cannot be replaced."
+                ),
+            }
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         snapshot = arguments.get("snapshot")
         snapshot = snapshot if isinstance(snapshot, dict) else {}
@@ -773,6 +952,7 @@ class ChemWorldMCPServer:
             "final_recommendation_committed": (
                 self.ipc / "sessions" / session_id / "final_recommendation.json"
             ).is_file(),
+            "belief_snapshot_submission": self._belief_submission_state(descriptor),
         }
 
     @staticmethod
@@ -803,6 +983,8 @@ class ChemWorldMCPServer:
     ) -> dict[str, Any]:
         if descriptor.get("session_scope") != "campaign":
             raise RuntimeError("belief checkpoints are available only in campaign sessions")
+        if "action" in arguments:
+            return self._commit_staged_belief_snapshot(descriptor, arguments)
         snapshot = arguments.get("snapshot")
         if not isinstance(snapshot, dict):
             raise ValueError("snapshot must be an object")
@@ -855,6 +1037,256 @@ class ChemWorldMCPServer:
         if result["remaining_checkpoint_count"] == 0:
             result["final_response_contract"] = self._final_response_contract(campaign=True)
         return result
+
+    @staticmethod
+    def _exact_argument_fields(
+        arguments: dict[str, Any], expected: set[str], *, label: str
+    ) -> None:
+        if set(arguments) != expected:
+            raise ValueError(f"{label} fields do not match the staged contract")
+
+    @staticmethod
+    def _prediction_page_map(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        return {
+            str(page["page_id"]): page
+            for page in plan["prediction_pages"]
+            if isinstance(page, dict)
+        }
+
+    @staticmethod
+    def _law_page_map(plan: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        return {
+            str(page["page_id"]): page
+            for page in plan["law_pages"]
+            if isinstance(page, dict)
+        }
+
+    def _draft_payloads(self, context: dict[str, Any]) -> dict[str, dict[str, Any]]:
+        root = context["draft_root"] / "fragments"
+        payloads: dict[str, dict[str, Any]] = {}
+        if not root.is_dir():
+            return payloads
+        for path in sorted(root.glob("*.json")):
+            value = _read_object(path)
+            page_id = value.get("page_id")
+            if not isinstance(page_id, str) or page_id in payloads:
+                raise ValueError("belief snapshot draft fragments are invalid")
+            payloads[page_id] = value
+        return payloads
+
+    def _assemble_staged_snapshot(
+        self,
+        context: dict[str, Any],
+        manifest: dict[str, Any],
+    ) -> dict[str, Any]:
+        plan = context["page_plan"]
+        payloads = self._draft_payloads(context)
+        predictions: list[dict[str, Any]] = []
+        laws: list[dict[str, Any]] = []
+        for page in plan["prediction_pages"]:
+            page_id = str(page["page_id"])
+            if page_id in payloads:
+                predictions.extend(payloads[page_id]["predictions"])
+            else:
+                raise ValueError(f"belief snapshot page is missing: {page_id}")
+        for page in plan["law_pages"]:
+            page_id = str(page["page_id"])
+            if page_id in payloads:
+                laws.extend(payloads[page_id]["metric_laws"])
+            else:
+                raise ValueError(f"belief snapshot page is missing: {page_id}")
+        header = manifest["snapshot_header"]
+        law_header = header["law_summary"]
+        return {
+            "schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+            "snapshot_id": header["snapshot_id"],
+            "stage": header["stage"],
+            "prior_assessment": header["prior_assessment"],
+            "predictions": predictions,
+            "law_summary": {**law_header, "metric_laws": laws},
+            "evidence_ids": header["evidence_ids"],
+            "next_experiment_intent": header["next_experiment_intent"],
+            "overall_confidence": header["overall_confidence"],
+        }
+
+    def _commit_staged_belief_snapshot(
+        self, descriptor: dict[str, Any], arguments: dict[str, Any]
+    ) -> dict[str, Any]:
+        action = arguments.get("action")
+        if action not in {
+            "begin",
+            "append_prediction_page",
+            "append_law_page",
+            "finalize",
+        }:
+            raise ValueError("belief snapshot action is invalid")
+        context = self._belief_stage_context(descriptor)
+        if context["completed_count"] != context["required_count"]:
+            raise RuntimeError(
+                "checkpoint is not due at the current completed-experiment count: "
+                f"expected {context['required_count']}, observed {context['completed_count']}"
+            )
+        manifest_path = context["draft_root"] / "manifest.json"
+        if action == "begin":
+            self._exact_argument_fields(
+                arguments, {"action", "snapshot_header"}, label="belief snapshot begin"
+            )
+            if manifest_path.exists():
+                raise ValueError("belief snapshot draft is already started and immutable")
+            header = arguments.get("snapshot_header")
+            if not isinstance(header, dict):
+                raise ValueError("snapshot_header must be an object")
+            manifest = {
+                "schema_version": BELIEF_DRAFT_VERSION,
+                "stage": context["stage"],
+                "complete_experiment_count": context["completed_count"],
+                "page_plan": context["page_plan"],
+                "snapshot_header": header,
+                "participant_payload_auto_repair": False,
+            }
+            parsed_header = parse_work_ii_belief_snapshot_header(
+                header,
+                expected_stage=context["stage"],
+                allowed_feature_ids=context["contract"]["allowed_feature_ids"],
+                allowed_prior_fields=context["contract"]["allowed_prior_fields"],
+                evidence_catalog=context["contract"]["evidence_catalog"],
+                nominal_information_available=bool(
+                    context["contract"]["nominal_information_available"]
+                ),
+            )
+            cited = set(parsed_header["evidence_ids"]) | set(
+                parsed_header["law_summary"]["evidence_ids"]
+            )
+            if not cited.issubset(context["observed_evidence"]):
+                raise ValueError("belief snapshot cites evidence that has not yet been observed")
+            _write_json_once(manifest_path, manifest)
+            return {"ok": True, **self._belief_submission_state(descriptor)}
+        if not manifest_path.is_file():
+            raise ValueError("begin must be accepted before belief snapshot pages")
+        manifest = _read_object(manifest_path)
+        state = self._belief_submission_state(descriptor)
+        if action == "finalize":
+            self._exact_argument_fields(arguments, {"action"}, label="belief snapshot finalize")
+            if not state["ready_to_finalize"]:
+                raise ValueError("belief snapshot cannot finalize before every exact page")
+            canonical = self._assemble_staged_snapshot(context, manifest)
+            parsed = parse_work_ii_belief_snapshot(
+                canonical,
+                expected_stage=context["stage"],
+                query_metric_contract={
+                    str(key): tuple(str(item) for item in value)
+                    for key, value in dict(context["contract"]["query_metric_contract"]).items()
+                },
+                allowed_feature_ids=tuple(
+                    str(item) for item in context["contract"]["allowed_feature_ids"]
+                ),
+                allowed_metric_ids=tuple(
+                    str(item) for item in context["contract"]["allowed_metric_ids"]
+                ),
+                allowed_prior_fields=tuple(
+                    str(item) for item in context["contract"]["allowed_prior_fields"]
+                ),
+                evidence_catalog=tuple(
+                    str(item) for item in context["contract"]["evidence_catalog"]
+                ),
+                nominal_information_available=bool(
+                    context["contract"]["nominal_information_available"]
+                ),
+            )
+            cited = set(parsed.evidence_ids) | set(parsed.law_summary.evidence_ids)
+            if not cited.issubset(context["observed_evidence"]):
+                raise ValueError("belief snapshot cites evidence that has not yet been observed")
+            context["snapshot_root"].mkdir(parents=True, exist_ok=True)
+            target = (
+                context["snapshot_root"]
+                / f"{context['committed'] + 1:02d}-{context['stage']}.json"
+            )
+            _write_json_once(target, parsed.to_dict())
+            _write_json_once(
+                context["draft_root"] / "finalization.json",
+                {"status": "finalized", "stage": context["stage"]},
+            )
+            result = {
+                "ok": True,
+                "schema_version": MCP_SERVER_VERSION,
+                "stage": context["stage"],
+                "complete_experiment_count": context["completed_count"],
+                "committed_checkpoint_count": context["committed"] + 1,
+                "remaining_checkpoint_count": context["stage_count"]
+                - context["committed"]
+                - 1,
+            }
+            if result["remaining_checkpoint_count"] == 0:
+                result["final_response_contract"] = self._final_response_contract(
+                    campaign=True
+                )
+            return result
+        page_id = arguments.get("page_id")
+        if not isinstance(page_id, str):
+            raise ValueError("page_id must be a string")
+        if page_id != state["next_page_id"]:
+            if page_id in state["accepted_page_ids"]:
+                raise ValueError("accepted belief snapshot page cannot be replaced")
+            raise ValueError("belief snapshot page differs from the fixed next page")
+        prediction_pages = self._prediction_page_map(context["page_plan"])
+        law_pages = self._law_page_map(context["page_plan"])
+        if action == "append_prediction_page":
+            self._exact_argument_fields(
+                arguments,
+                {"action", "page_id", "predictions"},
+                label="belief prediction page",
+            )
+            if page_id not in prediction_pages:
+                raise ValueError("page_id is not a prediction page")
+            predictions = arguments.get("predictions")
+            if not isinstance(predictions, list):
+                raise ValueError("predictions must be a list")
+            expected = prediction_pages[page_id]["query_metric_contract"]
+            observed = [
+                item.get("query_id") for item in predictions if isinstance(item, dict)
+            ]
+            if len(observed) != len(predictions) or observed != list(expected):
+                raise ValueError("prediction page does not contain its exact ordered query IDs")
+            parse_work_ii_prediction_page(
+                predictions,
+                query_metric_contract={
+                    str(query_id): tuple(str(item) for item in metric_ids)
+                    for query_id, metric_ids in expected.items()
+                },
+            )
+            page = {"page_id": page_id, "predictions": arguments["predictions"]}
+        else:
+            self._exact_argument_fields(
+                arguments,
+                {"action", "page_id", "metric_laws"},
+                label="belief law page",
+            )
+            if page_id not in law_pages:
+                raise ValueError("page_id is not a law page")
+            laws = arguments.get("metric_laws")
+            if not isinstance(laws, list):
+                raise ValueError("metric_laws must be a list")
+            expected_metrics = law_pages[page_id]["metric_ids"]
+            observed_metrics = [
+                item.get("metric_id") for item in laws if isinstance(item, dict)
+            ]
+            if len(observed_metrics) != len(laws) or observed_metrics != expected_metrics:
+                raise ValueError("law page does not contain its exact ordered metric IDs")
+            law_header = manifest["snapshot_header"]["law_summary"]
+            parse_work_ii_law_summary(
+                {**law_header, "metric_laws": laws},
+                allowed_feature_ids=context["contract"]["allowed_feature_ids"],
+                allowed_metric_ids=context["contract"]["allowed_metric_ids"],
+                evidence_catalog=context["contract"]["evidence_catalog"],
+                required_metric_ids=expected_metrics,
+            )
+            page = {"page_id": page_id, "metric_laws": arguments["metric_laws"]}
+        ordinal = context["page_plan"]["submission_order"].index(page_id) + 1
+        _write_json_once(
+            context["draft_root"] / "fragments" / f"{ordinal:03d}-{page_id}.json",
+            page,
+        )
+        return {"ok": True, **self._belief_submission_state(descriptor)}
 
     def _commit_final_recommendation(
         self,
@@ -1347,6 +1779,201 @@ class ChemWorldMCPServer:
         }
 
     @staticmethod
+    def _staged_belief_snapshot_tool_schema() -> dict[str, Any]:
+        probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+        string_id = {"type": "string", "minLength": 1, "maxLength": 200}
+        string_ids = {
+            "type": "array",
+            "items": string_id,
+            "maxItems": 64,
+            "uniqueItems": True,
+        }
+        metric_prediction = {
+            "type": "object",
+            "properties": {
+                "metric_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "mean": {"type": "number"},
+                "interval_lower": {"type": "number"},
+                "interval_upper": {"type": "number"},
+                "confidence": probability,
+            },
+            "required": [
+                "metric_id",
+                "mean",
+                "interval_lower",
+                "interval_upper",
+                "confidence",
+            ],
+            "additionalProperties": False,
+        }
+        law_term = {
+            "type": "object",
+            "properties": {
+                "term_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "basis": {"enum": sorted(WORK_II_LAW_BASES)},
+                "input_ids": {
+                    "type": "array",
+                    "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                    "minItems": 1,
+                    "maxItems": 2,
+                    "uniqueItems": True,
+                },
+                "coefficient": {"type": "number"},
+                "category_value": {"type": ["string", "number"]},
+            },
+            "required": ["term_id", "basis", "input_ids", "coefficient"],
+            "additionalProperties": False,
+        }
+        metric_law = {
+            "type": "object",
+            "properties": {
+                "metric_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "intercept": {"type": "number"},
+                "link": {"enum": sorted(WORK_II_LAW_LINKS)},
+                "lower_bound": {"type": "number"},
+                "upper_bound": {"type": "number"},
+                "terms": {"type": "array", "items": law_term, "maxItems": 64},
+            },
+            "required": [
+                "metric_id",
+                "intercept",
+                "link",
+                "lower_bound",
+                "upper_bound",
+                "terms",
+            ],
+            "additionalProperties": False,
+        }
+        return {
+            "type": "object",
+            "properties": {
+                "action": {
+                    "enum": [
+                        "begin",
+                        "append_prediction_page",
+                        "append_law_page",
+                        "finalize",
+                    ]
+                },
+                "snapshot_header": {
+                    "type": "object",
+                    "description": (
+                        "Complete snapshot except predictions and law_summary.metric_laws."
+                    ),
+                    "properties": {
+                        "snapshot_id": string_id,
+                        "stage": string_id,
+                        "prior_assessment": {
+                            "type": "object",
+                            "properties": {
+                                "nominal_information_available": {"type": "boolean"},
+                                "reliability_probability": {
+                                    "type": ["number", "null"],
+                                    "minimum": 0.0,
+                                    "maximum": 1.0,
+                                },
+                                "suspected_misindexed_fields": {
+                                    **string_ids,
+                                    "maxItems": 16,
+                                },
+                                "rationale": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 2000,
+                                },
+                            },
+                            "required": [
+                                "nominal_information_available",
+                                "reliability_probability",
+                                "suspected_misindexed_fields",
+                                "rationale",
+                            ],
+                            "additionalProperties": False,
+                        },
+                        "law_summary": {
+                            "type": "object",
+                            "description": "Complete law summary except metric_laws.",
+                            "properties": {
+                                "schema_version": {
+                                    "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+                                },
+                                "summary_id": string_id,
+                                "feature_ids": {
+                                    **string_ids,
+                                    "minItems": 1,
+                                },
+                                "evidence_ids": string_ids,
+                                "applicability": {
+                                    "type": "string",
+                                    "minLength": 1,
+                                    "maxLength": 2000,
+                                },
+                                "limitations": {
+                                    **string_ids,
+                                    "maxItems": 16,
+                                },
+                                "confidence": probability,
+                            },
+                            "required": [
+                                "schema_version",
+                                "summary_id",
+                                "feature_ids",
+                                "evidence_ids",
+                                "applicability",
+                                "limitations",
+                                "confidence",
+                            ],
+                            "additionalProperties": False,
+                        },
+                        "evidence_ids": string_ids,
+                        "next_experiment_intent": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                        },
+                        "overall_confidence": probability,
+                    },
+                    "required": [
+                        "snapshot_id",
+                        "stage",
+                        "prior_assessment",
+                        "law_summary",
+                        "evidence_ids",
+                        "next_experiment_intent",
+                        "overall_confidence",
+                    ],
+                    "additionalProperties": False,
+                },
+                "page_id": string_id,
+                "predictions": {
+                    "type": "array",
+                    "maxItems": PREDICTION_PAGE_SIZE,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "query_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                            "metrics": {
+                                "type": "array",
+                                "items": metric_prediction,
+                                "minItems": 1,
+                                "maxItems": 32,
+                            },
+                        },
+                        "required": ["query_id", "metrics"],
+                        "additionalProperties": False,
+                    },
+                },
+                "metric_laws": {
+                    "type": "array",
+                    "maxItems": LAW_PAGE_SIZE,
+                    "items": metric_law,
+                },
+            },
+            "required": ["action"],
+            "additionalProperties": False,
+        }
+
+    @staticmethod
     def _decision_audit_schema() -> dict[str, Any]:
         return {
             "type": "object",
@@ -1393,7 +2020,11 @@ class ChemWorldMCPServer:
 
     def _tool_definitions(self) -> list[dict[str, Any]]:
         campaign = self._descriptor().get("session_scope") == "campaign"
-        snapshot_schema = self._belief_snapshot_schema() if campaign else {"type": "object"}
+        snapshot_schema = (
+            self._staged_belief_snapshot_tool_schema()
+            if campaign
+            else {"type": "object"}
+        )
         contract = (
             _read_object(self.reference / "belief_checkpoint_contract.json") if campaign else {}
         )
@@ -1450,19 +2081,15 @@ class ChemWorldMCPServer:
             {
                 "name": "commit_belief_snapshot",
                 "description": (
-                    "Commit the next required typed Work II belief snapshot inside the active "
-                    "campaign session. The host validates stage order, experiment-count location, "
-                    "evidence references, held-out predictions, and executable law summary. This "
-                    "tool's tools/list inputSchema is the sole executable schema authority; host "
-                    "filesystem reference paths are not participant-readable contracts. "
-                    f"{BELIEF_SNAPSHOT_SHAPE_GUIDE}"
+                    "Stage and finalize the next typed Work II belief snapshot inside the active "
+                    "campaign session. The compact schema is generic; material_information, "
+                    "begin, and status publish the fixed page_id to exact query/metric ID plan. "
+                    "The host validates stage order, experiment-count location, exact page IDs, "
+                    "evidence references, held-out predictions, and executable laws. No accepted "
+                    "fragment can be replaced and no participant payload is auto-repaired. "
+                    f"{STAGED_BELIEF_SNAPSHOT_GUIDE}"
                 ),
-                "inputSchema": {
-                    "type": "object",
-                    "properties": {"snapshot": snapshot_schema},
-                    "required": ["snapshot"],
-                    "additionalProperties": False,
-                },
+                "inputSchema": snapshot_schema,
                 "annotations": {
                     "readOnlyHint": False,
                     "destructiveHint": False,

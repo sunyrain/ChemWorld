@@ -1837,6 +1837,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             mcp_tool_calls=mcp_tool_calls,
         )
         belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
+        belief_snapshot_drafts = self.workspace.belief_snapshot_draft_audit(session_id)
         committed_recommendation = self.workspace.final_recommendation_audit(session_id)
         if belief_snapshots:
             self._belief_snapshots.extend(deepcopy(belief_snapshots))
@@ -1921,6 +1922,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "session_scope": self.session_scope,
             "belief_snapshots": belief_snapshots,
             "belief_snapshot_count": len(belief_snapshots),
+            "belief_snapshot_drafts": belief_snapshot_drafts,
+            "belief_snapshot_draft_count": belief_snapshot_drafts["draft_count"],
+            "belief_snapshot_fragment_count": belief_snapshot_drafts["fragment_count"],
             "experiment_tool_transport": "host_owned_stdio_mcp",
             "mcp_tool_integrity_verified_after_session": integrity_error is None,
             "experiment_tool_integrity_verified_after_session": integrity_error is None,
@@ -2018,6 +2022,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
         belief_snapshots = self.workspace.belief_snapshot_audit(session_id)
+        belief_snapshot_drafts = self.workspace.belief_snapshot_draft_audit(session_id)
         committed_recommendation = self.workspace.final_recommendation_audit(session_id)
         if belief_snapshots:
             self._belief_snapshots.extend(deepcopy(belief_snapshots))
@@ -2078,6 +2083,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "session_scope": self.session_scope,
             "belief_snapshots": belief_snapshots,
             "belief_snapshot_count": len(belief_snapshots),
+            "belief_snapshot_drafts": belief_snapshot_drafts,
+            "belief_snapshot_draft_count": belief_snapshot_drafts["draft_count"],
+            "belief_snapshot_fragment_count": belief_snapshot_drafts["fragment_count"],
             "experiment_tool_transport": "host_owned_stdio_mcp",
             "mcp_tool_integrity_verified_after_session": (experiment_tool_integrity_verified),
             "experiment_tool_integrity_verified_after_session": (
