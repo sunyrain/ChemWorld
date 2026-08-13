@@ -87,6 +87,49 @@ def test_mcp_tool_failure_audit_preserves_legacy_totals_but_types_streaks() -> N
     assert audit["maximum_consecutive_counts_by_category"]["agent_invalid"] == 2
 
 
+def test_mcp_tool_failure_audit_groups_one_queued_duplicate_burst_as_one_episode() -> None:
+    burst = [
+        {
+            "status": "failed",
+            "tool": "step",
+            "started_at": f"2026-08-13T07:41:32.{millisecond:03d}+00:00",
+            "error_type": "ValueError",
+            "error_code": "invalid_checkpoint_timing",
+            "error_field_path": "checkpoint.stage",
+            "error_detail_sha256": "same-detail",
+            "result_sha256": "same-result",
+        }
+        for millisecond in range(306, 354)
+    ]
+
+    audit = _mcp_tool_failure_audit(burst)
+    episodes = audit["recovery_episode_taxonomy"]
+
+    assert audit["counts_by_category"]["agent_invalid"] == 48
+    assert episodes["counts_by_category"]["agent_invalid"] == 1
+    assert episodes["maximum_consecutive_counts_by_category"]["agent_invalid"] == 1
+
+
+def test_mcp_tool_failure_audit_keeps_feedback_separated_failures_as_distinct_episodes() -> None:
+    failures = [
+        {
+            "status": "failed",
+            "tool": "commit_belief_snapshot",
+            "started_at": f"2026-08-13T07:40:{second:02d}+00:00",
+            "error_type": "ValueError",
+            "error_code": "invalid_checkpoint_payload",
+            "error_detail_sha256": "same-detail",
+            "result_sha256": "same-result",
+        }
+        for second in (1, 15, 31)
+    ]
+
+    episodes = _mcp_tool_failure_audit(failures)["recovery_episode_taxonomy"]
+
+    assert episodes["counts_by_category"]["agent_invalid"] == 3
+    assert episodes["maximum_consecutive_counts_by_category"]["agent_invalid"] == 3
+
+
 def test_typed_mcp_budget_requires_a_complete_consistent_taxonomy() -> None:
     taxonomy = _mcp_tool_failure_audit(
         [
@@ -109,9 +152,13 @@ def test_typed_mcp_budget_requires_a_complete_consistent_taxonomy() -> None:
         "scientific_compliance_mcp_tool_failure_count": 1,
         "current_consecutive_scientific_compliance_mcp_tool_failure_count": 1,
         "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 1,
+        "scientific_compliance_mcp_tool_failure_episode_count": 1,
+        "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 1,
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 1,
     }
     budget = validated_mcp_tool_failure_budget(receipt)
     assert budget["scientific_count"] == 1
+    assert budget["scientific_episode_count"] == 1
     assert budget["transport_count"] == 1
 
     malformed = dict(receipt)
