@@ -15,6 +15,7 @@ from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_blind import BLIND_EVALUATOR_VERSION
 from chemworld.eval.work_ii_c2_admission import (
     C2_OUTCOME_BLIND_SELECTION_VERSION,
+    C2_TASK_ADMISSION_RECEIPT_VERSION,
     c2_outcome_blind_selection_sha256,
     c2_task_admission_receipt_sha256,
 )
@@ -94,7 +95,7 @@ def _isolate_runner_contract_from_current_gate_a_recertification(
                 "embedded_sha256": selection["selection_sha256"],
             }
             receipt = {
-                "schema_version": "chemworld-work-ii-c2-task-admission-receipt-0.1",
+                "schema_version": C2_TASK_ADMISSION_RECEIPT_VERSION,
                 "status": "passed_terminal_task_admission",
                 "formal_result": False,
                 "terminal_qualification_passed": True,

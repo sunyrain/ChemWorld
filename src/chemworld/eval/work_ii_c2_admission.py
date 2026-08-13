@@ -4,17 +4,11 @@ from __future__ import annotations
 
 import json
 import re
-import subprocess
 from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
-from chemworld.eval.provenance import (
-    canonical_json_sha256,
-    file_sha256,
-    git_source_commit,
-    git_worktree_dirty,
-)
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_ae_formal_cohort import (
     validate_ae_public_cells,
     validate_formal_ae_qualification,
@@ -23,13 +17,12 @@ from chemworld.eval.work_ii_execution_mode import (
     ExecutionMode,
     validate_execution_envelope,
 )
-from chemworld.eval.work_ii_source_binding import work_ii_material_tree_sha256
 
 C2_ADMISSION_PLAN_VERSION = "chemworld-work-ii-c2-admission-plan-0.1"
 C2_ADMISSION_REPORT_VERSION = "chemworld-work-ii-c2-admission-report-0.1"
-C2_TASK_ADMISSION_RECEIPT_VERSION = "chemworld-work-ii-c2-task-admission-receipt-0.1"
+C2_TASK_ADMISSION_RECEIPT_VERSION = "chemworld-work-ii-c2-task-admission-receipt-0.2"
 C2_OUTCOME_BLIND_SELECTION_VERSION = (
-    "chemworld-work-ii-c2-outcome-blind-selection-0.2"
+    "chemworld-work-ii-c2-outcome-blind-selection-0.3"
 )
 C2_SELECTION_PROTOCOL_VERSION = "chemworld-work-ii-c2-selection-protocol-0.1"
 C2_LOCI = ("A_P", "A_S")
@@ -50,24 +43,6 @@ C2_STAGE_SCHEMA_TOKENS = {
     "D1": ("initial-model-pilot-evaluation",),
 }
 C2_PUBLIC_AE_CELL_COUNT = 75
-C2_MATERIAL_SOURCE_ROOTS = (
-    "configs/benchmark",
-    "configs/foundation",
-    "configs/mechanisms",
-    "configs/methods",
-    "configs/scenarios",
-    "pyproject.toml",
-    "scripts",
-    "src/chemworld",
-    "tests",
-    "uv.lock",
-)
-C2_MATERIAL_SOURCE_EXCLUSIONS = (
-    "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
-    "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json",
-    "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
-    "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
-)
 C2_DYNAMIC_EVIDENCE_ROOT = "workstreams/flagship_tasks/reports"
 
 
@@ -194,8 +169,6 @@ def build_c2_outcome_blind_selection_record(
     selection_protocol_path: Path,
     terminal_eligibility: Mapping[str, Mapping[str, Any]],
     selection_slot: int,
-    source_binding: Mapping[str, Any] | None = None,
-    validate_source_binding_contract: bool = True,
 ) -> dict[str, Any]:
     """Freeze one task choice without using formal participant outcomes.
 
@@ -208,14 +181,6 @@ def build_c2_outcome_blind_selection_record(
         raise ValueError(f"unsupported C2 locus: {locus}")
     if not isinstance(task_id, str) or not task_id:
         raise ValueError("C2 selection task_id must be non-empty")
-    binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
-    binding_errors = (
-        validate_c2_source_binding(root, binding)
-        if validate_source_binding_contract
-        else []
-    )
-    if binding_errors:
-        raise ValueError("invalid C2 source binding: " + "; ".join(binding_errors))
     protocol_path = _inside_root(root, selection_protocol_path, label="selection protocol")
     protected_root = (root.resolve() / "configs/benchmark").resolve()
     if not protocol_path.is_file() or not protocol_path.is_relative_to(protected_root):
@@ -301,7 +266,6 @@ def build_c2_outcome_blind_selection_record(
             "sha256": file_sha256(protocol_path),
             "protocol_sha256": protocol["protocol_sha256"],
         },
-        "source_binding": binding,
     }
     record["selection_sha256"] = c2_outcome_blind_selection_sha256(record)
     return record
@@ -344,105 +308,6 @@ def _execution_cohort_key(execution_context: object) -> tuple[str, str] | None:
     return freeze_id, str(tested_commit)
 
 
-def build_c2_source_binding(root: Path) -> dict[str, Any]:
-    return {
-        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
-        "tested_commit": git_source_commit(root),
-        "material_tree": {
-            "relative_roots": list(C2_MATERIAL_SOURCE_ROOTS),
-            "excluded_relative_paths": list(C2_MATERIAL_SOURCE_EXCLUSIONS),
-            "sha256": work_ii_material_tree_sha256(
-                root,
-                relative_roots=C2_MATERIAL_SOURCE_ROOTS,
-                excluded_relative_paths=C2_MATERIAL_SOURCE_EXCLUSIONS,
-            ),
-        },
-    }
-
-
-def validate_c2_source_binding(root: Path, binding: object) -> list[str]:
-    if not isinstance(binding, Mapping):
-        return ["C2 source binding is missing"]
-    errors: list[str] = []
-    if binding.get("schema_version") != "chemworld-work-ii-c2-source-binding-0.1":
-        errors.append("unexpected C2 source-binding schema")
-    tested_commit = binding.get("tested_commit")
-    if not isinstance(tested_commit, str) or not _is_commit(tested_commit):
-        errors.append("C2 source binding tested commit is invalid")
-    else:
-        completed = subprocess.run(
-            ["git", "merge-base", "--is-ancestor", tested_commit, git_source_commit(root)],
-            cwd=root,
-            capture_output=True,
-            text=True,
-            check=False,
-        )
-        if completed.returncode != 0:
-            errors.append("C2 source binding tested commit is not an ancestor of HEAD")
-    material = binding.get("material_tree")
-    material = material if isinstance(material, Mapping) else {}
-    if (
-        material.get("relative_roots") != list(C2_MATERIAL_SOURCE_ROOTS)
-        or material.get("excluded_relative_paths")
-        != list(C2_MATERIAL_SOURCE_EXCLUSIONS)
-    ):
-        errors.append("C2 protected material-source roster mismatch")
-    else:
-        try:
-            current = work_ii_material_tree_sha256(
-                root,
-                relative_roots=C2_MATERIAL_SOURCE_ROOTS,
-                excluded_relative_paths=C2_MATERIAL_SOURCE_EXCLUSIONS,
-            )
-        except ValueError as error:
-            errors.append(f"C2 protected material tree cannot be rebuilt: {error}")
-        else:
-            if material.get("sha256") != current:
-                errors.append("C2 protected material tree changed after evidence execution")
-    return errors
-
-
-def c2_material_dirty_paths(root: Path) -> list[str]:
-    """Return dirty paths that belong to the protected C2 material surface.
-
-    Dynamic reports are deliberately outside ``C2_MATERIAL_SOURCE_ROOTS`` and may
-    accumulate between Q1, Q2, D1 and W2-26 without changing the tested runtime.
-    This check still includes untracked files under every protected root.
-    """
-
-    root = root.resolve()
-    if not git_worktree_dirty(root):
-        return []
-    completed = subprocess.run(
-        ["git", "status", "--porcelain=v1", "--untracked-files=all"],
-        cwd=root,
-        capture_output=True,
-        text=True,
-        encoding="utf-8",
-        errors="replace",
-        check=True,
-    )
-    exclusions = set(C2_MATERIAL_SOURCE_EXCLUSIONS)
-    file_roots = {path for path in C2_MATERIAL_SOURCE_ROOTS if Path(path).suffix}
-    directory_roots = tuple(
-        f"{path.rstrip('/')} /".replace(" /", "/")
-        for path in C2_MATERIAL_SOURCE_ROOTS
-        if path not in file_roots
-    )
-    dirty: list[str] = []
-    for line in completed.stdout.splitlines():
-        if not line:
-            continue
-        path = line[3:].strip('"').replace("\\", "/")
-        if " -> " in path:
-            path = path.split(" -> ", 1)[1]
-        if path in exclusions:
-            continue
-        if path in file_roots or any(path.startswith(item) for item in directory_roots):
-            dirty.append(path)
-    return sorted(set(dirty))
-
-
 def _binding(root: Path, path: Path, *, embedded_hash: str | None = None) -> dict[str, Any]:
     value: dict[str, Any] = {
         "path": path.resolve().relative_to(root.resolve()).as_posix(),
@@ -463,7 +328,7 @@ def _inside_root(root: Path, path: Path, *, label: str) -> Path:
 
 
 def _dynamic_evidence_path_errors(root: Path, path: Path, *, label: str) -> list[str]:
-    """Keep post-freeze generated evidence outside the protected material tree."""
+    """Keep generated evidence separate from frozen execution inputs."""
 
     resolved = _inside_root(root, path, label=label)
     dynamic_root = (root.resolve() / C2_DYNAMIC_EVIDENCE_ROOT).resolve()
@@ -472,7 +337,7 @@ def _dynamic_evidence_path_errors(root: Path, path: Path, *, label: str) -> list
     except ValueError:
         return [
             f"{label} must be under {C2_DYNAMIC_EVIDENCE_ROOT} to preserve the "
-            "immutable execution source binding"
+            "generated-evidence boundary"
         ]
     return []
 
@@ -585,7 +450,6 @@ def _stage_evidence_row(
     stage: str,
     path: Path,
     task_id: str,
-    source_binding: Mapping[str, Any],
     require_release_context: bool = False,
 ) -> tuple[dict[str, Any], list[str]]:
     path = _inside_root(root, path, label=f"{stage} evidence")
@@ -667,8 +531,6 @@ def _selection_errors(
     root: Path,
     locus: str,
     task_id: str,
-    source_binding: Mapping[str, Any],
-    require_legacy_source_binding: bool = True,
 ) -> list[str]:
     errors: list[str] = []
     if record.get("schema_version") != C2_OUTCOME_BLIND_SELECTION_VERSION:
@@ -717,14 +579,6 @@ def _selection_errors(
                 for row in roster
                 if isinstance(row, Mapping)
             }
-            rebuild_binding = (
-                source_binding
-                if require_legacy_source_binding
-                else record.get("source_binding")
-            )
-            rebuild_binding = (
-                rebuild_binding if isinstance(rebuild_binding, Mapping) else {}
-            )
             rebuilt = build_c2_outcome_blind_selection_record(
                 root,
                 locus=locus,
@@ -732,22 +586,12 @@ def _selection_errors(
                 selection_protocol_path=protocol_path,
                 terminal_eligibility=terminal_eligibility,
                 selection_slot=int(record.get("selection_slot", 0)),
-                source_binding=rebuild_binding,
-                validate_source_binding_contract=require_legacy_source_binding,
             )
         except (OSError, TypeError, ValueError) as error:
             errors.append(f"selection record cannot be deterministically rebuilt: {error}")
         else:
             if dict(record) != rebuilt:
                 errors.append("selection record differs from deterministic outcome-blind rebuild")
-    if require_legacy_source_binding:
-        record_binding = record.get("source_binding")
-        if not isinstance(record_binding, Mapping):
-            errors.append("selection record lacks its C2 source binding")
-        else:
-            errors.extend(validate_c2_source_binding(root, record_binding))
-            if record_binding.get("tested_commit") != source_binding.get("tested_commit"):
-                errors.append("selection record does not share the receipt runtime commit")
     return errors
 
 
@@ -856,7 +700,6 @@ def build_c2_task_admission_receipt(
     campaign_config_path: Path,
     stage_report_paths: Mapping[str, Path],
     selection_record_path: Path,
-    source_binding: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic terminal-task receipt from independently validated evidence."""
 
@@ -874,9 +717,6 @@ def build_c2_task_admission_receipt(
     errors.extend(
         _dynamic_evidence_path_errors(root, selection_path, label="selection record")
     )
-    binding = dict(source_binding) if source_binding is not None else build_c2_source_binding(root)
-    errors.extend(validate_c2_source_binding(root, binding))
-
     campaign: dict[str, Any] = {}
     if campaign_path.is_file():
         campaign = _load_object(campaign_path)
@@ -893,7 +733,6 @@ def build_c2_task_admission_receipt(
                 root=root,
                 locus=locus,
                 task_id=task_id,
-                source_binding=binding,
             )
         )
     else:
@@ -906,7 +745,6 @@ def build_c2_task_admission_receipt(
             stage=stage,
             path=stage_report_paths[stage],
             task_id=task_id,
-            source_binding=binding,
         )
         stages.append(row)
         errors.extend(stage_errors)
@@ -938,7 +776,6 @@ def build_c2_task_admission_receipt(
         ),
         "participant_outcomes_used_for_selection": False,
         "formal_participant_outcomes_observed": 0,
-        "source_binding": binding,
         "validation_errors": errors,
     }
     receipt["receipt_sha256"] = c2_task_admission_receipt_sha256(receipt)
@@ -1029,10 +866,6 @@ def _task_receipt_errors(
         or not task_id
     ):
         errors.append(f"{locus} task admission is not a terminal outcome-blind pass: {task_id}")
-    source_binding = receipt.get("source_binding")
-    source_binding = source_binding if isinstance(source_binding, Mapping) else {}
-    if not require_release_context:
-        errors.extend(validate_c2_source_binding(root, source_binding))
     stage_order = receipt.get("stage_evidence_order")
     stages = receipt.get("stage_evidence")
     stages = stages if isinstance(stages, list) else []
@@ -1066,7 +899,6 @@ def _task_receipt_errors(
             stage=stage,
             path=path,
             task_id=str(task_id),
-            source_binding=source_binding,
             require_release_context=require_release_context,
         )
         if dict(row) != rebuilt:
@@ -1112,8 +944,6 @@ def _task_receipt_errors(
                         root=root,
                         locus=locus,
                         task_id=str(task_id),
-                        source_binding=source_binding,
-                        require_legacy_source_binding=not require_release_context,
                     )
                 )
                 expected_selection = _binding(
@@ -1525,8 +1355,6 @@ __all__ = [
     "C2_ADMISSION_PLAN_VERSION",
     "C2_ADMISSION_REPORT_VERSION",
     "C2_DYNAMIC_EVIDENCE_ROOT",
-    "C2_MATERIAL_SOURCE_EXCLUSIONS",
-    "C2_MATERIAL_SOURCE_ROOTS",
     "C2_OUTCOME_BLIND_SELECTION_VERSION",
     "C2_SELECTION_PROTOCOL_VERSION",
     "C2_TASK_ADMISSION_RECEIPT_VERSION",
@@ -1534,14 +1362,11 @@ __all__ = [
     "build_c2_admission_report",
     "build_c2_outcome_blind_selection_record",
     "build_c2_selection_protocol",
-    "build_c2_source_binding",
     "build_c2_task_admission_receipt",
     "c2_admission_sha256",
-    "c2_material_dirty_paths",
     "c2_outcome_blind_selection_sha256",
     "c2_selection_protocol_sha256",
     "c2_task_admission_receipt_sha256",
     "validate_c2_admission_report",
     "validate_c2_outcome_blind_selection_pair",
-    "validate_c2_source_binding",
 ]

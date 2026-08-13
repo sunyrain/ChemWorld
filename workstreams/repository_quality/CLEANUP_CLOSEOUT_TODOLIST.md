@@ -333,6 +333,20 @@ source identity 已由五份 release execution envelopes 的共同 tested commit
 校验，不给历史或 development calibration 追补新 hash。D1/C2 聚焦测试 27/27 与 Ruff 通过；运行中的 A-E v0.3
 只加载 qualification/shard/supervisor 模块且产物位于仓库外，本批未修改其 import surface、合同或执行文件。
 
+### CD-28：退役 C2 中间 receipt 的第二套源码身份 — DONE
+
+C2 outcome-blind selection 和 task-admission receipt 原先都嵌入 `tested_commit + material_tree`，递归覆盖 configs、
+scripts、package source、tests、lockfile 与 build metadata，并在重建时比较当前 HEAD/工作树。terminal C2 admission
+又独立要求 Q1/Q2/D1 与 A-E 的 release execution envelopes 全部通过校验并共享一个 freeze id 和 tested commit；
+因此中间 source binding 不贡献新的科学判定，只会让无关测试或开发修改使尚未进入 final admission 的 selection/
+receipt stale。
+
+现已整组删除 source-binding builder、validator、dirty-tree projection、路径清单、两个 durable 字段及专属 mock，
+净删约 240 行。由于持久结构发生变化，outcome-blind selection 升为 v0.3、task-admission receipt 升为 v0.2，旧对象
+只由 Git 保存，不原地伪装成新 schema。继续保留 protected selection protocol 的 path/file/embedded hashes、stage
+report bindings/self-hashes、逐阶段确定性重建、roster/slot outcome-blind 检查，以及 final admission 的五份 release
+envelope 同 cohort 校验。C2 owning tests 26/26、formal runner + A-S downstream tests 47/47 与 Ruff 通过。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -340,7 +354,7 @@ source identity 已由五份 release execution envelopes 的共同 tested commit
 | CD-P0-01 | DONE | W2-26 production runner 曾保留历史 operation-count fallback | 已删除旧 `electrolyze=4..5` 权威；W2-26 config 缺字段立即失败，普通历史/development config 不再套用任务特定规则 | production runner 根因回归测试通过；真实 semantic canary 仍与 CD-P0-02 合并执行 |
 | CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
-| CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 两套 readiness builder/validator、独立 CLI 和伪 manifest 参数，以及 development evaluator shakedown gate，并整链退役 preregistration readiness/draft/evidence graph/四重 check；最终执行只消费 local/formal manifest、selected evidence、资格/费用/用户授权 receipts 与 tested commit | execution-time source/scientific validation 保留；旁路状态闭环和自证明 pass 已删除 |
+| CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 两套 readiness、preregistration/evidence-graph 闭环与 C2 selection/receipt 的重复 material-tree source authority；最终执行只消费 direct manifest/evidence/authorization receipts 与统一 release envelope | execution-time source/scientific validation 保留；旁路状态闭环、自证明 pass 和中间 whole-tree hash 已删除 |
 | CD-P0-05 | BLOCKED / OWNER DECISION | v0.2 private seal 同时要求 v0.1 complete-seal commitment 与 v0.2 design identity，逻辑上不可同时满足 | 不刷新 hash、不弱化 identity validator；选择独立 cohort compatibility migration 或显式 reseal/update commitment | 存在一份不暴露 identities、可通过 v0.2 完整 validator 的 seal witness，且迁移由用户/协议 owner 明确授权 |
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |

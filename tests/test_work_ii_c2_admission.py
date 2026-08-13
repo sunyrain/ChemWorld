@@ -8,6 +8,7 @@ import pytest
 from chemworld.eval import work_ii_c2_admission
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
 from chemworld.eval.work_ii_c2_admission import (
+    C2_OUTCOME_BLIND_SELECTION_VERSION,
     _execution_cohort_key,
     _release_execution_context_errors,
     build_c2_admission_report,
@@ -174,20 +175,6 @@ def test_current_c2_admission_is_truthfully_incomplete() -> None:
     assert validate_c2_admission_report(ROOT, report, PLAN, DESIGN, _cells()) == []
 
 
-def test_c2_admission_does_not_repeat_the_legacy_material_tree_dirty_check(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setattr(
-        work_ii_c2_admission,
-        "c2_material_dirty_paths",
-        lambda root: (_ for _ in ()).throw(AssertionError("legacy dirty check called")),
-    )
-
-    report = build_c2_admission_report(ROOT, PLAN, DESIGN, _cells())
-
-    assert report["formal_execution_allowed"] is False
-
-
 def test_rehashing_an_incomplete_admission_as_ready_is_rejected() -> None:
     report = build_c2_admission_report(ROOT, PLAN, DESIGN, _cells())
     forged = deepcopy(report)
@@ -243,7 +230,6 @@ def test_release_cohort_key_binds_both_freeze_and_tested_commit() -> None:
 def test_admission_rejects_two_independently_forged_selection_rosters(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    commit = "a" * 40
     plan_path = tmp_path / "plan.json"
     design_path = tmp_path / "design.json"
     ae_path = tmp_path / "ae.json"
@@ -285,7 +271,7 @@ def test_admission_rejects_two_independently_forged_selection_rosters(
                     for index in (1, 2)
                 ]
             selection = {
-                "schema_version": "chemworld-work-ii-c2-outcome-blind-selection-0.2",
+                "schema_version": C2_OUTCOME_BLIND_SELECTION_VERSION,
                 "locus": locus,
                 "task_id": task_id,
                 "selection_slot": slot,
@@ -322,7 +308,6 @@ def test_admission_rejects_two_independently_forged_selection_rosters(
             write_json_atomic(selection_path, selection)
             receipt = {
                 "task_id": task_id,
-                "source_binding": {"tested_commit": commit},
                 "outcome_blind_selection_binding": {
                     "path": selection_path.relative_to(tmp_path).as_posix()
                 },
@@ -354,14 +339,12 @@ def test_admission_rejects_two_independently_forged_selection_rosters(
     monkeypatch.setattr(
         work_ii_c2_admission, "_task_receipt_errors", lambda *args, **kwargs: []
     )
-    monkeypatch.setattr(work_ii_c2_admission, "git_worktree_dirty", lambda root: False)
     monkeypatch.setattr(
         work_ii_c2_admission,
         "_ae_qualification_errors",
         lambda *args, **kwargs: (
             {
                 "report_sha256": "b" * 64,
-                "c2_source_binding": {"tested_commit": commit},
             },
             [],
         ),
@@ -372,7 +355,6 @@ def test_admission_rejects_two_independently_forged_selection_rosters(
         lambda *args, **kwargs: (
             {
                 "summary_sha256": "c" * 64,
-                "c2_source_binding": {"tested_commit": commit},
             },
             [],
         ),

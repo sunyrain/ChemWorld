@@ -23,7 +23,6 @@ from scripts.run_work_ii_constitutive_structural_qualification import (
     _validate_q0_inputs,
 )
 
-from chemworld.eval.work_ii_c2_admission import C2_MATERIAL_SOURCE_EXCLUSIONS
 from chemworld.eval.work_ii_constitutive_structural_qualification import (
     CANDIDATE_IDS,
     COORDINATES_PER_CANDIDATE_WORLD,
@@ -230,14 +229,6 @@ def test_release_a_s_outputs_do_not_overwrite_development_calibration_inputs() -
     assert set(RELEASE_D1_PATHS.values()).isdisjoint(runner.D1_PATHS.values())
     assert all(path.parent == RELEASE_SUMMARY.parent for path in RELEASE_D1_PATHS.values())
     assert RELEASE_OUTPUT_ROOT != runner.DEFAULT_OUTPUT_ROOT
-
-
-def test_generated_a_s_evidence_is_outside_the_protected_source_tree() -> None:
-    assert {
-        "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json",
-        "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
-        "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
-    }.issubset(C2_MATERIAL_SOURCE_EXCLUSIONS)
 
 
 @pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)

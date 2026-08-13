@@ -27,18 +27,6 @@ def _self_hashed(payload: dict[str, object], field: str) -> dict[str, object]:
     return payload
 
 
-def _source_binding() -> dict[str, object]:
-    return {
-        "schema_version": "chemworld-work-ii-c2-source-binding-0.1",
-        "tested_commit": "a" * 40,
-        "material_tree": {
-            "relative_roots": [],
-            "excluded_relative_paths": [],
-            "sha256": "tree",
-        },
-    }
-
-
 def _protocol(
     tmp_path: Path, locus: str, roster: list[dict[str, object]], name: str = "protocol"
 ) -> Path:
@@ -172,25 +160,15 @@ def _fixtures(tmp_path: Path, locus: str = "A_P") -> tuple[Path, dict[str, Path]
             },
         },
         selection_slot=1,
-        source_binding=_source_binding(),
     )
     selection_path = reports / "selection.json"
     write_json_atomic(selection_path, selection)
     return campaign_path, stages, selection_path
 
 
-@pytest.fixture
-def binding_stubs(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_c2_admission.validate_c2_source_binding",
-        lambda root, binding: [],
-    )
-
-
 @pytest.mark.parametrize("locus", ["A_P", "A_S"])
 def test_builder_requires_real_stage_roster_and_supports_both_loci(
     tmp_path: Path,
-    binding_stubs: None,
     locus: str,
 ) -> None:
     campaign, stages, selection = _fixtures(tmp_path, locus)
@@ -201,7 +179,6 @@ def test_builder_requires_real_stage_roster_and_supports_both_loci(
         campaign_config_path=campaign,
         stage_report_paths=stages,
         selection_record_path=selection,
-        source_binding=_source_binding(),
     )
 
     assert receipt["status"] == "passed_terminal_task_admission"
@@ -210,9 +187,7 @@ def test_builder_requires_real_stage_roster_and_supports_both_loci(
     assert receipt["validation_errors"] == []
 
 
-def test_current_reaction_safety_evidence_cannot_generate_terminal_pass(
-    binding_stubs: None,
-) -> None:
+def test_current_reaction_safety_evidence_cannot_generate_terminal_pass() -> None:
     receipt = build_c2_task_admission_receipt(
         ROOT,
         locus="A_P",
@@ -232,7 +207,6 @@ def test_current_reaction_safety_evidence_cannot_generate_terminal_pass(
         selection_record_path=(
             ROOT / "workstreams/flagship_tasks/reports/nonexistent-ap-selection.json"
         ),
-        source_binding=_source_binding(),
     )
 
     assert receipt["status"] == "not_ready_fail_closed"
@@ -240,9 +214,7 @@ def test_current_reaction_safety_evidence_cannot_generate_terminal_pass(
     assert any("action layer" in error for error in receipt["validation_errors"])
 
 
-def test_current_electrochemical_d1_cannot_generate_terminal_pass(
-    binding_stubs: None,
-) -> None:
+def test_current_electrochemical_d1_cannot_generate_terminal_pass() -> None:
     report = json.loads(
         (
             REPORTS
@@ -307,7 +279,6 @@ def test_d1_stage_rejects_development_or_nonrelease_evaluator(
 )
 def test_task_admission_receipt_fails_closed_for_development_evaluator(
     tmp_path: Path,
-    binding_stubs: None,
     field: str,
     value: object,
     message: str,
@@ -327,7 +298,6 @@ def test_task_admission_receipt_fails_closed_for_development_evaluator(
         campaign_config_path=campaign,
         stage_report_paths=stages,
         selection_record_path=selection,
-        source_binding=_source_binding(),
     )
 
     assert receipt["status"] == "not_ready_fail_closed"
@@ -337,7 +307,6 @@ def test_task_admission_receipt_fails_closed_for_development_evaluator(
 
 def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
     tmp_path: Path,
-    binding_stubs: None,
 ) -> None:
     campaign, stages, selection = _fixtures(tmp_path)
     receipt = build_c2_task_admission_receipt(
@@ -347,7 +316,6 @@ def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
         campaign_config_path=campaign,
         stage_report_paths=stages,
         selection_record_path=selection,
-        source_binding=_source_binding(),
     )
     tampered = deepcopy(receipt)
     tampered["stage_evidence"][1]["passed"] = False
@@ -358,9 +326,7 @@ def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
     assert any("Q2 evidence is stale" in error for error in errors)
 
 
-def test_missing_stage_roster_is_rejected(
-    tmp_path: Path, binding_stubs: None
-) -> None:
+def test_missing_stage_roster_is_rejected(tmp_path: Path) -> None:
     campaign, stages, selection = _fixtures(tmp_path)
     del stages["D1"]
 
@@ -372,13 +338,11 @@ def test_missing_stage_roster_is_rejected(
             campaign_config_path=campaign,
             stage_report_paths=stages,
             selection_record_path=selection,
-            source_binding=_source_binding(),
         )
 
 
 def test_outcome_blind_selection_builder_rejects_cherry_picking(
     tmp_path: Path,
-    binding_stubs: None,
 ) -> None:
     roster = [
         {
@@ -403,12 +367,11 @@ def test_outcome_blind_selection_builder_rejects_cherry_picking(
             selection_protocol_path=protocol,
             terminal_eligibility=_eligibility(roster),
             selection_slot=1,
-            source_binding=_source_binding(),
         )
 
 
-def test_terminal_receipt_rejects_dynamic_evidence_inside_protected_tree(
-    tmp_path: Path, binding_stubs: None
+def test_terminal_receipt_rejects_evidence_inside_frozen_input_tree(
+    tmp_path: Path,
 ) -> None:
     campaign, stages, selection = _fixtures(tmp_path)
     protected_campaign = tmp_path / "configs/benchmark/generated-campaign.json"
@@ -422,7 +385,6 @@ def test_terminal_receipt_rejects_dynamic_evidence_inside_protected_tree(
         campaign_config_path=protected_campaign,
         stage_report_paths=stages,
         selection_record_path=selection,
-        source_binding=_source_binding(),
     )
 
     assert receipt["status"] == "not_ready_fail_closed"
@@ -478,14 +440,13 @@ def _selection_pair(
                 selection_protocol_path=protocol,
                 terminal_eligibility=_eligibility(active_roster),
                 selection_slot=slot,
-                source_binding=_source_binding(),
             )
         )
     return records
 
 
 def test_selection_pair_requires_shared_roster_rule_and_exact_slots(
-    tmp_path: Path, binding_stubs: None
+    tmp_path: Path,
 ) -> None:
     records = _selection_pair(tmp_path)
     assert validate_c2_outcome_blind_selection_pair(records, locus="A_S") == []
@@ -518,7 +479,7 @@ def test_selection_pair_requires_shared_roster_rule_and_exact_slots(
 
 
 def test_selection_pair_rejects_independently_forged_rejected_task_rosters(
-    tmp_path: Path, binding_stubs: None
+    tmp_path: Path,
 ) -> None:
     first_roster = [
         {"task_id": "retained-crystallization", "frozen_rank": 1},
@@ -532,7 +493,6 @@ def test_selection_pair_rejects_independently_forged_rejected_task_rosters(
         selection_protocol_path=first_protocol,
         terminal_eligibility=_eligibility(first_roster),
         selection_slot=1,
-        source_binding=_source_binding(),
     )
     second_roster = [
         {"task_id": "placeholder", "frozen_rank": 1},
@@ -546,7 +506,6 @@ def test_selection_pair_rejects_independently_forged_rejected_task_rosters(
         selection_protocol_path=second_protocol,
         terminal_eligibility=_eligibility(second_roster),
         selection_slot=2,
-        source_binding=_source_binding(),
     )
 
     errors = validate_c2_outcome_blind_selection_pair([first, second], locus="A_S")
