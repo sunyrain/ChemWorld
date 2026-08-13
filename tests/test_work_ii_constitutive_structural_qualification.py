@@ -38,6 +38,7 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     build_prior_arms,
     build_qualification_plan,
     candidate_specs,
+    materialize_d1_resource_design,
     package_sha256,
     plan_sha256,
     registered_coordinates,
@@ -521,6 +522,27 @@ def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -
         assert card.process_time_limit_s == 38_880.0
     else:
         assert card.process_time_limit_s == 215_712.0
+
+
+@pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)
+def test_resource_design_preserves_completed_q2_evidence_bindings(
+    candidate_id: str,
+) -> None:
+    source = {
+        "qualification": {
+            "q2_package_sha256": "p" * 64,
+            "plan_sha256": "q" * 64,
+            "execution_authorized": False,
+            "formal_r5_authorized": False,
+        }
+    }
+
+    config = materialize_d1_resource_design(source, candidate_id)
+
+    assert config["qualification"]["q2_package_sha256"] == "p" * 64
+    assert config["qualification"]["plan_sha256"] == "q" * 64
+    assert config["qualification"]["execution_authorized"] is False
+    assert config["qualification"]["formal_r5_authorized"] is False
 
 
 def test_no_equilibrium_candidate_and_all_five_worlds_are_frozen() -> None:

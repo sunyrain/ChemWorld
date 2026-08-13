@@ -273,9 +273,26 @@ def materialize_d1_resource_design(
         "training_environment_step_limit": 0,
         "resource_status": "development_d1_envelope_pending_w2_26_calibration",
     }
+    source_qualification = config.get("qualification")
+    source_qualification = (
+        source_qualification if isinstance(source_qualification, Mapping) else {}
+    )
     config["qualification"] = {
         "q0_q1_q2_passed": True,
         "q2_passed": True,
+        # These bindings are scientific qualification evidence, not resource
+        # envelope fields.  Preserve them when upgrading a completed D1 config
+        # to the current 12-round downstream design.
+        **(
+            {"q2_package_sha256": source_qualification["q2_package_sha256"]}
+            if isinstance(source_qualification.get("q2_package_sha256"), str)
+            else {}
+        ),
+        **(
+            {"plan_sha256": source_qualification["plan_sha256"]}
+            if isinstance(source_qualification.get("plan_sha256"), str)
+            else {}
+        ),
         "minimum_unique_recipes": 10,
         "maximum_exact_repeats": 2,
         "execution_authorized": False,
