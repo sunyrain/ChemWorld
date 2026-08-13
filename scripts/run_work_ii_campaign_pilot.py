@@ -24,7 +24,6 @@ from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_ap_d1_development import (
     DEFAULT_AP_D1_READINESS,
     validate_and_claim_ap_d1_development_attempt,
-    validate_ap_d1_development_authorization,
 )
 from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
@@ -94,9 +93,7 @@ def _arm_material_information(config: Mapping[str, Any], arm: str) -> dict[str, 
     return dict(value)
 
 
-def _arm_initial_world_model(
-    config: Mapping[str, Any], arm: str
-) -> dict[str, Any] | None:
+def _arm_initial_world_model(config: Mapping[str, Any], arm: str) -> dict[str, Any] | None:
     value = _arm_contract(config, arm).get("initial_world_model")
     if value is None:
         return None
@@ -312,13 +309,9 @@ def _resource_calibration_execution_context(
             raise RuntimeError(f"{label} must be inside the repository") from error
     manifest = _load(manifest_path)
     authorization = _load(authorization_path)
-    errors = validate_resource_calibration_authorization(
-        ROOT, authorization, manifest_path
-    )
+    errors = validate_resource_calibration_authorization(ROOT, authorization, manifest_path)
     if errors:
-        raise RuntimeError(
-            "resource-calibration authorization failed: " + "; ".join(errors)
-        )
+        raise RuntimeError("resource-calibration authorization failed: " + "; ".join(errors))
     matches = [
         pattern
         for pattern in manifest.get("patterns", [])
@@ -340,40 +333,42 @@ def _resource_calibration_execution_context(
         len(matches) != 1
         or config_digest != config_binding.get("sha256")
         or reservation.get("rounds") != matches[0].get("rounds")
-        or reservation.get("authorization_sha256")
-        != authorization.get("authorization_sha256")
-        or reservation.get("currency_ceiling_usd")
-        != authorization.get("currency_ceiling_usd")
+        or reservation.get("authorization_sha256") != authorization.get("authorization_sha256")
+        or reservation.get("currency_ceiling_usd") != authorization.get("currency_ceiling_usd")
     ):
         raise RuntimeError("resource-calibration child differs from its authorized pattern")
-    return manifest, authorization, {
-        "manifest": {
-            "path": manifest_path.relative_to(ROOT).as_posix(),
-            "file_sha256": file_sha256(manifest_path),
-            "canonical_json_sha256": canonical_json_sha256(manifest),
+    return (
+        manifest,
+        authorization,
+        {
+            "manifest": {
+                "path": manifest_path.relative_to(ROOT).as_posix(),
+                "file_sha256": file_sha256(manifest_path),
+                "canonical_json_sha256": canonical_json_sha256(manifest),
+            },
+            "authorization": {
+                "path": authorization_path.relative_to(ROOT).as_posix(),
+                "file_sha256": file_sha256(authorization_path),
+                "authorization_sha256": authorization["authorization_sha256"],
+            },
+            "cost_reservation": {
+                "path": reservation_path.relative_to(ROOT).as_posix(),
+                "file_sha256": file_sha256(reservation_path),
+                "rounds": reservation["rounds"],
+                "attempt_number": reservation["attempt_number"],
+                "authorization_sha256": reservation["authorization_sha256"],
+            },
+            "pattern": {
+                "rounds": matches[0]["rounds"],
+                "locus": matches[0]["locus"],
+                "task_id": matches[0]["task_id"],
+                "world_seed": matches[0]["world_seed"],
+                "prior_arm": arms[0],
+                "campaign_config_sha256": config_binding["sha256"],
+                "campaign_config_hash_kind": config_binding["hash_kind"],
+            },
         },
-        "authorization": {
-            "path": authorization_path.relative_to(ROOT).as_posix(),
-            "file_sha256": file_sha256(authorization_path),
-            "authorization_sha256": authorization["authorization_sha256"],
-        },
-        "cost_reservation": {
-            "path": reservation_path.relative_to(ROOT).as_posix(),
-            "file_sha256": file_sha256(reservation_path),
-            "rounds": reservation["rounds"],
-            "attempt_number": reservation["attempt_number"],
-            "authorization_sha256": reservation["authorization_sha256"],
-        },
-        "pattern": {
-            "rounds": matches[0]["rounds"],
-            "locus": matches[0]["locus"],
-            "task_id": matches[0]["task_id"],
-            "world_seed": matches[0]["world_seed"],
-            "prior_arm": arms[0],
-            "campaign_config_sha256": config_binding["sha256"],
-            "campaign_config_hash_kind": config_binding["hash_kind"],
-        },
-    }
+    )
 
 
 def _release_d1_execution_context(
@@ -430,9 +425,7 @@ def _ap_development_execution_context(
     execute = bool(getattr(args, "ap_development_execution", False))
     authorization_value = getattr(args, "ap_development_authorization", None)
     readiness_value = getattr(args, "ap_development_readiness", None)
-    authorized_root_value = getattr(
-        args, "ap_development_authorized_output_root", None
-    )
+    authorized_root_value = getattr(args, "ap_development_authorized_output_root", None)
     attempt_receipt_value = getattr(args, "ap_development_attempt_receipt", None)
     cost_ledger_value = getattr(args, "ap_development_cost_ledger", None)
     if not execute:
@@ -447,8 +440,7 @@ def _ap_development_execution_context(
             )
         ):
             raise RuntimeError(
-                "A-P development authorization inputs require "
-                "--ap-development-execution"
+                "A-P development authorization inputs require --ap-development-execution"
             )
         return None
     if any(
@@ -465,32 +457,24 @@ def _ap_development_execution_context(
             "A-P development execution requires authorization, readiness and "
             "the authorized parent output root"
         )
-    if any(
-        getattr(args, field, None) is not None
-        for field in (
-            "release_manifest",
-            "formal_manifest",
-            "qualification_authorization",
-            "resource_calibration_authorization",
+    if (
+        any(
+            getattr(args, field, None) is not None
+            for field in (
+                "release_manifest",
+                "formal_manifest",
+                "qualification_authorization",
+                "resource_calibration_authorization",
+            )
         )
-    ) or bool(getattr(args, "qualification_execution", False)) or bool(
-        getattr(args, "resource_calibration_execution", False)
+        or bool(getattr(args, "qualification_execution", False))
+        or bool(getattr(args, "resource_calibration_execution", False))
     ):
         raise RuntimeError("A-P development execution cannot cross another execution mode")
     authorization_path = Path(authorization_value).resolve()
     readiness_path = Path(readiness_value).resolve()
     authorized_root = Path(authorized_root_value).resolve()
-    authorization, errors = validate_ap_d1_development_authorization(
-        ROOT,
-        authorization_path,
-        config_path=config_path,
-        output_root=authorized_root,
-        readiness_path=readiness_path,
-    )
-    if errors:
-        raise RuntimeError(
-            "A-P development D1 authorization failed: " + "; ".join(errors)
-        )
+    authorization = _load(authorization_path)
     if not output.resolve().is_relative_to(authorized_root):
         raise RuntimeError("A-P development child output escapes its authorized root")
     if getattr(args, "prior_arm", None) is None:
@@ -505,6 +489,8 @@ def _ap_development_execution_context(
             cost_ledger_path=Path(cost_ledger_value).resolve(),
             world_seed=int(args.world_seed),
             arm=str(args.prior_arm),
+            authorization_path=authorization_path,
+            readiness_path=readiness_path,
         )
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         raise RuntimeError(f"A-P development attempt gate failed: {error}") from error
@@ -701,9 +687,7 @@ def _qualification(
         required_operations_reconciled = required_operations_reconciled and low <= observed <= high
     target_experiments = int(method_resource_limits["complete_experiment_limit"])
     exact_repeat_limit = (
-        target_experiments
-        if maximum_exact_repeats is None
-        else int(maximum_exact_repeats)
+        target_experiments if maximum_exact_repeats is None else int(maximum_exact_repeats)
     )
     host_commit_required = receipt.get("schema_version") == (
         "chemworld-interactive-codex-session-receipt-0.2"
@@ -733,8 +717,7 @@ def _qualification(
             True
             if minimum_unique_recipes <= 0 and maximum_exact_repeats is None
             else (
-                int(analysis.get("unique_recipe_count", 0))
-                >= int(minimum_unique_recipes)
+                int(analysis.get("unique_recipe_count", 0)) >= int(minimum_unique_recipes)
                 and int(analysis.get("exact_repeat_count", target_experiments))
                 <= exact_repeat_limit
                 and int(analysis.get("unique_recipe_count", 0))
@@ -850,6 +833,7 @@ def _run_cell(
     target_experiments = int(config["campaign"]["complete_experiments"])
     failure: dict[str, str] | None = None
     with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
+
         def on_session_progress(payload: dict[str, Any]) -> None:
             _progress(
                 progress_path,
@@ -1060,8 +1044,7 @@ def _run_cell(
         ),
         maximum_exact_repeats=(
             int(config["qualification"]["maximum_exact_repeats"])
-            if config.get("qualification", {}).get("maximum_exact_repeats")
-            is not None
+            if config.get("qualification", {}).get("maximum_exact_repeats") is not None
             else None
         ),
     )
@@ -1200,9 +1183,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             else:
                 row["blind_evaluation_plan"] = {
                     "status": "not_materialized_for_noncompleted_cell",
-                    "scheduled_execution_count": formal_cell[
-                        "blind_validation_execution_count"
-                    ],
+                    "scheduled_execution_count": formal_cell["blind_validation_execution_count"],
                     "executed_count": 0,
                     "denominator_retained": True,
                 }
@@ -1225,14 +1206,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         ),
         "formal_result": formal_cell is not None,
         "execution_context": (
-            dict(config["execution_context"])
-            if release_manifest_path is not None
-            else None
+            dict(config["execution_context"]) if release_manifest_path is not None else None
         ),
         "legacy_source_evidence": (
-            config.get("legacy_source_evidence")
-            if release_manifest_path is not None
-            else None
+            config.get("legacy_source_evidence") if release_manifest_path is not None else None
         ),
         "provider_execution_authorized": (
             release_manifest_path is not None or ap_development_context is not None

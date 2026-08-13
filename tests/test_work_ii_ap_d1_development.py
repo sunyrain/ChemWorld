@@ -9,6 +9,7 @@ import pytest
 import scripts.run_work_ii_campaign_pilot as cell_runner
 import scripts.run_work_ii_five_seed_campaign as matrix_runner
 
+from chemworld.eval.provenance import file_sha256
 from chemworld.eval.work_ii_ap_d1_development import (
     AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION,
     build_ap_d1_development_cost_budget,
@@ -20,8 +21,7 @@ from chemworld.eval.work_ii_d1_execution import D1CellStore
 
 ROOT = Path(__file__).resolve().parents[1]
 READINESS = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-ap-independent-terminal-d1-readiness-v0.1.json"
 )
 CONFIGS = (
@@ -29,11 +29,9 @@ CONFIGS = (
     ROOT / "configs/benchmark/work_ii_electrochemical_independent_terminal_d1_execution_seed2.json",
 )
 DEEPSEEK_CONFIGS = (
-    ROOT
-    / "configs/benchmark/"
+    ROOT / "configs/benchmark/"
     "work_ii_reaction_safety_independent_terminal_d1_execution_seed2_deepseek_v4_flash.json",
-    ROOT
-    / "configs/benchmark/"
+    ROOT / "configs/benchmark/"
     "work_ii_electrochemical_independent_terminal_d1_execution_seed2_deepseek_v4_flash.json",
 )
 
@@ -84,15 +82,11 @@ def _authorization(configs: tuple[Path, ...], outputs: tuple[Path, ...]) -> dict
         },
     }
     budget = build_ap_d1_development_cost_budget(ROOT, authorization)
-    authorization["initial_schedule_cost_cap_usd"] = budget[
-        "initial_schedule_cost_cap_usd"
-    ]
+    authorization["initial_schedule_cost_cap_usd"] = budget["initial_schedule_cost_cap_usd"]
     authorization["all_infrastructure_resumes_cost_cap_usd"] = budget[
         "all_infrastructure_resumes_cost_cap_usd"
     ]
-    authorization["currency_ceiling_usd"] = budget[
-        "all_infrastructure_resumes_cost_cap_usd"
-    ]
+    authorization["currency_ceiling_usd"] = budget["all_infrastructure_resumes_cost_cap_usd"]
     return authorization
 
 
@@ -207,9 +201,7 @@ def test_cell_runner_rejects_missing_explicit_authorization_before_cell(
                 ap_development_execution=True,
                 ap_development_authorization=None,
                 ap_development_readiness=READINESS,
-                ap_development_authorized_output_root=(
-                    ROOT / "runs/development/ap-reaction-seed2"
-                ),
+                ap_development_authorized_output_root=(ROOT / "runs/development/ap-reaction-seed2"),
                 formal_manifest=None,
                 release_manifest=None,
                 qualification_execution=False,
@@ -266,9 +258,7 @@ def test_matrix_runner_rejects_seed_drift_before_output_or_provider(
         ROOT / "runs/development/ap-electro-seed2-test-seed-drift",
     )
     authorization_path = tmp_path / "authorization.json"
-    authorization_path.write_text(
-        json.dumps(_authorization(CONFIGS, outputs)), encoding="utf-8"
-    )
+    authorization_path.write_text(json.dumps(_authorization(CONFIGS, outputs)), encoding="utf-8")
     with pytest.raises(RuntimeError, match="seed differs"):
         matrix_runner.run(
             argparse.Namespace(
@@ -302,14 +292,33 @@ def test_child_attempt_receipt_is_exact_and_single_use(tmp_path: Path) -> None:
     key = store.key(2, "opaque")
     attempt_id = "test-attempt"
     receipt = store.record_provider_attempt_launch(key, attempt_id=attempt_id)
+    authorization_path = tmp_path / "child-authorization.json"
+    authorization_path.write_text(
+        json.dumps(
+            {
+                "status": "authorized",
+                "provider_execution_allowed": True,
+                "formal_result": False,
+                "formal_r5_authorized": False,
+                "provider": {
+                    "provider_id": config["provider"]["id"],
+                    "model": config["provider"]["model"],
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
     cost_ledger = output / "cost_ledgers" / key / f"{attempt_id}.json"
     cost_ledger.parent.mkdir(parents=True)
     cost_ledger.write_text(
         json.dumps(
             {
                 "state": "full_token_cap_reserved_before_provider_launch",
+                "task_id": config["task_id"],
                 "cell_key_sha256": key,
                 "attempt_id": attempt_id,
+                "authorization_sha256": file_sha256(authorization_path),
+                "readiness_sha256": file_sha256(READINESS),
                 "within_authorized_ceiling": True,
             }
         ),
@@ -326,6 +335,8 @@ def test_child_attempt_receipt_is_exact_and_single_use(tmp_path: Path) -> None:
             cost_ledger_path=cost_ledger,
             world_seed=2,
             arm="opaque",
+            authorization_path=authorization_path,
+            readiness_path=READINESS,
         )
         assert claim["attempt_id"] == attempt_id
         with pytest.raises(ValueError, match="already claimed"):
@@ -338,6 +349,8 @@ def test_child_attempt_receipt_is_exact_and_single_use(tmp_path: Path) -> None:
                 cost_ledger_path=cost_ledger,
                 world_seed=2,
                 arm="opaque",
+                authorization_path=authorization_path,
+                readiness_path=READINESS,
             )
     finally:
         if output.exists():

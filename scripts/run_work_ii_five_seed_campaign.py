@@ -213,16 +213,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             raise RuntimeError("A-P development D1 executes exactly one seed triplet")
         if seeds != [int(config.get("world_seed", -1))]:
             raise RuntimeError("A-P development D1 seed differs from its config")
-        if getattr(args, "release_manifest", None) is not None or getattr(
-            args, "readiness_receipt", None
-        ) is not None:
+        if (
+            getattr(args, "release_manifest", None) is not None
+            or getattr(args, "readiness_receipt", None) is not None
+        ):
             raise RuntimeError("A-P development D1 cannot also use release gates")
-        if getattr(args, "ap_development_authorization", None) is None or getattr(
-            args, "ap_development_readiness", None
-        ) is None:
-            raise RuntimeError(
-                "A-P development D1 requires explicit authorization and readiness"
-            )
+        if (
+            getattr(args, "ap_development_authorization", None) is None
+            or getattr(args, "ap_development_readiness", None) is None
+        ):
+            raise RuntimeError("A-P development D1 requires explicit authorization and readiness")
         ap_authorization, ap_errors = validate_ap_d1_development_authorization(
             ROOT,
             args.ap_development_authorization.resolve(),
@@ -231,15 +231,18 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             readiness_path=args.ap_development_readiness.resolve(),
         )
         if ap_errors:
-            raise RuntimeError(
-                "A-P development D1 authorization failed: " + "; ".join(ap_errors)
-            )
+            raise RuntimeError("A-P development D1 authorization failed: " + "; ".join(ap_errors))
+        ap_parent_bindings = {
+            "authorization_sha256": file_sha256(args.ap_development_authorization.resolve()),
+            "readiness_sha256": file_sha256(args.ap_development_readiness.resolve()),
+        }
         ap_cost_budget = (
             None
             if ap_authorization.get("spending_limit") == "unlimited"
             else build_ap_d1_development_cost_budget(ROOT, ap_authorization)
         )
     else:
+        ap_parent_bindings = None
         ap_cost_budget = None
         if git_worktree_dirty(ROOT):
             raise RuntimeError("provider execution requires a clean committed worktree")
@@ -260,8 +263,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         evidence_errors = validate_d1_qualification_evidence(ROOT, config)
         if evidence_errors:
             raise RuntimeError(
-                "provider D1 qualification evidence failed: "
-                + "; ".join(evidence_errors)
+                "provider D1 qualification evidence failed: " + "; ".join(evidence_errors)
             )
         readiness_errors = validate_development_readiness_receipt(
             ROOT,
@@ -314,9 +316,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         arms=arms,
     )
     pending = store.pending(resume=resume)
-    pending_identities = {
-        (int(cell["world_seed"]), str(cell["prior_arm"])) for cell in pending
-    }
+    pending_identities = {(int(cell["world_seed"]), str(cell["prior_arm"])) for cell in pending}
     initial_audit = store.audit()
     terminal_cells = int(initial_audit["terminal_count"])
     completed_cells = sum(
@@ -349,9 +349,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         processes: dict[str, subprocess.Popen[str]] = {}
         readers: dict[str, threading.Thread] = {}
         process_state: dict[str, dict[str, Any]] = {}
-        active_arms = {
-            arm for arm in arms if (seed, arm) in pending_identities
-        }
+        active_arms = {arm for arm in arms if (seed, arm) in pending_identities}
         try:
             for arm in sorted(active_arms, key=arms.index):
                 key = store.key(seed, arm)
@@ -373,6 +371,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                             "within_authorized_ceiling": True,
                             "currency": "USD",
                             "currency_ceiling_usd": None,
+                            **ap_parent_bindings,
                         }
                     else:
                         task_budget = ap_cost_budget["per_task"][str(config["task_id"])]
@@ -390,6 +389,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                             "reserved_cost_usd_for_task": task_reserved,
                             "authorized_cost_cap_usd_for_task": task_ceiling,
                             "within_authorized_ceiling": True,
+                            **ap_parent_bindings,
                         }
                     write_json_atomic(
                         cost_ledger,
@@ -570,9 +570,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
                     summary_error = error
             if row is not None:
-                committed = int(
-                    row.get("analysis", {}).get("committed_operation_count", 0)
-                )
+                committed = int(row.get("analysis", {}).get("committed_operation_count", 0))
                 state_name = (
                     "completed"
                     if row.get("completed") is True
@@ -590,9 +588,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             else:
                 trajectory_path = attempt_root / "trajectory.jsonl"
                 records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
-                committed = sum(
-                    row.get("transaction_status") == "committed" for row in records
-                )
+                committed = sum(row.get("transaction_status") == "committed" for row in records)
                 if committed:
                     _materialize_unfinalized_terminal(
                         attempt_root,
@@ -697,9 +693,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
-        "execution_context": (
-            None if ap_development else dict(config["execution_context"])
-        ),
+        "execution_context": (None if ap_development else dict(config["execution_context"])),
         "legacy_source_evidence": (
             None if ap_development else config.get("legacy_source_evidence")
         ),

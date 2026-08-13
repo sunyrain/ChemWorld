@@ -29,15 +29,10 @@ from chemworld.eval.work_ii_ap_terminal_d1_readiness import (
 from chemworld.eval.work_ii_cost import _cost_usd
 from chemworld.eval.work_ii_d1_execution import D1_EXECUTION_CONTRACT, D1CellStore
 
-AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION = (
-    "chemworld-work-ii-ap-d1-development-authorization-0.1"
-)
-DEFAULT_AP_D1_PLAN = Path(
-    "configs/benchmark/work_ii_ap_terminal_d1_independent_plan_v0.1.json"
-)
+AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION = "chemworld-work-ii-ap-d1-development-authorization-0.1"
+DEFAULT_AP_D1_PLAN = Path("configs/benchmark/work_ii_ap_terminal_d1_independent_plan_v0.1.json")
 DEFAULT_AP_D1_READINESS = Path(
-    "workstreams/flagship_tasks/reports/"
-    "work-ii-ap-independent-terminal-d1-readiness-v0.1.json"
+    "workstreams/flagship_tasks/reports/work-ii-ap-independent-terminal-d1-readiness-v0.1.json"
 )
 
 
@@ -59,9 +54,7 @@ def _relative(root: Path, path: Path) -> str:
     return path.resolve().relative_to(root.resolve()).as_posix()
 
 
-def _readiness_configs(
-    root: Path, readiness: Mapping[str, Any]
-) -> dict[str, dict[str, Any]]:
+def _readiness_configs(root: Path, readiness: Mapping[str, Any]) -> dict[str, dict[str, Any]]:
     configs: dict[str, dict[str, Any]] = {}
     for row in readiness.get("tasks", []):
         if not isinstance(row, Mapping) or not isinstance(row.get("task_id"), str):
@@ -99,9 +92,7 @@ def validate_ap_d1_development_config(
         readiness = _load(readiness_path)
         static_configs = _readiness_configs(root, readiness)
         errors.extend(
-            validate_independent_ap_d1_readiness(
-                root, plan_path, readiness, static_configs
-            )
+            validate_independent_ap_d1_readiness(root, plan_path, readiness, static_configs)
         )
     except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
         return [f"A-P development D1 inputs cannot be read: {error}"]
@@ -118,9 +109,7 @@ def validate_ap_d1_development_config(
         errors.append(f"A-P development execution config cannot be rebuilt: {error}")
         expected_configs = {}
     if config != expected_configs.get(str(task_id)):
-        errors.append(
-            "A-P development execution config differs from its deterministic rebuild"
-        )
+        errors.append("A-P development execution config differs from its deterministic rebuild")
     rows = [
         row
         for row in readiness.get("tasks", [])
@@ -290,9 +279,7 @@ def build_ap_d1_development_cost_budget(
             "initial_triplet_cost_cap_usd": round(per_attempt * 3, 12),
             "all_attempts_cost_cap_usd": round(per_attempt * 6, 12),
         }
-    initial = round(
-        sum(row["initial_triplet_cost_cap_usd"] for row in per_task.values()), 12
-    )
+    initial = round(sum(row["initial_triplet_cost_cap_usd"] for row in per_task.values()), 12)
     hard = round(sum(row["all_attempts_cost_cap_usd"] for row in per_task.values()), 12)
     return {
         "pricing": dict(pricing),
@@ -313,9 +300,7 @@ def validate_ap_d1_development_authorization(
     """Validate explicit user scope without release hashes or a clean-tree gate."""
 
     root = root.resolve()
-    errors = validate_ap_d1_development_config(
-        root, config_path, readiness_path=readiness_path
-    )
+    errors = validate_ap_d1_development_config(root, config_path, readiness_path=readiness_path)
     try:
         authorization = _load(authorization_path.resolve())
         config_path = _inside(root, config_path, label="A-P D1 config")
@@ -328,8 +313,7 @@ def validate_ap_d1_development_authorization(
     if not output_relative.startswith("runs/development/"):
         errors.append("A-P development D1 output must remain under runs/development")
     if (
-        authorization.get("schema_version")
-        != AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION
+        authorization.get("schema_version") != AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION
         or authorization.get("status") != "authorized"
         or authorization.get("authorized_by") != "user"
         or not isinstance(authorization.get("approved_at"), str)
@@ -357,9 +341,7 @@ def validate_ap_d1_development_authorization(
     provider_spec = AP_D1_PROVIDER_SPECS.get(configured_provider_id, {})
     provider_outputs = provider_spec.get("outputs")
     provider_outputs = provider_outputs if isinstance(provider_outputs, Mapping) else {}
-    block_task_ids = {
-        str(block.get("task_id")) for block in blocks if isinstance(block, Mapping)
-    }
+    block_task_ids = {str(block.get("task_id")) for block in blocks if isinstance(block, Mapping)}
     if len(blocks) != len(expected_task_ids) or block_task_ids != expected_task_ids:
         errors.append("A-P development authorization must name exactly both task blocks")
     seen_outputs: set[str] = set()
@@ -372,9 +354,7 @@ def validate_ap_d1_development_authorization(
         config_relative = expected_config_relative
         try:
             canonical_output = (
-                _relative(root, root / output_value)
-                if isinstance(output_value, str)
-                else ""
+                _relative(root, root / output_value) if isinstance(output_value, str) else ""
             )
         except ValueError:
             canonical_output = ""
@@ -383,11 +363,7 @@ def validate_ap_d1_development_authorization(
             or not isinstance(config_relative, str)
             or block.get("campaign_config") != config_relative
             or block.get("campaign_config_sha256")
-            != (
-                file_sha256(root / config_relative)
-                if isinstance(config_relative, str)
-                else None
-            )
+            != (file_sha256(root / config_relative) if isinstance(config_relative, str) else None)
             or not isinstance(output_value, str)
             or not output_value.startswith("runs/development/")
             or canonical_output != output_value
@@ -412,8 +388,7 @@ def validate_ap_d1_development_authorization(
     if (
         not blocks
         or authorization.get("provider_sessions_initial") != expected_sessions
-        or authorization.get("provider_process_attempts_hard_cap")
-        != expected_sessions * 2
+        or authorization.get("provider_process_attempts_hard_cap") != expected_sessions * 2
         or authorization.get("complete_experiments_total") != expected_experiments
     ):
         errors.append("A-P development authorization denominator mismatch")
@@ -464,8 +439,10 @@ def validate_and_claim_ap_d1_development_attempt(
     cost_ledger_path: Path,
     world_seed: int,
     arm: str,
+    authorization_path: Path,
+    readiness_path: Path,
 ) -> dict[str, Any]:
-    """Require and atomically claim one parent-issued D1 provider attempt."""
+    """Require and atomically claim one fully parent-authorized D1 provider attempt."""
 
     config = _load(config_path)
     if world_seed != config.get("world_seed") or arm not in config.get("prior_arms", {}):
@@ -497,11 +474,26 @@ def validate_and_claim_ap_d1_development_attempt(
         }
         or ledger.get("cell_key_sha256") != key
         or ledger.get("attempt_id") != attempt_id
+        or ledger.get("task_id") != config.get("task_id")
+        or ledger.get("authorization_sha256") != file_sha256(authorization_path)
+        or ledger.get("readiness_sha256") != file_sha256(readiness_path)
         or ledger.get("within_authorized_ceiling") is not True
         or not attempt_id
         or store.audit().get("invalid_receipts")
     ):
         raise ValueError("A-P development child lacks an exact parent attempt receipt")
+    authorization = _load(authorization_path)
+    provider = config.get("provider")
+    provider = provider if isinstance(provider, Mapping) else {}
+    if (
+        authorization.get("status") != "authorized"
+        or authorization.get("provider_execution_allowed") is not True
+        or authorization.get("formal_result") is not False
+        or authorization.get("formal_r5_authorized") is not False
+        or authorization.get("provider")
+        != {"provider_id": provider.get("id"), "model": provider.get("model")}
+    ):
+        raise ValueError("A-P development child authorization binding is invalid")
     claim = store.root / "attempt_claims" / key / f"{attempt_id}.json"
     claim.parent.mkdir(parents=True, exist_ok=True)
     try:
