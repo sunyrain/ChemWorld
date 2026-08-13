@@ -169,6 +169,12 @@ typed taxonomy 字段和路径渲染变化不再精确重建。因此保留两�
 current formal execution surface、release test roster、Work II TODO 或任何生产入口；仅历史 v0.1 preflight 记录
 过两个模块路径。真实 destructive measurement、catalyst charge、transaction、replay 和 runner 语义测试保留。
 
+### CD-16：删除零引用 S0 multiseed audit CLI 包装 — DONE
+
+删除 `scripts/audit_static_optimization_s0_multiseed.py`。该 46 行入口没有调用者、专属测试、tracked 输出、
+current registry 或文档入口，只把 `aggregate_static_optimization_runs` 的结果写成 JSON。底层可复用聚合函数、
+多 seed 行为测试及当前 baseline 聚合入口均保留。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
