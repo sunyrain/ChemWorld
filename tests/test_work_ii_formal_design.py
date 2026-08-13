@@ -24,6 +24,14 @@ def _design() -> dict[str, object]:
     )
 
 
+def _design_v02() -> dict[str, object]:
+    return json.loads(
+        (ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json").read_text(
+            encoding="utf-8"
+        )
+    )
+
+
 def test_public_formal_world_selection_is_reproducible_and_unique() -> None:
     design = _design()
     cohort = design["world_cohort"]
@@ -102,6 +110,17 @@ def test_full_program_and_w2_26_gates_fail_closed_before_as_admission() -> None:
         "pending_two_terminal_AS_admissions"
     )
     assert calibration["twelve_round_proxy_substitution_before_AS_selection_forbidden"] is True
+
+
+def test_v02_resource_calibration_contract_covers_every_c2_task() -> None:
+    calibration = _design_v02()["resource_calibration_contract"]
+    triplets = calibration["task_triplets"]
+    assert calibration["manifest"].endswith("manifest_v0.2.json")
+    assert len(triplets) == 9
+    assert [row["rounds"] for row in triplets] == [8, 8, 8, 8, 8, 10, 10, 12, 12]
+    assert len({(row["locus"], row["task_id"], row["rounds"]) for row in triplets}) == 9
+    assert calibration["expected_denominators"]["complete_experiments"] == 252
+    assert calibration["cross_task_or_same_round_proxy_substitution_forbidden"] is True
 
 
 def test_static_design_audit_cannot_claim_prior_qualification_pass(

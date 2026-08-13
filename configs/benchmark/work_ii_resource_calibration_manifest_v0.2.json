@@ -1,0 +1,145 @@
+{
+  "schema_version": "chemworld-work-ii-resource-calibration-manifest-0.2",
+  "calibration_id": "work-ii-w2-26-full-task-resource-calibration-v0.2",
+  "status": "not_ready_fail_closed",
+  "formal_result": false,
+  "provider_execution_allowed": false,
+  "provider_calls_executed": 0,
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md",
+  "provider_contract": {
+    "id": "wellau",
+    "wire_api": "responses",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium"
+  },
+  "prior_arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "patterns": [
+    {
+      "locus": "A_E",
+      "task_id": "electrochemical-conversion",
+      "rounds": 8,
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_E",
+      "task_id": "reaction-to-crystallization",
+      "rounds": 8,
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_E",
+      "task_id": "reaction-to-distillation",
+      "rounds": 8,
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_E",
+      "task_id": "partition-discovery",
+      "rounds": 8,
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_E",
+      "task_id": "reaction-safety-constrained",
+      "rounds": 8,
+      "checkpoint_complete_experiments": [0, 2, 4, 6, 8],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_P",
+      "task_id": "reaction-safety-constrained",
+      "rounds": 10,
+      "checkpoint_complete_experiments": [0, 2, 4, 7, 10],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_P",
+      "task_id": "electrochemical-conversion",
+      "rounds": 10,
+      "checkpoint_complete_experiments": [0, 2, 4, 7, 10],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_S",
+      "task_id": "partition-discovery",
+      "rounds": 12,
+      "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    },
+    {
+      "locus": "A_S",
+      "task_id": "reaction-to-crystallization",
+      "rounds": 12,
+      "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+      "status": "pending_fail_closed",
+      "campaign_config_binding": null,
+      "world_seed": null,
+      "resource_formula_binding": null,
+      "evidence": null
+    }
+  ],
+  "expected_denominators": {
+    "task_triplets": 9,
+    "cells": 27,
+    "complete_experiments": 252,
+    "belief_checkpoints": 135,
+    "accepted_provider_sessions": 27,
+    "accepted_participant_model_calls": 27
+  },
+  "measurement_contract": {
+    "task_local_caps_only": true,
+    "cross_task_proxy_forbidden": true,
+    "participant_scientific_or_method_failure_retained": true,
+    "platform_defect_invalidates_entire_affected_triplet": true,
+    "affected_triplet_restart_from_first_cell_with_same_manifest": true,
+    "participant_exact_repeats_separate_from_provider_or_infrastructure_retries": true,
+    "repeat_allowance_is_frozen_design_not_observed_cap": true,
+    "planning_envelopes_non_authoritative_before_complete_calibration": true
+  },
+  "claim_boundary": {
+    "formal_participant_denominator": false,
+    "supports_H1_to_H4": false,
+    "supports_law_discovery_or_transfer": false,
+    "supports_model_ranking": false
+  }
+}

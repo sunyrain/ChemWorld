@@ -172,31 +172,80 @@
   "resource_calibration_contract": {
     "work_item": "W2-26",
     "status": "not_ready_fail_closed",
-    "triplets": [
+    "manifest": "configs/benchmark/work_ii_resource_calibration_manifest_v0.2.json",
+    "task_triplets": [
       {
+        "locus": "A_E",
+        "task_id": "electrochemical-conversion",
         "rounds": 8,
-        "representative_locus": "A_E",
-        "representative_task_status": "frozen"
+        "status": "pending_task_resource_calibration"
       },
       {
+        "locus": "A_E",
+        "task_id": "reaction-to-crystallization",
+        "rounds": 8,
+        "status": "pending_task_resource_calibration"
+      },
+      {
+        "locus": "A_E",
+        "task_id": "reaction-to-distillation",
+        "rounds": 8,
+        "status": "pending_task_resource_calibration"
+      },
+      {
+        "locus": "A_E",
+        "task_id": "partition-discovery",
+        "rounds": 8,
+        "status": "pending_task_resource_calibration"
+      },
+      {
+        "locus": "A_E",
+        "task_id": "reaction-safety-constrained",
+        "rounds": 8,
+        "status": "pending_task_resource_calibration"
+      },
+      {
+        "locus": "A_P",
+        "task_id": "reaction-safety-constrained",
         "rounds": 10,
-        "representative_locus": "A_P",
-        "representative_task_status": "pending_terminal_AP_admission"
+        "status": "pending_task_resource_calibration"
       },
       {
+        "locus": "A_P",
+        "task_id": "electrochemical-conversion",
+        "rounds": 10,
+        "status": "pending_task_resource_calibration"
+      },
+      {
+        "locus": "A_S",
+        "task_id": "partition-discovery",
         "rounds": 12,
-        "representative_locus": "A_S",
-        "representative_task_status": "pending_two_terminal_AS_admissions"
+        "status": "pending_A_S_Q2"
+      },
+      {
+        "locus": "A_S",
+        "task_id": "reaction-to-crystallization",
+        "rounds": 12,
+        "status": "pending_A_S_Q2"
       }
     ],
+    "expected_denominators": {
+      "task_triplets": 9,
+      "cells": 27,
+      "complete_experiments": 252,
+      "belief_checkpoints": 135,
+      "accepted_provider_sessions": 27,
+      "accepted_participant_model_calls": 27
+    },
     "ready_requires": [
-      "all_three_representative_task_configs_selected_and_hash_frozen",
-      "eight_ten_twelve_round_manifests_and_runner_implemented",
+      "all_nine_task_configs_resolved_from_protected_upstream_evidence",
+      "all_nine_task_triplets_have_noncolliding_identity_and_outputs",
+      "all_nine_task_resource_cards_recompute_from_bound_cell_evidence",
       "provider_contract_and_credential_rotation_confirmed",
       "calibration_currency_ceiling_approved"
     ],
     "authorization_before_ready_forbidden": true,
-    "twelve_round_proxy_substitution_before_AS_selection_forbidden": true,
+    "cross_task_or_same_round_proxy_substitution_forbidden": true,
     "formal_execution_allowed_before_passed_calibration": false
   },
   "participant_execution_contract": {
