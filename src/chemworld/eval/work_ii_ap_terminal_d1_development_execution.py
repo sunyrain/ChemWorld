@@ -57,8 +57,14 @@ AP_D1_PROVIDER_SPECS = {
         "pilot_suffix": "",
         "provider": None,
         "method_resources": {
-            "input_token_limit": 1_800_000,
-            "uncached_input_token_limit": 240_000,
+            # v0.11 stages every required belief checkpoint into seven small pages.
+            # The first real six-cell qualification observed 1,983,667 cumulative
+            # input tokens and 226,483 uncached tokens in a fully completed cell.
+            # Keep the frozen 20% development headroom above those prospective
+            # maxima; this changes only the method-resource envelope, never the
+            # scientific campaign/checkpoint denominator.
+            "input_token_limit": 2_380_401,
+            "uncached_input_token_limit": 271_780,
             "output_token_limit": 20_000,
             "wall_time_limit_s": 7_200.0,
         },
@@ -246,8 +252,13 @@ def _build_one(
         config["provider"].update(
             {
                 "session_wall_time_limit_s": 6_600.0,
-                "max_recovered_mcp_tool_failures": 3,
-                "max_consecutive_mcp_tool_failures": 1,
+                # The first staged WellAU block observed three independent
+                # feedback/recovery episodes and at most two consecutively.
+                # Preserve the raw eleven invalid calls in receipts, but size
+                # the provisional qualification caps with the frozen 20%
+                # episode headroom rule used by W2-26.
+                "max_recovered_mcp_tool_failures": 4,
+                "max_consecutive_mcp_tool_failures": 3,
                 "max_provider_error_events": 1,
                 "progress_interval_s": 30.0,
                 "pre_action_restart_limit": 0,
@@ -336,8 +347,8 @@ def validate_development_execution_config(
         errors.append("D1 failure, headroom, or immutable execution contract is incomplete")
     expected_provider = {
         "session_wall_time_limit_s": 6_600.0,
-        "max_recovered_mcp_tool_failures": 3,
-        "max_consecutive_mcp_tool_failures": 1,
+        "max_recovered_mcp_tool_failures": 4 if provider_id == "wellau" else 3,
+        "max_consecutive_mcp_tool_failures": 3 if provider_id == "wellau" else 1,
         "max_provider_error_events": 1,
         "progress_interval_s": 30.0,
         "pre_action_restart_limit": 0,

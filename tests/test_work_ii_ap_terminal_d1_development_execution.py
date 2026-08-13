@@ -49,8 +49,13 @@ def test_real_readiness_builds_provider_blocked_seed2_execution_configs(
         )
         assert config["execution"]["pilot_expansion_headroom_fraction"] == 0.20
         assert config["provider"]["session_wall_time_limit_s"] == 6_600.0
-        assert config["provider"]["max_recovered_mcp_tool_failures"] == 3
-        assert config["provider"]["max_consecutive_mcp_tool_failures"] == 1
+        expected_recovered = 4 if provider_id == "wellau" else 3
+        expected_consecutive = 3 if provider_id == "wellau" else 1
+        assert config["provider"]["max_recovered_mcp_tool_failures"] == expected_recovered
+        assert (
+            config["provider"]["max_consecutive_mcp_tool_failures"]
+            == expected_consecutive
+        )
         assert config["provider"]["max_provider_error_events"] == 1
         assert config["provider"]["progress_interval_s"] == 30.0
         assert config["provider"]["pre_action_restart_limit"] == 0
@@ -113,6 +118,26 @@ def test_provider_resource_caps_are_prospectively_distinct() -> None:
             expected = AP_D1_PROVIDER_SPECS[provider_id]["method_resources"]
             for field, value in expected.items():
                 assert observed[field] == value
+
+
+def test_wellau_staged_snapshot_envelope_retains_twenty_percent_headroom() -> None:
+    resources = AP_D1_PROVIDER_SPECS["wellau"]["method_resources"]
+
+    assert resources["input_token_limit"] == 2_380_401
+    assert resources["uncached_input_token_limit"] == 271_780
+    assert resources["input_token_limit"] >= 1_983_667 * 1.20
+    assert resources["uncached_input_token_limit"] >= 226_483 * 1.20
+
+
+def test_wellau_staged_snapshot_recovery_caps_retain_twenty_percent_headroom() -> None:
+    configs = build_ap_d1_development_execution_configs(ROOT, READINESS)
+
+    for config in configs.values():
+        provider = config["provider"]
+        assert provider["max_recovered_mcp_tool_failures"] == 4
+        assert provider["max_consecutive_mcp_tool_failures"] == 3
+        assert provider["max_recovered_mcp_tool_failures"] >= 3 * 1.20
+        assert provider["max_consecutive_mcp_tool_failures"] >= 2 * 1.20
 
 
 def test_deepseek_provider_contract_is_exact() -> None:

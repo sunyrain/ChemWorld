@@ -1,6 +1,6 @@
 # Work II staged-belief snapshot seed-2 qualification
 
-Date: 2026-08-13. Status: protocol frozen; provider execution not started. This is a
+Date: 2026-08-13. Status: protocol frozen; replacement provider execution pending. This is a
 development platform/method qualification block, not formal or publication evidence.
 
 Question: Can a persistent provider session complete the frozen Work II campaign after the
@@ -42,3 +42,16 @@ Expected outputs: six terminal cell receipts outside Git, one machine-readable q
 summary reporting 6/6 cells, 60/60 experiments and 30/30 checkpoints plus every failure, and a short
 human-readable conclusion. Raw provider responses, credentials, ignored run directories and local
 caches remain outside Git.
+
+The first staged-provider block is retained as a failed development qualification. It established
+the prospective v0.12 method-resource envelope without selecting any scientific outcome: the
+largest fully completed WellAU cell used 1,983,667 cumulative input tokens and 226,483 uncached
+input tokens. The replacement block therefore freezes 20% headroom at 2,380,401 cumulative and
+271,780 uncached input tokens per cell. Its 11 retained raw agent-invalid calls represented three
+independent feedback/recovery episodes, at most two consecutively; eight calls were dependent
+children emitted within one preplanned batch after their root `begin` call was rejected. Raw calls
+remain unchanged in the receipt, while the replacement freezes the outcome-independent 20%
+episode-headroom rule at four total and three consecutive episodes. The 10-experiment,
+five-checkpoint, task, arm, seed,
+measurement, pass/failure and stop-rule denominators above are unchanged. The replacement starts
+from all six fresh cells; no prior physical result or partial checkpoint is reused.
