@@ -44,10 +44,21 @@ implicit dependency sync.
 6. Check `git status --short` before committing; never add `api.md`, `key2.md`, `.env`, private seeds,
    or raw provider responses.
 
-For selective validation, use the centrally assigned pytest taxonomy, for example
-`uv run --no-sync pytest -m "fast and current"`, `uv run --no-sync pytest -m rl`, or
-`uv run --no-sync pytest -m reference`. Compatibility-boundary tests use `history`; integration,
-notebook, wheel, and exhaustive audit tests use `slow`.
+For a quick development smoke, run these six existing behavior tests (normally under 10 seconds):
+
+```bash
+uv run --no-sync pytest --no-cov -q \
+  tests/test_env.py::test_env_registers_and_steps \
+  tests/test_invalid_action_atomicity.py::test_state_precondition_rollback_only_penalizes_process_ledger \
+  tests/test_score_replay.py::test_result_rejects_metric_binding_and_source_byte_tampering \
+  tests/test_tasks_and_wrappers.py::test_builtin_tasks_are_instantiable \
+  tests/test_resource_accounting.py::test_resource_ledger_tracks_checkpoints_and_fails_closed \
+  tests/test_mechanism_library.py::test_mechanism_schema_contract_is_loadable_and_matches_runtime_constant
+```
+
+This is a liveness smoke, not acceptance evidence for every subsystem. Run the owning focused tests
+for changed behavior; run RL, reference-data, notebook, wheel, or release checks only when those
+surfaces change.
 
 Generated evidence must distinguish environment validation from Agent performance. A passing backend
 check does not imply a method result, benchmark ranking, or publication claim.
