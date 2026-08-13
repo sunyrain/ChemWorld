@@ -318,6 +318,21 @@ W2-26 自身 manifest，也未把 r10 partial 结果升级为 qualification evid
 同步 provider error 后分别停于 9/12、1/12、1/12，整 triplet invalidated，无 root summary。控制器连续两次
 观测均不存在后才修改仓库；所有失败轨迹保留，未自动续跑。
 
+### CD-27：修复 D1 不可达 release 边界并删除 W2-26 虚构 source gate — DONE
+
+D1 evaluator 原先允许选择 `release`，却只检查一组全局 protected-material dirty paths，不消费 canonical
+release manifest，并固定写出 `release_eligible=false`；因此即使 evaluator 成功，也不存在能进入 terminal C2
+admission 的 D1 witness。现已把默认模式改为 development：development 直接写入廉价、不可发布的 execution
+envelope；release 则必须显式传入并通过同一 `prepare_execution_context` release manifest 校验，再写入 tested
+commit、freeze id、manifest SHA 与 execution-surface SHA。缺少 release manifest 会在生产者边界直接拒绝，不再以
+clean worktree 冒充冻结身份，也不再另造 C2 whole-tree source binding。
+
+同时删除 C2 对 W2-26 terminal summary 中 `c2_source_binding` 的要求。该字段从未出现在 v0.2 producer schema、
+builder、validator 或真实输出中；W2-26 的职责是九张 task resource cards、分母、失败保留与 provider accounting，
+source identity 已由五份 release execution envelopes 的共同 tested commit/freeze id 负责。保留 exact nine-card
+校验，不给历史或 development calibration 追补新 hash。D1/C2 聚焦测试 27/27 与 Ruff 通过；运行中的 A-E v0.3
+只加载 qualification/shard/supervisor 模块且产物位于仓库外，本批未修改其 import surface、合同或执行文件。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

@@ -86,7 +86,6 @@ def _write_v02_resource_calibration(
             "calibration_passed": True,
             "method_qualification_may_be_authorized": True,
             "resource_card_proposals": cards,
-            "c2_source_binding": {},
         },
     )
     return manifest_path, summary_path
@@ -97,11 +96,6 @@ def _bypass_v02_producer_validation(monkeypatch: pytest.MonkeyPatch) -> None:
 
     monkeypatch.setattr(work_ii_resource_calibration_v02, "validate_manifest", lambda *a: [])
     monkeypatch.setattr(work_ii_resource_calibration_v02, "validate_summary", lambda *a, **k: [])
-    monkeypatch.setattr(
-        work_ii_c2_admission,
-        "validate_c2_source_binding",
-        lambda *a: [],
-    )
 
 
 def test_c2_consumes_exact_v02_task_cards_with_locus_closeout_fractions(

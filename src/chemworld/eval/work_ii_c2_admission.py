@@ -1246,7 +1246,6 @@ def _resource_calibration_errors(
         or set(observed_keys) != expected_keys
     ):
         errors.append("W2-26 requires the exact nine task resource cards")
-    errors.extend(validate_c2_source_binding(root, summary.get("c2_source_binding")))
     return summary, errors
 
 

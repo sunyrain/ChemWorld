@@ -15,7 +15,6 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
     write_json_atomic,
 )
 from chemworld.eval.work_ii_analysis import score_cell_checkpoint_errors
@@ -23,10 +22,6 @@ from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
     execute_blind_evaluation_plan,
     validate_blind_evaluation_report,
-)
-from chemworld.eval.work_ii_c2_admission import (
-    build_c2_source_binding,
-    c2_material_dirty_paths,
 )
 from chemworld.eval.work_ii_development_confirmation import build_cluster_rows
 from chemworld.eval.work_ii_direction import (
@@ -47,7 +42,11 @@ from chemworld.eval.work_ii_direction import (
 from chemworld.eval.work_ii_direction import (
     truth_prediction_rows as _truth_prediction_rows,
 )
-from chemworld.eval.work_ii_execution_mode import ExecutionMode
+from chemworld.eval.work_ii_execution_mode import (
+    ExecutionMode,
+    build_execution_envelope,
+    prepare_execution_context,
+)
 from chemworld.eval.work_ii_formal import EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
 from chemworld.eval.work_ii_law_summary import evaluate_final_law_summary
 from chemworld.eval.work_ii_truth import (
@@ -66,7 +65,7 @@ AP_SNAPSHOT_STAGES = (
     "final",
 )
 AP_CHECKPOINT_COMPLETE_EXPERIMENTS = (0, 2, 4, 7, 10)
-REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.4"
+REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.5"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -764,21 +763,21 @@ def main() -> int:
     parser.add_argument(
         "--execution-mode",
         choices=[mode.value for mode in ExecutionMode],
-        default=ExecutionMode.RELEASE.value,
+        default=ExecutionMode.DEVELOPMENT.value,
         help=(
             "development permits provider-free evaluator shakedowns on a dirty worktree; "
-            "release retains the protected-material cleanliness gate"
+            "release requires the canonical frozen execution manifest"
         ),
     )
+    parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
 
-    if args.execution_mode == ExecutionMode.RELEASE.value:
-        dirty_material = c2_material_dirty_paths(ROOT)
-        if dirty_material:
-            raise RuntimeError(
-                "release initial-model evaluator requires clean protected material: "
-                + ", ".join(dirty_material)
-            )
+    execution_context = prepare_execution_context(
+        ROOT,
+        mode=args.execution_mode,
+        release_manifest=args.release_manifest,
+    )
+    execution_envelope = build_execution_envelope(execution_context)
     participant_root = args.participant_run.resolve()
     config_path = args.config.resolve()
     raw_root = args.raw_output.resolve()
@@ -1271,20 +1270,11 @@ def main() -> int:
         "schema_version": REPORT_VERSION,
         "analysis_date": "2026-08-11",
         "formal_result": False,
-        "execution_mode": args.execution_mode,
-        # This evaluator does not yet consume a release manifest.  Cleanliness alone is
-        # insufficient to promote either development or release-mode output.
-        "release_eligible": False,
+        "execution_mode": execution_context.execution_mode,
+        "release_eligible": execution_context.release_eligible,
+        "execution_context": execution_envelope,
         "status": "passed" if not failures else "failed_retained",
-        "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": (
-            build_c2_source_binding(ROOT)
-            if args.execution_mode == ExecutionMode.RELEASE.value
-            else {
-                "status": "development_shakedown_not_release_eligible",
-                "global_material_binding_generated": False,
-            }
-        ),
+        "source_commit": execution_context.tested_commit,
         "participant_source_commit": matrix.get("source_commit"),
         "participant_run": {
             "path": participant_root.relative_to(ROOT).as_posix(),

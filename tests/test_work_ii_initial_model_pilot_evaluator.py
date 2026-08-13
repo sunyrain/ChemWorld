@@ -21,6 +21,10 @@ from scripts.evaluate_work_ii_initial_model_pilot import (
 import chemworld.eval.work_ii_blind as blind_evaluator
 import chemworld.eval.work_ii_truth as truth_evaluator
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
+from chemworld.eval.work_ii_execution_mode import (
+    build_execution_envelope,
+    prepare_execution_context,
+)
 from chemworld.eval.work_ii_truth import compile_evaluator_truth_query
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -208,21 +212,6 @@ def _prepare_development_shakedown(
     report_path = tmp_path / "evaluation.json"
     markdown_path = tmp_path / "evaluation.md"
     monkeypatch.setattr(evaluator, "ROOT", tmp_path)
-    monkeypatch.setattr(evaluator, "git_source_commit", lambda _root: "development-shakedown")
-    monkeypatch.setattr(
-        evaluator,
-        "build_c2_source_binding",
-        lambda _root: (_ for _ in ()).throw(
-            AssertionError("development evaluator must not build a release source binding")
-        ),
-    )
-    monkeypatch.setattr(
-        evaluator,
-        "c2_material_dirty_paths",
-        lambda _root: (_ for _ in ()).throw(
-            AssertionError("development evaluator must not inspect global cleanliness")
-        ),
-    )
     _install_zero_provider_replay_stub(monkeypatch)
     monkeypatch.setattr(
         sys,
@@ -538,10 +527,9 @@ def test_ap_seed2_terminal_d1_zero_provider_evaluator_shakedown(
     assert report["status"] == "passed"
     assert report["execution_mode"] == "development"
     assert report["release_eligible"] is False
-    assert report["c2_source_binding"] == {
-        "status": "development_shakedown_not_release_eligible",
-        "global_material_binding_generated": False,
-    }
+    assert report["execution_context"] == build_execution_envelope(
+        prepare_execution_context(tmp_path, mode="development")
+    )
     assert report["task_id"] == config["task_id"]
     assert report["world_seed"] == 2
     assert report["denominators"]["participant_cell_count"] == 3
@@ -615,51 +603,64 @@ def test_development_evaluator_rejects_matrix_task_mismatch(
     assert not report_path.exists()
 
 
-def test_release_mode_without_manifest_never_claims_release_eligibility(
+def test_release_mode_requires_the_canonical_release_manifest(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _config, _participant, _raw_output, _report_path, _markdown_path, _config_path = (
+        _prepare_development_shakedown(monkeypatch, tmp_path, AP_SEED2_CONFIGS[0])
+    )
+    sys.argv[-1] = "release"
+
+    with pytest.raises(ValueError, match="requires a release manifest"):
+        evaluator.main()
+
+
+def test_release_evaluator_embeds_the_validated_execution_envelope(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     _config, _participant, _raw_output, report_path, _markdown_path, _config_path = (
         _prepare_development_shakedown(monkeypatch, tmp_path, AP_SEED2_CONFIGS[0])
     )
-    sys.argv[-1] = "release"
-    monkeypatch.setattr(evaluator, "c2_material_dirty_paths", lambda _root: [])
+    manifest_path = tmp_path / "release-manifest.json"
+    manifest = {
+        "manifest_sha256": "a" * 64,
+        "freeze_id": "b" * 64,
+        "tested_commit": "c" * 40,
+        "execution_surface": {"sha256": "d" * 64},
+    }
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    expected_envelope = {
+        "execution_mode": "release",
+        "evidence_status": "release_candidate",
+        "release_eligible": True,
+        "c2_admission_authorized": True,
+        "tested_commit": "c" * 40,
+        "freeze_id": "b" * 64,
+        "release_manifest_sha256": "a" * 64,
+        "execution_surface_sha256": "d" * 64,
+    }
     monkeypatch.setattr(
         evaluator,
-        "build_c2_source_binding",
-        lambda _root: {"status": "synthetic-clean-source-binding"},
+        "prepare_execution_context",
+        lambda *_args, **_kwargs: type(
+            "Context",
+            (),
+            {
+                "execution_mode": "release",
+                "release_eligible": True,
+                "tested_commit": "c" * 40,
+            },
+        )(),
     )
+    monkeypatch.setattr(
+        evaluator, "build_execution_envelope", lambda _context: expected_envelope
+    )
+    sys.argv.extend(["--release-manifest", str(manifest_path)])
 
     assert evaluator.main() == 0
     report = json.loads(report_path.read_text(encoding="utf-8"))
-
     assert report["execution_mode"] == "release"
-    assert report["status"] == "passed"
-    assert report["release_eligible"] is False
-
-
-def test_release_evaluator_keeps_the_protected_material_cleanliness_gate(
-    monkeypatch: pytest.MonkeyPatch,
-    tmp_path: Path,
-) -> None:
-    monkeypatch.setattr(evaluator, "c2_material_dirty_paths", lambda _root: ["dirty.py"])
-    monkeypatch.setattr(
-        sys,
-        "argv",
-        [
-            "evaluate_work_ii_initial_model_pilot.py",
-            "--participant-run",
-            str(tmp_path / "participant"),
-            "--config",
-            str(tmp_path / "config.json"),
-            "--raw-output",
-            str(tmp_path / "raw"),
-            "--report",
-            str(tmp_path / "report.json"),
-            "--markdown",
-            str(tmp_path / "report.md"),
-        ],
-    )
-
-    with pytest.raises(RuntimeError, match="release initial-model evaluator requires clean"):
-        evaluator.main()
+    assert report["release_eligible"] is True
+    assert report["execution_context"] == expected_envelope
