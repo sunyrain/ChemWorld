@@ -11,6 +11,7 @@ import chemworld.eval.work_ii_private_execution as private_execution
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_private import WORK_II_PRIVATE_CELL_VERSION
 from chemworld.eval.work_ii_private_execution import (
+    PRIVATE_AUTHORIZATION_VERSION,
     build_private_execution_authorization,
     build_private_execution_manifest,
     execute_private_manifest,
@@ -142,14 +143,12 @@ def _authorization(preflight: dict[str, object]) -> dict[str, object]:
             }
         )
     authorization: dict[str, object] = {
-        "schema_version": "chemworld-work-ii-private-execution-authorization-0.1",
+        "schema_version": PRIVATE_AUTHORIZATION_VERSION,
         "status": "authorized_private_execution_only",
         "formal_result": False,
         "private_confirmation_result": False,
         "private_execution_allowed": True,
         "base_private_preflight_sha256": preflight["preflight_sha256"],
-        "source_commit": "b" * 40,
-        "source_tree_clean_at_authorization": True,
         "task_attempt_contracts": contracts,
         "private_currency_ceiling_usd": 100.0,
         "authorization_sha256": "pending",
@@ -188,8 +187,6 @@ def test_private_authorization_requires_explicit_user_signoff_and_clean_release(
     release_path = repo_tmp_path / "clean-release.json"
     release = {"receipt_sha256": "c" * 64}
     release_path.write_text(json.dumps(release), encoding="utf-8")
-    monkeypatch.setattr(private_execution, "git_worktree_dirty", lambda _root: False)
-    monkeypatch.setattr(private_execution, "git_source_commit", lambda _root: "b" * 40)
     monkeypatch.setattr(private_execution, "validate_clean_release_receipt", lambda *a, **k: [])
     common = {
         "approved_at": "2026-08-12T00:00:00+08:00",
@@ -233,6 +230,11 @@ def test_private_authorization_requires_explicit_user_signoff_and_clean_release(
     )
     assert "private authorization provider or cost contract is invalid" in (
         validate_private_execution_authorization(ROOT, tampered, preflight)
+    )
+
+    release_path.write_text(json.dumps({"receipt_sha256": "d" * 64}), encoding="utf-8")
+    assert "private clean-release receipt binding is stale" in (
+        validate_private_execution_authorization(ROOT, authorization, preflight)
     )
 
 

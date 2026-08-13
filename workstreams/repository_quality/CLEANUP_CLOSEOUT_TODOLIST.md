@@ -360,6 +360,19 @@ v0.7；仓库没有 current v0.6 durable receipt 需要重写。保留 trajector
 self-hash、zero-provider、release freeze 与所有科学/恢复 checks。readiness owning tests 11/11、provider 入口对缺
 readiness/缺 release manifest 的 pre-output 拒绝 2/2 与 Ruff 通过。
 
+### CD-30：收束 private authorization 的三重 source/clean 权威 — DONE
+
+private authorization 已绑定并重验 clean-release receipt；后者拥有 independent checkout、tested commit、最小
+material tree、current clean state、material drift 与 ancestry 校验。旧 authorization 仍额外执行 dirty-tree check、
+复制当前 `source_commit` 和 `source_tree_clean_at_authorization=true`，消费时再次比较，再把同一 commit 复制进
+private execution manifest。这些字段不贡献用户授权、费用或科学决策，只增加正常维护导致 authorization stale 的
+入口。
+
+现已保留 clean-release receipt 的 path/file/self-hash binding 作为唯一 source owner，删除 authorization 的重复
+dirty/HEAD/clean 字段及 manifest 透传；authorization/manifest schema 均升为 v0.2。用户三项显式确认、provider
+contract、pricing provenance、75→150 attempt caps、currency ceiling、write-once store 与 resume/tamper 语义均保留。
+private execution 5/5、clean-release 文件授权后篡改拒绝与 Ruff 通过。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

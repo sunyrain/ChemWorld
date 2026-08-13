@@ -17,16 +17,14 @@ from uuid import uuid4
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
-    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.work_ii_private import WORK_II_PRIVATE_PREFLIGHT_VERSION
 from chemworld.eval.work_ii_qualification import method_qualification_report_sha256
 from chemworld.eval.work_ii_release import validate_clean_release_receipt
 
-PRIVATE_AUTHORIZATION_VERSION = "chemworld-work-ii-private-execution-authorization-0.1"
-PRIVATE_EXECUTION_MANIFEST_VERSION = "chemworld-work-ii-private-execution-manifest-0.1"
+PRIVATE_AUTHORIZATION_VERSION = "chemworld-work-ii-private-execution-authorization-0.2"
+PRIVATE_EXECUTION_MANIFEST_VERSION = "chemworld-work-ii-private-execution-manifest-0.2"
 PRIVATE_EXECUTION_PROGRESS_VERSION = "chemworld-work-ii-private-execution-progress-0.1"
 PRIVATE_TERMINAL_RECEIPT_VERSION = "chemworld-work-ii-private-terminal-receipt-0.1"
 PRIVATE_ATTEMPT_RECEIPT_VERSION = "chemworld-work-ii-private-attempt-receipt-0.1"
@@ -556,8 +554,6 @@ def build_private_execution_authorization(
     errors = validate_private_execution_preflight(root, preflight)
     if errors:
         raise ValueError("private preflight is invalid: " + "; ".join(errors))
-    if git_worktree_dirty(root):
-        raise ValueError("private authorization requires a clean immutable worktree")
     if not all(
         (
             provider_contract_confirmed_by_user,
@@ -595,8 +591,6 @@ def build_private_execution_authorization(
         "private_confirmation_result": False,
         "private_execution_allowed": True,
         "base_private_preflight_sha256": preflight["preflight_sha256"],
-        "source_commit": git_source_commit(root),
-        "source_tree_clean_at_authorization": True,
         "approved_at": approved_at,
         "provider_contract": provider,
         "provider_contract_confirmed_by_user": True,
@@ -649,11 +643,8 @@ def validate_private_execution_authorization(
         or authorization.get("private_execution_allowed") is not True
         or authorization.get("base_private_preflight_sha256")
         != preflight.get("preflight_sha256")
-        or authorization.get("source_tree_clean_at_authorization") is not True
-        or authorization.get("source_commit") != git_source_commit(root)
-        or git_worktree_dirty(root)
     ):
-        errors.append("private authorization is not valid for the current source tree")
+        errors.append("private authorization state or preflight binding is invalid")
     if any(
         authorization.get(field) is not True
         for field in (
@@ -732,7 +723,6 @@ def build_private_execution_manifest(
         "blocking_requirements": [],
         "base_private_preflight_sha256": preflight["preflight_sha256"],
         "authorization_sha256": authorization["authorization_sha256"],
-        "source_commit": authorization["source_commit"],
         "expected_counts": preflight["expected_counts"],
         "participant_runtime": {
             "preflight_world_split_label": "private_confirmation",
@@ -770,7 +760,6 @@ def validate_private_execution_manifest(
         or manifest.get("blocking_requirements") != []
         or manifest.get("base_private_preflight_sha256") != preflight.get("preflight_sha256")
         or manifest.get("authorization_sha256") != authorization.get("authorization_sha256")
-        or manifest.get("source_commit") != authorization.get("source_commit")
         or manifest.get("cells") != preflight.get("cells")
         or manifest.get("expected_counts") != preflight.get("expected_counts")
         or manifest.get("participant_runtime")
