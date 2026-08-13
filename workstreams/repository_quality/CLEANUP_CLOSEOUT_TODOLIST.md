@@ -584,6 +584,21 @@ Work I ledger/figure/current 组为 11/18 通过，7 项既存失败分别来自
 漂移、当前 manuscript 已重写而旧测试仍锁定旧标题/章节/六图文件名，以及 story-architecture 旧 hash。它们均不
 引用被删 producer；本批不刷新旧 SHA 或改稿换绿灯，转入下一批历史集成测试债审计。
 
+### CD-47：解除历史 Work I release 对当前第一篇稿件的反向门控 — DONE
+
+上述 7 个失败不是当前论文或数据损坏，而是 2026-08-04 的 Work I release 测试仍把当时的标题、第 8 节、六图文件名、
+Methods 目录、Related Work 固定短语与 task-design SHA 当作永久 current contract。当前唯一执行清单已明确旧
+`story/`、`integration/` 和 audit 是历史记录；第一篇随后改写为 programmable-world 主线、六图收缩并最终采用三张
+直接插入图，当前发布测试已覆盖三图清单、规范稿件、读者边界、PDF/source bundle 与 immutable composition report
+的路径和内容绑定，并正确允许该报告在 live registry 中因依赖变化标为 stale。
+
+现从 experiment-ledger 测试删除四组跨时代稿件字面量断言，不再要求历史 ledger SHA 等于后来 composition report
+记录的 task-design SHA，也不再要求 frozen release 节点在今天仍为 `current`；保留 G0 summary 的 canonical hash、
+历史 foundation 路径、全部实验分母、右删失、不利 latent 结果、raw archive 与 release 自洽检查。旧六图资产、manifest
+和不利展示全部保留，但删除仅重建旧总 manifest 的一次性 integration producer 及其专属测试；实际 18 个资产/哈希、
+F3 failed-gate 语义和 current 三图 release 仍由独立测试覆盖。未刷新证据、未改稿、未恢复旧故事，也未触碰 A-E 活跃
+执行面。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

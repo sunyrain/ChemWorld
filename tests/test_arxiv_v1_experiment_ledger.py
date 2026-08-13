@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import hashlib
 import json
 from pathlib import Path
 from typing import Any
@@ -12,13 +11,8 @@ LEDGER_PATH = (
     ROOT / "workstreams/arxiv_v1/reports/experimental-intelligence-experiment-ledger-v0.1.json"
 )
 RELATED_WORK_EVIDENCE_PATH = ROOT / "workstreams/arxiv_v1/reports/related-work-evidence-v0.1.json"
-RELATED_WORK_AUDIT_PATH = ROOT / "workstreams/arxiv_v1/RELATED_WORK_AUDIT_2026_08_ZH.md"
 RELEASE_ATTESTATION_PATH = (
     ROOT / "benchmark/releases/chemworld-serious-v1/verification-attestation.json"
-)
-COMPOSITION_QUALIFICATION_PATH = (
-    ROOT
-    / "workstreams/arxiv_v1/reports/first-paper-composition-qualification-v1-design-v3.json"
 )
 
 
@@ -26,10 +20,6 @@ def _load(path: Path) -> dict[str, Any]:
     payload = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(payload, dict)
     return payload
-
-
-def _sha256(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def test_arxiv_v1_experiment_accounting_has_no_g0_double_count() -> None:
@@ -123,7 +113,6 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     fvl = ledger["work_i_fvl_incremental_evidence"]
     derived = _load(ROOT / fvl["derived_data"]["path"])
     derived_manifest = _load(ROOT / fvl["derived_data"]["manifest_path"])
-    current = _load(ROOT / fvl["evidence_graph"]["path"])
     release_attestation = _load(RELEASE_ATTESTATION_PATH)
 
     assert (
@@ -138,9 +127,6 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     assert fvl["evidence_graph"]["node_count"] == (
         release_attestation["evidence_graph"]["node_count"]
     )
-    assert current["evidence_dag"]["nodes"][
-        "first_paper_composition_qualification"
-    ]["artifact_state"] == "current"
     assert fvl["evidence_graph"]["work_i_fvl_nodes_current"] == 13
     assert fvl["F_world_fork"]["pair_count"] == 6
     assert fvl["F_world_fork"]["original_and_exact_replay_trace_count"] == 24
@@ -155,11 +141,10 @@ def test_fvl_ledger_binding_preserves_distinct_units_and_latent_missingness() ->
     assert fvl["counting_boundary"]["cross_track_primary_units_pooled"] is False
 
 
-def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
+def test_tracked_g0_formal_summaries_and_foundation_path_match_the_ledger() -> None:
     ledger = _load(LEDGER_PATH)
     g0 = ledger["experiment_layers"]["g0_compiled_recipe"]
     foundation = ledger["foundation_qualification"]
-    composition_qualification = _load(COMPOSITION_QUALIFICATION_PATH)
 
     assert g0["formal_summary_canonical_json_sha256"]["v1_0"] == (
         canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][0]))
@@ -167,12 +152,7 @@ def test_tracked_g0_evidence_hashes_match_the_ledger() -> None:
     assert g0["formal_summary_canonical_json_sha256"]["v1_2"] == (
         canonical_json_sha256(_load(ROOT / g0["formal_summary_paths"][1]))
     )
-    assert foundation["evidence_path"] == (
-        composition_qualification["source_binding"]["task_design_matrix"]
-    )
-    assert foundation["evidence_file_sha256"] == (
-        composition_qualification["source_binding"]["task_design_matrix_sha256"]
-    )
+    assert (ROOT / foundation["evidence_path"]).is_file()
 
 
 def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
@@ -203,123 +183,19 @@ def test_paper_scope_keeps_g2_primary_and_claims_bounded() -> None:
     assert ledger["launch_decision"]["formal_run_started"] is True
 
 
-def test_existing_manuscript_and_legacy_master_plan_use_the_frozen_scope() -> None:
-    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
-        encoding="utf-8"
-    )
+def test_legacy_master_plan_and_data_card_preserve_frozen_accounting() -> None:
     legacy_master_plan = (
         ROOT / "workstreams/arxiv_v1/EXPERIMENTAL_INTELLIGENCE_V1_MASTER_PLAN_ZH.md"
     ).read_text(encoding="utf-8")
-    compact_manuscript = " ".join(manuscript.split())
     data_card = (ROOT / "benchmark/releases/chemworld-serious-v1/DATA_CARD.md").read_text(
         encoding="utf-8"
     )
 
-    assert manuscript.startswith(
-        '---\ntitle: "ChemWorld: A Programmable Virtual Instrument for Measuring '
-        'Experimental Process Profiles"'
-    )
-    assert "[PENDING G2 v0.5" not in manuscript
-    assert "29,580 simulator executions" in compact_manuscript
-    assert "120 closed lifecycles: 84 final assays and 36 explicit discards" in compact_manuscript
-    assert "Eighteen of 20 cells completed" in compact_manuscript
     assert "29,754" in data_card
     assert "29,752" in data_card
     assert "29,640 existing + 120 pre-specified opportunities = 29,760" in legacy_master_plan
     assert "29,760 不是最终执行数" in legacy_master_plan
-    assert "From Recipe Optimization" not in manuscript
     assert "From Recipe Optimization" not in legacy_master_plan
-
-
-def test_terminal_g2_narrative_is_bound_to_the_frozen_derived_data() -> None:
-    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
-        encoding="utf-8"
-    )
-    section = manuscript.split(
-        "# 8. Fresh trajectories reveal process structure omitted by endpoints", 1
-    )[1].split("# 9. Discussion", 1)[0]
-    compact_section = " ".join(section.split())
-    derived = _load(ROOT / "benchmark/releases/chemworld-serious-v1/arxiv-v1-derived-data.json")
-    replication = derived["g2_v0_5"]
-    branch = replication["interpretation"]["selected_branch"]
-    matrix = replication["matrix"]
-
-    assert "Eighteen of 20 cells completed" in section
-    assert "Two cells were right-censored" in section
-    assert matrix["completed_cell_count"] == 18
-    assert matrix["right_censored_cell_count"] == 2
-    assert matrix["completed_pair_count"] == 8
-    assert branch["mixed_world_by_core_metric_count"] == 6
-    assert branch["world_by_core_metric_count"] == 8
-    assert "6/8 selected world-by-lifecycle cells were mixed" in compact_section
-    assert "threshold-sensitive supporting evidence, not the primary diagnostic" in compact_section
-    assert "best-of-campaign and raw terminal contrasts were sign-discordant in 2/8 pairs" in (
-        compact_section
-    )
-    assert "descriptive Pearson correlation of $+0.826$" in compact_section
-
-
-def test_manuscript_results_follow_the_frozen_six_figure_contract() -> None:
-    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
-        encoding="utf-8"
-    )
-    compact = " ".join(manuscript.split())
-    figure_paths = [
-        "figure-1-apparatus-world-forks.pdf",
-        "figure-2-known-policy-validity.pdf",
-        "figure-3-terminal-policy.pdf",
-        "figure-4-compiled-controls.pdf",
-        "figure-5-complete-lifecycles.pdf",
-        "figure-6-fresh-trajectories.pdf",
-    ]
-    figure_positions = [manuscript.index(path) for path in figure_paths]
-    method_headings = [
-        "## 10.1 Registered apparatus and transaction qualification",
-        "## 10.2 Frozen world-fork protocol",
-        "## 10.3 Frozen known-policy profile qualification",
-        "## 10.4 Compiled-control protocol",
-        "## 10.5 Primitive-control protocol and resource ledger",
-        "## 10.6 Latent-terminal counterfactual and censoring",
-        "## 10.7 Operational trajectory readouts",
-        "## 10.8 Fresh-session replication",
-        "## 10.9 Sensitivity analyses",
-        "## 10.10 First-launch infrastructure incident",
-        "## 10.11 Scope-stopped multiworld extension",
-        "## 10.12 Public boundary and replay",
-    ]
-    method_positions = [manuscript.index(heading) for heading in method_headings]
-
-    assert figure_positions == sorted(figure_positions)
-    assert len(set(figure_positions)) == 6
-    assert method_positions == sorted(method_positions)
-    assert "## 9.1 What the process record establishes" in manuscript
-    assert "## 9.2 Limitations and scope" in manuscript
-    assert "## 9.3 Complementarity and next steps" in manuscript
-    assert "six parent--child pairs" in compact
-    assert "=24$ traces" in compact
-    assert "30 primary campaigns contained 180/180 closed lifecycles" in compact
-    assert "additional 30 campaigns and 180 lifecycles are reliability evidence only" in compact
-    assert "120 closed lifecycles: 84 final assays and 36 explicit discards" in compact
-    assert "All 36 receipts were retained: 6 resolved and 30 remained unresolved" in compact
-    assert "never as a complete-case result" in compact
-    assert "2/8 pairs" in compact
-    assert "6/8 selected world-by-lifecycle cells were mixed" in compact
-    assert "population-level model or information-effect claim" in compact
-    assert "0.007984561379998922" in compact
-    assert "resource-ledger gate therefore retained the run as incomplete" in compact
-    for internal_term in (
-        "SHA-256",
-        "TASK_REGISTRY",
-        "OPERATION_TYPES",
-        "release label",
-        "work-i-known-policy-formal-k6-v1",
-        "current.json",
-        "history.jsonl",
-        "ddc55253",
-        "f539bfa7",
-        "aae0edac",
-    ):
-        assert internal_term not in manuscript
 
 
 def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:
@@ -345,13 +221,8 @@ def test_all_tracked_evidence_and_execution_entrypoints_exist() -> None:
     assert blocker_ids == ["B1", "B2", "B3", "B4", "B5", "B6", "B7"]
 
 
-def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
+def test_historical_related_work_audit_is_bounded() -> None:
     evidence = _load(RELATED_WORK_EVIDENCE_PATH)
-    audit = RELATED_WORK_AUDIT_PATH.read_text(encoding="utf-8")
-    manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
-        encoding="utf-8"
-    )
-    compact_manuscript = " ".join(manuscript.split())
     works = {item["id"]: item for item in evidence["works"]}
 
     assert evidence["reviewed_at"] == "2026-08-02"
@@ -381,10 +252,6 @@ def test_related_work_audit_is_current_bounded_and_synchronized() -> None:
     assert "representative claim-preemption audit" in evidence["selection_policy"]
     assert len(evidence["absolute_claims_rejected"]) >= 6
     assert len(evidence["chemworld_current_limitations"]) >= 7
-    assert "controlled experimental science of experimenting agents" in audit
-    assert "does not replace a robotic laboratory" in compact_manuscript
-    assert "controlled measurement apparatus" in compact_manuscript
-    assert "first virtual chemistry laboratory" not in compact_manuscript
 
 
 def test_g0_historical_source_binding_is_reachable_and_data_release_is_honest() -> None:
