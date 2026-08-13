@@ -19,8 +19,6 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
-    git_source_commit,
-    git_worktree_dirty,
 )
 from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.verify import verify_records
@@ -43,7 +41,7 @@ from chemworld.eval.work_ii_truth import (
     validate_evaluator_truth_report,
 )
 
-WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.6"
+WORK_II_DEVELOPMENT_READINESS_VERSION = "chemworld-work-ii-development-provider-readiness-0.7"
 _PRIOR_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 
 
@@ -131,7 +129,6 @@ def _config_checks(
         method_resource_schema_valid = False
     return {
         "release_d1_same_freeze_provider_authorized": not release_d1_errors,
-        "clean_committed_worktree": not git_worktree_dirty(root),
         "seed_schedule_is_pilot_full_or_terminal_continuation": (
             (len(seeds) in {1, 5} and len(set(seeds)) == len(seeds)) or list(seeds) == [1, 2, 3, 4]
         ),
@@ -842,7 +839,6 @@ def build_development_readiness_receipt(
     receipt: dict[str, Any] = {
         "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
         "generated_at": datetime.now(UTC).isoformat(),
-        "source_commit": git_source_commit(root),
         "release_execution": (
             {
                 "tested_commit": manifest["tested_commit"],
@@ -923,8 +919,6 @@ def validate_development_readiness_receipt(
         errors.append("readiness receipt checks are incomplete or failing")
     if receipt.get("provider_call_count") != 0:
         errors.append("readiness receipt was not produced by a zero-provider audit")
-    if receipt.get("source_commit") != git_source_commit(root):
-        errors.append("readiness receipt source commit is stale")
     resolved_config = _resolved_config_path(root, config_path)
     if release_manifest is not None:
         release_errors = validate_release_d1_config(

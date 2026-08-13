@@ -347,6 +347,19 @@ receipt stale。
 report bindings/self-hashes、逐阶段确定性重建、roster/slot outcome-blind 检查，以及 final admission 的五份 release
 envelope 同 cohort 校验。C2 owning tests 26/26、formal runner + A-S downstream tests 47/47 与 Ruff 通过。
 
+### CD-29：窄化 development readiness，移除时变 HEAD/clean 副本 — DONE
+
+`work_ii_development_readiness` 仍拥有真实的 provider 前决策：历史 trajectory 重验、方向 query 稳定性、精确
+config/schedule、seed-0 扩展 pilot 以及 terminal seed-0 continuation 保留。因此本批没有把 readiness 整组删除。
+但旧 receipt 同时要求 build 时 clean worktree、记录生成时 source commit，并在消费时与当前 HEAD 比较；provider
+入口已经用 canonical release manifest 和 config execution envelope 重验 exact HEAD、execution surface、freeze、
+provider authorization，这两项只会让正常维护追溯性地使 readiness stale。
+
+现已删除 `clean_committed_worktree`、receipt `source_commit` 与 current-HEAD comparison，schema 从 v0.6 升为
+v0.7；仓库没有 current v0.6 durable receipt 需要重写。保留 trajectory/config/schedule/pilot/continuation bindings、
+self-hash、zero-provider、release freeze 与所有科学/恢复 checks。readiness owning tests 11/11、provider 入口对缺
+readiness/缺 release manifest 的 pre-output 拒绝 2/2 与 Ruff 通过。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

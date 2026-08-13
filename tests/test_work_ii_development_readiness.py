@@ -30,7 +30,6 @@ def _write_receipt(
     receipt = {
         "schema_version": WORK_II_DEVELOPMENT_READINESS_VERSION,
         "generated_at": "2026-08-10T00:00:00+00:00",
-        "source_commit": "test-commit",
         "config": {
             "path": config.relative_to(root).as_posix(),
             "sha256": file_sha256(config),
@@ -80,8 +79,7 @@ def _write_receipt(
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
 
 
-def test_readiness_receipt_binds_commit_config_schedule_and_history(
-    monkeypatch,
+def test_readiness_receipt_binds_config_schedule_and_history(
     tmp_path: Path,
 ) -> None:
     config = tmp_path / "config.json"
@@ -90,11 +88,6 @@ def test_readiness_receipt_binds_commit_config_schedule_and_history(
     trajectory.write_text('{"step":1}\n', encoding="utf-8")
     receipt = tmp_path / "readiness.json"
     _write_receipt(tmp_path, config, trajectory, receipt)
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_development_readiness.git_source_commit",
-        lambda _root: "test-commit",
-    )
-
     assert validate_development_readiness_receipt(tmp_path, receipt, config, [0]) == []
 
     trajectory.write_text('{"step":2}\n', encoding="utf-8")
@@ -106,8 +99,7 @@ def test_readiness_receipt_binds_commit_config_schedule_and_history(
     assert "readiness receipt seed schedule mismatch" in errors
 
 
-def test_readiness_receipt_rejects_tampering_and_stale_commit(
-    monkeypatch,
+def test_readiness_receipt_rejects_tampering(
     tmp_path: Path,
 ) -> None:
     config = tmp_path / "config.json"
@@ -116,14 +108,6 @@ def test_readiness_receipt_rejects_tampering_and_stale_commit(
     trajectory.write_text('{"step":1}\n', encoding="utf-8")
     receipt = tmp_path / "readiness.json"
     _write_receipt(tmp_path, config, trajectory, receipt)
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_development_readiness.git_source_commit",
-        lambda _root: "different-commit",
-    )
-
-    errors = validate_development_readiness_receipt(tmp_path, receipt, config, [0])
-    assert "readiness receipt source commit is stale" in errors
-
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     payload["ready"] = False
     receipt.write_text(json.dumps(payload), encoding="utf-8")
@@ -133,7 +117,6 @@ def test_readiness_receipt_rejects_tampering_and_stale_commit(
 
 
 def test_five_seed_readiness_requires_bound_seed0_pilot(
-    monkeypatch,
     tmp_path: Path,
 ) -> None:
     config = tmp_path / "config.json"
@@ -149,11 +132,6 @@ def test_five_seed_readiness_requires_bound_seed0_pilot(
         {key: value for key, value in payload.items() if key != "readiness_sha256"}
     )
     receipt.write_text(json.dumps(payload), encoding="utf-8")
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_development_readiness.git_source_commit",
-        lambda _root: "test-commit",
-    )
-
     errors = validate_development_readiness_receipt(
         tmp_path,
         receipt,
@@ -164,7 +142,6 @@ def test_five_seed_readiness_requires_bound_seed0_pilot(
 
 
 def test_continuation_readiness_binds_terminal_seed0_without_requalifying_it(
-    monkeypatch,
     tmp_path: Path,
 ) -> None:
     config = tmp_path / "config.json"
@@ -192,11 +169,6 @@ def test_continuation_readiness_binds_terminal_seed0_without_requalifying_it(
         {key: value for key, value in payload.items() if key != "readiness_sha256"}
     )
     receipt.write_text(json.dumps(payload), encoding="utf-8")
-    monkeypatch.setattr(
-        "chemworld.eval.work_ii_development_readiness.git_source_commit",
-        lambda _root: "test-commit",
-    )
-
     assert validate_development_readiness_receipt(tmp_path, receipt, config, [1, 2, 3, 4]) == []
 
     seed0_matrix.write_text('{"terminal_cell_count":2}\n', encoding="utf-8")
@@ -209,7 +181,6 @@ def test_wellau_sol_medium_is_an_authorized_responses_harness(
     tmp_path: Path,
 ) -> None:
     monkeypatch.setenv("WELLAU_API_KEY", "test-only")
-    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
     config = tmp_path / "wellau.json"
     config.write_text(
         json.dumps(
@@ -291,7 +262,6 @@ def test_readiness_accepts_pattern_owned_ten_experiment_schedule(
     tmp_path: Path,
 ) -> None:
     monkeypatch.setenv("WELLAU_API_KEY", "test-only")
-    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
     config = tmp_path / "wellau-ten.json"
     payload = json.loads(
         (
@@ -337,7 +307,6 @@ def test_readiness_rejects_unknown_method_resource_fields(
     tmp_path: Path,
 ) -> None:
     monkeypatch.setenv("WELLAU_API_KEY", "test-only")
-    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
     config = tmp_path / "invalid-resource.json"
     payload = json.loads(
         (
@@ -358,8 +327,6 @@ def test_readiness_requires_same_release_freeze_for_provider_authorization(
     tmp_path: Path,
 ) -> None:
     monkeypatch.setenv("WELLAU_API_KEY", "test-only")
-    monkeypatch.setattr(readiness, "git_worktree_dirty", lambda _root: False)
-    monkeypatch.setattr(readiness, "git_source_commit", lambda _root: "a" * 40)
     monkeypatch.setattr(execution_mode, "git_worktree_dirty", lambda _root: False)
     monkeypatch.setattr(execution_mode, "git_source_commit", lambda _root: "a" * 40)
     runtime = tmp_path / "runtime.py"
@@ -427,7 +394,6 @@ def test_readiness_receipt_rejects_cross_freeze_release_binding(
     runtime_b.write_text("VALUE = 2\n", encoding="utf-8")
     monkeypatch.setattr(execution_mode, "git_worktree_dirty", lambda _root: False)
     monkeypatch.setattr(execution_mode, "git_source_commit", lambda _root: "a" * 40)
-    monkeypatch.setattr(readiness, "git_source_commit", lambda _root: "test-commit")
     manifest_a = build_release_manifest(tmp_path, execution_surface=["runtime-a.py"])
     manifest_b = build_release_manifest(tmp_path, execution_surface=["runtime-b.py"])
     context = prepare_execution_context(
