@@ -28,7 +28,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.8"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.9"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -140,11 +140,7 @@ class ChemWorldMCPServer:
             return None
         if method == "initialize":
             params = request.get("params")
-            protocol = (
-                params.get("protocolVersion")
-                if isinstance(params, dict)
-                else "2025-06-18"
-            )
+            protocol = params.get("protocolVersion") if isinstance(params, dict) else "2025-06-18"
             descriptor = self._descriptor()
             campaign = descriptor.get("session_scope") == "campaign"
             return self._result(
@@ -156,7 +152,10 @@ class ChemWorldMCPServer:
                     "instructions": (
                         "Use chemworld_lab.step for every physical operation. First call "
                         "material_information once. Use status, history, and inspect_artifact "
-                        "only for bounded public evidence. Never fabricate an outcome. "
+                        "only for bounded public evidence. Never fabricate an outcome. The "
+                        "inputSchema values returned by tools/list are the sole executable "
+                        "authority for tool arguments; do not try to read or infer schemas from "
+                        "host filesystem paths. "
                         + (
                             "Commit every required belief checkpoint with "
                             "commit_belief_snapshot. An experiment_ended outcome closes only "
@@ -241,9 +240,7 @@ class ChemWorldMCPServer:
                     else 0
                 ),
                 "error_detail_sha256": (
-                    hashlib.sha256(
-                        error_detail.encode("utf-8", errors="replace")
-                    ).hexdigest()
+                    hashlib.sha256(error_detail.encode("utf-8", errors="replace")).hexdigest()
                     if error_detail is not None
                     else None
                 ),
@@ -294,12 +291,18 @@ class ChemWorldMCPServer:
             error_detail = detail[:1000] if detail else error_type
             error_code = self._error_code(error_type, error_detail)
             error_field_path = self._error_field_path(error_detail)
-            result = self._tool_error(
-                f"{type(error).__name__}: {detail[:1000]}"
-                if name in {"step", "commit_belief_snapshot", "commit_final_recommendation"}
-                and detail
-                else type(error).__name__
+            error_payload = self._actionable_error_payload(
+                descriptor=descriptor,
+                tool=name,
+                arguments=arguments,
+                error_type=error_type,
+                error_code=error_code,
+                field_path=error_field_path,
+                detail=error_detail,
             )
+            error_code = str(error_payload["error_code"])
+            error_field_path = error_payload.get("field_path")
+            result = self._tool_error(error_payload)
         self._audit(
             descriptor,
             name,
@@ -329,6 +332,11 @@ class ChemWorldMCPServer:
             return "ipc_session_changed"
         if "campaign_already_ended_submit_final_response" in lowered:
             return "invalid_step_after_campaign_terminal"
+        if (
+            "required belief checkpoint" in lowered
+            or "all required belief checkpoints must be committed" in lowered
+        ):
+            return "missing_required_belief_checkpoint"
         if "checkpoint is not due" in lowered:
             return "invalid_checkpoint_timing"
         if "decision_audit" in lowered and "required" in lowered:
@@ -347,6 +355,18 @@ class ChemWorldMCPServer:
 
     @staticmethod
     def _error_field_path(detail: str) -> str | None:
+        lowered = detail.lower()
+        if "required belief checkpoint" in lowered:
+            return "checkpoint"
+        if "checkpoint is not due" in lowered:
+            return "snapshot.stage"
+        if "belief_snapshot fields do not match" in lowered:
+            return "snapshot"
+        if "prediction denominator" in lowered:
+            return "snapshot.predictions"
+        if "law_summary" in lowered:
+            match = re.search(r"law_summary(?:\.[A-Za-z0-9_]+(?:\[\d+\])?)*", detail)
+            return f"snapshot.{match.group(0)}" if match else "snapshot.law_summary"
         match = re.search(
             r"(?:snapshot\.|decision_audit\.|prior_assessment\.|law_summary\."
             r"|predictions\[|action\.|expected_step|selected_experiment_index)"
@@ -356,9 +376,314 @@ class ChemWorldMCPServer:
         return match.group(0).rstrip(".") if match else None
 
     @staticmethod
-    def _tool_error(error_type: str) -> dict[str, Any]:
-        text = _encode({"ok": False, "error": error_type}).decode("utf-8")
+    def _tool_error(error: str | dict[str, Any]) -> dict[str, Any]:
+        payload = {"ok": False, "error": error} if isinstance(error, str) else error
+        text = _encode(payload).decode("utf-8")
         return {"content": [{"type": "text", "text": text}], "isError": True}
+
+    def _actionable_error_payload(
+        self,
+        *,
+        descriptor: dict[str, Any],
+        tool: str,
+        arguments: dict[str, Any],
+        error_type: str,
+        error_code: str,
+        field_path: str | None,
+        detail: str,
+    ) -> dict[str, Any]:
+        exposed_detail = (
+            f"{error_type}: {detail}"
+            if tool in {"step", "commit_belief_snapshot", "commit_final_recommendation"} and detail
+            else error_type
+        )
+        payload: dict[str, Any] = {
+            "ok": False,
+            "error": exposed_detail,
+            "error_code": error_code,
+            "field_path": field_path,
+        }
+        if descriptor.get("session_scope") != "campaign":
+            if tool == "step":
+                payload.update(self._step_repair_context(arguments, detail))
+            return payload
+        if error_code in {
+            "invalid_checkpoint_timing",
+            "missing_required_belief_checkpoint",
+        }:
+            closeout = self._campaign_closeout_state(descriptor)
+            payload.update(
+                {
+                    "checkpoint_due": closeout["checkpoint_due"],
+                    "next_stage": closeout["next_checkpoint_stage"],
+                    "completed": closeout["complete_experiment_count"],
+                    "required": closeout["next_checkpoint_complete_experiment_count"],
+                    "expected": {
+                        "next_stage": closeout["next_checkpoint_stage"],
+                        "complete_experiment_count": closeout[
+                            "next_checkpoint_complete_experiment_count"
+                        ],
+                    },
+                    "observed": {
+                        "submitted_stage": self._submitted_snapshot_stage(arguments),
+                        "complete_experiment_count": closeout["complete_experiment_count"],
+                        "committed_checkpoint_count": closeout["committed_checkpoint_count"],
+                    },
+                    "recovery_action": (
+                        "Call commit_belief_snapshot for next_stage using its tools/list "
+                        "inputSchema before calling step or commit_final_recommendation."
+                        if closeout["checkpoint_due"]
+                        else "Continue physical experiments until completed equals required; "
+                        "then call commit_belief_snapshot for next_stage."
+                    ),
+                }
+            )
+        if tool == "commit_belief_snapshot" and error_code in {
+            "invalid_belief_snapshot",
+            "validation_error",
+        }:
+            payload.update(self._belief_snapshot_repair_context(arguments, detail))
+        if tool == "step" and "expected" not in payload:
+            payload.update(self._step_repair_context(arguments, detail))
+        return payload
+
+    @staticmethod
+    def _submitted_snapshot_stage(arguments: dict[str, Any]) -> Any:
+        snapshot = arguments.get("snapshot")
+        return snapshot.get("stage") if isinstance(snapshot, dict) else None
+
+    def _belief_snapshot_repair_context(
+        self,
+        arguments: dict[str, Any],
+        detail: str,
+    ) -> dict[str, Any]:
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        snapshot = arguments.get("snapshot")
+        snapshot = snapshot if isinstance(snapshot, dict) else {}
+        schema = self._belief_snapshot_schema()
+        context: dict[str, Any] = {
+            "schema_authority": (
+                "tools/list -> commit_belief_snapshot.inputSchema.properties.snapshot"
+            ),
+            "expected": {"contract": "authoritative snapshot tools/list inputSchema"},
+            "observed": {
+                "type": type(arguments.get("snapshot")).__name__,
+                "fields": sorted(snapshot),
+            },
+            "schema_fragment": {
+                "type": "object",
+                "required": schema["required"],
+                "additionalProperties": False,
+            },
+            "recovery_action": (
+                "Rebuild the rejected field from the authoritative tools/list inputSchema; "
+                "do not inspect host filesystem paths."
+            ),
+        }
+        lowered = detail.lower()
+        if "belief_snapshot fields do not match" in lowered:
+            context.update(
+                {
+                    "field_path": "snapshot",
+                    "expected": {"required_fields": schema["required"]},
+                    "observed": {"fields": sorted(snapshot)},
+                    "schema_fragment": {
+                        "required": schema["required"],
+                        "additionalProperties": False,
+                    },
+                }
+            )
+        elif "schema_version does not match" in lowered:
+            law_summary = snapshot.get("law_summary")
+            law_summary = law_summary if isinstance(law_summary, dict) else {}
+            is_law = lowered.startswith("law_summary")
+            expected_version = (
+                WORK_II_LAW_SUMMARY_SCHEMA_VERSION if is_law else WORK_II_SNAPSHOT_SCHEMA_VERSION
+            )
+            context.update(
+                {
+                    "field_path": (
+                        "snapshot.law_summary.schema_version"
+                        if is_law
+                        else "snapshot.schema_version"
+                    ),
+                    "expected": expected_version,
+                    "observed": (
+                        law_summary.get("schema_version")
+                        if is_law
+                        else snapshot.get("schema_version")
+                    ),
+                    "schema_fragment": {"const": expected_version},
+                }
+            )
+        elif "prediction denominator" in lowered:
+            predictions = snapshot.get("predictions")
+            context.update(
+                {
+                    "field_path": "snapshot.predictions",
+                    "expected": {
+                        "count": len(contract["query_metric_contract"]),
+                        "query_ids": list(contract["query_metric_contract"]),
+                    },
+                    "observed": {
+                        "count": len(predictions) if isinstance(predictions, list) else None,
+                        "query_ids": self._object_ids(predictions, "query_id"),
+                    },
+                    "schema_fragment": self._array_contract_fragment(
+                        schema["properties"]["predictions"]
+                    ),
+                }
+            )
+        elif "metric_laws" in lowered or "exact held-out metric set" in lowered:
+            law_summary = snapshot.get("law_summary")
+            law_summary = law_summary if isinstance(law_summary, dict) else {}
+            metric_laws = law_summary.get("metric_laws")
+            metric_schema = schema["properties"]["law_summary"]["properties"]["metric_laws"]
+            item_schema = metric_schema["items"]
+            field_path = "snapshot.law_summary.metric_laws"
+            item_match = re.search(r"metric_laws\[(\d+)\]", detail)
+            if item_match:
+                field_path += f"[{item_match.group(1)}]"
+            context.update(
+                {
+                    "field_path": field_path,
+                    "expected": {
+                        "count": len(contract["allowed_metric_ids"]),
+                        "metric_ids": contract["allowed_metric_ids"],
+                    },
+                    "observed": {
+                        "count": len(metric_laws) if isinstance(metric_laws, list) else None,
+                        "metric_ids": self._object_ids(metric_laws, "metric_id"),
+                    },
+                    "schema_fragment": {
+                        **self._array_contract_fragment(metric_schema),
+                        "item_required": item_schema["required"],
+                        "allowed_links": item_schema["properties"]["link"]["enum"],
+                    },
+                }
+            )
+        elif "stage does not match" in lowered:
+            closeout = self._campaign_closeout_state(self._descriptor())
+            context.update(
+                {
+                    "field_path": "snapshot.stage",
+                    "expected": closeout["next_checkpoint_stage"],
+                    "observed": snapshot.get("stage"),
+                    "schema_fragment": schema["properties"]["stage"],
+                }
+            )
+        return context
+
+    def _step_repair_context(
+        self,
+        arguments: dict[str, Any],
+        detail: str,
+    ) -> dict[str, Any]:
+        lowered = detail.lower()
+        if "expected_step" in lowered:
+            fragment = {"type": "integer", "minimum": 1}
+            return {
+                "field_path": "expected_step",
+                "expected": fragment,
+                "observed": arguments.get("expected_step"),
+                "schema_fragment": fragment,
+                "recovery_action": (
+                    "Resubmit step with the current positive integer expected_step from the "
+                    "latest public outcome or status."
+                ),
+            }
+        if (
+            "decision_audit" in lowered
+            or "decision audit" in lowered
+            or "expected_information_gain" in lowered
+            or "expected information gain" in lowered
+            or "belief_update_rule" in lowered
+            or "belief update rule" in lowered
+        ):
+            audit = arguments.get("decision_audit")
+            field_match = re.search(r"decision_audit\.([A-Za-z0-9_]+)", detail)
+            if field_match is None:
+                normalized = lowered.replace(" ", "_")
+                field_match = re.search(
+                    r"(expected_information_gain|belief_update_rule|uncertainty|"
+                    r"adaptation_source|expected_effect|diagnostic_target)",
+                    normalized,
+                )
+            audit_schema = self._decision_audit_schema()
+            if field_match:
+                field = field_match.group(1)
+                fragment = audit_schema["properties"].get(field, {})
+                observed = audit.get(field) if isinstance(audit, dict) else None
+                return {
+                    "field_path": f"decision_audit.{field}",
+                    "expected": fragment,
+                    "observed": observed,
+                    "schema_fragment": fragment,
+                    "recovery_action": (
+                        "Correct only this public decision-audit field and resubmit the same "
+                        "intended physical operation."
+                    ),
+                }
+            return {
+                "field_path": "decision_audit",
+                "expected": {
+                    "type": "object",
+                    "required_fields": audit_schema["required"],
+                },
+                "observed": {
+                    "type": type(audit).__name__,
+                    "fields": sorted(audit) if isinstance(audit, dict) else None,
+                },
+                "schema_fragment": {
+                    "type": "object",
+                    "required": audit_schema["required"],
+                    "additionalProperties": False,
+                },
+                "recovery_action": (
+                    "Add every required bounded decision_audit field from the step inputSchema "
+                    "and resubmit the same intended physical operation."
+                ),
+            }
+        if "action.operation" in lowered:
+            fragment = {"type": "string", "minLength": 1}
+            action = arguments.get("action")
+            observed = action.get("operation") if isinstance(action, dict) else None
+            return {
+                "field_path": "action.operation",
+                "expected": fragment,
+                "observed": observed,
+                "schema_fragment": fragment,
+                "recovery_action": (
+                    "Choose an available operation from the current public state and resubmit."
+                ),
+            }
+        return {
+            "expected": {"contract": "step tools/list inputSchema"},
+            "observed": {"argument_fields": sorted(arguments)},
+            "recovery_action": (
+                "Correct the rejected field using the authoritative step tools/list inputSchema."
+            ),
+        }
+
+    @staticmethod
+    def _object_ids(value: Any, field: str) -> list[Any] | None:
+        if not isinstance(value, list):
+            return None
+        return [item.get(field) if isinstance(item, dict) else None for item in value]
+
+    @staticmethod
+    def _array_contract_fragment(schema: dict[str, Any]) -> dict[str, Any]:
+        return {
+            key: schema[key]
+            for key in (
+                "type",
+                "minItems",
+                "maxItems",
+                "x-chemworld-required-ids",
+                "x-chemworld-query-metric-contract",
+            )
+            if key in schema
+        }
 
     def _history(self, arguments: dict[str, Any]) -> dict[str, Any]:
         raw_limit = arguments.get("limit", 5)
@@ -380,45 +705,17 @@ class ChemWorldMCPServer:
         }
 
     def _status(self) -> dict[str, Any]:
-        campaign = self._descriptor().get("session_scope") == "campaign"
+        descriptor = self._descriptor()
+        campaign = descriptor.get("session_scope") == "campaign"
         if self._terminal_outcome is None:
             current = _read_object(self.public / "current.json")
             if not campaign:
                 return current
-            completed_count, _ = self._completed_experiment_state()
-            contract = _read_object(self.reference / "belief_checkpoint_contract.json")
-            stages = contract.get("snapshot_stages", [])
-            required_counts = contract.get("checkpoint_complete_experiments", [])
-            session_id = self._leaf(
-                str(self._descriptor()["session_id"]), label="session_id"
-            )
-            snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
-            committed = len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
-            checkpoint_due = (
-                committed < len(stages)
-                and committed < len(required_counts)
-                and completed_count == int(required_counts[committed])
-            )
             return {
                 **current,
-                "campaign_closeout": {
-                    "campaign_ended": self._campaign_terminal_observed(),
-                    "complete_experiment_count": completed_count,
-                    "committed_checkpoint_count": committed,
-                    "required_checkpoint_count": len(stages),
-                    "checkpoint_due": checkpoint_due,
-                    "next_checkpoint_stage": (
-                        str(stages[committed]) if checkpoint_due else None
-                    ),
-                    "final_recommendation_committed": (
-                        self.ipc
-                        / "sessions"
-                        / session_id
-                        / "final_recommendation.json"
-                    ).is_file(),
-                },
+                "campaign_closeout": self._campaign_closeout_state(descriptor),
             }
-        return {
+        terminal = {
             "schema_version": MCP_SERVER_VERSION,
             "experiment_ended": True,
             "terminal_outcome": self._terminal_outcome,
@@ -430,6 +727,33 @@ class ChemWorldMCPServer:
                 else "Submit the final response now; do not call step again."
             ),
             "final_response_contract": self._final_response_contract(campaign=campaign),
+        }
+        if campaign:
+            terminal["campaign_closeout"] = self._campaign_closeout_state(descriptor)
+        return terminal
+
+    def _campaign_closeout_state(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        completed_count, _ = self._completed_experiment_state()
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = contract.get("snapshot_stages", [])
+        required_counts = contract.get("checkpoint_complete_experiments", [])
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
+        committed = len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
+        has_next = committed < len(stages) and committed < len(required_counts)
+        next_stage = str(stages[committed]) if has_next else None
+        next_required = int(required_counts[committed]) if has_next else None
+        return {
+            "campaign_ended": self._campaign_terminal_observed(),
+            "complete_experiment_count": completed_count,
+            "committed_checkpoint_count": committed,
+            "required_checkpoint_count": len(stages),
+            "checkpoint_due": has_next and completed_count == next_required,
+            "next_checkpoint_stage": next_stage,
+            "next_checkpoint_complete_experiment_count": next_required,
+            "final_recommendation_committed": (
+                self.ipc / "sessions" / session_id / "final_recommendation.json"
+            ).is_file(),
         }
 
     @staticmethod
@@ -607,9 +931,7 @@ class ChemWorldMCPServer:
                         rows.append(value)
         ended = [row for row in rows if row.get("experiment_ended") is True]
         evidence = {
-            str(row["evidence_id"])
-            for row in ended
-            if isinstance(row.get("evidence_id"), str)
+            str(row["evidence_id"]) for row in ended if isinstance(row.get("evidence_id"), str)
         }
         return len(ended), evidence
 
@@ -654,9 +976,7 @@ class ChemWorldMCPServer:
         arguments: dict[str, Any],
     ) -> dict[str, Any]:
         if self._terminal_outcome is not None:
-            raise RuntimeError(
-                "campaign_already_ended_submit_final_response"
-            )
+            raise RuntimeError("campaign_already_ended_submit_final_response")
         if descriptor.get("session_scope") == "campaign":
             contract = _read_object(self.reference / "belief_checkpoint_contract.json")
             stages = contract.get("snapshot_stages", [])
@@ -725,6 +1045,11 @@ class ChemWorldMCPServer:
                     and outcome.get("experiment_ended") is True
                 ):
                     self._terminal_outcome = outcome
+                if descriptor.get("session_scope") == "campaign":
+                    outcome = {
+                        **outcome,
+                        "campaign_closeout": self._campaign_closeout_state(descriptor),
+                    }
                 return outcome
             current = self._descriptor()
             if current.get("session_id") != session_id:
@@ -773,24 +1098,51 @@ class ChemWorldMCPServer:
             "required": ["term_id", "basis", "input_ids", "coefficient"],
             "additionalProperties": False,
         }
-        metric_prediction = {
-            "type": "object",
-            "properties": {
-                "metric_id": {"enum": metric_ids},
-                "mean": {"type": "number"},
-                "interval_lower": {"type": "number"},
-                "interval_upper": {"type": "number"},
-                "confidence": probability,
-            },
-            "required": [
-                "metric_id",
-                "mean",
-                "interval_lower",
-                "interval_upper",
-                "confidence",
-            ],
-            "additionalProperties": False,
-        }
+
+        def metric_prediction(allowed_ids: list[str]) -> dict[str, Any]:
+            return {
+                "type": "object",
+                "properties": {
+                    "metric_id": {"enum": allowed_ids},
+                    "mean": {"type": "number"},
+                    "interval_lower": {"type": "number"},
+                    "interval_upper": {"type": "number"},
+                    "confidence": probability,
+                },
+                "required": [
+                    "metric_id",
+                    "mean",
+                    "interval_lower",
+                    "interval_upper",
+                    "confidence",
+                ],
+                "additionalProperties": False,
+            }
+
+        prediction_variants = []
+        for query_id, raw_query_metrics in query_contract.items():
+            query_metrics = [str(item) for item in raw_query_metrics]
+            prediction_variants.append(
+                {
+                    "type": "object",
+                    "properties": {
+                        "query_id": {"const": str(query_id)},
+                        "metrics": {
+                            "type": "array",
+                            "description": (
+                                "Exactly one prediction for every required metric ID; "
+                                "duplicate metric IDs are invalid."
+                            ),
+                            "minItems": len(query_metrics),
+                            "maxItems": len(query_metrics),
+                            "items": metric_prediction(query_metrics),
+                            "x-chemworld-required-ids": query_metrics,
+                        },
+                    },
+                    "required": ["query_id", "metrics"],
+                    "additionalProperties": False,
+                }
+            )
         return {
             "type": "object",
             "properties": {
@@ -819,22 +1171,15 @@ class ChemWorldMCPServer:
                 },
                 "predictions": {
                     "type": "array",
+                    "description": (
+                        "Exactly one prediction object for every required query ID; duplicate "
+                        "query IDs are invalid."
+                    ),
                     "minItems": len(query_ids),
                     "maxItems": len(query_ids),
-                    "items": {
-                        "type": "object",
-                        "properties": {
-                            "query_id": {"enum": query_ids},
-                            "metrics": {
-                                "type": "array",
-                                "minItems": len(metric_ids),
-                                "maxItems": len(metric_ids),
-                                "items": metric_prediction,
-                            },
-                        },
-                        "required": ["query_id", "metrics"],
-                        "additionalProperties": False,
-                    },
+                    "items": {"oneOf": prediction_variants},
+                    "x-chemworld-required-ids": query_ids,
+                    "x-chemworld-query-metric-contract": query_contract,
                 },
                 "law_summary": {
                     "type": "object",
@@ -849,8 +1194,13 @@ class ChemWorldMCPServer:
                         },
                         "metric_laws": {
                             "type": "array",
+                            "description": (
+                                "Exactly one executable law for every required metric ID; "
+                                "duplicate metric IDs are invalid."
+                            ),
                             "minItems": len(metric_ids),
                             "maxItems": len(metric_ids),
+                            "x-chemworld-required-ids": metric_ids,
                             "items": {
                                 "type": "object",
                                 "properties": {
@@ -977,9 +1327,7 @@ class ChemWorldMCPServer:
         campaign = self._descriptor().get("session_scope") == "campaign"
         snapshot_schema = self._belief_snapshot_schema() if campaign else {"type": "object"}
         contract = (
-            _read_object(self.reference / "belief_checkpoint_contract.json")
-            if campaign
-            else {}
+            _read_object(self.reference / "belief_checkpoint_contract.json") if campaign else {}
         )
         checkpoint_counts = contract.get("checkpoint_complete_experiments", [])
         completed_experiment_limit = (
@@ -1017,8 +1365,7 @@ class ChemWorldMCPServer:
             {
                 "name": "inspect_artifact",
                 "description": (
-                    "Read one bounded fragment of a referenced public "
-                    "characterization artifact."
+                    "Read one bounded fragment of a referenced public characterization artifact."
                 ),
                 "inputSchema": {
                     "type": "object",
@@ -1037,7 +1384,9 @@ class ChemWorldMCPServer:
                 "description": (
                     "Commit the next required typed Work II belief snapshot inside the active "
                     "campaign session. The host validates stage order, experiment-count location, "
-                    "evidence references, held-out predictions, and executable law summary."
+                    "evidence references, held-out predictions, and executable law summary. This "
+                    "tool's tools/list inputSchema is the sole executable schema authority; host "
+                    "filesystem reference paths are not participant-readable contracts."
                 ),
                 "inputSchema": {
                     "type": "object",
@@ -1090,7 +1439,9 @@ class ChemWorldMCPServer:
                 "description": (
                     "Submit exactly one operation to the authoritative ChemWorld "
                     "runner and wait for its public outcome. In campaign scope, a batch "
-                    "ending does not close this tool; campaign_ended=true closes it."
+                    "ending does not close this tool; campaign_ended=true closes it. Each campaign "
+                    "outcome includes campaign_closeout; when checkpoint_due=true, commit "
+                    "next_checkpoint_stage before calling step again."
                 ),
                 "inputSchema": {
                     "type": "object",

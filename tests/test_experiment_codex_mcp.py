@@ -12,6 +12,10 @@ from chemworld.agents.experiment_codex_mcp import (
     SUPPORTED_TOOLS,
     ChemWorldMCPServer,
 )
+from chemworld.eval.work_ii_prior_discovery import (
+    WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+    WORK_II_SNAPSHOT_SCHEMA_VERSION,
+)
 
 
 def test_final_response_contract_matches_session_scope() -> None:
@@ -21,9 +25,7 @@ def test_final_response_contract_matches_session_scope() -> None:
         "status": "campaign_complete",
         "summary_max_length": 3000,
         "final_recommendation_contract": {
-            "selected_experiment_index": (
-                "1-based_integer_identifying_a_completed_experiment"
-            ),
+            "selected_experiment_index": ("1-based_integer_identifying_a_completed_experiment"),
             "selection_rationale_max_length": 2000,
             "committed_before_blind_evaluation": True,
         },
@@ -97,6 +99,8 @@ def test_host_owned_stdio_mcp_round_trip(tmp_path: Path) -> None:
         )
         initialized = _read_response(process.stdout)["result"]
         assert initialized["serverInfo"]["version"] == MCP_SERVER_VERSION
+        assert "tools/list are the sole executable authority" in initialized["instructions"]
+        assert "host filesystem paths" in initialized["instructions"]
 
         _write_request(process.stdin, 2, "tools/list", {})
         tools = _read_response(process.stdout)["result"]["tools"]
@@ -186,11 +190,14 @@ def test_host_owned_stdio_mcp_round_trip(tmp_path: Path) -> None:
         assert audit[-1]["error_type"] == "RuntimeError"
         requests = workspace.session_root("experiment-0001-test") / "mcp_requests"
         assert len(list(requests.glob("*.json"))) == 1
-        assert list(
-            (workspace.transport_session_root("experiment-0001-test") / "requests").glob(
-                "*.json"
+        assert (
+            list(
+                (workspace.transport_session_root("experiment-0001-test") / "requests").glob(
+                    "*.json"
+                )
             )
-        ) == []
+            == []
+        )
     finally:
         process.stdin.close()
         process.wait(timeout=5.0)
@@ -217,6 +224,11 @@ def test_step_validation_error_exposes_bounded_repair_detail(tmp_path: Path) -> 
     assert result["isError"] is True
     payload = json.loads(result["content"][0]["text"])
     assert payload["error"] == "ValueError: expected_step must be an integer"
+    assert payload["error_code"] == "invalid_expected_step"
+    assert payload["field_path"] == "expected_step"
+    assert payload["expected"] == {"type": "integer", "minimum": 1}
+    assert payload["observed"] is None
+    assert payload["schema_fragment"] == payload["expected"]
     audit = workspace.mcp_tool_call_audit("experiment-validation-detail-test")
     assert len(audit) == 1
     assert audit[0]["error_type"] == "ValueError"
@@ -289,13 +301,25 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "uncertainty",
             "adaptation_source",
         }
-        snapshot = by_name["commit_belief_snapshot"]["inputSchema"]["properties"][
-            "snapshot"
-        ]
+        snapshot = by_name["commit_belief_snapshot"]["inputSchema"]["properties"]["snapshot"]
         assert snapshot["properties"]["schema_version"]["const"].startswith(
             "chemworld-work-ii-belief-snapshot"
         )
         assert "law_summary" in snapshot["required"]
+        assert snapshot["properties"]["predictions"]["x-chemworld-required-ids"] == ["q0"]
+        assert snapshot["properties"]["predictions"]["x-chemworld-query-metric-contract"] == {
+            "q0": ["score"]
+        }
+        prediction_variant = snapshot["properties"]["predictions"]["items"]["oneOf"][0]
+        assert prediction_variant["properties"]["query_id"] == {"const": "q0"}
+        assert prediction_variant["properties"]["metrics"]["x-chemworld-required-ids"] == ["score"]
+        metric_laws = snapshot["properties"]["law_summary"]["properties"]["metric_laws"]
+        assert metric_laws["x-chemworld-required-ids"] == ["score"]
+        assert "link" in metric_laws["items"]["required"]
+        assert (
+            "sole executable schema authority" in by_name["commit_belief_snapshot"]["description"]
+        )
+        assert "checkpoint_due=true" in by_name["step"]["description"]
         recommendation = by_name["commit_final_recommendation"]["inputSchema"]
         assert recommendation["properties"]["selected_experiment_index"]["maximum"] == 4
     finally:
@@ -357,9 +381,10 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
     assert committed["isError"] is False
     committed_payload = json.loads(committed["content"][0]["text"])
     assert committed_payload["already_committed"] is False
-    assert workspace.final_recommendation_audit("campaign-final-recommendation-test")[
-        "recommendation"
-    ] == recommendation
+    assert (
+        workspace.final_recommendation_audit("campaign-final-recommendation-test")["recommendation"]
+        == recommendation
+    )
 
     repeated = server._call_tool("commit_final_recommendation", recommendation)
     assert repeated["isError"] is False
@@ -373,9 +398,9 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
         },
     )
     assert conflicting["isError"] is True
-    assert "different final recommendation" in json.loads(
-        conflicting["content"][0]["text"]
-    )["error"]
+    assert (
+        "different final recommendation" in json.loads(conflicting["content"][0]["text"])["error"]
+    )
 
 
 def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -> None:
@@ -412,6 +437,7 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
         "required_checkpoint_count": 2,
         "checkpoint_due": True,
         "next_checkpoint_stage": "pre_evidence",
+        "next_checkpoint_complete_experiment_count": 0,
         "final_recommendation_committed": False,
     }
 
@@ -429,6 +455,189 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
     assert terminal["campaign_closeout"]["campaign_ended"] is True
     assert terminal["campaign_closeout"]["checkpoint_due"] is True
     assert terminal["campaign_closeout"]["next_checkpoint_stage"] == "final"
+    assert terminal["campaign_closeout"]["next_checkpoint_complete_experiment_count"] == 1
+
+    server._terminal_outcome = {"campaign_ended": True, "experiment_ended": True}
+    terminal_after_step_return = server._status()
+    assert terminal_after_step_return["experiment_ended"] is True
+    assert terminal_after_step_return["campaign_closeout"]["checkpoint_due"] is True
+    assert terminal_after_step_return["campaign_closeout"]["next_checkpoint_stage"] == "final"
+
+
+def _campaign_workspace(tmp_path: Path, session_id: str) -> ExperimentCodexWorkspace:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "test"})
+    workspace.publish_belief_checkpoint_contract(
+        {
+            "snapshot_stages": ["pre_evidence", "after_experiment_2", "final"],
+            "checkpoint_complete_experiments": [0, 2, 4],
+            "query_metric_contract": {"q0": ["score"]},
+            "allowed_feature_ids": ["potential_V"],
+            "allowed_metric_ids": ["score"],
+            "allowed_prior_fields": ["solvent"],
+            "evidence_catalog": [
+                "experiment-1-final-assay",
+                "experiment-2-final-assay",
+                "experiment-3-final-assay",
+                "experiment-4-final-assay",
+            ],
+            "nominal_information_available": False,
+        }
+    )
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id=session_id,
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+    )
+    return workspace
+
+
+def _minimal_snapshot(*, stage: str = "pre_evidence") -> dict[str, Any]:
+    return {
+        "schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+        "snapshot_id": f"snapshot-{stage}",
+        "stage": stage,
+        "prior_assessment": {
+            "nominal_information_available": False,
+            "reliability_probability": None,
+            "suspected_misindexed_fields": [],
+            "rationale": "No nominal dossier is available.",
+        },
+        "predictions": [
+            {
+                "query_id": "q0",
+                "metrics": [
+                    {
+                        "metric_id": "score",
+                        "mean": 0.5,
+                        "interval_lower": 0.0,
+                        "interval_upper": 1.0,
+                        "confidence": 0.25,
+                    }
+                ],
+            }
+        ],
+        "law_summary": {
+            "schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+            "summary_id": f"law-{stage}",
+            "feature_ids": ["potential_V"],
+            "metric_laws": [
+                {
+                    "metric_id": "score",
+                    "intercept": 0.5,
+                    "link": "identity",
+                    "lower_bound": 0.0,
+                    "upper_bound": 1.0,
+                    "terms": [],
+                }
+            ],
+            "evidence_ids": [],
+            "applicability": "Public query domain only.",
+            "limitations": ["No experimental evidence yet."],
+            "confidence": 0.25,
+        },
+        "evidence_ids": [],
+        "next_experiment_intent": "Run a bounded discriminating experiment.",
+        "overall_confidence": 0.25,
+    }
+
+
+def test_belief_snapshot_error_returns_authoritative_repair_context(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-snapshot-repair-test")
+    server = ChemWorldMCPServer(workspace.root)
+    snapshot = _minimal_snapshot()
+    snapshot.pop("schema_version")
+
+    result = server._call_tool("commit_belief_snapshot", {"snapshot": snapshot})
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "invalid_belief_snapshot"
+    assert payload["field_path"] == "snapshot"
+    assert payload["schema_authority"] == (
+        "tools/list -> commit_belief_snapshot.inputSchema.properties.snapshot"
+    )
+    assert "schema_version" in payload["expected"]["required_fields"]
+    assert "schema_version" not in payload["observed"]["fields"]
+    assert payload["schema_fragment"]["additionalProperties"] is False
+
+
+def test_step_checkpoint_rejection_is_structured_and_actionable(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-step-checkpoint-test")
+    server = ChemWorldMCPServer(workspace.root)
+
+    result = server._call_tool(
+        "step",
+        {
+            "expected_step": 1,
+            "action": {"operation": "terminate"},
+            "decision_audit": {},
+        },
+    )
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "missing_required_belief_checkpoint"
+    assert payload["field_path"] == "checkpoint"
+    assert payload["checkpoint_due"] is True
+    assert payload["next_stage"] == "pre_evidence"
+    assert payload["completed"] == 0
+    assert payload["required"] == 0
+    assert payload["expected"] == {
+        "next_stage": "pre_evidence",
+        "complete_experiment_count": 0,
+    }
+    assert "commit_belief_snapshot" in payload["recovery_action"]
+
+
+def test_step_decision_audit_rejection_returns_schema_fragment(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-step-audit-repair-test")
+    server = ChemWorldMCPServer(workspace.root)
+    committed = server._call_tool("commit_belief_snapshot", {"snapshot": _minimal_snapshot()})
+    assert committed["isError"] is False
+
+    result = server._call_tool(
+        "step",
+        {
+            "expected_step": 1,
+            "action": {"operation": "terminate"},
+            "decision_audit": {"expected_information_gain": "high"},
+        },
+    )
+
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "validation_error"
+    assert payload["field_path"] == "decision_audit.expected_information_gain"
+    assert payload["expected"] == {
+        "type": "number",
+        "minimum": 0.0,
+        "maximum": 1.0,
+    }
+    assert payload["observed"] == "high"
+    assert payload["schema_fragment"] == payload["expected"]
+
+
+def test_early_checkpoint_rejection_disambiguates_required_and_observed(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-early-checkpoint-test")
+    server = ChemWorldMCPServer(workspace.root)
+    committed = server._call_tool("commit_belief_snapshot", {"snapshot": _minimal_snapshot()})
+    assert committed["isError"] is False
+    early = _minimal_snapshot(stage="after_experiment_2")
+
+    result = server._call_tool("commit_belief_snapshot", {"snapshot": early})
+
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "invalid_checkpoint_timing"
+    assert payload["checkpoint_due"] is False
+    assert payload["next_stage"] == "after_experiment_2"
+    assert payload["completed"] == 0
+    assert payload["required"] == 2
+    assert payload["observed"]["submitted_stage"] == "after_experiment_2"
+    assert "Continue physical experiments" in payload["recovery_action"]
 
 
 def test_final_recommendation_is_rejected_outside_campaign(tmp_path: Path) -> None:
