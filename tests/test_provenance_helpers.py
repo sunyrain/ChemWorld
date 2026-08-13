@@ -13,7 +13,6 @@ from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
     git_source_commit,
-    git_tracked_tree_dirty,
     git_worktree_dirty,
     write_json_atomic,
 )
@@ -130,25 +129,25 @@ def test_git_provenance_distinguishes_source_and_evidence_changes(
 
     initial_commit = git_source_commit(root)
     assert initial_commit == _git(root, "rev-parse", "HEAD")
-    assert not git_tracked_tree_dirty(root)
+    assert not git_worktree_dirty(root)
     untracked = root / "untracked.txt"
     untracked.write_text("material\n", encoding="utf-8")
     assert git_worktree_dirty(root)
-    assert git_tracked_tree_dirty(root)
+    assert git_worktree_dirty(root)
     assert not git_worktree_dirty(root, excluded_paths={"untracked.txt"})
     untracked.unlink()
 
     source.write_text("source-v2\n", encoding="utf-8")
-    assert git_tracked_tree_dirty(root)
+    assert git_worktree_dirty(root)
     source.write_text("source-v1\n", encoding="utf-8")
-    assert not git_tracked_tree_dirty(root)
+    assert not git_worktree_dirty(root)
 
     evidence.write_text('{"refreshed":true}\n', encoding="utf-8")
-    assert git_tracked_tree_dirty(root)
-    assert not git_tracked_tree_dirty(root, excluded_paths={"reports/evidence.json"})
-    assert not git_tracked_tree_dirty(root, excluded_prefixes={"reports"})
+    assert git_worktree_dirty(root)
+    assert not git_worktree_dirty(root, excluded_paths={"reports/evidence.json"})
+    assert not git_worktree_dirty(root, excluded_prefixes={"reports"})
 
     _git(root, "add", "reports/evidence.json")
     _git(root, "commit", "-m", "evidence only")
     assert git_source_commit(root) != initial_commit
-    assert not git_tracked_tree_dirty(root)
+    assert not git_worktree_dirty(root)
