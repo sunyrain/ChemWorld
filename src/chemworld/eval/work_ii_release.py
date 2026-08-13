@@ -64,6 +64,16 @@ PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
     "chemworld-work-ii-preregistration-freeze-receipt-0.2"
 )
 
+_METHOD_QUALIFICATION_ATTEMPT_FIELDS = (
+    "attempt_unit",
+    "initial_attempts_per_cell",
+    "maximum_infrastructure_resume_attempts_per_cell",
+    "maximum_total_provider_attempts_per_cell",
+    "pre_action_restart_limit_within_attempt",
+    "any_persisted_trajectory_forbids_replacement",
+    "retry_after_scientific_operation_forbidden",
+)
+
 _CLEAN_RELEASE_MATERIAL_PATHS = (
     "configs",
     "pyproject.toml",
@@ -212,6 +222,47 @@ def validate_clean_release_receipt(
     return errors
 
 
+def _validate_method_qualification_formal_bridge(
+    manifest: Mapping[str, Any],
+    qualification_manifest: Mapping[str, Any],
+) -> list[str]:
+    """Require qualification and formal execution to share one method contract."""
+
+    errors: list[str] = []
+    for field, label in (
+        ("provider_contract", "provider contract"),
+        ("participant_execution_contract", "participant method contract"),
+        ("method_qualification_contract", "qualification gate contract"),
+    ):
+        formal = manifest.get(field)
+        qualified = qualification_manifest.get(field)
+        if (
+            not isinstance(formal, Mapping)
+            or not isinstance(qualified, Mapping)
+            or dict(qualified) != dict(formal)
+        ):
+            errors.append(
+                f"method qualification {label} differs from formal manifest"
+            )
+
+    formal_attempt = manifest.get("provider_attempt_contract")
+    qualified_attempt = qualification_manifest.get("provider_attempt_contract")
+    if (
+        not isinstance(formal_attempt, Mapping)
+        or not isinstance(qualified_attempt, Mapping)
+        or any(
+            field not in formal_attempt
+            or field not in qualified_attempt
+            or qualified_attempt.get(field) != formal_attempt.get(field)
+            for field in _METHOD_QUALIFICATION_ATTEMPT_FIELDS
+        )
+    ):
+        errors.append(
+            "method qualification provider-attempt contract differs from formal manifest"
+        )
+    return errors
+
+
 def validate_preregistration_freeze_receipt(
     root: Path,
     receipt: Mapping[str, Any],
@@ -301,6 +352,12 @@ def validate_preregistration_freeze_receipt(
         errors.extend(
             f"method qualification local manifest: {error}"
             for error in local_manifest_errors
+        )
+        errors.extend(
+            _validate_method_qualification_formal_bridge(
+                manifest,
+                qualification_manifest,
+            )
         )
         if (
             qualification_binding.get("manifest_path")
