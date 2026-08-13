@@ -46,9 +46,13 @@ TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S = 0.05
 
 MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
 MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION = (
-    "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.1"
+    "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2"
 )
+MCP_TOOL_FAILURE_EPISODE_TAXONOMY_LEGACY_VERSIONS = {
+    "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.1",
+}
 MCP_DUPLICATE_FAILURE_BURST_WINDOW_MS = 1000.0
+MCP_DEPENDENT_BATCH_CASCADE_WINDOW_MS = 1000.0
 MCP_TOOL_FAILURE_CATEGORIES = (
     "provider_network",
     "transport_ipc_os",
@@ -161,9 +165,10 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
     """Return raw failures plus feedback-aware recovery episodes from ordered calls.
 
     Raw calls are never removed.  A maximal consecutive burst of the same failed
-    outcome within one second is additionally counted as one recovery episode.
-    This deterministic host-side rule prevents a provider's already-queued parallel
-    calls from being misrepresented as independent opportunities to react to feedback.
+    outcome within one second is additionally counted as one recovery episode.  A
+    failed staged-snapshot ``begin`` followed in the same queued batch by dependent
+    page/finalize calls is also one episode: the dependent calls could not react to
+    the rejected begin.  This classification never accepts or repairs their payloads.
     """
 
     def started_at_ms(call: Mapping[str, Any]) -> float | None:
@@ -188,6 +193,27 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             str(call.get("result_sha256") or ""),
         )
 
+    def is_staged_begin_failure(
+        call: Mapping[str, Any], category: MCPToolFailureCategory
+    ) -> bool:
+        argument_keys = call.get("argument_keys")
+        return bool(
+            category == "agent_invalid"
+            and call.get("tool") == "commit_belief_snapshot"
+            and isinstance(argument_keys, list)
+            and set(argument_keys) == {"action", "snapshot_header"}
+        )
+
+    def is_begin_dependency_failure(
+        call: Mapping[str, Any], category: MCPToolFailureCategory
+    ) -> bool:
+        return bool(
+            category == "agent_invalid"
+            and call.get("tool") == "commit_belief_snapshot"
+            and str(call.get("error_detail") or "").strip().lower()
+            == "begin must be accepted before belief snapshot pages"
+        )
+
     counts = _empty_mcp_tool_failure_counts()
     current_by_category = _empty_mcp_tool_failure_counts()
     maximum_by_category = _empty_mcp_tool_failure_counts()
@@ -202,7 +228,15 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
     maximum_episode_total = 0
     previous_failure_identity: tuple[str, ...] | None = None
     previous_failure_started_at_ms: float | None = None
-    for call in calls:
+    staged_begin_failure_started_at_ms: float | None = None
+    staged_begin_cascade_size = 0
+    dependent_batch_cascade_failure_count = 0
+    dependent_batch_cascade_group_count = 0
+    maximum_dependent_batch_cascade_size = 0
+    dependent_batch_cascades: list[dict[str, Any]] = []
+    active_dependent_batch_cascade: dict[str, Any] | None = None
+    staged_begin_failure_call_index: int | None = None
+    for call_index, call in enumerate(calls):
         category = _classify_mcp_tool_failure(call)
         if category is None:
             current_total = 0
@@ -211,6 +245,10 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             current_episodes_by_category = _empty_mcp_tool_failure_counts()
             previous_failure_identity = None
             previous_failure_started_at_ms = None
+            staged_begin_failure_started_at_ms = None
+            staged_begin_failure_call_index = None
+            staged_begin_cascade_size = 0
+            active_dependent_batch_cascade = None
             continue
         total += 1
         current_total += 1
@@ -222,6 +260,14 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             maximum_by_category[name] = max(maximum_by_category[name], current_by_category[name])
         identity = duplicate_identity(call, category)
         timestamp_ms = started_at_ms(call)
+        same_dependent_batch_cascade = bool(
+            staged_begin_failure_started_at_ms is not None
+            and timestamp_ms is not None
+            and 0.0
+            <= timestamp_ms - staged_begin_failure_started_at_ms
+            <= MCP_DEPENDENT_BATCH_CASCADE_WINDOW_MS
+            and is_begin_dependency_failure(call, category)
+        )
         same_duplicate_burst = bool(
             previous_failure_identity == identity
             and previous_failure_started_at_ms is not None
@@ -230,7 +276,24 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             <= timestamp_ms - previous_failure_started_at_ms
             <= MCP_DUPLICATE_FAILURE_BURST_WINDOW_MS
         )
-        if not same_duplicate_burst:
+        if same_dependent_batch_cascade:
+            dependent_batch_cascade_failure_count += 1
+            staged_begin_cascade_size += 1
+            if staged_begin_cascade_size == 1:
+                dependent_batch_cascade_group_count += 1
+                active_dependent_batch_cascade = {
+                    "classification": "dependent_batch_cascade",
+                    "upstream_call_index": staged_begin_failure_call_index,
+                    "dependent_call_indices": [],
+                }
+                dependent_batch_cascades.append(active_dependent_batch_cascade)
+            if active_dependent_batch_cascade is not None:
+                active_dependent_batch_cascade["dependent_call_indices"].append(call_index)
+            maximum_dependent_batch_cascade_size = max(
+                maximum_dependent_batch_cascade_size,
+                staged_begin_cascade_size,
+            )
+        elif not same_duplicate_burst:
             episode_total += 1
             current_episode_total += 1
             maximum_episode_total = max(maximum_episode_total, current_episode_total)
@@ -242,6 +305,17 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
                     maximum_episodes_by_category[name],
                     current_episodes_by_category[name],
                 )
+        if not same_dependent_batch_cascade:
+            if is_staged_begin_failure(call, category):
+                staged_begin_failure_started_at_ms = timestamp_ms
+                staged_begin_failure_call_index = call_index
+                staged_begin_cascade_size = 0
+                active_dependent_batch_cascade = None
+            else:
+                staged_begin_failure_started_at_ms = None
+                staged_begin_failure_call_index = None
+                staged_begin_cascade_size = 0
+                active_dependent_batch_cascade = None
         previous_failure_identity = identity
         previous_failure_started_at_ms = timestamp_ms
     return {
@@ -256,9 +330,17 @@ def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any
             "schema_version": MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION,
             "grouping_basis": (
                 "maximal_consecutive_identical_failed_outcomes_without_an_"
-                "intervening_success_within_the_frozen_duplicate_burst_window"
+                "intervening_success_within_the_frozen_duplicate_burst_window_or_"
+                "dependent_staged_calls_after_an_unaccepted_begin_in_the_same_batch"
             ),
             "duplicate_failure_burst_window_ms": MCP_DUPLICATE_FAILURE_BURST_WINDOW_MS,
+            "dependent_batch_cascade_window_ms": MCP_DEPENDENT_BATCH_CASCADE_WINDOW_MS,
+            "dependent_batch_cascade_failure_count": (
+                dependent_batch_cascade_failure_count
+            ),
+            "dependent_batch_cascade_group_count": dependent_batch_cascade_group_count,
+            "maximum_dependent_batch_cascade_size": maximum_dependent_batch_cascade_size,
+            "dependent_batch_cascades": dependent_batch_cascades,
             "recovery_episode_count": episode_total,
             "current_consecutive_recovery_episode_count": current_episode_total,
             "maximum_consecutive_recovery_episode_count": maximum_episode_total,
@@ -391,7 +473,10 @@ def validated_mcp_tool_failure_budget(receipt: Mapping[str, Any]) -> dict[str, A
     else:
         if not all(episode_present) or not isinstance(episode_taxonomy, Mapping):
             raise ValueError("recovery episode MCP failure receipt is incomplete")
-        if episode_taxonomy.get("schema_version") != MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION:
+        if episode_taxonomy.get("schema_version") not in {
+            MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION,
+            *MCP_TOOL_FAILURE_EPISODE_TAXONOMY_LEGACY_VERSIONS,
+        }:
             raise ValueError("MCP recovery episode taxonomy schema is unsupported")
         episode_maps: dict[str, dict[str, int]] = {}
         for map_name in (
