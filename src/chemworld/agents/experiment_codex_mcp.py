@@ -71,7 +71,9 @@ STAGED_BELIEF_SNAPSHOT_GUIDE = (
     "Use action=begin, then append_prediction_page and append_law_page in the exact "
     "host-published page order, then action=finalize. Partial drafts never count as "
     "checkpoints and step remains blocked until finalize. The staged inputSchema is the sole "
-    "participant-facing authority."
+    "participant-facing authority. The host assembles snapshot.schema_version="
+    f"{WORK_II_SNAPSHOT_SCHEMA_VERSION}; submit snapshot_header.law_summary.schema_version="
+    f"{WORK_II_LAW_SUMMARY_SCHEMA_VERSION} exactly."
 )
 
 BELIEF_DRAFT_VERSION = "chemworld-work-ii-belief-snapshot-draft-0.1"
@@ -347,6 +349,8 @@ class ChemWorldMCPServer:
             return {
                 "protocol": "staged_pages_v1",
                 "all_checkpoints_committed": True,
+                "snapshot_schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+                "law_summary_schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
                 "participant_payload_auto_repair": False,
                 "partial_draft_counts_as_checkpoint": False,
             }
@@ -366,6 +370,8 @@ class ChemWorldMCPServer:
         )
         return {
             **plan,
+            "snapshot_schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+            "law_summary_schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
             "stage": context["stage"],
             "checkpoint_complete_experiment_count": context["required_count"],
             "draft_started": (draft_root / "manifest.json").is_file(),
@@ -640,6 +646,7 @@ class ChemWorldMCPServer:
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         if isinstance(contract.get("snapshot_submission_protocol"), dict):
             state = self._belief_submission_state(self._descriptor())
+            schema = self._staged_belief_snapshot_tool_schema()
             if not state.get("draft_started"):
                 next_action = "begin"
             elif state.get("next_page_id") is not None:
@@ -648,20 +655,69 @@ class ChemWorldMCPServer:
                 next_action = "finalize"
             else:
                 next_action = "status"
-            return {
+            action = arguments.get("action")
+            branch = next(
+                (
+                    candidate
+                    for candidate in schema["oneOf"]
+                    if candidate["properties"]["action"].get("const") == action
+                    and (
+                        action not in {"append_prediction_page", "append_law_page"}
+                        or candidate["properties"]["page_id"].get("const")
+                        == arguments.get("page_id")
+                    )
+                ),
+                None,
+            )
+            context: dict[str, Any] = {
                 "schema_authority": "tools/list -> commit_belief_snapshot.inputSchema",
+                "expected": {
+                    "snapshot_schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+                    "law_summary_schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+                    "next_action": next_action,
+                },
                 "submission_state": state,
                 "observed": {
-                    "action": arguments.get("action"),
+                    "action": action,
                     "page_id": arguments.get("page_id"),
                     "argument_keys": sorted(arguments),
                 },
+                "schema_fragment": deepcopy(branch or schema),
                 "participant_payload_auto_repair": False,
                 "recovery_action": (
                     f"Submit only the current staged action ({next_action}) using the root "
                     "inputSchema and submission_state. Accepted pages cannot be replaced."
                 ),
             }
+            lowered = detail.lower()
+            if "law_summary.schema_version does not match" in lowered:
+                header = arguments.get("snapshot_header")
+                header = header if isinstance(header, dict) else {}
+                law_summary = header.get("law_summary")
+                law_summary = law_summary if isinstance(law_summary, dict) else {}
+                context.update(
+                    {
+                        "field_path": "snapshot_header.law_summary.schema_version",
+                        "expected": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+                        "observed": law_summary.get("schema_version"),
+                        "schema_fragment": {
+                            "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+                        },
+                    }
+                )
+            elif "stage does not match" in lowered:
+                header = arguments.get("snapshot_header")
+                header = header if isinstance(header, dict) else {}
+                stage_schema = schema["properties"]["snapshot_header"]["properties"]["stage"]
+                context.update(
+                    {
+                        "field_path": "snapshot_header.stage",
+                        "expected": stage_schema.get("const"),
+                        "observed": header.get("stage"),
+                        "schema_fragment": deepcopy(stage_schema),
+                    }
+                )
+            return context
         snapshot = arguments.get("snapshot")
         snapshot = snapshot if isinstance(snapshot, dict) else {}
         schema = self._belief_snapshot_schema()
@@ -1824,6 +1880,12 @@ class ChemWorldMCPServer:
         complete_schema = self._belief_snapshot_schema()
         complete_properties = complete_schema["properties"]
         plan = self._page_plan(contract)
+        try:
+            active_stage = self._belief_stage_context(self._descriptor())["stage"]
+        except RuntimeError as error:
+            if "already committed" not in str(error):
+                raise
+            active_stage = None
         probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
         string_id = {"type": "string", "minLength": 1, "maxLength": 200}
         string_ids = {
@@ -1894,7 +1956,7 @@ class ChemWorldMCPServer:
             ],
             "additionalProperties": False,
         }
-        return {
+        schema = {
             "type": "object",
             "properties": {
                 "action": {
@@ -1912,7 +1974,11 @@ class ChemWorldMCPServer:
                     ),
                     "properties": {
                         "snapshot_id": deepcopy(complete_properties["snapshot_id"]),
-                        "stage": deepcopy(complete_properties["stage"]),
+                        "stage": (
+                            {"const": active_stage}
+                            if active_stage is not None
+                            else deepcopy(complete_properties["stage"])
+                        ),
                         "prior_assessment": deepcopy(
                             complete_properties["prior_assessment"]
                         ),
@@ -2024,45 +2090,108 @@ class ChemWorldMCPServer:
             },
             "required": ["action"],
             "additionalProperties": False,
-            "oneOf": [
-                {
-                    "type": "object",
-                    "properties": {
-                        "action": {"const": "begin"},
-                        "snapshot_header": {"type": "object"},
-                    },
-                    "required": ["action", "snapshot_header"],
-                    "additionalProperties": False,
+            "oneOf": [],
+            "x-chemworld-submission-order": list(plan["submission_order"]),
+        }
+        properties = schema["properties"]
+        branches: list[dict[str, Any]] = [
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"const": "begin"},
+                    "snapshot_header": deepcopy(properties["snapshot_header"]),
                 },
+                "required": ["action", "snapshot_header"],
+                "additionalProperties": False,
+            }
+        ]
+        for page in plan["prediction_pages"]:
+            query_variants: list[dict[str, Any]] = []
+            for query_id, metric_ids in page["query_metric_contract"].items():
+                metric_variants = []
+                for metric_id in metric_ids:
+                    variant = deepcopy(metric_prediction)
+                    variant["properties"]["metric_id"] = {"const": str(metric_id)}
+                    metric_variants.append(variant)
+                query_variants.append(
+                    {
+                        "type": "object",
+                        "properties": {
+                            "query_id": {"const": str(query_id)},
+                            "metrics": {
+                                "type": "array",
+                                "minItems": len(metric_ids),
+                                "maxItems": len(metric_ids),
+                                "items": {"oneOf": metric_variants},
+                                "x-chemworld-required-ids": [
+                                    str(item) for item in metric_ids
+                                ],
+                            },
+                        },
+                        "required": ["query_id", "metrics"],
+                        "additionalProperties": False,
+                    }
+                )
+            prediction_schema = deepcopy(properties["predictions"])
+            prediction_schema.update(
+                {
+                    "minItems": len(query_variants),
+                    "maxItems": len(query_variants),
+                    "items": {"oneOf": query_variants},
+                    "x-chemworld-required-ids": [
+                        str(item) for item in page["query_metric_contract"]
+                    ],
+                }
+            )
+            branches.append(
                 {
                     "type": "object",
                     "properties": {
                         "action": {"const": "append_prediction_page"},
-                        "page_id": {"type": "string"},
-                        "predictions": {"type": "array"},
+                        "page_id": {"const": str(page["page_id"])},
+                        "predictions": prediction_schema,
                     },
                     "required": ["action", "page_id", "predictions"],
                     "additionalProperties": False,
-                },
+                }
+            )
+        for page in plan["law_pages"]:
+            law_variants = []
+            for metric_id in page["metric_ids"]:
+                variant = deepcopy(metric_law)
+                variant["properties"]["metric_id"] = {"const": str(metric_id)}
+                law_variants.append(variant)
+            law_schema = deepcopy(properties["metric_laws"])
+            law_schema.update(
+                {
+                    "minItems": len(law_variants),
+                    "maxItems": len(law_variants),
+                    "items": {"oneOf": law_variants},
+                    "x-chemworld-required-ids": [str(item) for item in page["metric_ids"]],
+                }
+            )
+            branches.append(
                 {
                     "type": "object",
                     "properties": {
                         "action": {"const": "append_law_page"},
-                        "page_id": {"type": "string"},
-                        "metric_laws": {"type": "array"},
+                        "page_id": {"const": str(page["page_id"])},
+                        "metric_laws": law_schema,
                     },
                     "required": ["action", "page_id", "metric_laws"],
                     "additionalProperties": False,
-                },
-                {
-                    "type": "object",
-                    "properties": {"action": {"const": "finalize"}},
-                    "required": ["action"],
-                    "additionalProperties": False,
-                },
-            ],
-            "x-chemworld-submission-order": list(plan["submission_order"]),
-        }
+                }
+            )
+        branches.append(
+            {
+                "type": "object",
+                "properties": {"action": {"const": "finalize"}},
+                "required": ["action"],
+                "additionalProperties": False,
+            }
+        )
+        schema["oneOf"] = branches
+        return schema
 
     @staticmethod
     def _decision_audit_schema() -> dict[str, Any]:

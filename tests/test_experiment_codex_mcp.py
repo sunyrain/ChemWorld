@@ -320,12 +320,7 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "rationale",
         }
         assert "metric_laws" not in header["properties"]["law_summary"]["properties"]
-        assert header["properties"]["stage"]["enum"] == [
-            "pre_evidence",
-            "after_experiment_1",
-            "after_experiment_2",
-            "final",
-        ]
+        assert header["properties"]["stage"] == {"const": "pre_evidence"}
         assert header["properties"]["prior_assessment"]["properties"][
             "nominal_information_available"
         ] == {"const": False}
@@ -353,7 +348,36 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
         metric_laws = snapshot["properties"]["metric_laws"]
         assert metric_laws["maxItems"] == 2
         assert "link" in metric_laws["items"]["required"]
+        begin_branch = snapshot["oneOf"][0]
+        assert begin_branch["properties"]["snapshot_header"] == header
+        assert begin_branch["properties"]["snapshot_header"]["properties"][
+            "law_summary"
+        ]["properties"]["schema_version"] == {
+            "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+        }
+        prediction_branch = snapshot["oneOf"][1]
+        assert prediction_branch["properties"]["page_id"] == {
+            "const": "predictions-001"
+        }
+        prediction_variant = prediction_branch["properties"]["predictions"]["items"][
+            "oneOf"
+        ][0]
+        assert prediction_variant["properties"]["query_id"] == {"const": "q0"}
+        assert prediction_variant["properties"]["metrics"]["items"]["oneOf"][0][
+            "properties"
+        ]["metric_id"] == {"const": "score"}
+        law_branch = snapshot["oneOf"][2]
+        assert law_branch["properties"]["page_id"] == {"const": "laws-001"}
+        assert law_branch["properties"]["metric_laws"]["items"]["oneOf"][0][
+            "properties"
+        ]["metric_id"] == {"const": "score"}
         assert "derived from the active public contract" in by_name[
+            "commit_belief_snapshot"
+        ]["description"]
+        assert WORK_II_SNAPSHOT_SCHEMA_VERSION in by_name[
+            "commit_belief_snapshot"
+        ]["description"]
+        assert WORK_II_LAW_SUMMARY_SCHEMA_VERSION in by_name[
             "commit_belief_snapshot"
         ]["description"]
         assert STAGED_BELIEF_SNAPSHOT_GUIDE in by_name["commit_belief_snapshot"]["description"]
@@ -884,6 +908,33 @@ def test_formal_staged_contract_rejects_legacy_one_shot(tmp_path: Path) -> None:
     assert "properties.snapshot" not in json.dumps(payload)
     assert "snapshot={" not in json.dumps(payload)
     assert "current staged action (begin)" in payload["recovery_action"]
+
+
+def test_staged_law_schema_version_error_returns_exact_public_const(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-law-version-test")
+    contract_path = workspace.reference_directory / "belief_checkpoint_contract.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["snapshot_submission_protocol"] = ChemWorldMCPServer._page_plan(contract)
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    server = ChemWorldMCPServer(workspace.root)
+    header = _staged_header(_minimal_snapshot())
+    header["law_summary"]["schema_version"] = "wrong-version"
+
+    result = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": header},
+    )
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["error_code"] == "invalid_belief_snapshot"
+    assert payload["field_path"] == "snapshot_header.law_summary.schema_version"
+    assert payload["expected"] == WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+    assert payload["observed"] == "wrong-version"
+    assert payload["schema_fragment"] == {
+        "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
+    }
+    assert payload["participant_payload_auto_repair"] is False
 
 
 def test_campaign_progress_survives_bounded_history_eviction(tmp_path: Path) -> None:
