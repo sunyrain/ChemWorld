@@ -65,3 +65,12 @@ host-owned monotonic campaign-progress ledger independent of bounded display his
 already-frozen staged submission protocol explicit in the participant instructions; it does not
 change any task, arm, seed, budget, checkpoint, pass/failure or stop rule. The corrected block
 therefore restarts all six cells from the first cell and retains the failed 29/30 run unchanged.
+
+The corrected v0.13 replacement completed from six fresh cells and passed the frozen development
+qualification: 6/6 terminal qualified cells, 60/60 physical experiments, 391 committed operations,
+30/30 finalized typed checkpoints, 6/6 final recommendations, 6/6 exact replays, complete provider
+usage for every session, first-attempt cleanup for every cell, zero provider errors and zero stderr.
+The formerly failing electrochemical/aligned cell exposed the runner's full 10/10 completion count
+to MCP closeout and finalized its fifth checkpoint. This closes the bounded-history progress defect
+without changing any scientific denominator. The result remains development platform/method
+evidence and does not authorize scientific-effect interpretation or formal publication evidence.
