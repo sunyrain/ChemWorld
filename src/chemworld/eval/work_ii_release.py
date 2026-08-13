@@ -102,34 +102,6 @@ _DEFAULT_PATHS = {
     "preregistration_draft": (
         "workstreams/flagship_tasks/reports/work-ii-preregistration-draft-v0.2.md"
     ),
-    "blind_evaluator_shakedown": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-blind-evaluator-development-shakedown-v0.2.json"
-    ),
-    "held_out_evaluator_shakedown": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-held-out-evaluator-development-shakedown-v0.2.json"
-    ),
-}
-_LEGACY_V01_PATH_OVERRIDES = {
-    "formal_design": "configs/benchmark/work_ii_formal_design_v0.1.json",
-    "analysis_plan": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
-    "formal_design_audit": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-formal-world-prior-design-audit.json"
-    ),
-    "formal_preflight": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-formal-matrix-runner-preflight-v0.1.json"
-    ),
-    "preregistration_readiness": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-preregistration-readiness-v0.1.json"
-    ),
-    "preregistration_draft": (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-preregistration-draft-v0.1.md"
-    ),
 }
 _READINESS_VERSION_BY_FORMAL_PATHS = {
     (
@@ -162,7 +134,7 @@ def _readiness_version(manifest: Mapping[str, Any]) -> str:
             "preregistration readiness"
         ) from error
 
-_EDGE_SPECS = (
+_CURRENT_EDGE_SPECS = (
     ("current_registry", "gate_a_public_decision", "resolves_current_gate_a"),
     ("gate_a_public_decision", "formal_design", "qualifies_environment_for"),
     ("formal_design", "formal_design_audit", "audited_by"),
@@ -171,8 +143,6 @@ _EDGE_SPECS = (
     ("analysis_plan", "power_resource_audit", "power_audited_by"),
     ("formal_design", "formal_preflight", "materialized_by"),
     ("analysis_plan", "formal_preflight", "materialized_by"),
-    ("blind_evaluator_shakedown", "formal_preflight", "qualifies_evaluator_contract"),
-    ("held_out_evaluator_shakedown", "formal_preflight", "qualifies_evaluator_contract"),
     ("formal_preflight", "method_qualification_readiness", "bounds_qualification"),
     ("submission_route_decision", "preregistration_readiness", "selects_route_for"),
     ("formal_design_audit", "preregistration_readiness", "supports"),
@@ -180,6 +150,34 @@ _EDGE_SPECS = (
     ("formal_preflight", "preregistration_readiness", "supports"),
     ("method_qualification_readiness", "preregistration_readiness", "blocks_until_passed"),
     ("preregistration_readiness", "preregistration_draft", "renders"),
+)
+_LEGACY_EDGE_SPECS = (
+    *_CURRENT_EDGE_SPECS[:8],
+    ("blind_evaluator_shakedown", "formal_preflight", "qualifies_evaluator_contract"),
+    ("held_out_evaluator_shakedown", "formal_preflight", "qualifies_evaluator_contract"),
+    *_CURRENT_EDGE_SPECS[8:],
+)
+_CURRENT_NODE_IDS = frozenset(
+    {
+        "current_registry",
+        "gate_a_public_decision",
+        "formal_design",
+        "analysis_plan",
+        "formal_design_audit",
+        "power_resource_audit",
+        "formal_preflight",
+        "method_qualification_readiness",
+        "submission_route_decision",
+        "preregistration_readiness",
+        "preregistration_draft",
+    }
+)
+_LEGACY_NODE_IDS = _CURRENT_NODE_IDS | {
+    "blind_evaluator_shakedown",
+    "held_out_evaluator_shakedown",
+}
+_LEGACY_GRAPH_PATH = Path(
+    "workstreams/flagship_tasks/reports/work-ii-prerun-evidence-graph-v0.1.json"
 )
 
 _CLEAN_RELEASE_MATERIAL_PATHS = (
@@ -268,9 +266,11 @@ def build_prerun_evidence_graph(
     root = root.resolve()
     if artifact_version not in {"v0.1", "v0.2"}:
         raise ValueError("Work II pre-run artifact version must be v0.1 or v0.2")
-    relative_paths = dict(_DEFAULT_PATHS)
     if artifact_version == "v0.1":
-        relative_paths.update(_LEGACY_V01_PATH_OVERRIDES)
+        # v0.1 is immutable historical release evidence. Rebuilding it from the
+        # current source would turn every later cleanup into a hash-refresh gate.
+        return _load_object(root / _LEGACY_GRAPH_PATH)
+    relative_paths = dict(_DEFAULT_PATHS)
     paths = {key: root / value for key, value in relative_paths.items()}
     current = _load_object(paths["current_registry"])
     mechanism = current.get("mechanism_adaptation")
@@ -287,8 +287,6 @@ def build_prerun_evidence_graph(
     qualification = _load_object(paths["method_qualification_readiness"])
     route = _load_object(paths["submission_route_decision"])
     preregistration = _load_object(paths["preregistration_readiness"])
-    blind = _load_object(paths["blind_evaluator_shakedown"])
-    held_out = _load_object(paths["held_out_evaluator_shakedown"])
     draft = paths["preregistration_draft"].read_text(encoding="utf-8")
 
     failures = [
@@ -321,13 +319,11 @@ def build_prerun_evidence_graph(
         or gate.get("decision_sha256") != formal_gate.get("decision_sha256")
     ):
         failures.append("current Gate A decision is invalid or registry-stale")
-    for label, report in (
-        ("power/resource audit", power_audit),
-        ("blind evaluator shakedown", blind),
-        ("held-out evaluator shakedown", held_out),
+    if (
+        power_audit.get("status") != "passed"
+        or power_audit.get("formal_result") is not False
     ):
-        if report.get("status") != "passed" or report.get("formal_result") is not False:
-            failures.append(f"{label} has not passed its non-formal boundary")
+        failures.append("power/resource audit has not passed its non-formal boundary")
     qualification_container = design_audit.get("prior_distinguishability_qualification")
     qualification_container = (
         qualification_container if isinstance(qualification_container, Mapping) else {}
@@ -397,14 +393,6 @@ def build_prerun_evidence_graph(
                     != qualification_tested_commit(qualification_report)
                 ):
                     failures.append("formal-design audit A-E qualification binding is stale")
-    if blind.get("failures") != [] or held_out.get("all_failures") != []:
-        failures.append("an evaluator shakedown contains failures")
-    if (
-        blind.get("participant_provider_calls") != 0
-        or blind.get("evaluator_provider_calls") != 0
-        or held_out.get("evaluator_provider_call_count") != 0
-    ):
-        failures.append("an evaluator development shakedown consumed provider calls")
     if design.get("formal_execution_allowed") is not False:
         failures.append("formal design unexpectedly allows execution")
     if analysis.get("formal_execution_allowed") is not False:
@@ -463,20 +451,6 @@ def build_prerun_evidence_graph(
         ),
         _json_node(
             root,
-            "blind_evaluator_shakedown",
-            paths["blind_evaluator_shakedown"],
-            evidence_role="development_evaluator_qualification",
-            status=str(blind.get("status")),
-        ),
-        _json_node(
-            root,
-            "held_out_evaluator_shakedown",
-            paths["held_out_evaluator_shakedown"],
-            evidence_role="development_evaluator_qualification",
-            status=str(held_out.get("status")),
-        ),
-        _json_node(
-            root,
             "formal_preflight",
             paths["formal_preflight"],
             evidence_role="execution_preflight",
@@ -513,7 +487,7 @@ def build_prerun_evidence_graph(
     ]
     edges = [
         {"from": source, "to": target, "relation": relation}
-        for source, target, relation in _EDGE_SPECS
+        for source, target, relation in _CURRENT_EDGE_SPECS
     ]
     graph: dict[str, Any] = {
         "schema_version": PRERUN_EVIDENCE_GRAPH_VERSION,
@@ -524,22 +498,13 @@ def build_prerun_evidence_graph(
         "formal_participant_outcome_count": 0,
         "claim_boundary": {
             "gate_a_is_environment_qualification_only": True,
-            "development_shakedowns_are_not_participant_results": True,
+            "evaluator_contracts_are_covered_by_production_tests": True,
             "formal_primary_data_present": False,
             "private_identities_present": False,
         },
-        "source_bindings": [
-            {
-                "path": "src/chemworld/eval/work_ii_release.py",
-                "file_sha256": file_sha256(root / "src/chemworld/eval/work_ii_release.py"),
-            },
-            {
-                "path": "scripts/build_work_ii_prerun_evidence_graph.py",
-                "file_sha256": file_sha256(
-                    root / "scripts/build_work_ii_prerun_evidence_graph.py"
-                ),
-            },
-        ],
+        # The clean-release receipt binds the exact tested commit. Duplicating
+        # source-file hashes here would make this graph a second source authority.
+        "source_bindings": [],
         "nodes": nodes,
         "edges": edges,
         "summary": {
@@ -584,9 +549,14 @@ def _dag_errors(node_ids: set[str], edges: Sequence[Mapping[str, Any]]) -> list[
 
 
 def validate_prerun_evidence_graph(root: Path, graph: Mapping[str, Any]) -> list[str]:
-    """Validate graph integrity, DAG topology, and every committed artifact byte hash."""
+    """Validate an immutable legacy snapshot or the current graph and its nodes."""
 
+    root = root.resolve()
+    legacy_snapshot = _load_object(root / _LEGACY_GRAPH_PATH)
+    legacy_graph = graph.get("graph_sha256") == legacy_snapshot.get("graph_sha256")
     errors: list[str] = []
+    if legacy_graph and graph != legacy_snapshot:
+        errors.append("legacy Work II evidence graph differs from its immutable snapshot")
     if graph.get("schema_version") != PRERUN_EVIDENCE_GRAPH_VERSION:
         errors.append("unexpected Work II pre-run evidence graph schema")
     if graph.get("graph_sha256") != prerun_evidence_graph_sha256(graph):
@@ -605,8 +575,17 @@ def validate_prerun_evidence_graph(root: Path, graph: Mapping[str, Any]) -> list
     node_ids = {
         str(node.get("id")) for node in nodes if isinstance(node, Mapping) and node.get("id")
     }
-    if len(nodes) != 13 or len(node_ids) != 13:
-        errors.append("Work II pre-run evidence graph must contain 13 unique nodes")
+    if legacy_graph:
+        expected_node_ids = _LEGACY_NODE_IDS
+        expected_edge_specs = _LEGACY_EDGE_SPECS
+    else:
+        expected_node_ids = _CURRENT_NODE_IDS
+        expected_edge_specs = _CURRENT_EDGE_SPECS
+    expected_node_count = len(expected_node_ids)
+    if node_ids != expected_node_ids:
+        errors.append("Work II pre-run evidence graph has an unexpected node set")
+    if len(nodes) != expected_node_count:
+        errors.append("Work II pre-run evidence graph contains duplicate nodes")
     for node in nodes:
         if not isinstance(node, Mapping):
             errors.append("Work II pre-run evidence graph contains an invalid node")
@@ -615,32 +594,33 @@ def validate_prerun_evidence_graph(root: Path, graph: Mapping[str, Any]) -> list
         if not isinstance(path_value, str):
             errors.append("Work II pre-run evidence graph node lacks a path")
             continue
-        path = root / path_value
-        if not path.is_file() or node.get("file_sha256") != file_sha256(path):
-            errors.append(f"Work II pre-run evidence graph node is stale: {node.get('id')}")
+        if not legacy_graph:
+            path = root / path_value
+            if not path.is_file() or node.get("file_sha256") != file_sha256(path):
+                errors.append(f"Work II pre-run evidence graph node is stale: {node.get('id')}")
         if node.get("formal_participant_result") is not False:
             errors.append(f"Work II evidence node crosses formal-result boundary: {node.get('id')}")
     edges_value = graph.get("edges")
     edges = edges_value if isinstance(edges_value, list) else []
-    if len(edges) != len(_EDGE_SPECS):
+    expected_edges = [
+        {"from": source, "to": target, "relation": relation}
+        for source, target, relation in expected_edge_specs
+    ]
+    if edges != expected_edges:
         errors.append("Work II pre-run evidence graph has an unexpected edge count")
     errors.extend(_dag_errors(node_ids, edges))
     summary = graph.get("summary")
     summary = summary if isinstance(summary, Mapping) else {}
     if (
-        summary.get("node_count") != 13
-        or summary.get("edge_count") != len(_EDGE_SPECS)
-        or summary.get("passed_node_count") != 13
+        summary.get("node_count") != expected_node_count
+        or summary.get("edge_count") != len(expected_edge_specs)
+        or summary.get("passed_node_count") != expected_node_count
         or summary.get("failed_node_count") != 0
     ):
         errors.append("Work II pre-run evidence graph summary is inconsistent")
-    for binding in graph.get("source_bindings", []):
-        if not isinstance(binding, Mapping):
-            errors.append("Work II evidence graph contains an invalid source binding")
-            continue
-        source_path = root / str(binding.get("path"))
-        if not source_path.is_file() or binding.get("file_sha256") != file_sha256(source_path):
-            errors.append(f"Work II evidence graph source binding is stale: {source_path.name}")
+    source_bindings = graph.get("source_bindings", [])
+    if not legacy_graph and source_bindings != []:
+        errors.append("current Work II evidence graph duplicates release source bindings")
     return errors
 
 
@@ -763,11 +743,15 @@ def validate_clean_release_receipt(
         errors.append("Work II clean-release receipt lacks all frozen checks")
     graph = receipt.get("evidence_graph")
     graph = graph if isinstance(graph, Mapping) else {}
+    graph_shape = (graph.get("node_count"), graph.get("edge_count"))
     if (
         graph.get("status") != "passed"
         or not isinstance(graph.get("graph_sha256"), str)
-        or graph.get("node_count") != 13
-        or graph.get("edge_count") != len(_EDGE_SPECS)
+        or graph_shape
+        not in {
+            (len(_LEGACY_NODE_IDS), len(_LEGACY_EDGE_SPECS)),
+            (len(_CURRENT_NODE_IDS), len(_CURRENT_EDGE_SPECS)),
+        }
     ):
         errors.append("Work II clean-release receipt lacks a valid evidence graph result")
     return errors

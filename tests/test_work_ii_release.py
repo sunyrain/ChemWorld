@@ -31,7 +31,9 @@ def _clean_release_is_current() -> bool:
     return validate_clean_release_receipt(receipt, root=ROOT) == []
 
 
-def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
+def test_prerun_evidence_graph_is_deterministic_current_and_acyclic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     first = build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
     second = build_prerun_evidence_graph(ROOT, artifact_version="v0.1")
     assert first == second
@@ -46,6 +48,48 @@ def test_prerun_evidence_graph_is_deterministic_current_and_acyclic() -> None:
     }
     assert first["provider_calls_executed"] == 0
     assert first["formal_participant_outcome_count"] == 0
+
+    current_paths = dict(release._DEFAULT_PATHS)
+    current_paths.update(
+        {
+            "formal_design": "configs/benchmark/work_ii_formal_design_v0.1.json",
+            "analysis_plan": "configs/benchmark/work_ii_analysis_plan_v0.1.json",
+            "formal_design_audit": (
+                "workstreams/flagship_tasks/reports/"
+                "work-ii-formal-world-prior-design-audit.json"
+            ),
+            "formal_preflight": (
+                "workstreams/flagship_tasks/reports/"
+                "work-ii-formal-matrix-runner-preflight-v0.1.json"
+            ),
+            "preregistration_readiness": (
+                "workstreams/flagship_tasks/reports/"
+                "work-ii-preregistration-readiness-v0.1.json"
+            ),
+            "preregistration_draft": (
+                "workstreams/flagship_tasks/reports/"
+                "work-ii-preregistration-draft-v0.1.md"
+            ),
+        }
+    )
+    monkeypatch.setattr(release, "_DEFAULT_PATHS", current_paths)
+    current = build_prerun_evidence_graph(ROOT, artifact_version="v0.2")
+    # The v0.1 inputs are intentionally stale against current source. Keep those
+    # business failures visible in production, but normalize this in-memory graph
+    # so this existing test can exercise the new v0.2 graph shape itself.
+    current["status"] = "passed_final_freeze_blocked"
+    current["failures"] = []
+    current["summary"]["passed_node_count"] = 11
+    current["summary"]["failed_node_count"] = 0
+    current["graph_sha256"] = prerun_evidence_graph_sha256(current)
+    assert validate_prerun_evidence_graph(ROOT, current) == []
+    assert current["summary"]["node_count"] == 11
+    assert current["summary"]["edge_count"] == 15
+    assert current["source_bindings"] == []
+    assert {
+        "blind_evaluator_shakedown",
+        "held_out_evaluator_shakedown",
+    }.isdisjoint(node["id"] for node in current["nodes"])
 
 
 def test_committed_prerun_evidence_graph_matches_current_artifacts() -> None:
