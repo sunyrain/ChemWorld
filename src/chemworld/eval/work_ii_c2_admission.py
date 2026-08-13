@@ -1182,24 +1182,70 @@ def _resource_calibration_errors(
         return None, ["W2-26 resource calibration summary is missing"]
     manifest = _load_object(manifest_path)
     summary = _load_object(summary_path)
-    from chemworld.eval.work_ii_resource_calibration import (
-        validate_resource_calibration_manifest,
-        validate_resource_calibration_summary,
+    from chemworld.eval.work_ii_resource_calibration_v02 import (
+        EXPECTED_PATTERN_KEYS,
+        validate_manifest,
+        validate_summary,
     )
 
-    errors = validate_resource_calibration_manifest(root, manifest)
-    errors.extend(
-        validate_resource_calibration_summary(
-            summary,
-            manifest=manifest,
-        )
-    )
+    errors = validate_manifest(root, manifest)
+    errors.extend(validate_summary(summary, manifest=manifest))
     if (
         summary.get("status") != "passed"
         or summary.get("calibration_passed") is not True
         or summary.get("method_qualification_may_be_authorized") is not True
     ):
         errors.append("W2-26 resource calibration did not pass")
+
+    expected_keys = set(EXPECTED_PATTERN_KEYS)
+    reserve_fraction_by_locus = {"A_E": 0.15, "A_P": 0.15, "A_S": 0.20}
+    cards = summary.get("resource_card_proposals")
+    cards = cards if isinstance(cards, list) else []
+    observed_keys: list[tuple[str, str, int]] = []
+    for index, card in enumerate(cards):
+        if not isinstance(card, Mapping):
+            errors.append(f"W2-26 resource card {index} is malformed")
+            continue
+        identity = card.get("card_identity")
+        identity = identity if isinstance(identity, Mapping) else {}
+        locus = identity.get("locus")
+        task_id = identity.get("task_id")
+        rounds = identity.get("rounds")
+        if (
+            not isinstance(locus, str)
+            or not isinstance(task_id, str)
+            or isinstance(rounds, bool)
+            or not isinstance(rounds, int)
+        ):
+            errors.append(f"W2-26 resource card {index} has an invalid identity")
+            continue
+        key = (locus, task_id, rounds)
+        observed_keys.append(key)
+        if card.get("protected_closeout_reserve_enforced") is not True:
+            errors.append(f"W2-26 resource card does not enforce closeout: {key}")
+        formula_binding = identity.get("resource_formula_binding")
+        formula_binding = (
+            formula_binding if isinstance(formula_binding, Mapping) else {}
+        )
+        formula = formula_binding.get("formula")
+        formula = formula if isinstance(formula, Mapping) else {}
+        process_formula = formula.get("process_time_formula")
+        process_formula = (
+            process_formula if isinstance(process_formula, Mapping) else {}
+        )
+        expected_fraction = reserve_fraction_by_locus.get(locus)
+        if (
+            expected_fraction is None
+            or process_formula.get("protected_reserve_fraction")
+            != expected_fraction
+        ):
+            errors.append(f"W2-26 resource card closeout fraction differs: {key}")
+    if (
+        len(observed_keys) != len(EXPECTED_PATTERN_KEYS)
+        or len(set(observed_keys)) != len(observed_keys)
+        or set(observed_keys) != expected_keys
+    ):
+        errors.append("W2-26 requires the exact nine task resource cards")
     errors.extend(validate_c2_source_binding(root, summary.get("c2_source_binding")))
     return summary, errors
 

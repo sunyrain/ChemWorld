@@ -21,13 +21,21 @@ from chemworld.eval.work_ii_formal import (
     build_formal_preflight,
     validate_formal_preflight,
 )
-from chemworld.eval.work_ii_resource_calibration import (
-    build_resource_calibration_readiness,
-    validate_resource_calibration_readiness,
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    EXPECTED_PATTERN_KEYS as EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    PROTECTED_RESERVE_FRACTIONS,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_manifest as validate_resource_calibration_manifest_v02,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_summary as validate_resource_calibration_summary_v02,
 )
 
 METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0.4"
-METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.1"
+METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.2"
 METHOD_QUALIFICATION_RECEIPT_VERSION = "chemworld-work-ii-method-qualification-receipt-0.4"
 METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION = (
     "chemworld-work-ii-method-qualification-execution-authorization-0.2"
@@ -43,6 +51,14 @@ QUALIFICATION_TRIPLET_RUNNER_PATH = (
 )
 QUALIFICATION_TERMINAL_RECEIPT_VERSION = (
     "chemworld-work-ii-qualification-terminal-receipt-0.1"
+)
+DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST = Path(
+    "workstreams/flagship_tasks/reports/"
+    "work-ii-resource-calibration-execution-manifest-v0.2.json"
+)
+DEFAULT_RESOURCE_CALIBRATION_SUMMARY = Path(
+    "workstreams/flagship_tasks/reports/"
+    "work-ii-resource-calibration-summary-v0.2.json"
 )
 REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "planned_complete_experiments",
@@ -1265,10 +1281,170 @@ def _historical_binding(root: Path, relative: str) -> dict[str, Any]:
     }
 
 
+def _resource_calibration_v02_readiness(
+    root: Path,
+    manifest_path: Path,
+    summary_path: Path,
+) -> tuple[dict[str, Any], list[str]]:
+    """Load W2-26 once and project the exact nine task-card gate for W2-27."""
+
+    expected_keys = tuple(EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
+    errors: list[str] = []
+    manifest: dict[str, Any] = {}
+    summary: dict[str, Any] = {}
+    bindings: dict[str, dict[str, Any] | None] = {
+        "execution_manifest": None,
+        "summary": None,
+    }
+    for label, path in (
+        ("execution_manifest", manifest_path),
+        ("summary", summary_path),
+    ):
+        resolved = path.resolve()
+        try:
+            relative = resolved.relative_to(root).as_posix()
+        except ValueError:
+            errors.append(f"W2-26 {label} escapes the repository")
+            continue
+        if not resolved.is_file():
+            errors.append(f"W2-26 {label} is missing")
+            continue
+        try:
+            loaded = json.loads(resolved.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError) as error:
+            errors.append(f"W2-26 {label} cannot be read: {error}")
+            continue
+        if not isinstance(loaded, dict):
+            errors.append(f"W2-26 {label} must contain an object")
+            continue
+        bindings[label] = {
+            "path": relative,
+            "file_sha256": file_sha256(resolved),
+        }
+        if label == "execution_manifest":
+            manifest = loaded
+        else:
+            summary = loaded
+
+    if manifest:
+        errors.extend(
+            f"W2-26 execution manifest: {error}"
+            for error in validate_resource_calibration_manifest_v02(root, manifest)
+        )
+    if summary and manifest:
+        errors.extend(
+            f"W2-26 summary: {error}"
+            for error in validate_resource_calibration_summary_v02(
+                summary,
+                manifest=manifest,
+            )
+        )
+    elif summary and not manifest:
+        errors.append("W2-26 summary cannot be validated without its execution manifest")
+
+    cards = summary.get("resource_card_proposals")
+    cards = cards if isinstance(cards, list) else []
+    assessments: list[dict[str, Any]] = []
+    observed_keys: list[tuple[str, str, int]] = []
+    for index, raw_card in enumerate(cards):
+        card = raw_card if isinstance(raw_card, Mapping) else {}
+        identity = card.get("card_identity")
+        identity = identity if isinstance(identity, Mapping) else {}
+        locus = identity.get("locus")
+        task_id = identity.get("task_id")
+        rounds = identity.get("rounds")
+        key_valid = (
+            isinstance(locus, str)
+            and isinstance(task_id, str)
+            and isinstance(rounds, int)
+            and not isinstance(rounds, bool)
+        )
+        key = (locus, task_id, rounds) if key_valid else None
+        if key is not None:
+            observed_keys.append(key)
+        formula_binding = identity.get("resource_formula_binding")
+        formula_binding = (
+            formula_binding if isinstance(formula_binding, Mapping) else {}
+        )
+        formula = formula_binding.get("formula")
+        formula = formula if isinstance(formula, Mapping) else {}
+        process_formula = formula.get("process_time_formula")
+        process_formula = (
+            process_formula if isinstance(process_formula, Mapping) else {}
+        )
+        fraction = process_formula.get("protected_reserve_fraction")
+        expected_fraction = PROTECTED_RESERVE_FRACTIONS.get(str(locus))
+        closeout_enforced = (
+            card.get("protected_closeout_reserve_enforced") is True
+        )
+        assessment = {
+            "locus": locus,
+            "task_id": task_id,
+            "rounds": rounds,
+            "card_sha256": card.get("card_sha256"),
+            "protected_closeout_reserve_enforced": closeout_enforced,
+            "protected_closeout_reserve_fraction": fraction,
+            "expected_protected_closeout_reserve_fraction": expected_fraction,
+            "task_identity_exact": key in expected_keys if key is not None else False,
+        }
+        assessment["eligible"] = (
+            assessment["task_identity_exact"]
+            and closeout_enforced
+            and fraction == expected_fraction
+        )
+        assessments.append(assessment)
+        if not key_valid:
+            errors.append(f"W2-26 resource card {index} has an invalid task identity")
+        elif key not in expected_keys:
+            errors.append(f"W2-26 resource card has an unexpected task identity: {key}")
+        if not closeout_enforced:
+            errors.append(f"W2-26 resource card does not enforce closeout: {key}")
+        if expected_fraction is None or fraction != expected_fraction:
+            errors.append(f"W2-26 resource card closeout fraction differs: {key}")
+
+    if (
+        len(observed_keys) != len(expected_keys)
+        or len(set(observed_keys)) != len(observed_keys)
+        or set(observed_keys) != set(expected_keys)
+    ):
+        errors.append("W2-26 requires the exact nine task resource cards")
+    passed = (
+        not errors
+        and summary.get("status") == "passed"
+        and summary.get("calibration_passed") is True
+        and summary.get("method_qualification_may_be_authorized") is True
+    )
+    if summary and not passed:
+        errors.append("W2-26 full-task resource calibration did not pass")
+    report = {
+        "schema_version": "chemworld-work-ii-resource-calibration-gate-0.2",
+        "status": (
+            "calibration_passed_method_qualification_eligible"
+            if passed
+            else "not_ready_fail_closed"
+        ),
+        "execution_manifest_binding": bindings["execution_manifest"],
+        "summary_binding": bindings["summary"],
+        "summary_sha256": summary.get("summary_sha256"),
+        "expected_task_card_count": len(expected_keys),
+        "observed_task_card_count": len(cards),
+        "expected_task_identities": [
+            {"locus": locus, "task_id": task_id, "rounds": rounds}
+            for locus, task_id, rounds in expected_keys
+        ],
+        "task_card_assessments": assessments,
+        "method_qualification_may_be_authorized": passed,
+    }
+    return report, errors
+
+
 def build_method_qualification_readiness(
     root: Path,
     design_path: Path,
     analysis_path: Path,
+    *,
+    resource_calibration_manifest_path: Path | None = None,
+    resource_calibration_summary_path: Path | None = None,
 ) -> dict[str, Any]:
     """Build a deterministic, zero-provider-call readiness report for W2-10."""
 
@@ -1276,13 +1452,17 @@ def build_method_qualification_readiness(
     manifest = build_formal_preflight(root, design_path, analysis_path)
     internal_errors = [*manifest.get("errors", []), *validate_formal_preflight(manifest)]
     calibration_manifest_path = (
-        root / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+        resource_calibration_manifest_path
+        or root / DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST
     )
-    calibration_readiness = build_resource_calibration_readiness(
-        root, calibration_manifest_path
+    calibration_summary_path = (
+        resource_calibration_summary_path
+        or root / DEFAULT_RESOURCE_CALIBRATION_SUMMARY
     )
-    calibration_errors = validate_resource_calibration_readiness(
-        calibration_readiness
+    calibration_readiness, calibration_errors = _resource_calibration_v02_readiness(
+        root,
+        calibration_manifest_path,
+        calibration_summary_path,
     )
     internal_errors.extend(
         f"resource calibration: {error}" for error in calibration_errors
@@ -1366,7 +1546,14 @@ def build_method_qualification_readiness(
         "accepted_cell_wall_time_cap_s": cell_count * float(limits.get("wall_time_limit_s", 0.0)),
     }
     blockers = [
-        "the 8/10/12-pattern resource calibration block W2-26 has not been completed",
+        *(
+            ["the nine-task resource calibration block W2-26 has not passed"]
+            if calibration_readiness.get(
+                "method_qualification_may_be_authorized"
+            )
+            is not True
+            else []
+        ),
         "user must confirm the current provider contract or approve an explicit amendment",
         "user must confirm that the provider credential was rotated after exposure",
         "user must approve a qualification currency ceiling bound to the frozen gate contract",
@@ -1393,16 +1580,25 @@ def build_method_qualification_readiness(
         ),
         "resource_calibration_readiness": {
             "manifest_path": calibration_manifest_path.relative_to(root).as_posix(),
-            "readiness_sha256": calibration_readiness.get("readiness_sha256"),
+            "summary_path": calibration_summary_path.relative_to(root).as_posix(),
+            "schema_version": calibration_readiness.get("schema_version"),
             "status": calibration_readiness.get("status"),
-            "calibration_summary_binding": calibration_readiness.get(
-                "calibration_summary_binding"
+            "execution_manifest_binding": calibration_readiness.get(
+                "execution_manifest_binding"
             ),
-            "calibration_summary_source_commit": calibration_readiness.get(
-                "calibration_summary_source_commit"
+            "summary_binding": calibration_readiness.get("summary_binding"),
+            "summary_sha256": calibration_readiness.get("summary_sha256"),
+            "expected_task_card_count": calibration_readiness.get(
+                "expected_task_card_count"
             ),
-            "missing_pattern_rounds": calibration_readiness.get(
-                "missing_pattern_rounds"
+            "observed_task_card_count": calibration_readiness.get(
+                "observed_task_card_count"
+            ),
+            "expected_task_identities": calibration_readiness.get(
+                "expected_task_identities"
+            ),
+            "task_card_assessments": calibration_readiness.get(
+                "task_card_assessments"
             ),
             "method_qualification_may_be_authorized": calibration_readiness.get(
                 "method_qualification_may_be_authorized"
@@ -1513,21 +1709,70 @@ def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[s
         errors.append("method qualification readiness lacks its executable resume contract")
     calibration = report.get("resource_calibration_readiness")
     calibration = calibration if isinstance(calibration, Mapping) else {}
+    expected_identities = [
+        {"locus": locus, "task_id": task_id, "rounds": rounds}
+        for locus, task_id, rounds in EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS
+    ]
+    assessments = calibration.get("task_card_assessments")
+    assessments = assessments if isinstance(assessments, list) else []
+    observed_identity_keys = [
+        (row.get("locus"), row.get("task_id"), row.get("rounds"))
+        for row in assessments
+        if isinstance(row, Mapping)
+    ]
+    expected_identity_keys = list(EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
     if (
-        calibration.get("status") not in {
+        calibration.get("schema_version")
+        != "chemworld-work-ii-resource-calibration-gate-0.2"
+        or calibration.get("status") not in {
             "not_ready_fail_closed",
-            "ready_authorization_blocked",
             "calibration_passed_method_qualification_eligible",
-            "calibration_failed_fail_closed",
         }
         or not isinstance(
             calibration.get("method_qualification_may_be_authorized"), bool
         )
-        or not isinstance(calibration.get("missing_pattern_rounds"), list)
+        or calibration.get("expected_task_card_count") != 9
+        or not isinstance(calibration.get("observed_task_card_count"), int)
+        or calibration.get("expected_task_identities") != expected_identities
     ):
         errors.append("method qualification readiness does not retain the W2-26 gate")
+    if assessments and (
+        len(assessments) != 9
+        or len(set(observed_identity_keys)) != len(observed_identity_keys)
+        or set(observed_identity_keys) != set(expected_identity_keys)
+        or any(
+            not isinstance(row, Mapping)
+            or row.get("task_identity_exact") is not True
+            or row.get("protected_closeout_reserve_enforced") is not True
+            or row.get("protected_closeout_reserve_fraction")
+            != PROTECTED_RESERVE_FRACTIONS.get(str(row.get("locus")))
+            or row.get("eligible") is not True
+            for row in assessments
+        )
+    ):
+        errors.append(
+            "method qualification readiness has invalid W2-26 task-specific cards"
+        )
+    card_gate_passed = len(assessments) == 9 and all(
+        isinstance(row, Mapping) and row.get("eligible") is True
+        for row in assessments
+    )
+    expected_calibration_eligibility = (
+        calibration.get("status")
+        == "calibration_passed_method_qualification_eligible"
+        and card_gate_passed
+    )
+    if calibration.get("method_qualification_may_be_authorized") != (
+        expected_calibration_eligibility
+    ):
+        errors.append("method qualification readiness overstates W2-26 eligibility")
     blockers = report.get("blocking_requirements")
-    if not isinstance(blockers, list) or len(blockers) != 5:
+    expected_blocker_count = (
+        4
+        if calibration.get("method_qualification_may_be_authorized") is True
+        else 5
+    )
+    if not isinstance(blockers, list) or len(blockers) != expected_blocker_count:
         errors.append("method qualification readiness lacks its external blockers")
     return errors
 
@@ -1884,6 +2129,9 @@ def validate_method_qualification_receipt(
 
 
 __all__ = [
+    "DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST",
+    "DEFAULT_RESOURCE_CALIBRATION_SUMMARY",
+    "EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS",
     "METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_EXECUTION_JOURNAL_VERSION",

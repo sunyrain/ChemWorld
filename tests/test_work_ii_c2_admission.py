@@ -38,6 +38,133 @@ def _release_context(
     }
 
 
+def _v02_resource_cards() -> list[dict[str, object]]:
+    keys = (
+        ("A_E", "electrochemical-conversion", 8),
+        ("A_E", "reaction-to-crystallization", 8),
+        ("A_E", "reaction-to-distillation", 8),
+        ("A_E", "partition-discovery", 8),
+        ("A_E", "reaction-safety-constrained", 8),
+        ("A_P", "reaction-safety-constrained", 10),
+        ("A_P", "electrochemical-conversion", 10),
+        ("A_S", "partition-discovery", 12),
+        ("A_S", "reaction-to-crystallization", 12),
+    )
+    fractions = {"A_E": 0.15, "A_P": 0.15, "A_S": 0.20}
+    return [
+        {
+            "card_identity": {
+                "locus": locus,
+                "task_id": task_id,
+                "rounds": rounds,
+                "resource_formula_binding": {
+                    "formula": {
+                        "process_time_formula": {
+                            "protected_reserve_fraction": fractions[locus]
+                        }
+                    }
+                },
+            },
+            "protected_closeout_reserve_enforced": True,
+        }
+        for locus, task_id, rounds in keys
+    ]
+
+
+def _write_v02_resource_calibration(
+    tmp_path: Path,
+    cards: list[dict[str, object]],
+) -> tuple[Path, Path]:
+    manifest_path = tmp_path / "manifest.json"
+    summary_path = tmp_path / "summary.json"
+    write_json_atomic(manifest_path, {"schema_version": "v0.2"})
+    write_json_atomic(
+        summary_path,
+        {
+            "schema_version": "v0.2",
+            "status": "passed",
+            "calibration_passed": True,
+            "method_qualification_may_be_authorized": True,
+            "resource_card_proposals": cards,
+            "c2_source_binding": {},
+        },
+    )
+    return manifest_path, summary_path
+
+
+def _bypass_v02_producer_validation(monkeypatch: pytest.MonkeyPatch) -> None:
+    from chemworld.eval import work_ii_resource_calibration_v02
+
+    monkeypatch.setattr(work_ii_resource_calibration_v02, "validate_manifest", lambda *a: [])
+    monkeypatch.setattr(work_ii_resource_calibration_v02, "validate_summary", lambda *a, **k: [])
+    monkeypatch.setattr(
+        work_ii_c2_admission,
+        "validate_c2_source_binding",
+        lambda *a: [],
+    )
+
+
+def test_c2_consumes_exact_v02_task_cards_with_locus_closeout_fractions(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _bypass_v02_producer_validation(monkeypatch)
+    manifest_path, summary_path = _write_v02_resource_calibration(
+        tmp_path, _v02_resource_cards()
+    )
+
+    _, errors = work_ii_c2_admission._resource_calibration_errors(
+        tmp_path, manifest_path, summary_path
+    )
+
+    assert errors == []
+
+
+@pytest.mark.parametrize("mutation", ["missing", "duplicate", "substituted"])
+def test_c2_rejects_missing_duplicate_or_substituted_v02_task_card(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mutation: str,
+) -> None:
+    _bypass_v02_producer_validation(monkeypatch)
+    cards = _v02_resource_cards()
+    if mutation == "missing":
+        cards.pop()
+    elif mutation == "duplicate":
+        cards[-1] = deepcopy(cards[0])
+    else:
+        cards[-1]["card_identity"]["task_id"] = "substituted-task"
+    manifest_path, summary_path = _write_v02_resource_calibration(tmp_path, cards)
+
+    _, errors = work_ii_c2_admission._resource_calibration_errors(
+        tmp_path, manifest_path, summary_path
+    )
+
+    assert "W2-26 requires the exact nine task resource cards" in errors
+
+
+@pytest.mark.parametrize("locus", ["A_E", "A_P", "A_S"])
+def test_c2_rejects_unenforced_or_wrong_fraction_v02_task_card(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    locus: str,
+) -> None:
+    _bypass_v02_producer_validation(monkeypatch)
+    cards = _v02_resource_cards()
+    target = next(card for card in cards if card["card_identity"]["locus"] == locus)
+    target["protected_closeout_reserve_enforced"] = False
+    target["card_identity"]["resource_formula_binding"]["formula"][
+        "process_time_formula"
+    ]["protected_reserve_fraction"] = 0.99
+    manifest_path, summary_path = _write_v02_resource_calibration(tmp_path, cards)
+
+    _, errors = work_ii_c2_admission._resource_calibration_errors(
+        tmp_path, manifest_path, summary_path
+    )
+
+    assert any("does not enforce closeout" in error for error in errors)
+    assert any("closeout fraction differs" in error for error in errors)
+
+
 def test_current_c2_admission_is_truthfully_incomplete() -> None:
     report = build_c2_admission_report(ROOT, PLAN, DESIGN, _cells())
 
