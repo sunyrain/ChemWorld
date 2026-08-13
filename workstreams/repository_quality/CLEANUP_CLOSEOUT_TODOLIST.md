@@ -161,6 +161,14 @@ qualification runner 直接读取已生成的 canonical summary/package/D1，不
 typed taxonomy 字段和路径渲染变化不再精确重建。因此保留两份 immutable 历史报告及原始 runs，不刷新旧报告，
 删除会跨两代 schema 重写历史形状的一次性 builder。当前 W2-38 readiness/executor 未删除。
 
+### CD-15：删除 Work II runtime-semantics impact 自证审计环 — DONE
+
+删除 builder、独立 validator、两个 CLI、两份专属测试及 13,442 行 tracked 报告，共 7 个文件。该审计递归扫描
+46 份 Work II JSON 及其 hash bindings，再对生成报告做自哈希复核；终态仍是 `pending_requalification`
+（18 affected、22 unknown、6 unaffected），没有闭合资格或成为执行输入。整套环未进入 current registry、
+current formal execution surface、release test roster、Work II TODO 或任何生产入口；仅历史 v0.1 preflight 记录
+过两个模块路径。真实 destructive measurement、catalyst charge、transaction、replay 和 runner 语义测试保留。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
