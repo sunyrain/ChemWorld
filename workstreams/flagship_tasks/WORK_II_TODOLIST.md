@@ -533,7 +533,13 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   确定性补齐 10 轮资源、失败保留、恢复上限和 write-once lifecycle；两任务均通过 synthetic 零 provider 的
   `3 cells × 10 experiments × 5 checkpoints` evaluator 全链演练。启动路径不要求 release freeze 或全树
   clean/hash，但必须先取得精确列出两任务、输出目录、`6` 个初始 sessions、`60` 个完整 experiments、
-  credential rotation 与 USD ceiling 的显式用户授权；当前未授权、未调用 provider。
+  credential rotation 与 USD ceiling 的显式用户授权。用户已授权 unlimited spend，并按 DeepSeek 后 WellAU
+  的冻结顺序完成四个 development blocks：`12/12` cells 均形成不可覆写终态，但仅 `4/12` qualification
+  completed；`9/12` 达到 10/10 experiments，所有 `10/10` 有物理操作的 cells 均通过 exact replay，provider
+  error 为 `0`。删失集中于 token 语义、混合 MCP failure 计数、checkpoint/final closeout 及两例零操作
+  IPC/OS failure，因此当前结果只作 immutable development diagnosis，不支持 provider/model/arm 科学比较，
+  也不进入 R5/C2。共享执行语义修复并前瞻冻结资源政策后，四个受影响 qualification blocks 须使用新输出目录
+  从首 cell 完整重跑；不得 resume 或覆盖本轮结果。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
 
@@ -568,8 +574,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
-| W2-39 | READY/AUTHORIZED | A-P seed-2 DeepSeek/WellAU development configs 与 synthetic 10-round evaluator shakedown 已通过；用户已授权 unlimited spend 与现有凭据，顺序冻结为先 DeepSeek 后 WellAU。每 provider block 为 6 sessions/60 experiments，仍强制每 cell 最多两次 provider process 且只允许 missing-infrastructure resume |
-| W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
+| W2-39 | TERMINAL / PLATFORM REQUALIFICATION REQUIRED | A-P seed-2 DeepSeek→WellAU 四块均终态：`12/12` cells terminal、`4/12` qualification completed、`9/12` 达到 10/10、全部 10 个有物理操作的 cells exact replay、0 provider errors。token/MCP/closeout 与两例零操作基础设施故障使缺失非随机；修复共享执行语义并前瞻冻结资源政策后，四块须以新输出从首 cell 重跑，当前结果不进入 R5/C2。 |
+| W2-37 | IN PROGRESS / RESTART3 RUNNING | 两项 seed-0 Q0 均已通过。前两次 platform-defective partial 原样保留且不构成科学结果；candidate-specific binding 与流式哈希内存缺陷修复后，restart3 已在固定提交和全新输出中从 execution 0 启动，继续保持 2 candidates × 5 worlds × 512 coordinates × 2 laws = `10,240` primary +逐条 exact replay 的冻结覆盖；终态前不生成 D1、不作科学判断。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |

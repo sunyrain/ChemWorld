@@ -1,0 +1,447 @@
+{
+  "aggregate": {
+    "active_cells_with_exact_replay": 10,
+    "attempted_operations": 725,
+    "blocks_terminal": 4,
+    "blocks_total": 4,
+    "cells_reaching_10_experiments": 9,
+    "cells_terminal": 12,
+    "cells_total": 12,
+    "cells_with_committed_operations": 10,
+    "committed_operations": 723,
+    "infrastructure_failure_cells": 2,
+    "observed_complete_experiments": 99,
+    "planned_complete_experiments": 120,
+    "provider_error_events": 0,
+    "qualification_completed_cells": 4,
+    "right_censored_cells": 6,
+    "store_invalid_receipts": 0,
+    "store_missing_cells": 0
+  },
+  "blocks": [
+    {
+      "cells": [
+        {
+          "arm": "aligned_nominal",
+          "attempted_operations": 60,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 60,
+          "complete_experiments": 10,
+          "disposition": "qualification_completed",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [],
+          "failure": null,
+          "final_recommendation_committed": true,
+          "input_tokens": 10413173,
+          "maximum_consecutive_mcp_tool_failures": 0,
+          "output_tokens": 65516,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": true,
+          "recovered_mcp_tool_failures": 0,
+          "uncached_input_tokens": 270837
+        },
+        {
+          "arm": "misindexed_nominal",
+          "attempted_operations": 90,
+          "belief_checkpoint_count": 4,
+          "committed_operations": 90,
+          "complete_experiments": 10,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "provider_usage_reconciled",
+            "provider_operational_limits_reconciled"
+          ],
+          "failure": {
+            "message": "method resource limit exceeded: input_token_count, output_token_count",
+            "type": "MethodResourceLimitError"
+          },
+          "final_recommendation_committed": false,
+          "input_tokens": 27860772,
+          "maximum_consecutive_mcp_tool_failures": 2,
+          "output_tokens": 123451,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 9,
+          "uncached_input_tokens": 424484
+        },
+        {
+          "arm": "opaque",
+          "attempted_operations": 70,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 70,
+          "complete_experiments": 10,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "provider_usage_reconciled"
+          ],
+          "failure": {
+            "message": "method resource limit exceeded: input_token_count",
+            "type": "MethodResourceLimitError"
+          },
+          "final_recommendation_committed": true,
+          "input_tokens": 12749405,
+          "maximum_consecutive_mcp_tool_failures": 1,
+          "output_tokens": 60226,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 1,
+          "uncached_input_tokens": 317277
+        }
+      ],
+      "expected_cells": 3,
+      "model": "deepseek-v4-flash",
+      "provider_id": "deepseek",
+      "qualification_completed_cells": 1,
+      "run_root": "runs/development/ap-deepseek-reaction-seed2-20260813",
+      "store_invalid_receipts": 0,
+      "store_missing_cells": 0,
+      "task_id": "reaction-safety-constrained",
+      "terminal_cells": 3,
+      "world_seeds": [
+        2
+      ]
+    },
+    {
+      "cells": [
+        {
+          "arm": "aligned_nominal",
+          "attempted_operations": 0,
+          "belief_checkpoint_count": 0,
+          "committed_operations": 0,
+          "complete_experiments": 0,
+          "disposition": "infrastructure_failure_retained",
+          "exact_replay_verified": false,
+          "failed_qualification_checks": [
+            "planned_complete_experiments",
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "campaign_terminal",
+            "process_time_reconciled",
+            "exact_replay",
+            "execution_audit",
+            "provider_usage_reconciled"
+          ],
+          "failure": {
+            "message": "Codex failed before the next executable operation; no fallback action was emitted",
+            "type": "InteractiveCodexExperimentError"
+          },
+          "final_recommendation_committed": false,
+          "input_tokens": 0,
+          "maximum_consecutive_mcp_tool_failures": 0,
+          "output_tokens": 0,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 0,
+          "uncached_input_tokens": 0
+        },
+        {
+          "arm": "misindexed_nominal",
+          "attempted_operations": 63,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 63,
+          "complete_experiments": 10,
+          "disposition": "qualification_completed",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [],
+          "failure": null,
+          "final_recommendation_committed": true,
+          "input_tokens": 11251359,
+          "maximum_consecutive_mcp_tool_failures": 1,
+          "output_tokens": 69942,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": true,
+          "recovered_mcp_tool_failures": 2,
+          "uncached_input_tokens": 273567
+        },
+        {
+          "arm": "opaque",
+          "attempted_operations": 62,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 61,
+          "complete_experiments": 9,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "planned_complete_experiments",
+            "campaign_terminal",
+            "provider_usage_reconciled"
+          ],
+          "failure": {
+            "message": "method resource limit exceeded: input_token_count",
+            "type": "MethodResourceLimitError"
+          },
+          "final_recommendation_committed": true,
+          "input_tokens": 12122651,
+          "maximum_consecutive_mcp_tool_failures": 1,
+          "output_tokens": 88343,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 2,
+          "uncached_input_tokens": 270747
+        }
+      ],
+      "expected_cells": 3,
+      "model": "deepseek-v4-flash",
+      "provider_id": "deepseek",
+      "qualification_completed_cells": 1,
+      "run_root": "runs/development/ap-deepseek-electrochemical-seed2-20260813",
+      "store_invalid_receipts": 0,
+      "store_missing_cells": 0,
+      "task_id": "electrochemical-conversion",
+      "terminal_cells": 3,
+      "world_seeds": [
+        2
+      ]
+    },
+    {
+      "cells": [
+        {
+          "arm": "aligned_nominal",
+          "attempted_operations": 70,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 70,
+          "complete_experiments": 10,
+          "disposition": "qualification_completed",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [],
+          "failure": null,
+          "final_recommendation_committed": true,
+          "input_tokens": 708012,
+          "maximum_consecutive_mcp_tool_failures": 0,
+          "output_tokens": 7322,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": true,
+          "recovered_mcp_tool_failures": 0,
+          "uncached_input_tokens": 66988
+        },
+        {
+          "arm": "misindexed_nominal",
+          "attempted_operations": 0,
+          "belief_checkpoint_count": 0,
+          "committed_operations": 0,
+          "complete_experiments": 0,
+          "disposition": "infrastructure_failure_retained",
+          "exact_replay_verified": false,
+          "failed_qualification_checks": [
+            "planned_complete_experiments",
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "campaign_terminal",
+            "process_time_reconciled",
+            "exact_replay",
+            "execution_audit",
+            "provider_usage_reconciled"
+          ],
+          "failure": {
+            "message": "[WinError 1450] 系统资源不足，无法完成请求的服务。",
+            "type": "OSError"
+          },
+          "final_recommendation_committed": false,
+          "input_tokens": 0,
+          "maximum_consecutive_mcp_tool_failures": 0,
+          "output_tokens": 0,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 0,
+          "uncached_input_tokens": 0
+        },
+        {
+          "arm": "opaque",
+          "attempted_operations": 70,
+          "belief_checkpoint_count": 5,
+          "committed_operations": 69,
+          "complete_experiments": 10,
+          "disposition": "qualification_completed",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [],
+          "failure": null,
+          "final_recommendation_committed": true,
+          "input_tokens": 985515,
+          "maximum_consecutive_mcp_tool_failures": 1,
+          "output_tokens": 8926,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": true,
+          "recovered_mcp_tool_failures": 1,
+          "uncached_input_tokens": 170411
+        }
+      ],
+      "expected_cells": 3,
+      "model": "gpt-5.6-sol",
+      "provider_id": "wellau",
+      "qualification_completed_cells": 2,
+      "run_root": "runs/development/ap-wellau-reaction-seed2-20260813",
+      "store_invalid_receipts": 0,
+      "store_missing_cells": 0,
+      "task_id": "reaction-safety-constrained",
+      "terminal_cells": 3,
+      "world_seeds": [
+        2
+      ]
+    },
+    {
+      "cells": [
+        {
+          "arm": "aligned_nominal",
+          "attempted_operations": 80,
+          "belief_checkpoint_count": 4,
+          "committed_operations": 80,
+          "complete_experiments": 10,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "provider_operational_limits_reconciled"
+          ],
+          "failure": null,
+          "final_recommendation_committed": false,
+          "input_tokens": 1285752,
+          "maximum_consecutive_mcp_tool_failures": 4,
+          "output_tokens": 14832,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 10,
+          "uncached_input_tokens": 119928
+        },
+        {
+          "arm": "misindexed_nominal",
+          "attempted_operations": 80,
+          "belief_checkpoint_count": 4,
+          "committed_operations": 80,
+          "complete_experiments": 10,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "provider_operational_limits_reconciled"
+          ],
+          "failure": null,
+          "final_recommendation_committed": false,
+          "input_tokens": 1108571,
+          "maximum_consecutive_mcp_tool_failures": 2,
+          "output_tokens": 12339,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 5,
+          "uncached_input_tokens": 165979
+        },
+        {
+          "arm": "opaque",
+          "attempted_operations": 80,
+          "belief_checkpoint_count": 4,
+          "committed_operations": 80,
+          "complete_experiments": 10,
+          "disposition": "right_censored_retained",
+          "exact_replay_verified": true,
+          "failed_qualification_checks": [
+            "typed_belief_checkpoints_complete",
+            "provider_session_completed",
+            "final_recommendation_committed",
+            "provider_operational_limits_reconciled"
+          ],
+          "failure": null,
+          "final_recommendation_committed": false,
+          "input_tokens": 1005652,
+          "maximum_consecutive_mcp_tool_failures": 2,
+          "output_tokens": 13358,
+          "planned_belief_checkpoint_count": 5,
+          "planned_complete_experiments": 10,
+          "provider_error_events": 0,
+          "qualification_completed": false,
+          "recovered_mcp_tool_failures": 4,
+          "uncached_input_tokens": 164436
+        }
+      ],
+      "expected_cells": 3,
+      "model": "gpt-5.6-sol",
+      "provider_id": "wellau",
+      "qualification_completed_cells": 0,
+      "run_root": "runs/development/ap-wellau-electrochemical-seed2-20260813",
+      "store_invalid_receipts": 0,
+      "store_missing_cells": 0,
+      "task_id": "electrochemical-conversion",
+      "terminal_cells": 3,
+      "world_seeds": [
+        2
+      ]
+    }
+  ],
+  "coverage": {
+    "arms": [
+      "aligned_nominal",
+      "misindexed_nominal",
+      "opaque"
+    ],
+    "belief_checkpoints": [
+      0,
+      2,
+      4,
+      7,
+      10
+    ],
+    "experiments_per_cell": 10,
+    "providers": [
+      "deepseek",
+      "wellau"
+    ],
+    "tasks": [
+      "reaction-safety-constrained",
+      "electrochemical-conversion"
+    ],
+    "world_seed": 2
+  },
+  "development_only": true,
+  "formal_result": false,
+  "interpretation": {
+    "next_action": "Fix and test the shared execution semantics, freeze the revised provider-specific resource policy prospectively, then rerun all four affected qualification blocks from their first cell in new output roots.",
+    "not_supported": [
+      "A provider, model, task, or prior-arm scientific capability comparison.",
+      "Formal/R5/C2 admission or any replacement of retained historical outcomes."
+    ],
+    "platform_findings": [
+      "Recovered MCP failures currently mix agent-invalid schema/timing events with transport and infrastructure events.",
+      "Provider-specific cached, uncached, output-token, and monetary accounting need separate frozen envelopes.",
+      "Zero-operation IPC/OS failures need cell-level infrastructure classification before terminal disposition.",
+      "The supervisor must use UTF-8 and terminal store receipts rather than output-directory presence."
+    ],
+    "supported": [
+      "All four development blocks reached immutable terminal storage state.",
+      "Every cell with committed physical operations has an exact replay record.",
+      "No provider error event was observed."
+    ]
+  },
+  "schema_version": "chemworld-work-ii-ap-development-results-0.1",
+  "status": "terminal_platform_requalification_required"
+}
