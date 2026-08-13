@@ -1012,6 +1012,51 @@ print(json.dumps({
 }), flush=True)
 """
 
+_FAKE_ONE_ACTION_THEN_COMPLETED_TURN = r"""
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+agent = Path(sys.argv[1])
+
+def emit(value):
+    print(json.dumps(value, separators=(",", ":")), flush=True)
+
+emit({"type": "thread.started", "thread_id": "fake-early-terminal-thread"})
+action = {"operation": "add_reagent", "amount_mol": 0.01}
+result = subprocess.run(
+    [
+        sys.executable,
+        str(agent / "lab_tool.py"),
+        "step",
+        "--expected-step",
+        "1",
+        "--action-json",
+        json.dumps(action, separators=(",", ":")),
+    ],
+    cwd=agent,
+    capture_output=True,
+    text=True,
+    check=False,
+)
+emit({
+    "type": "item.completed",
+    "item": {
+        "id": "command-1",
+        "type": "command_execution",
+        "command": "python lab_tool.py step --expected-step 1 --action-json JSON",
+        "aggregated_output": result.stdout,
+        "exit_code": result.returncode,
+        "status": "completed" if result.returncode == 0 else "failed",
+    },
+})
+emit({
+    "type": "turn.completed",
+    "usage": {"input_tokens": 100, "cached_input_tokens": 10, "output_tokens": 20},
+})
+"""
+
 
 def _fake_process_factory(
     commands: list[list[str]],
@@ -1429,6 +1474,51 @@ def test_zero_action_process_exit_with_complete_usage_restarts_once_and_reconcil
         "accepted_participant_model_call_count": 1,
         "provider_process_attempt_count": 2,
     }
+
+
+def test_completed_turn_after_accepted_action_is_terminal_method_failure_not_retry(
+    tmp_path: Path,
+) -> None:
+    commands: list[list[str]] = []
+    prompts: list[str] = []
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="accepted-early-terminal-test",
+        process_factory=_fake_process_factory(
+            commands,
+            prompts,
+            script=_FAKE_ONE_ACTION_THEN_COMPLETED_TURN,
+        ),
+        request_timeout_s=2.0,
+        finalization_timeout_s=2.0,
+        pre_action_restart_limit=1,
+    )
+    agent.reset({"task_id": "x", "budget": 2}, seed=0)
+    action = agent.act_with_public_view(_context(1, 2), _view())
+    agent.update(
+        action,
+        {"score": 0.1},
+        0.1,
+        {
+            "transaction_status": "committed",
+            "operation_type": action["operation"],
+            "experiment_ended": False,
+        },
+    )
+    with pytest.raises(InteractiveCodexExperimentError, match="no fallback"):
+        agent.act_with_public_view(_context(2, 1), _view())
+
+    receipts = agent.provider_receipts()
+    usage = agent.method_resource_usage()
+    assert len(commands) == 1
+    assert len(receipts) == 1
+    assert receipts[0]["accepted_action_count"] == 1
+    assert receipts[0]["pre_action_retry_classification"] == "terminal_accepted"
+    assert receipts[0]["failure_type"] == "process_exited_before_next_action"
+    assert receipts[0]["usage_complete"] is True
+    assert usage["accepted_provider_session_count"] == 1
+    assert usage["provider_usage_accounting_complete"] is True
+    assert _w2_26_campaign_receipt_contract(receipts, usage)["valid"] is True
 
 
 def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(

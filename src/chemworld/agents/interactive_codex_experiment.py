@@ -49,6 +49,7 @@ ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR = (
 )
 TERMINAL_ACCEPTED_PRE_ACTION_RETRY_CLASSIFICATION = "terminal_accepted"
 _PROCESS_EXITED_BEFORE_FIRST_REQUEST = "process_exited_before_first_request"
+_PROCESS_EXITED_BEFORE_NEXT_ACTION = "process_exited_before_next_action"
 _REQUEST_WAIT_TIMEOUT = "request_wait_timeout"
 
 MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
@@ -2206,6 +2207,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             monitor_snapshot=snapshot,
             mcp_tool_calls=mcp_tool_calls,
         )
+        accepted_action_count = int(self._session.get("accepted_action_count", 0))
+        effective_reason = (
+            _PROCESS_EXITED_BEFORE_NEXT_ACTION
+            if accepted_action_count > 0
+            and reason == _PROCESS_EXITED_BEFORE_FIRST_REQUEST
+            else reason
+        )
         no_observed_provider_activity = (
             pre_action_retry_candidate_failure_type
             == _PROCESS_EXITED_BEFORE_FIRST_REQUEST
@@ -2219,7 +2227,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             pre_action_retry_candidate_failure_type
             in {_PROCESS_EXITED_BEFORE_FIRST_REQUEST, _REQUEST_WAIT_TIMEOUT}
             and (usage_complete or no_observed_provider_activity)
-            and int(self._session.get("accepted_action_count", 0)) == 0
+            and accepted_action_count == 0
             and int(operational["provider_error_event_count"]) == 0
             and not mcp_tool_calls
             and not belief_snapshots
@@ -2231,6 +2239,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         pre_action_retry_classification = (
             ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR
             if eligible_predecessor
+            else TERMINAL_ACCEPTED_PRE_ACTION_RETRY_CLASSIFICATION
+            if accepted_action_count > 0
             else None
         )
         unobserved_pre_action_attempt = (
@@ -2255,8 +2265,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "session_id": self._session["session_id"],
             "thread_id": snapshot.get("thread_id"),
             "status": "interrupted_before_next_action",
-            "failure_type": reason,
-            "accepted_action_count": int(self._session.get("accepted_action_count", 0)),
+            "failure_type": effective_reason,
+            "accepted_action_count": accepted_action_count,
             "pre_action_retry_classification": pre_action_retry_classification,
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
