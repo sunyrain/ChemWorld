@@ -1117,6 +1117,8 @@ def cell_has_platform_defect(row: Mapping[str, Any]) -> bool:
     qualification = qualification if isinstance(qualification, Mapping) else {}
     checks = qualification.get("checks")
     checks = checks if isinstance(checks, Mapping) else {}
+    analysis = row.get("analysis")
+    analysis = analysis if isinstance(analysis, Mapping) else {}
     try:
         mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
     except (KeyError, TypeError, ValueError):
@@ -1125,6 +1127,7 @@ def cell_has_platform_defect(row: Mapping[str, Any]) -> bool:
         method.get("provider_usage_pending") is not False
         or method.get("provider_usage_accounting_complete") is not True
         or method.get("in_flight_model_call_count") != 0
+        or analysis.get("nonterminal_no_legal_actions") is True
         or int(mcp_failure_observation["transport_count"]) != 0
         or int(mcp_failure_observation["unclassified_count"]) != 0
         or any(

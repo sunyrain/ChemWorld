@@ -254,6 +254,69 @@ def test_crystallization_implicit_quench_and_filter_time_match_reservations() ->
         env.close()
 
 
+def test_non_electrochemical_campaign_can_discard_unassayable_started_batch() -> None:
+    card = CampaignResourceCard(
+        card_id="crystallization-discard-recovery-test",
+        operation_attempt_limit=6,
+        vessel_start_limit=2,
+        final_assay_limit=2,
+        nonfinal_instrument_use_limit=0,
+        stock_limits={"catalyst_mol": 0.01},
+    )
+    env = gym.make(
+        "ChemWorld",
+        task_id="reaction-to-crystallization",
+        seed=0,
+        budget_override=6,
+        episode_mode_override="campaign",
+        campaign_resource_card=card,
+    )
+    try:
+        env.reset(seed=0)
+        _, _, terminated, truncated, started = env.step(
+            {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.00035,
+                "catalyst": 1,
+            }
+        )
+        assert started["transaction_status"] == "committed"
+        assert terminated is False
+        assert truncated is False
+        assert "discard_batch" in {
+            action["operation"] for action in env.unwrapped.available_actions()
+        }
+
+        _, _, terminated, truncated, rejected = env.step({"operation": "terminate"})
+        assert rejected["transaction_status"] == "rolled_back"
+        assert rejected["rollback_reason"] == "precondition_failed"
+        assert rejected["preconditions"]["final_assay_sample_available"] is False
+        assert rejected["preconditions"][
+            "flagship_crystallization_requires_isolated_crystals"
+        ] is False
+        assert terminated is False
+        assert truncated is False
+        assert "discard_batch" in {
+            action["operation"] for action in env.unwrapped.available_actions()
+        }
+
+        _, _, terminated, truncated, discarded = env.step(
+            {"operation": "discard_batch", "reason": "no assayable sample"}
+        )
+        assert discarded["transaction_status"] == "committed"
+        assert discarded["experiment_ended"] is True
+        assert discarded["experiment_completed"] is False
+        assert discarded["batch_discarded"] is True
+        assert discarded["next_experiment_ready"] is True
+        assert terminated is False
+        assert truncated is False
+        assert "add_solvent" in {
+            action["operation"] for action in env.unwrapped.available_actions()
+        }
+    finally:
+        env.close()
+
+
 def test_resource_ledger_narrows_stock_affordances_and_validation() -> None:
     env = _make_electrochemical_env(_card(stock_limits={"solvent_L": 0.020, "reagent_mol": 0.08}))
     try:

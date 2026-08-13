@@ -167,6 +167,28 @@ def test_shared_classifier_keeps_resource_rejection_as_method_failure() -> None:
     assert cell_has_platform_defect(row) is False
 
 
+def test_shared_classifier_rejects_nonterminal_cell_without_legal_action() -> None:
+    row = _typed_closed_cell()
+    row["analysis"] = {
+        "right_censored_open_experiment": True,
+        "last_legal_action_count": 0,
+        "nonterminal_no_legal_actions": True,
+    }
+
+    assert cell_has_platform_defect(row) is True
+
+
+def test_shared_classifier_keeps_early_method_exit_with_legal_action() -> None:
+    row = _typed_closed_cell()
+    row["analysis"] = {
+        "right_censored_open_experiment": True,
+        "last_legal_action_count": 3,
+        "nonterminal_no_legal_actions": False,
+    }
+
+    assert cell_has_platform_defect(row) is False
+
+
 @pytest.mark.parametrize("category", ["transport_ipc_os", "unclassified"])
 def test_shared_classifier_rejects_platform_taxonomy(category: str) -> None:
     row = _typed_closed_cell()

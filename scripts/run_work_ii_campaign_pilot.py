@@ -703,11 +703,19 @@ def _analyze(
         for row in records
     )
     final_campaign_resources: dict[str, Any] = {}
+    last_legal_action_count: int | None = None
     if records:
         last_view = records[-1].get("agent_view", {})
         if isinstance(last_view, Mapping):
             tool_json = last_view.get("tool_json", {})
             if isinstance(tool_json, Mapping):
+                available_actions = tool_json.get("available_actions")
+                if isinstance(available_actions, list):
+                    last_legal_action_count = sum(
+                        isinstance(action, Mapping)
+                        and action.get("valid") is not False
+                        for action in available_actions
+                    )
                 campaign_state = tool_json.get("campaign_state", {})
                 if isinstance(campaign_state, Mapping):
                     candidate = campaign_state.get("campaign_resources", {})
@@ -746,6 +754,9 @@ def _analyze(
         ),
         "complete_experiment_count": len(experiments),
         "right_censored_open_experiment": bool(actions),
+        "last_legal_action_count": last_legal_action_count,
+        "nonterminal_no_legal_actions": bool(actions)
+        and last_legal_action_count == 0,
         "experiments": experiments,
         "unique_recipe_count": len(set(recipe_hashes)),
         "exact_repeat_count": len(recipe_hashes) - len(set(recipe_hashes)),

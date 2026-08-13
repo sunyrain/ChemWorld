@@ -265,14 +265,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         if episode_mode_override is not None:
             self.episode_mode = episode_mode_override
-        self.autonomous_campaign_controls_enabled = bool(
-            self.runtime_task_profile_id == "electrochemical-conversion"
-            and self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
-            and self.episode_mode == "campaign"
-            and self.campaign_resource_card is not None
+        self.campaign_controls_enabled = bool(
+            self.episode_mode == "campaign" and self.campaign_resource_card is not None
         )
-        if self.autonomous_campaign_controls_enabled:
+        if self.campaign_controls_enabled:
             self.allowed_operations.add("discard_batch")
         self.contract_profile = (
             "extended-research"
@@ -292,7 +288,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.action_codec = ActionCodec(
             operation_types=(
                 CAMPAIGN_OPERATION_TYPES
-                if self.autonomous_campaign_controls_enabled
+                if self.campaign_controls_enabled
                 else OPERATION_TYPES
             )
         )
@@ -525,7 +521,15 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             )
         elif validation.dispatchable_to_runtime:
             try:
-                runtime_result = self.runtime.apply_transaction(self._state, action)
+                runtime_result = (
+                    self.runtime.apply_transaction(self._state, action)
+                    if validation.is_valid
+                    else self.runtime.apply_precondition_failure_transaction(
+                        self._state,
+                        action,
+                        validation,
+                    )
+                )
             except (ArithmeticError, ValueError):
                 # Physically undefined proposals are part of an exploratory agent's
                 # action distribution, not a reason to terminate the entire Gym job.
@@ -1161,7 +1165,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
 
     def _campaign_batch_discard_available(self) -> bool:
-        if not self.autonomous_campaign_controls_enabled:
+        if not self.campaign_controls_enabled:
             return False
         if not self._campaign_resource_current_vessel_started:
             return False
@@ -1179,9 +1183,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         # Legacy campaign tasks predate the explicit G2 resource ledger and
         # remain budget-delimited multi-experiment episodes.  A missing card
         # therefore means "no additional ledger gate", not "end campaign".
-        # When a card is present its limits govern every campaign, while the
-        # autonomous-controls flag only determines whether ``discard_batch``
-        # is exposed as an action.
+        # When a card is present its limits govern every campaign and expose
+        # ``discard_batch`` as the explicit closeout for an abandoned vessel.
         if ledger is None:
             return True, []
         state = ledger.snapshot()["state"]
