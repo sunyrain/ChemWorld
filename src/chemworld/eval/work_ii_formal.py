@@ -303,12 +303,10 @@ FORMAL_BLOCKING_REQUIREMENTS = (
     "formal currency ceiling is not yet approved",
     "current design and analysis plan explicitly forbid formal execution",
     "current persistent-session method lacks its final qualification receipt",
-    "submission route lacks an outcome-blind user selection",
-    "preregistration immutable execution package lacks its final freeze receipt",
+    "formal execution package lacks its final user authorization receipt",
 )
 
 _FORMAL_ENTRYPOINT_PATHS = (
-    "configs/benchmark/work_ii_submission_route_decision_v0.1.json",
     "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
     "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json",
     "src/chemworld/agents/interactive_codex_experiment.py",
@@ -326,7 +324,6 @@ _FORMAL_ENTRYPOINT_PATHS = (
     "src/chemworld/eval/work_ii_prior_discovery.py",
     "src/chemworld/eval/work_ii_process_profile.py",
     "src/chemworld/eval/work_ii_private.py",
-    "src/chemworld/eval/work_ii_preregistration.py",
     "src/chemworld/eval/work_ii_qualification.py",
     "src/chemworld/eval/work_ii_release.py",
     "src/chemworld/eval/work_ii_resource_calibration.py",
@@ -335,11 +332,9 @@ _FORMAL_ENTRYPOINT_PATHS = (
     "scripts/analyze_work_ii_confirmatory.py",
     "scripts/analyze_work_ii_formal.py",
     "scripts/authorize_work_ii_method_qualification.py",
-    "scripts/build_work_ii_preregistration_readiness.py",
     "scripts/build_work_ii_private_confirmation_preflight.py",
     "scripts/build_work_ii_method_qualification_receipt.py",
     "scripts/build_work_ii_preregistration_freeze_receipt.py",
-    "scripts/build_work_ii_prerun_evidence_graph.py",
     "scripts/audit_work_ii_clean_release.py",
     "scripts/run_work_ii_campaign_pilot.py",
     "scripts/run_work_ii_formal_matrix.py",

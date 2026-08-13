@@ -26,25 +26,8 @@ from chemworld.eval.work_ii_release import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_GRAPH = (
-    ROOT / "workstreams/flagship_tasks/reports/work-ii-prerun-evidence-graph-v0.1.json"
-)
 DEFAULT_OUTPUT = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-clean-release-receipt-v0.1.json"
-)
-FROZEN_CHECKS = (
-    ("formal_preflight", "scripts/run_work_ii_formal_matrix.py", "--preflight", "--check"),
-    ("method_qualification", "scripts/run_work_ii_method_qualification.py", "--check"),
-    (
-        "preregistration_readiness",
-        "scripts/build_work_ii_preregistration_readiness.py",
-        "--check",
-    ),
-    (
-        "prerun_evidence_graph",
-        "scripts/build_work_ii_prerun_evidence_graph.py",
-        "--check",
-    ),
 )
 
 
@@ -103,10 +86,7 @@ def _progress(stage: str, completed: int, total: int, started: float) -> None:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--commit", default="HEAD")
-    parser.add_argument("--graph", type=Path, default=DEFAULT_GRAPH)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
-    parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     args = parser.parse_args()
 
     git = shutil.which("git")
@@ -121,7 +101,7 @@ def main() -> int:
     if tested_commit != _git_output("rev-parse", "HEAD", cwd=ROOT):
         raise RuntimeError("clean-release audit must test the current HEAD")
 
-    total_stages = 9
+    total_stages = 7
     completed = 0
     started = time.monotonic()
     _progress("source_preflight", completed, total_stages, started)
@@ -159,59 +139,6 @@ def main() -> int:
             raise RuntimeError("source probe did not import from the independent checkout")
         completed += 1
         _progress("independent_source_probe", completed, total_stages, started)
-
-        check_records: list[dict[str, Any]] = []
-        for check_id, script, *flags in FROZEN_CHECKS:
-            command = [sys.executable, script, *flags]
-            if check_id == "method_qualification":
-                try:
-                    calibration_manifest = (
-                        args.resource_calibration_manifest.resolve().relative_to(ROOT)
-                    )
-                    calibration_summary = (
-                        args.resource_calibration_summary.resolve().relative_to(ROOT)
-                    )
-                except ValueError as error:
-                    raise RuntimeError(
-                        "release calibration evidence must be inside the repository"
-                    ) from error
-                command.extend(
-                    [
-                        "--resource-calibration-manifest",
-                        str(checkout / calibration_manifest),
-                        "--resource-calibration-summary",
-                        str(checkout / calibration_summary),
-                    ]
-                )
-            result = _run(
-                command,
-                cwd=checkout,
-                env=source_env,
-            )
-            check_records.append(
-                {
-                    "id": check_id,
-                    "status": "passed",
-                    "stdout_sha256": _text_sha256(result.stdout),
-                    "stderr_sha256": _text_sha256(result.stderr),
-                }
-            )
-        completed += 1
-        _progress("frozen_checks", completed, total_stages, started)
-
-        graph_path = checkout / args.graph.resolve().relative_to(ROOT.resolve())
-        graph = json.loads(graph_path.read_text(encoding="utf-8"))
-        graph_summary = graph.get("summary", {})
-        graph_record = {
-            "status": "passed",
-            "path": str(graph_path.relative_to(checkout)).replace("\\", "/"),
-            "file_sha256": file_sha256(graph_path),
-            "graph_sha256": graph.get("graph_sha256"),
-            "node_count": graph_summary.get("node_count"),
-            "edge_count": graph_summary.get("edge_count"),
-        }
-        completed += 1
-        _progress("evidence_graph", completed, total_stages, started)
 
         tests = _run(
             [
@@ -314,13 +241,6 @@ def main() -> int:
                 "source_import_from_checkout": True,
                 "source_probe_stdout_sha256": _text_sha256(source_probe.stdout),
             },
-            "frozen_checks": {
-                "status": "passed",
-                "passed": len(check_records),
-                "failed": 0,
-                "checks": check_records,
-            },
-            "evidence_graph": graph_record,
             "work_ii_tests": {
                 "status": "passed",
                 "test_files": list(WORK_II_RELEASE_TEST_FILES),
@@ -350,18 +270,12 @@ def main() -> int:
                 "platform": platform.platform(),
                 "uv": _run([uv, "--version"], cwd=temp).stdout.strip(),
             },
-            "source_bindings": {
-                "audit_script_sha256": file_sha256(
-                    checkout / "scripts/audit_work_ii_clean_release.py"
-                ),
-                "evidence_graph_file_sha256": file_sha256(graph_path),
-            },
             "failures": [],
         }
         receipt["receipt_sha256"] = clean_release_receipt_sha256(receipt)
         # Validate the durable receipt shape here. The output file itself is not
         # written yet, so repository-aware dirty-tree validation belongs to the
-        # downstream readiness/freeze consumers after this receipt is committed.
+        # downstream final-authorization consumers after this receipt is committed.
         errors = validate_clean_release_receipt(receipt)
         if errors:
             raise RuntimeError("invalid Work II clean-release receipt: " + "; ".join(errors))
@@ -374,7 +288,6 @@ def main() -> int:
                 "tested_commit": receipt["tested_commit"],
                 "work_ii_tests_passed": receipt["work_ii_tests"]["passed"],
                 "wheel_sha256": receipt["wheel"]["sha256"],
-                "graph_sha256": receipt["evidence_graph"]["graph_sha256"],
                 "provider_calls_executed": receipt["provider_calls_executed"],
                 "receipt_sha256": receipt["receipt_sha256"],
                 "output": str(args.output.resolve()),

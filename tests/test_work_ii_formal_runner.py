@@ -417,7 +417,7 @@ def test_formal_preflight_materializes_complete_135_cell_c2_denominators() -> No
         "blind_validation_targets": 270,
         "blind_validation_executions": 810,
     }
-    assert len(report["blocking_requirements"]) == 5
+    assert len(report["blocking_requirements"]) == 4
     source_paths = {row["path"] for row in report["source_bindings"]}
     assert "src/chemworld/eval/work_ii_confirmatory.py" in source_paths
     assert "src/chemworld/envs/chemworld_env.py" in source_paths

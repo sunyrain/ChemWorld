@@ -1007,17 +1007,6 @@ def test_runner_rejects_provider_execution_before_creating_output(tmp_path: Path
     assert not output.exists()
 
 
-def test_launch_decision_brief_is_explicitly_stale() -> None:
-    brief = (
-        ROOT
-        / "workstreams/flagship_tasks/reports/work-ii-formal-launch-decision-brief.md"
-    ).read_text(encoding="utf-8")
-    assert "STALE — NOT AUTHORIZATION-ELIGIBLE" in brief
-    assert "No calibration or method-qualification provider call is currently authorized" in brief
-    assert "12 / 12" not in brief
-    assert "Operation-attempt hard cap | 84" not in brief
-
-
 def test_v02_manifest_has_the_exact_nine_task_locus_round_identities() -> None:
     manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
 

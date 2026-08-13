@@ -188,14 +188,14 @@ current registry 或任务清单消费者，也没有 tracked smoke 产物；再
 删除两条一次性 shakedown 生成入口。blind 入口用合成 incumbent recommendation 验证装置，held-out 入口则
 独立重跑五个 development truth blocks；两者的报告均明确 `formal_result=false`，不应成为未来 v0.2 release
 的 freshness/hash gate。当前 v0.2 evidence graph 不再读取、校验或连边这两份报告，evaluator 合同由保留的
-production plan→execute→validate、exact replay 和 formal orchestration 测试覆盖。v0.1 已提交 evidence graph
-及两份历史报告保持 immutable/read-only，不因当前 builder 变化重生成；v0.2 graph 也不再自绑 builder 文件 SHA，
-源码身份统一由 clean-release tested commit 负责。
+production plan→execute→validate、exact replay 和 formal orchestration 测试覆盖。该批次先把两份 shakedown
+移出当时的 v0.2 graph；后续 CD-20 已将整个 preregistration/evidence-graph 闭环退役。历史内容只由 Git
+保存，不因当前 builder 变化重生成；源码身份统一由 clean-release tested commit 负责。
 
 ### CD-19：删除 clean-release 的精确 pytest 数量门 — DONE
 
 删除 `EXPECTED_WORK_II_RELEASE_TEST_COUNT=267`、独立 `--collect-only` 全量预跑及 receipt 中的 `collected`、
-`test_file_count` 和 collection stdout/stderr hashes。原实现把同一 31-file roster 执行两遍，并让合理的测试
+`test_file_count` 和 collection stdout/stderr hashes。原实现把同一固定 roster 执行两遍，并让合理的测试
 增删在全部测试通过时仍因数量不等于 267 而阻断 release。现在仍在独立 clean checkout 中精确执行固定
 `WORK_II_RELEASE_TEST_FILES` roster，任何命令失败都会终止；receipt 记录实际 passed 数，并严格要求
 `passed>0`、`skipped=0`、`failed=0` 与完整 roster 相符。未刷新既有 receipt。
@@ -204,6 +204,25 @@ production plan→execute→validate、exact replay 和 formal orchestration 测
 通过、skip 或 roster 漂移仍被拒绝。同期 preregistration 的 2 个失败来自历史 formal binding SHA
 清单漂移，未通过刷新旧证据规避，列入后续控制债清理。
 
+### CD-20：退役 preregistration readiness / evidence graph 闭环 — DONE
+
+消费者审计确认：zero-call preregistration readiness、narrative draft、pre-run evidence graph、四个
+`--check` subprocess、旧 clean-release receipt 与各自测试主要互相读取；真正 formal executor 不依赖
+readiness 或 graph，而是在执行入口直接校验 formal manifest/source bindings、方法资格 receipt、费用与
+最终用户授权 receipt。该闭环会在每次 development 改动后重新比较几十个源码 SHA，并把正常变化变成
+`internal_errors`。现已整链退役 12 个 builder/module/test/config/report 文件，并从 clean-release receipt
+删除 graph、四重 check 和审计脚本自哈希。旧文件不刷新、不迁移，历史由 Git 保存。
+
+clean release 仍保留独立 clone、固定 Work II 测试 roster、wheel 构建、隔离安装 smoke、clean-before/
+after 与 exact tested commit；formal execution 仍保留所有科学分母、C2 admission、方法资格、费用上限、
+失败/恢复语义和显式用户授权。同步删除 submission venue route gate：投稿路径与编辑审批不改变冻结科学
+问题、cohort、分析或失败规则，不再作为 provider/formal execution 的第二权威。
+
+验证：`tests/test_work_ii_release.py` 6/6；`tests/test_work_ii_formal_runner.py` +
+`tests/test_work_ii_cost.py` 23/23；qualification 20/20、private execution/report 8/8、当前 v0.2
+resource-calibration 路径 11/11；Ruff、compileall、离线 wheel 构建与悬空引用扫描通过。另删除一条只读取
+stale launch brief 文案的测试；它不再为已退役报告充当保留门。未生成或刷新任何旧证据。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -211,11 +230,11 @@ production plan→execute→validate、exact replay 和 formal orchestration 测
 | CD-P0-01 | DONE | W2-26 production runner 曾保留历史 operation-count fallback | 已删除旧 `electrolyze=4..5` 权威；W2-26 config 缺字段立即失败，普通历史/development config 不再套用任务特定规则 | production runner 根因回归测试通过；真实 semantic canary 仍与 CD-P0-02 合并执行 |
 | CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
-| CD-P0-04 | DOING | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 对旧 W2-26 readiness 的第二次重建，并把两份 development evaluator shakedown 从 current v0.2 release graph 移出；继续找出剩余字段 writers/readers，并以 machine summary 派生状态 | 删除自证明 pass 字段或改为派生；状态副本数量净减少 |
+| CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 的第二次 readiness 重建、development evaluator shakedown gate，并整链退役 preregistration readiness/draft/evidence graph/四重 check；最终执行只消费 formal manifest、资格/费用/用户授权 receipts 与 tested commit | execution-time source/scientific validation 保留；旁路状态闭环和自证明 pass 已删除 |
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | TODO | pytest `fast and current` 仍接近全套测试 | release 已删除 collect-only 双跑和精确 267 数量门；下一步只建立小于 60 秒的开发 smoke 命令，不增加逐测试 marker audit | smoke 覆盖 import、事务、无效动作回滚、replay、task registry、package resource |
-| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 的 27-cell synthetic schema copy 及 A-S/A-P/impact-audit 等退役控制面的专属 mock/self-hash 测试，并补入不复制生产 summary schema 的真实路径 canary；继续按生产消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
+| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、A-S/A-P/impact-audit 及 preregistration/graph 闭环专属测试，并保留真实路径 canary、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | TODO | current status 同时散落于 registry、TODO、README 和报告 | `configs/current.json` 只管理稳定 current/release artifact；活跃实验状态只在对应 TODO/summary | 不再新增同步 checker；读者状态从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
