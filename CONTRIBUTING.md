@@ -37,9 +37,9 @@ After setup, run repository commands without changing the environment:
 
 ```bash
 uv run --no-sync chemworld --help
-uv run --no-sync pytest -q --no-cov tests/test_env.py
+uv run --no-sync pytest -q tests/test_env.py
 uv run --no-sync ruff check path/to/changed_file.py
-uv run --no-sync mypy src/chemworld
+uv run --no-sync mypy path/to/changed_module.py
 ```
 
 Do not use the system Python or its installed packages as evidence about this repository. Optional
@@ -87,15 +87,18 @@ typical code change should include:
 
 ```bash
 uv run --no-sync ruff check <changed Python files>
-uv run --no-sync pytest -q --no-cov <focused tests>
-uv run --no-sync mypy src/chemworld
+uv run --no-sync pytest -q <focused tests>
+uv run --no-sync mypy <changed Python modules>
 git diff --check
 ```
+
+Use `uv run --no-sync mypy src/chemworld` once for a cross-package refactor or the integrated
+acceptance pass. It is not a prerequisite for every isolated development edit.
 
 Also run wheel smoke when packaging or resource lookup changes:
 
 ```bash
-uv run --no-sync pytest -q --no-cov tests/test_wheel_smoke.py
+uv run --no-sync pytest -q tests/test_wheel_smoke.py
 ```
 
 Commands expected to exceed 60 seconds must expose progress at least once per minute, including the

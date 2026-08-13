@@ -530,6 +530,18 @@ provenance helper 测试，也会扫描 71k 行 package、输出数百行全包�
 2.22 秒、两行摘要。plain pytest、显式 coverage 两条路径与六项开发 smoke 均通过；没有用 coverage 百分比替代
 真实失败路径、篡改和科学不变量测试，也没有触碰活跃 A-E 实验。
 
+### CD-43：移除每次小改动的全包 mypy 前置 — DONE
+
+`DEVELOPMENT.md` 和 `CONTRIBUTING.md` 虽先要求“运行最小有意义检查”，随后却把
+`mypy src/chemworld` 写成每个典型改动的默认步骤。这会让 provenance helper、文档或单模块维护也检查整个
+package，并与仓库的 development-first、focused validation、freeze-once 规则冲突。仓库没有 CI workflow 或
+其他自动消费者依赖该命令作为逐提交 gate；mypy 严格配置和开发依赖本身仍然有价值。
+
+现统一两份开发指南：常规修改对受影响 Python 模块运行 mypy，跨 package 重构或最终 integrated acceptance
+才运行一次 `mypy src/chemworld`。同时删除文档中为抵消旧 coverage 默认值而残留的 `--no-cov`。聚焦 mypy 对
+`provenance.py` 通过，普通 smoke/聚焦 pytest 继续走轻量默认路径；没有删除类型检查、放宽 mypy 配置或新增
+另一套 generated type-check roster。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -541,7 +553,7 @@ provenance helper 测试，也会扫描 71k 行 package、输出数百行全包�
 | CD-P0-05 | BLOCKED / OWNER DECISION | v0.2 private seal 同时要求 v0.1 complete-seal commitment 与 v0.2 design identity，逻辑上不可同时满足 | 不刷新 hash、不弱化 identity validator；选择独立 cohort compatibility migration 或显式 reseal/update commitment | 存在一份不暴露 identities、可通过 v0.2 完整 validator 的 seal witness，且迁移由用户/协议 owner 明确授权 |
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
-| CD-P1-03 | DONE | pytest `fast and current` 实际通过“除 16 个文件外全部 fast、名称无历史 token 即 current”的自动规则接近全套测试，且每次聚焦测试默认扫描 71k 行全包 coverage | 删除自动 marker 分类器与六个 marker 声明；开发指南改为 6 个既有行为测试的显式 node-id smoke；coverage 从无阈值的全局 addopts 改为按需显式诊断 | smoke 覆盖 import/step、事务回滚、replay 篡改、task registry、resource ledger 与 packaged schema；5-test plain pytest 2.22 秒；明确 smoke/coverage 均不替代受影响面 focused acceptance |
+| CD-P1-03 | DONE | pytest `fast and current` 自动规则接近全套测试，每次聚焦测试默认扫描 71k 行 coverage，两份指南又要求每个小改动全包 mypy | 删除自动 marker 分类器；改为 6 个行为测试的显式 smoke；coverage 按需显式启用；mypy 常规按受影响模块运行、跨包或集成时全包一次 | smoke 覆盖 import/step、事务回滚、replay 篡改、task registry、resource ledger 与 packaged schema；5-test plain pytest 2.22 秒；明确 smoke/coverage/type-check 均不替代受影响面 acceptance |
 | CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol、A-E prior v0.1、旧 power/resource audit、A-S/A-P/impact-audit、preregistration/graph 闭环、零消费者 dirty 别名测试及 campaign-resource 转发层自证入口，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | DOING | current status 同时散落于 registry、TODO、README 和报告 | 已将 W2-26 partial/provider-blocked 与 W2-37 terminal 状态收束至 Work II TODO，并链接唯一机器 summary；`configs/current.json` 只管理稳定 current/release artifact | 不再新增同步 checker；其余活跃实验也从一个机器源派生或链接 |

@@ -37,8 +37,9 @@ implicit dependency sync.
 2. Remove superseded code and configuration in the same change that migrates its remaining callers.
 3. Add or update focused tests for the affected contracts. Avoid a full test run unless the change
    genuinely spans the whole repository.
-4. Run Ruff on changed Python files, `uv run --no-sync mypy src/chemworld`, the focused tests, and
-   wheel smoke when packaging or resource lookup changes.
+4. Run Ruff and mypy on the changed Python modules, plus their focused tests. Run package-wide
+   mypy only for cross-package changes or the integrated acceptance pass; run wheel smoke when
+   packaging or resource lookup changes.
 5. Keep raw runs outside Git. Commit only a compact result when it is required to support a current
    repository statement.
 6. Check `git status --short` before committing; never add `api.md`, `key2.md`, `.env`, private seeds,
