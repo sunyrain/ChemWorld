@@ -505,6 +505,22 @@ def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -
         assert len(contract["held_out_queries"]) == 16
     card = _campaign_card(config)
     assert card.operation_attempt_limit == config["campaign"]["operation_attempt_limit"]
+    assert config["campaign"]["process_time_policy"]["protected_reserve_fraction"] == 0.20
+    assert (
+        config["campaign"]["closeout_policy"]["policy"]
+        == "protected_closeout_reserve_enforced"
+    )
+    assert card.metadata["closeout_policy"]["allowed_operation_classes"] == (
+        "discard_batch",
+        "final_assay",
+        "quench",
+        "terminate",
+        "transfer",
+    )
+    if candidate_id == PARTITION_CANDIDATE_ID:
+        assert card.process_time_limit_s == 38_880.0
+    else:
+        assert card.process_time_limit_s == 215_712.0
 
 
 def test_no_equilibrium_candidate_and_all_five_worlds_are_frozen() -> None:

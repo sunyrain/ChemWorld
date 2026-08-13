@@ -568,31 +568,31 @@ def _d1_config(
     }
     if candidate_id == PARTITION_CANDIDATE_ID:
         operation_limit = 144
-        process_time_limit_s = 41_400.0
+        process_time_limit_s = 38_880.0
         stock_limits = {
-            "solvent_L": 0.276,
-            "phase_liquid_L": 0.3312,
-            "extractant_L": 0.414,
+            "solvent_L": 0.288,
+            "phase_liquid_L": 0.3456,
+            "extractant_L": 0.432,
         }
         repeat_limits = {"mix": 12, "settle": 12, "separate_phase": 12}
         policy = {
             "pattern_id": "partition-as-k12-ten-unique-two-repeat-planning",
-            "formula": "10 unique + 2 exact-repeat partition stages + 15% protected reserve",
+            "formula": "10 unique + 2 exact-repeat partition stages + 20% protected reserve",
             "required_stage_max_s": 27_000.0,
             "repeat_allowance_s": 5_400.0,
-            "protected_reserve_s": 4_860.0,
-            "protected_reserve_fraction": 0.15,
+            "protected_reserve_s": 6_480.0,
+            "protected_reserve_fraction": 0.20,
             "implicit_stage_reserve_s": 0.0,
             "resource_status": "planning_envelope_pending_w2_26_calibration",
         }
     else:
         operation_limit = 168
-        process_time_limit_s = 307_800.0
+        process_time_limit_s = 215_712.0
         stock_limits = {
-            "reagent_mol": 0.276,
-            "solvent_L": 0.552,
-            "catalyst_mol": 0.0276,
-            "seed_g": 0.69,
+            "reagent_mol": 0.288,
+            "solvent_L": 0.36,
+            "catalyst_mol": 0.004536,
+            "seed_g": 0.1152,
         }
         repeat_limits = {
             "heat": 12,
@@ -603,12 +603,15 @@ def _d1_config(
         }
         policy = {
             "pattern_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
-            "formula": "10 unique + 2 exact-repeat full stages plus 15% protected reserve",
-            "required_stage_max_s": 266_400.0,
-            "repeat_allowance_s": 44_400.0,
-            "protected_reserve_s": 46_620.0,
-            "protected_reserve_fraction": 0.15,
-            "implicit_stage_reserve_s": 7_200.0,
+            "formula": (
+                "10 unique + 2 exact-repeat full stages + 20% protected reserve "
+                "+ quench closeout allowance"
+            ),
+            "required_stage_max_s": 148_800.0,
+            "repeat_allowance_s": 29_760.0,
+            "protected_reserve_s": 35_712.0,
+            "protected_reserve_fraction": 0.20,
+            "implicit_stage_reserve_s": 4_800.0,
             "quench_transfer_allowance_s": 1_440.0,
             "implicit_operation_time_s": {"filter_crystals": 480.0, "quench": 120.0},
             "resource_status": "planning_envelope_pending_w2_26_calibration",
@@ -627,7 +630,14 @@ def _d1_config(
         "vessel_start_limit": 12,
         "implicit_operation_time_s": dict(policy.get("implicit_operation_time_s", {})),
         "closeout_policy": {
-            "policy": "participant_controlled_advisory_no_hidden_allocation",
+            "policy": "protected_closeout_reserve_enforced",
+            "allowed_operation_classes": [
+                "discard_batch",
+                "final_assay",
+                "quench",
+                "terminate",
+                "transfer",
+            ],
             "automatic_action_repair": False,
             "automatic_closeout": False,
             "planned_batches": 12,
