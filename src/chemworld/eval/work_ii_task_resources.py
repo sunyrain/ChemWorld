@@ -195,8 +195,19 @@ def validate_task_resource_card(
         errors.append("resource card formula binding is invalid")
     caps = card.get("proposed_hard_caps")
     caps = caps if isinstance(caps, Mapping) else {}
+    currency_accounting = card.get("currency_accounting")
+    currency_accounting = (
+        currency_accounting if isinstance(currency_accounting, Mapping) else {}
+    )
+    currency_unavailable = (
+        currency_accounting.get("status") == "unavailable_provider_pricing"
+        and currency_accounting.get("formal_currency_contract_required") is True
+        and caps.get("currency_ceiling_usd") is None
+    )
     for field in TASK_RESOURCE_CALIBRATED_CAP_FIELDS:
         value = caps.get(field)
+        if field == "currency_ceiling_usd" and currency_unavailable:
+            continue
         if not _is_nonnegative_number(value) or value == 0:
             errors.append(f"resource card lacks positive cap {field}")
     if "maximum_exact_repeats" in caps:
@@ -339,9 +350,12 @@ def materialize_task_resource_caps(
         provider["max_consecutive_mcp_tool_failures"] = int(
             caps["max_consecutive_mcp_tool_failures"]
         )
-    result["calibrated_currency_ceiling_usd"] = float(
-        caps["currency_ceiling_usd"]
-    )
+    if caps.get("currency_ceiling_usd") is not None:
+        result["calibrated_currency_ceiling_usd"] = float(
+            caps["currency_ceiling_usd"]
+        )
+    else:
+        result.pop("calibrated_currency_ceiling_usd", None)
     result["resource_calibration_card_binding"] = {
         "card_identity": copy.deepcopy(identity),
         "card_sha256": card.get("card_sha256") or canonical_json_sha256(card),

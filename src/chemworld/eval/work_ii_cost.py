@@ -14,9 +14,12 @@ from chemworld.eval.work_ii_formal import FORMAL_ARMS, validate_formal_bindings
 FORMAL_COST_CONTRACT_VERSION = "chemworld-work-ii-formal-cost-contract-0.1"
 FORMAL_COST_LEDGER_VERSION = "chemworld-work-ii-formal-cost-ledger-0.1"
 QUALIFICATION_COST_CONTRACT_VERSION = (
-    "chemworld-work-ii-qualification-cost-contract-0.1"
+    "chemworld-work-ii-qualification-cost-contract-0.2"
 )
-QUALIFICATION_COST_LEDGER_VERSION = "chemworld-work-ii-qualification-cost-ledger-0.1"
+QUALIFICATION_COST_LEDGER_VERSION = "chemworld-work-ii-qualification-cost-ledger-0.2"
+METHOD_QUALIFICATION_LOCAL_MANIFEST_VERSION = (
+    "chemworld-work-ii-method-qualification-local-manifest-0.1"
+)
 
 
 def _self_hash(payload: Mapping[str, Any], field: str) -> str:
@@ -113,51 +116,106 @@ def _qualification_campaign(
     return task_id, _load_object(path), relative, digest
 
 
+def _qualification_manifest_sha256(manifest: Mapping[str, Any]) -> str:
+    """Return the local W2-27 identity, never a formal/C2 preflight identity."""
+
+    if manifest.get("schema_version") != METHOD_QUALIFICATION_LOCAL_MANIFEST_VERSION:
+        raise ValueError("qualification cost requires the W2-27 local manifest")
+    digest = manifest.get("manifest_sha256")
+    if not isinstance(digest, str) or len(digest) != 64:
+        raise ValueError("qualification local manifest lacks its content identity")
+    expected = _self_hash(manifest, "manifest_sha256")
+    if digest != expected:
+        raise ValueError("qualification local manifest self-hash is stale")
+    if manifest.get("status") != "passed" or manifest.get("errors") != []:
+        raise ValueError("qualification local manifest has not passed")
+    if (
+        manifest.get("formal_result") is not False
+        or manifest.get("formal_execution_authorized") is not False
+    ):
+        raise ValueError("qualification local manifest crossed the formal boundary")
+    return digest
+
+
 def build_qualification_cost_contract(
     root: Path,
     manifest: Mapping[str, Any],
     *,
-    qualification_currency_ceiling_usd: float,
-    pricing_source: str,
-    pricing_observed_at: str,
-    cache_hit_input_usd_per_million: float,
-    cache_miss_input_usd_per_million: float,
-    output_usd_per_million: float,
+    qualification_currency_ceiling_usd: float | None,
+    pricing_source: str | None,
+    pricing_observed_at: str | None,
+    cache_hit_input_usd_per_million: float | None,
+    cache_miss_input_usd_per_million: float | None,
+    output_usd_per_million: float | None,
+    unlimited_spend_authorized: bool = False,
+    pricing_unavailable_reason: str | None = None,
 ) -> dict[str, Any]:
     """Build the pre-call reservation contract for all qualification attempts."""
 
     root = root.resolve()
-    binding_errors = validate_formal_bindings(root, manifest)
-    if binding_errors:
-        raise ValueError("formal bindings are invalid: " + "; ".join(binding_errors))
-    ceiling = _finite_float(qualification_currency_ceiling_usd, positive=True)
-    rates = (
-        _finite_float(cache_hit_input_usd_per_million),
-        _finite_float(cache_miss_input_usd_per_million),
-        _finite_float(output_usd_per_million),
-    )
-    if ceiling is None:
-        raise ValueError("qualification currency ceiling must be finite and positive")
-    if any(rate is None for rate in rates) or not any(float(rate or 0.0) > 0 for rate in rates):
-        raise ValueError("qualification pricing rates must be finite, non-negative and non-zero")
+    manifest_digest = _qualification_manifest_sha256(manifest)
     if not isinstance(pricing_source, str) or not pricing_source.strip():
         raise ValueError("qualification pricing source is required")
     if not isinstance(pricing_observed_at, str) or not pricing_observed_at.strip():
         raise ValueError("qualification pricing observation timestamp is required")
-    hit_rate, miss_rate, output_rate = (float(rate) for rate in rates if rate is not None)
+    if unlimited_spend_authorized:
+        if qualification_currency_ceiling_usd is not None or any(
+            rate is not None
+            for rate in (
+                cache_hit_input_usd_per_million,
+                cache_miss_input_usd_per_million,
+                output_usd_per_million,
+            )
+        ):
+            raise ValueError(
+                "unlimited qualification authorization cannot invent pricing or a ceiling"
+            )
+        if (
+            not isinstance(pricing_unavailable_reason, str)
+            or not pricing_unavailable_reason.strip()
+        ):
+            raise ValueError("unlimited qualification authorization requires a pricing reason")
+        ceiling = None
+        hit_rate = miss_rate = output_rate = None
+    else:
+        ceiling = _finite_float(qualification_currency_ceiling_usd, positive=True)
+        rates = (
+            _finite_float(cache_hit_input_usd_per_million),
+            _finite_float(cache_miss_input_usd_per_million),
+            _finite_float(output_usd_per_million),
+        )
+        if ceiling is None:
+            raise ValueError("qualification currency ceiling must be finite and positive")
+        if any(rate is None for rate in rates) or not any(
+            float(rate or 0.0) > 0 for rate in rates
+        ):
+            raise ValueError(
+                "qualification pricing rates must be finite, non-negative and non-zero"
+            )
+        if pricing_unavailable_reason is not None:
+            raise ValueError(
+                "priced qualification authorization cannot declare pricing unavailable"
+            )
+        hit_rate, miss_rate, output_rate = (
+            float(rate) for rate in rates if rate is not None
+        )
     task_id, config, relative, digest = _qualification_campaign(root, manifest)
     resources = config.get("method_resources")
     resources = resources if isinstance(resources, Mapping) else {}
     input_cap = int(resources.get("input_token_limit", -1))
     uncached_cap = int(resources.get("uncached_input_token_limit", -1))
     output_cap = int(resources.get("output_token_limit", -1))
-    per_attempt_cost = _cost_usd(
-        input_tokens=input_cap,
-        uncached_input_tokens=uncached_cap,
-        output_tokens=output_cap,
-        cache_hit_input_usd_per_million=hit_rate,
-        cache_miss_input_usd_per_million=miss_rate,
-        output_usd_per_million=output_rate,
+    per_attempt_cost = (
+        None
+        if unlimited_spend_authorized
+        else _cost_usd(
+            input_tokens=input_cap,
+            uncached_input_tokens=uncached_cap,
+            output_tokens=output_cap,
+            cache_hit_input_usd_per_million=float(hit_rate),
+            cache_miss_input_usd_per_million=float(miss_rate),
+            output_usd_per_million=float(output_rate),
+        )
     )
     method_contract = manifest.get("method_qualification_contract")
     method_contract = method_contract if isinstance(method_contract, Mapping) else {}
@@ -181,12 +239,16 @@ def build_qualification_cost_contract(
                 "uncached_input_tokens": uncached_cap * attempts,
                 "output_tokens": output_cap * attempts,
             },
-            "cost_cap_usd": round(per_attempt_cost * attempts, 12),
+            "cost_cap_usd": (
+                None
+                if per_attempt_cost is None
+                else round(per_attempt_cost * attempts, 12)
+            ),
         }
 
     initial = envelope(initial_attempts)
     hard = envelope(hard_attempts)
-    if ceiling < float(hard["cost_cap_usd"]):
+    if ceiling is not None and ceiling < float(hard["cost_cap_usd"]):
         raise ValueError(
             "qualification currency ceiling is below the frozen all-attempt cost cap "
             f"({ceiling} < {hard['cost_cap_usd']})"
@@ -199,7 +261,7 @@ def build_qualification_cost_contract(
         "provider_id": provider.get("id"),
         "model_id": provider.get("model"),
         "provider_contract_sha256": canonical_json_sha256(provider),
-        "formal_preflight_sha256": _base_preflight_sha256(manifest),
+        "qualification_manifest_sha256": manifest_digest,
         "method_qualification_contract_sha256": manifest.get(
             "method_qualification_contract_sha256"
         ),
@@ -221,18 +283,24 @@ def build_qualification_cost_contract(
             "cache_hit_input": hit_rate,
             "cache_miss_input": miss_rate,
             "output": output_rate,
+            "pricing_available": not unlimited_spend_authorized,
+            "pricing_unavailable_reason": pricing_unavailable_reason,
         },
         "initial_schedule": initial,
         "all_infrastructure_resumes": hard,
         "qualification_currency_ceiling_usd": ceiling,
-        "currency_headroom_over_all_attempts_usd": round(
-            ceiling - float(hard["cost_cap_usd"]), 12
+        "unlimited_spend_authorized": unlimited_spend_authorized,
+        "currency_headroom_over_all_attempts_usd": (
+            None
+            if ceiling is None
+            else round(ceiling - float(hard["cost_cap_usd"]), 12)
         ),
         "runtime_enforcement": {
             "reserve_full_token_cost_before_each_provider_process_launch": True,
             "missing_infrastructure_only_resume": True,
             "reject_launch_if_reservations_exceed_ceiling": True,
             "unknown_or_missing_actual_billing_never_reduces_reservation": True,
+            "token_and_attempt_caps_enforced_without_attributable_usd_pricing": True,
         },
     }
     contract["qualification_cost_contract_sha256"] = (
@@ -258,13 +326,20 @@ def validate_qualification_cost_contract(
     pricing = contract.get("pricing")
     pricing = pricing if isinstance(pricing, Mapping) else {}
     try:
-        ceiling = _finite_float(
-            contract.get("qualification_currency_ceiling_usd"), positive=True
+        unlimited = contract.get("unlimited_spend_authorized") is True
+        ceiling = (
+            None
+            if unlimited
+            else _finite_float(
+                contract.get("qualification_currency_ceiling_usd"), positive=True
+            )
         )
-        hit_rate = _finite_float(pricing.get("cache_hit_input"))
-        miss_rate = _finite_float(pricing.get("cache_miss_input"))
-        output_rate = _finite_float(pricing.get("output"))
-        if ceiling is None or hit_rate is None or miss_rate is None or output_rate is None:
+        hit_rate = None if unlimited else _finite_float(pricing.get("cache_hit_input"))
+        miss_rate = None if unlimited else _finite_float(pricing.get("cache_miss_input"))
+        output_rate = None if unlimited else _finite_float(pricing.get("output"))
+        if not unlimited and (
+            ceiling is None or hit_rate is None or miss_rate is None or output_rate is None
+        ):
             raise ValueError("qualification pricing values are missing or invalid")
         rebuilt = build_qualification_cost_contract(
             root,
@@ -275,6 +350,12 @@ def validate_qualification_cost_contract(
             cache_hit_input_usd_per_million=hit_rate,
             cache_miss_input_usd_per_million=miss_rate,
             output_usd_per_million=output_rate,
+            unlimited_spend_authorized=unlimited,
+            pricing_unavailable_reason=(
+                str(pricing.get("pricing_unavailable_reason", ""))
+                if unlimited
+                else None
+            ),
         )
     except (OSError, TypeError, ValueError) as error:
         errors.append(f"Work II qualification cost contract cannot be rebuilt: {error}")
@@ -293,8 +374,13 @@ def build_qualification_cost_ledger(
 
     allowed = set(FORMAL_ARMS)
     cap = int(contract.get("per_arm_provider_attempt_hard_cap", -1))
-    cost = _finite_float(contract.get("per_attempt_cost_cap_usd"))
-    if cap != 2 or cost is None:
+    unlimited = contract.get("unlimited_spend_authorized") is True
+    cost = (
+        None
+        if unlimited
+        else _finite_float(contract.get("per_attempt_cost_cap_usd"))
+    )
+    if cap != 2 or (not unlimited and cost is None):
         raise ValueError("qualification cost ledger lacks its per-attempt contract")
     counts: dict[str, int] = {}
     for arm, raw_count in provider_attempt_counts_by_arm.items():
@@ -305,26 +391,36 @@ def build_qualification_cost_ledger(
         if raw_count < 0 or raw_count > cap:
             raise ValueError(f"qualification provider-attempt cap exceeded: {arm}")
         counts[arm] = raw_count
-    reserved = round(sum(counts.values()) * cost, 12)
-    ceiling_value = _finite_float(
-        contract.get("qualification_currency_ceiling_usd"), positive=True
+    reserved = None if cost is None else round(sum(counts.values()) * cost, 12)
+    ceiling_value = (
+        None
+        if unlimited
+        else _finite_float(
+            contract.get("qualification_currency_ceiling_usd"), positive=True
+        )
     )
-    if ceiling_value is None:
+    if not unlimited and ceiling_value is None:
         raise ValueError("qualification cost ledger lacks a positive ceiling")
     ledger: dict[str, Any] = {
         "schema_version": QUALIFICATION_COST_LEDGER_VERSION,
         "qualification_cost_contract_sha256": contract.get(
             "qualification_cost_contract_sha256"
         ),
-        "formal_preflight_sha256": _base_preflight_sha256(manifest),
+        "qualification_manifest_sha256": _qualification_manifest_sha256(manifest),
         "provider_attempt_count": sum(counts.values()),
         "provider_attempt_counts_by_arm": {
             arm: counts.get(arm, 0) for arm in FORMAL_ARMS
         },
         "reserved_cost_usd": reserved,
         "qualification_currency_ceiling_usd": ceiling_value,
-        "remaining_unreserved_usd": round(ceiling_value - reserved, 12),
-        "within_ceiling": reserved <= ceiling_value,
+        "unlimited_spend_authorized": unlimited,
+        "remaining_unreserved_usd": (
+            None
+            if unlimited
+            else round(float(ceiling_value) - float(reserved), 12)
+        ),
+        "within_ceiling": None if unlimited else reserved <= ceiling_value,
+        "within_authorized_spend": unlimited or reserved <= ceiling_value,
         "reservation_semantics": "full_frozen_token_cap_per_launched_provider_process",
     }
     ledger["qualification_cost_ledger_sha256"] = qualification_cost_ledger_sha256(

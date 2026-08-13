@@ -24,18 +24,18 @@ from chemworld.eval.work_ii_cost import (
     validate_qualification_cost_contract,
     validate_qualification_cost_ledger,
 )
-from chemworld.eval.work_ii_formal import (
-    FORMAL_ARMS,
-    build_formal_preflight,
-    validate_formal_bindings,
+from chemworld.eval.work_ii_formal import FORMAL_ARMS
+from chemworld.eval.work_ii_method_qualification_local import (
+    build_method_qualification_local_manifest,
+    build_method_qualification_local_readiness,
+    build_w2_27_runtime_config,
+    validate_method_qualification_local_readiness,
 )
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
-    build_method_qualification_readiness,
     build_qualification_attempt_authorization,
     build_qualification_execution_journal,
     method_qualification_report_sha256,
-    validate_method_qualification_readiness,
     validate_method_qualification_report,
     validate_qualification_attempt_authorization,
     validate_qualification_execution_authorization,
@@ -44,7 +44,6 @@ from chemworld.eval.work_ii_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
 TRIPLET_PROGRESS_VERSION = "chemworld-work-ii-qualification-triplet-progress-0.1"
 TERMINAL_RECEIPT_VERSION = "chemworld-work-ii-qualification-terminal-receipt-0.1"
@@ -87,6 +86,15 @@ def _self_hash(payload: Mapping[str, Any], field: str) -> str:
     return canonical_json_sha256(
         {key: value for key, value in payload.items() if key != field}
     )
+
+
+def _require_authorized_spend(ledger: Mapping[str, Any]) -> None:
+    """Reject a launch unless the unified finite/unlimited spend contract allows it."""
+
+    if ledger.get("within_authorized_spend") is not True:
+        raise RuntimeError(
+            "qualification authorized spend would be exceeded before provider launch"
+        )
 
 
 def _attempt_authorizations(output_root: Path, arm: str) -> list[Path]:
@@ -568,6 +576,7 @@ def _build_report(
         "cell_id": f"{config['pilot_id']}--seed{world_seed}",
         "formal_cell_key_sha256": None,
         "formal_result": False,
+        "qualification_manifest_sha256": manifest.get("manifest_sha256"),
         "qualification_execution_authorized": True,
         "qualification_execution_authorization_binding": {
             "path": authorization_copy.relative_to(ROOT).as_posix(),
@@ -629,18 +638,33 @@ def execute_triplet(
 ) -> dict[str, Any]:
     """Run or missing-only resume the exact qualification arm triplet."""
 
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    binding_errors = validate_formal_bindings(ROOT, manifest)
-    if binding_errors:
-        raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
-    readiness = build_method_qualification_readiness(
+    authorization_path = _inside_root(
+        authorization_path, label="qualification execution authorization"
+    )
+    authorization = _load(authorization_path)
+    schedule = authorization.get("qualification_schedule")
+    schedule = schedule if isinstance(schedule, Mapping) else {}
+    config_path = _inside_root(
+        ROOT / str(schedule.get("campaign_config_path", "")),
+        label="W2-27 runtime config",
+    )
+    if not config_path.is_file():
+        raise RuntimeError("W2-27 runtime config is missing")
+    expected_runtime_config = build_w2_27_runtime_config(
         ROOT,
         DESIGN,
-        ANALYSIS,
+        resource_calibration_summary_path,
+    )
+    if _load(config_path) != expected_runtime_config:
+        raise RuntimeError("W2-27 runtime config differs from the W2-26 resource card")
+    manifest = build_method_qualification_local_manifest(ROOT, DESIGN, config_path)
+    readiness = build_method_qualification_local_readiness(
+        ROOT,
+        manifest,
         resource_calibration_manifest_path=resource_calibration_manifest_path,
         resource_calibration_summary_path=resource_calibration_summary_path,
     )
-    readiness_errors = validate_method_qualification_readiness(readiness)
+    readiness_errors = validate_method_qualification_local_readiness(readiness)
     if readiness_errors:
         raise RuntimeError(
             "method-qualification readiness failed: " + "; ".join(readiness_errors)
@@ -648,13 +672,9 @@ def execute_triplet(
     calibration = readiness["resource_calibration_readiness"]
     if calibration.get("method_qualification_may_be_authorized") is not True:
         raise RuntimeError(
-            "method qualification execution is blocked until the exact nine-task "
-            "W2-26 manifest and summary pass"
+            "method qualification execution is blocked until its exact W2-26 "
+            "A_E/electrochemical/r8 card passes"
         )
-    authorization_path = _inside_root(
-        authorization_path, label="qualification execution authorization"
-    )
-    authorization = _load(authorization_path)
     authorization_errors = validate_qualification_execution_authorization(
         ROOT, authorization, manifest
     )
@@ -670,6 +690,12 @@ def execute_triplet(
     if not output_root.exists() and resume:
         raise FileNotFoundError("qualification resume requires an existing output root")
     output_root.mkdir(parents=True, exist_ok=resume)
+    manifest_path = output_root / "local_manifest.json"
+    if manifest_path.exists():
+        if _load(manifest_path) != manifest:
+            raise RuntimeError("qualification local manifest changed across resume")
+    else:
+        _write_once(manifest_path, manifest)
     authorization_copy = output_root / "execution_authorization.json"
     if authorization_copy.exists():
         if _load(authorization_copy) != authorization:
@@ -688,8 +714,6 @@ def execute_triplet(
             raise RuntimeError("qualification cost contract changed across resume")
     else:
         write_json_atomic(cost_contract_path, dict(cost_contract))
-    schedule = authorization["qualification_schedule"]
-    config_path = (ROOT / str(schedule["campaign_config_path"])).resolve()
     world_seed = int(schedule["world_seed"])
     attempt_counts, attempts = _audit_attempt_journal(
         output_root,
@@ -722,10 +746,7 @@ def execute_triplet(
         proposed_ledger = build_qualification_cost_ledger(
             manifest, cost_contract, counts
         )
-        if proposed_ledger["within_ceiling"] is not True:
-            raise RuntimeError(
-                "qualification currency ceiling would be exceeded before provider launch"
-        )
+        _require_authorized_spend(proposed_ledger)
         attempt_id = uuid4().hex
         attempt_number = counts[arm]
         write_json_atomic(ledger_path, proposed_ledger)
@@ -765,6 +786,8 @@ def execute_triplet(
             "--prior-arm",
             arm,
             "--qualification-execution",
+            "--qualification-manifest",
+            str(manifest_path),
             "--qualification-authorization",
             str(authorization_copy),
             "--qualification-attempt-authorization",

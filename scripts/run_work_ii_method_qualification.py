@@ -8,14 +8,17 @@ import json
 from pathlib import Path
 
 from chemworld.eval.provenance import write_json_atomic
+from chemworld.eval.work_ii_method_qualification_local import (
+    build_method_qualification_local_manifest,
+    build_method_qualification_local_readiness,
+    build_w2_27_runtime_config,
+)
 from chemworld.eval.work_ii_qualification import (
-    build_method_qualification_readiness,
     validate_method_qualification_readiness,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
-DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
+DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 DEFAULT_OUTPUT = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-method-qualification-readiness-v0.2.json"
 )
@@ -23,20 +26,45 @@ DEFAULT_OUTPUT = (
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
-    parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
     parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
     parser.add_argument("--resource-calibration-summary", type=Path, required=True)
+    parser.add_argument("--runtime-config", type=Path, required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    report = build_method_qualification_readiness(
+    calibration_manifest_path = args.resource_calibration_manifest.resolve()
+    calibration_summary_path = args.resource_calibration_summary.resolve()
+    runtime_config_path = args.runtime_config.resolve()
+    try:
+        runtime_config_path.relative_to(ROOT.resolve())
+    except ValueError as error:
+        raise RuntimeError("W2-27 runtime config must remain inside the repository") from error
+    expected_runtime_config = build_w2_27_runtime_config(
         ROOT,
-        args.design.resolve(),
-        args.analysis.resolve(),
-        resource_calibration_manifest_path=args.resource_calibration_manifest.resolve(),
-        resource_calibration_summary_path=args.resource_calibration_summary.resolve(),
+        DESIGN,
+        calibration_summary_path,
+    )
+    if runtime_config_path.is_file():
+        observed_runtime_config = json.loads(
+            runtime_config_path.read_text(encoding="utf-8")
+        )
+        if observed_runtime_config != expected_runtime_config:
+            raise RuntimeError("existing W2-27 runtime config differs from the W2-26 card")
+    elif args.check:
+        raise RuntimeError("W2-27 runtime config is missing")
+    else:
+        write_json_atomic(runtime_config_path, expected_runtime_config)
+    manifest = build_method_qualification_local_manifest(
+        ROOT,
+        DESIGN,
+        runtime_config_path,
+    )
+    report = build_method_qualification_local_readiness(
+        ROOT,
+        manifest,
+        resource_calibration_manifest_path=calibration_manifest_path,
+        resource_calibration_summary_path=calibration_summary_path,
     )
     errors = validate_method_qualification_readiness(report)
     if errors:

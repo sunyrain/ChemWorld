@@ -8,6 +8,7 @@ import pytest
 import chemworld.eval.work_ii_formal as work_ii_formal
 from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_cost import (
+    METHOD_QUALIFICATION_LOCAL_MANIFEST_VERSION,
     build_formal_cost_contract,
     build_formal_cost_ledger,
     build_qualification_cost_contract,
@@ -100,6 +101,25 @@ def _contract(*, ceiling: float = 20.0) -> tuple[dict[str, object], dict[str, ob
     return manifest, contract
 
 
+def _local_qualification_manifest() -> dict[str, object]:
+    formal = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest: dict[str, object] = {
+        "schema_version": METHOD_QUALIFICATION_LOCAL_MANIFEST_VERSION,
+        "status": "passed",
+        "formal_result": False,
+        "formal_execution_authorized": False,
+        "provider_contract": formal["provider_contract"],
+        "method_qualification_contract": formal["method_qualification_contract"],
+        "method_qualification_contract_sha256": formal[
+            "method_qualification_contract_sha256"
+        ],
+        "task_bindings": formal["task_bindings"],
+        "errors": [],
+    }
+    manifest["manifest_sha256"] = canonical_json_sha256(manifest)
+    return manifest
+
+
 def test_formal_cost_contract_covers_initial_and_all_resume_token_envelopes() -> None:
     manifest, contract = _contract()
 
@@ -132,7 +152,7 @@ def test_formal_cost_contract_rejects_ceiling_below_retry_hard_cap() -> None:
 
 
 def test_qualification_cost_contract_and_attempt_ledger_cover_all_resumes() -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _local_qualification_manifest()
     contract = build_qualification_cost_contract(
         ROOT,
         manifest,
@@ -162,7 +182,71 @@ def test_qualification_cost_contract_and_attempt_ledger_cover_all_resumes() -> N
     assert contract["all_infrastructure_resumes"]["cost_cap_usd"] == 0.344064
     assert ledger["provider_attempt_count"] == 6
     assert ledger["reserved_cost_usd"] == 0.344064
+    assert ledger["qualification_manifest_sha256"] == manifest["manifest_sha256"]
     assert validate_qualification_cost_ledger(manifest, contract, ledger) == []
+
+
+def test_unlimited_qualification_cost_contract_keeps_token_and_attempt_caps() -> None:
+    manifest = _local_qualification_manifest()
+    reason = "provider contract exposes no attributable per-run USD price"
+    contract = build_qualification_cost_contract(
+        ROOT,
+        manifest,
+        qualification_currency_ceiling_usd=None,
+        pricing_source="provider_pricing_unavailable",
+        pricing_observed_at="2026-08-14T00:00:00+08:00",
+        cache_hit_input_usd_per_million=None,
+        cache_miss_input_usd_per_million=None,
+        output_usd_per_million=None,
+        unlimited_spend_authorized=True,
+        pricing_unavailable_reason=reason,
+    )
+    ledger = build_qualification_cost_ledger(
+        manifest,
+        contract,
+        {"opaque": 2, "aligned_nominal": 2, "misindexed_nominal": 2},
+    )
+
+    assert validate_qualification_cost_contract(ROOT, manifest, contract) == []
+    assert contract["all_infrastructure_resumes"]["provider_attempt_count"] == 6
+    assert contract["all_infrastructure_resumes"]["token_caps"] == {
+        "input_tokens": 14_400_000,
+        "uncached_input_tokens": 1_920_000,
+        "output_tokens": 144_000,
+    }
+    assert contract["all_infrastructure_resumes"]["cost_cap_usd"] is None
+    assert contract["qualification_currency_ceiling_usd"] is None
+    assert contract["pricing"]["pricing_unavailable_reason"] == reason
+    assert ledger["within_ceiling"] is None
+    assert ledger["within_authorized_spend"] is True
+    assert ledger["reserved_cost_usd"] is None
+    assert validate_qualification_cost_ledger(manifest, contract, ledger) == []
+
+    with pytest.raises(ValueError, match="attempt cap exceeded"):
+        build_qualification_cost_ledger(
+            manifest,
+            contract,
+            {"opaque": 3},
+        )
+
+
+def test_qualification_cost_rejects_formal_preflight_identity() -> None:
+    formal = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    with pytest.raises(ValueError, match="requires the W2-27 local manifest"):
+        build_qualification_cost_contract(
+            ROOT,
+            formal,
+            qualification_currency_ceiling_usd=None,
+            pricing_source="provider_pricing_unavailable",
+            pricing_observed_at="2026-08-14T00:00:00+08:00",
+            cache_hit_input_usd_per_million=None,
+            cache_miss_input_usd_per_million=None,
+            output_usd_per_million=None,
+            unlimited_spend_authorized=True,
+            pricing_unavailable_reason=(
+                "provider contract exposes no attributable per-run USD price"
+            ),
+        )
 
 
 def test_formal_cost_contract_rejects_rehashed_semantic_tampering() -> None:

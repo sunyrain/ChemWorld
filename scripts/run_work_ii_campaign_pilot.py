@@ -39,9 +39,11 @@ from chemworld.eval.work_ii_formal import (
     build_checkpoint_contract as _checkpoint_contract,
 )
 from chemworld.eval.work_ii_formal import (
-    build_formal_preflight,
     validate_formal_bindings,
     validate_formal_preflight,
+)
+from chemworld.eval.work_ii_method_qualification_local import (
+    validate_method_qualification_local_manifest,
 )
 from chemworld.eval.work_ii_process_profile import (
     build_work_ii_execution_artifacts,
@@ -280,32 +282,57 @@ def _qualification_execution_context(
     config_path: Path,
     world_seed: int,
     arms: list[str],
-) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]] | None:
+) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any], dict[str, Any]] | None:
     execute = bool(getattr(args, "qualification_execution", False))
+    manifest_value = getattr(args, "qualification_manifest", None)
     authorization_value = getattr(args, "qualification_authorization", None)
     attempt_value = getattr(args, "qualification_attempt_authorization", None)
     ledger_value = getattr(args, "qualification_cost_ledger", None)
     if not execute:
-        if any(value is not None for value in (authorization_value, attempt_value, ledger_value)):
+        if any(
+            value is not None
+            for value in (
+                manifest_value,
+                authorization_value,
+                attempt_value,
+                ledger_value,
+            )
+        ):
             raise RuntimeError(
                 "qualification authorization inputs require --qualification-execution"
             )
         return None
     if getattr(args, "formal_manifest", None) is not None:
         raise RuntimeError("qualification execution cannot also be a formal cell")
+    if manifest_value is None:
+        raise RuntimeError("qualification execution requires --qualification-manifest")
     if authorization_value is None:
         raise RuntimeError("qualification execution requires --qualification-authorization")
     if attempt_value is None:
         raise RuntimeError("qualification execution requires --qualification-attempt-authorization")
     if ledger_value is None:
         raise RuntimeError("qualification execution requires --qualification-cost-ledger")
+    manifest_path = Path(manifest_value).resolve()
     authorization_path = Path(authorization_value).resolve()
+    for path, label in (
+        (manifest_path, "qualification manifest"),
+        (authorization_path, "qualification authorization"),
+    ):
+        try:
+            path.relative_to(ROOT.resolve())
+        except ValueError as error:
+            raise RuntimeError(f"{label} must be inside the repository") from error
     try:
         relative_authorization = authorization_path.relative_to(ROOT.resolve()).as_posix()
     except ValueError as error:
         raise RuntimeError("qualification authorization must be inside the repository") from error
+    manifest = _load(manifest_path)
+    manifest_errors = validate_method_qualification_local_manifest(ROOT, manifest)
+    if manifest_errors:
+        raise RuntimeError(
+            "qualification manifest failed: " + "; ".join(manifest_errors)
+        )
     authorization = _load(authorization_path)
-    manifest = build_formal_preflight(ROOT, DEFAULT_DESIGN, DEFAULT_ANALYSIS)
     errors = validate_qualification_execution_authorization(ROOT, authorization, manifest)
     if errors:
         raise RuntimeError("qualification execution authorization failed: " + "; ".join(errors))
@@ -338,7 +365,10 @@ def _qualification_execution_context(
         raise RuntimeError("qualification attempt does not bind the current cost ledger")
     schedule = authorization["qualification_schedule"]
     if (
-        config_path.resolve() != (ROOT / str(schedule["campaign_config_path"])).resolve()
+        authorization.get("qualification_manifest_sha256")
+        != manifest.get("manifest_sha256")
+        or config_path.resolve()
+        != (ROOT / str(schedule["campaign_config_path"])).resolve()
         or file_sha256(config_path) != schedule["campaign_config_sha256"]
         or world_seed != schedule["world_seed"]
         or len(arms) != 1
@@ -348,6 +378,11 @@ def _qualification_execution_context(
         raise RuntimeError("qualification execution differs from its parent-authorized arm")
     return (
         authorization,
+        {
+            "path": manifest_path.relative_to(ROOT.resolve()).as_posix(),
+            "sha256": file_sha256(manifest_path),
+            "qualification_manifest_sha256": manifest["manifest_sha256"],
+        },
         {
             "path": relative_authorization,
             "sha256": file_sha256(authorization_path),
@@ -1535,7 +1570,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             provider_error_enforcement=provider_error_enforcement,
         )
         if qualification_context is not None:
-            row["qualification_attempt_authorization_binding"] = qualification_context[2]
+            row["qualification_attempt_authorization_binding"] = qualification_context[3]
             write_json_atomic(cell_root / "summary.json", row)
         if calibration_context is not None:
             row["resource_calibration_execution_binding"] = calibration_context[2]
@@ -1592,6 +1627,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             formal_cell["cell_key_sha256"] if formal_cell is not None else None
         ),
         "formal_result": formal_cell is not None,
+        "qualification_manifest_sha256": (
+            qualification_context[0].get("qualification_manifest_sha256")
+            if qualification_context is not None
+            else None
+        ),
         "execution_context": (
             dict(config["execution_context"]) if release_manifest_path is not None else None
         ),
@@ -1612,10 +1652,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         ),
         "qualification_execution_authorized": qualification_context is not None,
         "qualification_execution_authorization_binding": (
+            qualification_context[2] if qualification_context is not None else None
+        ),
+        "qualification_manifest_binding": (
             qualification_context[1] if qualification_context is not None else None
         ),
         "qualification_attempt_authorization_binding": (
-            qualification_context[2] if qualification_context is not None else None
+            qualification_context[3] if qualification_context is not None else None
         ),
         "resource_calibration_execution_binding": (
             calibration_context[2] if calibration_context is not None else None
@@ -1647,6 +1690,7 @@ def main() -> int:
     parser.add_argument("--formal-cell-key")
     parser.add_argument("--allow-formal-execution", action="store_true")
     parser.add_argument("--qualification-execution", action="store_true")
+    parser.add_argument("--qualification-manifest", type=Path)
     parser.add_argument("--qualification-authorization", type=Path)
     parser.add_argument("--qualification-attempt-authorization", type=Path)
     parser.add_argument("--qualification-cost-ledger", type=Path)

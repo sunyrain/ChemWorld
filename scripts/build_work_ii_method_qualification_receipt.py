@@ -9,7 +9,9 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.provenance import write_json_atomic
-from chemworld.eval.work_ii_formal import build_formal_preflight, validate_formal_bindings
+from chemworld.eval.work_ii_method_qualification_local import (
+    build_method_qualification_local_manifest,
+)
 from chemworld.eval.work_ii_qualification import (
     build_method_qualification_receipt,
     validate_method_qualification_receipt,
@@ -18,7 +20,6 @@ from chemworld.eval.work_ii_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
-ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 DEFAULT_REPORT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -43,16 +44,16 @@ def main() -> int:
     parser.add_argument("--source-report", type=Path)
     parser.add_argument("--report-output", type=Path, default=DEFAULT_REPORT_OUTPUT)
     parser.add_argument("--receipt-output", type=Path, default=DEFAULT_RECEIPT_OUTPUT)
+    parser.add_argument("--runtime-config", type=Path, required=True)
     parser.add_argument("--observed-cost-usd", type=float)
     parser.add_argument("--pricing-source")
     parser.add_argument("--pricing-observed-at")
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
-    binding_errors = validate_formal_bindings(ROOT, manifest)
-    if binding_errors:
-        raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
+    manifest = build_method_qualification_local_manifest(
+        ROOT, DESIGN, args.runtime_config.resolve()
+    )
     report_output = args.report_output.resolve()
     receipt_output = args.receipt_output.resolve()
     if args.check:
@@ -71,11 +72,16 @@ def main() -> int:
         report_errors = validate_method_qualification_report(ROOT, report, manifest)
         cost = receipt.get("qualification_cost_accounting")
         cost = cost if isinstance(cost, dict) else {}
+        unlimited = cost.get("unlimited_spend_authorized") is True
         receipt_errors = validate_method_qualification_receipt(
             ROOT,
             receipt,
             manifest,
-            currency_ceiling_usd=float(receipt.get("approved_currency_ceiling_usd", 0.0)),
+            currency_ceiling_usd=(
+                None
+                if unlimited
+                else float(receipt.get("approved_currency_ceiling_usd", 0.0))
+            ),
         )
         errors = [*report_errors, *receipt_errors]
         if errors:
@@ -84,8 +90,6 @@ def main() -> int:
         missing = []
         if args.source_report is None:
             missing.append("--source-report")
-        if args.observed_cost_usd is None:
-            missing.append("--observed-cost-usd")
         if not args.pricing_source:
             missing.append("--pricing-source")
         if not args.pricing_observed_at:
@@ -102,17 +106,37 @@ def main() -> int:
             "qualification_execution_authorization_binding"
         ]
         authorization = _load(ROOT / str(authorization_binding["path"]))
-        approved_ceiling = float(
-            authorization.get("user_authorization", {}).get("currency_ceiling_usd", 0.0)
+        user = authorization.get("user_authorization", {})
+        user = user if isinstance(user, dict) else {}
+        unlimited = user.get("unlimited_spend_authorized") is True
+        raw_ceiling = user.get("currency_ceiling_usd")
+        approved_ceiling = (
+            None if unlimited else float(raw_ceiling if raw_ceiling is not None else 0.0)
         )
-        if float(args.observed_cost_usd) < 0 or float(args.observed_cost_usd) > approved_ceiling:
+        if unlimited and args.observed_cost_usd is not None:
+            raise RuntimeError(
+                "unlimited qualification receipt must not invent observed USD cost"
+            )
+        if not unlimited and args.observed_cost_usd is None:
+            raise RuntimeError("qualification receipt inputs are missing: --observed-cost-usd")
+        if (
+            not unlimited
+            and (
+                float(args.observed_cost_usd) < 0
+                or float(args.observed_cost_usd) > float(approved_ceiling)
+            )
+        ):
             raise RuntimeError("observed qualification cost exceeds the user-approved ceiling")
         write_json_atomic(report_output, source_report)
         receipt = build_method_qualification_receipt(
             ROOT,
             report_output,
             manifest,
-            observed_cost_usd=float(args.observed_cost_usd),
+            observed_cost_usd=(
+                None
+                if args.observed_cost_usd is None
+                else float(args.observed_cost_usd)
+            ),
             pricing_source=str(args.pricing_source),
             pricing_observed_at=str(args.pricing_observed_at),
         )

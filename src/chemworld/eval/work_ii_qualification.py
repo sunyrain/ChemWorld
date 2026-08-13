@@ -154,13 +154,15 @@ def build_qualification_execution_authorization(
     root: Path,
     manifest: Mapping[str, Any],
     *,
-    currency_ceiling_usd: float,
+    currency_ceiling_usd: float | None,
     approved_at: str,
-    pricing_source: str,
-    pricing_observed_at: str,
-    cache_hit_input_usd_per_million: float,
-    cache_miss_input_usd_per_million: float,
-    output_usd_per_million: float,
+    pricing_source: str | None,
+    pricing_observed_at: str | None,
+    cache_hit_input_usd_per_million: float | None,
+    cache_miss_input_usd_per_million: float | None,
+    output_usd_per_million: float | None,
+    unlimited_spend_authorized: bool = False,
+    pricing_unavailable_reason: str | None = None,
 ) -> dict[str, Any]:
     """Build the credential-free authorization that must exist before provider execution."""
 
@@ -175,12 +177,30 @@ def build_qualification_execution_authorization(
     cost_contract = build_qualification_cost_contract(
         root,
         manifest,
-        qualification_currency_ceiling_usd=float(currency_ceiling_usd),
+        qualification_currency_ceiling_usd=(
+            None
+            if currency_ceiling_usd is None
+            else float(currency_ceiling_usd)
+        ),
         pricing_source=pricing_source,
         pricing_observed_at=pricing_observed_at,
-        cache_hit_input_usd_per_million=float(cache_hit_input_usd_per_million),
-        cache_miss_input_usd_per_million=float(cache_miss_input_usd_per_million),
-        output_usd_per_million=float(output_usd_per_million),
+        cache_hit_input_usd_per_million=(
+            None
+            if cache_hit_input_usd_per_million is None
+            else float(cache_hit_input_usd_per_million)
+        ),
+        cache_miss_input_usd_per_million=(
+            None
+            if cache_miss_input_usd_per_million is None
+            else float(cache_miss_input_usd_per_million)
+        ),
+        output_usd_per_million=(
+            None
+            if output_usd_per_million is None
+            else float(output_usd_per_million)
+        ),
+        unlimited_spend_authorized=unlimited_spend_authorized,
+        pricing_unavailable_reason=pricing_unavailable_reason,
     )
     authorization: dict[str, Any] = {
         "schema_version": METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION,
@@ -189,7 +209,7 @@ def build_qualification_execution_authorization(
         "provider_execution_allowed": True,
         "formal_execution_authorized": False,
         "formal_participant_outcome_count_before_authorization": 0,
-        "formal_preflight_sha256": manifest.get("preflight_sha256"),
+        "qualification_manifest_sha256": manifest.get("manifest_sha256"),
         "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
         "participant_execution_contract_sha256": manifest.get(
             "participant_execution_contract_sha256"
@@ -215,6 +235,7 @@ def build_qualification_execution_authorization(
             "credential_rotation_confirmed": True,
             "currency": "USD",
             "currency_ceiling_usd": currency_ceiling_usd,
+            "unlimited_spend_authorized": unlimited_spend_authorized,
             "scope_method_qualification_contract_sha256": manifest.get(
                 "method_qualification_contract_sha256"
             ),
@@ -252,8 +273,10 @@ def validate_qualification_execution_authorization(
         or authorization.get("formal_participant_outcome_count_before_authorization") != 0
     ):
         errors.append("method-qualification execution is not outcome-blind authorized")
-    if authorization.get("formal_preflight_sha256") != manifest.get("preflight_sha256"):
-        errors.append("method-qualification execution binds a different formal preflight")
+    if authorization.get("qualification_manifest_sha256") != manifest.get(
+        "manifest_sha256"
+    ):
+        errors.append("method-qualification execution binds a different local manifest")
     expected_bindings = {
         "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
         "participant_execution_contract_sha256": manifest.get(
@@ -294,10 +317,15 @@ def validate_qualification_execution_authorization(
     user = authorization.get("user_authorization")
     user = user if isinstance(user, Mapping) else {}
     ceiling = user.get("currency_ceiling_usd")
+    unlimited = user.get("unlimited_spend_authorized") is True
     ceiling_value = (
+        None
+        if unlimited
+        else (
         float(cast(int | float, ceiling))
         if _is_finite_number(ceiling)
         else None
+        )
     )
     if (
         user.get("authorized_by") != "user"
@@ -306,17 +334,22 @@ def validate_qualification_execution_authorization(
         or user.get("provider_contract_confirmed") is not True
         or user.get("credential_rotation_confirmed") is not True
         or user.get("currency") != "USD"
-        or ceiling_value is None
-        or ceiling_value < 0.000000001
+        or (not unlimited and (ceiling_value is None or ceiling_value < 0.000000001))
+        or (unlimited and ceiling is not None)
         or user.get("scope_method_qualification_contract_sha256")
         != manifest.get("method_qualification_contract_sha256")
         or user.get("credentials_present") is not False
     ):
         errors.append("method-qualification execution lacks valid user/provider/currency approval")
-    if isinstance(cost_contract, Mapping) and cost_contract.get(
-        "qualification_currency_ceiling_usd"
-    ) != (ceiling_value if ceiling_value is not None else -1.0):
-        errors.append("method-qualification execution currency budget differs from user approval")
+    if isinstance(cost_contract, Mapping):
+        if cost_contract.get("qualification_currency_ceiling_usd") != ceiling_value:
+            errors.append(
+                "method-qualification execution currency budget differs from user approval"
+            )
+        if cost_contract.get("unlimited_spend_authorized") is not unlimited:
+            errors.append(
+                "method-qualification execution spend mode differs from user approval"
+            )
     return errors
 
 
@@ -1021,6 +1054,26 @@ def _qualification_usage_accounting(
     pricing = cost_contract.get("pricing")
     if not isinstance(pricing, Mapping):
         raise ValueError("qualification usage accounting lacks frozen pricing")
+    if pricing.get("pricing_available") is False:
+        if (
+            any(
+                pricing.get(field) is not None
+                for field in ("cache_hit_input", "cache_miss_input", "output")
+            )
+            or not isinstance(pricing.get("pricing_unavailable_reason"), str)
+            or not pricing.get("pricing_unavailable_reason")
+        ):
+            raise ValueError("qualification unavailable-pricing contract is invalid")
+        return {
+            "token_totals": totals,
+            "calculated_cost_usd": None,
+            "pricing_contract_sha256": cost_contract.get(
+                "qualification_cost_contract_sha256"
+            ),
+            "pricing_unavailable_reason": pricing.get(
+                "pricing_unavailable_reason"
+            ),
+        }
     hit_rate = _finite_float(pricing.get("cache_hit_input"))
     miss_rate = _finite_float(pricing.get("cache_miss_input"))
     output_rate = _finite_float(pricing.get("output"))
@@ -1063,6 +1116,10 @@ def validate_method_qualification_report(
         errors.append("method qualification report self-hash mismatch")
     if report.get("formal_result") is not False:
         errors.append("method qualification report is mislabeled as a formal result")
+    if report.get("qualification_manifest_sha256") != manifest.get(
+        "manifest_sha256"
+    ):
+        errors.append("method qualification report binds a different local manifest")
     if report.get("qualification_execution_authorized") is not True:
         errors.append("method qualification report lacks pre-execution user authorization")
     authorization_binding = report.get("qualification_execution_authorization_binding")
@@ -1782,7 +1839,7 @@ def build_method_qualification_receipt(
     report_path: Path,
     manifest: Mapping[str, Any],
     *,
-    observed_cost_usd: float,
+    observed_cost_usd: float | None,
     pricing_source: str,
     pricing_observed_at: str,
 ) -> dict[str, Any]:
@@ -1814,7 +1871,9 @@ def build_method_qualification_receipt(
             + "; ".join(authorization_errors)
         )
     user = authorization["user_authorization"]
-    ceiling = float(user["currency_ceiling_usd"])
+    unlimited = user.get("unlimited_spend_authorized") is True
+    raw_ceiling = user.get("currency_ceiling_usd")
+    ceiling = None if unlimited else float(raw_ceiling)
     cost_contract = authorization.get("qualification_currency_budget")
     if not isinstance(cost_contract, Mapping):
         raise ValueError("qualification authorization lacks its cost contract")
@@ -1822,13 +1881,24 @@ def build_method_qualification_receipt(
     frozen_pricing = cost_contract.get("pricing")
     frozen_pricing = frozen_pricing if isinstance(frozen_pricing, Mapping) else {}
     observed_cost_value = (
-        round(float(observed_cost_usd), 12)
-        if _is_finite_number(observed_cost_usd)
-        else None
+        None
+        if unlimited
+        else (
+            round(float(observed_cost_usd), 12)
+            if _is_finite_number(observed_cost_usd)
+            else None
+        )
     )
     if (
-        observed_cost_value is None
-        or observed_cost_value > ceiling
+        (unlimited and observed_cost_usd is not None)
+        or (
+            not unlimited
+            and (
+                observed_cost_value is None
+                or ceiling is None
+                or observed_cost_value > ceiling
+            )
+        )
         or observed_cost_value != usage_accounting["calculated_cost_usd"]
         or pricing_source != frozen_pricing.get("source")
         or pricing_observed_at != frozen_pricing.get("observed_at")
@@ -1846,8 +1916,8 @@ def build_method_qualification_receipt(
     receipt: dict[str, Any] = {
         "schema_version": METHOD_QUALIFICATION_RECEIPT_VERSION,
         "status": "passed",
-        "formal_execution_authorized": True,
-        "formal_preflight_sha256": manifest.get("preflight_sha256"),
+        "formal_execution_authorized": False,
+        "qualification_manifest_sha256": manifest.get("manifest_sha256"),
         "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
         "provider_attempt_contract_sha256": canonical_json_sha256(
             manifest.get("provider_attempt_contract")
@@ -1857,12 +1927,6 @@ def build_method_qualification_receipt(
         ),
         "method_qualification_contract_sha256": manifest.get(
             "method_qualification_contract_sha256"
-        ),
-        "blind_evaluator_contract_sha256": canonical_json_sha256(
-            manifest.get("blind_evaluator_contract")
-        ),
-        "held_out_evaluator_contract_sha256": canonical_json_sha256(
-            manifest.get("held_out_evaluator_contract")
         ),
         "qualification_execution_authorization_sha256": authorization.get(
             "authorization_sha256"
@@ -1883,10 +1947,14 @@ def build_method_qualification_receipt(
             "observed_cost_usd": observed_cost_value,
             **usage_accounting,
             "approved_ceiling_usd": ceiling,
+            "unlimited_spend_authorized": unlimited,
             "approved_by": "user",
             "approved_at": user["approved_at"],
             "pricing_source": pricing_source,
             "pricing_observed_at": pricing_observed_at,
+            "pricing_unavailable_reason": usage_accounting.get(
+                "pricing_unavailable_reason"
+            ),
             "scope_method_qualification_contract_sha256": manifest.get(
                 "method_qualification_contract_sha256"
             ),
@@ -1896,7 +1964,10 @@ def build_method_qualification_receipt(
             "approved_by": "user",
             "approved_at": user["approved_at"],
             "approved_currency_ceiling_usd": ceiling,
-            "scope_preflight_sha256": manifest.get("preflight_sha256"),
+            "unlimited_spend_authorized": unlimited,
+            "scope_qualification_manifest_sha256": manifest.get(
+                "manifest_sha256"
+            ),
         },
         "qualification_report_binding": {
             "path": relative_report,
@@ -1921,7 +1992,7 @@ def validate_method_qualification_receipt(
     receipt: Mapping[str, Any],
     manifest: Mapping[str, Any],
     *,
-    currency_ceiling_usd: float,
+    currency_ceiling_usd: float | None,
 ) -> list[str]:
     """Validate method qualification, user cost approval and artifact binding."""
 
@@ -1930,10 +2001,15 @@ def validate_method_qualification_receipt(
         errors.append("unexpected method qualification receipt schema")
     if receipt.get("receipt_sha256") != qualification_receipt_sha256(receipt):
         errors.append("method qualification receipt self-hash mismatch")
-    if receipt.get("status") != "passed" or receipt.get("formal_execution_authorized") is not True:
-        errors.append("method qualification receipt does not authorize formal execution")
-    if receipt.get("formal_preflight_sha256") != manifest.get("preflight_sha256"):
-        errors.append("method qualification receipt binds a different formal preflight")
+    if (
+        receipt.get("status") != "passed"
+        or receipt.get("formal_execution_authorized") is not False
+    ):
+        errors.append("method qualification receipt crossed the formal release boundary")
+    if receipt.get("qualification_manifest_sha256") != manifest.get(
+        "manifest_sha256"
+    ):
+        errors.append("method qualification receipt binds a different local manifest")
     expected_bindings = {
         "provider_contract_sha256": canonical_json_sha256(manifest.get("provider_contract")),
         "provider_attempt_contract_sha256": canonical_json_sha256(
@@ -1944,12 +2020,6 @@ def validate_method_qualification_receipt(
         ),
         "method_qualification_contract_sha256": manifest.get(
             "method_qualification_contract_sha256"
-        ),
-        "blind_evaluator_contract_sha256": canonical_json_sha256(
-            manifest.get("blind_evaluator_contract")
-        ),
-        "held_out_evaluator_contract_sha256": canonical_json_sha256(
-            manifest.get("held_out_evaluator_contract")
         ),
     }
     for field, expected in expected_bindings.items():
@@ -1985,10 +2055,13 @@ def validate_method_qualification_receipt(
     observed_cost = qualification_cost.get("observed_cost_usd")
     calculated_cost = qualification_cost.get("calculated_cost_usd")
     qualification_ceiling = qualification_cost.get("approved_ceiling_usd")
+    unlimited = qualification_cost.get("unlimited_spend_authorized") is True
     observed_cost_value = _finite_float(observed_cost)
     calculated_cost_value = _finite_float(calculated_cost)
-    qualification_ceiling_value = _finite_float(
-        qualification_ceiling, minimum=0.000000001
+    qualification_ceiling_value = (
+        None
+        if unlimited
+        else _finite_float(qualification_ceiling, minimum=0.000000001)
     )
     if (
         qualification_cost.get("currency") != "USD"
@@ -2000,12 +2073,29 @@ def validate_method_qualification_receipt(
         or not qualification_cost.get("pricing_source")
         or not isinstance(qualification_cost.get("pricing_observed_at"), str)
         or not qualification_cost.get("pricing_observed_at")
-        or observed_cost_value is None
-        or calculated_cost_value is None
-        or observed_cost_value != calculated_cost_value
+        or (
+            unlimited
+            and (
+                observed_cost is not None
+                or calculated_cost is not None
+                or qualification_ceiling is not None
+                or not isinstance(
+                    qualification_cost.get("pricing_unavailable_reason"), str
+                )
+                or not qualification_cost.get("pricing_unavailable_reason")
+            )
+        )
+        or (
+            not unlimited
+            and (
+                observed_cost_value is None
+                or calculated_cost_value is None
+                or observed_cost_value != calculated_cost_value
+            )
+        )
         or not isinstance(qualification_cost.get("token_totals"), Mapping)
         or not _is_sha256(qualification_cost.get("pricing_contract_sha256"))
-        or qualification_ceiling_value is None
+        or (not unlimited and qualification_ceiling_value is None)
         or (
             observed_cost_value is not None
             and qualification_ceiling_value is not None
@@ -2017,8 +2107,20 @@ def validate_method_qualification_receipt(
         errors.append("method qualification receipt has invalid qualification cost accounting")
 
     approved = receipt.get("approved_currency_ceiling_usd")
-    approved_value = _finite_float(approved, minimum=0.000000001)
-    if approved_value is None or approved_value != float(currency_ceiling_usd):
+    approved_value = (
+        None if unlimited else _finite_float(approved, minimum=0.000000001)
+    )
+    if (
+        (unlimited and (approved is not None or currency_ceiling_usd is not None))
+        or (
+            not unlimited
+            and (
+                approved_value is None
+                or currency_ceiling_usd is None
+                or approved_value != float(currency_ceiling_usd)
+            )
+        )
+    ):
         errors.append("method qualification receipt has a mismatched currency ceiling")
     if approved_value is not None and (
         qualification_ceiling_value is None
@@ -2030,8 +2132,10 @@ def validate_method_qualification_receipt(
         errors.append("method qualification receipt lacks user currency approval")
     elif (
         approval.get("approved_by") != "user"
-        or approval.get("scope_preflight_sha256") != manifest.get("preflight_sha256")
+        or approval.get("scope_qualification_manifest_sha256")
+        != manifest.get("manifest_sha256")
         or approval.get("approved_currency_ceiling_usd") != approved
+        or approval.get("unlimited_spend_authorized") is not unlimited
         or not isinstance(approval.get("approved_at"), str)
         or not approval.get("approved_at")
     ):

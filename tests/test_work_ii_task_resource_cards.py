@@ -224,3 +224,51 @@ def test_card_rejects_partial_agent_invalid_recovery_budget() -> None:
     assert validate_task_resource_card(card) == [
         "resource card has an incomplete agent-invalid recovery budget"
     ]
+
+
+def test_explicit_unavailable_provider_pricing_defers_currency_to_authorization() -> None:
+    source = _source()
+    card = _card(source)
+    card["currency_accounting"] = {
+        "status": "unavailable_provider_pricing",
+        "formal_currency_contract_required": True,
+        "observed_cell_count": 0,
+        "expected_cell_count": 3,
+    }
+    card["proposed_hard_caps"]["currency_ceiling_usd"] = None
+    card["card_sha256"] = canonical_json_sha256(
+        {key: value for key, value in card.items() if key != "card_sha256"}
+    )
+
+    assert validate_task_resource_card(card) == []
+    config = materialize_task_resource_caps(source, card)
+    assert "calibrated_currency_ceiling_usd" not in config
+
+
+@pytest.mark.parametrize(
+    "currency_accounting",
+    (
+        {},
+        {
+            "status": "unavailable_provider_pricing",
+            "formal_currency_contract_required": False,
+        },
+        {
+            "status": "observed_attributable_usd",
+            "formal_currency_contract_required": True,
+        },
+    ),
+)
+def test_missing_currency_cap_requires_exact_unavailable_contract(
+    currency_accounting: dict[str, object],
+) -> None:
+    card = _card(_source())
+    card["currency_accounting"] = currency_accounting
+    card["proposed_hard_caps"]["currency_ceiling_usd"] = None
+    card["card_sha256"] = canonical_json_sha256(
+        {key: value for key, value in card.items() if key != "card_sha256"}
+    )
+
+    assert "resource card lacks positive cap currency_ceiling_usd" in (
+        validate_task_resource_card(card)
+    )

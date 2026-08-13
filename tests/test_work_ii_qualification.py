@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 import json
 import shutil
 import subprocess
@@ -15,6 +16,7 @@ import scripts.run_work_ii_campaign_pilot as qualification_cell_runner
 import scripts.run_work_ii_method_qualification as qualification_readiness_runner
 import scripts.run_work_ii_method_qualification_triplet as qualification_runner
 
+import chemworld.eval.work_ii_method_qualification_local as local_gate_module
 import chemworld.eval.work_ii_qualification as qualification_module
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_formal import (
@@ -22,6 +24,10 @@ from chemworld.eval.work_ii_formal import (
     FORMAL_COMPLETE_EXPERIMENTS_PER_CELL,
     FORMAL_SNAPSHOT_STAGES,
     build_formal_preflight,
+)
+from chemworld.eval.work_ii_method_qualification_local import (
+    LOCAL_MANIFEST_VERSION,
+    build_method_qualification_local_manifest,
 )
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
@@ -37,12 +43,86 @@ from chemworld.eval.work_ii_qualification import (
     validate_method_qualification_report,
     validate_qualification_execution_authorization,
 )
+from chemworld.eval.work_ii_task_resources import build_task_resource_formula_binding
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 SYNTHETIC_OBSERVED_COST_USD = 0.00004242
 _REAL_POPEN = subprocess.Popen
+
+
+def _local_manifest() -> dict[str, object]:
+    """Project the old fixture onto the W2-27-only identity surface."""
+
+    formal = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = deepcopy(formal)
+    manifest.update(
+        {
+            "schema_version": LOCAL_MANIFEST_VERSION,
+            "status": "passed",
+            "formal_result": False,
+            "formal_execution_authorized": False,
+            "errors": [],
+        }
+    )
+    manifest.pop("preflight_sha256", None)
+    manifest["manifest_sha256"] = canonical_json_sha256(manifest)
+    return manifest
+
+
+def _prepare_triplet_inputs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> dict[str, object]:
+    source_path = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
+    source = json.loads(source_path.read_text(encoding="utf-8"))
+    card: dict[str, object] = {
+        "card_identity": {
+            **local_gate_module.W2_27_RESOURCE_CARD_IDENTITY,
+            "calibration_campaign_binding": {
+                "path": source_path.relative_to(ROOT).as_posix(),
+                "sha256": file_sha256(source_path),
+                "config_canonical_json_sha256": canonical_json_sha256(source),
+            },
+            "resource_formula_binding": build_task_resource_formula_binding(source),
+        },
+        "protected_closeout_reserve_enforced": True,
+        "proposed_hard_caps": {
+            "operation_attempt_limit": 72,
+            "protected_closeout_operation_reserve": 16,
+            "process_time_limit_s": 140_000.0,
+            "protected_closeout_reserve_s": 20_000.0,
+            "input_token_limit": 3_000_000,
+            "uncached_input_token_limit": 400_000,
+            "output_token_limit": 30_000,
+            "provider_wall_time_limit_s": 6_000.0,
+            "currency_ceiling_usd": 20.0,
+            "max_recovered_mcp_tool_failures": 64,
+            "max_consecutive_mcp_tool_failures": 32,
+        },
+    }
+    card["card_sha256"] = canonical_json_sha256(card)
+    receipt = {
+        "schema_version": local_gate_module.SELECTED_CARD_RECEIPT_VERSION,
+        "status": "selected_card_passed",
+        "selected_resource_card": card,
+        "selected_resource_card_sha256": card["card_sha256"],
+        "selected_pattern_summary": {"triplet_passed": True},
+        "whole_w2_26_status": "invalidated_platform_defect",
+        "whole_w2_26_calibration_passed": False,
+    }
+    receipt_path = tmp_path / "calibration-summary.json"
+    receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
+    (tmp_path / "calibration-manifest.json").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(
+        local_gate_module,
+        "validate_w2_27_selected_resource_card_receipt",
+        lambda *_args: [],
+    )
+    runtime = local_gate_module.build_w2_27_runtime_config(ROOT, DESIGN, receipt_path)
+    runtime_path = tmp_path / "runtime.json"
+    runtime_path.write_text(json.dumps(runtime), encoding="utf-8")
+    return build_method_qualification_local_manifest(ROOT, DESIGN, runtime_path)
 
 
 @pytest.fixture(autouse=True)
@@ -285,7 +365,7 @@ def _receipt(
     tmp_path: Path,
     monkeypatch,
 ) -> tuple[dict[str, object], dict[str, object]]:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _prepare_triplet_inputs(tmp_path, monkeypatch)
     authorization = _authorization(manifest)
     authorization_path = tmp_path / "qualification-authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
@@ -320,8 +400,19 @@ def _receipt(
     return receipt, manifest
 
 
+def test_triplet_provider_launch_uses_unified_authorized_spend_contract() -> None:
+    qualification_runner._require_authorized_spend(
+        {"within_authorized_spend": True, "within_ceiling": None}
+    )
+
+    with pytest.raises(RuntimeError, match="authorized spend"):
+        qualification_runner._require_authorized_spend(
+            {"within_authorized_spend": False, "within_ceiling": True}
+        )
+
+
 def test_qualification_execution_authorization_is_explicit_and_credential_free() -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _local_manifest()
     authorization = _authorization(manifest)
     assert (
         validate_qualification_execution_authorization(ROOT, authorization, manifest)
@@ -336,10 +427,100 @@ def test_qualification_execution_authorization_is_explicit_and_credential_free()
     assert budget["all_infrastructure_resumes"]["cost_cap_usd"] == 0.344064
 
 
+def test_qualification_child_consumes_parent_local_manifest_without_formal_rebuild(
+    monkeypatch: pytest.MonkeyPatch,
+    repo_tmp_path: Path,
+) -> None:
+    runtime_path = repo_tmp_path / "runtime.json"
+    runtime = json.loads(
+        (ROOT / "configs/benchmark/work_ii_campaign_pilot.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    runtime["resource_calibration_card_binding"] = {
+        "card_identity": {
+            "rounds": 8,
+            "locus": "A_E",
+            "task_id": "electrochemical-conversion",
+            "world_seed": 0,
+        },
+        "card_sha256": "d" * 64,
+    }
+    runtime_path.write_text(json.dumps(runtime), encoding="utf-8")
+    manifest = build_method_qualification_local_manifest(ROOT, DESIGN, runtime_path)
+    assert manifest["status"] == "passed"
+    manifest_path = repo_tmp_path / "local-manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    authorization = {
+        "authorization_sha256": "a" * 64,
+        "qualification_manifest_sha256": manifest["manifest_sha256"],
+        "qualification_schedule": {
+            "campaign_config_path": runtime_path.relative_to(ROOT).as_posix(),
+            "campaign_config_sha256": file_sha256(runtime_path),
+            "world_seed": 0,
+        },
+        "qualification_currency_budget": {},
+    }
+    authorization_path = repo_tmp_path / "authorization.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    attempt = {
+        "arm": "opaque",
+        "attempt_authorization_sha256": "b" * 64,
+        "qualification_cost_ledger_sha256": "c" * 64,
+    }
+    attempt_path = repo_tmp_path / "attempt.json"
+    attempt_path.write_text(json.dumps(attempt), encoding="utf-8")
+    ledger = {"qualification_cost_ledger_sha256": "c" * 64}
+    ledger_path = repo_tmp_path / "ledger.json"
+    ledger_path.write_text(json.dumps(ledger), encoding="utf-8")
+    monkeypatch.setattr(
+        qualification_cell_runner,
+        "validate_qualification_execution_authorization",
+        lambda *_args: [],
+    )
+    monkeypatch.setattr(
+        qualification_cell_runner,
+        "validate_qualification_attempt_authorization",
+        lambda *_args: [],
+    )
+    monkeypatch.setattr(
+        qualification_cell_runner,
+        "validate_qualification_cost_ledger",
+        lambda *_args: [],
+    )
+    args = argparse.Namespace(
+        qualification_execution=True,
+        qualification_manifest=manifest_path,
+        qualification_authorization=authorization_path,
+        qualification_attempt_authorization=attempt_path,
+        qualification_cost_ledger=ledger_path,
+        formal_manifest=None,
+        prior_arm="opaque",
+    )
+
+    context = qualification_cell_runner._qualification_execution_context(
+        args,
+        config_path=runtime_path,
+        world_seed=0,
+        arms=["opaque"],
+    )
+
+    assert context is not None
+    assert context[1]["qualification_manifest_sha256"] == manifest[
+        "manifest_sha256"
+    ]
+    source = Path(qualification_cell_runner.__file__).read_text(encoding="utf-8")
+    function_source = source.split("def _qualification_execution_context", 1)[1].split(
+        "def _resource_calibration_execution_context", 1
+    )[0]
+    assert "build_formal_preflight" not in function_source
+    assert "DEFAULT_ANALYSIS" not in function_source
+
+
 def test_method_qualification_report_without_precall_authorization_is_rejected(
     tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _local_manifest()
     report = _qualification_report(manifest)
     errors = validate_method_qualification_report(ROOT, report, manifest)
     assert "method qualification report lacks pre-execution user authorization" in errors
@@ -351,7 +532,7 @@ def test_method_qualification_report_without_precall_authorization_is_rejected(
 def test_authorized_qualification_report_requires_parent_execution_journal(
     repo_tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _local_manifest()
     authorization = _authorization(manifest)
     authorization_path = repo_tmp_path / "qualification-authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
@@ -706,25 +887,23 @@ def test_w2_27_projects_only_exact_enforced_v02_task_cards(
 
 
 def test_w2_27_entrypoints_bind_the_canonical_v02_contract() -> None:
-    bindings = (
-        (
-            qualification_readiness_runner.DEFAULT_DESIGN,
-            qualification_readiness_runner.DEFAULT_ANALYSIS,
-        ),
-        (qualification_runner.DESIGN, qualification_runner.ANALYSIS),
-        (qualification_authorizer.DESIGN, qualification_authorizer.ANALYSIS),
-        (qualification_receipt_builder.DESIGN, qualification_receipt_builder.ANALYSIS),
-        (qualification_cell_runner.DEFAULT_DESIGN, qualification_cell_runner.DEFAULT_ANALYSIS),
-    )
-
-    assert all(design == DESIGN and analysis == ANALYSIS for design, analysis in bindings)
+    assert qualification_readiness_runner.DESIGN == DESIGN
+    assert qualification_runner.DESIGN == DESIGN
+    assert qualification_authorizer.DESIGN == DESIGN
+    assert qualification_receipt_builder.DESIGN == DESIGN
+    assert qualification_cell_runner.DEFAULT_DESIGN == DESIGN
+    assert qualification_cell_runner.DEFAULT_ANALYSIS == ANALYSIS
+    source = Path(qualification_readiness_runner.__file__).read_text(encoding="utf-8")
+    assert "build_formal_preflight" not in source
+    assert "build_method_qualification_readiness" not in source
+    assert "DEFAULT_ANALYSIS" not in source
 
 
 def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(
     monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _prepare_triplet_inputs(repo_tmp_path, monkeypatch)
     authorization = _authorization(manifest)
     authorization_path = repo_tmp_path / "authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
@@ -751,7 +930,7 @@ def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(
 
     assert progress["status"] == "passed"
     assert progress["provider_attempt_count"] == 3
-    assert progress["reserved_cost_usd"] == 0.172032
+    assert progress["reserved_cost_usd"] == 0.21504
     assert _FakeQualificationProcess.launched_arms == list(FORMAL_ARMS)
     report = json.loads((output / "report.json").read_text(encoding="utf-8"))
     assert validate_method_qualification_report(ROOT, report, manifest) == []
@@ -761,7 +940,7 @@ def test_qualification_triplet_runner_resumes_only_missing_infrastructure_arm(
     monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _prepare_triplet_inputs(repo_tmp_path, monkeypatch)
     authorization = _authorization(manifest)
     authorization_path = repo_tmp_path / "authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
@@ -814,7 +993,7 @@ def test_qualification_triplet_runner_rejects_rehashed_terminal_tampering(
     monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _prepare_triplet_inputs(repo_tmp_path, monkeypatch)
     authorization = _authorization(manifest)
     authorization_path = repo_tmp_path / "authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
@@ -864,7 +1043,7 @@ def test_qualification_triplet_runner_rebuilds_report_after_terminal_only_crash(
     monkeypatch,
     repo_tmp_path: Path,
 ) -> None:
-    manifest = build_formal_preflight(ROOT, DESIGN, ANALYSIS)
+    manifest = _prepare_triplet_inputs(repo_tmp_path, monkeypatch)
     authorization = _authorization(manifest)
     authorization_path = repo_tmp_path / "authorization.json"
     authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
