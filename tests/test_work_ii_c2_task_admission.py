@@ -258,6 +258,83 @@ def test_current_electrochemical_d1_cannot_generate_terminal_pass(
     assert any("action layer" in error for error in errors)
 
 
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "execution_mode",
+            "development",
+            "D1 development report cannot support terminal admission",
+        ),
+        (
+            "release_eligible",
+            False,
+            "D1 non-release report cannot support terminal admission",
+        ),
+    ],
+)
+def test_d1_stage_rejects_development_or_nonrelease_evaluator(
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    report = _stage("D1", "synthetic-task")
+    report[field] = value
+
+    errors = _stage_status_errors(
+        report,
+        stage="D1",
+        task_id="synthetic-task",
+    )
+
+    assert message in errors
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "message"),
+    [
+        (
+            "execution_mode",
+            "development",
+            "D1 development report cannot support terminal admission",
+        ),
+        (
+            "release_eligible",
+            False,
+            "D1 non-release report cannot support terminal admission",
+        ),
+    ],
+)
+def test_task_admission_receipt_fails_closed_for_development_evaluator(
+    tmp_path: Path,
+    binding_stubs: None,
+    field: str,
+    value: object,
+    message: str,
+) -> None:
+    campaign, stages, selection = _fixtures(tmp_path)
+    d1 = json.loads(stages["D1"].read_text(encoding="utf-8"))
+    d1[field] = value
+    d1["report_sha256"] = canonical_json_sha256(
+        {key: item for key, item in d1.items() if key != "report_sha256"}
+    )
+    write_json_atomic(stages["D1"], d1)
+
+    receipt = build_c2_task_admission_receipt(
+        tmp_path,
+        locus="A_P",
+        task_id="synthetic-task",
+        campaign_config_path=campaign,
+        stage_report_paths=stages,
+        selection_record_path=selection,
+        source_binding=_source_binding(),
+    )
+
+    assert receipt["status"] == "not_ready_fail_closed"
+    assert receipt["terminal_qualification_passed"] is False
+    assert message in receipt["validation_errors"]
+
+
 def test_validator_rebuilds_stage_evidence_instead_of_trusting_boolean(
     tmp_path: Path,
     binding_stubs: None,

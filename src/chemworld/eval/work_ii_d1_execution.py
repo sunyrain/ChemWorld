@@ -44,6 +44,19 @@ def _self_hash(payload: Mapping[str, Any], field: str) -> str:
     return canonical_json_sha256({key: value for key, value in payload.items() if key != field})
 
 
+def _terminal_admission_mode_errors(
+    report: Mapping[str, Any], *, label: str
+) -> list[str]:
+    """Reject evidence explicitly produced outside the release-eligible boundary."""
+
+    errors: list[str] = []
+    if report.get("execution_mode") == "development":
+        errors.append(f"{label} development report cannot support terminal admission")
+    if report.get("release_eligible") is False:
+        errors.append(f"{label} non-release report cannot support terminal admission")
+    return errors
+
+
 def _inside(root: Path, relative: object, *, label: str) -> Path:
     if not isinstance(relative, str) or not relative:
         raise ValueError(f"{label} path is missing")
@@ -526,6 +539,19 @@ def build_d1_admission_receipt(
     evaluation = _load(evaluation_report_path)
     blind = [_load(path) for path in blind_report_paths]
     errors: list[str] = []
+    for label, report in (
+        ("participant matrix", matrix),
+        ("truth evaluator", truth),
+        ("D1 evaluation", evaluation),
+    ):
+        errors.extend(_terminal_admission_mode_errors(report, label=label))
+    for index, report in enumerate(blind):
+        errors.extend(
+            _terminal_admission_mode_errors(
+                report,
+                label=f"blind evaluator {index}",
+            )
+        )
     terminal_bindings = matrix.get("terminal_receipt_bindings")
     terminal_receipts: list[dict[str, Any]] = []
     if not isinstance(terminal_bindings, list) or len(terminal_bindings) != 3:

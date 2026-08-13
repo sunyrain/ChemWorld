@@ -529,6 +529,11 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
   而是语义发现已有 participant provider 暴露，并按事前确定的 `最小 Q2-passed 未暴露 seed` 规则为
   reaction-safety 与 electrochemical 均选择 seed 2。两份三臂、10-experiment、`0/2/4/7/10`
   checkpoint 静态配置已生成；仅表示执行设计 ready，provider/R5 仍锁定，旧失败/混淆结果不被替换。
+- [x] **W2-39** A-P 独立 terminal D1 的 development execution 平台已打通：两份 seed-2 静态配置
+  确定性补齐 10 轮资源、失败保留、恢复上限和 write-once lifecycle；两任务均通过 synthetic 零 provider 的
+  `3 cells × 10 experiments × 5 checkpoints` evaluator 全链演练。启动路径不要求 release freeze 或全树
+  clean/hash，但必须先取得精确列出两任务、输出目录、`6` 个初始 sessions、`60` 个完整 experiments、
+  credential rotation 与 USD ceiling 的显式用户授权；当前未授权、未调用 provider。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
 
@@ -563,6 +568,7 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 | W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
 | W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
+| W2-39 | READY/AUTHORIZED | A-P seed-2 DeepSeek/WellAU development configs 与 synthetic 10-round evaluator shakedown 已通过；用户已授权 unlimited spend 与现有凭据，顺序冻结为先 DeepSeek 后 WellAU。每 provider block 为 6 sessions/60 experiments，仍强制每 cell 最多两次 provider process 且只允许 missing-infrastructure resume |
 | W2-37 | IN PROGRESS / RESTART REQUIRED | 两项 seed-0 Q0 均已通过。首次 five-world development 启动在 `1,121/10,240` primary 后因 validator 错把 partition domain-parameter intervention 要求为 compiled-mechanism hash 变化而停止；world-0 report 与 world-1 partial 原样保留，不构成科学结果。修复 candidate-specific binding 后须从 execution 0 全块重跑；未生成 D1、未启动 provider。 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |

@@ -1,6 +1,11 @@
 from __future__ import annotations
 
+import json
+import sys
+from pathlib import Path
+
 import pytest
+import scripts.evaluate_work_ii_initial_model_pilot as evaluator
 from scripts.evaluate_work_ii_initial_model_pilot import (
     _blind_skip_reason,
     _descriptive_interpretation,
@@ -12,6 +17,235 @@ from scripts.evaluate_work_ii_initial_model_pilot import (
     _supplied_model_distance,
     _temperature_direction_contract,
 )
+
+import chemworld.eval.work_ii_blind as blind_evaluator
+import chemworld.eval.work_ii_truth as truth_evaluator
+from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
+from chemworld.eval.work_ii_truth import compile_evaluator_truth_query
+
+ROOT = Path(__file__).resolve().parents[1]
+AP_SEED2_CONFIGS = (
+    "work_ii_reaction_safety_independent_terminal_d1_execution_seed2.json",
+    "work_ii_electrochemical_independent_terminal_d1_execution_seed2.json",
+)
+
+
+def _prediction_rows(config: dict[str, object]) -> list[dict[str, object]]:
+    checkpoint = config["belief_checkpoint"]
+    return [
+        {
+            "query_id": query["query_id"],
+            "metrics": [
+                {"metric_id": metric_id, "mean": 0.5}
+                for metric_id in query["metric_ids"]
+            ],
+        }
+        for query in checkpoint["held_out_queries"]
+    ]
+
+
+def _synthetic_terminal_triplet(
+    root: Path,
+    config: dict[str, object],
+) -> Path:
+    participant = root / "participant"
+    world_seed = int(config["world_seed"])
+    action_plan = compile_evaluator_truth_query(
+        config,
+        config["belief_checkpoint"]["held_out_queries"][0],
+    )["action_plan"]
+    predictions = _prediction_rows(config)
+    results = []
+    for arm in ("opaque", "aligned_nominal", "misindexed_nominal"):
+        recommendation = {
+            "selected_experiment_index": 1,
+            "selection_rationale": "Selected the highest participant-observed score.",
+        }
+        experiments = [
+            {
+                "experiment_index": index,
+                "leaderboard_score": 1.0 - index / 100.0,
+                "operations": action_plan,
+            }
+            for index in range(1, 11)
+        ]
+        summary = {
+            "arm": arm,
+            "completed": True,
+            "formal_result": False,
+            "analysis": {
+                "complete_experiment_count": 10,
+                "right_censored_open_experiment": False,
+                "operation_attempt_count": len(action_plan) * 10,
+                "resource_rejection_count": 0,
+                "belief_snapshots": [
+                    {"stage": stage, "predictions": predictions}
+                    for stage in config["snapshot_stages"]
+                ],
+                "experiments": experiments,
+                "observed_incumbent_experiment_index": 1,
+                "final_recommendation": recommendation,
+                "final_recommendation_sha256": canonical_json_sha256(recommendation),
+                "prior_reliability_trajectory": (
+                    [None] * 5 if arm == "opaque" else [0.7] * 5
+                ),
+                "suspected_misindexed_fields_trajectory": [[] for _ in range(5)],
+            },
+            "method_resources": {
+                "provider_session_count": 0,
+                "logical_codex_turn_count": 0,
+                "input_token_count": 0,
+                "cached_input_token_count": 0,
+                "uncached_input_token_count": 0,
+                "output_token_count": 0,
+                "input_cache_hit_ratio": None,
+                "session_elapsed_s": 0.0,
+                "recovered_mcp_tool_failure_count": 0,
+                "maximum_consecutive_mcp_tool_failure_count": 0,
+                "provider_error_event_count": 0,
+            },
+            "exact_replay": {"verified": True},
+            "qualification": {"passed": True, "failed_checks": []},
+        }
+        cell_root = participant / f"seed-{world_seed}" / arm
+        cell_root.mkdir(parents=True)
+        write_json_atomic(cell_root / "summary.json", summary)
+        (cell_root / "trajectory.jsonl").write_text("", encoding="utf-8")
+        results.append(summary)
+    write_json_atomic(
+        participant / "matrix_report.json",
+        {
+            "source_commit": "development-shakedown",
+            "task_id": config["task_id"],
+            "provider_id": "synthetic-no-provider",
+            "model": "none",
+            "world_seeds": [world_seed],
+            "all_cells_terminal": True,
+            "terminal_cell_count": 3,
+            "seed_reports": [{"world_seed": world_seed, "results": results}],
+        },
+    )
+    return participant
+
+
+def _install_zero_provider_replay_stub(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_run_agent(**kwargs):
+        agent = kwargs["agent"]
+        output_path = Path(kwargs["output_path"])
+        agent.reset({}, 0)
+        rows = []
+        history = []
+        for _step in range(kwargs["budget"]):
+            action = agent.act(history)
+            observation = {
+                "yield": 0.5,
+                "selectivity": 0.5,
+                "selective_product_yield": 0.5,
+                "electrochemical_selectivity": 0.5,
+                "faradaic_efficiency": 0.5,
+                "energy_efficiency": 0.5,
+                "safety_risk": 0.1,
+                "constraint_violations": 0.0,
+                "score": 0.5,
+            }
+            info = {
+                "transaction_status": "committed",
+                "operation_type": action["operation"],
+                "instrument": action.get("instrument"),
+            }
+            agent.update(action, observation, 0.0, info)
+            rows.append(
+                {
+                    "action": action,
+                    "observation": observation,
+                    "leaderboard_score": 0.5,
+                    **info,
+                }
+            )
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        output_path.write_text(
+            "".join(json.dumps(row) + "\n" for row in rows),
+            encoding="utf-8",
+        )
+        return []
+
+    class Replay:
+        def to_dict(self):
+            return {"verified": True, "checked_steps": 1, "mismatches": []}
+
+    monkeypatch.setattr(truth_evaluator, "run_agent", fake_run_agent)
+    monkeypatch.setattr(blind_evaluator, "run_agent", fake_run_agent)
+    monkeypatch.setattr(
+        truth_evaluator, "verify_records", lambda records, tolerance: Replay()
+    )
+    monkeypatch.setattr(
+        blind_evaluator, "verify_records", lambda records, tolerance: Replay()
+    )
+
+
+def _prepare_development_shakedown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    config_name: str,
+) -> tuple[dict[str, object], Path, Path, Path, Path, Path]:
+    config = json.loads(
+        (ROOT / "configs/benchmark" / config_name).read_text(encoding="utf-8")
+    )
+    config_path = tmp_path / "configs/benchmark" / config_name
+    config_path.parent.mkdir(parents=True)
+    write_json_atomic(config_path, config)
+    design_path = tmp_path / "configs/benchmark/work_ii_formal_design_v0.2.json"
+    write_json_atomic(
+        design_path,
+        json.loads(
+            (ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json").read_text(
+                encoding="utf-8"
+            )
+        ),
+    )
+    participant = _synthetic_terminal_triplet(tmp_path, config)
+    raw_output = tmp_path / "evaluator-raw"
+    report_path = tmp_path / "evaluation.json"
+    markdown_path = tmp_path / "evaluation.md"
+    monkeypatch.setattr(evaluator, "ROOT", tmp_path)
+    monkeypatch.setattr(evaluator, "git_source_commit", lambda _root: "development-shakedown")
+    monkeypatch.setattr(
+        evaluator,
+        "build_c2_source_binding",
+        lambda _root: (_ for _ in ()).throw(
+            AssertionError("development evaluator must not build a release source binding")
+        ),
+    )
+    monkeypatch.setattr(
+        evaluator,
+        "c2_material_dirty_paths",
+        lambda _root: (_ for _ in ()).throw(
+            AssertionError("development evaluator must not inspect global cleanliness")
+        ),
+    )
+    _install_zero_provider_replay_stub(monkeypatch)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "evaluate_work_ii_initial_model_pilot.py",
+            "--participant-run",
+            str(participant),
+            "--config",
+            str(config_path),
+            "--design",
+            str(design_path),
+            "--raw-output",
+            str(raw_output),
+            "--report",
+            str(report_path),
+            "--markdown",
+            str(markdown_path),
+            "--execution-mode",
+            "development",
+        ],
+    )
+    return config, participant, raw_output, report_path, markdown_path, config_path
 
 
 def _cell(
@@ -286,3 +520,146 @@ def test_query_subset_direction_conflict_disables_binary_recovery_scoring() -> N
 
     assert contract["status"] == "query_subset_conflict"
     assert contract["recovery_scoring_authorized"] is False
+
+
+@pytest.mark.parametrize("config_name", AP_SEED2_CONFIGS)
+def test_ap_seed2_terminal_d1_zero_provider_evaluator_shakedown(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    config_name: str,
+) -> None:
+    config, _participant, raw_output, report_path, _markdown_path, _config_path = (
+        _prepare_development_shakedown(monkeypatch, tmp_path, config_name)
+    )
+
+    assert evaluator.main() == 0
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    assert report["status"] == "passed"
+    assert report["execution_mode"] == "development"
+    assert report["release_eligible"] is False
+    assert report["c2_source_binding"] == {
+        "status": "development_shakedown_not_release_eligible",
+        "global_material_binding_generated": False,
+    }
+    assert report["task_id"] == config["task_id"]
+    assert report["world_seed"] == 2
+    assert report["denominators"]["participant_cell_count"] == 3
+    assert report["denominators"]["participant_scheduled_experiment_count"] == 30
+    assert report["denominators"]["participant_complete_experiment_count"] == 30
+    assert report["denominators"]["participant_scheduled_checkpoint_count"] == 15
+    assert report["denominators"]["participant_checkpoint_count"] == 15
+    assert report["denominators"]["truth_query_count"] == 16
+    assert report["denominators"]["truth_completed_query_count"] == 16
+    assert report["denominators"]["blind_scheduled_execution_count"] == 18
+    assert report["denominators"]["blind_completed_execution_count"] == 18
+    assert report["denominators"]["evaluator_provider_call_count"] == 0
+    assert report["action_layer"]["status"] == "participant_interpretable"
+    assert report["action_layer"]["submitted_recommendations_replaced"] is False
+    plans = [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in sorted((raw_output / "blind").glob("*/plan.json"))
+    ]
+    assert len(plans) == 3
+    assert all(plan["candidate_experiment_indices"] == list(range(1, 11)) for plan in plans)
+    assert all(plan["evaluator_provider_call_count"] == 0 for plan in plans)
+
+
+def test_development_evaluator_fails_closed_on_missing_checkpoint(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    config, participant, _raw_output, report_path, _markdown_path, _config_path = (
+        _prepare_development_shakedown(monkeypatch, tmp_path, AP_SEED2_CONFIGS[0])
+    )
+    arm = "opaque"
+    summary_path = participant / f"seed-{config['world_seed']}" / arm / "summary.json"
+    summary = json.loads(summary_path.read_text(encoding="utf-8"))
+    summary["analysis"]["belief_snapshots"].pop(2)
+    write_json_atomic(summary_path, summary)
+    matrix_path = participant / "matrix_report.json"
+    matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    matrix["seed_reports"][0]["results"][0] = summary
+    write_json_atomic(matrix_path, matrix)
+
+    assert evaluator.main() == 1
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    assert report["status"] == "failed_retained"
+    assert report["release_eligible"] is False
+    assert report["denominators"]["participant_checkpoint_count"] == 14
+    assert any(
+        failure.get("scope") == "participant_contract"
+        and failure.get("prior_arm") == arm
+        and "five frozen stages" in str(failure.get("error"))
+        for failure in report["failures"]
+    )
+
+
+def test_development_evaluator_rejects_matrix_task_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _config, participant, _raw_output, report_path, _markdown_path, _config_path = (
+        _prepare_development_shakedown(monkeypatch, tmp_path, AP_SEED2_CONFIGS[0])
+    )
+    matrix_path = participant / "matrix_report.json"
+    matrix = json.loads(matrix_path.read_text(encoding="utf-8"))
+    matrix["task_id"] = "electrochemical-conversion"
+    write_json_atomic(matrix_path, matrix)
+
+    with pytest.raises(
+        ValueError, match="participant matrix task_id does not match campaign config"
+    ):
+        evaluator.main()
+    assert not report_path.exists()
+
+
+def test_release_mode_without_manifest_never_claims_release_eligibility(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    _config, _participant, _raw_output, report_path, _markdown_path, _config_path = (
+        _prepare_development_shakedown(monkeypatch, tmp_path, AP_SEED2_CONFIGS[0])
+    )
+    sys.argv[-1] = "release"
+    monkeypatch.setattr(evaluator, "c2_material_dirty_paths", lambda _root: [])
+    monkeypatch.setattr(
+        evaluator,
+        "build_c2_source_binding",
+        lambda _root: {"status": "synthetic-clean-source-binding"},
+    )
+
+    assert evaluator.main() == 0
+    report = json.loads(report_path.read_text(encoding="utf-8"))
+
+    assert report["execution_mode"] == "release"
+    assert report["status"] == "passed"
+    assert report["release_eligible"] is False
+
+
+def test_release_evaluator_keeps_the_protected_material_cleanliness_gate(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(evaluator, "c2_material_dirty_paths", lambda _root: ["dirty.py"])
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "evaluate_work_ii_initial_model_pilot.py",
+            "--participant-run",
+            str(tmp_path / "participant"),
+            "--config",
+            str(tmp_path / "config.json"),
+            "--raw-output",
+            str(tmp_path / "raw"),
+            "--report",
+            str(tmp_path / "report.json"),
+            "--markdown",
+            str(tmp_path / "report.md"),
+        ],
+    )
+
+    with pytest.raises(RuntimeError, match="release initial-model evaluator requires clean"):
+        evaluator.main()

@@ -47,6 +47,7 @@ from chemworld.eval.work_ii_direction import (
 from chemworld.eval.work_ii_direction import (
     truth_prediction_rows as _truth_prediction_rows,
 )
+from chemworld.eval.work_ii_execution_mode import ExecutionMode
 from chemworld.eval.work_ii_formal import EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT
 from chemworld.eval.work_ii_law_summary import evaluate_final_law_summary
 from chemworld.eval.work_ii_truth import (
@@ -57,6 +58,14 @@ from chemworld.eval.work_ii_truth import (
 
 ROOT = Path(__file__).resolve().parents[1]
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
+AP_SNAPSHOT_STAGES = (
+    "pre_evidence",
+    "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_7",
+    "final",
+)
+AP_CHECKPOINT_COMPLETE_EXPERIMENTS = (0, 2, 4, 7, 10)
 REPORT_VERSION = "chemworld-work-ii-initial-model-pilot-evaluation-0.4"
 
 
@@ -91,17 +100,75 @@ def _final_snapshot(analysis: Mapping[str, Any]) -> Mapping[str, Any] | None:
 
 def _configured_experiment_count(config: Mapping[str, Any]) -> int:
     value = _mapping(config.get("campaign")).get("complete_experiments")
-    if isinstance(value, bool) or not isinstance(value, int) or value < 1:
-        raise ValueError("campaign complete-experiment denominator is invalid")
+    if isinstance(value, bool) or not isinstance(value, int) or value != 10:
+        raise ValueError("initial-model pilot requires exactly 10 experiments per cell")
     return value
 
 
-def _configured_checkpoint_count(config: Mapping[str, Any]) -> int:
+def _configured_snapshot_stages(config: Mapping[str, Any]) -> list[str]:
     stages = _sequence(config.get("snapshot_stages"))
     schedule = _sequence(_mapping(config.get("campaign")).get("checkpoint_complete_experiments"))
-    if not stages or len(stages) != len(schedule):
-        raise ValueError("campaign checkpoint denominator is invalid")
-    return len(stages)
+    if (
+        list(stages) != list(AP_SNAPSHOT_STAGES)
+        or list(schedule) != list(AP_CHECKPOINT_COMPLETE_EXPERIMENTS)
+    ):
+        raise ValueError(
+            "initial-model pilot snapshot stages or checkpoint schedule drifted"
+        )
+    return [str(stage) for stage in stages]
+
+
+def _participant_cell_contract_errors(
+    summary: Mapping[str, Any],
+    *,
+    arm: str,
+    expected_experiment_count: int,
+    expected_snapshot_stages: Sequence[str],
+) -> list[str]:
+    """Validate the complete participant denominator before interpreting a cell."""
+
+    errors: list[str] = []
+    if summary.get("arm") != arm:
+        errors.append("summary arm does not match its frozen participant arm")
+    if summary.get("completed") is not True:
+        errors.append("participant cell is not completed")
+    qualification = _mapping(summary.get("qualification"))
+    if qualification.get("passed") is not True:
+        errors.append("participant cell qualification did not pass")
+    analysis = _mapping(summary.get("analysis"))
+    experiments = _sequence(analysis.get("experiments"))
+    if (
+        analysis.get("complete_experiment_count") != expected_experiment_count
+        or len(experiments) != expected_experiment_count
+    ):
+        errors.append(
+            f"participant cell does not contain exactly {expected_experiment_count} "
+            "complete experiments"
+        )
+    experiment_indices = [
+        experiment.get("experiment_index")
+        for experiment in experiments
+        if isinstance(experiment, Mapping)
+    ]
+    if (
+        any(isinstance(index, bool) or not isinstance(index, int) for index in experiment_indices)
+        or experiment_indices != list(range(1, expected_experiment_count + 1))
+    ):
+        errors.append("participant experiment indices do not match the frozen denominator")
+    snapshots = _sequence(analysis.get("belief_snapshots"))
+    observed_stages = [
+        snapshot.get("stage")
+        for snapshot in snapshots
+        if isinstance(snapshot, Mapping)
+    ]
+    if (
+        len(snapshots) != len(expected_snapshot_stages)
+        or observed_stages != list(expected_snapshot_stages)
+    ):
+        errors.append("participant belief snapshots do not match the five frozen stages")
+    if _mapping(summary.get("exact_replay")).get("verified") is not True:
+        errors.append("participant cell exact replay is not verified")
+    return errors
 
 
 def _scientific_trajectory_complete(
@@ -689,19 +756,29 @@ def main() -> int:
     parser.add_argument(
         "--design",
         type=Path,
-        default=ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json",
+        default=ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json",
     )
     parser.add_argument("--raw-output", type=Path, required=True)
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--markdown", type=Path, required=True)
+    parser.add_argument(
+        "--execution-mode",
+        choices=[mode.value for mode in ExecutionMode],
+        default=ExecutionMode.RELEASE.value,
+        help=(
+            "development permits provider-free evaluator shakedowns on a dirty worktree; "
+            "release retains the protected-material cleanliness gate"
+        ),
+    )
     args = parser.parse_args()
 
-    dirty_material = c2_material_dirty_paths(ROOT)
-    if dirty_material:
-        raise RuntimeError(
-            "initial-model evaluator requires clean protected material: "
-            + ", ".join(dirty_material)
-        )
+    if args.execution_mode == ExecutionMode.RELEASE.value:
+        dirty_material = c2_material_dirty_paths(ROOT)
+        if dirty_material:
+            raise RuntimeError(
+                "release initial-model evaluator requires clean protected material: "
+                + ", ".join(dirty_material)
+            )
     participant_root = args.participant_run.resolve()
     config_path = args.config.resolve()
     raw_root = args.raw_output.resolve()
@@ -716,25 +793,51 @@ def main() -> int:
     config = _load(config_path)
     design = _load(args.design.resolve())
     expected_experiment_count = _configured_experiment_count(config)
-    expected_checkpoint_count = _configured_checkpoint_count(config)
-    seeds = [int(seed) for seed in _sequence(matrix.get("world_seeds"))]
+    expected_snapshot_stages = _configured_snapshot_stages(config)
+    expected_checkpoint_count = len(expected_snapshot_stages)
+    seeds = list(_sequence(matrix.get("world_seeds")))
+    config_world_seed = config.get("world_seed")
+    if isinstance(config_world_seed, bool) or not isinstance(config_world_seed, int):
+        raise ValueError("campaign config world_seed is invalid")
+    config_task_id = config.get("task_id")
+    if not isinstance(config_task_id, str) or not config_task_id:
+        raise ValueError("campaign config task_id is invalid")
+    if matrix.get("task_id") != config_task_id:
+        raise ValueError("participant matrix task_id does not match campaign config")
     if (
         len(seeds) != 1
+        or isinstance(seeds[0], bool)
+        or not isinstance(seeds[0], int)
+        or seeds[0] != config_world_seed
         or matrix.get("all_cells_terminal") is not True
-        or int(matrix.get("terminal_cell_count", 0)) != 3
+        or isinstance(matrix.get("terminal_cell_count"), bool)
+        or not isinstance(matrix.get("terminal_cell_count"), int)
+        or matrix.get("terminal_cell_count") != 3
     ):
-        raise ValueError("participant run must be one terminal seed triplet")
+        raise ValueError(
+            "participant run must be one terminal seed triplet matching the campaign config"
+        )
     if set(_mapping(config.get("prior_arms"))) != set(ARMS):
         raise ValueError("campaign config does not contain the frozen three arms")
     world_seed = seeds[0]
-    task_id = str(config["task_id"])
-    embedded = {
-        str(result["arm"]): result
-        for seed_report in _sequence(matrix.get("seed_reports"))
-        if isinstance(seed_report, Mapping)
-        for result in _sequence(seed_report.get("results"))
-        if isinstance(result, Mapping)
-    }
+    task_id = config_task_id
+    seed_reports = _sequence(matrix.get("seed_reports"))
+    if (
+        len(seed_reports) != 1
+        or not isinstance(seed_reports[0], Mapping)
+        or isinstance(seed_reports[0].get("world_seed"), bool)
+        or not isinstance(seed_reports[0].get("world_seed"), int)
+        or seed_reports[0].get("world_seed") != world_seed
+    ):
+        raise ValueError("participant matrix must contain exactly one matching seed report")
+    embedded_results = _sequence(seed_reports[0].get("results"))
+    if len(embedded_results) != 3 or any(
+        not isinstance(result, Mapping) for result in embedded_results
+    ):
+        raise ValueError("participant matrix must contain exactly three participant cells")
+    embedded = {str(result.get("arm")): result for result in embedded_results}
+    if set(embedded) != set(ARMS):
+        raise ValueError("participant matrix must contain exactly the frozen three arms")
     summaries: dict[str, tuple[Path, dict[str, Any]]] = {}
     for arm in ARMS:
         summary_path = participant_root / f"seed-{world_seed}" / arm / "summary.json"
@@ -743,11 +846,23 @@ def main() -> int:
             raise ValueError(f"participant summary differs from matrix binding: {arm}")
         summaries[arm] = (summary_path, summary)
 
+    participant_contract_errors = {
+        arm: _participant_cell_contract_errors(
+            summary,
+            arm=arm,
+            expected_experiment_count=expected_experiment_count,
+            expected_snapshot_stages=expected_snapshot_stages,
+        )
+        for arm, (_, summary) in summaries.items()
+    }
+
     raw_root.mkdir(parents=True)
     cluster_id = f"initial-model-parametric--{task_id}--seed-{world_seed}"
     held_out_query_count = len(
         _sequence(_mapping(config.get("belief_checkpoint")).get("held_out_queries"))
     )
+    if held_out_query_count != 16:
+        raise ValueError("initial-model pilot requires exactly 16 evaluator-truth queries")
     print(
         json.dumps({"event": "truth_started", "queries": held_out_query_count}),
         flush=True,
@@ -770,12 +885,35 @@ def main() -> int:
     ]
     failures.extend(
         {
-            "scope": "participant_qualification",
+            "scope": "participant_contract",
             "prior_arm": arm,
-            "error": list(_sequence(summary.get("qualification", {}).get("failed_checks"))),
+            "error": error,
         }
-        for arm, (_, summary) in summaries.items()
-        if summary.get("completed") is not True
+        for arm, errors in participant_contract_errors.items()
+        for error in errors
+    )
+    truth_exact = _truth_replay_count(truth_report)
+    truth_denominators = {
+        "truth_query_count": truth_report.get("truth_query_count"),
+        "completed_truth_query_count": truth_report.get("completed_truth_query_count"),
+        "failed_truth_query_count": truth_report.get("failed_truth_query_count"),
+        "truth_exact_replay_count": truth_exact,
+        "evaluator_provider_call_count": truth_report.get("evaluator_provider_call_count"),
+    }
+    expected_truth_denominators = {
+        "truth_query_count": held_out_query_count,
+        "completed_truth_query_count": held_out_query_count,
+        "failed_truth_query_count": 0,
+        "truth_exact_replay_count": held_out_query_count,
+        "evaluator_provider_call_count": 0,
+    }
+    failures.extend(
+        {
+            "scope": "truth_denominator",
+            "error": f"{field}={observed!r}, expected {expected_truth_denominators[field]!r}",
+        }
+        for field, observed in truth_denominators.items()
+        if observed != expected_truth_denominators[field]
     )
     evaluator_truth = _mapping(truth_report.get("truth"))
     opaque_initial_model = _mapping(
@@ -838,7 +976,7 @@ def main() -> int:
                 if _scientific_trajectory_complete(summary, expected_experiment_count)
                 else "failed"
             ),
-            snapshot_stages=[str(stage) for stage in _sequence(config.get("snapshot_stages"))],
+            snapshot_stages=expected_snapshot_stages,
         )
         pre_snapshot = _snapshot(analysis, "pre_evidence")
         final_snapshot = _final_snapshot(analysis)
@@ -877,6 +1015,8 @@ def main() -> int:
         blind_targets = _sequence(blind_contract.get("blind_targets_per_cell"))
         blind_replicates = int(blind_contract.get("blind_replicates_per_target", 0))
         blind_scheduled = len(blind_targets) * blind_replicates
+        if blind_scheduled != 6:
+            raise ValueError("initial-model pilot requires six blind executions per cell")
         blind_skip_reason = _blind_skip_reason(summary, expected_experiment_count)
         if blind_skip_reason is None:
             print(
@@ -911,6 +1051,32 @@ def main() -> int:
             blind_exact = 0
             blind_status = f"not_executed_{blind_skip_reason}"
             failures.append({"scope": "blind", "prior_arm": arm, "error": blind_skip_reason})
+        blind_denominators = {
+            "scheduled_execution_count": blind_report.get("scheduled_execution_count"),
+            "completed_execution_count": blind_report.get("completed_execution_count"),
+            "exact_replay_count": blind_exact,
+            "evaluator_provider_call_count": blind_report.get(
+                "evaluator_provider_call_count", 0 if blind_skip_reason is not None else None
+            ),
+        }
+        expected_blind_denominators = {
+            "scheduled_execution_count": blind_scheduled,
+            "completed_execution_count": blind_scheduled,
+            "exact_replay_count": blind_scheduled,
+            "evaluator_provider_call_count": 0,
+        }
+        failures.extend(
+            {
+                "scope": "blind_denominator",
+                "prior_arm": arm,
+                "error": (
+                    f"{field}={observed!r}, expected "
+                    f"{expected_blind_denominators[field]!r}"
+                ),
+            }
+            for field, observed in blind_denominators.items()
+            if observed != expected_blind_denominators[field]
+        )
         total_blind_exact += blind_exact
         print(
             json.dumps(
@@ -1105,9 +1271,20 @@ def main() -> int:
         "schema_version": REPORT_VERSION,
         "analysis_date": "2026-08-11",
         "formal_result": False,
+        "execution_mode": args.execution_mode,
+        # This evaluator does not yet consume a release manifest.  Cleanliness alone is
+        # insufficient to promote either development or release-mode output.
+        "release_eligible": False,
         "status": "passed" if not failures else "failed_retained",
         "source_commit": git_source_commit(ROOT),
-        "c2_source_binding": build_c2_source_binding(ROOT),
+        "c2_source_binding": (
+            build_c2_source_binding(ROOT)
+            if args.execution_mode == ExecutionMode.RELEASE.value
+            else {
+                "status": "development_shakedown_not_release_eligible",
+                "global_material_binding_generated": False,
+            }
+        ),
         "participant_source_commit": matrix.get("source_commit"),
         "participant_run": {
             "path": participant_root.relative_to(ROOT).as_posix(),
@@ -1154,7 +1331,7 @@ def main() -> int:
             ),
             "truth_query_count": truth_report.get("truth_query_count"),
             "truth_completed_query_count": truth_report.get("completed_truth_query_count"),
-            "truth_exact_replay_count": _truth_replay_count(truth_report),
+            "truth_exact_replay_count": truth_exact,
             "blind_scheduled_execution_count": sum(
                 int(row["blind_scheduled_execution_count"]) for row in cells
             ),

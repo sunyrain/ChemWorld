@@ -498,6 +498,10 @@ def _stage_status_errors(
     errors: list[str] = []
     if stage not in C2_TASK_STAGE_ORDER:
         return [f"unsupported C2 task-admission stage: {stage}"]
+    if report.get("execution_mode") == ExecutionMode.DEVELOPMENT.value:
+        errors.append(f"{stage} development report cannot support terminal admission")
+    if report.get("release_eligible") is False:
+        errors.append(f"{stage} non-release report cannot support terminal admission")
     schema = report.get("schema_version")
     qualification_schema = report.get("qualification_schema_version")
     if not isinstance(schema, str) or not any(

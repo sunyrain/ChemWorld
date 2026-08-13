@@ -1,6 +1,6 @@
 # Work II independent A-P terminal D1 readiness
 
-Status: provider-free design gate; provider execution is not authorized.
+Status: development provider execution authorized; formal/R5 execution remains unauthorized.
 
 ## Question and coverage
 
@@ -31,3 +31,24 @@ namespace. This is C2 terminal-admission preparation, not a W2-26 prerequisite.
 
 One machine-readable readiness summary and static configs only for eligible tasks. A blocked task has
 no generated config. No provider call, participant outcome or terminal admission is produced here.
+
+## Development execution handoff
+
+The two ready seed-2 rows deterministically generate separate development execution configs. This
+handoff only fills the runner's resource, recovery and write-once lifecycle fields; it does not
+change the selected worlds, priors, measurements, rounds or scientific pass rules. It does unify
+runtime failure retention and lifecycle semantics. A synthetic zero-provider three-cell/ten-round
+evaluator shakedown must pass for both tasks before provider authorization.
+
+Provider execution then requires one explicit user authorization naming the exact two task blocks,
+their output roots, six initial provider sessions, 60 complete experiments, explicit credential-use
+authorization and either a positive USD ceiling or explicit unlimited-spend authorization. Development execution remains non-formal and cannot be
+used for R5 or C2 admission without its terminal reports and the later common release freeze.
+
+On 2026-08-13 the user authorized unlimited provider spend and fixed the development execution
+order to DeepSeek `deepseek-v4-flash` first, followed only after terminal retention by WellAU
+`gpt-5.6-sol`. Each provider block independently contains the same two seed-2 tasks, three prior
+arms, ten complete experiments and five belief checkpoints. The hard two-attempt-per-cell
+infrastructure rule remains in force despite unlimited spend; scientific failures are retained and
+never retried for a more favorable outcome. Existing provider credentials were explicitly
+authorized for use; no credential material or raw provider response enters Git.

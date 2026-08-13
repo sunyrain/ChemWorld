@@ -23,6 +23,10 @@ from chemworld.eval.provenance import (
     git_worktree_dirty,
     write_json_atomic,
 )
+from chemworld.eval.work_ii_ap_d1_development import (
+    build_ap_d1_development_cost_budget,
+    validate_ap_d1_development_authorization,
+)
 from chemworld.eval.work_ii_d1_execution import (
     D1_EXECUTION_CONTRACT,
     D1CellStore,
@@ -195,47 +199,84 @@ def _execution_scope(seeds: list[int]) -> str:
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    if git_worktree_dirty(ROOT):
-        raise RuntimeError("provider execution requires a clean committed worktree")
-    if args.readiness_receipt is None:
-        raise RuntimeError("provider execution requires a zero-provider readiness receipt")
-    if getattr(args, "release_manifest", None) is None:
-        raise RuntimeError("provider execution requires a release manifest")
     seeds = [int(seed) for seed in args.world_seed]
     config_path = args.config.resolve()
     config = json.loads(config_path.read_text(encoding="utf-8"))
     if not isinstance(config, dict):
         raise ValueError("campaign config must contain an object")
-    release_errors = validate_release_d1_config(
-        ROOT,
-        config,
-        args.release_manifest.resolve(),
-        require_provider_authorized=True,
-    )
-    if release_errors:
-        raise RuntimeError("provider release D1 validation failed: " + "; ".join(release_errors))
-    evidence_errors = validate_d1_qualification_evidence(ROOT, config)
-    if evidence_errors:
-        raise RuntimeError(
-            "provider D1 qualification evidence failed: " + "; ".join(evidence_errors)
-        )
-    readiness_errors = validate_development_readiness_receipt(
-        ROOT,
-        args.readiness_receipt.resolve(),
-        config_path,
-        seeds,
-        release_manifest=args.release_manifest.resolve(),
-    )
-    if readiness_errors:
-        raise RuntimeError("provider readiness failed: " + "; ".join(readiness_errors))
     output = args.output.resolve()
     progress = args.progress_file.resolve()
+    ap_development = bool(getattr(args, "ap_development_execution", False))
+    ap_authorization: dict[str, Any] | None = None
+    if ap_development:
+        if len(seeds) != 1:
+            raise RuntimeError("A-P development D1 executes exactly one seed triplet")
+        if seeds != [int(config.get("world_seed", -1))]:
+            raise RuntimeError("A-P development D1 seed differs from its config")
+        if getattr(args, "release_manifest", None) is not None or getattr(
+            args, "readiness_receipt", None
+        ) is not None:
+            raise RuntimeError("A-P development D1 cannot also use release gates")
+        if getattr(args, "ap_development_authorization", None) is None or getattr(
+            args, "ap_development_readiness", None
+        ) is None:
+            raise RuntimeError(
+                "A-P development D1 requires explicit authorization and readiness"
+            )
+        ap_authorization, ap_errors = validate_ap_d1_development_authorization(
+            ROOT,
+            args.ap_development_authorization.resolve(),
+            config_path=config_path,
+            output_root=output,
+            readiness_path=args.ap_development_readiness.resolve(),
+        )
+        if ap_errors:
+            raise RuntimeError(
+                "A-P development D1 authorization failed: " + "; ".join(ap_errors)
+            )
+        ap_cost_budget = (
+            None
+            if ap_authorization.get("spending_limit") == "unlimited"
+            else build_ap_d1_development_cost_budget(ROOT, ap_authorization)
+        )
+    else:
+        ap_cost_budget = None
+        if git_worktree_dirty(ROOT):
+            raise RuntimeError("provider execution requires a clean committed worktree")
+        if args.readiness_receipt is None:
+            raise RuntimeError("provider execution requires a zero-provider readiness receipt")
+        if getattr(args, "release_manifest", None) is None:
+            raise RuntimeError("provider execution requires a release manifest")
+        release_errors = validate_release_d1_config(
+            ROOT,
+            config,
+            args.release_manifest.resolve(),
+            require_provider_authorized=True,
+        )
+        if release_errors:
+            raise RuntimeError(
+                "provider release D1 validation failed: " + "; ".join(release_errors)
+            )
+        evidence_errors = validate_d1_qualification_evidence(ROOT, config)
+        if evidence_errors:
+            raise RuntimeError(
+                "provider D1 qualification evidence failed: "
+                + "; ".join(evidence_errors)
+            )
+        readiness_errors = validate_development_readiness_receipt(
+            ROOT,
+            args.readiness_receipt.resolve(),
+            config_path,
+            seeds,
+            release_manifest=args.release_manifest.resolve(),
+        )
+        if readiness_errors:
+            raise RuntimeError("provider readiness failed: " + "; ".join(readiness_errors))
     resume = bool(getattr(args, "resume", False))
     if output.exists() and not resume:
         raise FileExistsError(f"refusing to overwrite provider output: {output}")
     if not output.exists() and resume:
         raise FileNotFoundError("D1 missing-only resume requires an existing output root")
-    output.mkdir(parents=True, exist_ok=resume)
     if not isinstance(config, dict) or not isinstance(config.get("prior_arms"), dict):
         raise ValueError("campaign config must define prior_arms")
     provider = config.get("provider")
@@ -259,6 +300,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("campaign config must freeze execution.max_concurrency=3")
     if int(args.max_concurrency) != 3:
         raise ValueError("the frozen execution requires max_concurrency=3")
+    # Do not materialize a run root until every pre-provider gate, including
+    # credential availability, has passed.  A rejected launch remains a clean
+    # retry rather than an empty output that requires manual repair.
+    output.mkdir(parents=True, exist_ok=resume)
     execution_scope = _execution_scope(seeds)
     total_cells = len(seeds) * 3
     store = D1CellStore(
@@ -311,9 +356,46 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             for arm in sorted(active_arms, key=arms.index):
                 key = store.key(seed, arm)
                 attempt_id = uuid4().hex
-                store.record_provider_attempt_launch(key, attempt_id=attempt_id)
                 attempt_root = output / "attempts" / key / attempt_id
                 log_path = output / "logs" / key / f"{attempt_id}.log"
+                attempt_receipt = store.provider_attempts / key / f"{attempt_id}.json"
+                cost_ledger = output / "cost_ledgers" / key / f"{attempt_id}.json"
+                if ap_development:
+                    audit = store.audit()
+                    launched = int(audit["provider_attempt_count"]) + 1
+                    if ap_cost_budget is None:
+                        ledger_payload = {
+                            "state": "user_authorized_unlimited_spend_before_provider_launch",
+                            "task_id": config["task_id"],
+                            "cell_key_sha256": key,
+                            "attempt_id": attempt_id,
+                            "provider_attempt_count_for_task": launched,
+                            "within_authorized_ceiling": True,
+                            "currency": "USD",
+                            "currency_ceiling_usd": None,
+                        }
+                    else:
+                        task_budget = ap_cost_budget["per_task"][str(config["task_id"])]
+                        per_attempt_cost = float(task_budget["per_attempt_cost_cap_usd"])
+                        task_reserved = round(launched * per_attempt_cost, 12)
+                        task_ceiling = float(task_budget["all_attempts_cost_cap_usd"])
+                        if task_reserved > task_ceiling:
+                            raise RuntimeError("A-P development task cost reservation exceeded")
+                        ledger_payload = {
+                            "state": "full_token_cap_reserved_before_provider_launch",
+                            "task_id": config["task_id"],
+                            "cell_key_sha256": key,
+                            "attempt_id": attempt_id,
+                            "provider_attempt_count_for_task": launched,
+                            "reserved_cost_usd_for_task": task_reserved,
+                            "authorized_cost_cap_usd_for_task": task_ceiling,
+                            "within_authorized_ceiling": True,
+                        }
+                    write_json_atomic(
+                        cost_ledger,
+                        ledger_payload,
+                    )
+                store.record_provider_attempt_launch(key, attempt_id=attempt_id)
                 child_progress = progress.with_name(f"{progress.stem}-seed-{seed}-{arm}.jsonl")
                 command = [
                     sys.executable,
@@ -328,9 +410,30 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     str(seed),
                     "--prior-arm",
                     arm,
-                    "--release-manifest",
-                    str(args.release_manifest.resolve()),
                 ]
+                if ap_development:
+                    command.extend(
+                        [
+                            "--ap-development-execution",
+                            "--ap-development-authorization",
+                            str(args.ap_development_authorization.resolve()),
+                            "--ap-development-readiness",
+                            str(args.ap_development_readiness.resolve()),
+                            "--ap-development-authorized-output-root",
+                            str(output),
+                            "--ap-development-attempt-receipt",
+                            str(attempt_receipt),
+                            "--ap-development-cost-ledger",
+                            str(cost_ledger),
+                        ]
+                    )
+                else:
+                    command.extend(
+                        [
+                            "--release-manifest",
+                            str(args.release_manifest.resolve()),
+                        ]
+                    )
                 kwargs: dict[str, Any] = {}
                 if os.name == "nt":
                     kwargs["creationflags"] = getattr(subprocess, "CREATE_NO_WINDOW", 0)
@@ -594,9 +697,26 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
-        "execution_context": dict(config["execution_context"]),
-        "legacy_source_evidence": config.get("legacy_source_evidence"),
+        "execution_context": (
+            None if ap_development else dict(config["execution_context"])
+        ),
+        "legacy_source_evidence": (
+            None if ap_development else config.get("legacy_source_evidence")
+        ),
         "provider_execution_authorized": True,
+        "development_only": ap_development,
+        "formal_result": False,
+        "formal_r5_authorized": False,
+        "ap_development_authorization": (
+            {
+                "approved_at": ap_authorization.get("approved_at"),
+                "authorized_by": "user",
+                "currency": ap_authorization.get("currency"),
+                "currency_ceiling_usd": ap_authorization.get("currency_ceiling_usd"),
+            }
+            if ap_authorization is not None
+            else None
+        ),
         "task_id": config.get("task_id"),
         "provider_id": provider.get("id"),
         "model": provider.get("model"),
@@ -655,8 +775,11 @@ def main() -> int:
     )
     parser.add_argument("--heartbeat-interval-s", type=float, default=30.0)
     parser.add_argument("--max-concurrency", type=int, default=3)
-    parser.add_argument("--readiness-receipt", type=Path, required=True)
-    parser.add_argument("--release-manifest", type=Path, required=True)
+    parser.add_argument("--readiness-receipt", type=Path)
+    parser.add_argument("--release-manifest", type=Path)
+    parser.add_argument("--ap-development-execution", action="store_true")
+    parser.add_argument("--ap-development-authorization", type=Path)
+    parser.add_argument("--ap-development-readiness", type=Path)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     report = run(args)

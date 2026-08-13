@@ -21,6 +21,11 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
+from chemworld.eval.work_ii_ap_d1_development import (
+    DEFAULT_AP_D1_READINESS,
+    validate_and_claim_ap_d1_development_attempt,
+    validate_ap_d1_development_authorization,
+)
 from chemworld.eval.work_ii_blind import (
     build_blind_evaluation_plan,
     effective_blind_evaluator_contract,
@@ -411,6 +416,116 @@ def _release_d1_execution_context(
             "provider D1 qualification evidence failed: " + "; ".join(evidence_errors)
         )
     return manifest_path
+
+
+def _ap_development_execution_context(
+    args: argparse.Namespace,
+    *,
+    config_path: Path,
+    config: Mapping[str, Any],
+    output: Path,
+) -> dict[str, Any] | None:
+    """Authorize one child only through the explicit development D1 contract."""
+
+    execute = bool(getattr(args, "ap_development_execution", False))
+    authorization_value = getattr(args, "ap_development_authorization", None)
+    readiness_value = getattr(args, "ap_development_readiness", None)
+    authorized_root_value = getattr(
+        args, "ap_development_authorized_output_root", None
+    )
+    attempt_receipt_value = getattr(args, "ap_development_attempt_receipt", None)
+    cost_ledger_value = getattr(args, "ap_development_cost_ledger", None)
+    if not execute:
+        if any(
+            value is not None
+            for value in (
+                authorization_value,
+                readiness_value,
+                authorized_root_value,
+                attempt_receipt_value,
+                cost_ledger_value,
+            )
+        ):
+            raise RuntimeError(
+                "A-P development authorization inputs require "
+                "--ap-development-execution"
+            )
+        return None
+    if any(
+        value is None
+        for value in (
+            authorization_value,
+            readiness_value,
+            authorized_root_value,
+            attempt_receipt_value,
+            cost_ledger_value,
+        )
+    ):
+        raise RuntimeError(
+            "A-P development execution requires authorization, readiness and "
+            "the authorized parent output root"
+        )
+    if any(
+        getattr(args, field, None) is not None
+        for field in (
+            "release_manifest",
+            "formal_manifest",
+            "qualification_authorization",
+            "resource_calibration_authorization",
+        )
+    ) or bool(getattr(args, "qualification_execution", False)) or bool(
+        getattr(args, "resource_calibration_execution", False)
+    ):
+        raise RuntimeError("A-P development execution cannot cross another execution mode")
+    authorization_path = Path(authorization_value).resolve()
+    readiness_path = Path(readiness_value).resolve()
+    authorized_root = Path(authorized_root_value).resolve()
+    authorization, errors = validate_ap_d1_development_authorization(
+        ROOT,
+        authorization_path,
+        config_path=config_path,
+        output_root=authorized_root,
+        readiness_path=readiness_path,
+    )
+    if errors:
+        raise RuntimeError(
+            "A-P development D1 authorization failed: " + "; ".join(errors)
+        )
+    if not output.resolve().is_relative_to(authorized_root):
+        raise RuntimeError("A-P development child output escapes its authorized root")
+    if getattr(args, "prior_arm", None) is None:
+        raise RuntimeError("A-P development child requires one parent-scheduled arm")
+    try:
+        attempt_claim = validate_and_claim_ap_d1_development_attempt(
+            ROOT,
+            config_path=config_path,
+            output_root=authorized_root,
+            attempt_output=output,
+            attempt_receipt_path=Path(attempt_receipt_value).resolve(),
+            cost_ledger_path=Path(cost_ledger_value).resolve(),
+            world_seed=int(args.world_seed),
+            arm=str(args.prior_arm),
+        )
+    except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
+        raise RuntimeError(f"A-P development attempt gate failed: {error}") from error
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    if (
+        config.get("formal_result") is not False
+        or qualification.get("formal_r5_authorized") is not False
+        or qualification.get("execution_authorized") is not False
+    ):
+        raise RuntimeError("A-P development config crossed its non-formal boundary")
+    return {
+        "authorization_path": str(authorization_path),
+        "approved_at": authorization["approved_at"],
+        "authorized_by": "user",
+        "currency": authorization["currency"],
+        "currency_ceiling_usd": authorization["currency_ceiling_usd"],
+        "formal_result": False,
+        "formal_r5_authorized": False,
+        "attempt_claim": attempt_claim,
+    }
 
 
 def _progress(path: Path, payload: Mapping[str, Any]) -> None:
@@ -1011,11 +1126,24 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     if qualification_context is not None and calibration_context is not None:
         raise RuntimeError("one child cannot be both qualification and resource calibration")
+    ap_development_context = _ap_development_execution_context(
+        args,
+        config_path=config_path,
+        config=config,
+        output=output,
+    )
+    if ap_development_context is not None and (
+        formal_context is not None
+        or qualification_context is not None
+        or calibration_context is not None
+    ):
+        raise RuntimeError("A-P development D1 must be the only execution mode")
     release_manifest_path = None
     if (
         formal_context is None
         and qualification_context is None
         and calibration_context is None
+        and ap_development_context is None
     ):
         release_manifest_path = _release_d1_execution_context(args, config=config)
     if args.prior_arm is not None:
@@ -1106,7 +1234,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if release_manifest_path is not None
             else None
         ),
-        "provider_execution_authorized": release_manifest_path is not None,
+        "provider_execution_authorized": (
+            release_manifest_path is not None or ap_development_context is not None
+        ),
+        "development_only": ap_development_context is not None,
         "release_manifest": (
             {
                 "path": release_manifest_path.relative_to(ROOT.resolve()).as_posix(),
@@ -1125,6 +1256,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "resource_calibration_execution_binding": (
             calibration_context[2] if calibration_context is not None else None
         ),
+        "ap_development_execution_authorized": ap_development_context is not None,
+        "ap_development_authorization": ap_development_context,
         "config_sha256": canonical_json_sha256(config),
         "config_file_sha256": file_sha256(config_path),
         "world_seed": world_seed,
@@ -1157,6 +1290,17 @@ def main() -> int:
     parser.add_argument("--resource-calibration-manifest", type=Path)
     parser.add_argument("--resource-calibration-authorization", type=Path)
     parser.add_argument("--resource-calibration-cost-reservation", type=Path)
+    parser.add_argument("--ap-development-execution", action="store_true")
+    parser.add_argument("--ap-development-authorization", type=Path)
+    parser.add_argument(
+        "--ap-development-readiness",
+        type=Path,
+        default=None,
+        help=f"defaults conceptually to {DEFAULT_AP_D1_READINESS}",
+    )
+    parser.add_argument("--ap-development-authorized-output-root", type=Path)
+    parser.add_argument("--ap-development-attempt-receipt", type=Path)
+    parser.add_argument("--ap-development-cost-ledger", type=Path)
     args = parser.parse_args()
     report = run(args)
     print(
