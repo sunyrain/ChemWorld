@@ -332,10 +332,6 @@ def materialize_task_resource_caps(
     resources.update(
         {
             "operation_limit": int(caps["operation_attempt_limit"]),
-            # The formal method owns one scientific thread.  A transport or
-            # context-cap continuation remains part of that same thread but
-            # is a second accepted model call in the resource ledger.
-            "model_call_limit": 2,
             "input_token_limit": int(caps["input_token_limit"]),
             "uncached_input_token_limit": int(caps["uncached_input_token_limit"]),
             "output_token_limit": int(caps["output_token_limit"]),
@@ -347,8 +343,6 @@ def materialize_task_resource_caps(
     provider["session_wall_time_limit_s"] = float(
         caps["provider_wall_time_limit_s"]
     )
-    provider["accepted_turn_continuation_limit"] = 1
-    provider["provider_process_attempt_limit"] = 3
     if all(field in caps for field in OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS):
         provider["max_recovered_mcp_tool_failures"] = int(
             caps["max_recovered_mcp_tool_failures"]
