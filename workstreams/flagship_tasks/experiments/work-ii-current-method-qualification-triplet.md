@@ -1,6 +1,6 @@
 # Work II current-method qualification triplet
 
-Status: prepared; provider execution not yet authorized.
+Status: completed and passed on 2026-08-14; development qualification only.
 
 ## Question
 
@@ -46,3 +46,15 @@ replay semantics before any formal participant outcome is collected?
 - Machine-readable qualification receipt binding the provider contract, pricing, token use,
   resource/replay audits and observed ETA.
 - A concise human-readable qualification summary; raw provider responses remain outside Git.
+
+## Result
+
+The frozen triplet completed without replacement or retry. All three arms reached `8/8` complete
+experiments and all five registered checkpoints (`24/24` experiments and `15/15` checkpoints in
+total). Each arm used one provider attempt, with zero provider or infrastructure failures. Exact
+replay passed for all three arms (`48` validated steps per arm, zero mismatches), and the terminal
+qualification receipt passed with zero validation errors.
+
+This closes only the current-method harness/lifecycle/replay gate. The run is excluded from every
+scientific denominator and does not authorize formal participant execution. The incomplete W2-26
+nine-task resource-calibration block and the release authorization remain separate gates.
