@@ -8,6 +8,7 @@ from typing import Any, TextIO
 
 from chemworld.agents.experiment_codex_ipc import ExperimentCodexWorkspace
 from chemworld.agents.experiment_codex_mcp import (
+    BELIEF_SNAPSHOT_SHAPE_GUIDE,
     MCP_SERVER_VERSION,
     SUPPORTED_TOOLS,
     ChemWorldMCPServer,
@@ -319,6 +320,19 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
         assert (
             "sole executable schema authority" in by_name["commit_belief_snapshot"]["description"]
         )
+        assert BELIEF_SNAPSHOT_SHAPE_GUIDE in by_name["commit_belief_snapshot"]["description"]
+        assert snapshot["description"] == BELIEF_SNAPSHOT_SHAPE_GUIDE
+        assert prediction_variant["title"] == "Held-out query prediction for q0"
+        assert prediction_variant["properties"]["metrics"]["items"]["required"] == [
+            "metric_id",
+            "mean",
+            "interval_lower",
+            "interval_upper",
+            "confidence",
+        ]
+        law_item = metric_laws["items"]
+        assert law_item["title"] == "Executable metric law"
+        assert "terms:[] is valid" in law_item["properties"]["terms"]["description"]
         assert "checkpoint_due=true" in by_name["step"]["description"]
         recommendation = by_name["commit_final_recommendation"]["inputSchema"]
         assert recommendation["properties"]["selected_experiment_index"]["maximum"] == 4

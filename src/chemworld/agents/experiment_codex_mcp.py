@@ -28,7 +28,7 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_belief_snapshot,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.9"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.10"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
@@ -42,6 +42,25 @@ SUPPORTED_TOOLS = (
 )
 ATOMIC_REPLACE_RETRY_LIMIT = 40
 ATOMIC_REPLACE_RETRY_INTERVAL_S = 0.025
+
+BELIEF_SNAPSHOT_SHAPE_GUIDE = (
+    "Required nested argument shape (names are literal; brackets mean JSON arrays): "
+    "snapshot={schema_version,snapshot_id,stage,"
+    "prior_assessment={nominal_information_available,reliability_probability,"
+    "suspected_misindexed_fields,rationale},"
+    "predictions:[{query_id,metrics:[{metric_id,mean,interval_lower,interval_upper,"
+    "confidence}]}],"
+    "law_summary={schema_version,summary_id,feature_ids,"
+    "metric_laws:[{metric_id,intercept,link,lower_bound,upper_bound,"
+    "terms:[{term_id,basis,input_ids,coefficient,category_value?}]}],"
+    "evidence_ids,applicability,limitations,confidence},"
+    "evidence_ids,next_experiment_intent,overall_confidence}. "
+    "predictions and metrics are both arrays; do not flatten metric names or values into a "
+    "prediction object. metric_laws is an array; each law uses metric_id plus executable "
+    "numeric fields, not metric/relation prose. An initial law may use terms:[]; when terms "
+    "are present, input_ids is an array. Use the exact required IDs, counts, enums, and types "
+    "from inputSchema."
+)
 
 
 def _encode(value: Any) -> bytes:
@@ -1081,12 +1100,26 @@ class ChemWorldMCPServer:
         nominal = bool(contract.get("nominal_information_available"))
         probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
         law_term_common = {
+            "title": "Executable law term",
+            "description": (
+                "One typed law term. input_ids is always an array; category_value is the only "
+                "optional field."
+            ),
             "type": "object",
             "properties": {
-                "term_id": {"type": "string", "minLength": 1, "maxLength": 200},
-                "basis": {"enum": sorted(WORK_II_LAW_BASES)},
+                "term_id": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "description": "Participant-chosen non-empty identifier for this term.",
+                },
+                "basis": {
+                    "enum": sorted(WORK_II_LAW_BASES),
+                    "description": "Executable basis selected from this enum.",
+                },
                 "input_ids": {
                     "type": "array",
+                    "description": "One or two feature IDs; submit a JSON array, not a scalar.",
                     "items": {"enum": feature_ids},
                     "minItems": 1,
                     "maxItems": 2,
@@ -1101,6 +1134,11 @@ class ChemWorldMCPServer:
 
         def metric_prediction(allowed_ids: list[str]) -> dict[str, Any]:
             return {
+                "title": "Held-out metric prediction",
+                "description": (
+                    "Exactly these five fields: metric_id, mean, interval_lower, "
+                    "interval_upper, and confidence."
+                ),
                 "type": "object",
                 "properties": {
                     "metric_id": {"enum": allowed_ids},
@@ -1124,6 +1162,11 @@ class ChemWorldMCPServer:
             query_metrics = [str(item) for item in raw_query_metrics]
             prediction_variants.append(
                 {
+                    "title": f"Held-out query prediction for {query_id}",
+                    "description": (
+                        "Exactly two fields: query_id and metrics. metrics must remain a nested "
+                        "array of typed metric-prediction objects."
+                    ),
                     "type": "object",
                     "properties": {
                         "query_id": {"const": str(query_id)},
@@ -1144,12 +1187,19 @@ class ChemWorldMCPServer:
                 }
             )
         return {
+            "title": "Work II belief snapshot",
+            "description": BELIEF_SNAPSHOT_SHAPE_GUIDE,
             "type": "object",
             "properties": {
                 "schema_version": {"const": WORK_II_SNAPSHOT_SCHEMA_VERSION},
                 "snapshot_id": {"type": "string", "minLength": 1, "maxLength": 200},
                 "stage": {"enum": stages},
                 "prior_assessment": {
+                    "title": "Prior-information assessment",
+                    "description": (
+                        "Typed assessment of the supplied nominal information; all four listed "
+                        "fields are required."
+                    ),
                     "type": "object",
                     "properties": {
                         "nominal_information_available": {"const": nominal},
@@ -1172,8 +1222,9 @@ class ChemWorldMCPServer:
                 "predictions": {
                     "type": "array",
                     "description": (
-                        "Exactly one prediction object for every required query ID; duplicate "
-                        "query IDs are invalid."
+                        "A JSON array of {query_id, metrics:[...]} objects. Include exactly one "
+                        "object for every required query ID and exactly its required metric IDs; "
+                        "duplicate IDs and flattened named-metric fields are invalid."
                     ),
                     "minItems": len(query_ids),
                     "maxItems": len(query_ids),
@@ -1182,12 +1233,20 @@ class ChemWorldMCPServer:
                     "x-chemworld-query-metric-contract": query_contract,
                 },
                 "law_summary": {
+                    "title": "Executable law summary",
+                    "description": (
+                        "Typed executable laws. metric_laws is an array of law objects, never a "
+                        "mapping or prose relationship."
+                    ),
                     "type": "object",
                     "properties": {
                         "schema_version": {"const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION},
                         "summary_id": {"type": "string", "minLength": 1, "maxLength": 200},
                         "feature_ids": {
                             "type": "array",
+                            "description": (
+                                "Non-empty JSON array of feature IDs used by this summary."
+                            ),
                             "items": {"enum": feature_ids},
                             "minItems": 1,
                             "uniqueItems": True,
@@ -1202,6 +1261,11 @@ class ChemWorldMCPServer:
                             "maxItems": len(metric_ids),
                             "x-chemworld-required-ids": metric_ids,
                             "items": {
+                                "title": "Executable metric law",
+                                "description": (
+                                    "Exactly one metric law with numeric intercept and bounds. "
+                                    "terms is required and may be an empty array."
+                                ),
                                 "type": "object",
                                 "properties": {
                                     "metric_id": {"enum": metric_ids},
@@ -1211,6 +1275,10 @@ class ChemWorldMCPServer:
                                     "upper_bound": {"type": "number"},
                                     "terms": {
                                         "type": "array",
+                                        "description": (
+                                            "JSON array of executable term objects; terms:[] is "
+                                            "valid when no feature term is asserted."
+                                        ),
                                         "maxItems": 64,
                                         "items": law_term_common,
                                     },
@@ -1386,7 +1454,8 @@ class ChemWorldMCPServer:
                     "campaign session. The host validates stage order, experiment-count location, "
                     "evidence references, held-out predictions, and executable law summary. This "
                     "tool's tools/list inputSchema is the sole executable schema authority; host "
-                    "filesystem reference paths are not participant-readable contracts."
+                    "filesystem reference paths are not participant-readable contracts. "
+                    f"{BELIEF_SNAPSHOT_SHAPE_GUIDE}"
                 ),
                 "inputSchema": {
                     "type": "object",
