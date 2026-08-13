@@ -163,6 +163,50 @@ def test_one_step_waits_without_terminal_fit_and_does_not_launch(
     assert not logs.exists()
 
 
+def test_missing_fit_output_starts_new_four_worker_group_from_zero(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _script_module()
+    fit = tmp_path / "fit"
+    pipeline = tmp_path / "pipeline"
+    logs = tmp_path / "logs"
+    monkeypatch.setattr(module, "ROOT", ROOT)
+    monkeypatch.setattr(
+        module, "validate_external_root", lambda _root, candidate: candidate.resolve()
+    )
+    monkeypatch.setattr(
+        module.subprocess,
+        "Popen",
+        lambda *args, **kwargs: pytest.fail("dry run must not launch"),
+    )
+
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=logs,
+            fit_output=fit,
+            contract=CONTRACT,
+            execute=False,
+        )
+    )
+
+    assert status == "ready"
+    assert command[1] == str(module.SHARD_GROUP_RUNNER)
+    assert command[command.index("--phase") + 1] == "classifier_fit"
+    assert command[command.index("--output") + 1] == str(fit.resolve())
+    assert command[command.index("--shard-root") + 1] == str(
+        (pipeline / ".classifier_fit-shard-group").resolve()
+    )
+    assert command[command.index("--shard-count") + 1] == "4"
+    assert "--import-prefix" not in command
+    assert command[command.index("--import-prefix-count") + 1] == "0"
+    event = json.loads(
+        (logs / "supervisor.jsonl").read_text(encoding="utf-8").splitlines()[-1]
+    )
+    assert event["event"] == "phase_ready"
+    assert event["execute"] is False
+
+
 def test_completed_fit_plans_validation_but_default_dry_run_does_not_launch(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -202,6 +246,54 @@ def test_completed_fit_plans_validation_but_default_dry_run_does_not_launch(
     )
     assert event["event"] == "phase_ready"
     assert event["execute"] is False
+
+
+def test_partial_fit_and_existing_fit_group_are_never_adopted_or_restarted(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _script_module()
+    fit = tmp_path / "partial-r1-fit"
+    fit.mkdir()
+    (fit / "plan.json").write_text("{}\n", encoding="utf-8")
+    pipeline = tmp_path / "pipeline-r2"
+    logs = tmp_path / "logs"
+    monkeypatch.setattr(
+        module, "validate_external_root", lambda _root, candidate: candidate.resolve()
+    )
+    monkeypatch.setattr(
+        module.subprocess,
+        "Popen",
+        lambda *args, **kwargs: pytest.fail("partial output must not launch or resume"),
+    )
+
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=logs,
+            fit_output=fit,
+            contract=CONTRACT,
+            execute=True,
+        )
+    )
+    assert status == "waiting"
+    assert command == ()
+    assert not (pipeline / ".classifier_fit-shard-group").exists()
+    assert not logs.exists()
+
+    fresh_fit = tmp_path / "fresh-r2-fit"
+    group = pipeline / ".classifier_fit-shard-group"
+    group.mkdir(parents=True)
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=logs,
+            fit_output=fresh_fit,
+            contract=CONTRACT,
+            execute=True,
+        )
+    )
+    assert status == "waiting"
+    assert command == ()
 
 
 def test_validation_execute_route_uses_four_worker_group_and_all_fit_evidence(

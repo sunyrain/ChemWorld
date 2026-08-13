@@ -68,6 +68,23 @@ class _FakeProcess:
         return self.code
 
 
+def test_classifier_fit_group_keeps_full_denominator_and_starts_from_zero(
+    tmp_path: Path,
+) -> None:
+    module = _script_module()
+    args = _args(tmp_path, "classifier_fit")
+    args.fit_report = None
+    args.fit_plan = None
+    args.fit_receipts = None
+
+    assert module._expected_receipts(args) == 14_400
+    workers, merge = module.build_group_commands(args)
+    assert len(workers) == 4
+    for command in (*workers, merge):
+        assert command[command.index("--import-prefix-count") + 1] == "0"
+        assert "--import-prefix" not in command
+
+
 def test_group_commands_pass_every_upstream_binding_to_workers_and_merge(
     tmp_path: Path,
 ) -> None:
