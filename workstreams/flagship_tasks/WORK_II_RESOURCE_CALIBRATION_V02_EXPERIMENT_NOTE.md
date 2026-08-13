@@ -26,6 +26,11 @@ recovery-episode totals and maximum consecutive episodes.
 - Every runtime config and authorization binds `agent_invalid_enforcement=measure_only` for W2-26
   only. Participant-invalid calls do not inherit the source config's uncalibrated 3/1 or 0/0 online
   cutoff. Ordinary qualification and formal execution retain their normal hard limits.
+- Every runtime config and authorization also binds `provider_error_enforcement=measure_only` for
+  W2-26 only. Provider errors remain counted and retained but do not force-kill the live calibration
+  session; any nonzero count still invalidates the affected triplet after receipt closure, produces
+  no resource card or authorization, and requires a full triplet restart. Ordinary qualification
+  and formal execution retain their source-config provider-error hard limits.
 - Raw invalid calls and submitted participant payloads remain in the receipt. The host never
   repairs, reorders, or substitutes participant content. A participant that never commits every
   required valid checkpoint or never closes the lifecycle remains a retained method failure.

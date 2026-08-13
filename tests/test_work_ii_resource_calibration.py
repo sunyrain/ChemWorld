@@ -1041,6 +1041,72 @@ def test_v02_manifest_has_the_exact_nine_task_locus_round_identities() -> None:
     }
 
 
+def test_v02_runtime_and_authorization_bind_provider_error_measure_only(
+    repo_tmp_path: Path,
+) -> None:
+    source = json.loads(
+        (ROOT / "configs/benchmark/work_ii_campaign_pilot.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    source["campaign"]["complete_experiments"] = 8
+    source["campaign"]["checkpoint_complete_experiments"] = [0, 2, 4, 6, 8]
+    source["method_resources"]["complete_experiment_limit"] = 8
+    source["method_resources"]["checkpoint_complete_experiments"] = [2, 4, 6, 8]
+    config = calibration_v02._materialize_runtime_config(
+        source,
+        locus="A_E",
+        task_id="electrochemical-conversion",
+        rounds=8,
+    )
+    identity = config["w2_26_runtime_identity"]
+    assert identity["agent_invalid_enforcement"] == "measure_only"
+    assert identity["provider_error_enforcement"] == "measure_only"
+    assert (
+        calibration_v02._config_errors(
+            config,
+            locus="A_E",
+            task_id="electrochemical-conversion",
+            rounds=8,
+        )
+        == []
+    )
+    missing = deepcopy(config)
+    del missing["w2_26_runtime_identity"]["provider_error_enforcement"]
+    assert calibration_v02._config_errors(
+        missing,
+        locus="A_E",
+        task_id="electrochemical-conversion",
+        rounds=8,
+    )
+
+    manifest_path, _manifest = _resolved_v02_e2e_manifest(repo_tmp_path)
+    authorization = calibration_v02.build_authorization(
+        ROOT,
+        manifest_path,
+        currency_ceiling_usd=None,
+        approved_at="2026-08-13T00:00:00Z",
+        pricing_source=None,
+        pricing_observed_at=None,
+        cache_hit_input_usd_per_million=None,
+        cache_miss_input_usd_per_million=None,
+        output_usd_per_million=None,
+        unlimited_spend_authorized=True,
+    )
+    assert authorization["runtime_enforcement"]["provider_error_enforcement"] == (
+        "measure_only"
+    )
+    assert calibration_v02.validate_authorization(
+        ROOT, authorization, manifest_path
+    ) == []
+    tampered = deepcopy(authorization)
+    del tampered["runtime_enforcement"]["provider_error_enforcement"]
+    tampered["authorization_sha256"] = calibration_v02.authorization_sha256(tampered)
+    assert "W2-26 authorization runtime contract is incomplete" in (
+        calibration_v02.validate_authorization(ROOT, tampered, manifest_path)
+    )
+
+
 def test_v02_pattern_slug_prevents_same_round_task_path_collisions() -> None:
     manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
     slugs = [calibration_v02.pattern_slug(row) for row in manifest["patterns"]]
@@ -1461,6 +1527,36 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
         == 2
     )
     assert calibration_v02.validate_summary(summary, manifest=manifest) == []
+
+    provider_defect_reports = deepcopy(reports)
+    affected_receipt = provider_defect_reports[0]["results"][0][
+        "provider_receipts"
+    ][0]
+    affected_receipt["provider_error_event_count"] = 2
+    affected_receipt["provider_errors"] = [
+        {"byte_count": 84, "sha256": "c" * 64}
+    ]
+    invalidated = calibration_v02.build_summary(
+        manifest,
+        provider_defect_reports,
+        source_commit="b" * 40,
+        observed_currency_usd_by_cell={},
+    )
+    affected_key = calibration_v02.pattern_key(manifest["patterns"][0])
+    assert invalidated["status"] == "invalidated_platform_defect"
+    assert invalidated["calibration_passed"] is False
+    assert invalidated["method_qualification_may_be_authorized"] is False
+    assert len(invalidated["resource_card_proposals"]) == 8
+    assert all(
+        calibration_v02.pattern_key(card["card_identity"]) != affected_key
+        for card in invalidated["resource_card_proposals"]
+    )
+    assert invalidated["pattern_summaries"][0]["triplet_passed"] is False
+    assert (
+        invalidated["pattern_summaries"][0]["platform_defect_detected"] is True
+    )
+    assert invalidated["cell_summaries"][0]["status"] == "platform_defect"
+    assert invalidated["all_failures"][0]["class"] == "platform_execution_failure"
 
 
 def _resolved_v02_e2e_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, object]]:

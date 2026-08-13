@@ -19,6 +19,7 @@ from scripts.run_work_ii_campaign_pilot import (
     _arm_material_information,
     _campaign_card,
     _checkpoint_contract,
+    _provider_error_online_limit,
     _qualification,
     _world_interventions,
 )
@@ -59,6 +60,24 @@ def test_agent_invalid_measure_only_is_resource_calibration_only() -> None:
     with pytest.raises(RuntimeError, match="not frozen"):
         _agent_invalid_online_limits(
             provider, agent_invalid_enforcement="ignore_failures"
+        )
+
+
+def test_provider_error_measure_only_is_resource_calibration_only() -> None:
+    provider = {"max_provider_error_events": 1}
+
+    assert _provider_error_online_limit(
+        provider, provider_error_enforcement=None
+    ) == 1
+    assert (
+        _provider_error_online_limit(
+            provider, provider_error_enforcement="measure_only"
+        )
+        is None
+    )
+    with pytest.raises(RuntimeError, match="not frozen"):
+        _provider_error_online_limit(
+            provider, provider_error_enforcement="ignore_failures"
         )
 
 
@@ -911,6 +930,42 @@ def test_cell_qualification_is_fail_closed() -> None:
     assert typed_operational[0]["maximum_consecutive_mcp_tool_failure_count"] == 4
     assert typed_qualification["passed"] is True
 
+    provider_error_receipt = deepcopy(typed_operational)
+    provider_error_receipt[0]["provider_error_event_count"] = 2
+    provider_error_receipt[0]["provider_errors"] = [
+        {"byte_count": 84, "sha256": "a" * 64}
+    ]
+    provider_error_qualification = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=provider_error_receipt,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        operational_limits={
+            "session_wall_time_limit_s": 1_800.0,
+            "max_recovered_mcp_tool_failures": 4,
+            "max_consecutive_mcp_tool_failures": 4,
+            "max_provider_error_events": 99,
+        },
+        provider_error_enforcement="measure_only",
+    )
+    assert provider_error_qualification["passed"] is False
+    assert provider_error_qualification["failed_checks"] == [
+        "provider_operational_limits_reconciled"
+    ]
+    assert provider_error_qualification["provider_error_operational_policy"] == {
+        "enforcement": "measure_only",
+        "online_interruption_disabled": True,
+        "post_session_zero_tolerance": True,
+        "observed_event_count": 2,
+        "passed": False,
+    }
+    assert provider_error_receipt[0]["provider_errors"] == [
+        {"byte_count": 84, "sha256": "a" * 64}
+    ]
+
     missing_operational_receipt = _qualification(
         analysis=analysis,
         exact_replay=replay,
@@ -930,6 +985,34 @@ def test_cell_qualification_is_fail_closed() -> None:
     assert missing_operational_receipt["failed_checks"] == [
         "provider_operational_limits_reconciled"
     ]
+
+    missing_measure_only_receipt = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=receipts,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        operational_limits={
+            "session_wall_time_limit_s": 1_800.0,
+            "max_recovered_mcp_tool_failures": 1,
+            "max_consecutive_mcp_tool_failures": 1,
+            "max_provider_error_events": 99,
+        },
+        provider_error_enforcement="measure_only",
+    )
+    assert missing_measure_only_receipt["passed"] is False
+    assert missing_measure_only_receipt["failed_checks"] == [
+        "provider_operational_limits_reconciled"
+    ]
+    assert missing_measure_only_receipt["provider_error_operational_policy"] == {
+        "enforcement": "measure_only",
+        "online_interruption_disabled": True,
+        "post_session_zero_tolerance": True,
+        "observed_event_count": None,
+        "passed": False,
+    }
 
 
 def test_repeated_heartbeats_preserve_current_cell_coordinate() -> None:

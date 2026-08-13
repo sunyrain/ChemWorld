@@ -101,6 +101,7 @@ EXPECTED_OBSERVED_DENOMINATORS = {
 PROTECTED_RESERVE_FRACTIONS = {"A_E": 0.15, "A_P": 0.15, "A_S": 0.20}
 MINIMUM_UNIQUE_RECIPES = {"A_E": 6, "A_P": 8, "A_S": 10}
 AGENT_INVALID_ENFORCEMENT_POLICY = "measure_only"
+PROVIDER_ERROR_ENFORCEMENT_POLICY = "measure_only"
 AGENT_INVALID_CAP_HEADROOM_MULTIPLIER = 1.2
 
 
@@ -211,6 +212,7 @@ def _materialize_runtime_config(
         "rounds": rounds,
         "protected_closeout_reserve_fraction": fraction,
         "agent_invalid_enforcement": AGENT_INVALID_ENFORCEMENT_POLICY,
+        "provider_error_enforcement": PROVIDER_ERROR_ENFORCEMENT_POLICY,
     }
     return config
 
@@ -264,6 +266,8 @@ def _config_errors(
         or runtime_identity.get("rounds") != rounds
         or runtime_identity.get("agent_invalid_enforcement")
         != AGENT_INVALID_ENFORCEMENT_POLICY
+        or runtime_identity.get("provider_error_enforcement")
+        != PROVIDER_ERROR_ENFORCEMENT_POLICY
     ):
         errors.append(f"{locus}/{task_id} lacks its enforced closeout design")
     return errors
@@ -739,6 +743,7 @@ def build_authorization(
         "unlimited_spend_authorized": unlimited_spend_authorized,
         "runtime_enforcement": {
             "agent_invalid_enforcement": AGENT_INVALID_ENFORCEMENT_POLICY,
+            "provider_error_enforcement": PROVIDER_ERROR_ENFORCEMENT_POLICY,
             "participant_payload_auto_repair": False,
             "raw_mcp_failures_retained": True,
             "per_cell_provider_attempt_hard_cap": 2,
@@ -838,6 +843,8 @@ def validate_authorization(
     if (
         runtime.get("agent_invalid_enforcement")
         != AGENT_INVALID_ENFORCEMENT_POLICY
+        or runtime.get("provider_error_enforcement")
+        != PROVIDER_ERROR_ENFORCEMENT_POLICY
         or runtime.get("participant_payload_auto_repair") is not False
         or runtime.get("raw_mcp_failures_retained") is not True
         or runtime.get("per_cell_provider_attempt_hard_cap") != 2
@@ -1421,7 +1428,8 @@ def build_summary(
             "proposed_hard_caps": caps,
         }
         card["card_sha256"] = canonical_json_sha256(card)
-        cards.append(card)
+        if triplet_passed:
+            cards.append(card)
     platform_defect = any(row["platform_defect_detected"] for row in pattern_rows)
     passed = (
         len(pattern_rows) == 9
@@ -1492,6 +1500,7 @@ __all__ = [
     "EXPECTED_OBSERVED_DENOMINATORS",
     "EXPECTED_PATTERN_KEYS",
     "MANIFEST_VERSION",
+    "PROVIDER_ERROR_ENFORCEMENT_POLICY",
     "READINESS_VERSION",
     "SUMMARY_VERSION",
     "authorization_sha256",
