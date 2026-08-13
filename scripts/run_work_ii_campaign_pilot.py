@@ -664,10 +664,11 @@ def _analyze(
     for row in records:
         action = dict(row.get("action", {}))
         actions.append(action)
-        if row.get("transaction_status") == "committed":
+        committed = row.get("transaction_status") == "committed"
+        if committed:
             committed_actions.append(action)
         is_final_assay = (
-            row.get("transaction_status") == "committed"
+            committed
             and row.get("operation_type") == "measure"
             and row.get("instrument") == "final_assay"
         )
@@ -685,6 +686,12 @@ def _analyze(
                     },
                 }
             )
+            actions = []
+            committed_actions = []
+        elif committed and row.get("operation_type") == "discard_batch":
+            # A discarded vessel is a closed lifecycle but not a completed
+            # experiment.  Never let its operations leak into the recipe hash
+            # of the fresh batch that follows.
             actions = []
             committed_actions = []
     snapshots = [item for receipt in receipts for item in receipt.get("belief_snapshots", [])]
@@ -747,6 +754,7 @@ def _analyze(
         else None
     )
     recipe_hashes = [str(item["recipe_sha256"]) for item in experiments]
+    campaign_terminal = final_campaign_resources.get("campaign_terminal") is True
     return {
         "operation_attempt_count": len(records),
         "committed_operation_count": sum(
@@ -755,7 +763,8 @@ def _analyze(
         "complete_experiment_count": len(experiments),
         "right_censored_open_experiment": bool(actions),
         "last_legal_action_count": last_legal_action_count,
-        "nonterminal_no_legal_actions": bool(actions)
+        "nonterminal_no_legal_actions": not campaign_terminal
+        and bool(actions)
         and last_legal_action_count == 0,
         "experiments": experiments,
         "unique_recipe_count": len(set(recipe_hashes)),

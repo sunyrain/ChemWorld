@@ -16,6 +16,7 @@ from scripts.evaluate_work_ii_catalyst_deactivation_paired_provider_campaigns im
 )
 from scripts.run_work_ii_campaign_pilot import (
     _agent_invalid_online_limits,
+    _analyze,
     _arm_initial_world_model,
     _arm_material_information,
     _campaign_card,
@@ -41,6 +42,76 @@ from chemworld.eval.work_ii_resource_calibration_v02 import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_analysis_closes_discarded_batch_without_polluting_next_recipe() -> None:
+    records = [
+        {
+            "action": {"operation": "add_catalyst", "catalyst": 1},
+            "operation_type": "add_catalyst",
+            "transaction_status": "committed",
+        },
+        {
+            "action": {"operation": "discard_batch", "reason": "abandon"},
+            "operation_type": "discard_batch",
+            "transaction_status": "committed",
+        },
+        {
+            "action": {"operation": "add_solvent", "volume_L": 0.02},
+            "operation_type": "add_solvent",
+            "transaction_status": "committed",
+        },
+        {
+            "action": {"operation": "measure", "instrument": "final_assay"},
+            "operation_type": "measure",
+            "instrument": "final_assay",
+            "transaction_status": "committed",
+            "leaderboard_score": 0.1,
+            "observation": {"score": 0.1},
+            "agent_view": {
+                "tool_json": {
+                    "available_actions": [],
+                    "campaign_state": {
+                        "campaign_resources": {"campaign_terminal": True}
+                    },
+                }
+            },
+        },
+    ]
+
+    analysis = _analyze(records, [], final_metric_ids=["score"])
+
+    assert analysis["complete_experiment_count"] == 1
+    assert analysis["right_censored_open_experiment"] is False
+    assert analysis["nonterminal_no_legal_actions"] is False
+    assert analysis["experiments"][0]["committed_operations"] == [
+        records[2]["action"],
+        records[3]["action"],
+    ]
+
+
+def test_analysis_does_not_call_terminal_empty_affordance_a_deadlock() -> None:
+    records = [
+        {
+            "action": {"operation": "add_catalyst", "catalyst": 1},
+            "operation_type": "add_catalyst",
+            "transaction_status": "committed",
+            "agent_view": {
+                "tool_json": {
+                    "available_actions": [],
+                    "campaign_state": {
+                        "campaign_resources": {"campaign_terminal": True}
+                    },
+                }
+            },
+        }
+    ]
+
+    analysis = _analyze(records, [], final_metric_ids=["score"])
+
+    assert analysis["right_censored_open_experiment"] is True
+    assert analysis["last_legal_action_count"] == 0
+    assert analysis["nonterminal_no_legal_actions"] is False
 
 
 def test_w226_operation_counts_have_no_historical_runner_fallback() -> None:
