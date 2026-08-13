@@ -67,10 +67,16 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = (
     ROOT / "runs/development/work-ii-partition-nominal-pair-q0-seed0-20260812"
 )
+RELEASE_OUTPUT_ROOT = ROOT / "runs/release/work-ii-partition-nominal-pair-q0"
 DEFAULT_SUMMARY = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
     / "work-ii-partition-nominal-pair-q0-seed0-20260812.json"
+)
+RELEASE_SUMMARY = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    / "work-ii-partition-release-nominal-pair-q0.json"
 )
 TOTAL_EXECUTIONS = len(registered_cells()) * len(LAW_IDS)
 NOMINAL_PAIR_TOTAL_EXECUTIONS = len(registered_nominal_pair_cells()) * len(LAW_IDS)
@@ -663,12 +669,17 @@ def main() -> int:
     )
     parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
+    if (
+        args.execution_mode == ExecutionMode.RELEASE.value
+        and args.output_root.resolve() == DEFAULT_OUTPUT_ROOT.resolve()
+    ):
+        args.output_root = RELEASE_OUTPUT_ROOT
     args.output_root = args.output_root.resolve()
     args.summary = (
         args.summary.resolve()
         if args.summary is not None
         else (
-            DEFAULT_SUMMARY
+            RELEASE_SUMMARY
             if args.execution_mode == ExecutionMode.RELEASE.value
             else args.output_root / "summary.json"
         ).resolve()

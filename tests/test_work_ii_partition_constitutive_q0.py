@@ -553,3 +553,34 @@ def test_cli_defaults_keep_development_summary_inside_ignored_output(
     assert args.execution_mode == "development"
     assert args.summary == output_root.resolve() / "summary.json"
     assert args.release_manifest is None
+
+
+def test_cli_release_defaults_do_not_overwrite_development_q0(monkeypatch: Any) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run(args: Any) -> dict[str, Any]:
+        captured["args"] = args
+        return {
+            "denominators": {"attempted": 36, "planned": 36},
+            "decision": "passed",
+            "elapsed_s": 0.0,
+            "analysis": {"passed": True},
+        }
+
+    monkeypatch.setattr(runner, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "partition-q0",
+            "--execution-mode",
+            "release",
+            "--release-manifest",
+            "release.json",
+        ],
+    )
+    assert runner.main() == 0
+    args = captured["args"]
+    assert args.output_root == runner.RELEASE_OUTPUT_ROOT.resolve()
+    assert args.summary == runner.RELEASE_SUMMARY.resolve()
+    assert args.summary != runner.DEFAULT_SUMMARY.resolve()

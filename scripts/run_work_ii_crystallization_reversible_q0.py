@@ -44,10 +44,16 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = (
     ROOT / "runs/development/work-ii-crystallization-reversible-q0-seed0-20260812"
 )
+RELEASE_OUTPUT_ROOT = ROOT / "runs/release/work-ii-crystallization-reversible-q0"
 DEFAULT_SUMMARY = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
     "work-ii-crystallization-reversible-topology-q0-seed0-20260812.json"
+)
+RELEASE_SUMMARY = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-crystallization-release-reversible-topology-q0.json"
 )
 
 
@@ -196,12 +202,17 @@ def main() -> int:
     )
     parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
+    if (
+        args.execution_mode == ExecutionMode.RELEASE.value
+        and args.output_root.resolve() == DEFAULT_OUTPUT_ROOT.resolve()
+    ):
+        args.output_root = RELEASE_OUTPUT_ROOT
     args.output_root = args.output_root.resolve()
     args.summary = (
         args.summary.resolve()
         if args.summary is not None
         else (
-            DEFAULT_SUMMARY
+            RELEASE_SUMMARY
             if args.execution_mode == ExecutionMode.RELEASE.value
             else args.output_root / "summary.json"
         ).resolve()

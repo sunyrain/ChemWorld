@@ -13,6 +13,10 @@ from scripts.run_work_ii_constitutive_structural_qualification import (
     BASE_CONFIGS,
     DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0,
     DEFAULT_DEVELOPMENT_PARTITION_Q0,
+    RELEASE_D1_PATHS,
+    RELEASE_OUTPUT_ROOT,
+    RELEASE_PACKAGE,
+    RELEASE_SUMMARY,
     _compile_actions,
     _d1_config,
     _load,
@@ -217,6 +221,14 @@ def test_progress_rejects_update_before_candidate_start(tmp_path: Path) -> None:
                 "status": "completed",
             }
         )
+
+
+def test_release_a_s_outputs_do_not_overwrite_development_calibration_inputs() -> None:
+    assert RELEASE_PACKAGE.parent == RELEASE_SUMMARY.parent
+    assert RELEASE_PACKAGE != runner.DEFAULT_PACKAGE
+    assert set(RELEASE_D1_PATHS.values()).isdisjoint(runner.D1_PATHS.values())
+    assert all(path.parent == RELEASE_SUMMARY.parent for path in RELEASE_D1_PATHS.values())
+    assert RELEASE_OUTPUT_ROOT != runner.DEFAULT_OUTPUT_ROOT
 
 
 def test_generated_a_s_evidence_is_outside_the_protected_source_tree() -> None:
@@ -644,6 +656,46 @@ def test_cli_defaults_keep_all_development_artifacts_under_runs(
     assert args.partition_q0_summary == DEFAULT_DEVELOPMENT_PARTITION_Q0.resolve()
     assert args.crystallization_q0_summary == (DEFAULT_DEVELOPMENT_CRYSTALLIZATION_Q0.resolve())
     assert "partition-nominal-pair-q0" in args.partition_q0_summary.as_posix()
+
+
+def test_cli_release_defaults_use_fresh_dynamic_outputs(monkeypatch: Any) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_run(args: Any) -> dict[str, Any]:
+        captured["args"] = args
+        return {
+            "denominators": {
+                "completed_primary_executions": 10_240,
+                "completed_exact_replays": 10_240,
+            },
+            "decision": "passed",
+            "elapsed_s": 0.0,
+            "all_candidates_passed": True,
+        }
+
+    monkeypatch.setattr(runner, "run", fake_run)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "strict-as",
+            "--execution-mode",
+            "release",
+            "--release-manifest",
+            "release.json",
+            "--progress-file",
+            "progress.jsonl",
+            "--status-file",
+            "status.json",
+        ],
+    )
+    assert runner.main() == 0
+    args = captured["args"]
+    assert args.output_root == RELEASE_OUTPUT_ROOT.resolve()
+    assert args.summary == RELEASE_SUMMARY.resolve()
+    assert args.package == RELEASE_PACKAGE.resolve()
+    assert args.summary != runner.DEFAULT_SUMMARY.resolve()
+    assert args.package != runner.DEFAULT_PACKAGE.resolve()
 
 
 def test_q0_binding_accepts_new_nominal_pair_and_rejects_old_summary(

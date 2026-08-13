@@ -71,10 +71,17 @@ from chemworld.world.scoring import PARTITION_S0_EXTRACTION_EFFICIENCY_V3
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_OUTPUT_ROOT = ROOT / "runs/development/work-ii-as-paired-law-q1-q2-20260812"
+RELEASE_OUTPUT_ROOT = ROOT / "runs/release/work-ii-as-paired-law-q1-q2"
 DEFAULT_SUMMARY = (
     ROOT / "workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json"
 )
 DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json"
+RELEASE_SUMMARY = (
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-as-release-q1-q2-summary.json"
+)
+RELEASE_PACKAGE = (
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-as-release-q2-package.json"
+)
 DEFAULT_PARTITION_Q0 = (
     ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-partition-nominal-pair-q0-seed0-20260812.json"
@@ -93,6 +100,15 @@ D1_PATHS = {
     PARTITION_CANDIDATE_ID: ROOT / "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
     CRYSTALLIZATION_CANDIDATE_ID: (
         ROOT / "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json"
+    ),
+}
+RELEASE_D1_PATHS = {
+    PARTITION_CANDIDATE_ID: (
+        ROOT / "workstreams/flagship_tasks/reports/work-ii-as-release-partition-d1.json"
+    ),
+    CRYSTALLIZATION_CANDIDATE_ID: (
+        ROOT
+        / "workstreams/flagship_tasks/reports/work-ii-as-release-crystallization-d1.json"
     ),
 }
 BASE_CONFIGS = {
@@ -710,7 +726,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         release_manifest=args.release_manifest,
     )
     d1_paths = (
-        D1_PATHS
+        RELEASE_D1_PATHS
         if execution_context.mode is ExecutionMode.RELEASE
         else {
             PARTITION_CANDIDATE_ID: args.output_root / "partition-d1.json",
@@ -985,11 +1001,16 @@ def main() -> int:
     )
     parser.add_argument("--release-manifest", type=Path)
     args = parser.parse_args()
+    if (
+        args.execution_mode == ExecutionMode.RELEASE.value
+        and args.output_root.resolve() == DEFAULT_OUTPUT_ROOT.resolve()
+    ):
+        args.output_root = RELEASE_OUTPUT_ROOT
     args.output_root = args.output_root.resolve()
     development = args.execution_mode == ExecutionMode.DEVELOPMENT.value
     defaults = {
-        "summary": args.output_root / "summary.json" if development else DEFAULT_SUMMARY,
-        "package": args.output_root / "q2-package.json" if development else DEFAULT_PACKAGE,
+        "summary": args.output_root / "summary.json" if development else RELEASE_SUMMARY,
+        "package": args.output_root / "q2-package.json" if development else RELEASE_PACKAGE,
         "partition_q0_summary": (
             DEFAULT_DEVELOPMENT_PARTITION_Q0 if development else DEFAULT_PARTITION_Q0
         ),
