@@ -460,6 +460,187 @@ def parse_work_ii_law_summary(
     )
 
 
+def parse_work_ii_belief_snapshot_header(
+    payload: object,
+    *,
+    expected_stage: str,
+    allowed_feature_ids: Sequence[str],
+    allowed_prior_fields: Sequence[str],
+    evidence_catalog: Sequence[str],
+    nominal_information_available: bool,
+) -> dict[str, Any]:
+    """Validate the participant-owned non-paged portion of one snapshot."""
+
+    value = _mapping(payload, "belief_snapshot.snapshot_header")
+    _exact_fields(
+        value,
+        {
+            "snapshot_id",
+            "stage",
+            "prior_assessment",
+            "law_summary",
+            "evidence_ids",
+            "next_experiment_intent",
+            "overall_confidence",
+        },
+        "belief_snapshot.snapshot_header",
+    )
+    stage = _text(value["stage"], "belief_snapshot.stage")
+    if stage != expected_stage:
+        raise ValueError("belief_snapshot stage does not match the requested snapshot")
+    prior = _mapping(value["prior_assessment"], "belief_snapshot.prior_assessment")
+    _exact_fields(
+        prior,
+        {
+            "nominal_information_available",
+            "reliability_probability",
+            "suspected_misindexed_fields",
+            "rationale",
+        },
+        "belief_snapshot.prior_assessment",
+    )
+    if prior["nominal_information_available"] is not nominal_information_available:
+        raise ValueError("prior assessment availability does not match the public dossier")
+    reliability: float | None
+    if nominal_information_available:
+        reliability = _probability(
+            prior["reliability_probability"], "prior_assessment.reliability_probability"
+        )
+    else:
+        if prior["reliability_probability"] is not None:
+            raise ValueError("opaque cells must report null prior reliability")
+        reliability = None
+    suspected = _string_tuple(
+        prior["suspected_misindexed_fields"],
+        "prior_assessment.suspected_misindexed_fields",
+        allow_empty=True,
+        maximum_items=16,
+    )
+    if not nominal_information_available and suspected:
+        raise ValueError("opaque cells cannot name suspected dossier fields")
+    if not set(suspected).issubset(set(allowed_prior_fields)):
+        raise ValueError("prior assessment contains an unknown dossier field")
+    evidence_ids = _string_tuple(
+        value["evidence_ids"], "belief_snapshot.evidence_ids", allow_empty=True
+    )
+    if not set(evidence_ids).issubset(set(evidence_catalog)):
+        raise ValueError("belief_snapshot cites an unknown evidence ID")
+    if stage == "pre_evidence" and evidence_ids:
+        raise ValueError("pre-evidence snapshot cannot cite experimental evidence")
+
+    law = _mapping(value["law_summary"], "belief_snapshot.law_summary")
+    _exact_fields(
+        law,
+        {
+            "schema_version",
+            "summary_id",
+            "feature_ids",
+            "evidence_ids",
+            "applicability",
+            "limitations",
+            "confidence",
+        },
+        "belief_snapshot.law_summary",
+    )
+    if law["schema_version"] != WORK_II_LAW_SUMMARY_SCHEMA_VERSION:
+        raise ValueError("law_summary.schema_version does not match the frozen contract")
+    feature_ids = _string_tuple(law["feature_ids"], "law_summary.feature_ids")
+    if not set(feature_ids).issubset(set(allowed_feature_ids)):
+        raise ValueError("law_summary contains an unknown feature ID")
+    law_evidence_ids = _string_tuple(
+        law["evidence_ids"], "law_summary.evidence_ids", allow_empty=True
+    )
+    if not set(law_evidence_ids).issubset(set(evidence_catalog)):
+        raise ValueError("law_summary cites an unknown evidence ID")
+    return {
+        "snapshot_id": _text(value["snapshot_id"], "belief_snapshot.snapshot_id", maximum=200),
+        "stage": stage,
+        "prior_assessment": {
+            "nominal_information_available": nominal_information_available,
+            "reliability_probability": reliability,
+            "suspected_misindexed_fields": list(suspected),
+            "rationale": _text(prior["rationale"], "prior_assessment.rationale"),
+        },
+        "law_summary": {
+            "schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+            "summary_id": _text(law["summary_id"], "law_summary.summary_id", maximum=200),
+            "feature_ids": list(feature_ids),
+            "evidence_ids": list(law_evidence_ids),
+            "applicability": _text(law["applicability"], "law_summary.applicability"),
+            "limitations": list(
+                _string_tuple(
+                    law["limitations"],
+                    "law_summary.limitations",
+                    allow_empty=True,
+                    maximum_items=16,
+                )
+            ),
+            "confidence": _probability(law["confidence"], "law_summary.confidence"),
+        },
+        "evidence_ids": list(evidence_ids),
+        "next_experiment_intent": _text(
+            value["next_experiment_intent"], "belief_snapshot.next_experiment_intent"
+        ),
+        "overall_confidence": _probability(
+            value["overall_confidence"], "belief_snapshot.overall_confidence"
+        ),
+    }
+
+
+def parse_work_ii_prediction_page(
+    payload: object,
+    *,
+    query_metric_contract: Mapping[str, Sequence[str]],
+) -> list[dict[str, Any]]:
+    """Validate one exact ordered page of held-out predictions."""
+
+    if isinstance(payload, (str, bytes)) or not isinstance(payload, Sequence):
+        raise ValueError("predictions must be a list")
+    expected_queries = list(query_metric_contract)
+    if len(payload) != len(expected_queries):
+        raise ValueError("prediction page denominator does not match its fixed page plan")
+    parsed: list[dict[str, Any]] = []
+    for query_index, raw_prediction in enumerate(payload):
+        prediction = _mapping(raw_prediction, f"predictions[{query_index}]")
+        _exact_fields(prediction, {"query_id", "metrics"}, f"predictions[{query_index}]")
+        query_id = _text(prediction["query_id"], f"predictions[{query_index}].query_id")
+        if query_id != expected_queries[query_index]:
+            raise ValueError("prediction page does not contain its exact ordered query IDs")
+        raw_metrics = prediction["metrics"]
+        if isinstance(raw_metrics, (str, bytes)) or not isinstance(raw_metrics, Sequence):
+            raise ValueError("prediction metrics must be a list")
+        expected_metrics = list(query_metric_contract[query_id])
+        if len(raw_metrics) != len(expected_metrics):
+            raise ValueError("prediction metrics do not match the fixed page plan")
+        metrics: list[dict[str, Any]] = []
+        for metric_index, raw_metric in enumerate(raw_metrics):
+            metric = _mapping(raw_metric, f"predictions[{query_index}].metrics[{metric_index}]")
+            _exact_fields(
+                metric,
+                {"metric_id", "mean", "interval_lower", "interval_upper", "confidence"},
+                f"predictions[{query_index}].metrics[{metric_index}]",
+            )
+            metric_id = _text(metric["metric_id"], "prediction.metric_id")
+            if metric_id != expected_metrics[metric_index]:
+                raise ValueError("prediction metrics do not match the fixed page plan")
+            mean = _finite(metric["mean"], "prediction.mean")
+            lower = _finite(metric["interval_lower"], "prediction.interval_lower")
+            upper = _finite(metric["interval_upper"], "prediction.interval_upper")
+            if not lower <= mean <= upper:
+                raise ValueError("prediction interval must contain its mean")
+            metrics.append(
+                {
+                    "metric_id": metric_id,
+                    "mean": mean,
+                    "interval_lower": lower,
+                    "interval_upper": upper,
+                    "confidence": _probability(metric["confidence"], "prediction.confidence"),
+                }
+            )
+        parsed.append({"query_id": query_id, "metrics": metrics})
+    return parsed
+
+
 def parse_work_ii_held_out_query(
     payload: object,
     *,
@@ -805,9 +986,11 @@ __all__ = [
     "WorkIIMetricPrediction",
     "WorkIIPriorAssessment",
     "parse_work_ii_belief_snapshot",
+    "parse_work_ii_belief_snapshot_header",
     "parse_work_ii_discovery_schedule",
     "parse_work_ii_held_out_query",
     "parse_work_ii_law_summary",
+    "parse_work_ii_prediction_page",
     "score_work_ii_snapshot_predictions",
     "validate_work_ii_snapshot_sequence",
 ]

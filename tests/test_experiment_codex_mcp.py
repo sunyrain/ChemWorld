@@ -10,6 +10,7 @@ from chemworld.agents.experiment_codex_ipc import ExperimentCodexWorkspace
 from chemworld.agents.experiment_codex_mcp import (
     BELIEF_SNAPSHOT_SHAPE_GUIDE,
     MCP_SERVER_VERSION,
+    STAGED_BELIEF_SNAPSHOT_GUIDE,
     SUPPORTED_TOOLS,
     ChemWorldMCPServer,
 )
@@ -302,37 +303,42 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "uncertainty",
             "adaptation_source",
         }
-        snapshot = by_name["commit_belief_snapshot"]["inputSchema"]["properties"]["snapshot"]
-        assert snapshot["properties"]["schema_version"]["const"].startswith(
-            "chemworld-work-ii-belief-snapshot"
-        )
-        assert "law_summary" in snapshot["required"]
-        assert snapshot["properties"]["predictions"]["x-chemworld-required-ids"] == ["q0"]
-        assert snapshot["properties"]["predictions"]["x-chemworld-query-metric-contract"] == {
-            "q0": ["score"]
+        snapshot = by_name["commit_belief_snapshot"]["inputSchema"]
+        assert snapshot["properties"]["action"]["enum"] == [
+            "begin",
+            "append_prediction_page",
+            "append_law_page",
+            "finalize",
+        ]
+        assert "oneOf" not in json.dumps(snapshot)
+        header = snapshot["properties"]["snapshot_header"]
+        assert "prior_assessment" in header["required"]
+        assert set(header["properties"]["prior_assessment"]["required"]) == {
+            "nominal_information_available",
+            "reliability_probability",
+            "suspected_misindexed_fields",
+            "rationale",
         }
-        prediction_variant = snapshot["properties"]["predictions"]["items"]["oneOf"][0]
-        assert prediction_variant["properties"]["query_id"] == {"const": "q0"}
-        assert prediction_variant["properties"]["metrics"]["x-chemworld-required-ids"] == ["score"]
-        metric_laws = snapshot["properties"]["law_summary"]["properties"]["metric_laws"]
-        assert metric_laws["x-chemworld-required-ids"] == ["score"]
+        assert "metric_laws" not in header["properties"]["law_summary"]["properties"]
+        assert snapshot["properties"]["predictions"]["maxItems"] == 4
+        metric_laws = snapshot["properties"]["metric_laws"]
+        assert metric_laws["maxItems"] == 2
         assert "link" in metric_laws["items"]["required"]
-        assert (
-            "sole executable schema authority" in by_name["commit_belief_snapshot"]["description"]
-        )
-        assert BELIEF_SNAPSHOT_SHAPE_GUIDE in by_name["commit_belief_snapshot"]["description"]
-        assert snapshot["description"] == BELIEF_SNAPSHOT_SHAPE_GUIDE
-        assert prediction_variant["title"] == "Held-out query prediction for q0"
-        assert prediction_variant["properties"]["metrics"]["items"]["required"] == [
+        assert "sole participant-facing authority" in by_name[
+            "commit_belief_snapshot"
+        ]["description"]
+        assert STAGED_BELIEF_SNAPSHOT_GUIDE in by_name["commit_belief_snapshot"]["description"]
+        assert BELIEF_SNAPSHOT_SHAPE_GUIDE not in by_name["commit_belief_snapshot"]["description"]
+        assert snapshot["properties"]["predictions"]["items"]["properties"]["metrics"][
+            "items"
+        ]["required"] == [
             "metric_id",
             "mean",
             "interval_lower",
             "interval_upper",
             "confidence",
         ]
-        law_item = metric_laws["items"]
-        assert law_item["title"] == "Executable metric law"
-        assert "terms:[] is valid" in law_item["properties"]["terms"]["description"]
+        assert "snapshot" not in snapshot["properties"]
         assert "checkpoint_due=true" in by_name["step"]["description"]
         recommendation = by_name["commit_final_recommendation"]["inputSchema"]
         assert recommendation["properties"]["selected_experiment_index"]["maximum"] == 4
@@ -444,7 +450,7 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
     server = ChemWorldMCPServer(workspace.root)
 
     initial = server._status()
-    assert initial["campaign_closeout"] == {
+    assert initial["campaign_closeout"] | {"belief_snapshot_submission": None} == {
         "campaign_ended": False,
         "complete_experiment_count": 0,
         "committed_checkpoint_count": 0,
@@ -453,7 +459,11 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
         "next_checkpoint_stage": "pre_evidence",
         "next_checkpoint_complete_experiment_count": 0,
         "final_recommendation_committed": False,
+        "belief_snapshot_submission": None,
     }
+    submission = initial["campaign_closeout"]["belief_snapshot_submission"]
+    assert submission["submission_order"] == ["predictions-001", "laws-001"]
+    assert submission["next_page_id"] == "predictions-001"
 
     snapshot_root = workspace.session_root("campaign-status-test") / "belief_snapshots"
     snapshot_root.mkdir()
@@ -558,6 +568,227 @@ def _minimal_snapshot(*, stage: str = "pre_evidence") -> dict[str, Any]:
         "next_experiment_intent": "Run a bounded discriminating experiment.",
         "overall_confidence": 0.25,
     }
+
+
+def _staged_header(snapshot: dict[str, Any]) -> dict[str, Any]:
+    law_summary = dict(snapshot["law_summary"])
+    law_summary.pop("metric_laws")
+    return {
+        "snapshot_id": snapshot["snapshot_id"],
+        "stage": snapshot["stage"],
+        "prior_assessment": snapshot["prior_assessment"],
+        "law_summary": law_summary,
+        "evidence_ids": snapshot["evidence_ids"],
+        "next_experiment_intent": snapshot["next_experiment_intent"],
+        "overall_confidence": snapshot["overall_confidence"],
+    }
+
+
+def test_staged_belief_snapshot_is_exact_immutable_and_canonical(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-snapshot-test")
+    server = ChemWorldMCPServer(workspace.root)
+    snapshot = _minimal_snapshot()
+
+    material = server._call_tool("material_information", {})
+    material_payload = json.loads(material["content"][0]["text"])
+    plan = material_payload["belief_snapshot_submission"]
+    assert plan["prediction_pages"] == [
+        {
+            "page_id": "predictions-001",
+            "query_metric_contract": {"q0": ["score"]},
+        }
+    ]
+    assert plan["law_pages"] == [{"page_id": "laws-001", "metric_ids": ["score"]}]
+
+    begun = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": _staged_header(snapshot)},
+    )
+    assert begun["isError"] is False
+    assert workspace.belief_snapshot_audit("campaign-staged-snapshot-test") == []
+
+    blocked = server._call_tool(
+        "step",
+        {
+            "expected_step": 1,
+            "action": {"operation": "terminate"},
+            "decision_audit": {},
+        },
+    )
+    assert blocked["isError"] is True
+    assert json.loads(blocked["content"][0]["text"])["error_code"] == (
+        "missing_required_belief_checkpoint"
+    )
+
+    bad_page = server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_prediction_page",
+            "page_id": "predictions-001",
+            "predictions": [
+                {
+                    "query_id": "q0",
+                    "metrics": [
+                        {
+                            "metric_id": "wrong",
+                            "mean": 0.5,
+                            "interval_lower": 0.0,
+                            "interval_upper": 1.0,
+                            "confidence": 0.25,
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    assert bad_page["isError"] is True
+    assert json.loads(bad_page["content"][0]["text"])["error_code"] == (
+        "invalid_belief_snapshot"
+    )
+
+    prediction = server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_prediction_page",
+            "page_id": "predictions-001",
+            "predictions": snapshot["predictions"],
+        },
+    )
+    assert prediction["isError"] is False
+    fragment_path = (
+        workspace.session_root("campaign-staged-snapshot-test")
+        / "belief_snapshot_drafts"
+        / "01-pre_evidence"
+        / "fragments"
+        / "001-predictions-001.json"
+    )
+    accepted_bytes = fragment_path.read_bytes()
+
+    duplicate = server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_prediction_page",
+            "page_id": "predictions-001",
+            "predictions": snapshot["predictions"],
+        },
+    )
+    assert duplicate["isError"] is True
+    assert "cannot be replaced" in json.loads(duplicate["content"][0]["text"])["error"]
+    assert fragment_path.read_bytes() == accepted_bytes
+
+    law = server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_law_page",
+            "page_id": "laws-001",
+            "metric_laws": snapshot["law_summary"]["metric_laws"],
+        },
+    )
+    assert law["isError"] is False
+    assert json.loads(law["content"][0]["text"])["ready_to_finalize"] is True
+    assert workspace.belief_snapshot_audit("campaign-staged-snapshot-test") == []
+
+    finalized = server._call_tool("commit_belief_snapshot", {"action": "finalize"})
+    assert finalized["isError"] is False
+    assert workspace.belief_snapshot_audit("campaign-staged-snapshot-test") == [snapshot]
+    draft_audit = workspace.belief_snapshot_draft_audit("campaign-staged-snapshot-test")
+    assert draft_audit["draft_count"] == 1
+    assert draft_audit["fragment_count"] == 2
+    assert draft_audit["drafts"][0]["manifest"]["snapshot_header"] == _staged_header(snapshot)
+    assert [item["page_id"] for item in draft_audit["drafts"][0]["fragments"]] == [
+        "predictions-001",
+        "laws-001",
+    ]
+    assert draft_audit["drafts"][0]["finalization"]["status"] == "finalized"
+
+
+def test_staged_partial_draft_does_not_cross_session_or_count_checkpoint(
+    tmp_path: Path,
+) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-partial-test")
+    server = ChemWorldMCPServer(workspace.root)
+    snapshot = _minimal_snapshot()
+    begun = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": _staged_header(snapshot)},
+    )
+    assert begun["isError"] is False
+    prediction = server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_prediction_page",
+            "page_id": "predictions-001",
+            "predictions": snapshot["predictions"],
+        },
+    )
+    assert prediction["isError"] is False
+    assert workspace.belief_snapshot_audit("campaign-staged-partial-test") == []
+    assert workspace.belief_snapshot_draft_audit("campaign-staged-partial-test")[
+        "fragment_count"
+    ] == 1
+
+    workspace.start_session(
+        session_id="campaign-staged-new-session-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+    )
+    new_server = ChemWorldMCPServer(workspace.root)
+    new_state = new_server._status()["campaign_closeout"]["belief_snapshot_submission"]
+    assert new_state["draft_started"] is False
+    assert new_state["accepted_page_count"] == 0
+    assert workspace.belief_snapshot_draft_audit("campaign-staged-new-session-test")[
+        "draft_count"
+    ] == 0
+
+
+def test_staged_final_checkpoint_returns_final_response_contract(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-final-test")
+    session_root = workspace.session_root("campaign-staged-final-test")
+    snapshots = session_root / "belief_snapshots"
+    snapshots.mkdir()
+    (snapshots / "01-pre_evidence.json").write_text("{}", encoding="utf-8")
+    (snapshots / "02-after_experiment_2.json").write_text("{}", encoding="utf-8")
+    for index in range(4):
+        workspace.append_public_history(
+            {
+                "experiment_ended": True,
+                "campaign_ended": index == 3,
+                "evidence_id": f"experiment-{index + 1}-final-assay",
+            }
+        )
+    server = ChemWorldMCPServer(workspace.root)
+    snapshot = _minimal_snapshot(stage="final")
+    snapshot["evidence_ids"] = [
+        f"experiment-{index}-final-assay" for index in range(1, 5)
+    ]
+    snapshot["law_summary"]["evidence_ids"] = list(snapshot["evidence_ids"])
+    assert server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": _staged_header(snapshot)},
+    )["isError"] is False
+    assert server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_prediction_page",
+            "page_id": "predictions-001",
+            "predictions": snapshot["predictions"],
+        },
+    )["isError"] is False
+    assert server._call_tool(
+        "commit_belief_snapshot",
+        {
+            "action": "append_law_page",
+            "page_id": "laws-001",
+            "metric_laws": snapshot["law_summary"]["metric_laws"],
+        },
+    )["isError"] is False
+    finalized = server._call_tool("commit_belief_snapshot", {"action": "finalize"})
+    payload = json.loads(finalized["content"][0]["text"])
+    assert payload["remaining_checkpoint_count"] == 0
+    assert payload["final_response_contract"] == ChemWorldMCPServer._final_response_contract(
+        campaign=True
+    )
 
 
 def test_belief_snapshot_error_returns_authoritative_repair_context(tmp_path: Path) -> None:
