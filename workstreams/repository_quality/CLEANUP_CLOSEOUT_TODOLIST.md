@@ -138,6 +138,14 @@ experiment-note Markdown hash，导致真实执行语义未变时仍可阻断 qu
 和 `missing_pattern_rounds` 的依赖，统一消费 canonical W2-27 readiness，并要求 manifest/summary 成对显式传入；
 release audit 同样不再猜测不存在的默认版本。没有刷新旧 manifest，也没有新增 gate。
 
+### CD-12：删除已完成的 A-S 一次性 closeout supervisor — DONE
+
+删除 `scripts/supervise_work_ii_as_closeout.py` 及其 8 条专属 mock 测试。该 supervisor 的跨仓库集成任务已经
+完成，canonical A-S summary、Q2 package 和两份 D1 config 均已 durable 落盘；当前树中除自测外没有调用者，
+release roster、current registry 和 Work II 执行入口均不读取它。继续保留反而会重新生成旧 v0.1 W2-26
+manifest/readiness，并用宽泛 `except Exception` 把编程错误包装成 `fail_closed`。历史执行方法由 Git 保存，
+现行 canonical integration 工具和产物未删除。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
