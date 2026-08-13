@@ -204,6 +204,99 @@ def test_completed_fit_plans_validation_but_default_dry_run_does_not_launch(
     assert event["execute"] is False
 
 
+def test_validation_execute_route_uses_four_worker_group_and_all_fit_evidence(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _script_module()
+    fit = _evidence(tmp_path, "classifier_fit", "completed")
+    fit.output.mkdir(parents=True)
+    (fit.output / "report.json").write_text("{}", encoding="utf-8")
+    pipeline = tmp_path / "pipeline"
+    logs = tmp_path / "logs"
+    launched: list[tuple[tuple[str, ...], dict[str, object]]] = []
+    monkeypatch.setattr(module, "ROOT", ROOT)
+    monkeypatch.setattr(
+        module, "validate_external_root", lambda _root, candidate: candidate.resolve()
+    )
+    monkeypatch.setattr(module, "validate_terminal_output", lambda **_kwargs: fit)
+
+    class Process:
+        pid = 4321
+
+    def fake_popen(command, **kwargs):
+        launched.append((tuple(command), kwargs))
+        return Process()
+
+    monkeypatch.setattr(module.subprocess, "Popen", fake_popen)
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=logs,
+            fit_output=fit.output,
+            contract=CONTRACT,
+            execute=True,
+        )
+    )
+    assert status == "started"
+    assert launched[0][0] == command
+    assert command[1] == str(module.SHARD_GROUP_RUNNER)
+    assert command[command.index("--shard-count") + 1] == "4"
+    assert command[command.index("--shard-root") + 1] == str(
+        (pipeline / ".classifier_validation-shard-group").resolve()
+    )
+    for option in ("--fit-plan", "--fit-receipts", "--fit-report"):
+        assert option in command
+
+
+def test_existing_shard_group_waits_and_failure_marker_fails_closed(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _script_module()
+    fit = tmp_path / "fit"
+    fit.mkdir()
+    (fit / "report.json").write_text("{}", encoding="utf-8")
+    pipeline = tmp_path / "pipeline"
+    group = pipeline / ".classifier_validation-shard-group"
+    group.mkdir(parents=True)
+    monkeypatch.setattr(
+        module, "validate_external_root", lambda _root, candidate: candidate.resolve()
+    )
+    status, command = module.inspect_once(
+        Namespace(
+            pipeline_root=pipeline,
+            log_root=tmp_path / "logs",
+            fit_output=fit,
+            contract=CONTRACT,
+            execute=True,
+        )
+    )
+    assert status == "waiting"
+    assert command == ()
+    (group / "group-completed.json").write_text("{}\n", encoding="utf-8")
+    with pytest.raises(AEV03SupervisorError, match="standard output is missing"):
+        module.inspect_once(
+            Namespace(
+                pipeline_root=pipeline,
+                log_root=tmp_path / "logs",
+                fit_output=fit,
+                contract=CONTRACT,
+                execute=True,
+            )
+        )
+    (group / "group-completed.json").unlink()
+    (group / "group-failure.json").write_text("{}\n", encoding="utf-8")
+    with pytest.raises(AEV03SupervisorError, match="failed closed"):
+        module.inspect_once(
+            Namespace(
+                pipeline_root=pipeline,
+                log_root=tmp_path / "logs",
+                fit_output=fit,
+                contract=CONTRACT,
+                execute=True,
+            )
+        )
+
+
 def test_existing_nonterminal_validation_waits_without_revalidating_fit(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

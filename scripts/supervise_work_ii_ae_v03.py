@@ -20,6 +20,7 @@ from chemworld.eval.work_ii_ae_v03_supervisor import (
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "scripts/run_work_ii_ae_prior_qualification_v03.py"
+SHARD_GROUP_RUNNER = ROOT / "scripts/run_work_ii_ae_v03_shard_group.py"
 DEFAULT_CONTRACT = (
     ROOT / "configs/benchmark/work_ii_ae_prior_distinguishability_v0.3_candidate.json"
 )
@@ -43,6 +44,10 @@ def _phase_paths(base: Path, fit_output: Path) -> dict[str, Path]:
     }
 
 
+def _shard_group_path(base: Path, phase: str) -> Path:
+    return base / f".{phase}-shard-group"
+
+
 def inspect_once(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
     base = validate_external_root(ROOT, args.pipeline_root)
     log_root = validate_external_root(ROOT, args.log_root)
@@ -60,6 +65,16 @@ def inspect_once(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
             terminal = terminal and (output / "summary.json").is_file()
         if terminal:
             continue
+        if phase != "classifier_fit":
+            shard_group = _shard_group_path(base, phase)
+            if (shard_group / "group-failure.json").is_file():
+                raise AEV03SupervisorError(f"{phase} shard group failed closed")
+            if (shard_group / "group-completed.json").is_file():
+                raise AEV03SupervisorError(
+                    f"{phase} shard group completed but standard output is missing"
+                )
+            if shard_group.exists():
+                return "waiting", ()
         if phase == "classifier_fit" or output.exists():
             return "waiting", ()
         next_phase = phase
@@ -90,14 +105,23 @@ def inspect_once(args: argparse.Namespace) -> tuple[str, tuple[str, ...]]:
     if next_phase is None:
         raise AEV03SupervisorError("supervisor state machine exhausted unexpectedly")
     output = paths[next_phase]
+    runner = RUNNER if next_phase == "classifier_fit" else SHARD_GROUP_RUNNER
     command = next_phase_command(
         python=sys.executable,
-        runner=RUNNER,
+        runner=runner,
         contract_path=args.contract.resolve(),
         phase=next_phase,
         output=output,
         upstream=upstream,
     )
+    if next_phase != "classifier_fit":
+        command = (
+            *command,
+            "--shard-root",
+            str(_shard_group_path(base, next_phase)),
+            "--shard-count",
+            "4",
+        )
     _emit(
         log_root / "supervisor.jsonl",
         {

@@ -29,6 +29,12 @@ SERIAL_OUTPUT_MARKERS = {
     "receipts",
     "report.json",
 }
+MERGED_TERMINAL_STATUSES = {
+    "completed",
+    "passed",
+    "scientifically_rejected",
+    "no_eligible_tasks",
+}
 
 
 def _load(path: Path | None) -> dict[str, Any] | None:
@@ -197,7 +203,7 @@ def main() -> int:
         selection=selection,
     )
     print(json.dumps(result, ensure_ascii=False, sort_keys=True), flush=True)
-    return 0 if result["status"] in {"completed", "passed", "no_eligible_tasks"} else 1
+    return 0 if result["status"] in MERGED_TERMINAL_STATUSES else 1
 
 
 if __name__ == "__main__":

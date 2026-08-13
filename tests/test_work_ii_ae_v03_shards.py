@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import importlib.util
 import json
 from copy import deepcopy
 from pathlib import Path
@@ -23,12 +24,21 @@ ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = (
     ROOT / "configs/benchmark/work_ii_ae_prior_distinguishability_v0.3_candidate.json"
 )
+RUNNER_SCRIPT = ROOT / "scripts/run_work_ii_ae_v03_shards.py"
 
 
 def _load(path: Path) -> dict[str, Any]:
     value = json.loads(path.read_text(encoding="utf-8"))
     assert isinstance(value, dict)
     return value
+
+
+def test_scientific_rejection_is_a_successful_terminal_merge_status() -> None:
+    spec = importlib.util.spec_from_file_location("ae_v03_shard_runner", RUNNER_SCRIPT)
+    assert spec and spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert "scientifically_rejected" in module.MERGED_TERMINAL_STATUSES
 
 
 def _two_cluster_plan() -> tuple[dict[str, Any], dict[str, Any]]:
