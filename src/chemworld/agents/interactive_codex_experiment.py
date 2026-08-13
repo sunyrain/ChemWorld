@@ -2027,6 +2027,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "-c",
             "mcp_servers.chemworld_lab.enabled=true",
             "-c",
+            "mcp_servers.chemworld_lab.supports_parallel_tool_calls=false",
+            "-c",
             ("mcp_servers.chemworld_lab.enabled_tools=" + json.dumps(list(SUPPORTED_TOOLS))),
             "-c",
             'mcp_servers.chemworld_lab.default_tools_approval_mode="approve"',

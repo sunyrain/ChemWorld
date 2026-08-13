@@ -17,6 +17,9 @@ scientific outcomes or select a more favorable trajectory.
   and both A-S tasks at 12 experiments. No representative-task or cross-task proxy is permitted.
 - Each triplet contains the same three information arms (`opaque`, `aligned_nominal`,
   `misindexed_nominal`) in one persistent session per cell.
+- Within each persistent session, ChemWorld MCP calls are serialized. The participant must observe
+  the result of each accepted or rejected call before issuing the next call; parallel operation
+  batches cannot bypass typed checkpoint boundaries or inflate one recovery into many queued calls.
 - Exact denominator: 9 task triplets, 27 cells, 252 complete experiments, 135 typed checkpoints,
   27 accepted provider sessions, and 27 accepted participant model calls.
 - The task configuration for each `(locus, task_id, rounds)` unit, its world seed, provider contract,

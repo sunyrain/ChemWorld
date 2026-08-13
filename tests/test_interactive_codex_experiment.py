@@ -691,6 +691,7 @@ def test_custom_provider_command_uses_responses_and_no_secret(
     assert "approvals_reviewer" not in joined
     assert "mcp_servers.chemworld_lab.command" in joined
     assert "chemworld.agents.experiment_codex_mcp" in joined
+    assert "mcp_servers.chemworld_lab.supports_parallel_tool_calls=false" in joined
     assert 'model_provider="wellau"' in joined
     assert 'model_providers.wellau.name="WellAU"' in joined
     assert 'model_providers.wellau.base_url="https://api.wellau.com/v1"' in joined
