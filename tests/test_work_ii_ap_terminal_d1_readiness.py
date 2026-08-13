@@ -100,6 +100,40 @@ def test_exposure_discovery_is_schema_version_independent(tmp_path: Path) -> Non
     ]
 
 
+def test_exposure_discovery_does_not_parse_large_unrelated_reports(
+    tmp_path: Path, monkeypatch
+) -> None:
+    report_root = tmp_path / "workstreams/flagship_tasks/reports"
+    report_root.mkdir(parents=True)
+    unrelated = report_root / "large-unrelated.json"
+    unrelated.write_text(json.dumps({"payload": "x" * (2 * 1024 * 1024)}), encoding="utf-8")
+    relevant = report_root / "relevant.json"
+    relevant.write_text(
+        json.dumps(
+            {
+                "task_id": "reaction-safety-constrained",
+                "world_seed": 2,
+                "denominators": {"participant_provider_session_count": 1},
+            }
+        ),
+        encoding="utf-8",
+    )
+    original_read_text = Path.read_text
+
+    def guarded_read_text(path: Path, *args, **kwargs):
+        if path == unrelated:
+            raise AssertionError("unrelated report must not be materialized")
+        return original_read_text(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", guarded_read_text)
+
+    discovered = discover_historical_ap_participant_exposure(
+        tmp_path, ["reaction-safety-constrained"]
+    )
+
+    assert [row["world_seed"] for row in discovered["reaction-safety-constrained"]] == [2]
+
+
 def test_readiness_validator_rebuilds_configs() -> None:
     readiness, configs = build_independent_ap_d1_readiness(ROOT, PLAN)
     assert validate_independent_ap_d1_readiness(ROOT, PLAN, readiness, configs) == []

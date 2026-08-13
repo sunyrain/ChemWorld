@@ -14,6 +14,7 @@ AP_D1_ARMS = {"opaque", "aligned_nominal", "misindexed_nominal"}
 AP_D1_CHECKPOINTS = [0, 2, 4, 7, 10]
 AP_D1_EXPERIMENTS = 10
 AP_D1_SELECTION_BASIS = "smallest_q2_passed_world_seed_without_participant_exposure"
+_PARTICIPANT_SESSION_FIELD = b'"participant_provider_session_count"'
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -21,6 +22,19 @@ def _load(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain a JSON object")
     return value
+
+
+def _contains_bytes(path: Path, needle: bytes, *, chunk_size: int = 1024 * 1024) -> bool:
+    """Search a file with bounded memory before deciding whether JSON parsing is needed."""
+
+    overlap = b""
+    with path.open("rb") as handle:
+        while chunk := handle.read(chunk_size):
+            window = overlap + chunk
+            if needle in window:
+                return True
+            overlap = window[-(len(needle) - 1) :]
+    return False
 
 
 def _inside(root: Path, value: object, *, label: str) -> Path:
@@ -43,6 +57,8 @@ def discover_historical_ap_participant_exposure(
     report_root = root / "workstreams/flagship_tasks/reports"
     for path in sorted(report_root.rglob("*.json")):
         try:
+            if not _contains_bytes(path, _PARTICIPANT_SESSION_FIELD):
+                continue
             report = _load(path)
         except (OSError, ValueError, json.JSONDecodeError):
             continue
@@ -137,9 +153,7 @@ def _q2_world(
     if sorted(world_by_seed) != [0, 1, 2, 3, 4]:
         errors.append("Q2 package does not contain exactly the five frozen worlds")
     q2_passed_seeds = sorted(
-        seed
-        for seed, world in world_by_seed.items()
-        if world.get("qualification_passed") is True
+        seed for seed, world in world_by_seed.items() if world.get("qualification_passed") is True
     )
     eligible_seeds = sorted(set(q2_passed_seeds) - set(exposed_seeds))
     if not eligible_seeds:
@@ -165,9 +179,7 @@ def _config_errors(
         errors.append("independent D1 config task mismatch")
     selected_seed = int(world["world_seed"])
     expected_pilot_id = f"{candidate.get('pilot_id_prefix')}-seed{selected_seed}"
-    expected_noise_namespace = (
-        f"{candidate.get('noise_namespace_prefix')}-seed{selected_seed}"
-    )
+    expected_noise_namespace = f"{candidate.get('noise_namespace_prefix')}-seed{selected_seed}"
     if config.get("world_seed") != selected_seed:
         errors.append("independent D1 config seed mismatch")
     if config.get("pilot_id") != expected_pilot_id:
@@ -226,12 +238,8 @@ def _build_config(
     )
     config["world_seed"] = selected_seed
     config["prior_arms"] = copy.deepcopy(world["prior_arms"])
-    config["belief_checkpoint"]["held_out_queries"] = copy.deepcopy(
-        world["held_out_queries"]
-    )
-    config["intervention"]["fixed_reference_context"] = copy.deepcopy(
-        world["reference_context"]
-    )
+    config["belief_checkpoint"]["held_out_queries"] = copy.deepcopy(world["held_out_queries"])
+    config["intervention"]["fixed_reference_context"] = copy.deepcopy(world["reference_context"])
     config["intervention"]["q2_binding_sha256"] = world["world_package_sha256"]
     config["qualification"].update(
         {
@@ -289,9 +297,7 @@ def build_independent_ap_d1_readiness(
         selected_seed = int(world["world_seed"]) if world is not None else None
         config: dict[str, Any] | None = None
         if not blockers and world is not None:
-            config, config_errors = _build_config(
-                root, candidate, world, exposed_seeds
-            )
+            config, config_errors = _build_config(root, candidate, world, exposed_seeds)
             blockers.extend(config_errors)
         if config is not None and not blockers:
             configs[task_id] = config
@@ -314,9 +320,7 @@ def build_independent_ap_d1_readiness(
                     else "blocked_fail_closed"
                 ),
                 "output_config": (
-                    str(candidate.get("output_config_pattern")).format(
-                        world_seed=selected_seed
-                    )
+                    str(candidate.get("output_config_pattern")).format(world_seed=selected_seed)
                     if selected_seed is not None
                     else None
                 ),
