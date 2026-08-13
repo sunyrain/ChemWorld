@@ -430,7 +430,7 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | electrochemical mechanism-oracle v0.2, seeds 0–4 | `14,160/14,160` outcomes completed；`120/120` validation replay；0 physical/platform failures；5/5 worlds pass | Oracle score `0.770–0.849`、relative basin `36–68`、strong potential/current direction and curvature；历史 `0.58` threshold 每 world 有 `877–1,597` 个点达到。授权 Q2；因未激发安全边界，只用于参数规律结论。 |
 | electrochemical matched-prior Q2 v0.3, seeds 0–4 | `605/605` completed；`180` safe fit、`425` safe held-out；0 physical/platform；5/5 worlds pass | 五个 world 均选择 lower-controlled-potential law；aligned MAE `0.122–0.152`、blind margin `0.095–0.445`、disagreement `73/85`；supplied priors 均为 127 words 且只改 directional claim。授权 world-0 D1 static readiness，不授权 provider/R5；无 heterogeneity-triggered D2。 |
 | electrochemical matched-prior WellAU D1, world 0 | `2/3` terminal scientific trajectories；`0/3` qualified；`20/30` experiments、`180` operations、`8/15` checkpoints；`16/16` truth exact replay；`0/18` blind（缺 final recommendation）；0 physical/platform execution failures | opaque/aligned 中间 checkpoint prediction error 分别 `0.2907→0.0902`、`0.2503→0.1429`，但最终 checkpoint/recommendation 均缺失；misspecified 在 physical operation 前因 5 次 snapshot contract failures 中止。保留为 retained operational failure；不支持错误先验纠正、final law、H3 或 R5。详见 `WORK_II_ELECTROCHEMICAL_MATCHED_PRIOR_D1_ANALYSIS_ZH.md`。 |
-| current WellAU method-qualification readiness | zero provider calls；3 qualification cells；6 provider-attempt hard cap；`formal_execution_authorized=false` | readiness 内部校验通过，但缺 provider contract confirmation、credential rotation confirmation、pricing/currency ceiling 和真实 triplet；不得启动 provider。 |
+| current WellAU method qualification | 3/3 arms terminal；各 8/8 experiments；exact replay 48 steps/arm、0 mismatches；receipt validator 0 errors | development qualification 已通过且 `formal_execution_authorized=false`；authorization、cost、receipt 与 local manifest 直接校验，重复 readiness 投影已退役。 |
 | reaction-safety old screen, seed 0 | 16/16 exact replay；旧 gap `0.1043173` | 不满足新 absolute-quality、interior、non-saturation 与 safety-frontier gates |
 | reaction-safety Q1-v0.2, seeds 0–4 | 表面为 2,560/2,560 final assays 与 exact replay；事后逐 operation 审计发现 403/2,560 recipes 的 heat 因使用通用 `520 K` 而非任务可执行 `470 K` 上限被拒绝（357 broad、46 adaptive） | 平台缺陷导致该 block 无法作 scientific rejection；旧 artifact 永久保留为 defective development audit，但 `0/5`、floor saturation、local structure 与 adaptive 结论均不得继续作证据。修复后的 Q1-v0.3 与独立 mechanism-oracle block 均须从 world 0 开始。 |
 | reaction-safety Q1-v0.3, seeds 0–4 | 2,560 attempted；2,557 recipes 全 operation committed 且 exact replay；3 个 schema-valid heat 触发动态 `vessel_temperature_bound` rollback；0/5 worlds pass；max score `0.291–0.433`；45–81 safety-frontier recipes/world | 有效 absolute-Q1 scientific rejection：3 个 clean worlds 仍独立失败 absolute reachability、floor saturation、local structure 与 success basin；动态范围与 primary-metric range 成立。禁止据此进入原 Q2，但允许执行已独立冻结的 mechanism-oracle relative question。 |
@@ -526,10 +526,11 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   10/12-round 分别绑定受保护 A-P/A-S selection protocol 的 rank-1 task 及 provider-free Q2 直接生成的
   静态 D1 config。A-P protocol 的 `reaction-safety` 已仅作 canonical identifier correction 为
   `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-S full Q2 与静态 config 现已生成，
-  r9 development run 完成前 7/9 triplets（21/27 cells）；第 8 个 A-S partition attempt 1 的三臂均在 6/12
-  时遇到共享 provider outage 并达到 5 次 failure，完整 triplet restart 的 attempt 2 又在 0/12 达到 4 次
-  failure 后 invalidated。第 9 个未启动，根目录没有全块 terminal summary。保留全部不利结果，不把 7/9
-  拼成通过、不覆盖或重启；下一次 provider 执行必须重新取得显式授权并遵循 frozen resume 语义。
+  r9 development run 完成前 7/9 triplets（21/27 cells）；第 8 个 A-S partition 两次因共享 provider outage
+  invalidated，第 9 个未启动。新授权的 r10 从头执行，前 8/9 triplets（24/27 cells）均形成终态；最后
+  A-S reaction-to-crystallization 三臂在同步 provider error 窗口后分别停在 9/12、1/12、1/12，并按冻结规则
+  整 triplet invalidated，根目录仍无全块 terminal summary。两次运行的有效终态与不利轨迹全部保留，不拼成
+  通过、不覆盖、不自动再次启动；下一次 provider 执行仍须取得新显式授权并遵循 frozen resume 语义。
 - [x] **W2-27** current WellAU method qualification triplet 已完成并通过：3/3 arms terminal、各 8/8
   experiments、每臂 1 次 provider attempt、0 provider/infrastructure failures；三臂 exact replay 各验证
   48 steps、0 mismatches，receipt validator 为 0 errors。该 development qualification 只证明当前
@@ -579,7 +580,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
-| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r9 已完成 7/9 triplets、21/27 cells；第 8 个 A-S partition 两次因三臂同步 provider failures invalidated，第 9 个未启动，无全块 terminal summary。已完成和失败轨迹均保留；未经新显式授权不续跑 |
+| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r10 从头完成 8/9 triplets、24/27 cells；最后 A-S crystallization 三臂在同步 provider error 窗口后于 9/12、1/12、1/12 invalidated，无全块 terminal summary。r9/r10 已完成和失败轨迹均保留；未经新显式授权不续跑 |
 | W2-27 | TERMINAL / METHOD QUALIFICATION PASSED | current WellAU 三臂均 8/8 terminal、qualification passed、exact replay 48 steps/arm 且 0 mismatches；receipt validator 0 errors。仅为 development method qualification，formal execution 仍未授权，W2-26 仍不完整 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-39 | TERMINAL / PLATFORM REQUALIFICATION PASSED | A-P seed-2 DeepSeek→WellAU 四块已在共享执行语义修复后从首 cell 完整重跑：`12/12` cells terminal、`94/120` experiments、`4/12` qualification completed、`9/12` 达到 10/10、全部 `11/11` 个有 committed operations 的 cells exact replay；0 provider errors、0 missing/invalid store、0 unclassified MCP failures。平台门禁通过；删失非随机，故不作 provider/model/arm 科学比较，不替代 W2-26/W2-27，也不进入 R5/C2。 |

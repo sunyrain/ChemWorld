@@ -27,9 +27,8 @@ from chemworld.eval.work_ii_cost import (
 from chemworld.eval.work_ii_formal import FORMAL_ARMS
 from chemworld.eval.work_ii_method_qualification_local import (
     build_method_qualification_local_manifest,
-    build_method_qualification_local_readiness,
     build_w2_27_runtime_config,
-    validate_method_qualification_local_readiness,
+    validate_method_qualification_local_manifest,
 )
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
@@ -633,7 +632,6 @@ def execute_triplet(
     progress_path: Path,
     resume: bool,
     cell_runner: Path = CELL_RUNNER,
-    resource_calibration_manifest_path: Path,
     resource_calibration_summary_path: Path,
 ) -> dict[str, Any]:
     """Run or missing-only resume the exact qualification arm triplet."""
@@ -658,22 +656,11 @@ def execute_triplet(
     if _load(config_path) != expected_runtime_config:
         raise RuntimeError("W2-27 runtime config differs from the W2-26 resource card")
     manifest = build_method_qualification_local_manifest(ROOT, DESIGN, config_path)
-    readiness = build_method_qualification_local_readiness(
-        ROOT,
-        manifest,
-        resource_calibration_manifest_path=resource_calibration_manifest_path,
-        resource_calibration_summary_path=resource_calibration_summary_path,
-    )
-    readiness_errors = validate_method_qualification_local_readiness(readiness)
-    if readiness_errors:
+    manifest_errors = validate_method_qualification_local_manifest(ROOT, manifest)
+    if manifest_errors:
         raise RuntimeError(
-            "method-qualification readiness failed: " + "; ".join(readiness_errors)
-        )
-    calibration = readiness["resource_calibration_readiness"]
-    if calibration.get("method_qualification_may_be_authorized") is not True:
-        raise RuntimeError(
-            "method qualification execution is blocked until its exact W2-26 "
-            "A_E/electrochemical/r8 card passes"
+            "method-qualification local manifest failed: "
+            + "; ".join(manifest_errors)
         )
     authorization_errors = validate_qualification_execution_authorization(
         ROOT, authorization, manifest
@@ -958,7 +945,6 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--authorization", type=Path, required=True)
     parser.add_argument("--output-root", type=Path, required=True)
     parser.add_argument("--progress-file", type=Path, required=True)
-    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
     parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--allow-provider-execution", action="store_true")
     parser.add_argument("--resume", action="store_true")
@@ -974,7 +960,6 @@ def main() -> int:
         output_root=args.output_root,
         progress_path=args.progress_file,
         resume=bool(args.resume),
-        resource_calibration_manifest_path=args.resource_calibration_manifest,
         resource_calibration_summary_path=args.resource_calibration_summary,
     )
     return 0 if progress["status"] == "passed" else 1

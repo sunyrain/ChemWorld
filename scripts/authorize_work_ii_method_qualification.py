@@ -10,9 +10,8 @@ from pathlib import Path
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_method_qualification_local import (
     build_method_qualification_local_manifest,
-    build_method_qualification_local_readiness,
     build_w2_27_runtime_config,
-    validate_method_qualification_local_readiness,
+    validate_method_qualification_local_manifest,
 )
 from chemworld.eval.work_ii_qualification import (
     build_qualification_execution_authorization,
@@ -31,7 +30,6 @@ DEFAULT_OUTPUT = (
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
-    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
     parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--runtime-config", type=Path, required=True)
     parser.add_argument("--currency-ceiling-usd", type=float)
@@ -71,22 +69,11 @@ def main() -> int:
     manifest = build_method_qualification_local_manifest(
         ROOT, DESIGN, runtime_config_path
     )
-    readiness = build_method_qualification_local_readiness(
-        ROOT,
-        manifest,
-        resource_calibration_manifest_path=args.resource_calibration_manifest.resolve(),
-        resource_calibration_summary_path=args.resource_calibration_summary.resolve(),
-    )
-    readiness_errors = validate_method_qualification_local_readiness(readiness)
-    if readiness_errors:
+    manifest_errors = validate_method_qualification_local_manifest(ROOT, manifest)
+    if manifest_errors:
         raise RuntimeError(
-            "method-qualification readiness failed: " + "; ".join(readiness_errors)
-        )
-    calibration = readiness["resource_calibration_readiness"]
-    if calibration.get("method_qualification_may_be_authorized") is not True:
-        raise RuntimeError(
-            "method qualification authorization is blocked until its exact W2-26 "
-            "A_E/electrochemical/r8 resource card passes"
+            "method-qualification local manifest failed: "
+            + "; ".join(manifest_errors)
         )
     output = args.output.resolve()
     if args.check:

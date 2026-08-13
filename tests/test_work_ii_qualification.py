@@ -13,7 +13,6 @@ import pytest
 import scripts.authorize_work_ii_method_qualification as qualification_authorizer
 import scripts.build_work_ii_method_qualification_receipt as qualification_receipt_builder
 import scripts.run_work_ii_campaign_pilot as qualification_cell_runner
-import scripts.run_work_ii_method_qualification as qualification_readiness_runner
 import scripts.run_work_ii_method_qualification_triplet as qualification_runner
 
 import chemworld.eval.work_ii_method_qualification_local as local_gate_module
@@ -32,14 +31,12 @@ from chemworld.eval.work_ii_method_qualification_local import (
 from chemworld.eval.work_ii_qualification import (
     METHOD_QUALIFICATION_REPORT_VERSION,
     REQUIRED_CELL_QUALIFICATION_CHECKS,
-    build_method_qualification_readiness,
     build_method_qualification_receipt,
     build_qualification_execution_authorization,
     method_qualification_report_sha256,
     qualification_execution_journal_sha256,
     qualification_receipt_currency_ceiling,
     qualification_receipt_sha256,
-    validate_method_qualification_readiness,
     validate_method_qualification_receipt,
     validate_method_qualification_report,
     validate_qualification_execution_authorization,
@@ -114,7 +111,6 @@ def _prepare_triplet_inputs(
     }
     receipt_path = tmp_path / "calibration-summary.json"
     receipt_path.write_text(json.dumps(receipt), encoding="utf-8")
-    (tmp_path / "calibration-manifest.json").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(
         local_gate_module,
         "validate_w2_27_selected_resource_card_receipt",
@@ -126,54 +122,6 @@ def _prepare_triplet_inputs(
     return build_method_qualification_local_manifest(ROOT, DESIGN, runtime_path)
 
 
-@pytest.fixture(autouse=True)
-def _passed_resource_calibration_gate(monkeypatch: pytest.MonkeyPatch) -> None:
-    expected = list(qualification_module.EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
-    readiness = {
-        "schema_version": "chemworld-work-ii-resource-calibration-gate-0.2",
-        "status": "calibration_passed_method_qualification_eligible",
-        "execution_manifest_binding": {
-            "path": "workstreams/flagship_tasks/reports/"
-            "work-ii-resource-calibration-execution-manifest-v0.2.json",
-            "file_sha256": "1" * 64,
-        },
-        "summary_binding": {
-            "path": "workstreams/flagship_tasks/reports/"
-            "work-ii-resource-calibration-summary-v0.2.json",
-            "file_sha256": "2" * 64,
-        },
-        "summary_sha256": "3" * 64,
-        "expected_task_card_count": 9,
-        "observed_task_card_count": 9,
-        "expected_task_identities": [
-            {"locus": locus, "task_id": task_id, "rounds": rounds}
-            for locus, task_id, rounds in expected
-        ],
-        "task_card_assessments": [
-            {
-                "locus": locus,
-                "task_id": task_id,
-                "rounds": rounds,
-                "card_sha256": str(index + 4) * 64,
-                "protected_closeout_reserve_enforced": True,
-                "protected_closeout_reserve_fraction": (
-                    qualification_module.PROTECTED_RESERVE_FRACTIONS[locus]
-                ),
-                "expected_protected_closeout_reserve_fraction": (
-                    qualification_module.PROTECTED_RESERVE_FRACTIONS[locus]
-                ),
-                "task_identity_exact": True,
-                "eligible": True,
-            }
-            for index, (locus, task_id, rounds) in enumerate(expected)
-        ],
-        "method_qualification_may_be_authorized": True,
-    }
-    monkeypatch.setattr(
-        qualification_module,
-        "_resource_calibration_v02_readiness",
-        lambda *_args, **_kwargs: (deepcopy(readiness), []),
-    )
 @pytest.fixture
 def repo_tmp_path():
     path = Path(tempfile.mkdtemp(prefix=".pytest-workii-qualification-", dir=ROOT))
@@ -386,7 +334,6 @@ def _receipt(
         progress_path=tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=tmp_path / "calibration-summary.json",
     )
     assert progress["status"] == "passed"
@@ -588,6 +535,36 @@ def test_method_qualification_receipt_builder_round_trips_validated_triplet(
         )
 
 
+def test_historical_qualification_journal_does_not_require_current_runner_bytes(
+    monkeypatch,
+    repo_tmp_path: Path,
+) -> None:
+    _receipt_value, manifest = _receipt(repo_tmp_path, monkeypatch)
+    journal_path = repo_tmp_path / "qualification-output" / "execution_journal.json"
+    journal = json.loads(journal_path.read_text(encoding="utf-8"))
+    journal["runner_binding"]["sha256"] = "b" * 64
+    journal["execution_journal_sha256"] = qualification_execution_journal_sha256(
+        journal
+    )
+    journal_path.write_text(json.dumps(journal), encoding="utf-8")
+
+    assert qualification_module.validate_qualification_execution_journal(
+        ROOT, journal, manifest
+    ) == []
+
+    journal["runner_binding"]["sha256"] = "not-a-sha"
+    journal["execution_journal_sha256"] = qualification_execution_journal_sha256(
+        journal
+    )
+    errors = qualification_module.validate_qualification_execution_journal(
+        ROOT, journal, manifest
+    )
+    assert (
+        "qualification execution journal has an invalid parent runner binding"
+        in errors
+    )
+
+
 def test_method_qualification_receipt_is_semantic_self_hashed_and_cost_bound(
     monkeypatch,
     repo_tmp_path: Path,
@@ -715,202 +692,19 @@ def test_receipt_rejects_rehashed_journal_that_omits_an_attempt(
     )
 
 
-def test_method_qualification_readiness_is_zero_call_and_execution_blocked() -> None:
-    first = build_method_qualification_readiness(ROOT, DESIGN, ANALYSIS)
-    second = build_method_qualification_readiness(ROOT, DESIGN, ANALYSIS)
-    assert first == second
-    assert validate_method_qualification_readiness(first) == []
-    assert first["status"] in {"failed", "passed_provider_execution_blocked"}
-    assert all(
-        error == "analysis plan does not bind the current formal design"
-        for error in first["internal_errors"]
-    )
-    assert first["provider_calls_executed"] == 0
-    assert first["expected_counts"]["accepted_scientific_cells"] == 3
-    assert first["expected_counts"]["operation_attempts_hard_cap"] == 168
-    calibration = first["resource_calibration_readiness"]
-    assert calibration["expected_task_card_count"] == 9
-    assert calibration["observed_task_card_count"] == 9
-    assert [
-        (row["locus"], row["task_id"], row["rounds"])
-        for row in calibration["task_card_assessments"]
-    ] == list(qualification_module.EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
-    assert all(
-        row["protected_closeout_reserve_enforced"] is True
-        and row["protected_closeout_reserve_fraction"]
-        == qualification_module.PROTECTED_RESERVE_FRACTIONS[row["locus"]]
-        for row in calibration["task_card_assessments"]
-    )
-    assert all(
-        item["eligible_for_current_method_receipt"] is False
-        for item in first["historical_evidence_assessment"]
-    )
-
-
-@pytest.mark.parametrize(
-    ("mutate", "expected_error"),
-    [
-        (
-            lambda rows: rows[0].update(task_id="wrong-task"),
-            "method qualification readiness has invalid W2-26 task-specific cards",
-        ),
-        (
-            lambda rows: rows[0].update(
-                protected_closeout_reserve_enforced=False
-            ),
-            "method qualification readiness has invalid W2-26 task-specific cards",
-        ),
-        (
-            lambda rows: rows[-1].update(
-                protected_closeout_reserve_fraction=0.15
-            ),
-            "method qualification readiness has invalid W2-26 task-specific cards",
-        ),
-    ],
-)
-def test_method_qualification_readiness_rejects_invalid_task_cards(
-    mutate,
-    expected_error: str,
-) -> None:
-    report = build_method_qualification_readiness(ROOT, DESIGN, ANALYSIS)
-    mutate(report["resource_calibration_readiness"]["task_card_assessments"])
-    report["readiness_sha256"] = qualification_module.method_qualification_readiness_sha256(
-        report
-    )
-
-    assert expected_error in validate_method_qualification_readiness(report)
-
-
-def test_method_qualification_readiness_accepts_reordered_exact_nine_cards() -> None:
-    report = build_method_qualification_readiness(ROOT, DESIGN, ANALYSIS)
-    report["resource_calibration_readiness"]["task_card_assessments"].reverse()
-    report["readiness_sha256"] = qualification_module.method_qualification_readiness_sha256(
-        report
-    )
-
-    assert validate_method_qualification_readiness(report) == []
-
-
-def test_method_qualification_readiness_missing_v02_evidence_is_fail_closed(
-    monkeypatch: pytest.MonkeyPatch,
-    repo_tmp_path: Path,
-) -> None:
-    monkeypatch.undo()
-    manifest_path = repo_tmp_path / "missing-execution-manifest.json"
-    summary_path = repo_tmp_path / "missing-summary.json"
-
-    report = build_method_qualification_readiness(
-        ROOT,
-        DESIGN,
-        ANALYSIS,
-        resource_calibration_manifest_path=manifest_path,
-        resource_calibration_summary_path=summary_path,
-    )
-
-    calibration = report["resource_calibration_readiness"]
-    assert report["status"] == "failed"
-    assert calibration["status"] == "not_ready_fail_closed"
-    assert calibration["expected_task_card_count"] == 9
-    assert calibration["observed_task_card_count"] == 0
-    assert calibration["method_qualification_may_be_authorized"] is False
-    assert "the nine-task resource calibration block W2-26 has not passed" in report[
-        "blocking_requirements"
-    ]
-    assert validate_method_qualification_readiness(report) == []
-
-
-def test_w2_27_projects_only_exact_enforced_v02_task_cards(
-    monkeypatch: pytest.MonkeyPatch,
-    repo_tmp_path: Path,
-) -> None:
-    monkeypatch.undo()
-    monkeypatch.setattr(
-        qualification_module,
-        "validate_resource_calibration_manifest_v02",
-        lambda *_args, **_kwargs: [],
-    )
-    monkeypatch.setattr(
-        qualification_module,
-        "validate_resource_calibration_summary_v02",
-        lambda *_args, **_kwargs: [],
-    )
-    manifest_path = repo_tmp_path / "execution-manifest.json"
-    summary_path = repo_tmp_path / "summary.json"
-    manifest_path.write_text(json.dumps({"manifest": "fixture"}), encoding="utf-8")
-    cards = []
-    for locus, task_id, rounds in (
-        qualification_module.EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS
-    ):
-        cards.append(
-            {
-                "card_identity": {
-                    "locus": locus,
-                    "task_id": task_id,
-                    "rounds": rounds,
-                    "resource_formula_binding": {
-                        "formula": {
-                            "process_time_formula": {
-                                "protected_reserve_fraction": (
-                                    qualification_module.PROTECTED_RESERVE_FRACTIONS[
-                                        locus
-                                    ]
-                                )
-                            }
-                        }
-                    },
-                },
-                "protected_closeout_reserve_enforced": True,
-            }
-        )
-    summary = {
-        "status": "passed",
-        "calibration_passed": True,
-        "method_qualification_may_be_authorized": True,
-        "resource_card_proposals": cards,
-    }
-    summary_path.write_text(json.dumps(summary), encoding="utf-8")
-
-    projected, errors = qualification_module._resource_calibration_v02_readiness(
-        ROOT,
-        manifest_path,
-        summary_path,
-    )
-    assert errors == []
-    assert projected["method_qualification_may_be_authorized"] is True
-
-    summary["resource_card_proposals"][0]["card_identity"] = deepcopy(
-        summary["resource_card_proposals"][1]["card_identity"]
-    )
-    summary["resource_card_proposals"][1][
-        "protected_closeout_reserve_enforced"
-    ] = False
-    summary["resource_card_proposals"][-1]["card_identity"][
-        "resource_formula_binding"
-    ]["formula"]["process_time_formula"]["protected_reserve_fraction"] = 0.15
-    summary_path.write_text(json.dumps(summary), encoding="utf-8")
-
-    projected, errors = qualification_module._resource_calibration_v02_readiness(
-        ROOT,
-        manifest_path,
-        summary_path,
-    )
-    assert projected["method_qualification_may_be_authorized"] is False
-    assert "W2-26 requires the exact nine task resource cards" in errors
-    assert any("does not enforce closeout" in error for error in errors)
-    assert any("closeout fraction differs" in error for error in errors)
 
 
 def test_w2_27_entrypoints_bind_the_canonical_v02_contract() -> None:
-    assert qualification_readiness_runner.DESIGN == DESIGN
     assert qualification_runner.DESIGN == DESIGN
     assert qualification_authorizer.DESIGN == DESIGN
     assert qualification_receipt_builder.DESIGN == DESIGN
     assert qualification_cell_runner.DEFAULT_DESIGN == DESIGN
     assert qualification_cell_runner.DEFAULT_ANALYSIS == ANALYSIS
-    source = Path(qualification_readiness_runner.__file__).read_text(encoding="utf-8")
-    assert "build_formal_preflight" not in source
-    assert "build_method_qualification_readiness" not in source
-    assert "DEFAULT_ANALYSIS" not in source
+    for entrypoint in (qualification_authorizer, qualification_runner):
+        source = Path(entrypoint.__file__).read_text(encoding="utf-8")
+        assert "build_formal_preflight" not in source
+        assert "build_method_qualification" + "_readiness" not in source
+        assert "DEFAULT_ANALYSIS" not in source
 
 
 def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(
@@ -938,7 +732,6 @@ def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 
@@ -976,7 +769,6 @@ def test_qualification_triplet_runner_resumes_only_missing_infrastructure_arm(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     second = qualification_runner.execute_triplet(
@@ -985,7 +777,6 @@ def test_qualification_triplet_runner_resumes_only_missing_infrastructure_arm(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=True,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 
@@ -1027,7 +818,6 @@ def test_qualification_triplet_runner_rejects_rehashed_terminal_tampering(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     terminal_path = output / "terminal_receipts" / "opaque.json"
@@ -1048,7 +838,6 @@ def test_qualification_triplet_runner_rejects_rehashed_terminal_tampering(
             progress_path=repo_tmp_path / "qualification-progress.jsonl",
             resume=True,
             cell_runner=repo_tmp_path / "fake-cell-runner.py",
-            resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
             resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
         )
 
@@ -1077,7 +866,6 @@ def test_qualification_triplet_runner_rebuilds_report_after_terminal_only_crash(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     (output / "report.json").unlink()
@@ -1089,7 +877,6 @@ def test_qualification_triplet_runner_rebuilds_report_after_terminal_only_crash(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=True,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
-        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
         resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 

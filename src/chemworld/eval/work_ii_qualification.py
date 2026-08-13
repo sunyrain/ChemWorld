@@ -1,4 +1,4 @@
-"""Fail-closed readiness and authorization gates for Work II qualification."""
+"""Fail-closed authorization, accounting, and receipt contracts for Work II qualification."""
 
 from __future__ import annotations
 
@@ -18,24 +18,9 @@ from chemworld.eval.work_ii_formal import (
     EXPECTED_METHOD_QUALIFICATION_CONTRACT,
     FORMAL_ARMS,
     FORMAL_SNAPSHOT_STAGES,
-    build_formal_preflight,
-    validate_formal_preflight,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
-    EXPECTED_PATTERN_KEYS as EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
-    PROTECTED_RESERVE_FRACTIONS,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
-    validate_manifest as validate_resource_calibration_manifest_v02,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
-    validate_summary as validate_resource_calibration_summary_v02,
 )
 
 METHOD_QUALIFICATION_REPORT_VERSION = "chemworld-work-ii-campaign-pilot-report-0.4"
-METHOD_QUALIFICATION_READINESS_VERSION = "chemworld-work-ii-method-qualification-readiness-0.2"
 METHOD_QUALIFICATION_RECEIPT_VERSION = "chemworld-work-ii-method-qualification-receipt-0.4"
 METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION = (
     "chemworld-work-ii-method-qualification-execution-authorization-0.2"
@@ -51,14 +36,6 @@ QUALIFICATION_TRIPLET_RUNNER_PATH = (
 )
 QUALIFICATION_TERMINAL_RECEIPT_VERSION = (
     "chemworld-work-ii-qualification-terminal-receipt-0.1"
-)
-DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST = Path(
-    "workstreams/flagship_tasks/reports/"
-    "work-ii-resource-calibration-execution-manifest-v0.2.json"
-)
-DEFAULT_RESOURCE_CALIBRATION_SUMMARY = Path(
-    "workstreams/flagship_tasks/reports/"
-    "work-ii-resource-calibration-summary-v0.2.json"
 )
 REQUIRED_CELL_QUALIFICATION_CHECKS = (
     "planned_complete_experiments",
@@ -122,12 +99,6 @@ def method_qualification_report_sha256(report: Mapping[str, Any]) -> str:
     """Return the embedded content hash for a qualification report."""
 
     return _self_hash(report, "report_sha256")
-
-
-def method_qualification_readiness_sha256(report: Mapping[str, Any]) -> str:
-    """Return the embedded content hash for a readiness report."""
-
-    return _self_hash(report, "readiness_sha256")
 
 
 def qualification_receipt_sha256(receipt: Mapping[str, Any]) -> str:
@@ -640,13 +611,12 @@ def validate_qualification_execution_journal(
         return errors
 
     runner = journal.get("runner_binding")
-    expected_runner = root / QUALIFICATION_TRIPLET_RUNNER_PATH
     if (
         not isinstance(runner, Mapping)
         or runner.get("path") != QUALIFICATION_TRIPLET_RUNNER_PATH
-        or runner.get("sha256") != file_sha256(expected_runner)
+        or not _is_sha256(runner.get("sha256"))
     ):
-        errors.append("qualification execution journal binds a different parent runner")
+        errors.append("qualification execution journal has an invalid parent runner binding")
 
     authorization_path, binding_errors = _journal_bound_path(
         root,
@@ -1329,509 +1299,6 @@ def validate_method_qualification_report(
     return errors
 
 
-def _historical_binding(root: Path, relative: str) -> dict[str, Any]:
-    path = root / relative
-    return {
-        "path": relative,
-        "sha256": file_sha256(path) if path.is_file() else None,
-        "present": path.is_file(),
-    }
-
-
-def _resource_calibration_v02_readiness(
-    root: Path,
-    manifest_path: Path,
-    summary_path: Path,
-) -> tuple[dict[str, Any], list[str]]:
-    """Load W2-26 once and project the exact nine task-card gate for W2-27."""
-
-    expected_keys = tuple(EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
-    errors: list[str] = []
-    manifest: dict[str, Any] = {}
-    summary: dict[str, Any] = {}
-    bindings: dict[str, dict[str, Any] | None] = {
-        "execution_manifest": None,
-        "summary": None,
-    }
-    for label, path in (
-        ("execution_manifest", manifest_path),
-        ("summary", summary_path),
-    ):
-        resolved = path.resolve()
-        try:
-            relative = resolved.relative_to(root).as_posix()
-        except ValueError:
-            errors.append(f"W2-26 {label} escapes the repository")
-            continue
-        if not resolved.is_file():
-            errors.append(f"W2-26 {label} is missing")
-            continue
-        try:
-            loaded = json.loads(resolved.read_text(encoding="utf-8"))
-        except (OSError, json.JSONDecodeError) as error:
-            errors.append(f"W2-26 {label} cannot be read: {error}")
-            continue
-        if not isinstance(loaded, dict):
-            errors.append(f"W2-26 {label} must contain an object")
-            continue
-        bindings[label] = {
-            "path": relative,
-            "file_sha256": file_sha256(resolved),
-        }
-        if label == "execution_manifest":
-            manifest = loaded
-        else:
-            summary = loaded
-
-    if manifest:
-        errors.extend(
-            f"W2-26 execution manifest: {error}"
-            for error in validate_resource_calibration_manifest_v02(root, manifest)
-        )
-    if summary and manifest:
-        errors.extend(
-            f"W2-26 summary: {error}"
-            for error in validate_resource_calibration_summary_v02(
-                summary,
-                manifest=manifest,
-            )
-        )
-    elif summary and not manifest:
-        errors.append("W2-26 summary cannot be validated without its execution manifest")
-
-    cards = summary.get("resource_card_proposals")
-    cards = cards if isinstance(cards, list) else []
-    assessments: list[dict[str, Any]] = []
-    observed_keys: list[tuple[str, str, int]] = []
-    for index, raw_card in enumerate(cards):
-        card = raw_card if isinstance(raw_card, Mapping) else {}
-        identity = card.get("card_identity")
-        identity = identity if isinstance(identity, Mapping) else {}
-        locus = identity.get("locus")
-        task_id = identity.get("task_id")
-        rounds = identity.get("rounds")
-        key_valid = (
-            isinstance(locus, str)
-            and isinstance(task_id, str)
-            and isinstance(rounds, int)
-            and not isinstance(rounds, bool)
-        )
-        key = (locus, task_id, rounds) if key_valid else None
-        if key is not None:
-            observed_keys.append(key)
-        formula_binding = identity.get("resource_formula_binding")
-        formula_binding = (
-            formula_binding if isinstance(formula_binding, Mapping) else {}
-        )
-        formula = formula_binding.get("formula")
-        formula = formula if isinstance(formula, Mapping) else {}
-        process_formula = formula.get("process_time_formula")
-        process_formula = (
-            process_formula if isinstance(process_formula, Mapping) else {}
-        )
-        fraction = process_formula.get("protected_reserve_fraction")
-        expected_fraction = PROTECTED_RESERVE_FRACTIONS.get(str(locus))
-        closeout_enforced = (
-            card.get("protected_closeout_reserve_enforced") is True
-        )
-        assessment = {
-            "locus": locus,
-            "task_id": task_id,
-            "rounds": rounds,
-            "card_sha256": card.get("card_sha256"),
-            "protected_closeout_reserve_enforced": closeout_enforced,
-            "protected_closeout_reserve_fraction": fraction,
-            "expected_protected_closeout_reserve_fraction": expected_fraction,
-            "task_identity_exact": key in expected_keys if key is not None else False,
-        }
-        assessment["eligible"] = (
-            assessment["task_identity_exact"]
-            and closeout_enforced
-            and fraction == expected_fraction
-        )
-        assessments.append(assessment)
-        if not key_valid:
-            errors.append(f"W2-26 resource card {index} has an invalid task identity")
-        elif key not in expected_keys:
-            errors.append(f"W2-26 resource card has an unexpected task identity: {key}")
-        if not closeout_enforced:
-            errors.append(f"W2-26 resource card does not enforce closeout: {key}")
-        if expected_fraction is None or fraction != expected_fraction:
-            errors.append(f"W2-26 resource card closeout fraction differs: {key}")
-
-    if (
-        len(observed_keys) != len(expected_keys)
-        or len(set(observed_keys)) != len(observed_keys)
-        or set(observed_keys) != set(expected_keys)
-    ):
-        errors.append("W2-26 requires the exact nine task resource cards")
-    passed = (
-        not errors
-        and summary.get("status") == "passed"
-        and summary.get("calibration_passed") is True
-        and summary.get("method_qualification_may_be_authorized") is True
-    )
-    if summary and not passed:
-        errors.append("W2-26 full-task resource calibration did not pass")
-    report = {
-        "schema_version": "chemworld-work-ii-resource-calibration-gate-0.2",
-        "status": (
-            "calibration_passed_method_qualification_eligible"
-            if passed
-            else "not_ready_fail_closed"
-        ),
-        "execution_manifest_binding": bindings["execution_manifest"],
-        "summary_binding": bindings["summary"],
-        "summary_sha256": summary.get("summary_sha256"),
-        "expected_task_card_count": len(expected_keys),
-        "observed_task_card_count": len(cards),
-        "expected_task_identities": [
-            {"locus": locus, "task_id": task_id, "rounds": rounds}
-            for locus, task_id, rounds in expected_keys
-        ],
-        "task_card_assessments": assessments,
-        "method_qualification_may_be_authorized": passed,
-    }
-    return report, errors
-
-
-def build_method_qualification_readiness(
-    root: Path,
-    design_path: Path,
-    analysis_path: Path,
-    *,
-    resource_calibration_manifest_path: Path | None = None,
-    resource_calibration_summary_path: Path | None = None,
-) -> dict[str, Any]:
-    """Build a deterministic, zero-provider-call readiness report for W2-10."""
-
-    root = root.resolve()
-    manifest = build_formal_preflight(root, design_path, analysis_path)
-    internal_errors = [*manifest.get("errors", []), *validate_formal_preflight(manifest)]
-    calibration_manifest_path = (
-        resource_calibration_manifest_path
-        or root / DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST
-    )
-    calibration_summary_path = (
-        resource_calibration_summary_path
-        or root / DEFAULT_RESOURCE_CALIBRATION_SUMMARY
-    )
-    calibration_readiness, calibration_errors = _resource_calibration_v02_readiness(
-        root,
-        calibration_manifest_path,
-        calibration_summary_path,
-    )
-    internal_errors.extend(
-        f"resource calibration: {error}" for error in calibration_errors
-    )
-    contract = manifest.get("method_qualification_contract")
-    contract = contract if isinstance(contract, Mapping) else {}
-    task_id = str(contract.get("qualification_task_id", ""))
-    task_binding = _task_binding(manifest, task_id)
-    campaign_binding = (
-        task_binding.get("campaign_config") if isinstance(task_binding, Mapping) else None
-    )
-    campaign_binding = campaign_binding if isinstance(campaign_binding, Mapping) else {}
-    config_path = root / str(campaign_binding.get("path", ""))
-    config: dict[str, Any] = {}
-    if config_path.is_file():
-        loaded = json.loads(config_path.read_text(encoding="utf-8"))
-        if isinstance(loaded, dict):
-            config = loaded
-    if not config:
-        internal_errors.append("qualification campaign config is missing")
-    if config.get("task_id") != task_id:
-        internal_errors.append("qualification task differs from its campaign config")
-    if tuple(config.get("prior_arms", {})) != FORMAL_ARMS:
-        internal_errors.append("qualification campaign does not preserve the arm triplet")
-    execution = config.get("execution")
-    execution = execution if isinstance(execution, Mapping) else {}
-    if execution.get("failure_semantics") != (
-        "finish the in-flight seed triplet, then stop before the next world seed"
-    ):
-        internal_errors.append("qualification triplet failure semantics are not frozen")
-    campaign = config.get("campaign")
-    campaign = campaign if isinstance(campaign, Mapping) else {}
-    limits = config.get("method_resources")
-    limits = limits if isinstance(limits, Mapping) else {}
-    provider = manifest.get("provider_contract")
-    provider = provider if isinstance(provider, Mapping) else {}
-    config_provider = config.get("provider")
-    config_provider = config_provider if isinstance(config_provider, Mapping) else {}
-    if any(
-        config_provider.get(field) != provider.get(field)
-        for field in (
-            "id",
-            "name",
-            "base_url",
-            "wire_api",
-            "model",
-            "reasoning_effort",
-            "request_timeout_s",
-            "finalization_timeout_s",
-        )
-    ):
-        internal_errors.append("qualification provider differs from the formal method")
-
-    old_wellau = _historical_binding(
-        root,
-        "workstreams/flagship_tasks/reports/work-ii-seed0-persistent-campaign-pilot.json",
-    )
-    deepseek = _historical_binding(
-        root,
-        "workstreams/flagship_tasks/reports/work-ii-deepseek-codex-harness-diagnosis.md",
-    )
-    if not old_wellau["present"] or not deepseek["present"]:
-        internal_errors.append("historical qualification evidence binding is missing")
-
-    cell_count = int(contract.get("qualification_cell_count", 0))
-    attempts_per_cell = 1 + int(contract.get("maximum_infrastructure_resume_attempts_per_cell", 0))
-    expected_counts = {
-        "accepted_scientific_cells": cell_count,
-        "accepted_scientific_codex_processes": cell_count,
-        "accepted_provider_sessions": cell_count,
-        "accepted_participant_model_calls": cell_count,
-        "complete_experiments": cell_count * int(campaign.get("complete_experiments", 0)),
-        "belief_checkpoints": cell_count * int(contract.get("belief_checkpoints_per_cell", 0)),
-        "operation_attempts_hard_cap": cell_count * int(campaign.get("operation_attempt_limit", 0)),
-        "provider_process_attempts_initial": cell_count,
-        "provider_process_attempts_hard_cap": cell_count * attempts_per_cell,
-        "input_tokens_accepted_cell_cap": cell_count * int(limits.get("input_token_limit", 0)),
-        "uncached_input_tokens_accepted_cell_cap": cell_count
-        * int(limits.get("uncached_input_token_limit", 0)),
-        "output_tokens_accepted_cell_cap": cell_count * int(limits.get("output_token_limit", 0)),
-        "accepted_cell_wall_time_cap_s": cell_count * float(limits.get("wall_time_limit_s", 0.0)),
-    }
-    blockers = [
-        *(
-            ["the nine-task resource calibration block W2-26 has not passed"]
-            if calibration_readiness.get(
-                "method_qualification_may_be_authorized"
-            )
-            is not True
-            else []
-        ),
-        "user must confirm the current provider contract or approve an explicit amendment",
-        "user must confirm that the provider credential was rotated after exposure",
-        "user must approve a qualification currency ceiling bound to the frozen gate contract",
-        "the real-provider three-arm qualification triplet has not been executed",
-    ]
-    report: dict[str, Any] = {
-        "schema_version": METHOD_QUALIFICATION_READINESS_VERSION,
-        "status": "failed" if internal_errors else "passed_provider_execution_blocked",
-        "formal_result": False,
-        "provider_execution_allowed": False,
-        "formal_execution_authorized": False,
-        "provider_calls_executed": 0,
-        "formal_participant_outcomes_before_authorization": 0,
-        "formal_preflight_sha256": manifest.get("preflight_sha256"),
-        "method_qualification_contract": dict(contract),
-        "method_qualification_contract_sha256": canonical_json_sha256(contract),
-        "participant_execution_contract_sha256": manifest.get(
-            "participant_execution_contract_sha256"
-        ),
-        "provider_contract": dict(provider),
-        "provider_contract_sha256": canonical_json_sha256(provider),
-        "held_out_evaluator_contract_sha256": canonical_json_sha256(
-            manifest.get("held_out_evaluator_contract")
-        ),
-        "resource_calibration_readiness": {
-            "manifest_path": calibration_manifest_path.relative_to(root).as_posix(),
-            "summary_path": calibration_summary_path.relative_to(root).as_posix(),
-            "schema_version": calibration_readiness.get("schema_version"),
-            "status": calibration_readiness.get("status"),
-            "execution_manifest_binding": calibration_readiness.get(
-                "execution_manifest_binding"
-            ),
-            "summary_binding": calibration_readiness.get("summary_binding"),
-            "summary_sha256": calibration_readiness.get("summary_sha256"),
-            "expected_task_card_count": calibration_readiness.get(
-                "expected_task_card_count"
-            ),
-            "observed_task_card_count": calibration_readiness.get(
-                "observed_task_card_count"
-            ),
-            "expected_task_identities": calibration_readiness.get(
-                "expected_task_identities"
-            ),
-            "task_card_assessments": calibration_readiness.get(
-                "task_card_assessments"
-            ),
-            "method_qualification_may_be_authorized": calibration_readiness.get(
-                "method_qualification_may_be_authorized"
-            ),
-        },
-        "qualification_schedule": {
-            "task_id": task_id,
-            "world_cohort": contract.get("qualification_world_cohort"),
-            "world_seed": contract.get("qualification_world_seed"),
-            "prior_arms": list(FORMAL_ARMS),
-            "campaign_config": dict(campaign_binding),
-            "runner": "scripts/run_work_ii_method_qualification_triplet.py",
-            "required_execution_flags": [
-                "--execute",
-                "--authorization",
-                "--allow-provider-execution",
-            ],
-            "authorization_builder": (
-                "scripts/authorize_work_ii_method_qualification.py"
-            ),
-            "authorization_schema": METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION,
-            "report_schema": METHOD_QUALIFICATION_REPORT_VERSION,
-            "receipt_builder": "scripts/build_work_ii_method_qualification_receipt.py",
-            "receipt_schema": METHOD_QUALIFICATION_RECEIPT_VERSION,
-            "output_scope": "runs/development",
-            "triplet_failure_semantics": contract.get("triplet_failure_semantics"),
-            "missing_only_resume": True,
-            "per_arm_provider_attempt_hard_cap": 2,
-            "runtime_cost_reservation_required": True,
-        },
-        "expected_counts": expected_counts,
-        "historical_evidence_assessment": [
-            {
-                "evidence_id": "wellau_seed0_2026_08_08",
-                "binding": old_wellau,
-                "eligible_for_current_method_receipt": False,
-                "reasons": [
-                    "public resource card exposed prior-arm identity",
-                    "source predates the current participant execution and qualification contracts",
-                ],
-            },
-            {
-                "evidence_id": "deepseek_qualification_v2_seed0_opaque",
-                "binding": deepseek,
-                "eligible_for_current_method_receipt": False,
-                "reasons": [
-                    "covered only the opaque arm rather than the frozen three-arm triplet",
-                    (
-                        "used a provider and sampling contract different from the current "
-                        "formal method"
-                    ),
-                ],
-            },
-        ],
-        "blocking_requirements": blockers,
-        "internal_errors": internal_errors,
-    }
-    report["readiness_sha256"] = method_qualification_readiness_sha256(report)
-    return report
-
-
-def validate_method_qualification_readiness(report: Mapping[str, Any]) -> list[str]:
-    """Validate that readiness is deterministic, zero-call, and still blocked."""
-
-    errors: list[str] = []
-    if report.get("schema_version") != METHOD_QUALIFICATION_READINESS_VERSION:
-        errors.append("unexpected method qualification readiness schema")
-    if report.get("readiness_sha256") != method_qualification_readiness_sha256(report):
-        errors.append("method qualification readiness self-hash mismatch")
-    if report.get("status") not in {"failed", "passed_provider_execution_blocked"}:
-        errors.append("method qualification readiness did not pass internal checks")
-    internal_errors = report.get("internal_errors")
-    if not isinstance(internal_errors, list):
-        errors.append("method qualification readiness has internal errors")
-    elif bool(internal_errors) != (report.get("status") == "failed"):
-        errors.append("method qualification readiness status differs from internal errors")
-    if (
-        report.get("formal_result") is not False
-        or report.get("provider_execution_allowed") is not False
-        or report.get("formal_execution_authorized") is not False
-        or report.get("provider_calls_executed") != 0
-        or report.get("formal_participant_outcomes_before_authorization") != 0
-    ):
-        errors.append("method qualification readiness crossed the execution boundary")
-    contract = report.get("method_qualification_contract")
-    if contract != EXPECTED_METHOD_QUALIFICATION_CONTRACT or report.get(
-        "method_qualification_contract_sha256"
-    ) != canonical_json_sha256(EXPECTED_METHOD_QUALIFICATION_CONTRACT):
-        errors.append("method qualification readiness has an invalid gate contract")
-    counts = report.get("expected_counts")
-    counts = counts if isinstance(counts, Mapping) else {}
-    if (
-        counts.get("accepted_scientific_cells") != 3
-        or counts.get("complete_experiments") != 24
-        or counts.get("belief_checkpoints") != 15
-        or counts.get("provider_process_attempts_hard_cap") != 6
-    ):
-        errors.append("method qualification readiness denominators are invalid")
-    schedule = report.get("qualification_schedule")
-    schedule = schedule if isinstance(schedule, Mapping) else {}
-    if (
-        schedule.get("runner")
-        != "scripts/run_work_ii_method_qualification_triplet.py"
-        or schedule.get("missing_only_resume") is not True
-        or schedule.get("per_arm_provider_attempt_hard_cap") != 2
-        or schedule.get("runtime_cost_reservation_required") is not True
-    ):
-        errors.append("method qualification readiness lacks its executable resume contract")
-    calibration = report.get("resource_calibration_readiness")
-    calibration = calibration if isinstance(calibration, Mapping) else {}
-    expected_identities = [
-        {"locus": locus, "task_id": task_id, "rounds": rounds}
-        for locus, task_id, rounds in EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS
-    ]
-    assessments = calibration.get("task_card_assessments")
-    assessments = assessments if isinstance(assessments, list) else []
-    observed_identity_keys = [
-        (row.get("locus"), row.get("task_id"), row.get("rounds"))
-        for row in assessments
-        if isinstance(row, Mapping)
-    ]
-    expected_identity_keys = list(EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS)
-    if (
-        calibration.get("schema_version")
-        != "chemworld-work-ii-resource-calibration-gate-0.2"
-        or calibration.get("status") not in {
-            "not_ready_fail_closed",
-            "calibration_passed_method_qualification_eligible",
-        }
-        or not isinstance(
-            calibration.get("method_qualification_may_be_authorized"), bool
-        )
-        or calibration.get("expected_task_card_count") != 9
-        or not isinstance(calibration.get("observed_task_card_count"), int)
-        or calibration.get("expected_task_identities") != expected_identities
-    ):
-        errors.append("method qualification readiness does not retain the W2-26 gate")
-    if assessments and (
-        len(assessments) != 9
-        or len(set(observed_identity_keys)) != len(observed_identity_keys)
-        or set(observed_identity_keys) != set(expected_identity_keys)
-        or any(
-            not isinstance(row, Mapping)
-            or row.get("task_identity_exact") is not True
-            or row.get("protected_closeout_reserve_enforced") is not True
-            or row.get("protected_closeout_reserve_fraction")
-            != PROTECTED_RESERVE_FRACTIONS.get(str(row.get("locus")))
-            or row.get("eligible") is not True
-            for row in assessments
-        )
-    ):
-        errors.append(
-            "method qualification readiness has invalid W2-26 task-specific cards"
-        )
-    card_gate_passed = len(assessments) == 9 and all(
-        isinstance(row, Mapping) and row.get("eligible") is True
-        for row in assessments
-    )
-    expected_calibration_eligibility = (
-        calibration.get("status")
-        == "calibration_passed_method_qualification_eligible"
-        and card_gate_passed
-    )
-    if calibration.get("method_qualification_may_be_authorized") != (
-        expected_calibration_eligibility
-    ):
-        errors.append("method qualification readiness overstates W2-26 eligibility")
-    blockers = report.get("blocking_requirements")
-    expected_blocker_count = (
-        4
-        if calibration.get("method_qualification_may_be_authorized") is True
-        else 5
-    )
-    if not isinstance(blockers, list) or len(blockers) != expected_blocker_count:
-        errors.append("method qualification readiness lacks its external blockers")
-    return errors
 
 
 def build_method_qualification_receipt(
@@ -2255,28 +1722,21 @@ def qualification_receipt_currency_ceiling(
 
 
 __all__ = [
-    "DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST",
-    "DEFAULT_RESOURCE_CALIBRATION_SUMMARY",
-    "EXPECTED_RESOURCE_CALIBRATION_TASK_KEYS",
     "METHOD_QUALIFICATION_ATTEMPT_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_EXECUTION_AUTHORIZATION_VERSION",
     "METHOD_QUALIFICATION_EXECUTION_JOURNAL_VERSION",
-    "METHOD_QUALIFICATION_READINESS_VERSION",
     "METHOD_QUALIFICATION_RECEIPT_VERSION",
     "METHOD_QUALIFICATION_REPORT_VERSION",
     "REQUIRED_CELL_QUALIFICATION_CHECKS",
-    "build_method_qualification_readiness",
     "build_qualification_attempt_authorization",
     "build_qualification_execution_authorization",
     "build_qualification_execution_journal",
-    "method_qualification_readiness_sha256",
     "method_qualification_report_sha256",
     "qualification_attempt_authorization_sha256",
     "qualification_execution_authorization_sha256",
     "qualification_execution_journal_sha256",
     "qualification_receipt_currency_ceiling",
     "qualification_receipt_sha256",
-    "validate_method_qualification_readiness",
     "validate_method_qualification_receipt",
     "validate_method_qualification_report",
     "validate_qualification_attempt_authorization",

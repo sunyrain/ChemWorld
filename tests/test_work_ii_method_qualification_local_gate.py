@@ -14,7 +14,6 @@ from chemworld.eval.work_ii_task_resources import build_task_resource_formula_bi
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 ENTRYPOINTS = (
-    ROOT / "scripts/run_work_ii_method_qualification.py",
     ROOT / "scripts/authorize_work_ii_method_qualification.py",
     ROOT / "scripts/run_work_ii_method_qualification_triplet.py",
     ROOT / "scripts/build_work_ii_method_qualification_receipt.py",
@@ -168,39 +167,6 @@ def test_local_manifest_accepts_canonical_json_prior_arm_key_order(
             "card_identity"
         ]["resource_formula_binding"],
     }
-
-
-def test_local_readiness_accepts_exact_selected_w2_26_card(
-    tmp_path: Path,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    runtime_path, _runtime = _write_runtime_config(tmp_path, monkeypatch)
-    manifest = local_gate.build_method_qualification_local_manifest(
-        ROOT, DESIGN, runtime_path
-    )
-    receipt_path = ROOT / f".pytest-w2-27-selected-{tmp_path.name}.json"
-    receipt_path.write_text(
-        json.dumps(_calibration_summary(_w2_27_card(_source_config()))),
-        encoding="utf-8",
-    )
-    try:
-        readiness = local_gate.build_method_qualification_local_readiness(
-            ROOT,
-            manifest,
-            resource_calibration_manifest_path=(
-                ROOT / "workstreams/flagship_tasks/reports/manifest.json"
-            ),
-            resource_calibration_summary_path=receipt_path,
-        )
-    finally:
-        runtime_path.unlink(missing_ok=True)
-        receipt_path.unlink(missing_ok=True)
-    assert readiness["status"] == "passed_provider_execution_blocked"
-    assert readiness["internal_errors"] == []
-    assert readiness["resource_calibration_readiness"][
-        "method_qualification_may_be_authorized"
-    ] is True
-    assert local_gate.validate_method_qualification_local_readiness(readiness) == []
 
 
 def test_local_manifest_rejects_qualification_contract_drift(
