@@ -39,9 +39,9 @@ experiments、375 个 belief checkpoints，并为 private confirmation 保留相
 至少 6 个 unique recipes、最多 2 个 participant-chosen exact repeats；checkpoints 固定为 `0/2/4/6/8`。
 五个 task pattern 的 planning resource cards、formal manifest 与 analysis denominators 已同步重建。旧
 power/resource audit 只描述 v0.1 的 calibration 前 planning envelope，现已退役；当前资源上限只从 W2-26
-task cards 进入执行面。formal execution 继续锁死。当前 WellAU 三臂 method qualification 还受 W2-26
-未完成及四项外部授权要求
-阻断；formal/R5 尚未启动。用户授权的 W2-34 development block 已独立完成 2 个真实 provider sessions，
+task cards 进入执行面。current WellAU 三臂 method qualification 已终态通过，但 formal execution 继续受
+W2-26 未完成、private-seal 迁移和 release 用户授权阻断；formal/R5 尚未启动。用户授权的 W2-34
+development block 已独立完成 2 个真实 provider sessions，
 不进入 formal denominator。
 W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free executions 与 exact replay，
 0 physical/platform failures。Electrochemical 通过，而 crystallization 仅因 seed-mass effect 未超过冻结噪声门
@@ -514,8 +514,9 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   135-cell C2 manifest/preflight、task-aware analysis 与 private/public evaluator 均已实现；派生的
-  当前 task-resource cards 与 method qualification 仍须在 W2-26/W2-27 后闭合；不再重建旧 power audit、
-  method-qualification readiness 或 preregistration readiness。formal execution 仍被 W2-26/W2-27 和用户授权锁死。
+  当前 method qualification 已终态通过，task-resource cards 仍须由完整 W2-26 闭合；不再重建旧 power
+  audit、method-qualification readiness 或 preregistration readiness。formal execution 仍被 W2-26、
+  private-seal 迁移和用户 release 授权锁死。
 - [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
   `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
   triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
@@ -524,9 +525,16 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   release-freeze，不再作为 W2-26 开发执行前置。代表选择不依赖下游 D1 terminal receipt：8-round 绑定 formal v0.2；
   10/12-round 分别绑定受保护 A-P/A-S selection protocol 的 rank-1 task 及 provider-free Q2 直接生成的
   静态 D1 config。A-P protocol 的 `reaction-safety` 已仅作 canonical identifier correction 为
-  `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-P 现可解析；A-S full Q2 与静态 config
-  尚未生成，因此不得请求 provider/credential/pricing/currency 授权，不得用 proxy 代替，也不得误记为 READY。
-- [ ] **W2-27** 完成 current WellAU method qualification triplet，只按 harness/lifecycle/replay 资格，不按科学效果。
+  `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-S full Q2 与静态 config 现已生成，
+  r9 development run 完成前 7/9 triplets（21/27 cells）；第 8 个 A-S partition attempt 1 的三臂均在 6/12
+  时遇到共享 provider outage 并达到 5 次 failure，完整 triplet restart 的 attempt 2 又在 0/12 达到 4 次
+  failure 后 invalidated。第 9 个未启动，根目录没有全块 terminal summary。保留全部不利结果，不把 7/9
+  拼成通过、不覆盖或重启；下一次 provider 执行必须重新取得显式授权并遵循 frozen resume 语义。
+- [x] **W2-27** current WellAU method qualification triplet 已完成并通过：3/3 arms terminal、各 8/8
+  experiments、每臂 1 次 provider attempt、0 provider/infrastructure failures；三臂 exact replay 各验证
+  48 steps、0 mismatches，receipt validator 为 0 errors。该 development qualification 只证明当前
+  harness/lifecycle/replay，`formal_execution_authorized=false`，不按科学效果评分，也不补齐 W2-26 的
+  9-task resource summary。
 - [x] **W2-38** 两项 A-P 独立 terminal D1 已完成 provider-free readiness：不再维护人工历史报告清单，
   而是语义发现已有 participant provider 暴露，并按事前确定的 `最小 Q2-passed 未暴露 seed` 规则为
   reaction-safety 与 electrochemical 均选择 seed 2。两份三臂、10-experiment、`0/2/4/7/10`
@@ -539,7 +547,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   与 unclassified MCP failures 均为 `0`，typed taxonomy 为 agent-invalid `142`、transport/IPC/OS `1`、
   provider/network `0`。因此冻结的平台门禁通过，不再要求因同一平台缺陷重跑；但删失仍依赖 provider、task
   与 arm，当前轨迹不支持 provider/model/arm 科学比较，也不替代 W2-26 task-specific resource calibration 或
-  W2-27 五任务 current-method qualification，不进入 R5/C2。
+  W2-27 current-method qualification，不进入 R5/C2。
 - [ ] 用户冻结 submission route、currency ceilings、failure-escalation 和 public/private 执行授权。
 - [ ] 生成 final freeze receipt；此后不再改变 coverage、worlds、arms、轮次或 failure rules。
 
@@ -571,11 +579,11 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
-| W2-26 | NOT READY/BLOCKED | 8-round formal v0.2 与 A-P rank-1 Q2/static config 已直接绑定；A-S rank-1 full Q2/static config 尚缺，在此之前不得请求执行授权 |
-| W2-27 | READY/BLOCKED | current WellAU method qualification triplet 已完成零 provider readiness；等待显式 provider contract、credential rotation、pricing/currency ceiling 授权 |
+| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r9 已完成 7/9 triplets、21/27 cells；第 8 个 A-S partition 两次因三臂同步 provider failures invalidated，第 9 个未启动，无全块 terminal summary。已完成和失败轨迹均保留；未经新显式授权不续跑 |
+| W2-27 | TERMINAL / METHOD QUALIFICATION PASSED | current WellAU 三臂均 8/8 terminal、qualification passed、exact replay 48 steps/arm 且 0 mismatches；receipt validator 0 errors。仅为 development method qualification，formal execution 仍未授权，W2-26 仍不完整 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-39 | TERMINAL / PLATFORM REQUALIFICATION PASSED | A-P seed-2 DeepSeek→WellAU 四块已在共享执行语义修复后从首 cell 完整重跑：`12/12` cells terminal、`94/120` experiments、`4/12` qualification completed、`9/12` 达到 10/10、全部 `11/11` 个有 committed operations 的 cells exact replay；0 provider errors、0 missing/invalid store、0 unclassified MCP failures。平台门禁通过；删失非随机，故不作 provider/model/arm 科学比较，不替代 W2-26/W2-27，也不进入 R5/C2。 |
-| W2-37 | IN PROGRESS / RESTART3 RUNNING | 两项 seed-0 Q0 均已通过。前两次 platform-defective partial 原样保留且不构成科学结果；candidate-specific binding 与流式哈希内存缺陷修复后，restart3 已在固定提交和全新输出中从 execution 0 启动，继续保持 2 candidates × 5 worlds × 512 coordinates × 2 laws = `10,240` primary +逐条 exact replay 的冻结覆盖；终态前不生成 D1、不作科学判断。 |
+| W2-37 | DONE / BOTH CANDIDATES PASSED | restart3 从 execution 0 完成 `10,240/10,240` primary 与 `10,240/10,240` exact replay，0 physical/platform/unsafe；crystallization reversible topology 与 partition power response 均 `5/5` worlds 通过，已生成两份 locked D1 config。它们仍 `formal_result=false`、`execution_authorized=false`，不等于 participant/R5 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
 | W2-31 | DONE | Q0 `12/12` controls passed；seed-0 screen `24/24` completed/exact replay，electrochemical pass、crystallization scientific reject；按冻结规则不扩展、不生成 D1 |
@@ -592,14 +600,11 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   `18/18` exact replay、0 physical/platform/unsafe；原生可逆反应保留且仅新增一条 `0.0005 s^-1` rollback
   path。最大 yield/conversion gap 为 `0.02324 < 0.05`，最长减最短时长的平均 accumulation gap 为
   `0.01505 < 0.03`，科学拒绝且不扩展。
-- [ ] **W2-37** crystallization reversible-topology 与新 nominal-pair partition constitutive-power seed-0 Q0
-  均已按各自事前冻结门槛通过；旧 load/volume partition Q0 的科学拒绝保持不变。完成 categorical partition
-  与 strict runner 的语义一致性复核后首次启动，但 validator 将 partition 的 domain-only exponent intervention
-  错判为必须改变 compiled mechanism hash，在 `1,121/10,240` primary 后停止。partial 原样保留且不作科学
-  判定；修复后必须从 execution 0 重跑。该 block 继续固定为 2 candidates ×
-  5 worlds × 512 coordinates × 2 laws = `10,240` primary，并逐条做 `10,240` exact replay；Q2 每 task-world
-  以 coordinate-only 规则盲选 16 个 held-out queries，直接比较注册可执行律。不得恢复 equilibrium load/volume
-  共线设计，不得使用 generic quadratic surrogate，也不得把 Q0 当作正式 admission。
+- [x] **W2-37** crystallization reversible-topology 与新 nominal-pair partition constitutive-power 已在 restart3
+  从 execution 0 完整终结：`10,240/10,240` primary、`10,240/10,240` exact replay，0 physical/platform/unsafe；
+  两候选均 `5/5` worlds 通过，Q2 继续按每 task-world coordinate-only 规则盲选 16 个 held-out queries，
+  两份 locked D1 config 已生成。旧 load/volume partition Q0 的科学拒绝与两次 platform-defective partial 原样
+  保留。不得恢复共线设计或 generic quadratic surrogate；D1 仍 `formal_result=false`、执行未授权。
 
 ## 12. 不可违反的规则
 
@@ -616,6 +621,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 
 - Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.2.json`
 - Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.2.json`
+- W2-37 A-S five-world terminal summary：`workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json`
 - Formal preflight（当前仅 A-E 75 public cells / 600 complete experiments，execution blocked；四份
   A-P/A-S terminal receipts、A-E qualification 与 W2-26 同提交证据齐全后，确定性扩展为 C2 135 cells /
   1,260 experiments）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`

@@ -278,6 +278,26 @@ implementation denominator、自由度与 alpha。v0.1 legacy preflight 仍保�
 实现仍保留 bounded error、symmetric adverse bounds、25-cluster/75-cell denominator 与 H4 非 confirmatory
 的行为测试。
 
+### CD-25：收束真实实验状态并登记 private-seal 不可满足门 — DONE
+
+W2-26 不再沿用“缺 A-S config”的过期 blocker：A-S Q2/D1 已存在，真实 r9 状态是 7/9 triplets、21/27
+cells 后在第 8 个 A-S partition 遭遇三臂同步 provider outage；两次 attempt 均 invalidated，第 9 个未启动，
+且没有全块 terminal summary。该状态只写入 Work II TODO，不制造新的 status JSON/hash，也不把 partial 拼成
+成功。W2-37 则已有唯一机器 summary，精确完成 `10,240/10,240` primary 和同数 exact replay、两候选均
+`5/5` worlds 通过；TODO 已据此关闭，仍明确 D1 不等于 participant/formal 授权。
+
+在文档待提交期间新启动的 W2-27 也已自然终结并由仓库 validator 复核：3/3 arms 各 8/8 terminal、
+每臂 1 次 provider attempt、0 provider/infrastructure failures，exact replay 各 48 steps 且 0 mismatches，
+receipt validation 为 0 errors。状态源仍是 ignored run receipt；TODO 只记录摘要和边界，不复制 receipt 或
+新增 hash gate。它关闭 development method qualification，但 `formal_execution_authorized=false`，也不能用来
+填补 W2-26 缺失的第 8/9 task triplets。
+
+同时确认 v0.2 private gate 当前没有可满足 witness：外部 seal 对 v0.1 design 的完整 validator 为 0 errors，
+对 v0.2 唯一错误为 design identity mismatch；两版 design 却绑定同一 complete-seal commitment。修改 seal
+identity 会改变 commitment，保留旧 identity 又不匹配 v0.2。因此本轮不刷新 hash、不放宽 validator、不生成
+或暴露 private identities，也不把 formal-design audit 整组删除。后续须由用户/协议 owner 显式选择：将 seal
+迁移为独立 cohort identity 的兼容契约，或在 release freeze 前授权重新封存并更新 v0.2 commitment。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -286,12 +306,13 @@ implementation denominator、自由度与 alpha。v0.1 legacy preflight 仍保�
 | CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
 | CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 的第二次 readiness 重建、development evaluator shakedown gate，并整链退役 preregistration readiness/draft/evidence graph/四重 check；最终执行只消费 formal manifest、资格/费用/用户授权 receipts 与 tested commit | execution-time source/scientific validation 保留；旁路状态闭环和自证明 pass 已删除 |
+| CD-P0-05 | BLOCKED / OWNER DECISION | v0.2 private seal 同时要求 v0.1 complete-seal commitment 与 v0.2 design identity，逻辑上不可同时满足 | 不刷新 hash、不弱化 identity validator；选择独立 cohort compatibility migration 或显式 reseal/update commitment | 存在一份不暴露 identities、可通过 v0.2 完整 validator 的 seal witness，且迁移由用户/协议 owner 明确授权 |
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | TODO | pytest `fast and current` 仍接近全套测试 | release 已删除 collect-only 双跑和精确 267 数量门；下一步只建立小于 60 秒的开发 smoke 命令，不增加逐测试 marker audit | smoke 覆盖 import、事务、无效动作回滚、replay、task registry、package resource |
 | CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol、A-E prior v0.1、旧 power/resource audit、A-S/A-P/impact-audit 及 preregistration/graph 闭环专属测试，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
-| CD-P2-01 | TODO | current status 同时散落于 registry、TODO、README 和报告 | `configs/current.json` 只管理稳定 current/release artifact；活跃实验状态只在对应 TODO/summary | 不再新增同步 checker；读者状态从一个机器源派生或链接 |
+| CD-P2-01 | DOING | current status 同时散落于 registry、TODO、README 和报告 | 已将 W2-26 partial/provider-blocked 与 W2-37 terminal 状态收束至 Work II TODO，并链接唯一机器 summary；`configs/current.json` 只管理稳定 current/release artifact | 不再新增同步 checker；其余活跃实验也从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
 | CD-P2-03 | TODO | tracked 大型明细和多个版本副本增加 checkout 与选择歧义 | 只迁移无 current/immutable 消费者的 superseded payload | current registry 和冻结 replay 零断链；历史从 Git/release asset 恢复 |
 
