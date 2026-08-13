@@ -338,6 +338,90 @@ def test_operation_limit_rejection_does_not_overdraw_the_hard_counter() -> None:
     assert ledger.snapshot()["state"]["operation_attempts"] == 1
 
 
+def test_protected_closeout_reserve_rejects_exploration_without_spending_reserve() -> None:
+    card = _small_card(
+        operation_attempt_limit=5,
+        process_time_limit_s=100.0,
+        implicit_operation_time_s={"quench": 5.0},
+        metadata={
+            "process_time_policy": {"protected_reserve_s": 20.0},
+            "closeout_policy": {
+                "policy": "protected_closeout_reserve_enforced",
+                "planned_batches": 2,
+                "final_assay_path_operations_per_batch": 2,
+                "final_assay_path_total_operation_reserve": 4,
+                "discard_path_operations_per_batch": 1,
+                "discard_path_total_operation_reserve": 2,
+                "allowed_operation_classes": [
+                    "discard_batch",
+                    "final_assay",
+                    "quench",
+                    "terminate",
+                    "transfer",
+                ],
+            },
+        },
+    )
+    ledger = CampaignResourceLedger(card)
+    first = {"operation": "electrolyze", "duration_s": 80.0}
+    assert ledger.preflight("explore-1", first).allowed is True
+    ledger.record_outcome(
+        "explore-1",
+        first,
+        _committed(campaign_resource_report_delta={"process_time_s": 80.0}),
+    )
+
+    rejected = ledger.preflight(
+        "explore-2", {"operation": "electrolyze", "duration_s": 1.0}
+    )
+    assert rejected.allowed is False
+    assert rejected.attempt_charged is False
+    assert rejected.rejection_reasons == (
+        "protected_closeout_operation_reserve",
+        "protected_closeout_process_time_reserve",
+    )
+    assert ledger.snapshot()["state"]["operation_attempts"] == 1
+
+    closeout = {"operation": "quench"}
+    accepted = ledger.preflight("closeout-1", closeout)
+    assert accepted.allowed is True
+    assert accepted.attempt_charged is True
+    ledger.record_outcome(
+        "closeout-1",
+        closeout,
+        _committed(campaign_resource_report_delta={"process_time_s": 5.0}),
+    )
+    state = ledger.snapshot()["state"]
+    assert state["protected_closeout_reserve"]["process_time_consumed_s"] == 5.0
+    assert state["report_only"]["protected_reserve_consumed_s"] == 5.0
+    assert state["report_only"]["reserve_consumption_by_operation_class"] == {
+        "quench": {"operation_attempts": 1, "process_time_s": 5.0}
+    }
+    assert CampaignResourceLedger.from_snapshot(ledger.snapshot()).snapshot() == (
+        ledger.snapshot()
+    )
+
+
+def test_protected_closeout_contract_fails_when_formula_is_inconsistent() -> None:
+    card = _small_card(
+        operation_attempt_limit=6,
+        process_time_limit_s=100.0,
+        metadata={
+            "process_time_policy": {"protected_reserve_s": 20.0},
+            "closeout_policy": {
+                "policy": "protected_closeout_reserve_enforced",
+                "planned_batches": 2,
+                "final_assay_path_operations_per_batch": 2,
+                "final_assay_path_total_operation_reserve": 3,
+                "discard_path_operations_per_batch": 1,
+                "discard_path_total_operation_reserve": 2,
+            },
+        },
+    )
+    with pytest.raises(ValueError, match="operation reserve differs"):
+        CampaignResourceLedger(card)
+
+
 def test_snapshot_hash_roundtrip_and_integrity_checks() -> None:
     ledger = CampaignResourceLedger(_small_card())
     event_id = campaign_resource_event_id("campaign-snapshot", 1)

@@ -8,6 +8,10 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from chemworld.campaign_resources import (
+    DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS,
+    PROTECTED_CLOSEOUT_POLICY,
+)
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -180,6 +184,14 @@ def build_task_resource_formula_binding(config: Mapping[str, Any]) -> dict[str, 
                 "policy",
                 "resource_status",
             }
+        }
+        | {
+            "allowed_operation_classes": sorted(
+                closeout_policy.get(
+                    "allowed_operation_classes",
+                    DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS,
+                )
+            )
         },
     }
     return {
@@ -315,9 +327,11 @@ def resolve_task_resource_card(
         errors.append("formal source resource formula differs from its calibrated task")
     if formal_source_binding is not None:
         source_digest = canonical_json_sha256(formal_source_config)
+        file_digest = formal_source_binding.get("sha256")
         if (
             not isinstance(formal_source_binding.get("path"), str)
-            or not isinstance(formal_source_binding.get("sha256"), str)
+            or not isinstance(file_digest, str)
+            or len(file_digest) != 64
             or formal_source_binding.get("config_canonical_json_sha256")
             != source_digest
         ):
@@ -356,6 +370,10 @@ def materialize_task_resource_caps(
     process_policy["resource_status"] = "calibrated_w2_26_task_specific"
     closeout_policy["final_assay_path_total_operation_reserve"] = int(
         caps["protected_closeout_operation_reserve"]
+    )
+    closeout_policy["policy"] = PROTECTED_CLOSEOUT_POLICY
+    closeout_policy["allowed_operation_classes"] = sorted(
+        DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS
     )
     closeout_policy["resource_status"] = "calibrated_w2_26_task_specific"
     resources.update(

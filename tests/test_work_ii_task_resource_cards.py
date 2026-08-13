@@ -70,6 +70,16 @@ def test_task_resource_card_materializes_every_executable_cap() -> None:
         ]
         == 24
     )
+    assert (
+        config["campaign"]["closeout_policy"]["policy"]
+        == "protected_closeout_reserve_enforced"
+    )
+    assert config["campaign"]["closeout_policy"][
+        "allowed_operation_classes"
+    ] == ["discard_batch", "final_assay", "quench", "terminate", "transfer"]
+    assert build_task_resource_formula_binding(config) == card["card_identity"][
+        "resource_formula_binding"
+    ]
     assert config["method_resources"]["operation_limit"] == 123
     assert config["method_resources"]["input_token_limit"] == 9_000_000
     assert config["method_resources"]["uncached_input_token_limit"] == 900_000
