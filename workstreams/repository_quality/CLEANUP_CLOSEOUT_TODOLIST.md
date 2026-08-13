@@ -599,6 +599,19 @@ Methods 目录、Related Work 固定短语与 task-design SHA 当作永久 curre
 F3 failed-gate 语义和 current 三图 release 仍由独立测试覆盖。未刷新证据、未改稿、未恢复旧故事，也未触碰 A-E 活跃
 执行面。
 
+### CD-48：退役不可再生的 Work I 六图 producer 岛 — DONE
+
+CD-47 后继续沿 reader/writer 图检查，确认旧六图链由 6 个 renderer、1 个 publication auditor 和 7 份专属测试
+组成，约 7,000 行。除这些专属测试和相互 import 外，它们没有 current registry、当前三图 manifest、当前 arXiv
+builder、运行时或发布入口消费者；旧 proof builder 直接读取已提交的图件资产，不调用 renderer。该链也早已不能在
+当前 checkout 重建：所有 figure input/audit 都先要求历史 `work-i-story-architecture-v0.1.md` 保持 2026-08-04 的
+SHA，因后来合法文稿变更而产生 7 个稳定失败。
+
+现整岛删除 7 个 producer/auditor 和 7 份专属测试，保留旧六图的 SVG/PDF/PNG、逐图 manifest、总 manifest、
+publication audit、latent failed-gate 显示及全部底层 evidence。冻结总 manifest 的自哈希和 18 个实际资产的 byte/hash
+仍由独立 release-artifact 测试校验；当前第一篇三图的 manifest、几何、可编辑性、PDF/source bundle 与读者边界由
+当前发布测试覆盖。没有刷新 story SHA、重绘旧图、删除不利结果或改变任何科学分母。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
