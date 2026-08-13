@@ -54,6 +54,7 @@ from chemworld.eval.work_ii_qualification import (
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     AGENT_INVALID_ENFORCEMENT_POLICY,
+    PROVIDER_ERROR_ENFORCEMENT_POLICY,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     pattern_key as resource_calibration_pattern_key,
@@ -403,6 +404,20 @@ def _agent_invalid_online_limits(
     return None, None
 
 
+def _provider_error_online_limit(
+    provider: Mapping[str, Any],
+    *,
+    provider_error_enforcement: str | None,
+) -> int | None:
+    """Disable only W2-26 online interruption while retaining every error event."""
+
+    if provider_error_enforcement is None:
+        return int(provider.get("max_provider_error_events", 0))
+    if provider_error_enforcement != PROVIDER_ERROR_ENFORCEMENT_POLICY:
+        raise RuntimeError("resource calibration provider-error policy is not frozen")
+    return None
+
+
 def _release_d1_execution_context(
     args: argparse.Namespace,
     *,
@@ -673,6 +688,7 @@ def _qualification(
     minimum_unique_recipes: int = 0,
     maximum_exact_repeats: int | None = None,
     agent_invalid_enforcement: str | None = None,
+    provider_error_enforcement: str | None = None,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -680,6 +696,8 @@ def _qualification(
         raise ValueError("max_resource_rejections must be non-negative")
     if agent_invalid_enforcement not in {None, AGENT_INVALID_ENFORCEMENT_POLICY}:
         raise ValueError("unsupported agent-invalid enforcement policy")
+    if provider_error_enforcement not in {None, PROVIDER_ERROR_ENFORCEMENT_POLICY}:
+        raise ValueError("unsupported provider-error enforcement policy")
 
     receipt = receipts[0] if len(receipts) == 1 else {}
     usage = method_resources
@@ -710,6 +728,19 @@ def _qualification(
             <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
         )
     )
+    if not operational_receipt_complete:
+        provider_error_reconciled = False
+    else:
+        observed_provider_errors = max(
+            int(provider_error_value),
+            int(mcp_failure_budget["provider_network_count"]),
+        )
+        provider_error_reconciled = (
+            observed_provider_errors == 0
+            if provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+            else observed_provider_errors
+            <= int(operational_limits.get("max_provider_error_events", 0))
+        )
     resources = analysis.get("final_campaign_resources", {})
     resources = resources if isinstance(resources, Mapping) else {}
     state = resources.get("state", {})
@@ -837,11 +868,7 @@ def _qualification(
                 and int(mcp_failure_budget["transport_maximum"])
                 <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
                 and int(mcp_failure_budget["unclassified_count"]) == 0
-                and max(
-                    int(receipt["provider_error_event_count"]),
-                    int(mcp_failure_budget["provider_network_count"]),
-                )
-                <= int(operational_limits.get("max_provider_error_events", 0))
+                and provider_error_reconciled
             )
         ),
     }
@@ -886,6 +913,26 @@ def _qualification(
                 else int(mcp_failure_budget["scientific_episode_maximum"])
             ),
         },
+        "provider_error_operational_policy": {
+            "enforcement": (
+                PROVIDER_ERROR_ENFORCEMENT_POLICY
+                if provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+                else "source_config_hard_limit"
+            ),
+            "online_interruption_disabled": (
+                provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+            ),
+            "post_session_zero_tolerance": (
+                provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+            ),
+            "observed_event_count": (
+                int(provider_error_value)
+                if isinstance(provider_error_value, int)
+                and not isinstance(provider_error_value, bool)
+                else None
+            ),
+            "passed": provider_error_reconciled,
+        },
     }
 
 
@@ -899,6 +946,7 @@ def _run_cell(
     cell_root: Path,
     progress_path: Path,
     agent_invalid_enforcement: str | None = None,
+    provider_error_enforcement: str | None = None,
 ) -> dict[str, Any]:
     cell_started = perf_counter()
     _progress(
@@ -921,6 +969,10 @@ def _run_cell(
     ) = _agent_invalid_online_limits(
         provider,
         agent_invalid_enforcement=agent_invalid_enforcement,
+    )
+    max_provider_error_events = _provider_error_online_limit(
+        provider,
+        provider_error_enforcement=provider_error_enforcement,
     )
     completed = 0
     target_experiments = int(config["campaign"]["complete_experiments"])
@@ -977,7 +1029,7 @@ def _run_cell(
             else None,
             max_recovered_mcp_tool_failures=max_recovered_mcp_tool_failures,
             max_consecutive_mcp_tool_failures=max_consecutive_mcp_tool_failures,
-            max_provider_error_events=int(provider.get("max_provider_error_events", 0)),
+            max_provider_error_events=max_provider_error_events,
             session_progress_callback=on_session_progress,
             session_progress_interval_s=float(provider.get("progress_interval_s", 30.0)),
             # D1 owns the only allowed pre-operation retry.  An inner session
@@ -1142,6 +1194,7 @@ def _run_cell(
             else None
         ),
         agent_invalid_enforcement=agent_invalid_enforcement,
+        provider_error_enforcement=provider_error_enforcement,
     )
     row = {
         "arm": arm,
@@ -1205,6 +1258,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     if qualification_context is not None and calibration_context is not None:
         raise RuntimeError("one child cannot be both qualification and resource calibration")
     agent_invalid_enforcement = None
+    provider_error_enforcement = None
     if calibration_context is not None:
         runtime_enforcement = calibration_context[1].get("runtime_enforcement")
         runtime_enforcement = (
@@ -1215,6 +1269,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         if agent_invalid_enforcement != AGENT_INVALID_ENFORCEMENT_POLICY:
             raise RuntimeError("resource calibration agent-invalid policy is not frozen")
+        provider_error_enforcement = runtime_enforcement.get(
+            "provider_error_enforcement"
+        )
+        if provider_error_enforcement != PROVIDER_ERROR_ENFORCEMENT_POLICY:
+            raise RuntimeError("resource calibration provider-error policy is not frozen")
     ap_development_context = _ap_development_execution_context(
         args,
         config_path=config_path,
@@ -1253,6 +1312,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             cell_root=cell_root,
             progress_path=progress_path,
             agent_invalid_enforcement=agent_invalid_enforcement,
+            provider_error_enforcement=provider_error_enforcement,
         )
         if qualification_context is not None:
             row["qualification_attempt_authorization_binding"] = qualification_context[2]
