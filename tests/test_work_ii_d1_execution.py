@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import pytest
@@ -56,6 +57,34 @@ def test_d1_store_allows_only_one_missing_infrastructure_resume(tmp_path: Path) 
 
     with pytest.raises(ValueError, match="attempt cap=2"):
         store.pending(resume=True)
+
+
+def test_d1_store_claims_provider_attempt_index_atomically(tmp_path: Path) -> None:
+    store, key = _store(tmp_path)
+    competing_store = D1CellStore(
+        store.root,
+        config_path=store.config_path,
+        task_id="task",
+        world_seeds=[0],
+        arms=["opaque", "aligned_nominal", "misindexed_nominal"],
+    )
+
+    def launch(candidate: tuple[D1CellStore, str]) -> str:
+        candidate_store, attempt_id = candidate
+        try:
+            candidate_store.record_provider_attempt_launch(key, attempt_id=attempt_id)
+        except ValueError as error:
+            return str(error)
+        return "launched"
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        outcomes = list(
+            pool.map(launch, [(store, "candidate-a"), (competing_store, "candidate-b")])
+        )
+
+    assert outcomes.count("launched") == 1
+    assert sum("already claimed" in outcome for outcome in outcomes) == 1
+    assert store.audit()["provider_attempt_count"] == 1
 
 
 def test_d1_store_rejects_non_infrastructure_resume_and_committed_infra(

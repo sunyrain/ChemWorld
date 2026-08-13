@@ -44,9 +44,7 @@ def _self_hash(payload: Mapping[str, Any], field: str) -> str:
     return canonical_json_sha256({key: value for key, value in payload.items() if key != field})
 
 
-def _terminal_admission_mode_errors(
-    report: Mapping[str, Any], *, label: str
-) -> list[str]:
+def _terminal_admission_mode_errors(report: Mapping[str, Any], *, label: str) -> list[str]:
     """Reject evidence explicitly produced outside the release-eligible boundary."""
 
     errors: list[str] = []
@@ -195,9 +193,11 @@ def validate_d1_qualification_evidence(root: Path, config: Mapping[str, Any]) ->
             ("package", package, value.get("qualification_package")),
             ("plan", plan, value.get("qualification_plan")),
         ):
-            if not path.is_file() or not isinstance(binding, Mapping) or binding.get(
-                "sha256"
-            ) != file_sha256(path):
+            if (
+                not path.is_file()
+                or not isinstance(binding, Mapping)
+                or binding.get("sha256") != file_sha256(path)
+            ):
                 errors.append(f"D1 qualification {label} file binding is stale")
         expected = build_d1_qualification_evidence_binding(
             root,
@@ -298,7 +298,17 @@ class D1CellStore:
             "store_sha256": self.manifest["store_sha256"],
         }
         payload["attempt_sha256"] = _self_hash(payload, "attempt_sha256")
-        target = self.provider_attempts / key / f"{attempt_id}.json"
+        attempt_root = self.provider_attempts / key
+        attempt_root.mkdir(parents=True, exist_ok=True)
+        slot = attempt_root / f".attempt-{payload['attempt_index']}.claim"
+        try:
+            with slot.open("x", encoding="utf-8", newline="\n") as handle:
+                handle.write(attempt_id + "\n")
+        except FileExistsError as error:
+            raise ValueError(
+                f"D1 provider attempt index {payload['attempt_index']} is already claimed"
+            ) from error
+        target = attempt_root / f"{attempt_id}.json"
         self._write_once(target, payload)
         return target
 
@@ -576,15 +586,9 @@ def build_d1_admission_receipt(
             except (OSError, TypeError, ValueError, json.JSONDecodeError):
                 errors.append("participant terminal receipt cannot be read")
     terminal_cells = [row.get("cell") for row in terminal_receipts]
-    terminal_arms = [
-        row.get("prior_arm") for row in terminal_cells if isinstance(row, Mapping)
-    ]
-    terminal_worlds = {
-        row.get("world_seed") for row in terminal_cells if isinstance(row, Mapping)
-    }
-    terminal_tasks = {
-        row.get("task_id") for row in terminal_cells if isinstance(row, Mapping)
-    }
+    terminal_arms = [row.get("prior_arm") for row in terminal_cells if isinstance(row, Mapping)]
+    terminal_worlds = {row.get("world_seed") for row in terminal_cells if isinstance(row, Mapping)}
+    terminal_tasks = {row.get("task_id") for row in terminal_cells if isinstance(row, Mapping)}
     if (
         len(terminal_receipts) != 3
         or len({row.get("receipt_sha256") for row in terminal_receipts}) != 3
@@ -630,16 +634,11 @@ def build_d1_admission_receipt(
         errors.append("D1 evaluation report self-hash mismatch")
     evaluation_cells = evaluation.get("cells")
     evaluation_cells = evaluation_cells if isinstance(evaluation_cells, list) else []
-    if {
-        row.get("cell_key_sha256")
-        for row in evaluation_cells
-        if isinstance(row, Mapping)
-    } != set(blind_keys):
+    if {row.get("cell_key_sha256") for row in evaluation_cells if isinstance(row, Mapping)} != set(
+        blind_keys
+    ):
         errors.append("D1 evaluation/blind participant cell bindings differ")
-    expected_blind_status = {
-        str(row.get("cell_key_sha256")): row.get("status")
-        for row in blind
-    }
+    expected_blind_status = {str(row.get("cell_key_sha256")): row.get("status") for row in blind}
     if any(
         expected_blind_status.get(str(row.get("cell_key_sha256"))) != "completed"
         or row.get("blind_evaluation_status") != "completed"
