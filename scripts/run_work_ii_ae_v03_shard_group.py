@@ -81,7 +81,12 @@ def _expected_receipts(args: argparse.Namespace) -> int:
     worlds = cohort.get("worlds_per_locus")
     if isinstance(worlds, bool) or not isinstance(worlds, int) or worlds < 0:
         raise AEPriorQualificationV03Error("cohort worlds_per_locus is malformed")
-    return locus_count * worlds * 24
+    total = locus_count * worlds * 24
+    if args.import_prefix_count > total:
+        raise AEPriorQualificationV03Error(
+            "imported prefix count exceeds the phase denominator"
+        )
+    return total - args.import_prefix_count
 
 
 def _upstream_arguments(args: argparse.Namespace) -> list[str]:
@@ -109,8 +114,12 @@ def build_group_commands(
         str(args.shard_root.resolve()),
         "--shard-count",
         str(args.shard_count),
+        "--import-prefix-count",
+        str(args.import_prefix_count),
         *_upstream_arguments(args),
     ]
+    if args.import_prefix is not None:
+        common.extend(["--import-prefix", str(args.import_prefix.resolve())])
     workers = [
         (*common, "--execute-shard", "--shard-index", str(index))
         for index in range(args.shard_count)
@@ -280,6 +289,7 @@ def run_group(args: argparse.Namespace) -> int:
                 "phase": args.phase,
                 "worker_count": args.shard_count,
                 "expected_receipts": total,
+                "imported_prefix_count": args.import_prefix_count,
                 "merged_output": str(args.output),
                 "orchestrator_pid": os.getpid(),
             },
@@ -370,12 +380,19 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
     parser.add_argument(
         "--phase",
-        choices=("classifier_validation", "prospective_screen", "confirmation"),
+        choices=(
+            "classifier_fit",
+            "classifier_validation",
+            "prospective_screen",
+            "confirmation",
+        ),
         required=True,
     )
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--shard-root", type=Path, required=True)
     parser.add_argument("--shard-count", type=int, default=4)
+    parser.add_argument("--import-prefix", type=Path)
+    parser.add_argument("--import-prefix-count", type=int, default=0)
     parser.add_argument("--progress-interval", type=float, default=60.0)
     parser.add_argument("--fit-report", type=Path)
     parser.add_argument("--fit-plan", type=Path)
@@ -394,6 +411,10 @@ def main() -> int:
     args = _parser().parse_args()
     if args.progress_interval <= 0:
         raise AEPriorQualificationV03Error("--progress-interval must be positive")
+    if (args.import_prefix is None) != (args.import_prefix_count == 0):
+        raise AEPriorQualificationV03Error(
+            "--import-prefix and a positive --import-prefix-count are required together"
+        )
     return run_group(args)
 
 

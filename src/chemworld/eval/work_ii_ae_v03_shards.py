@@ -62,12 +62,20 @@ def _write_once(path: Path, payload: Mapping[str, Any]) -> None:
 
 
 def _cluster_assignments(
-    plan: Mapping[str, Any], shard_count: int
+    plan: Mapping[str, Any], shard_count: int, *, start_execution_index: int = 0
 ) -> list[list[dict[str, Any]]]:
     """Return deterministic whole-world clusters assigned round-robin to shards."""
 
     if isinstance(shard_count, bool) or not isinstance(shard_count, int) or shard_count < 1:
         raise AEPriorQualificationV03Error("shard count must be a positive integer")
+    if (
+        isinstance(start_execution_index, bool)
+        or not isinstance(start_execution_index, int)
+        or start_execution_index < 0
+    ):
+        raise AEPriorQualificationV03Error(
+            "shard start execution index must be a nonnegative integer"
+        )
     errors = validate_plan(plan)
     if errors:
         raise AEPriorQualificationV03Error("invalid sharded plan: " + "; ".join(errors))
@@ -107,6 +115,22 @@ def _cluster_assignments(
             raise AEPriorQualificationV03Error(
                 f"A-E v0.3 cluster {key} mixes world seeds"
             )
+    if start_execution_index > len(executions):
+        raise AEPriorQualificationV03Error(
+            "shard start execution index exceeds the plan denominator"
+        )
+    prefix_clusters = [
+        rows for _key, rows in clusters if first_index[_key] < start_execution_index
+    ]
+    if sum(len(rows) for rows in prefix_clusters) != start_execution_index:
+        raise AEPriorQualificationV03Error(
+            "shard start execution index is not a complete cluster boundary"
+        )
+    clusters = [
+        (key, rows)
+        for key, rows in clusters
+        if first_index[key] >= start_execution_index
+    ]
     assigned: list[list[dict[str, Any]]] = [[] for _ in range(shard_count)]
     for ordinal, (_key, rows) in enumerate(clusters):
         assigned[ordinal % shard_count].extend(rows)
@@ -142,11 +166,14 @@ def execute_shard(
     *,
     shard_index: int,
     shard_count: int,
+    start_execution_index: int = 0,
     executor: Callable[..., dict[str, Any]] = execute_one,
 ) -> dict[str, Any]:
     """Execute one write-once set of complete A-E v0.3 world clusters."""
 
-    assignments = _cluster_assignments(plan, shard_count)
+    assignments = _cluster_assignments(
+        plan, shard_count, start_execution_index=start_execution_index
+    )
     if not 0 <= shard_index < shard_count:
         raise AEPriorQualificationV03Error("shard index is outside the shard set")
     shard_base = shard_base.resolve()
@@ -165,6 +192,7 @@ def execute_shard(
         "plan_sha256": plan["plan_sha256"],
         "shard_index": shard_index,
         "shard_count": shard_count,
+        "imported_prefix_count": start_execution_index,
         "cluster_keys": [
             {"locus_id": row["locus_id"], "world_index": row["world_index"]}
             for row in rows[::24]
@@ -266,12 +294,98 @@ def execute_shard(
     return summary
 
 
+def _collect_imported_prefix(
+    plan: Mapping[str, Any],
+    imported_prefix: Path | None,
+    *,
+    imported_prefix_count: int,
+) -> dict[int, tuple[dict[str, Any], Path]]:
+    """Validate a stopped serial prefix without modifying or adopting its tail."""
+
+    if (imported_prefix is None) != (imported_prefix_count == 0):
+        raise AEPriorQualificationV03Error(
+            "imported prefix path and positive count must be provided together"
+        )
+    if imported_prefix is None:
+        return {}
+    root = imported_prefix.resolve()
+    source_plan = _load_object(root / "plan.json")
+    if source_plan != plan:
+        raise AEPriorQualificationV03Error(
+            "imported serial prefix plan differs from the shard plan"
+        )
+    receipt_root = root / "receipts"
+    members = list(receipt_root.iterdir()) if receipt_root.is_dir() else []
+    if any(not path.is_file() or path.suffix != ".json" for path in members):
+        raise AEPriorQualificationV03Error(
+            "imported serial prefix receipts contain unexpected members"
+        )
+    try:
+        members.sort(key=lambda path: int(path.stem))
+    except ValueError as error:
+        raise AEPriorQualificationV03Error(
+            "imported serial prefix has a nonnumeric receipt filename"
+        ) from error
+    expected_indexes = list(range(imported_prefix_count))
+    if [int(path.stem) for path in members] != expected_indexes:
+        raise AEPriorQualificationV03Error(
+            "imported serial receipts are not the declared complete prefix"
+        )
+    observed: dict[int, tuple[dict[str, Any], Path]] = {}
+    for index, receipt_path in enumerate(members):
+        receipt = _load_object(receipt_path)
+        errors = validate_next_receipt(plan, index, receipt)
+        if errors:
+            raise AEPriorQualificationV03Error(
+                f"invalid imported receipt {index}: " + "; ".join(errors)
+            )
+        if (
+            receipt.get("schema_version") != RECEIPT_VERSION
+            or receipt.get("execution_index") != index
+            or receipt.get("plan_sha256") != plan.get("plan_sha256")
+            or receipt.get("provider_call_count") != 0
+            or receipt.get("status") != "completed"
+            or receipt.get("failure") is not None
+            or receipt.get("exact_replay", {}).get("verified") is not True
+        ):
+            raise AEPriorQualificationV03Error(
+                f"imported receipt {index} is not a completed provider-free replay"
+            )
+        trajectory_binding = receipt.get("trajectory")
+        trajectory_binding = (
+            trajectory_binding if isinstance(trajectory_binding, Mapping) else {}
+        )
+        relative = PurePosixPath(str(trajectory_binding.get("path", "")))
+        if relative.parts != ("executions", str(index), "trajectory.jsonl"):
+            raise AEPriorQualificationV03Error(
+                f"imported receipt {index} trajectory path is not canonical"
+            )
+        trajectory = (root / Path(*relative.parts)).resolve()
+        if (
+            not trajectory.is_relative_to(root)
+            or not trajectory.is_file()
+            or file_sha256(trajectory) != trajectory_binding.get("sha256")
+        ):
+            raise AEPriorQualificationV03Error(
+                f"imported receipt {index} trajectory binding is invalid"
+            )
+        observed[index] = (receipt, trajectory)
+    return observed
+
+
 def collect_shard_receipts(
-    plan: Mapping[str, Any], shard_base: Path, *, shard_count: int
+    plan: Mapping[str, Any],
+    shard_base: Path,
+    *,
+    shard_count: int,
+    imported_prefix: Path | None = None,
+    imported_prefix_count: int = 0,
 ) -> list[dict[str, Any]]:
     """Validate a complete shard set and return canonical standard-output receipts."""
 
-    assignments = _cluster_assignments(plan, shard_count)
+    assignments = _cluster_assignments(
+        plan, shard_count, start_execution_index=imported_prefix_count
+    )
     shard_base = shard_base.resolve()
     if _platform_failure_marker(shard_base).exists():
         raise AEPriorQualificationV03Error(
@@ -289,7 +403,9 @@ def collect_shard_receipts(
         raise AEPriorQualificationV03Error(
             "shard directory set differs from the declared shard count"
         )
-    observed: dict[int, tuple[dict[str, Any], Path]] = {}
+    observed = _collect_imported_prefix(
+        plan, imported_prefix, imported_prefix_count=imported_prefix_count
+    )
     for shard_index, expected_rows in enumerate(assignments):
         shard_root = shard_base / _shard_name(shard_index, shard_count)
         manifest = _load_object(shard_root / "shard-manifest.json")
@@ -308,6 +424,7 @@ def collect_shard_receipts(
             or manifest.get("plan_sha256") != plan.get("plan_sha256")
             or manifest.get("shard_index") != shard_index
             or manifest.get("shard_count") != shard_count
+            or manifest.get("imported_prefix_count") != imported_prefix_count
             or manifest.get("cluster_keys") != expected_cluster_keys
             or manifest.get("execution_indexes") != expected_indexes
             or manifest.get("execution_count") != len(expected_indexes)
@@ -431,6 +548,8 @@ def materialize_merged_output(
     output: Path,
     *,
     shard_count: int,
+    imported_prefix: Path | None = None,
+    imported_prefix_count: int = 0,
     fit_report: Mapping[str, Any] | None = None,
     validation_report: Mapping[str, Any] | None = None,
     screen_report: Mapping[str, Any] | None = None,
@@ -448,7 +567,13 @@ def materialize_merged_output(
     contract_binding = contract_binding if isinstance(contract_binding, Mapping) else {}
     if contract_binding.get("canonical_sha256") != canonical_json_sha256(contract):
         raise AEPriorQualificationV03Error("sharded plan is detached from its contract")
-    collected = collect_shard_receipts(plan, shard_base, shard_count=shard_count)
+    collected = collect_shard_receipts(
+        plan,
+        shard_base,
+        shard_count=shard_count,
+        imported_prefix=imported_prefix,
+        imported_prefix_count=imported_prefix_count,
+    )
     receipts = [item["receipt"] for item in collected]
     denominator_errors = validate_receipt_denominator(plan, receipts)
     if denominator_errors:

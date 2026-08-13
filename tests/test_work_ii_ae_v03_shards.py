@@ -206,6 +206,86 @@ def test_sharded_merge_is_serial_equivalent_at_cluster_boundary(tmp_path: Path) 
         ).read_bytes()
 
 
+def test_stopped_serial_prefix_and_suffix_shards_merge_exactly_once(
+    tmp_path: Path,
+) -> None:
+    contract, plan = _two_cluster_plan()
+    prefix_root = tmp_path / "stopped-serial-prefix"
+    (prefix_root / "receipts").mkdir(parents=True)
+    (prefix_root / "plan.json").write_text(
+        json.dumps(plan, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    for row in plan["executions"][:24]:
+        receipt = _fake_executor(
+            ROOT,
+            plan,
+            row,
+            prefix_root,
+            execution_root=prefix_root
+            / "executions"
+            / str(row["execution_index"]),
+        )
+        (prefix_root / "receipts" / f"{row['execution_index']}.json").write_text(
+            json.dumps(receipt, ensure_ascii=False, indent=2, sort_keys=True) + "\n",
+            encoding="utf-8",
+        )
+
+    shard_root = tmp_path / "suffix-shards"
+    for shard_index in range(2):
+        execute_shard(
+            ROOT,
+            plan,
+            shard_root,
+            shard_index=shard_index,
+            shard_count=2,
+            start_execution_index=24,
+            executor=_fake_executor,
+        )
+    manifests = [
+        _load(shard_root / f"shard-{index:05d}-of-00002/shard-manifest.json")
+        for index in range(2)
+    ]
+    assert sum(item["execution_count"] for item in manifests) == 24
+    assert all(item["imported_prefix_count"] == 24 for item in manifests)
+    assert all(index >= 24 for item in manifests for index in item["execution_indexes"])
+
+    merged = tmp_path / "merged"
+    result = materialize_merged_output(
+        contract,
+        plan,
+        shard_root,
+        merged,
+        shard_count=2,
+        imported_prefix=prefix_root,
+        imported_prefix_count=24,
+        report_builder=_fake_report,
+    )
+    assert result["primary_executions"] == 48
+    assert sorted(int(path.stem) for path in (merged / "receipts").glob("*.json")) == list(
+        range(48)
+    )
+    assert not any(
+        int(path.stem) < 24
+        for shard in shard_root.glob("shard-*")
+        for path in (shard / "receipts").glob("*.json")
+    )
+
+
+def test_suffix_sharding_rejects_partial_cluster_boundary(tmp_path: Path) -> None:
+    _contract, plan = _two_cluster_plan()
+    with pytest.raises(AEPriorQualificationV03Error, match="cluster boundary"):
+        execute_shard(
+            ROOT,
+            plan,
+            tmp_path / "shards",
+            shard_index=0,
+            shard_count=2,
+            start_execution_index=23,
+            executor=_fake_executor,
+        )
+
+
 @pytest.mark.parametrize("corruption", ["missing", "execution_index", "plan", "trajectory"])
 def test_merge_rejects_incomplete_or_rebound_shard_set(
     tmp_path: Path, corruption: str

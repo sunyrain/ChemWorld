@@ -111,6 +111,8 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument("--shard-count", type=int, required=True)
     parser.add_argument("--shard-index", type=int)
     parser.add_argument("--output", type=Path)
+    parser.add_argument("--import-prefix", type=Path)
+    parser.add_argument("--import-prefix-count", type=int, default=0)
     parser.add_argument("--fit-report", type=Path)
     parser.add_argument("--fit-plan", type=Path)
     parser.add_argument("--fit-receipts", type=Path)
@@ -138,6 +140,15 @@ def main() -> int:
         raise AEPriorQualificationV03Error("--merge requires --output")
     if args.merge and args.shard_index is not None:
         raise AEPriorQualificationV03Error("--shard-index belongs only to --execute-shard")
+    if (args.import_prefix is None) != (args.import_prefix_count == 0):
+        raise AEPriorQualificationV03Error(
+            "--import-prefix and a positive --import-prefix-count are required together"
+        )
+    imported_prefix = (
+        _external_path(args.import_prefix, role="imported prefix")
+        if args.import_prefix is not None
+        else None
+    )
 
     contract = _load(args.contract)
     assert contract is not None
@@ -177,6 +188,7 @@ def main() -> int:
             shard_root,
             shard_index=args.shard_index,
             shard_count=args.shard_count,
+            start_execution_index=args.import_prefix_count,
         )
         print(json.dumps(summary, ensure_ascii=False, sort_keys=True), flush=True)
         return 0 if summary["status"] == "completed" else 2
@@ -197,6 +209,8 @@ def main() -> int:
         shard_root,
         output,
         shard_count=args.shard_count,
+        imported_prefix=imported_prefix,
+        imported_prefix_count=args.import_prefix_count,
         fit_report=fit_report,
         validation_report=validation_report,
         screen_report=screen_report,
