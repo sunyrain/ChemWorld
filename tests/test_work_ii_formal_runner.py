@@ -263,8 +263,8 @@ def _authorization_evidence(manifest: dict[str, object]) -> dict[str, object]:
     qualification = {
         "schema_version": "chemworld-work-ii-method-qualification-receipt-0.4",
         "status": "passed",
-        "formal_execution_authorized": True,
-        "formal_preflight_sha256": base,
+        "formal_execution_authorized": False,
+        "qualification_manifest_sha256": "q" * 64,
     }
     qualification["receipt_sha256"] = canonical_json_sha256(qualification)
     cost = {
@@ -273,13 +273,14 @@ def _authorization_evidence(manifest: dict[str, object]) -> dict[str, object]:
     }
     cost["formal_cost_contract_sha256"] = canonical_json_sha256(cost)
     freeze = {
-        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.1",
+        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.2",
         "status": "passed_final_freeze",
         "formal_execution_authorized": True,
         "bindings": {
             "formal_preflight_sha256": base,
             "method_qualification": {
-                "receipt_sha256": qualification["receipt_sha256"]
+                "receipt_sha256": qualification["receipt_sha256"],
+                "manifest_sha256": qualification["qualification_manifest_sha256"],
             },
         },
         "formal_currency_budget": cost,
@@ -737,6 +738,7 @@ def test_formal_execute_requires_preregistration_freeze_receipt(tmp_path: Path) 
         manifest=tmp_path / "manifest.json",
         output_root=tmp_path / "output",
         qualification_receipt=tmp_path / "qualification.json",
+        qualification_manifest=tmp_path / "qualification-manifest.json",
         preregistration_freeze_receipt=None,
         formal_currency_ceiling_usd=1.0,
         progress_file=tmp_path / "progress.jsonl",

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import shutil
+import tempfile
 from pathlib import Path
 
 import chemworld.eval.work_ii_release as release
@@ -127,6 +129,8 @@ def test_preregistration_freeze_receipt_validator_rejects_shallow_pass(
         {"status": "passed_final_freeze"},
         manifest,
         {},
+        tmp_path / "missing-qualification-manifest.json",
+        {},
         tmp_path / "missing-qualification.json",
         currency_ceiling_usd=1.0,
     )
@@ -156,9 +160,46 @@ def test_preregistration_freeze_forbids_prior_formal_outcomes_even_if_rehashed(
         receipt,
         manifest,
         {},
+        tmp_path / "missing-qualification-manifest.json",
+        {},
         tmp_path / "missing-qualification.json",
         currency_ceiling_usd=1.0,
     )
     assert (
         "Work II preregistration-freeze receipt crossed its outcome boundary" in errors
     )
+
+
+def test_preregistration_freeze_rejects_in_memory_qualification_substitution(
+) -> None:
+    manifest = json.loads(
+        (
+            ROOT
+            / "workstreams/flagship_tasks/reports/"
+            "work-ii-formal-matrix-runner-preflight-v0.1.json"
+        ).read_text(encoding="utf-8")
+    )
+    package = Path(tempfile.mkdtemp(prefix=".pytest-release-package-", dir=ROOT))
+    try:
+        local_manifest_path = package / "qualification-manifest.json"
+        local_manifest_path.write_text("{}", encoding="utf-8")
+        qualification_path = package / "qualification.json"
+        qualification_path.write_text("{}", encoding="utf-8")
+
+        errors = validate_preregistration_freeze_receipt(
+            ROOT,
+            {"status": "passed_final_freeze"},
+            manifest,
+            {"manifest_sha256": "a" * 64},
+            local_manifest_path,
+            {"receipt_sha256": "b" * 64},
+            qualification_path,
+            currency_ceiling_usd=1.0,
+        )
+    finally:
+        shutil.rmtree(package)
+
+    assert (
+        "method-qualification local manifest argument differs from its file" in errors
+    )
+    assert "method-qualification receipt argument differs from its file" in errors

@@ -36,6 +36,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
     parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
+    parser.add_argument("--qualification-manifest", type=Path)
     parser.add_argument("--qualification-receipt", type=Path)
     parser.add_argument("--formal-currency-ceiling-usd", type=float)
     parser.add_argument("--pricing-source")
@@ -62,6 +63,7 @@ def main() -> int:
     output = args.output.resolve()
     if args.check:
         creation_values = (
+            args.qualification_manifest,
             args.qualification_receipt,
             args.formal_currency_ceiling_usd,
             args.pricing_source,
@@ -82,7 +84,13 @@ def main() -> int:
             raise RuntimeError("freeze-receipt creation options cannot be used with --check")
         receipt = _load(output)
         qualification_binding = receipt.get("bindings", {}).get("method_qualification", {})
-        qualification_path = ROOT / str(qualification_binding.get("path", ""))
+        qualification_manifest_path = ROOT / str(
+            qualification_binding.get("manifest_path", "")
+        )
+        qualification_path = ROOT / str(
+            qualification_binding.get("receipt_path", "")
+        )
+        qualification_manifest = _load(qualification_manifest_path)
         qualification = _load(qualification_path)
         ceiling = float(
             receipt.get("user_authorization", {}).get(
@@ -93,6 +101,8 @@ def main() -> int:
             ROOT,
             receipt,
             manifest,
+            qualification_manifest,
+            qualification_manifest_path,
             qualification,
             qualification_path,
             currency_ceiling_usd=ceiling,
@@ -102,6 +112,7 @@ def main() -> int:
     else:
         missing = []
         for value, flag in (
+            (args.qualification_manifest, "--qualification-manifest"),
             (args.qualification_receipt, "--qualification-receipt"),
             (args.formal_currency_ceiling_usd, "--formal-currency-ceiling-usd"),
             (args.pricing_source, "--pricing-source"),
@@ -142,6 +153,7 @@ def main() -> int:
         receipt = build_preregistration_freeze_receipt(
             ROOT,
             manifest,
+            args.qualification_manifest.resolve(),
             args.qualification_receipt.resolve(),
             currency_ceiling_usd=float(args.formal_currency_ceiling_usd),
             qualified_expected_eta_seconds=float(args.qualified_eta_seconds),

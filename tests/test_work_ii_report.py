@@ -100,8 +100,8 @@ def _authorized_manifest() -> dict[str, object]:
     qualification = {
         "schema_version": "chemworld-work-ii-method-qualification-receipt-0.4",
         "status": "passed",
-        "formal_execution_authorized": True,
-        "formal_preflight_sha256": manifest["preflight_sha256"],
+        "formal_execution_authorized": False,
+        "qualification_manifest_sha256": "q" * 64,
     }
     qualification["receipt_sha256"] = canonical_json_sha256(qualification)
     cost = build_formal_cost_contract(
@@ -115,12 +115,15 @@ def _authorized_manifest() -> dict[str, object]:
         output_usd_per_million=0.28,
     )
     freeze = {
-        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.1",
+        "schema_version": "chemworld-work-ii-preregistration-freeze-receipt-0.2",
         "status": "passed_final_freeze",
         "formal_execution_authorized": True,
         "bindings": {
             "formal_preflight_sha256": manifest["preflight_sha256"],
-            "method_qualification": {"receipt_sha256": qualification["receipt_sha256"]},
+            "method_qualification": {
+                "receipt_sha256": qualification["receipt_sha256"],
+                "manifest_sha256": qualification["qualification_manifest_sha256"],
+            },
         },
         "formal_currency_budget": cost,
     }

@@ -27,7 +27,11 @@ from chemworld.eval.work_ii_formal import (
     validate_formal_bindings,
     validate_formal_preflight,
 )
+from chemworld.eval.work_ii_method_qualification_local import (
+    validate_method_qualification_local_manifest,
+)
 from chemworld.eval.work_ii_qualification import (
+    qualification_receipt_currency_ceiling,
     validate_method_qualification_receipt,
 )
 from chemworld.eval.work_ii_release import (
@@ -60,6 +64,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--allow-formal-execution", action="store_true")
     parser.add_argument("--qualification-receipt", type=Path)
+    parser.add_argument("--qualification-manifest", type=Path)
     parser.add_argument("--preregistration-freeze-receipt", type=Path)
     parser.add_argument(
         "--formal-currency-ceiling-usd",
@@ -79,6 +84,7 @@ def _run_preflight(args: argparse.Namespace) -> int:
             args.resume,
             args.allow_formal_execution,
             args.qualification_receipt is not None,
+            args.qualification_manifest is not None,
             args.preregistration_freeze_receipt is not None,
             args.formal_currency_ceiling_usd is not None,
         )
@@ -573,6 +579,7 @@ def _run_execute(args: argparse.Namespace) -> int:
         "--manifest": args.manifest,
         "--output-root": args.output_root,
         "--qualification-receipt": args.qualification_receipt,
+        "--qualification-manifest": args.qualification_manifest,
         "--preregistration-freeze-receipt": args.preregistration_freeze_receipt,
         "--formal-currency-ceiling-usd": args.formal_currency_ceiling_usd,
         "--progress-file": args.progress_file,
@@ -596,18 +603,24 @@ def _run_execute(args: argparse.Namespace) -> int:
             "formal manifest binding validation failed: " + "; ".join(binding_errors)
         )
     receipt = _load_object(args.qualification_receipt.resolve())
-    qualification_ceiling = receipt.get("approved_currency_ceiling_usd")
-    if (
-        isinstance(qualification_ceiling, bool)
-        or not isinstance(qualification_ceiling, int | float)
-        or float(qualification_ceiling) <= 0
-    ):
-        raise RuntimeError("method qualification receipt lacks its own currency ceiling")
+    qualification_manifest = _load_object(args.qualification_manifest.resolve())
+    local_manifest_errors = validate_method_qualification_local_manifest(
+        ROOT, qualification_manifest
+    )
+    if local_manifest_errors:
+        raise RuntimeError(
+            "method qualification local manifest validation failed: "
+            + "; ".join(local_manifest_errors)
+        )
+    try:
+        qualification_ceiling = qualification_receipt_currency_ceiling(receipt)
+    except ValueError as error:
+        raise RuntimeError(str(error)) from error
     receipt_errors = validate_method_qualification_receipt(
         ROOT,
         receipt,
-        manifest,
-        currency_ceiling_usd=float(qualification_ceiling),
+        qualification_manifest,
+        currency_ceiling_usd=qualification_ceiling,
     )
     if receipt_errors:
         raise RuntimeError(
@@ -618,6 +631,8 @@ def _run_execute(args: argparse.Namespace) -> int:
         ROOT,
         freeze_receipt,
         manifest,
+        qualification_manifest,
+        args.qualification_manifest.resolve(),
         receipt,
         args.qualification_receipt.resolve(),
         currency_ceiling_usd=float(args.formal_currency_ceiling_usd),

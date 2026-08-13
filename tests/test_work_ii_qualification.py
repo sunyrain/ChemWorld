@@ -37,6 +37,7 @@ from chemworld.eval.work_ii_qualification import (
     build_qualification_execution_authorization,
     method_qualification_report_sha256,
     qualification_execution_journal_sha256,
+    qualification_receipt_currency_ceiling,
     qualification_receipt_sha256,
     validate_method_qualification_readiness,
     validate_method_qualification_receipt,
@@ -610,6 +611,19 @@ def test_method_qualification_receipt_is_semantic_self_hashed_and_cost_bound(
     )
     assert "method qualification receipt self-hash mismatch" in errors
     assert "method qualification receipt has invalid user currency approval" in errors
+
+
+def test_qualification_receipt_currency_ceiling_accepts_explicit_unlimited_use() -> None:
+    receipt = {
+        "approved_currency_ceiling_usd": None,
+        "qualification_cost_accounting": {"unlimited_spend_authorized": True},
+    }
+
+    assert qualification_receipt_currency_ceiling(receipt) is None
+
+    receipt["approved_currency_ceiling_usd"] = 1.0
+    with pytest.raises(ValueError, match="cannot declare a currency ceiling"):
+        qualification_receipt_currency_ceiling(receipt)
 
 
 def test_shallow_passed_json_cannot_authorize_formal_execution(

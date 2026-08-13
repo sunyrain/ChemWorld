@@ -18,7 +18,11 @@ from chemworld.eval.work_ii_cost import (
     build_formal_cost_contract,
     validate_formal_cost_contract,
 )
+from chemworld.eval.work_ii_method_qualification_local import (
+    validate_method_qualification_local_manifest,
+)
 from chemworld.eval.work_ii_qualification import (
+    qualification_receipt_currency_ceiling,
     qualification_receipt_sha256,
     validate_method_qualification_receipt,
 )
@@ -57,7 +61,7 @@ WORK_II_RELEASE_TEST_FILES = (
     "tests/test_work_ii_truth.py",
 )
 PREREGISTRATION_FREEZE_RECEIPT_VERSION = (
-    "chemworld-work-ii-preregistration-freeze-receipt-0.1"
+    "chemworld-work-ii-preregistration-freeze-receipt-0.2"
 )
 
 _CLEAN_RELEASE_MATERIAL_PATHS = (
@@ -212,6 +216,8 @@ def validate_preregistration_freeze_receipt(
     root: Path,
     receipt: Mapping[str, Any],
     manifest: Mapping[str, Any],
+    qualification_manifest: Mapping[str, Any],
+    qualification_manifest_path: Path,
     qualification_receipt: Mapping[str, Any],
     qualification_receipt_path: Path,
     *,
@@ -258,37 +264,95 @@ def validate_preregistration_freeze_receipt(
         ):
             errors.append("preregistration freeze does not bind the clean-release receipt")
 
+    qualification_manifest_path = qualification_manifest_path.resolve()
     qualification_path = qualification_receipt_path.resolve()
+    qualification_binding = bindings.get("method_qualification")
+    qualification_binding = (
+        qualification_binding if isinstance(qualification_binding, Mapping) else {}
+    )
+    if not qualification_manifest_path.is_file():
+        errors.append("method-qualification local manifest file is missing")
+    else:
+        try:
+            qualification_manifest_relative = _relative(
+                root, qualification_manifest_path
+            )
+        except ValueError:
+            qualification_manifest_relative = None
+            errors.append(
+                "method-qualification local manifest escapes the repository"
+            )
+        try:
+            on_disk_manifest = _load_object(qualification_manifest_path)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            on_disk_manifest = None
+            errors.append(
+                "method-qualification local manifest cannot be read: " + str(error)
+            )
+        if on_disk_manifest is not None and on_disk_manifest != dict(
+            qualification_manifest
+        ):
+            errors.append(
+                "method-qualification local manifest argument differs from its file"
+            )
+        local_manifest_errors = validate_method_qualification_local_manifest(
+            root, qualification_manifest
+        )
+        errors.extend(
+            f"method qualification local manifest: {error}"
+            for error in local_manifest_errors
+        )
+        if (
+            qualification_binding.get("manifest_path")
+            != qualification_manifest_relative
+            or qualification_binding.get("manifest_file_sha256")
+            != file_sha256(qualification_manifest_path)
+            or qualification_binding.get("manifest_sha256")
+            != qualification_manifest.get("manifest_sha256")
+        ):
+            errors.append(
+                "preregistration freeze does not bind the method-qualification local manifest"
+            )
     if not qualification_path.is_file():
         errors.append("method-qualification receipt file is missing")
     else:
-        qualification_binding = bindings.get("method_qualification")
-        qualification_binding = (
-            qualification_binding if isinstance(qualification_binding, Mapping) else {}
-        )
+        try:
+            qualification_relative = _relative(root, qualification_path)
+        except ValueError:
+            qualification_relative = None
+            errors.append("method-qualification receipt escapes the repository")
+        try:
+            on_disk_receipt = _load_object(qualification_path)
+        except (OSError, ValueError, json.JSONDecodeError) as error:
+            on_disk_receipt = None
+            errors.append("method-qualification receipt cannot be read: " + str(error))
+        if on_disk_receipt is not None and on_disk_receipt != dict(
+            qualification_receipt
+        ):
+            errors.append("method-qualification receipt argument differs from its file")
         if (
-            qualification_binding.get("path")
-            != _relative(root, qualification_path)
-            or qualification_binding.get("file_sha256") != file_sha256(qualification_path)
+            qualification_binding.get("receipt_path")
+            != qualification_relative
+            or qualification_binding.get("receipt_file_sha256")
+            != file_sha256(qualification_path)
             or qualification_binding.get("receipt_sha256")
             != qualification_receipt_sha256(qualification_receipt)
         ):
             errors.append("preregistration freeze does not bind method qualification")
-    qualification_ceiling = qualification_receipt.get("approved_currency_ceiling_usd")
-    if (
-        isinstance(qualification_ceiling, bool)
-        or not isinstance(qualification_ceiling, int | float)
-        or float(qualification_ceiling) <= 0
-    ):
-        errors.append("method qualification lacks its distinct positive currency ceiling")
-    else:
+    try:
+        qualification_ceiling = qualification_receipt_currency_ceiling(
+            qualification_receipt
+        )
         qualification_errors = validate_method_qualification_receipt(
             root,
             qualification_receipt,
-            manifest,
-            currency_ceiling_usd=float(qualification_ceiling),
+            qualification_manifest,
+            currency_ceiling_usd=qualification_ceiling,
         )
         errors.extend(f"method qualification: {error}" for error in qualification_errors)
+    except ValueError as error:
+        qualification_ceiling = None
+        errors.append(f"method qualification: {error}")
 
     authorization = receipt.get("user_authorization")
     authorization = authorization if isinstance(authorization, Mapping) else {}
@@ -310,8 +374,6 @@ def validate_preregistration_freeze_receipt(
         or float(currency_ceiling_usd) <= 0
     ):
         errors.append("preregistration freeze formal currency ceiling differs from the CLI ceiling")
-    if authorization.get("qualification_currency_ceiling_usd") != qualification_ceiling:
-        errors.append("preregistration freeze changed the qualification currency ceiling")
     expected_eta = authorization.get("qualified_expected_eta_seconds")
     if not isinstance(expected_eta, (int, float)) or expected_eta <= 0:
         errors.append("preregistration freeze lacks a qualified positive ETA")
@@ -347,6 +409,7 @@ def validate_preregistration_freeze_receipt(
 def build_preregistration_freeze_receipt(
     root: Path,
     manifest: Mapping[str, Any],
+    qualification_manifest_path: Path,
     qualification_receipt_path: Path,
     *,
     currency_ceiling_usd: float,
@@ -361,6 +424,7 @@ def build_preregistration_freeze_receipt(
     """Build the final receipt after every external W2-08/W2-10/W2-11 condition exists."""
 
     root = root.resolve()
+    qualification_manifest_path = qualification_manifest_path.resolve()
     qualification_path = qualification_receipt_path.resolve()
     clean_path = (
         root
@@ -368,14 +432,8 @@ def build_preregistration_freeze_receipt(
         "work-ii-clean-release-receipt-v0.1.json"
     )
     clean = _load_object(clean_path)
+    qualification_manifest = _load_object(qualification_manifest_path)
     qualification = _load_object(qualification_path)
-    qualification_ceiling = qualification.get("approved_currency_ceiling_usd")
-    if (
-        isinstance(qualification_ceiling, bool)
-        or not isinstance(qualification_ceiling, int | float)
-        or float(qualification_ceiling) <= 0
-    ):
-        raise ValueError("method qualification lacks its distinct positive currency ceiling")
     formal_budget = build_formal_cost_contract(
         root,
         manifest,
@@ -401,8 +459,11 @@ def build_preregistration_freeze_receipt(
                 "tested_commit": clean.get("tested_commit"),
             },
             "method_qualification": {
-                "path": _relative(root, qualification_path),
-                "file_sha256": file_sha256(qualification_path),
+                "manifest_path": _relative(root, qualification_manifest_path),
+                "manifest_file_sha256": file_sha256(qualification_manifest_path),
+                "manifest_sha256": qualification_manifest.get("manifest_sha256"),
+                "receipt_path": _relative(root, qualification_path),
+                "receipt_file_sha256": file_sha256(qualification_path),
                 "receipt_sha256": qualification_receipt_sha256(qualification),
             },
         },
@@ -414,7 +475,6 @@ def build_preregistration_freeze_receipt(
             "budget_approved": True,
             "failure_escalation_approved": True,
             "formal_pricing_contract_approved": True,
-            "qualification_currency_ceiling_usd": float(qualification_ceiling),
             "formal_currency_ceiling_usd": float(currency_ceiling_usd),
             "qualified_expected_eta_seconds": float(qualified_expected_eta_seconds),
             "provider_contract": manifest.get("provider_contract"),
@@ -431,6 +491,8 @@ def build_preregistration_freeze_receipt(
         root,
         receipt,
         manifest,
+        qualification_manifest,
+        qualification_manifest_path,
         qualification,
         qualification_path,
         currency_ceiling_usd=float(currency_ceiling_usd),

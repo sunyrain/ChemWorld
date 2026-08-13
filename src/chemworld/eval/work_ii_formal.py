@@ -2279,20 +2279,21 @@ def authorize_formal_preflight(
         qualification_receipt.get("schema_version")
         != "chemworld-work-ii-method-qualification-receipt-0.4"
         or qualification_receipt.get("status") != "passed"
-        or qualification_receipt.get("formal_execution_authorized") is not True
-        or qualification_receipt.get("formal_preflight_sha256") != base_hash
+        or qualification_receipt.get("formal_execution_authorized") is not False
         or qualification_receipt.get("receipt_sha256") != qualification_hash
         or formal_cost_contract.get("schema_version")
         != "chemworld-work-ii-formal-cost-contract-0.1"
         or formal_cost_contract.get("formal_preflight_sha256") != base_hash
         or formal_cost_contract.get("formal_cost_contract_sha256") != cost_hash
         or preregistration_freeze_receipt.get("schema_version")
-        != "chemworld-work-ii-preregistration-freeze-receipt-0.1"
+        != "chemworld-work-ii-preregistration-freeze-receipt-0.2"
         or preregistration_freeze_receipt.get("status") != "passed_final_freeze"
         or preregistration_freeze_receipt.get("formal_execution_authorized") is not True
         or preregistration_freeze_receipt.get("receipt_sha256") != freeze_hash
         or freeze_bindings.get("formal_preflight_sha256") != base_hash
         or freeze_qualification.get("receipt_sha256") != qualification_hash
+        or freeze_qualification.get("manifest_sha256")
+        != qualification_receipt.get("qualification_manifest_sha256")
         or preregistration_freeze_receipt.get("formal_currency_budget")
         != formal_cost_contract
     ):

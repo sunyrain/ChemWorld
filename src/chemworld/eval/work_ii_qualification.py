@@ -2232,6 +2232,28 @@ def validate_method_qualification_receipt(
     return errors
 
 
+def qualification_receipt_currency_ceiling(
+    receipt: Mapping[str, Any],
+) -> float | None:
+    """Return the approved qualification ceiling, including explicit unlimited use."""
+
+    accounting = receipt.get("qualification_cost_accounting")
+    accounting = accounting if isinstance(accounting, Mapping) else {}
+    approved = receipt.get("approved_currency_ceiling_usd")
+    if accounting.get("unlimited_spend_authorized") is True:
+        if approved is not None:
+            raise ValueError(
+                "unlimited method qualification cannot declare a currency ceiling"
+            )
+        return None
+    approved_value = _finite_float(approved, minimum=0.000000001)
+    if approved_value is None:
+        raise ValueError(
+            "priced method qualification lacks a positive currency ceiling"
+        )
+    return approved_value
+
+
 __all__ = [
     "DEFAULT_RESOURCE_CALIBRATION_EXECUTION_MANIFEST",
     "DEFAULT_RESOURCE_CALIBRATION_SUMMARY",
@@ -2252,6 +2274,7 @@ __all__ = [
     "qualification_attempt_authorization_sha256",
     "qualification_execution_authorization_sha256",
     "qualification_execution_journal_sha256",
+    "qualification_receipt_currency_ceiling",
     "qualification_receipt_sha256",
     "validate_method_qualification_readiness",
     "validate_method_qualification_receipt",
