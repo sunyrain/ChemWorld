@@ -532,9 +532,10 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   整 triplet invalidated，根目录仍无全块 terminal summary。r11 在 bounded same-thread continuation 与整 triplet
   自动重启修复后从第一组三臂重新开始；两次完整 triplet attempts 共 6 个 WellAU sessions 均在首个实验动作前
   失败，三臂均为 0/8 experiments，随后达到预定的 infrastructure resume hard cap 并 fail-closed。独立的最小
-  `gpt-5.6-sol` Responses 请求同时得到 HTTP 502，后续恢复探针出现连接/响应异常，而 models 端点仍为 200，
-  因此当前阻塞明确位于 WellAU 推理面。r9/r10/r11 的有效终态与不利轨迹全部保留，不拼成通过、不覆盖；
-  推理端首次恢复后，r12 必须取得新授权并从 execution zero 遵循 frozen resume 语义。
+  `gpt-5.6-sol` Responses 请求持续得到 HTTP 502，而 models 端点保持 200；同 endpoint、同最小请求的单次
+  `gpt-5.6-terra` 路由诊断为 HTTP 200，因此阻塞已定位为 WellAU 的 `gpt-5.6-sol` 特异推理后端，而非
+  ChemWorld、本地凭证或整个 Responses 服务。r9/r10/r11 的有效终态与不利轨迹全部保留，不拼成通过、不覆盖；
+  `sol` 首次恢复后，r12 使用已验证的新运行合同从 execution zero 遵循 frozen resume 语义。
 - [x] **W2-27** current WellAU method qualification triplet 已完成并通过：3/3 arms terminal、各 8/8
   experiments、每臂 1 次 provider attempt、0 provider/infrastructure failures；三臂 exact replay 各验证
   48 steps、0 mismatches，receipt validator 为 0 errors。该 development qualification 只证明当前
@@ -584,7 +585,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
-| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r10 从头完成 8/9 triplets、24/27 cells；最后 A-S crystallization 三臂在同步 provider error 窗口后于 9/12、1/12、1/12 invalidated。r11 验证 continuation/restart 修复后，两次完整首 triplet attempts 的 6 个 WellAU sessions 均在首操作前失败，三臂均 0/8，按 hard cap fail-closed；独立 Responses 探针为 502/连接异常、models 端点 200。r9/r10/r11 全部保留且不拼接；推理面恢复后 r12 从零开始 |
+| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r10 从头完成 8/9 triplets、24/27 cells；最后 A-S crystallization 三臂在同步 provider error 窗口后于 9/12、1/12、1/12 invalidated。r11 验证 continuation/restart 修复后，两次完整首 triplet attempts 的 6 个 WellAU sessions 均在首操作前失败，三臂均 0/8，按 hard cap fail-closed；持续 `sol` Responses 探针为 502、models 端点为 200，而一次性同端点 `terra` 探针为 200，故定位为 `sol` 特异后端故障。r9/r10/r11 全部保留且不拼接；`sol` 恢复后 r12 从零开始 |
 | W2-27 | TERMINAL / METHOD QUALIFICATION PASSED | current WellAU 三臂均 8/8 terminal、qualification passed、exact replay 48 steps/arm 且 0 mismatches；receipt validator 0 errors。仅为 development method qualification，formal execution 仍未授权，W2-26 仍不完整 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-39 | TERMINAL / PLATFORM REQUALIFICATION PASSED | A-P seed-2 DeepSeek→WellAU 四块已在共享执行语义修复后从首 cell 完整重跑：`12/12` cells terminal、`94/120` experiments、`4/12` qualification completed、`9/12` 达到 10/10、全部 `11/11` 个有 committed operations 的 cells exact replay；0 provider errors、0 missing/invalid store、0 unclassified MCP failures。平台门禁通过；删失非随机，故不作 provider/model/arm 科学比较，不替代 W2-26/W2-27，也不进入 R5/C2。 |
