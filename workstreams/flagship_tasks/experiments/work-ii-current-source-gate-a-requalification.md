@@ -44,3 +44,11 @@ the executable source after RC29 certification. RC29 remains immutable historica
 retains the same scientific coverage, budgets, thresholds, stopping rules and zero-provider Gate A
 question, but writes a fresh protocol composition, plan, audits, release qualification, A2/A3
 reports, structural receipts and public decision. No RC29 artifact may be overwritten or relabelled.
+
+Closeout (2026-08-14): RC30 stopped after seven zero-provider design/audit projections. It never
+produced the required preregistration, release qualification, attainability certificate, A2/A3
+receipts, public decision, provider data, or formal result, and it never became the current evidence
+authority. Under the development-first/freeze-once workflow, these partial projections were retired
+from the working tree and remain recoverable from Git. RC29 remains immutable historical evidence;
+the stable final execution surface will receive one new qualification chain at release freeze rather
+than continuing the RC30 audit treadmill.

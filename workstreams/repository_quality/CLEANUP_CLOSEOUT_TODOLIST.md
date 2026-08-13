@@ -464,6 +464,20 @@ protocol-id、path、file hash 或 canonical hash consumer；它们只是到最�
 DeepSeek v0.6/Codex v0.4、terminal results、资格失败、raw trajectory、replay、public archive 或科学报告。
 现行 G2 runner/qualification 聚焦测试继续对两份 survivor 的 schema、denominator、资源和 replay 语义负责。
 
+### CD-38：退役未闭合的 Mechanism RC30 审计链 — DONE
+
+RC30 原计划在 Work II runtime/formal-gate 修复后再次重建 Gate A current-source 资格，但只生成 protocol、plan、
+participant candidate、relation graph、sample-size、semantics 与 design audit 七个零 provider 投影。它自己声明
+必需的 preregistration、release qualification、online attainability、A2/A3 structural receipts 与 public
+decision 均不存在；没有 provider 数据、formal result 或 terminal failure。七个文件也没有 current registry、
+runner、报告路径、byte hash 或 canonical hash consumer；current evidence DAG 始终明确指向完整 rc29 链。
+
+Work II 当前 development-first 规则已明确：功能持续变化期间，旧 Gate-A/source 证书标为 historical/stale，
+只在最终 release freeze 重建一次，不在每次修复后追逐新 rc。现删除 RC30 七个未闭合投影，保留原 experiment
+note 并追加 closeout，说明精确内容可从 Git 恢复且不得继续补跑成另一套 current authority。RC15-RC29 的真实
+通过、失败、superseded attempts、provider certificates 与 current rc29 formal receipts 全部保留；本批没有
+重写 rc29、刷新 hash 或删除任何不利结果。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -471,7 +485,7 @@ DeepSeek v0.6/Codex v0.4、terminal results、资格失败、raw trajectory、re
 | CD-P0-01 | DONE | W2-26 production runner 曾保留历史 operation-count fallback | 已删除旧 `electrolyze=4..5` 权威；W2-26 config 缺字段立即失败，普通历史/development config 不再套用任务特定规则 | production runner 根因回归测试通过；真实 semantic canary 仍与 CD-P0-02 合并执行 |
 | CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
-| CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 两套 readiness、preregistration/evidence-graph 闭环与 C2 selection/receipt 的重复 material-tree source authority；最终执行只消费 direct manifest/evidence/authorization receipts 与统一 release envelope | execution-time source/scientific validation 保留；旁路状态闭环、自证明 pass 和中间 whole-tree hash 已删除 |
+| CD-P0-04 | DONE | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 两套 readiness、preregistration/evidence-graph 闭环、C2 selection/receipt 的重复 material-tree source authority与未闭合 RC30 Gate-A 审计投影；最终执行只消费 direct manifest/evidence/authorization receipts 与统一 release envelope | execution-time source/scientific validation 保留；旁路状态闭环、自证明 pass、中间 whole-tree hash 与开发期审计跑步机已删除 |
 | CD-P0-05 | BLOCKED / OWNER DECISION | v0.2 private seal 同时要求 v0.1 complete-seal commitment 与 v0.2 design identity，逻辑上不可同时满足 | 不刷新 hash、不弱化 identity validator；选择独立 cohort compatibility migration 或显式 reseal/update commitment | 存在一份不暴露 identities、可通过 v0.2 完整 validator 的 seal witness，且迁移由用户/协议 owner 明确授权 |
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
