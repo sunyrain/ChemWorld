@@ -31,9 +31,6 @@ from chemworld.eval.work_ii_resource_calibration_v02 import (
     build_execution_manifest as build_resource_calibration_execution_manifest,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
-    build_readiness as build_resource_calibration_readiness,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
     build_summary as build_resource_calibration_summary,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
@@ -44,9 +41,6 @@ from chemworld.eval.work_ii_resource_calibration_v02 import (
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     validate_manifest as validate_resource_calibration_manifest,
-)
-from chemworld.eval.work_ii_resource_calibration_v02 import (
-    validate_readiness as validate_resource_calibration_readiness,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     validate_summary as validate_resource_calibration_summary,
@@ -84,11 +78,8 @@ def _load(path: Path) -> dict[str, object]:
 def _parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--manifest", type=Path, default=DEFAULT_MANIFEST)
-    parser.add_argument("--summary", type=Path)
     parser.add_argument("--output", type=Path)
     mode = parser.add_mutually_exclusive_group(required=True)
-    mode.add_argument("--preflight", action="store_true")
-    mode.add_argument("--check", action="store_true")
     mode.add_argument("--summary-template", action="store_true")
     mode.add_argument("--authorize", action="store_true")
     mode.add_argument("--execute", action="store_true")
@@ -851,21 +842,6 @@ def main() -> int:
         )
         return 0
     manifest = _load(manifest_path)
-    manifest_errors = validate_resource_calibration_manifest(
-        ROOT, manifest, allow_pending=True
-    )
-    if manifest_errors:
-        raise RuntimeError("resource calibration manifest failed: " + "; ".join(manifest_errors))
-    readiness = build_resource_calibration_readiness(
-        ROOT,
-        manifest_path,
-        summary_path=args.summary,
-    )
-    readiness_errors = validate_resource_calibration_readiness(readiness)
-    if readiness_errors:
-        raise RuntimeError(
-            "resource calibration readiness failed: " + "; ".join(readiness_errors)
-        )
 
     if args.authorize:
         if args.output is None:
@@ -957,19 +933,6 @@ def main() -> int:
         return 0
 
     if args.execute:
-        if readiness["status"] != "ready_authorization_blocked":
-            missing = json.dumps(
-                readiness["missing_task_identities"], ensure_ascii=False
-            )
-            blockers = "; ".join(
-                str(item) for item in readiness["blocking_requirements"]
-            )
-            raise RuntimeError(
-                "W2-26 provider execution is not ready; unresolved task identities: "
-                + missing
-                + "; blockers: "
-                + blockers
-            )
         if args.authorization is None or not args.allow_provider_execution:
             raise RuntimeError(
                 "W2-26 execution requires a validated write-once authorization and "
@@ -1010,31 +973,26 @@ def main() -> int:
     if args.output is None:
         raise RuntimeError("--output is required for non-execution modes")
     output = args.output.resolve()
-    if args.preflight:
-        _write_once(output, readiness)
-    elif args.check:
-        if not output.is_file() or _load(output) != readiness:
-            raise RuntimeError("committed W2-26 readiness differs from deterministic rebuild")
-    else:
-        summary = empty_resource_calibration_summary(manifest)
-        summary_errors = validate_resource_calibration_summary(
-            summary, manifest=manifest
+    manifest_errors = validate_resource_calibration_manifest(
+        ROOT, manifest, allow_pending=True
+    )
+    if manifest_errors:
+        raise RuntimeError(
+            "resource calibration manifest failed: " + "; ".join(manifest_errors)
         )
-        if summary_errors:
-            raise RuntimeError(
-                "resource calibration summary template failed: "
-                + "; ".join(summary_errors)
-            )
-        _write_once(output, summary)
+    summary = empty_resource_calibration_summary(manifest)
+    summary_errors = validate_resource_calibration_summary(summary, manifest=manifest)
+    if summary_errors:
+        raise RuntimeError(
+            "resource calibration summary template failed: "
+            + "; ".join(summary_errors)
+        )
+    _write_once(output, summary)
     print(
         json.dumps(
             {
-                "status": readiness["status"],
-                "calibration_may_be_authorized": readiness[
-                    "calibration_may_be_authorized"
-                ],
-                "provider_calls_executed": readiness["provider_calls_executed"],
-                "missing_task_identities": readiness["missing_task_identities"],
+                "status": summary["status"],
+                "provider_calls_executed": summary["provider_calls_executed"],
                 "output": str(output),
             },
             ensure_ascii=False,

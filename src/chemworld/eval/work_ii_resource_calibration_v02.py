@@ -38,7 +38,6 @@ from chemworld.eval.work_ii_task_resources import (
 MANIFEST_VERSION = "chemworld-work-ii-resource-calibration-manifest-0.2"
 SUMMARY_VERSION = "chemworld-work-ii-resource-calibration-summary-0.2"
 AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.2"
-READINESS_VERSION = "chemworld-work-ii-resource-calibration-readiness-0.2"
 RUNTIME_CONFIG_ROOT = Path(
     "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.5"
 )
@@ -606,16 +605,6 @@ def authorization_sha256(authorization: Mapping[str, Any]) -> str:
     )
 
 
-def readiness_sha256(readiness: Mapping[str, Any]) -> str:
-    return canonical_json_sha256(
-        {
-            key: value
-            for key, value in readiness.items()
-            if key != "readiness_sha256"
-        }
-    )
-
-
 def _finite_nonnegative(value: object) -> bool:
     return (
         isinstance(value, (int, float))
@@ -913,110 +902,6 @@ def validate_authorization(
         )
     ):
         errors.append("W2-26 authorization runtime contract is incomplete")
-    return errors
-
-
-def build_readiness(
-    root: Path,
-    manifest_path: Path,
-    *,
-    summary_path: Path | None = None,
-) -> dict[str, Any]:
-    """Project the nine-task zero-provider gate before/after calibration."""
-
-    root = root.resolve()
-    manifest_path = manifest_path.resolve()
-    manifest = _load(manifest_path)
-    manifest_errors = validate_manifest(root, manifest, allow_pending=True)
-    resolved = {
-        pattern_key(row)
-        for row in manifest.get("patterns", [])
-        if isinstance(row, Mapping)
-        and isinstance(row.get("campaign_config_binding"), Mapping)
-    }
-    missing = [key for key in EXPECTED_PATTERN_KEYS if key not in resolved]
-    summary: dict[str, Any] | None = None
-    summary_errors: list[str] = []
-    summary_binding: dict[str, Any] | None = None
-    if summary_path is not None:
-        summary_path = summary_path.resolve()
-        if summary_path.is_file():
-            summary = _load(summary_path)
-            summary_errors = validate_summary(summary, manifest=manifest)
-            summary_binding = {
-                "path": summary_path.relative_to(root).as_posix(),
-                "file_sha256": file_sha256(summary_path),
-                "summary_sha256": summary.get("summary_sha256"),
-            }
-        else:
-            summary_errors.append("W2-26 summary is missing")
-    passed = (
-        not manifest_errors
-        and not missing
-        and summary is not None
-        and not summary_errors
-        and summary.get("status") == "passed"
-        and summary.get("calibration_passed") is True
-    )
-    ready_for_authorization = not manifest_errors and not missing and summary_path is None
-    status = (
-        "calibration_passed_method_qualification_eligible"
-        if passed
-        else "ready_authorization_blocked"
-        if ready_for_authorization
-        else "calibration_failed_fail_closed"
-        if summary is not None
-        else "not_ready_fail_closed"
-    )
-    readiness: dict[str, Any] = {
-        "schema_version": READINESS_VERSION,
-        "status": status,
-        "provider_calls_executed": 0,
-        "manifest_binding": {
-            "path": manifest_path.relative_to(root).as_posix(),
-            "file_sha256": file_sha256(manifest_path),
-            "canonical_json_sha256": canonical_json_sha256(manifest),
-        },
-        "calibration_summary_binding": summary_binding,
-        "missing_task_identities": [
-            {"locus": locus, "task_id": task_id, "rounds": rounds}
-            for locus, task_id, rounds in missing
-        ],
-        "blocking_requirements": [*manifest_errors, *summary_errors],
-        "calibration_may_be_authorized": ready_for_authorization,
-        "method_qualification_may_be_authorized": passed,
-    }
-    readiness["readiness_sha256"] = readiness_sha256(readiness)
-    return readiness
-
-
-def validate_readiness(readiness: Mapping[str, Any]) -> list[str]:
-    errors: list[str] = []
-    if readiness.get("schema_version") != READINESS_VERSION:
-        errors.append("unexpected W2-26 v0.2 readiness schema")
-    if readiness.get("readiness_sha256") != readiness_sha256(readiness):
-        errors.append("W2-26 readiness self-hash mismatch")
-    status = readiness.get("status")
-    if status not in {
-        "not_ready_fail_closed",
-        "ready_authorization_blocked",
-        "calibration_failed_fail_closed",
-        "calibration_passed_method_qualification_eligible",
-    }:
-        errors.append("W2-26 readiness status is invalid")
-    if readiness.get("provider_calls_executed") != 0:
-        errors.append("W2-26 readiness executed a provider")
-    missing = readiness.get("missing_task_identities")
-    if not isinstance(missing, list):
-        errors.append("W2-26 readiness lacks task-level blockers")
-    if readiness.get("calibration_may_be_authorized") is True and (
-        status != "ready_authorization_blocked" or missing != []
-    ):
-        errors.append("W2-26 readiness overstates execution eligibility")
-    if readiness.get("method_qualification_may_be_authorized") is True and (
-        status != "calibration_passed_method_qualification_eligible" or missing != []
-    ):
-        errors.append("W2-26 readiness overstates method-qualification eligibility")
     return errors
 
 
@@ -1680,13 +1565,11 @@ __all__ = [
     "EXPECTED_PATTERN_KEYS",
     "MANIFEST_VERSION",
     "PROVIDER_ERROR_ENFORCEMENT_POLICY",
-    "READINESS_VERSION",
     "RESOURCE_CALIBRATION_ARMS",
     "SUMMARY_VERSION",
     "authorization_sha256",
     "build_authorization",
     "build_execution_manifest",
-    "build_readiness",
     "build_summary",
     "cell_has_platform_defect",
     "empty_summary",
@@ -1695,6 +1578,5 @@ __all__ = [
     "summary_sha256",
     "validate_authorization",
     "validate_manifest",
-    "validate_readiness",
     "validate_summary",
 ]

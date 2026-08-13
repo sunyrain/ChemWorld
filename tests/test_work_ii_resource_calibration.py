@@ -79,6 +79,60 @@ def _resolved_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, object]]:
     return manifest_path, manifest
 
 
+def test_summary_template_cli_uses_manifest_and_summary_contracts_directly(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output = repo_tmp_path / "summary-template.json"
+    monkeypatch.setattr(
+        calibration_runner.sys,
+        "argv",
+        [
+            "run_work_ii_resource_calibration.py",
+            "--manifest",
+            str(MANIFEST),
+            "--summary-template",
+            "--output",
+            str(output),
+        ],
+    )
+
+    assert calibration_runner.main() == 0
+    summary = json.loads(output.read_text(encoding="utf-8"))
+    assert calibration.validate_summary(summary, manifest=_manifest()) == []
+    assert summary["status"] == "not_executed"
+    assert summary["provider_calls_executed"] == 0
+    assert summary["expected_denominators"] == calibration.EXPECTED_DENOMINATORS
+
+
+def test_authorize_cli_rejects_incomplete_manifest_without_readiness_projection(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    output = repo_tmp_path / "authorization.json"
+    monkeypatch.setattr(
+        calibration_runner.sys,
+        "argv",
+        [
+            "run_work_ii_resource_calibration.py",
+            "--manifest",
+            str(MANIFEST),
+            "--authorize",
+            "--output",
+            str(output),
+            "--approved-at",
+            "2026-08-14T00:00:00+08:00",
+            "--unlimited-spend-authorized",
+            "--provider-contract-confirmed-by-user",
+            "--credential-rotation-confirmed-by-user",
+        ],
+    )
+
+    with pytest.raises(ValueError, match="full task matrix is incomplete"):
+        calibration_runner.main()
+    assert not output.exists()
+
+
 def test_manifest_freezes_exact_nine_task_contracts() -> None:
     manifest = _manifest()
 

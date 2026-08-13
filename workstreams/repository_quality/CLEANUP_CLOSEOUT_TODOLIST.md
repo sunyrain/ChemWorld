@@ -406,6 +406,21 @@ fail closed；旧测试没有提供 manifest，却断言第二层 authorization 
 测试输入中补一个非空 manifest 路径，使执行仍在任何文件读取、输出创建或 provider 调用前因缺 user authorization
 拒绝；未调换或放宽活跃 campaign runner 的四层入口校验。
 
+### CD-34：退役 W2-26 readiness 自投影层 — DONE
+
+W2-26 的 readiness builder/validator 只把 manifest resolved coverage、可选 terminal summary、blockers 与两个
+eligibility boolean 重新序列化，再加一层 self-hash。它没有独立决策：authorization builder 已直接对九任务
+manifest 做 full validation；execute 会重验 authorization 及其 manifest binding；terminal summary validator 已
+拥有精确 9 triplets / 27 cells / 252 experiments、全部失败、provider accounting 与 replay 语义。仓库内也没有
+current consumer 调用该 runner 的 `--preflight` 或 `--check`。
+
+在确认 W2-26 等待控制器与 runner 均已自然退出、r12 输出目录从未创建后，现已整组删除 readiness schema、
+self-hash、builder、validator、两个 CLI mode、`--summary` 投影输入与 execute 前的 status 翻译，共净删 160 行。
+保留 `--summary-template` 作为无 provider 的 manifest/summary contract 检查，保留 direct manifest validation、
+write-once authorization、user/provider/pricing/cost/attempt contracts、triplet restart hard cap、terminal summary、
+所有失败与 exact replay。新增 CLI 测试证明 summary-template 直接生成零 provider 的精确分母 summary，以及
+incomplete manifest 在 authorization 输出创建前被拒绝；W2-26 及下游聚焦测试 51/51、Ruff 通过。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
