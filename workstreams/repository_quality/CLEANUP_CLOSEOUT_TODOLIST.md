@@ -153,6 +153,14 @@ manifest/readiness，并用宽泛 `except Exception` 把编程错误包装成 `f
 qualification runner 直接读取已生成的 canonical summary/package/D1，不依赖桥接脚本。四份 canonical 产物、
 生产 validator 与源 qualification runner 均保留，历史跨仓库搬运流程由 Git 保存。
 
+### CD-14：删除已完成的 A-P/W2-39 双模式 closeout builder — DONE
+
+删除 `scripts/build_work_ii_ap_development_results.py` 及其 3 条专属测试。该脚本先生成旧 diagnosis 报告，
+后又扩展为 W2-39 platform-requalification builder；W2-39 已终态通过，两个 tracked 报告均无下游代码消费者。
+只读重建确认新版 W2-39 JSON 可由它绑定的四个 preserved run 全对象精确重建；旧 diagnosis 则因后来增加
+typed taxonomy 字段和路径渲染变化不再精确重建。因此保留两份 immutable 历史报告及原始 runs，不刷新旧报告，
+删除会跨两代 schema 重写历史形状的一次性 builder。当前 W2-38 readiness/executor 未删除。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
