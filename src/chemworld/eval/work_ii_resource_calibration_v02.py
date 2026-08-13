@@ -200,6 +200,11 @@ def _materialize_runtime_config(
         {
             "minimum_unique_recipes": MINIMUM_UNIQUE_RECIPES[locus],
             "maximum_exact_repeats": 2,
+            # W2-26 calibrates participant-owned multi-task operation sequences.
+            # The legacy campaign runner otherwise falls back to the original
+            # four-experiment electrochemistry-only [4, 5] interval, which is
+            # neither part of the nine-task note nor valid for 8/10/12 rounds.
+            "required_operation_counts": {},
             "resource_calibration_status": "w2_26_runtime_envelope",
             "execution_authorized": False,
             "formal_r5_authorized": False,
@@ -261,6 +266,7 @@ def _config_errors(
         or qualification.get("minimum_unique_recipes")
         != MINIMUM_UNIQUE_RECIPES[locus]
         or qualification.get("maximum_exact_repeats") != 2
+        or qualification.get("required_operation_counts") != {}
         or runtime_identity.get("locus") != locus
         or runtime_identity.get("task_id") != task_id
         or runtime_identity.get("rounds") != rounds

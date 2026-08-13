@@ -1062,6 +1062,7 @@ def test_v02_runtime_and_authorization_bind_provider_error_measure_only(
     identity = config["w2_26_runtime_identity"]
     assert identity["agent_invalid_enforcement"] == "measure_only"
     assert identity["provider_error_enforcement"] == "measure_only"
+    assert config["qualification"]["required_operation_counts"] == {}
     assert (
         calibration_v02._config_errors(
             config,
@@ -1075,6 +1076,14 @@ def test_v02_runtime_and_authorization_bind_provider_error_measure_only(
     del missing["w2_26_runtime_identity"]["provider_error_enforcement"]
     assert calibration_v02._config_errors(
         missing,
+        locus="A_E",
+        task_id="electrochemical-conversion",
+        rounds=8,
+    )
+    stale_operation_fallback = deepcopy(config)
+    del stale_operation_fallback["qualification"]["required_operation_counts"]
+    assert calibration_v02._config_errors(
+        stale_operation_fallback,
         locus="A_E",
         task_id="electrochemical-conversion",
         rounds=8,
