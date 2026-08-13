@@ -48,7 +48,11 @@ def canonical_json_sha256(payload: Any) -> str:
 def file_sha256(path: Path) -> str:
     """Return the SHA-256 of a materialized artifact."""
 
-    return hashlib.sha256(path.read_bytes()).hexdigest()
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        while chunk := handle.read(1024 * 1024):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 
 def repository_tree_sha256(
@@ -81,9 +85,7 @@ def repository_tree_sha256(
     return canonical_json_sha256(entries)
 
 
-def write_json_atomic(
-    path: Path, payload: Any, *, sort_keys: bool = True
-) -> None:
+def write_json_atomic(path: Path, payload: Any, *, sort_keys: bool = True) -> None:
     """Write deterministic, human-readable JSON through an adjacent temp file."""
 
     path.parent.mkdir(parents=True, exist_ok=True)

@@ -56,6 +56,19 @@ def test_canonical_json_and_atomic_writer_preserve_contract(tmp_path: Path) -> N
         canonical_json_bytes({"invalid": float("nan")})
 
 
+def test_file_sha256_streams_large_artifacts(tmp_path: Path, monkeypatch) -> None:
+    target = tmp_path / "trajectory.jsonl"
+    target.write_bytes((b"trajectory-row\n" * 100_000) + b"final-row\n")
+    expected = hashlib.sha256(target.read_bytes()).hexdigest()
+
+    def forbidden_read_bytes(_path: Path) -> bytes:
+        raise AssertionError("file hashing must not materialize the complete artifact")
+
+    monkeypatch.setattr(Path, "read_bytes", forbidden_read_bytes)
+
+    assert file_sha256(target) == expected
+
+
 def test_git_provenance_distinguishes_source_and_evidence_changes(
     tmp_path: Path,
 ) -> None:
@@ -89,9 +102,7 @@ def test_git_provenance_distinguishes_source_and_evidence_changes(
 
     evidence.write_text('{"refreshed":true}\n', encoding="utf-8")
     assert git_tracked_tree_dirty(root)
-    assert not git_tracked_tree_dirty(
-        root, excluded_paths={"reports/evidence.json"}
-    )
+    assert not git_tracked_tree_dirty(root, excluded_paths={"reports/evidence.json"})
     assert not git_tracked_tree_dirty(root, excluded_prefixes={"reports"})
 
     _git(root, "add", "reports/evidence.json")
