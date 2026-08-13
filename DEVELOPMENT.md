@@ -47,7 +47,7 @@ implicit dependency sync.
 For a quick development smoke, run these six existing behavior tests (normally under 10 seconds):
 
 ```bash
-uv run --no-sync pytest --no-cov -q \
+uv run --no-sync pytest -q \
   tests/test_env.py::test_env_registers_and_steps \
   tests/test_invalid_action_atomicity.py::test_state_precondition_rollback_only_penalizes_process_ledger \
   tests/test_score_replay.py::test_result_rejects_metric_binding_and_source_byte_tampering \
@@ -59,6 +59,16 @@ uv run --no-sync pytest --no-cov -q \
 This is a liveness smoke, not acceptance evidence for every subsystem. Run the owning focused tests
 for changed behavior; run RL, reference-data, notebook, wheel, or release checks only when those
 surfaces change.
+
+Coverage is an explicit diagnostic, not a default gate on every focused test. When coverage is the
+question being investigated, opt in for the relevant surface:
+
+```bash
+uv run --no-sync pytest --cov=chemworld --cov-report=term-missing tests/<relevant-test-file>.py
+```
+
+The repository does not use a global coverage percentage as acceptance evidence. Prefer missing
+behavior and failure-path analysis over increasing a percentage with self-referential tests.
 
 Generated evidence must distinguish environment validation from Agent performance. A passing backend
 check does not imply a method result, benchmark ranking, or publication claim.
