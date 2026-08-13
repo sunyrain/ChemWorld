@@ -127,6 +127,7 @@ def test_build_platform_requalification_summary(tmp_path: Path) -> None:
     )
 
     assert summary["status"] == "terminal_platform_requalification_complete"
+    assert summary["platform_requalification"] == {"passed": True, "failed_checks": []}
     assert summary["aggregate"]["typed_mcp_failure_taxonomy_cells"] == 12
     assert summary["aggregate"]["mcp_tool_failures_by_category"] == {
         "provider_network": 0,
@@ -137,3 +138,71 @@ def test_build_platform_requalification_summary(tmp_path: Path) -> None:
     markdown = MODULE.render_markdown(summary)
     assert "platform requalification complete" in markdown
     assert "Typed MCP failure accounting is complete for `12/12` cells" in markdown
+
+
+def test_platform_requalification_fails_closed_on_replay_or_unclassified_event(
+    tmp_path: Path,
+) -> None:
+    source_commit = "f" * 40
+    coverage = [
+        ("deepseek", "reaction-safety-constrained"),
+        ("deepseek", "electrochemical-conversion"),
+        ("wellau", "reaction-safety-constrained"),
+        ("wellau", "electrochemical-conversion"),
+    ]
+    roots: list[Path] = []
+    for index, (provider_id, task_id) in enumerate(coverage):
+        root = tmp_path / f"block-{index}"
+        root.mkdir()
+        report = {
+            "source_commit": source_commit,
+            "provider_id": provider_id,
+            "model": f"{provider_id}-model",
+            "task_id": task_id,
+            "world_seeds": [2],
+            "terminal_cell_count": 3,
+            "expected_cell_count": 3,
+            "completed_cell_count": 3,
+            "all_cells_terminal": True,
+            "store_audit": {
+                "missing_cell_key_sha256": [],
+                "invalid_receipts": [],
+            },
+            "seed_reports": [
+                {
+                    "results": [
+                        _terminal_result("aligned_nominal"),
+                        _terminal_result("misindexed_nominal"),
+                        _terminal_result("opaque"),
+                    ]
+                }
+            ],
+        }
+        (root / "matrix_report.json").write_text(json.dumps(report), encoding="utf-8")
+        roots.append(root)
+
+    first_report_path = roots[0] / "matrix_report.json"
+    first_report = json.loads(first_report_path.read_text(encoding="utf-8"))
+    first_report["seed_reports"][0]["results"][0]["exact_replay"]["verified"] = False
+    first_report["seed_reports"][0]["results"][1]["method_resources"][
+        "mcp_tool_failure_taxonomy"
+    ]["counts_by_category"]["unclassified"] = 1
+    first_report_path.write_text(json.dumps(first_report), encoding="utf-8")
+
+    summary = MODULE.build_summary(
+        tuple(roots),
+        mode=MODULE.PLATFORM_REQUALIFICATION_MODE,
+        expected_source_commit=source_commit,
+    )
+
+    assert summary["status"] == "terminal_platform_requalification_failed"
+    assert summary["platform_requalification"] == {
+        "passed": False,
+        "failed_checks": [
+            "active_cell_exact_replay_incomplete",
+            "unclassified_mcp_tool_failure_present",
+        ],
+    }
+    markdown = MODULE.render_markdown(summary)
+    assert "platform requalification failed" in markdown
+    assert "Frozen platform gates: fail" in markdown

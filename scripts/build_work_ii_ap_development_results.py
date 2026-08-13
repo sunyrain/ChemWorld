@@ -214,8 +214,23 @@ def build_summary(
                 },
             }
         )
+        platform_gate_failures: list[str] = []
+        if (
+            aggregate["active_cells_with_exact_replay"]
+            != aggregate["cells_with_committed_operations"]
+        ):
+            platform_gate_failures.append("active_cell_exact_replay_incomplete")
+        if aggregate["mcp_tool_failures_by_category"]["unclassified"] != 0:
+            platform_gate_failures.append("unclassified_mcp_tool_failure_present")
+        platform_requalification = {
+            "passed": not platform_gate_failures,
+            "failed_checks": platform_gate_failures,
+        }
+    else:
+        platform_requalification = None
 
     if mode == PLATFORM_REQUALIFICATION_MODE:
+        platform_passed = platform_requalification["passed"]
         interpretation = {
             "supported": [
                 (
@@ -223,7 +238,14 @@ def build_summary(
                     "terminal storage state."
                 ),
                 "Every cell exposes the frozen typed MCP failure taxonomy.",
-                "Every cell with committed physical operations has an exact replay record.",
+                *(
+                    [
+                        "Every cell with committed physical operations has an exact "
+                        "replay record."
+                    ]
+                    if platform_passed
+                    else []
+                ),
             ],
             "not_supported": [
                 "A provider, model, task, or prior-arm scientific capability comparison.",
@@ -244,6 +266,9 @@ def build_summary(
                 "Use the complete development result to decide qualification readiness. "
                 "Any platform change still requires its affected qualification block to "
                 "restart from the first cell; retained scientific failures are not retryable."
+                if platform_passed
+                else "Platform requalification failed its frozen evidence-integrity gates. "
+                "Retain all outcomes and diagnose the failed checks before any formal use."
             ),
         }
     else:
@@ -288,7 +313,11 @@ def build_summary(
             else "chemworld-work-ii-ap-development-results-0.1"
         ),
         "status": (
-            "terminal_platform_requalification_complete"
+            (
+                "terminal_platform_requalification_complete"
+                if platform_requalification["passed"]
+                else "terminal_platform_requalification_failed"
+            )
             if mode == PLATFORM_REQUALIFICATION_MODE
             else "terminal_platform_requalification_required"
         ),
@@ -304,6 +333,11 @@ def build_summary(
         },
         "aggregate": aggregate,
         "blocks": blocks,
+        **(
+            {"platform_requalification": platform_requalification}
+            if platform_requalification is not None
+            else {}
+        ),
         "interpretation": interpretation,
     }
 
@@ -313,6 +347,7 @@ def render_markdown(summary: dict[str, Any]) -> str:
     requalification_complete = (
         summary["status"] == "terminal_platform_requalification_complete"
     )
+    requalification_failed = summary["status"] == "terminal_platform_requalification_failed"
     lines = [
         "# Work II A-P independent terminal D1 development results",
         "",
@@ -320,6 +355,9 @@ def render_markdown(summary: dict[str, Any]) -> str:
             "Status: terminal development evidence; platform requalification complete; "
             "not formal/R5/C2 evidence."
             if requalification_complete
+            else "Status: terminal development evidence; platform requalification failed; "
+            "not formal/R5/C2 evidence."
+            if requalification_failed
             else "Status: terminal development evidence; platform requalification required; "
             "not formal/R5/C2 evidence."
         ),
@@ -388,8 +426,9 @@ def render_markdown(summary: dict[str, Any]) -> str:
                 )
                 + " |"
             )
-    if requalification_complete:
+    if requalification_complete or requalification_failed:
         taxonomy = aggregate["mcp_tool_failures_by_category"]
+        gate = summary["platform_requalification"]
         lines.extend(
             [
                 "",
@@ -403,6 +442,14 @@ def render_markdown(summary: dict[str, Any]) -> str:
                     f"`{taxonomy['transport_ipc_os']}`, agent-invalid "
                     f"`{taxonomy['agent_invalid']}`, and unclassified "
                     f"`{taxonomy['unclassified']}`."
+                ),
+                "",
+                (
+                    "Frozen platform gates: pass."
+                    if gate["passed"]
+                    else "Frozen platform gates: fail — "
+                    + ", ".join(gate["failed_checks"])
+                    + "."
                 ),
             ]
         )
