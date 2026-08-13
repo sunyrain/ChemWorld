@@ -503,6 +503,7 @@ def _d1_config(
             "schema_version": "chemworld-work-ii-campaign-pilot-0.5",
             "pilot_id": f"work-ii-as-{candidate_id}-d1",
             "formal_result": False,
+            "legacy_source_evidence": False,
             "execution_context": build_execution_envelope(execution_context),
             "task_id": task_id,
             "world_seed": 0,

@@ -100,10 +100,6 @@ def build_d1_qualification_evidence_binding(
     package = _load(package_path)
     plan = _load(plan_path)
     schema = str(package.get("schema_version", ""))
-    if package.get("task_id") != source.get("task_id"):
-        raise ValueError("D1 qualification package task differs from source config")
-    if package.get("qualification_passed") is not True:
-        raise ValueError("D1 qualification package did not pass")
     if package.get("execution_context") != source.get("execution_context"):
         raise ValueError("D1 qualification package is not from the source release freeze")
     package_hash = package.get("package_sha256")
@@ -112,6 +108,31 @@ def build_d1_qualification_evidence_binding(
 
     if "constitutive-structural" in schema:
         kind = "A_S_q2_package_and_plan"
+        intervention = source.get("intervention")
+        intervention = intervention if isinstance(intervention, Mapping) else {}
+        candidate_id = intervention.get("candidate_id")
+        candidate_laws = package.get("candidate_laws")
+        candidate_laws = candidate_laws if isinstance(candidate_laws, Mapping) else {}
+        candidate = candidate_laws.get(candidate_id)
+        candidate = candidate if isinstance(candidate, Mapping) else {}
+        world_evidence = candidate.get("world_evidence")
+        world_evidence = world_evidence if isinstance(world_evidence, list) else []
+        if (
+            not isinstance(candidate_id, str)
+            or candidate.get("task_id") != source.get("task_id")
+        ):
+            raise ValueError("A-S Q2 package candidate task differs from source config")
+        if (
+            package.get("all_five_world_cohorts_passed") is not True
+            or len(world_evidence) != 5
+            or {row.get("world_seed") for row in world_evidence if isinstance(row, Mapping)}
+            != set(range(5))
+            or any(
+                not isinstance(row, Mapping) or row.get("passed") is not True
+                for row in world_evidence
+            )
+        ):
+            raise ValueError("A-S Q2 package did not pass all five registered worlds")
         package_plan = package.get("plan_binding")
         if not isinstance(package_plan, Mapping):
             raise ValueError("A-S Q2 package lacks its qualification plan binding")
@@ -129,6 +150,10 @@ def build_d1_qualification_evidence_binding(
         plan_binding = expected_plan
     else:
         kind = "A_P_q2_package_and_generation_record"
+        if package.get("task_id") != source.get("task_id"):
+            raise ValueError("D1 qualification package task differs from source config")
+        if package.get("qualification_passed") is not True:
+            raise ValueError("D1 qualification package did not pass")
         if plan.get("task_id") != source.get("task_id"):
             raise ValueError("A-P Q2 generation record task differs from source config")
         if plan.get("qualification_passed") is not True:

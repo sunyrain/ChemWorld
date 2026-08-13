@@ -8,7 +8,11 @@ import pytest
 
 import chemworld.eval.work_ii_d1_execution as d1_execution
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
-from chemworld.eval.work_ii_d1_execution import D1CellStore, build_d1_admission_receipt
+from chemworld.eval.work_ii_d1_execution import (
+    D1CellStore,
+    build_d1_admission_receipt,
+    build_d1_qualification_evidence_binding,
+)
 
 
 def _store(tmp_path: Path) -> tuple[D1CellStore, str]:
@@ -29,6 +33,103 @@ def _log(store: D1CellStore, name: str) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("missing infrastructure\n", encoding="utf-8")
     return path
+
+
+def _as_qualification_evidence(
+    tmp_path: Path,
+    *,
+    source_task: str = "partition-discovery",
+    package_task: str = "partition-discovery",
+    all_worlds_passed: bool = True,
+) -> tuple[Path, Path, Path]:
+    context = {"execution_mode": "release", "freeze_id": "f" * 64}
+    plan_path = tmp_path / "plan.json"
+    plan = {"execution_context": context}
+    plan["plan_sha256"] = canonical_json_sha256(plan)
+    write_json_atomic(plan_path, plan)
+    source_path = tmp_path / "source.json"
+    write_json_atomic(
+        source_path,
+        {
+            "task_id": source_task,
+            "execution_context": context,
+            "intervention": {"candidate_id": "partition_power_response"},
+        },
+    )
+    package_path = tmp_path / "package.json"
+    package = {
+        "schema_version": "chemworld-work-ii-constitutive-structural-q2-package-0.1",
+        "execution_context": context,
+        "all_five_world_cohorts_passed": all_worlds_passed,
+        "plan_binding": {
+            "path": plan_path.relative_to(tmp_path).as_posix(),
+            "sha256": file_sha256(plan_path),
+            "plan_sha256": plan["plan_sha256"],
+        },
+        "candidate_laws": {
+            "partition_power_response": {
+                "task_id": package_task,
+                "world_evidence": [
+                    {"world_seed": seed, "passed": all_worlds_passed}
+                    for seed in range(5)
+                ],
+            }
+        },
+    }
+    package["package_sha256"] = canonical_json_sha256(package)
+    write_json_atomic(package_path, package)
+    return source_path, package_path, plan_path
+
+
+def test_as_qualification_evidence_binds_candidate_specific_aggregate_package(
+    tmp_path: Path,
+) -> None:
+    source, package, plan = _as_qualification_evidence(tmp_path)
+
+    binding = build_d1_qualification_evidence_binding(
+        tmp_path,
+        source_config_path=source,
+        qualification_package_path=package,
+        qualification_plan_path=plan,
+    )
+
+    assert binding["kind"] == "A_S_q2_package_and_plan"
+
+
+@pytest.mark.parametrize(
+    ("package_task", "all_worlds_passed", "message"),
+    [
+        (
+            "reaction-to-crystallization",
+            True,
+            "candidate task differs from source config",
+        ),
+        (
+            "partition-discovery",
+            False,
+            "did not pass all five registered worlds",
+        ),
+    ],
+)
+def test_as_qualification_evidence_fails_closed_on_candidate_or_world_gate(
+    tmp_path: Path,
+    package_task: str,
+    all_worlds_passed: bool,
+    message: str,
+) -> None:
+    source, package, plan = _as_qualification_evidence(
+        tmp_path,
+        package_task=package_task,
+        all_worlds_passed=all_worlds_passed,
+    )
+
+    with pytest.raises(ValueError, match=message):
+        build_d1_qualification_evidence_binding(
+            tmp_path,
+            source_config_path=source,
+            qualification_package_path=package,
+            qualification_plan_path=plan,
+        )
 
 
 def test_d1_store_allows_only_one_missing_infrastructure_resume(tmp_path: Path) -> None:
