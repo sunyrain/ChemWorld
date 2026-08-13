@@ -34,9 +34,11 @@ recovery-episode totals and maximum consecutive episodes.
   defect. Ordinary qualification and formal execution retain their source-config provider-error
   hard limits.
 - One strictly zero-action typed process/IPC predecessor may restart inside the same cell with the
-  unchanged prompt, task, arm, seed, and world. Both receipts and their complete resource usage are
-  retained. It counts as a provider-process attempt but not as an accepted participant session or
-  participant model call. No restart is allowed after an accepted experimental action.
+  unchanged prompt, task, arm, seed, and world. Both receipts and all observed resource usage are
+  retained. An exit with no observed thread, event, tool call, or provider error is explicitly
+  recorded as an unattributed pre-action process attempt; it counts as a provider-process attempt
+  but not as an accepted participant session or participant model call. No restart is allowed after
+  an accepted experimental action.
 - Raw invalid calls and submitted participant payloads remain in the receipt. The host never
   repairs, reorders, or substitutes participant content. A participant that never commits every
   required valid checkpoint or never closes the lifecycle remains a retained method failure.

@@ -33,7 +33,9 @@ scientific outcomes or select a more favorable trajectory.
   recovery, and infrastructure resume. Those operational retries are never new experiments.
 - A strictly zero-action typed process/IPC predecessor may restart once inside the same cell. It is
   retained as a provider-process attempt but does not enter the accepted participant-session or
-  participant-call denominator. No accepted experimental action may be replaced.
+  participant-call denominator. An exit with no observed provider thread, event, tool call, or
+  provider error is explicitly retained as an unattributed pre-action process attempt. No accepted
+  experimental action may be replaced.
 - A-E contains electrochemical conversion, reaction-to-crystallization, reaction-to-distillation,
   partition discovery, and constrained reaction safety. A-P contains electrochemical conversion
   and constrained reaction safety. A-S contains partition discovery and

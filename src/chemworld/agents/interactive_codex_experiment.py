@@ -1070,6 +1070,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._sessions_completed = 0
         self._all_session_usage_complete = True
         self._all_session_usage_observed = True
+        self._unattributed_pre_action_process_attempt_count = 0
         self._pre_action_restarts = 0
         self._handled_request_ids: set[str] = set()
         self._pending_request: IPCRequest | None = None
@@ -1504,6 +1505,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "provider_process_attempt_count": self._sessions_started,
             "accepted_provider_session_count": accepted_provider_session_count,
             "accepted_participant_model_call_count": accepted_provider_session_count,
+            "unattributed_pre_action_process_attempt_count": (
+                self._unattributed_pre_action_process_attempt_count
+            ),
             "logical_codex_turn_count": self._sessions_started,
             "backend_model_response_count": None,
             "backend_model_response_accounting_complete": False,
@@ -1903,35 +1907,29 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 accepted = int(self._session.get("accepted_action_count", 0))
                 operational = self._active_session_operational_audit()
                 session_id = str(self._session["session_id"])
-                monitor_snapshot = monitor.snapshot()
-                attempt_usage = monitor_snapshot.get("usage")
-                attempt_usage_complete = (
-                    monitor_snapshot.get("usage_observed") is True
-                    and isinstance(attempt_usage, Mapping)
-                    and _usage_complete(attempt_usage)
-                )
                 bridge_untouched = True
                 try:
                     self._verify_experiment_tool()
                 except ExperimentCodexIPCError:
                     bridge_untouched = False
-                can_restart = (
+                pre_action_retry_candidate = (
                     accepted == 0
                     and self._pre_action_restarts < self.pre_action_restart_limit
                     and limit_failure is None
                     and retry_failure_type is not None
-                    and attempt_usage_complete
                     and bridge_untouched
                     and int(operational["provider_error_event_count"]) == 0
                     and not self.workspace.mcp_tool_call_audit(session_id)
                 )
-                self._record_interrupted_session(
+                receipt = self._record_interrupted_session(
                     reason=failure_reason,
-                    pre_action_retry_classification=(
-                        ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR
-                        if can_restart
-                        else None
+                    pre_action_retry_candidate_failure_type=(
+                        retry_failure_type if pre_action_retry_candidate else None
                     ),
+                )
+                can_restart = (
+                    receipt.get("pre_action_retry_classification")
+                    == ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR
                 )
                 if can_restart:
                     self._pre_action_restarts += 1
@@ -2167,17 +2165,17 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self,
         *,
         reason: str,
-        pre_action_retry_classification: str | None = None,
-    ) -> None:
+        pre_action_retry_candidate_failure_type: str | None = None,
+    ) -> dict[str, Any]:
         """Retain an attempt receipt even when no environment action was emitted."""
 
         if self._session is None:
-            return
+            return {}
         monitor = self._session.get("monitor")
         if not isinstance(monitor, _CodexEventMonitor):
             self._retire_active_session()
             self._session = None
-            return
+            return {}
         monitor.stop()
         snapshot = monitor.snapshot()
         try:
@@ -2191,8 +2189,6 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         usage_observed = snapshot.get("usage_observed") is True
         _merge_usage(self._cumulative_usage, normalized_usage)
         usage_complete = _usage_complete(normalized_usage)
-        self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
-        self._all_session_usage_observed = self._all_session_usage_observed and usage_observed
         tool_events = snapshot.get("tool_events")
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
@@ -2210,6 +2206,41 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             monitor_snapshot=snapshot,
             mcp_tool_calls=mcp_tool_calls,
         )
+        no_observed_provider_activity = (
+            pre_action_retry_candidate_failure_type
+            == _PROCESS_EXITED_BEFORE_FIRST_REQUEST
+            and not usage_observed
+            and snapshot.get("thread_id") is None
+            and not snapshot.get("event_counts")
+            and not snapshot.get("tool_events")
+            and not snapshot.get("provider_errors")
+        )
+        eligible_predecessor = (
+            pre_action_retry_candidate_failure_type
+            in {_PROCESS_EXITED_BEFORE_FIRST_REQUEST, _REQUEST_WAIT_TIMEOUT}
+            and (usage_complete or no_observed_provider_activity)
+            and int(self._session.get("accepted_action_count", 0)) == 0
+            and int(operational["provider_error_event_count"]) == 0
+            and not mcp_tool_calls
+            and not belief_snapshots
+            and belief_snapshot_drafts.get("draft_count") == 0
+            and belief_snapshot_drafts.get("fragment_count") == 0
+            and committed_recommendation is None
+            and experiment_tool_integrity_verified
+        )
+        pre_action_retry_classification = (
+            ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR
+            if eligible_predecessor
+            else None
+        )
+        unobserved_pre_action_attempt = (
+            eligible_predecessor and no_observed_provider_activity
+        )
+        if not unobserved_pre_action_attempt:
+            self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
+            self._all_session_usage_observed = self._all_session_usage_observed and usage_observed
+        else:
+            self._unattributed_pre_action_process_attempt_count += 1
         receipt_tool_events = (
             [item for item in tool_events if isinstance(item, dict)]
             if isinstance(tool_events, list)
@@ -2233,9 +2264,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "usage_observed": usage_observed,
             "usage_observation_event_type": snapshot.get("usage_observation_event_type"),
             "usage_unavailable_reason": (
-                None if usage_observed else "codex_cli_emitted_no_usage_before_forced_termination"
+                None
+                if usage_observed
+                else "no_observed_provider_activity_before_process_exit_usage_unattributed"
+                if unobserved_pre_action_attempt
+                else "codex_cli_emitted_no_usage_before_forced_termination"
             ),
             "usage_complete": usage_complete,
+            "usage_accounting_scope": (
+                "unobserved_not_attributable_pre_action_process_attempt"
+                if unobserved_pre_action_attempt
+                else "provider_process_attempt"
+            ),
             "prompt_byte_count": self._session["prompt_byte_count"],
             "prompt_sha256": self._session["prompt_sha256"],
             "tool_events": receipt_tool_events,
@@ -2326,6 +2366,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._provider_error_event_count += int(operational["provider_error_event_count"])
         self._retire_active_session()
         self._session = None
+        return to_builtin(receipt)
 
     def _accumulate_mcp_tool_failure_taxonomy(
         self,

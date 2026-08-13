@@ -789,8 +789,22 @@ def _w2_26_campaign_receipt_contract(
         == "eligible_zero_action_infrastructure_predecessor"
         and receipt.get("failure_type")
         in {"process_exited_before_first_request", "request_wait_timeout"}
-        and receipt.get("usage_observed") is True
-        and receipt.get("usage_complete") is True
+        and (
+            (
+                receipt.get("usage_observed") is True
+                and receipt.get("usage_complete") is True
+            )
+            or (
+                receipt.get("failure_type") == "process_exited_before_first_request"
+                and receipt.get("usage_accounting_scope")
+                == "unobserved_not_attributable_pre_action_process_attempt"
+                and receipt.get("usage_observed") is False
+                and receipt.get("thread_id") is None
+                and receipt.get("event_counts") == {}
+                and receipt.get("tool_events") == []
+                and receipt.get("provider_errors") == []
+            )
+        )
         and receipt.get("provider_error_event_count") == 0
         and receipt.get("mcp_tool_calls") == []
         and receipt.get("belief_snapshot_count") == 0
@@ -807,6 +821,12 @@ def _w2_26_campaign_receipt_contract(
         and method_resources.get("model_call_count") == process_attempt_count
         and method_resources.get("accepted_provider_session_count") == 1
         and method_resources.get("accepted_participant_model_call_count") == 1
+        and method_resources.get("unattributed_pre_action_process_attempt_count")
+        == sum(
+            receipt.get("usage_accounting_scope")
+            == "unobserved_not_attributable_pre_action_process_attempt"
+            for receipt in predecessors
+        )
     )
     valid = (
         terminal_index is not None

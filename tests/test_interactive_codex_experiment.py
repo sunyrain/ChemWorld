@@ -1308,7 +1308,7 @@ def test_successful_single_experiment_final_assay_finalizes_without_info_flag(
     assert agent.method_resource_usage()["provider_usage_pending"] is False
 
 
-def test_process_exit_before_action_is_fail_closed_after_bounded_restart(
+def test_process_exit_before_action_without_observed_activity_restarts_once_then_fails(
     tmp_path: Path,
 ) -> None:
     calls = 0
@@ -1337,14 +1337,20 @@ def test_process_exit_before_action_is_fail_closed_after_bounded_restart(
     agent.reset({"task_id": "x", "budget": 2}, seed=0)
     with pytest.raises(InteractiveCodexExperimentError, match="no fallback"):
         agent.act_with_public_view(_context(1, 2), _view())
-    assert calls == 1
-    assert len(agent.provider_receipts()) == 1
+    assert calls == 2
+    assert len(agent.provider_receipts()) == 2
     assert all(
         receipt["status"] == "interrupted_before_next_action"
         for receipt in agent.provider_receipts()
     )
     assert agent.provider_receipts()[0]["accepted_action_count"] == 0
-    assert agent.provider_receipts()[0]["pre_action_retry_classification"] is None
+    assert agent.provider_receipts()[0]["pre_action_retry_classification"] == (
+        "eligible_zero_action_infrastructure_predecessor"
+    )
+    assert agent.provider_receipts()[0]["usage_accounting_scope"] == (
+        "unobserved_not_attributable_pre_action_process_attempt"
+    )
+    assert agent.provider_receipts()[1]["pre_action_retry_classification"] is None
     assert agent.workspace.history_path.read_text(encoding="utf-8") == ""
 
 
@@ -1412,6 +1418,7 @@ def test_zero_action_process_exit_with_complete_usage_restarts_once_and_reconcil
     assert usage["provider_process_attempt_count"] == 2
     assert usage["accepted_provider_session_count"] == 1
     assert usage["accepted_participant_model_call_count"] == 1
+    assert usage["unattributed_pre_action_process_attempt_count"] == 0
     assert usage["provider_usage_accounting_complete"] is True
     assert usage["input_token_count"] == 1254
     assert usage["output_token_count"] == 323
