@@ -399,6 +399,13 @@ runner 消费者，仅由 campaign-runner 行为测试导入其纯分析函数�
 失败是既有 qualification CLI 已先要求 manifest、旧测试仍期待 authorization 错误优先级，已作为独立测试债保留，
 没有通过调换生产入口的 fail-closed 顺序来迎合旧断言。
 
+### CD-33：修复 qualification 缺授权测试的前置条件 — DONE
+
+qualification production 入口现在按 manifest → user authorization → per-attempt authorization → cost ledger 的顺序
+fail closed；旧测试没有提供 manifest，却断言第二层 authorization 错误，因而只是在验证错误消息顺序漂移。现仅在
+测试输入中补一个非空 manifest 路径，使执行仍在任何文件读取、输出创建或 provider 调用前因缺 user authorization
+拒绝；未调换或放宽活跃 campaign runner 的四层入口校验。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

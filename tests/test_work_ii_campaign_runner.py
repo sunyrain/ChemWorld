@@ -1459,6 +1459,7 @@ def test_qualification_execution_requires_precall_user_authorization(
         progress_file=tmp_path / "progress.jsonl",
         world_seed=0,
         qualification_execution=True,
+        qualification_manifest=tmp_path / "qualification-manifest.json",
         qualification_authorization=None,
         formal_manifest=None,
         formal_cell_key=None,
