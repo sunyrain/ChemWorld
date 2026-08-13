@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import copy
 import json
 from collections.abc import Mapping, Sequence
 from pathlib import Path
@@ -90,6 +91,249 @@ RESOURCE_CALIBRATION_OBSERVED_FIELDS = {
     "provider_wall_time_limit_s": "provider_elapsed_s",
     "currency_ceiling_usd": "observed_currency_usd",
 }
+
+
+def build_task_resource_formula_binding(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Bind the task-owned resource formula while excluding measured hard caps.
+
+    The binding deliberately excludes world/freeze identity and the numerical caps that
+    W2-26 is meant to replace.  It therefore permits one calibrated task formula to be
+    applied to prospective worlds, but not to another task, lifecycle, checkpoint plan,
+    operation topology, or repeat design.
+    """
+
+    campaign = config.get("campaign")
+    campaign = campaign if isinstance(campaign, Mapping) else {}
+    process_policy = campaign.get("process_time_policy")
+    process_policy = process_policy if isinstance(process_policy, Mapping) else {}
+    closeout_policy = campaign.get("closeout_policy")
+    closeout_policy = closeout_policy if isinstance(closeout_policy, Mapping) else {}
+    resources = config.get("method_resources")
+    resources = resources if isinstance(resources, Mapping) else {}
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    payload = {
+        "task_id": config.get("task_id"),
+        "complete_experiments": campaign.get("complete_experiments"),
+        "checkpoint_complete_experiments": list(
+            campaign.get("checkpoint_complete_experiments", [])
+        ),
+        "complete_experiment_limit": resources.get("complete_experiment_limit"),
+        "method_checkpoint_complete_experiments": list(
+            resources.get("checkpoint_complete_experiments", [])
+        ),
+        "minimum_unique_recipes": qualification.get("minimum_unique_recipes"),
+        "maximum_participant_selected_exact_repeats": qualification.get(
+            "maximum_exact_repeats"
+        ),
+        "process_time_formula": {
+            key: copy.deepcopy(value)
+            for key, value in process_policy.items()
+            if key
+            not in {
+                "protected_reserve_s",
+                "resource_status",
+            }
+        },
+        "closeout_formula": {
+            key: copy.deepcopy(value)
+            for key, value in closeout_policy.items()
+            if key
+            not in {
+                "final_assay_path_total_operation_reserve",
+                "discard_path_total_operation_reserve",
+                "policy",
+                "resource_status",
+            }
+        },
+    }
+    return {
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1",
+        "formula": payload,
+        "canonical_json_sha256": canonical_json_sha256(payload),
+    }
+
+
+def validate_task_resource_card(
+    card: Mapping[str, Any],
+    *,
+    expected_identity: Mapping[str, Any] | None = None,
+) -> list[str]:
+    """Validate one portable task-specific W2-26 card."""
+
+    errors: list[str] = []
+    identity = card.get("card_identity")
+    identity = identity if isinstance(identity, Mapping) else {}
+    if expected_identity is not None:
+        for field, expected in expected_identity.items():
+            if identity.get(field) != expected:
+                errors.append(f"resource card identity differs at {field}")
+    rounds = identity.get("rounds")
+    locus = identity.get("locus")
+    task_id = identity.get("task_id")
+    world_seed = identity.get("world_seed")
+    if (
+        rounds not in RESOURCE_CALIBRATION_ROUNDS
+        or locus != RESOURCE_CALIBRATION_LOCI.get(rounds)
+        or not isinstance(task_id, str)
+        or not task_id
+        or isinstance(world_seed, bool)
+        or not isinstance(world_seed, int)
+    ):
+        errors.append("resource card has an invalid task identity")
+    campaign_binding = identity.get("calibration_campaign_binding")
+    campaign_binding = (
+        campaign_binding if isinstance(campaign_binding, Mapping) else {}
+    )
+    if (
+        not isinstance(campaign_binding.get("path"), str)
+        or not isinstance(campaign_binding.get("sha256"), str)
+        or len(str(campaign_binding.get("sha256", ""))) != 64
+    ):
+        errors.append("resource card lacks its calibration campaign binding")
+    formula = identity.get("resource_formula_binding")
+    formula = formula if isinstance(formula, Mapping) else {}
+    formula_payload = formula.get("formula")
+    if (
+        formula.get("schema_version")
+        != "chemworld-work-ii-task-resource-formula-binding-0.1"
+        or not isinstance(formula_payload, Mapping)
+        or formula.get("canonical_json_sha256")
+        != canonical_json_sha256(formula_payload)
+        or formula_payload.get("task_id") != task_id
+        or formula_payload.get("complete_experiments") != rounds
+        or tuple(formula_payload.get("checkpoint_complete_experiments", []))
+        != RESOURCE_CALIBRATION_CHECKPOINTS.get(rounds)
+    ):
+        errors.append("resource card formula binding is invalid")
+    caps = card.get("proposed_hard_caps")
+    caps = caps if isinstance(caps, Mapping) else {}
+    for field in RESOURCE_CALIBRATION_CAP_FIELDS:
+        value = caps.get(field)
+        if not _is_nonnegative_number(value) or value == 0:
+            errors.append(f"resource card lacks positive cap {field}")
+    input_limit = caps.get("input_token_limit")
+    uncached_limit = caps.get("uncached_input_token_limit")
+    if (
+        _is_nonnegative_number(input_limit)
+        and _is_nonnegative_number(uncached_limit)
+        and float(uncached_limit) > float(input_limit)
+    ):
+        errors.append("resource card uncached input cap exceeds total input cap")
+    card_sha = card.get("card_sha256")
+    if card_sha is not None and card_sha != _self_hash(card, "card_sha256"):
+        errors.append("resource card self-hash mismatch")
+    return errors
+
+
+def resolve_task_resource_card(
+    summary: Mapping[str, Any],
+    *,
+    rounds: int,
+    locus: str,
+    task_id: str,
+    formal_source_config: Mapping[str, Any],
+    formal_source_binding: Mapping[str, Any] | None = None,
+) -> dict[str, Any]:
+    """Resolve exactly one task card and prove formula portability."""
+
+    if summary.get("status") != "passed" or summary.get("calibration_passed") is not True:
+        raise ValueError("W2-26 resource calibration did not pass")
+    proposals = summary.get("resource_card_proposals")
+    proposals = proposals if isinstance(proposals, list) else []
+    matches = []
+    for raw in proposals:
+        if not isinstance(raw, Mapping):
+            continue
+        identity = raw.get("card_identity")
+        identity = identity if isinstance(identity, Mapping) else {}
+        if (
+            identity.get("rounds"),
+            identity.get("locus"),
+            identity.get("task_id"),
+        ) == (rounds, locus, task_id):
+            matches.append(raw)
+    if len(matches) != 1:
+        raise ValueError(
+            "W2-26 must contain exactly one task resource card for "
+            f"{locus}/{task_id}/{rounds}"
+        )
+    card = copy.deepcopy(dict(matches[0]))
+    errors = validate_task_resource_card(
+        card,
+        expected_identity={"rounds": rounds, "locus": locus, "task_id": task_id},
+    )
+    source_formula = build_task_resource_formula_binding(formal_source_config)
+    identity = card.get("card_identity")
+    identity = identity if isinstance(identity, Mapping) else {}
+    if identity.get("resource_formula_binding") != source_formula:
+        errors.append("formal source resource formula differs from its calibrated task")
+    if formal_source_binding is not None and (
+        not isinstance(formal_source_binding.get("path"), str)
+        or not isinstance(formal_source_binding.get("sha256"), str)
+    ):
+        errors.append("formal source binding is malformed")
+    if errors:
+        raise ValueError("task resource card failed: " + "; ".join(errors))
+    return card
+
+
+def materialize_task_resource_caps(
+    config: Mapping[str, Any], card: Mapping[str, Any]
+) -> dict[str, Any]:
+    """Return a config whose executable caps come from its exact task card."""
+
+    errors = validate_task_resource_card(card)
+    identity = card.get("card_identity")
+    identity = identity if isinstance(identity, Mapping) else {}
+    source_formula = build_task_resource_formula_binding(config)
+    if identity.get("resource_formula_binding") != source_formula:
+        errors.append("execution config resource formula differs from task card")
+    if errors:
+        raise ValueError("cannot materialize task resource caps: " + "; ".join(errors))
+    result = copy.deepcopy(dict(config))
+    caps = card["proposed_hard_caps"]
+    campaign = result["campaign"]
+    resources = result["method_resources"]
+    qualification = result.setdefault("qualification", {})
+    provider = result.setdefault("provider", {})
+    process_policy = campaign["process_time_policy"]
+    closeout_policy = campaign["closeout_policy"]
+    campaign["operation_attempt_limit"] = int(caps["operation_attempt_limit"])
+    campaign["process_time_limit_s"] = float(caps["process_time_limit_s"])
+    process_policy["protected_reserve_s"] = float(
+        caps["protected_closeout_reserve_s"]
+    )
+    process_policy["resource_status"] = "calibrated_w2_26_task_specific"
+    closeout_policy["final_assay_path_total_operation_reserve"] = int(
+        caps["protected_closeout_operation_reserve"]
+    )
+    closeout_policy["resource_status"] = "calibrated_w2_26_task_specific"
+    resources.update(
+        {
+            "operation_limit": int(caps["operation_attempt_limit"]),
+            "input_token_limit": int(caps["input_token_limit"]),
+            "uncached_input_token_limit": int(caps["uncached_input_token_limit"]),
+            "output_token_limit": int(caps["output_token_limit"]),
+            "wall_time_limit_s": float(caps["provider_wall_time_limit_s"]),
+        }
+    )
+    resources.pop("resource_status", None)
+    qualification["maximum_exact_repeats"] = int(caps["maximum_exact_repeats"])
+    qualification["resource_calibration_status"] = "passed_w2_26_task_specific"
+    provider["session_wall_time_limit_s"] = float(
+        caps["provider_wall_time_limit_s"]
+    )
+    result["calibrated_currency_ceiling_usd"] = float(
+        caps["currency_ceiling_usd"]
+    )
+    result["resource_calibration_card_binding"] = {
+        "card_identity": copy.deepcopy(identity),
+        "card_sha256": card.get("card_sha256")
+        or canonical_json_sha256(card),
+        "source_resource_formula_binding": source_formula,
+    }
+    return result
 
 
 def build_resource_calibration_execution_manifest(
@@ -2214,8 +2458,11 @@ __all__ = [
     "build_resource_calibration_execution_manifest",
     "build_resource_calibration_readiness",
     "build_resource_calibration_summary",
+    "build_task_resource_formula_binding",
     "empty_resource_calibration_summary",
+    "materialize_task_resource_caps",
     "resolve_resource_calibration_representatives",
+    "resolve_task_resource_card",
     "resource_calibration_authorization_sha256",
     "resource_calibration_readiness_sha256",
     "resource_calibration_summary_sha256",
@@ -2223,4 +2470,5 @@ __all__ = [
     "validate_resource_calibration_manifest",
     "validate_resource_calibration_readiness",
     "validate_resource_calibration_summary",
+    "validate_task_resource_card",
 ]
