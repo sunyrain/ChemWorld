@@ -413,28 +413,58 @@ class Progress:
         self.completed = 0
         self.physical_failures = 0
         self.platform_failures = 0
+        self.current_candidate_id: str | None = None
+        self.current_candidate_started: float | None = None
+        self.current_candidate_completed = 0
+
+    def begin_candidate(self, candidate_id: str) -> None:
+        self.current_candidate_id = candidate_id
+        self.current_candidate_started = perf_counter()
+        self.current_candidate_completed = 0
 
     def update(self, row: Mapping[str, Any]) -> None:
+        candidate_id = str(row["candidate_id"])
+        if (
+            self.current_candidate_id != candidate_id
+            or self.current_candidate_started is None
+        ):
+            raise RuntimeError(
+                f"progress candidate {candidate_id!r} was not initialized with begin_candidate"
+            )
         self.completed += 1
+        self.current_candidate_completed += 1
         self.physical_failures += row.get("status") == "physical_failure"
         self.platform_failures += row.get("status") == "platform_failure"
-        elapsed = perf_counter() - self.started
-        rate = self.completed / max(elapsed, 1.0e-9)
+        now = perf_counter()
+        elapsed = now - self.started
+        candidate_elapsed = now - self.current_candidate_started
+        cumulative_rate = self.completed / max(elapsed, 1.0e-9)
+        candidate_rate = self.current_candidate_completed / max(candidate_elapsed, 1.0e-9)
+        candidate_total = PRIMARY_EXECUTIONS_PER_CANDIDATE_WORLD * len(WORLD_SEEDS)
         payload = {
             "event": "work_ii_as_paired_law_progress",
             "stage": "provider_free_primary_and_exact_replay",
-            "candidate_id": row["candidate_id"],
+            "candidate_id": candidate_id,
             "world_seed": row["world_seed"],
             "coordinate_id": row["coordinate_id"],
             "law_id": row["law_id"],
             "status": row["status"],
             "completed_primary_and_replay_pairs": self.completed,
             "total_primary_and_replay_pairs": PRIMARY_EXECUTIONS_TOTAL,
-            "throughput_pairs_per_minute": round(rate * 60.0, 2),
-            "eta_s": round((PRIMARY_EXECUTIONS_TOTAL - self.completed) / rate, 1),
+            "candidate_completed_primary_and_replay_pairs": self.current_candidate_completed,
+            "candidate_total_primary_and_replay_pairs": candidate_total,
+            "throughput_pairs_per_minute": round(candidate_rate * 60.0, 2),
+            "throughput_scope": "current_candidate_and_stage",
+            "cumulative_throughput_pairs_per_minute": round(cumulative_rate * 60.0, 2),
+            "eta_s": round(
+                (PRIMARY_EXECUTIONS_TOTAL - self.completed) / candidate_rate,
+                1,
+            ),
+            "eta_basis": "current_candidate_and_stage_throughput",
             "physical_failure_count": self.physical_failures,
             "platform_failure_count": self.platform_failures,
             "elapsed_s": round(elapsed, 1),
+            "candidate_elapsed_s": round(candidate_elapsed, 1),
         }
         rendered = json.dumps(payload, ensure_ascii=False, sort_keys=True)
         self.progress_file.parent.mkdir(parents=True, exist_ok=True)
@@ -707,6 +737,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     started = perf_counter()
     reports: list[dict[str, Any]] = []
     for candidate_id in CANDIDATE_IDS:
+        progress.begin_candidate(candidate_id)
         for world_seed in WORLD_SEEDS:
             rows = []
             audit = _law_audit(candidate_id, world_seed)

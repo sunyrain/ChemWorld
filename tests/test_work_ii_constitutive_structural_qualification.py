@@ -152,6 +152,73 @@ def test_frozen_roster_has_exact_paired_law_denominators(candidate_id: str) -> N
     assert PRIMARY_EXECUTIONS_TOTAL == EXACT_REPLAYS_TOTAL == 10_240
 
 
+def test_progress_eta_uses_current_candidate_rate(
+    monkeypatch: Any, tmp_path: Path
+) -> None:
+    ticks = iter([100.0, 100.0, 160.0, 220.0, 220.0, 820.0])
+    monkeypatch.setattr(runner, "perf_counter", lambda: next(ticks))
+    progress_file = tmp_path / "progress.jsonl"
+    status_file = tmp_path / "status.json"
+    progress = runner.Progress(progress_file, status_file)
+
+    progress.begin_candidate(PARTITION_CANDIDATE_ID)
+    progress.update(
+        {
+            "candidate_id": PARTITION_CANDIDATE_ID,
+            "world_seed": 0,
+            "coordinate_id": "c000",
+            "law_id": "linear_response",
+            "status": "completed",
+        }
+    )
+    progress.update(
+        {
+            "candidate_id": PARTITION_CANDIDATE_ID,
+            "world_seed": 0,
+            "coordinate_id": "c000",
+            "law_id": "power_response",
+            "status": "completed",
+        }
+    )
+    progress.begin_candidate(CRYSTALLIZATION_CANDIDATE_ID)
+    progress.update(
+        {
+            "candidate_id": CRYSTALLIZATION_CANDIDATE_ID,
+            "world_seed": 0,
+            "coordinate_id": "c000",
+            "law_id": "baseline",
+            "status": "completed",
+        }
+    )
+
+    payload = json.loads(status_file.read_text(encoding="utf-8"))
+    assert payload["stage"] == "provider_free_primary_and_exact_replay"
+    assert payload["completed_primary_and_replay_pairs"] == 3
+    assert payload["total_primary_and_replay_pairs"] == 10_240
+    assert payload["candidate_completed_primary_and_replay_pairs"] == 1
+    assert payload["candidate_total_primary_and_replay_pairs"] == 5_120
+    assert payload["throughput_pairs_per_minute"] == 0.1
+    assert payload["cumulative_throughput_pairs_per_minute"] == 0.25
+    assert payload["throughput_scope"] == "current_candidate_and_stage"
+    assert payload["eta_basis"] == "current_candidate_and_stage_throughput"
+    assert payload["eta_s"] == 6_142_200.0
+    assert payload["candidate_elapsed_s"] == 600.0
+
+
+def test_progress_rejects_update_before_candidate_start(tmp_path: Path) -> None:
+    progress = runner.Progress(tmp_path / "progress.jsonl", tmp_path / "status.json")
+    with pytest.raises(RuntimeError, match="was not initialized"):
+        progress.update(
+            {
+                "candidate_id": PARTITION_CANDIDATE_ID,
+                "world_seed": 0,
+                "coordinate_id": "c000",
+                "law_id": "linear_response",
+                "status": "completed",
+            }
+        )
+
+
 def test_generated_a_s_evidence_is_outside_the_protected_source_tree() -> None:
     assert {
         "configs/benchmark/work_ii_as_paired_law_q2_package_v0.1.json",
