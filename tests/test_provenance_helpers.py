@@ -56,6 +56,49 @@ def test_canonical_json_and_atomic_writer_preserve_contract(tmp_path: Path) -> N
         canonical_json_bytes({"invalid": float("nan")})
 
 
+def test_atomic_writer_retries_transient_windows_sharing_violation(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = tmp_path / "status.json"
+    original_replace = Path.replace
+    attempts = 0
+
+    def transient_replace(source: Path, destination: Path) -> Path:
+        nonlocal attempts
+        attempts += 1
+        if attempts <= 2:
+            raise PermissionError(5, "simulated Windows sharing violation")
+        return original_replace(source, destination)
+
+    monkeypatch.setattr(Path, "replace", transient_replace)
+    write_json_atomic(target, {"completed": 1})
+
+    assert attempts == 3
+    assert json.loads(target.read_text(encoding="utf-8")) == {"completed": 1}
+    assert list(tmp_path.glob(".atomic-*.tmp")) == []
+
+
+def test_atomic_writer_exhaustion_is_fail_closed_and_preserves_target(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    target = tmp_path / "status.json"
+    target.write_text('{"completed":0}\n', encoding="utf-8")
+
+    def blocked_replace(_source: Path, _destination: Path) -> Path:
+        raise PermissionError(5, "persistent Windows sharing violation")
+
+    monkeypatch.setattr(Path, "replace", blocked_replace)
+    monkeypatch.setattr("chemworld.eval.provenance.sleep", lambda _delay: None)
+
+    with pytest.raises(PermissionError, match="persistent Windows sharing violation"):
+        write_json_atomic(target, {"completed": 1})
+
+    assert json.loads(target.read_text(encoding="utf-8")) == {"completed": 0}
+    assert list(tmp_path.glob(".atomic-*.tmp")) == []
+
+
 def test_file_sha256_streams_large_artifacts(tmp_path: Path, monkeypatch) -> None:
     target = tmp_path / "trajectory.jsonl"
     target.write_bytes((b"trajectory-row\n" * 100_000) + b"final-row\n")

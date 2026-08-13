@@ -318,6 +318,19 @@ class ChemWorldMCPServer:
     @staticmethod
     def _error_code(error_type: str, detail: str) -> str:
         lowered = detail.lower()
+        if "tool output exceeds configured byte cap" in lowered:
+            return "platform_tool_output_limit"
+        if (
+            "checkpoint contract has no snapshot stages" in lowered
+            or "checkpoint experiment-count schedule is invalid" in lowered
+        ):
+            return "platform_checkpoint_contract_invalid"
+        if "session changed before the operation completed" in lowered:
+            return "ipc_session_changed"
+        if "campaign_already_ended_submit_final_response" in lowered:
+            return "invalid_step_after_campaign_terminal"
+        if "checkpoint is not due" in lowered:
+            return "invalid_checkpoint_timing"
         if "decision_audit" in lowered and "required" in lowered:
             return "missing_decision_audit"
         if "expected_step" in lowered:
@@ -367,9 +380,44 @@ class ChemWorldMCPServer:
         }
 
     def _status(self) -> dict[str, Any]:
-        if self._terminal_outcome is None:
-            return _read_object(self.public / "current.json")
         campaign = self._descriptor().get("session_scope") == "campaign"
+        if self._terminal_outcome is None:
+            current = _read_object(self.public / "current.json")
+            if not campaign:
+                return current
+            completed_count, _ = self._completed_experiment_state()
+            contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+            stages = contract.get("snapshot_stages", [])
+            required_counts = contract.get("checkpoint_complete_experiments", [])
+            session_id = self._leaf(
+                str(self._descriptor()["session_id"]), label="session_id"
+            )
+            snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
+            committed = len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
+            checkpoint_due = (
+                committed < len(stages)
+                and committed < len(required_counts)
+                and completed_count == int(required_counts[committed])
+            )
+            return {
+                **current,
+                "campaign_closeout": {
+                    "campaign_ended": self._campaign_terminal_observed(),
+                    "complete_experiment_count": completed_count,
+                    "committed_checkpoint_count": committed,
+                    "required_checkpoint_count": len(stages),
+                    "checkpoint_due": checkpoint_due,
+                    "next_checkpoint_stage": (
+                        str(stages[committed]) if checkpoint_due else None
+                    ),
+                    "final_recommendation_committed": (
+                        self.ipc
+                        / "sessions"
+                        / session_id
+                        / "final_recommendation.json"
+                    ).is_file(),
+                },
+            }
         return {
             "schema_version": MCP_SERVER_VERSION,
             "experiment_ended": True,

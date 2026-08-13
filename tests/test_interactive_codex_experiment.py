@@ -14,12 +14,115 @@ from chemworld.agents.interaction import AgentDecisionContext
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
+    _classify_mcp_tool_failure,
     _final_recommendation_from_payload,
     _material_information_payload,
+    _mcp_tool_failure_audit,
     _parse_final_payload,
     _participant_visible_campaign,
     _public_task_contract,
+    validated_mcp_tool_failure_budget,
 )
+
+
+@pytest.mark.parametrize(
+    ("call", "expected"),
+    (
+        ({"status": "completed"}, None),
+        (
+            {
+                "status": "failed",
+                "error_type": "PermissionError",
+                "error_code": "atomic_replace_permission_error",
+            },
+            "transport_ipc_os",
+        ),
+        (
+            {
+                "status": "failed",
+                "error_type": "RuntimeError",
+                "error_code": "tool_execution_error",
+                "error_detail": "checkpoint is not due at this stage",
+            },
+            "agent_invalid",
+        ),
+        (
+            {
+                "status": "failed",
+                "error_type": "APIConnectionError",
+                "error_code": "provider_connection_error",
+            },
+            "provider_network",
+        ),
+        ({"status": "failed", "error_type": "MysteryError"}, "unclassified"),
+    ),
+)
+def test_mcp_tool_failure_taxonomy(call: dict[str, Any], expected: str | None) -> None:
+    assert _classify_mcp_tool_failure(call) == expected
+
+
+def test_mcp_tool_failure_audit_preserves_legacy_totals_but_types_streaks() -> None:
+    transport = {
+        "status": "failed",
+        "error_type": "PermissionError",
+        "error_code": "atomic_replace_permission_error",
+    }
+    agent_invalid = {
+        "status": "failed",
+        "error_type": "RuntimeError",
+        "error_detail": "checkpoint is not due",
+    }
+
+    audit = _mcp_tool_failure_audit([transport] * 4 + [agent_invalid, transport, agent_invalid])
+
+    assert audit["recovered_mcp_tool_failure_count"] == 7
+    assert audit["maximum_consecutive_mcp_tool_failure_count"] == 7
+    assert audit["counts_by_category"] == {
+        "provider_network": 0,
+        "transport_ipc_os": 5,
+        "agent_invalid": 2,
+        "unclassified": 0,
+    }
+    assert audit["maximum_consecutive_counts_by_category"]["transport_ipc_os"] == 5
+    assert audit["maximum_consecutive_counts_by_category"]["agent_invalid"] == 2
+
+
+def test_typed_mcp_budget_requires_a_complete_consistent_taxonomy() -> None:
+    taxonomy = _mcp_tool_failure_audit(
+        [
+            {
+                "status": "failed",
+                "error_type": "PermissionError",
+                "error_code": "atomic_replace_permission_error",
+            },
+            {
+                "status": "failed",
+                "error_code": "invalid_checkpoint_timing",
+            },
+        ]
+    )
+    receipt = {
+        "recovered_mcp_tool_failure_count": 2,
+        "current_consecutive_mcp_tool_failure_count": 2,
+        "maximum_consecutive_mcp_tool_failure_count": 2,
+        "mcp_tool_failure_taxonomy": taxonomy,
+        "scientific_compliance_mcp_tool_failure_count": 1,
+        "current_consecutive_scientific_compliance_mcp_tool_failure_count": 1,
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 1,
+    }
+    budget = validated_mcp_tool_failure_budget(receipt)
+    assert budget["scientific_count"] == 1
+    assert budget["transport_count"] == 1
+
+    malformed = dict(receipt)
+    malformed["scientific_compliance_mcp_tool_failure_count"] = -1
+    with pytest.raises(ValueError, match="non-negative integer"):
+        validated_mcp_tool_failure_budget(malformed)
+
+    mismatched = dict(receipt)
+    mismatched["scientific_compliance_mcp_tool_failure_count"] = 0
+    with pytest.raises(ValueError, match="disagree with taxonomy"):
+        validated_mcp_tool_failure_budget(mismatched)
 
 
 def test_final_payload_parser_accepts_exact_json_and_one_json_fence() -> None:
@@ -720,6 +823,13 @@ def test_one_codex_process_controls_two_runner_operations(
     assert receipt["mcp_tool_integrity_verified_after_session"] is True
     assert receipt["experiment_tool_integrity_verified_after_session"] is True
     assert receipt["private_reasoning_retained"] is False
+    assert receipt["scientific_compliance_mcp_tool_failure_count"] == 0
+    assert receipt["mcp_tool_failure_taxonomy"]["counts_by_category"] == {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0,
+    }
     assert len(receipt["tool_events"]) == 2
     assert all(event["output_body_retained"] is False for event in receipt["tool_events"])
     assert agent.workspace.snapshot_agent_files() == {}
@@ -909,6 +1019,13 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
     assert receipt["belief_snapshot_count"] == 0
     assert receipt["final_recommendation"] is None
     assert receipt["final_recommendation_source"] is None
+    assert receipt["scientific_compliance_mcp_tool_failure_count"] == 0
+    assert receipt["mcp_tool_failure_taxonomy"]["counts_by_category"] == {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0,
+    }
     usage = agent.method_resource_usage()
     assert usage["provider_usage_pending"] is False
     assert usage["token_counts_observed"] is False

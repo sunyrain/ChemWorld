@@ -24,6 +24,8 @@ from scripts.run_work_ii_campaign_pilot import (
 from scripts.run_work_ii_five_seed_campaign import (
     _execution_scope,
     _heartbeat,
+    _preoperation_infrastructure_failure,
+    _run_with_automatic_infrastructure_resume,
     _systemic_preoperation_failure,
 )
 
@@ -39,6 +41,75 @@ def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:
     assert _execution_scope([1, 2, 3, 4]) == "terminal_seed0_preserving_continuation"
     with pytest.raises(ValueError, match="exact continuation"):
         _execution_scope([0, 1, 2, 3])
+
+
+def _preoperation_row(
+    *,
+    failure_type: str = "InteractiveCodexExperimentError",
+    receipt_failure_type: str = "ExperimentCodexIPCError",
+) -> dict[str, object]:
+    return {
+        "failure": {"type": failure_type, "message": "pre-operation failure"},
+        "analysis": {
+            "operation_attempt_count": 0,
+            "committed_operation_count": 0,
+            "belief_snapshots": [],
+            "final_recommendation": None,
+        },
+        "provider_receipts": [
+            {
+                "status": "interrupted_before_next_action",
+                "failure_type": receipt_failure_type,
+                "usage_observed": False,
+                "mcp_tool_integrity_verified_after_session": True,
+                "experiment_tool_integrity_verified_after_session": True,
+                "lab_tool_integrity_verified_after_session": True,
+                "belief_snapshot_count": 0,
+                "final_recommendation": None,
+            }
+        ],
+    }
+
+
+def test_preoperation_infrastructure_classification_is_fail_closed() -> None:
+    assert _preoperation_infrastructure_failure(_preoperation_row(), records=[]) is not None
+    assert (
+        _preoperation_infrastructure_failure(
+            _preoperation_row(failure_type="OSError", receipt_failure_type="agent_closed"),
+            records=[],
+        )
+        is not None
+    )
+    agent_failure = _preoperation_row(receipt_failure_type="max_recovered_mcp_tool_failures")
+    assert _preoperation_infrastructure_failure(agent_failure, records=[]) is None
+    attempted = _preoperation_row()
+    assert _preoperation_infrastructure_failure(
+        attempted,
+        records=[{"transaction_status": "campaign_resource_rejected"}],
+    ) is None
+    tampered = _preoperation_row()
+    tampered["provider_receipts"][0]["mcp_tool_integrity_verified_after_session"] = False
+    assert _preoperation_infrastructure_failure(tampered, records=[]) is None
+
+
+def test_automatic_infrastructure_resume_runs_only_the_missing_pass(monkeypatch) -> None:
+    calls: list[bool] = []
+    reports = iter(
+        [
+            {"automatic_infrastructure_resume_eligible": True},
+            {"automatic_infrastructure_resume_eligible": False, "all_cells_terminal": True},
+        ]
+    )
+
+    def fake_run(args: argparse.Namespace) -> dict[str, object]:
+        calls.append(bool(args.resume))
+        return next(reports)
+
+    monkeypatch.setattr(five_seed_runner, "run", fake_run)
+    args = argparse.Namespace(resume=False)
+    result = _run_with_automatic_infrastructure_resume(args)
+    assert calls == [False, True]
+    assert result["all_cells_terminal"] is True
 
 
 def _config() -> dict[str, object]:
@@ -736,6 +807,68 @@ def test_cell_qualification_is_fail_closed() -> None:
     )
     assert failed_operational["passed"] is False
     assert failed_operational["failed_checks"] == ["provider_operational_limits_reconciled"]
+
+    typed_operational = deepcopy(recovered_tool_failures)
+    typed_operational[0]["recovered_mcp_tool_failure_count"] = 5
+    typed_operational[0]["current_consecutive_mcp_tool_failure_count"] = 4
+    typed_operational[0]["maximum_consecutive_mcp_tool_failure_count"] = 4
+    typed_operational[0]["mcp_tool_failure_taxonomy"] = {
+        "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1",
+        "recovered_mcp_tool_failure_count": 5,
+        "current_consecutive_mcp_tool_failure_count": 4,
+        "maximum_consecutive_mcp_tool_failure_count": 4,
+        "counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 1,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+        "current_consecutive_counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 1,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+        "maximum_consecutive_counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 1,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+    }
+    # Three unknown legacy failures are intentionally retained but cannot be
+    # claimed as a valid typed taxonomy; make the map reconcile to the total.
+    typed_operational[0]["mcp_tool_failure_taxonomy"]["counts_by_category"][
+        "transport_ipc_os"
+    ] = 4
+    typed_operational[0]["mcp_tool_failure_taxonomy"][
+        "maximum_consecutive_counts_by_category"
+    ]["transport_ipc_os"] = 4
+    typed_operational[0]["scientific_compliance_mcp_tool_failure_count"] = 1
+    typed_operational[0][
+        "current_consecutive_scientific_compliance_mcp_tool_failure_count"
+    ] = 1
+    typed_operational[0][
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_count"
+    ] = 1
+    typed_qualification = _qualification(
+        analysis=analysis,
+        exact_replay=replay,
+        method_resources=method_resources,
+        method_resource_limits=method_resource_limits,
+        receipts=typed_operational,
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        operational_limits={
+            "session_wall_time_limit_s": 1_800.0,
+            "max_recovered_mcp_tool_failures": 4,
+            "max_consecutive_mcp_tool_failures": 4,
+            "max_provider_error_events": 0,
+        },
+    )
+    assert typed_operational[0]["recovered_mcp_tool_failure_count"] == 5
+    assert typed_operational[0]["maximum_consecutive_mcp_tool_failure_count"] == 4
+    assert typed_qualification["passed"] is True
 
     missing_operational_receipt = _qualification(
         analysis=analysis,

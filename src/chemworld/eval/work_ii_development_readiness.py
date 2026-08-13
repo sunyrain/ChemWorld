@@ -12,6 +12,9 @@ from tempfile import TemporaryDirectory
 from time import perf_counter
 from typing import Any
 
+from chemworld.agents.interactive_codex_experiment import (
+    validated_mcp_tool_failure_budget,
+)
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.provenance import (
     canonical_json_sha256,
@@ -276,29 +279,51 @@ def audit_seed0_expansion_pilot(
             if records
             else None
         )
-        failed_mcp_calls = [
-            item
-            for item in receipt.get("mcp_tool_calls", [])
-            if isinstance(item, Mapping) and item.get("status") != "completed"
-        ]
-        raw_max_consecutive = receipt.get("maximum_consecutive_mcp_tool_failure_count")
-        max_consecutive = (
-            raw_max_consecutive
-            if isinstance(raw_max_consecutive, int) and not isinstance(raw_max_consecutive, bool)
-            else -1
-        )
+        try:
+            mcp_failure_budget = validated_mcp_tool_failure_budget(receipt)
+        except ValueError as error:
+            mcp_failure_budget = None
+            cell_failures.append(f"MCP failure receipt is invalid: {error}")
         provider_errors = receipt.get("provider_errors", [])
         provider_error_count = receipt.get("provider_error_event_count")
         if not isinstance(provider_error_count, int) or isinstance(provider_error_count, bool):
             provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else -1
+        if mcp_failure_budget is not None:
+            provider_error_count = max(
+                provider_error_count,
+                int(mcp_failure_budget["provider_network_count"]),
+            )
         elapsed_s = float(summary.get("elapsed_s", float("inf")))
         observed = {
             "input_tokens": int(usage.get("input_token_count", -1)),
             "uncached_input_tokens": int(usage.get("uncached_input_token_count", -1)),
             "output_tokens": int(usage.get("output_token_count", -1)),
             "elapsed_s": elapsed_s,
-            "recovered_mcp_tool_failures": len(failed_mcp_calls),
-            "maximum_consecutive_mcp_tool_failures": max_consecutive,
+            "recovered_mcp_tool_failures": (
+                int(mcp_failure_budget["scientific_count"])
+                if mcp_failure_budget is not None
+                else -1
+            ),
+            "maximum_consecutive_mcp_tool_failures": (
+                int(mcp_failure_budget["scientific_maximum"])
+                if mcp_failure_budget is not None
+                else -1
+            ),
+            "transport_mcp_tool_failures": (
+                int(mcp_failure_budget["transport_count"])
+                if mcp_failure_budget is not None
+                else -1
+            ),
+            "maximum_consecutive_transport_mcp_tool_failures": (
+                int(mcp_failure_budget["transport_maximum"])
+                if mcp_failure_budget is not None
+                else -1
+            ),
+            "unclassified_mcp_tool_failures": (
+                int(mcp_failure_budget["unclassified_count"])
+                if mcp_failure_budget is not None
+                else -1
+            ),
             "provider_error_events": provider_error_count,
         }
         caps = {
@@ -312,6 +337,13 @@ def audit_seed0_expansion_pilot(
             "maximum_consecutive_mcp_tool_failures": int(
                 provider.get("max_consecutive_mcp_tool_failures", -1)
             ),
+            "transport_mcp_tool_failures": int(
+                provider.get("max_recovered_mcp_tool_failures", -1)
+            ),
+            "maximum_consecutive_transport_mcp_tool_failures": int(
+                provider.get("max_consecutive_mcp_tool_failures", -1)
+            ),
+            "unclassified_mcp_tool_failures": 0,
             "provider_error_events": int(provider.get("max_provider_error_events", -1)),
         }
         if summary.get("completed") is not True or qualification.get("passed") is not True:

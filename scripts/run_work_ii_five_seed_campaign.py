@@ -131,6 +131,83 @@ def _materialize_unfinalized_terminal(
     return summary
 
 
+def _preoperation_infrastructure_failure(
+    row: dict[str, Any],
+    *,
+    records: list[dict[str, Any]],
+) -> tuple[str, str] | None:
+    """Recognize a child/platform failure before participant behavior exists."""
+
+    analysis = row.get("analysis")
+    analysis = analysis if isinstance(analysis, dict) else {}
+    if (
+        len(records) != 0
+        or analysis.get("operation_attempt_count") != 0
+        or analysis.get("committed_operation_count") != 0
+        or analysis.get("belief_snapshots") not in ([], None)
+        or analysis.get("final_recommendation") is not None
+    ):
+        return None
+    failure = row.get("failure")
+    failure = failure if isinstance(failure, dict) else {}
+    failure_type = str(failure.get("type") or "")
+    failure_message = str(failure.get("message") or "")
+    receipts = row.get("provider_receipts")
+    receipts = receipts if isinstance(receipts, list) else []
+    if any(
+        not isinstance(receipt, dict)
+        or receipt.get("mcp_tool_integrity_verified_after_session") is not True
+        or receipt.get("experiment_tool_integrity_verified_after_session") is not True
+        or receipt.get("lab_tool_integrity_verified_after_session") is not True
+        or receipt.get("belief_snapshot_count", 0) != 0
+        or receipt.get("final_recommendation") is not None
+        for receipt in receipts
+    ):
+        return None
+    if any(
+        int(
+            receipt.get("mcp_tool_failure_taxonomy", {})
+            .get("counts_by_category", {})
+            .get(category, 0)
+        )
+        != 0
+        for receipt in receipts
+        if isinstance(receipt, dict)
+        for category in ("agent_invalid", "unclassified")
+    ):
+        return None
+    os_failure = failure_type in {"MemoryError", "OSError", "PermissionError"}
+    interrupted_preoperation = next(
+        (
+            receipt
+            for receipt in receipts
+            if isinstance(receipt, dict)
+            and receipt.get("status") == "interrupted_before_next_action"
+            and receipt.get("usage_observed") is not True
+            and receipt.get("failure_type")
+            in {"ExperimentCodexIPCError", "TimeoutError"}
+        ),
+        None,
+    )
+    if os_failure:
+        return (
+            failure_type,
+            failure_message or "host operating system failed before the first operation",
+        )
+    if interrupted_preoperation is not None and len(receipts) == 1 and failure_type in {
+        "ExperimentCodexIPCError",
+        "InteractiveCodexExperimentError",
+        "TimeoutError",
+    }:
+        reason = str(interrupted_preoperation.get("failure_type"))
+        return (
+            failure_type or reason,
+            failure_message
+            or f"provider session ended before the first operation: {reason}",
+        )
+    return None
+
+
 def _systemic_preoperation_failure(
     *,
     cell_failures: list[dict[str, Any]],
@@ -570,21 +647,49 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 except (OSError, TypeError, ValueError, json.JSONDecodeError) as error:
                     summary_error = error
             if row is not None:
-                committed = int(row.get("analysis", {}).get("committed_operation_count", 0))
-                state_name = (
-                    "completed"
-                    if row.get("completed") is True
-                    else "right_censored"
-                    if committed > 0
-                    else "failed"
+                trajectory_path = attempt_root / "trajectory.jsonl"
+                records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
+                committed = sum(
+                    record.get("transaction_status") == "committed" for record in records
                 )
-                store.write_terminal(
-                    state["key"],
-                    attempt_id=state["attempt_id"],
-                    state=state_name,
-                    result_root=attempt_root,
-                    committed_operation_count=committed,
+                infrastructure_failure = _preoperation_infrastructure_failure(
+                    row,
+                    records=records,
                 )
+                if infrastructure_failure is not None:
+                    error_type, error_message = infrastructure_failure
+                    store.record_infrastructure_failure(
+                        state["key"],
+                        attempt_id=state["attempt_id"],
+                        error_type=error_type,
+                        error_message=error_message,
+                        reason_code="child_reported_preoperation_infrastructure_failure",
+                        committed_operation_count=0,
+                        log_path=state["log_path"],
+                        attempt_evidence_paths={
+                            "summary": summary_path,
+                            **(
+                                {"trajectory": trajectory_path}
+                                if trajectory_path.is_file()
+                                else {}
+                            ),
+                        },
+                    )
+                else:
+                    state_name = (
+                        "completed"
+                        if row.get("completed") is True
+                        else "right_censored"
+                        if committed > 0
+                        else "failed"
+                    )
+                    store.write_terminal(
+                        state["key"],
+                        attempt_id=state["attempt_id"],
+                        state=state_name,
+                        result_root=attempt_root,
+                        committed_operation_count=committed,
+                    )
             else:
                 trajectory_path = attempt_root / "trajectory.jsonl"
                 records = load_jsonl(trajectory_path) if trajectory_path.is_file() else []
@@ -616,6 +721,11 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                         ),
                         committed_operation_count=0,
                         log_path=state["log_path"],
+                        attempt_evidence_paths=(
+                            {"trajectory": trajectory_path}
+                            if trajectory_path.is_file()
+                            else None
+                        ),
                     )
         current_audit = store.audit()
         terminal_cells = int(current_audit["terminal_count"])
@@ -690,6 +800,12 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                 "receipt_sha256": receipt["receipt_sha256"],
             }
         )
+    retryable_missing_error: str | None = None
+    try:
+        retryable_missing_cells = store.pending(resume=True)
+    except ValueError as error:
+        retryable_missing_cells = []
+        retryable_missing_error = str(error)
     report = {
         "schema_version": "chemworld-work-ii-five-seed-campaign-report-0.1",
         "source_commit": git_source_commit(ROOT),
@@ -725,6 +841,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         "elapsed_s": round(perf_counter() - started, 1),
         "all_cells_completed": completed_cells == total_cells and not failures,
         "all_cells_terminal": terminal_record_count == total_cells,
+        "automatic_infrastructure_resume_eligible": bool(retryable_missing_cells),
+        "automatic_infrastructure_resume_cell_count": len(retryable_missing_cells),
+        "automatic_infrastructure_resume_blocked": retryable_missing_error is not None,
+        "automatic_infrastructure_resume_blocked_reason": retryable_missing_error,
         "systemic_preoperation_stop_triggered": (
             terminal_record_count < total_cells and bool(failures)
         ),
@@ -756,6 +876,16 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     return report
 
 
+def _run_with_automatic_infrastructure_resume(args: argparse.Namespace) -> dict[str, Any]:
+    """Finish the bounded missing-infrastructure lifecycle without operator repair."""
+
+    report = run(args)
+    while report["automatic_infrastructure_resume_eligible"]:
+        args.resume = True
+        report = run(args)
+    return report
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--config", type=Path, default=DEFAULT_CONFIG)
@@ -776,7 +906,7 @@ def main() -> int:
     parser.add_argument("--ap-development-readiness", type=Path)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
-    report = run(args)
+    report = _run_with_automatic_infrastructure_resume(args)
     return 0 if report["all_cells_terminal"] else 1
 
 

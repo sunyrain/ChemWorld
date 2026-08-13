@@ -12,6 +12,7 @@ import scripts.run_work_ii_five_seed_campaign as matrix_runner
 from chemworld.eval.provenance import file_sha256
 from chemworld.eval.work_ii_ap_d1_development import (
     AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION,
+    AP_D1_REQUALIFICATION_AUTHORIZATION_VERSION,
     build_ap_d1_development_cost_budget,
     validate_and_claim_ap_d1_development_attempt,
     validate_ap_d1_development_authorization,
@@ -122,6 +123,57 @@ def test_deepseek_unlimited_authorization_is_exact_and_provider_bound(
             readiness_path=READINESS,
         )
         assert errors == []
+
+
+def test_platform_requalification_authorization_retains_historical_outcomes(
+    tmp_path: Path,
+) -> None:
+    outputs = (
+        ROOT / "runs/development/ap-deepseek-reaction-seed2-requalification",
+        ROOT / "runs/development/ap-deepseek-electro-seed2-requalification",
+    )
+    authorization = _authorization(DEEPSEEK_CONFIGS, outputs)
+    authorization.pop("participant_outcomes_observed_before_authorization")
+    authorization.update(
+        {
+            "schema_version": AP_D1_REQUALIFICATION_AUTHORIZATION_VERSION,
+            "authorization_scope": (
+                "platform_requalification_after_retained_development_diagnosis"
+            ),
+            "current_requalification_outcomes_observed_before_authorization": 0,
+            "historical_development_cells_observed_before_requalification": 12,
+            "historical_development_outputs_retained": True,
+            "fresh_output_roots": True,
+            "platform_requalification_only": True,
+            "scientific_design_changed_after_historical_outcomes": False,
+            "resource_envelope_calibration_basis": (
+                "provider_usage_only_without_scientific_effect_selection"
+            ),
+        }
+    )
+    path = tmp_path / "requalification-authorization.json"
+    path.write_text(json.dumps(authorization), encoding="utf-8")
+
+    for config, output in zip(DEEPSEEK_CONFIGS, outputs, strict=True):
+        _, errors = validate_ap_d1_development_authorization(
+            ROOT,
+            path,
+            config_path=config,
+            output_root=output,
+            readiness_path=READINESS,
+        )
+        assert errors == []
+
+    authorization["scientific_design_changed_after_historical_outcomes"] = True
+    path.write_text(json.dumps(authorization), encoding="utf-8")
+    _, errors = validate_ap_d1_development_authorization(
+        ROOT,
+        path,
+        config_path=DEEPSEEK_CONFIGS[0],
+        output_root=outputs[0],
+        readiness_path=READINESS,
+    )
+    assert any("retained-platform-requalification" in error for error in errors)
 
 
 def test_authorization_names_exact_outputs_and_denominators(tmp_path: Path) -> None:

@@ -30,6 +30,9 @@ from chemworld.eval.work_ii_cost import _cost_usd
 from chemworld.eval.work_ii_d1_execution import D1_EXECUTION_CONTRACT, D1CellStore
 
 AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION = "chemworld-work-ii-ap-d1-development-authorization-0.1"
+AP_D1_REQUALIFICATION_AUTHORIZATION_VERSION = (
+    "chemworld-work-ii-ap-d1-platform-requalification-authorization-0.2"
+)
 DEFAULT_AP_D1_PLAN = Path("configs/benchmark/work_ii_ap_terminal_d1_independent_plan_v0.1.json")
 DEFAULT_AP_D1_READINESS = Path(
     "workstreams/flagship_tasks/reports/work-ii-ap-independent-terminal-d1-readiness-v0.1.json"
@@ -312,8 +315,36 @@ def validate_ap_d1_development_authorization(
 
     if not output_relative.startswith("runs/development/"):
         errors.append("A-P development D1 output must remain under runs/development")
+    authorization_version = authorization.get("schema_version")
+    original_outcome_blind_authorization = (
+        authorization_version == AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION
+        and authorization.get("participant_outcomes_observed_before_authorization") == 0
+    )
+    retained_platform_requalification = (
+        authorization_version == AP_D1_REQUALIFICATION_AUTHORIZATION_VERSION
+        and authorization.get("authorization_scope")
+        == "platform_requalification_after_retained_development_diagnosis"
+        and authorization.get("current_requalification_outcomes_observed_before_authorization")
+        == 0
+        and isinstance(
+            authorization.get("historical_development_cells_observed_before_requalification"),
+            int,
+        )
+        and not isinstance(
+            authorization.get("historical_development_cells_observed_before_requalification"),
+            bool,
+        )
+        and authorization.get("historical_development_cells_observed_before_requalification", 0)
+        > 0
+        and authorization.get("historical_development_outputs_retained") is True
+        and authorization.get("fresh_output_roots") is True
+        and authorization.get("platform_requalification_only") is True
+        and authorization.get("scientific_design_changed_after_historical_outcomes") is False
+        and authorization.get("resource_envelope_calibration_basis")
+        == "provider_usage_only_without_scientific_effect_selection"
+    )
     if (
-        authorization.get("schema_version") != AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION
+        not (original_outcome_blind_authorization or retained_platform_requalification)
         or authorization.get("status") != "authorized"
         or authorization.get("authorized_by") != "user"
         or not isinstance(authorization.get("approved_at"), str)
@@ -321,9 +352,11 @@ def validate_ap_d1_development_authorization(
         or authorization.get("provider_execution_allowed") is not True
         or authorization.get("formal_result") is not False
         or authorization.get("formal_r5_authorized") is not False
-        or authorization.get("participant_outcomes_observed_before_authorization") != 0
     ):
-        errors.append("A-P development D1 lacks explicit outcome-blind user authorization")
+        errors.append(
+            "A-P development D1 lacks explicit original or retained-platform-requalification "
+            "user authorization"
+        )
     provider = authorization.get("provider")
     provider = provider if isinstance(provider, Mapping) else {}
     config_provider = config.get("provider")
@@ -515,6 +548,7 @@ def validate_and_claim_ap_d1_development_attempt(
 
 __all__ = [
     "AP_D1_DEVELOPMENT_AUTHORIZATION_VERSION",
+    "AP_D1_REQUALIFICATION_AUTHORIZATION_VERSION",
     "DEFAULT_AP_D1_PLAN",
     "DEFAULT_AP_D1_READINESS",
     "build_ap_d1_development_cost_budget",

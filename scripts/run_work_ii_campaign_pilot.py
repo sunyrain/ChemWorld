@@ -15,6 +15,7 @@ from typing import Any, cast
 from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     ProviderAuthMode,
+    validated_mcp_tool_failure_budget,
 )
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
@@ -650,14 +651,20 @@ def _qualification(
     usage = method_resources
     limits = method_resource_limits
     operational_limits = operational_limits or {}
-    operational_receipt_complete = all(
-        isinstance(receipt.get(field), (int, float)) and not isinstance(receipt.get(field), bool)
-        for field in (
-            "session_elapsed_s",
-            "recovered_mcp_tool_failure_count",
-            "maximum_consecutive_mcp_tool_failure_count",
-            "provider_error_event_count",
-        )
+    try:
+        mcp_failure_budget = validated_mcp_tool_failure_budget(receipt)
+    except ValueError:
+        mcp_failure_budget = None
+    elapsed_value = receipt.get("session_elapsed_s")
+    provider_error_value = receipt.get("provider_error_event_count")
+    operational_receipt_complete = (
+        mcp_failure_budget is not None
+        and isinstance(elapsed_value, (int, float))
+        and not isinstance(elapsed_value, bool)
+        and float(elapsed_value) >= 0.0
+        and isinstance(provider_error_value, int)
+        and not isinstance(provider_error_value, bool)
+        and provider_error_value >= 0
     )
     resources = analysis.get("final_campaign_resources", {})
     resources = resources if isinstance(resources, Mapping) else {}
@@ -780,11 +787,19 @@ def _qualification(
                 operational_receipt_complete
                 and float(receipt["session_elapsed_s"])
                 <= float(operational_limits.get("session_wall_time_limit_s", float("inf")))
-                and int(receipt["recovered_mcp_tool_failure_count"])
+                and int(mcp_failure_budget["scientific_count"])
                 <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
-                and int(receipt["maximum_consecutive_mcp_tool_failure_count"])
+                and int(mcp_failure_budget["scientific_maximum"])
                 <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
-                and int(receipt["provider_error_event_count"])
+                and int(mcp_failure_budget["transport_count"])
+                <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
+                and int(mcp_failure_budget["transport_maximum"])
+                <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
+                and int(mcp_failure_budget["unclassified_count"]) == 0
+                and max(
+                    int(receipt["provider_error_event_count"]),
+                    int(mcp_failure_budget["provider_network_count"]),
+                )
                 <= int(operational_limits.get("max_provider_error_events", 0))
             )
         ),
@@ -889,7 +904,10 @@ def _run_cell(
             max_provider_error_events=int(provider.get("max_provider_error_events", 0)),
             session_progress_callback=on_session_progress,
             session_progress_interval_s=float(provider.get("progress_interval_s", 30.0)),
-            pre_action_restart_limit=0,
+            # D1 owns the only allowed pre-operation retry.  An inner session
+            # restart would consume an untracked provider attempt and would
+            # also violate the one-campaign-session qualification check.
+            pre_action_restart_limit=int(provider.get("pre_action_restart_limit", 0)),
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
             initial_world_model=_arm_initial_world_model(config, arm),

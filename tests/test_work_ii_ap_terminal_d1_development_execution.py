@@ -53,9 +53,17 @@ def test_real_readiness_builds_provider_blocked_seed2_execution_configs(
         assert config["provider"]["max_consecutive_mcp_tool_failures"] == 1
         assert config["provider"]["max_provider_error_events"] == 1
         assert config["provider"]["progress_interval_s"] == 30.0
-        assert config["method_resources"]["input_token_limit"] == 12_000_000
-        assert config["method_resources"]["uncached_input_token_limit"] == 1_200_000
-        assert config["method_resources"]["output_token_limit"] == 96_000
+        assert config["provider"]["pre_action_restart_limit"] == 0
+        expected_resources = AP_D1_PROVIDER_SPECS[provider_id]["method_resources"]
+        assert config["method_resources"]["input_token_limit"] == expected_resources[
+            "input_token_limit"
+        ]
+        assert config["method_resources"]["uncached_input_token_limit"] == (
+            expected_resources["uncached_input_token_limit"]
+        )
+        assert config["method_resources"]["output_token_limit"] == expected_resources[
+            "output_token_limit"
+        ]
         assert config["method_resources"]["wall_time_limit_s"] == 7_200.0
         assert "resource_status" not in config["method_resources"]
         assert config["qualification"]["max_resource_rejections"] == 1
@@ -77,7 +85,7 @@ def test_real_readiness_builds_provider_blocked_seed2_execution_configs(
         ) == []
 
 
-def test_deepseek_configs_only_change_provider_and_namespaces() -> None:
+def test_deepseek_configs_only_change_provider_resources_and_namespaces() -> None:
     configs = build_all_ap_d1_development_execution_configs(ROOT, READINESS)
     assert set(configs) == {"wellau", "deepseek"}
     for task_id in AP_D1_TASK_SPECS:
@@ -85,11 +93,26 @@ def test_deepseek_configs_only_change_provider_and_namespaces() -> None:
         deepseek = deepcopy(configs["deepseek"][task_id])
         assert deepseek.pop("provider") == AP_D1_PROVIDER_SPECS["deepseek"]["provider"]
         wellau.pop("provider")
+        assert deepseek.pop("method_resources") != wellau.pop("method_resources")
         deepseek.pop("pilot_id")
         deepseek.pop("observation_noise_namespace")
         wellau.pop("pilot_id")
         wellau.pop("observation_noise_namespace")
         assert deepseek == wellau
+
+
+def test_provider_resource_caps_are_prospectively_distinct() -> None:
+    configs = build_all_ap_d1_development_execution_configs(ROOT, READINESS)
+    assert (
+        AP_D1_PROVIDER_SPECS["deepseek"]["method_resources"]
+        != AP_D1_PROVIDER_SPECS["wellau"]["method_resources"]
+    )
+    for task_id in AP_D1_TASK_SPECS:
+        for provider_id in AP_D1_PROVIDER_SPECS:
+            observed = configs[provider_id][task_id]["method_resources"]
+            expected = AP_D1_PROVIDER_SPECS[provider_id]["method_resources"]
+            for field, value in expected.items():
+                assert observed[field] == value
 
 
 def test_deepseek_provider_contract_is_exact() -> None:

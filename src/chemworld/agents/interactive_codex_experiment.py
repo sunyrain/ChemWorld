@@ -41,6 +41,268 @@ from chemworld.providers.codex_subscription import (
 INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.5"
 DEFAULT_FINALIZATION_TIMEOUT_S = 300.0
 
+MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
+MCP_TOOL_FAILURE_CATEGORIES = (
+    "provider_network",
+    "transport_ipc_os",
+    "agent_invalid",
+    "unclassified",
+)
+MCPToolFailureCategory = Literal[
+    "provider_network",
+    "transport_ipc_os",
+    "agent_invalid",
+    "unclassified",
+]
+
+
+def _empty_mcp_tool_failure_counts() -> dict[str, int]:
+    return dict.fromkeys(MCP_TOOL_FAILURE_CATEGORIES, 0)
+
+
+def _classify_mcp_tool_failure(
+    call: Mapping[str, Any],
+) -> MCPToolFailureCategory | None:
+    """Classify one retained MCP failure without changing the legacy denominator."""
+
+    if call.get("status") == "completed":
+        return None
+    error_code = str(call.get("error_code") or "").strip().lower()
+    error_type = str(call.get("error_type") or "").strip().lower()
+    detail = str(call.get("error_detail") or "").strip().lower()
+    if (
+        error_code.startswith(("provider_", "network_", "http_", "api_"))
+        or error_type
+        in {
+            "apiconnectionerror",
+            "apierror",
+            "apitimeouterror",
+            "connectionerror",
+            "connectionreseterror",
+            "httperror",
+            "httpstatuserror",
+            "ratelimiterror",
+        }
+        or any(
+            marker in detail
+            for marker in (
+                "provider connection",
+                "provider request",
+                "rate limit",
+                "http status",
+            )
+        )
+    ):
+        return "provider_network"
+    if (
+        error_code
+        in {
+            "atomic_replace_permission_error",
+            "ipc_error",
+            "ipc_session_changed",
+            "os_error",
+            "platform_checkpoint_contract_invalid",
+            "platform_tool_output_limit",
+            "transport_error",
+        }
+        or error_type
+        in {
+            "brokenpipeerror",
+            "eoferror",
+            "experimentcodexipcerror",
+            "fileexistserror",
+            "filenotfounderror",
+            "memoryerror",
+            "oserror",
+            "permissionerror",
+            "timeouterror",
+        }
+        or any(
+            marker in detail
+            for marker in (
+                "active_session.json",
+                "broken pipe",
+                "ipc",
+                "paging file",
+                "permission denied",
+                "system resources",
+                "transport",
+                "winerror",
+            )
+        )
+    ):
+        return "transport_ipc_os"
+    if (
+        error_code.startswith(("invalid_", "missing_"))
+        or error_code == "validation_error"
+        or error_type in {"keyerror", "typeerror", "valueerror"}
+        or any(
+            marker in detail
+            for marker in (
+                "checkpoint is not due",
+                "must be committed before",
+                "required belief checkpoint",
+                "required before step",
+            )
+        )
+    ):
+        return "agent_invalid"
+    return "unclassified"
+
+
+def _mcp_tool_failure_audit(calls: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    """Return legacy totals and typed MCP failure streaks from ordered calls."""
+
+    counts = _empty_mcp_tool_failure_counts()
+    current_by_category = _empty_mcp_tool_failure_counts()
+    maximum_by_category = _empty_mcp_tool_failure_counts()
+    total = 0
+    current_total = 0
+    maximum_total = 0
+    for call in calls:
+        category = _classify_mcp_tool_failure(call)
+        if category is None:
+            current_total = 0
+            current_by_category = _empty_mcp_tool_failure_counts()
+            continue
+        total += 1
+        current_total += 1
+        maximum_total = max(maximum_total, current_total)
+        counts[category] += 1
+        for name in MCP_TOOL_FAILURE_CATEGORIES:
+            if name == category:
+                current_by_category[name] += 1
+            maximum_by_category[name] = max(
+                maximum_by_category[name], current_by_category[name]
+            )
+    return {
+        "schema_version": MCP_TOOL_FAILURE_TAXONOMY_VERSION,
+        "recovered_mcp_tool_failure_count": total,
+        "current_consecutive_mcp_tool_failure_count": current_total,
+        "maximum_consecutive_mcp_tool_failure_count": maximum_total,
+        "counts_by_category": counts,
+        "current_consecutive_counts_by_category": current_by_category,
+        "maximum_consecutive_counts_by_category": maximum_by_category,
+    }
+
+
+def validated_mcp_tool_failure_budget(receipt: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate typed receipt counters, or use legacy counters when taxonomy is absent."""
+
+    def nonnegative_integer(value: Any, *, label: str) -> int:
+        if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+            raise ValueError(f"{label} must be a non-negative integer")
+        return value
+
+    legacy_total = nonnegative_integer(
+        receipt.get("recovered_mcp_tool_failure_count"),
+        label="recovered_mcp_tool_failure_count",
+    )
+    legacy_current = nonnegative_integer(
+        receipt.get("current_consecutive_mcp_tool_failure_count", 0),
+        label="current_consecutive_mcp_tool_failure_count",
+    )
+    legacy_maximum = nonnegative_integer(
+        receipt.get("maximum_consecutive_mcp_tool_failure_count"),
+        label="maximum_consecutive_mcp_tool_failure_count",
+    )
+    if legacy_current > legacy_maximum or legacy_maximum > legacy_total:
+        raise ValueError("legacy MCP failure counters are inconsistent")
+    typed_fields = (
+        "mcp_tool_failure_taxonomy",
+        "scientific_compliance_mcp_tool_failure_count",
+        "current_consecutive_scientific_compliance_mcp_tool_failure_count",
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_count",
+    )
+    present = [field in receipt for field in typed_fields]
+    if not any(present):
+        return {
+            "source": "legacy_total_failures",
+            "scientific_count": legacy_total,
+            "scientific_current": legacy_current,
+            "scientific_maximum": legacy_maximum,
+            "transport_count": 0,
+            "transport_maximum": 0,
+            "provider_network_count": 0,
+            "unclassified_count": 0,
+        }
+    if not all(present):
+        raise ValueError("typed MCP failure receipt is incomplete")
+    taxonomy = receipt["mcp_tool_failure_taxonomy"]
+    if not isinstance(taxonomy, Mapping):
+        raise ValueError("mcp_tool_failure_taxonomy must be an object")
+    if taxonomy.get("schema_version") != MCP_TOOL_FAILURE_TAXONOMY_VERSION:
+        raise ValueError("MCP tool failure taxonomy schema is unsupported")
+
+    maps: dict[str, dict[str, int]] = {}
+    for map_name in (
+        "counts_by_category",
+        "current_consecutive_counts_by_category",
+        "maximum_consecutive_counts_by_category",
+    ):
+        raw = taxonomy.get(map_name)
+        if not isinstance(raw, Mapping) or set(raw) != set(MCP_TOOL_FAILURE_CATEGORIES):
+            raise ValueError(f"{map_name} must contain the complete MCP failure taxonomy")
+        maps[map_name] = {
+            category: nonnegative_integer(
+                raw[category], label=f"{map_name}.{category}"
+            )
+            for category in MCP_TOOL_FAILURE_CATEGORIES
+        }
+    counts = maps["counts_by_category"]
+    currents = maps["current_consecutive_counts_by_category"]
+    maximums = maps["maximum_consecutive_counts_by_category"]
+    for category in MCP_TOOL_FAILURE_CATEGORIES:
+        if currents[category] > maximums[category] or maximums[category] > counts[category]:
+            raise ValueError(f"typed MCP failure counters are inconsistent for {category}")
+    typed_total = nonnegative_integer(
+        taxonomy.get("recovered_mcp_tool_failure_count"),
+        label="mcp_tool_failure_taxonomy.recovered_mcp_tool_failure_count",
+    )
+    typed_current = nonnegative_integer(
+        taxonomy.get("current_consecutive_mcp_tool_failure_count"),
+        label="mcp_tool_failure_taxonomy.current_consecutive_mcp_tool_failure_count",
+    )
+    typed_maximum = nonnegative_integer(
+        taxonomy.get("maximum_consecutive_mcp_tool_failure_count"),
+        label="mcp_tool_failure_taxonomy.maximum_consecutive_mcp_tool_failure_count",
+    )
+    if (
+        typed_total != sum(counts.values())
+        or typed_total != legacy_total
+        or typed_current != legacy_current
+        or typed_maximum != legacy_maximum
+    ):
+        raise ValueError("typed and legacy MCP failure counters disagree")
+    scientific_count = nonnegative_integer(
+        receipt["scientific_compliance_mcp_tool_failure_count"],
+        label="scientific_compliance_mcp_tool_failure_count",
+    )
+    scientific_current = nonnegative_integer(
+        receipt["current_consecutive_scientific_compliance_mcp_tool_failure_count"],
+        label="current_consecutive_scientific_compliance_mcp_tool_failure_count",
+    )
+    scientific_maximum = nonnegative_integer(
+        receipt["maximum_consecutive_scientific_compliance_mcp_tool_failure_count"],
+        label="maximum_consecutive_scientific_compliance_mcp_tool_failure_count",
+    )
+    if (
+        scientific_count != counts["agent_invalid"]
+        or scientific_current != currents["agent_invalid"]
+        or scientific_maximum != maximums["agent_invalid"]
+    ):
+        raise ValueError("scientific MCP failure counters disagree with taxonomy")
+    return {
+        "source": "validated_typed_taxonomy",
+        "scientific_count": scientific_count,
+        "scientific_current": scientific_current,
+        "scientific_maximum": scientific_maximum,
+        "transport_count": counts["transport_ipc_os"],
+        "transport_maximum": maximums["transport_ipc_os"],
+        "provider_network_count": counts["provider_network"],
+        "unclassified_count": counts["unclassified"],
+    }
+
 _FINAL_OUTPUT_SCHEMA: dict[str, Any] = {
     "type": "object",
     "properties": {
@@ -556,6 +818,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._completed_session_elapsed_s = 0.0
         self._recovered_mcp_tool_failure_count = 0
         self._maximum_consecutive_mcp_tool_failure_count = 0
+        self._mcp_tool_failure_counts_by_category = _empty_mcp_tool_failure_counts()
+        self._maximum_consecutive_mcp_tool_failure_counts_by_category = (
+            _empty_mcp_tool_failure_counts()
+        )
         self._provider_error_event_count = 0
         self._session_receipts: list[dict[str, Any]] = []
         self._completed_tool_events: list[dict[str, Any]] = []
@@ -880,6 +1146,19 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self._maximum_consecutive_mcp_tool_failure_count,
             int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
+        active_taxonomy = operational["mcp_tool_failure_taxonomy"]
+        counts_by_category = {
+            category: self._mcp_tool_failure_counts_by_category[category]
+            + int(active_taxonomy["counts_by_category"][category])
+            for category in MCP_TOOL_FAILURE_CATEGORIES
+        }
+        maximum_by_category = {
+            category: max(
+                self._maximum_consecutive_mcp_tool_failure_counts_by_category[category],
+                int(active_taxonomy["maximum_consecutive_counts_by_category"][category]),
+            )
+            for category in MCP_TOOL_FAILURE_CATEGORIES
+        }
         provider_error_event_count = self._provider_error_event_count + int(
             operational["provider_error_event_count"]
         )
@@ -931,6 +1210,30 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "recovered_mcp_tool_failure_count": recovered_mcp_tool_failure_count,
             "maximum_consecutive_mcp_tool_failure_count": (
                 maximum_consecutive_mcp_tool_failure_count
+            ),
+            "mcp_tool_failure_taxonomy": {
+                "schema_version": MCP_TOOL_FAILURE_TAXONOMY_VERSION,
+                "recovered_mcp_tool_failure_count": recovered_mcp_tool_failure_count,
+                "current_consecutive_mcp_tool_failure_count": active_taxonomy[
+                    "current_consecutive_mcp_tool_failure_count"
+                ],
+                "maximum_consecutive_mcp_tool_failure_count": (
+                    maximum_consecutive_mcp_tool_failure_count
+                ),
+                "counts_by_category": counts_by_category,
+                "current_consecutive_counts_by_category": active_taxonomy[
+                    "current_consecutive_counts_by_category"
+                ],
+                "maximum_consecutive_counts_by_category": maximum_by_category,
+            },
+            "scientific_compliance_mcp_tool_failure_count": counts_by_category[
+                "agent_invalid"
+            ],
+            "current_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                active_taxonomy["current_consecutive_counts_by_category"]["agent_invalid"]
+            ),
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                maximum_by_category["agent_invalid"]
             ),
             "provider_error_event_count": provider_error_event_count,
             "session_operational_limits": operational["limits"],
@@ -986,17 +1289,31 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         mcp_tool_calls: list[dict[str, Any]] | None = None,
     ) -> dict[str, Any]:
         if self._session is None:
+            empty_counts = _empty_mcp_tool_failure_counts()
             return {
                 "session_elapsed_s": 0.0,
                 "recovered_mcp_tool_failure_count": 0,
                 "current_consecutive_mcp_tool_failure_count": 0,
                 "maximum_consecutive_mcp_tool_failure_count": 0,
+                "mcp_tool_failure_taxonomy": {
+                    "schema_version": MCP_TOOL_FAILURE_TAXONOMY_VERSION,
+                    "recovered_mcp_tool_failure_count": 0,
+                    "current_consecutive_mcp_tool_failure_count": 0,
+                    "maximum_consecutive_mcp_tool_failure_count": 0,
+                    "counts_by_category": empty_counts,
+                    "current_consecutive_counts_by_category": dict(empty_counts),
+                    "maximum_consecutive_counts_by_category": dict(empty_counts),
+                },
+                "scientific_compliance_mcp_tool_failure_count": 0,
+                "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+                "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
                 "provider_error_event_count": 0,
                 "limits": {
                     "session_wall_time_limit_s": self.session_wall_time_limit_s,
                     "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
                     "max_consecutive_mcp_tool_failures": (self.max_consecutive_mcp_tool_failures),
                     "max_provider_error_events": self.max_provider_error_events,
+                    "mcp_tool_failure_limit_category": "agent_invalid",
                 },
             }
         snapshot = (
@@ -1015,21 +1332,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if isinstance(started_at, (int, float))
             else 0.0
         )
-        failed_calls = [
-            item
-            for item in calls
-            if isinstance(item, Mapping) and item.get("status") != "completed"
-        ]
-        current_consecutive_failures = 0
-        maximum_consecutive_failures = 0
-        for item in calls:
-            if isinstance(item, Mapping) and item.get("status") != "completed":
-                current_consecutive_failures += 1
-                maximum_consecutive_failures = max(
-                    maximum_consecutive_failures, current_consecutive_failures
-                )
-            else:
-                current_consecutive_failures = 0
+        taxonomy = _mcp_tool_failure_audit(
+            [item for item in calls if isinstance(item, Mapping)]
+        )
+        agent_invalid_count = int(taxonomy["counts_by_category"]["agent_invalid"])
+        current_agent_invalid = int(
+            taxonomy["current_consecutive_counts_by_category"]["agent_invalid"]
+        )
+        maximum_agent_invalid = int(
+            taxonomy["maximum_consecutive_counts_by_category"]["agent_invalid"]
+        )
         event_counts = snapshot.get("event_counts", {})
         provider_error_count = (
             int(event_counts.get("error", 0)) + int(event_counts.get("turn.failed", 0))
@@ -1041,22 +1353,47 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else 0
         return {
             "session_elapsed_s": elapsed,
-            "recovered_mcp_tool_failure_count": len(failed_calls),
-            "current_consecutive_mcp_tool_failure_count": current_consecutive_failures,
-            "maximum_consecutive_mcp_tool_failure_count": maximum_consecutive_failures,
+            "recovered_mcp_tool_failure_count": taxonomy[
+                "recovered_mcp_tool_failure_count"
+            ],
+            "current_consecutive_mcp_tool_failure_count": taxonomy[
+                "current_consecutive_mcp_tool_failure_count"
+            ],
+            "maximum_consecutive_mcp_tool_failure_count": taxonomy[
+                "maximum_consecutive_mcp_tool_failure_count"
+            ],
+            "mcp_tool_failure_taxonomy": taxonomy,
+            "scientific_compliance_mcp_tool_failure_count": agent_invalid_count,
+            "current_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                current_agent_invalid
+            ),
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                maximum_agent_invalid
+            ),
             "provider_error_event_count": provider_error_count,
             "limits": {
                 "session_wall_time_limit_s": self.session_wall_time_limit_s,
                 "max_recovered_mcp_tool_failures": self.max_recovered_mcp_tool_failures,
                 "max_consecutive_mcp_tool_failures": (self.max_consecutive_mcp_tool_failures),
                 "max_provider_error_events": self.max_provider_error_events,
+                "mcp_tool_failure_limit_category": "agent_invalid",
             },
         }
 
     def _operational_limit_failure(self, audit: Mapping[str, Any]) -> str | None:
         elapsed = float(audit.get("session_elapsed_s", 0.0))
-        failed_calls = int(audit.get("recovered_mcp_tool_failure_count", 0))
-        consecutive_failed_calls = int(audit.get("current_consecutive_mcp_tool_failure_count", 0))
+        failed_calls = int(
+            audit.get(
+                "scientific_compliance_mcp_tool_failure_count",
+                audit.get("recovered_mcp_tool_failure_count", 0),
+            )
+        )
+        consecutive_failed_calls = int(
+            audit.get(
+                "current_consecutive_scientific_compliance_mcp_tool_failure_count",
+                audit.get("current_consecutive_mcp_tool_failure_count", 0),
+            )
+        )
         provider_errors = int(audit.get("provider_error_event_count", 0))
         if self.session_wall_time_limit_s is not None and elapsed > self.session_wall_time_limit_s:
             return "session_wall_time_limit"
@@ -1383,6 +1720,20 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "maximum_consecutive_mcp_tool_failure_count": operational[
                 "maximum_consecutive_mcp_tool_failure_count"
             ],
+            "mcp_tool_failure_taxonomy": operational["mcp_tool_failure_taxonomy"],
+            "scientific_compliance_mcp_tool_failure_count": operational[
+                "scientific_compliance_mcp_tool_failure_count"
+            ],
+            "current_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                operational[
+                    "current_consecutive_scientific_compliance_mcp_tool_failure_count"
+                ]
+            ),
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                operational[
+                    "maximum_consecutive_scientific_compliance_mcp_tool_failure_count"
+                ]
+            ),
             "provider_error_event_count": operational["provider_error_event_count"],
             "session_operational_limits": operational["limits"],
         }
@@ -1396,6 +1747,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self._maximum_consecutive_mcp_tool_failure_count,
             int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
+        self._accumulate_mcp_tool_failure_taxonomy(operational)
         self._provider_error_event_count += int(operational["provider_error_event_count"])
         if self._last_decision is not None:
             self._last_decision["completed_session_receipt"] = to_builtin(receipt)
@@ -1510,6 +1862,20 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "maximum_consecutive_mcp_tool_failure_count": operational[
                 "maximum_consecutive_mcp_tool_failure_count"
             ],
+            "mcp_tool_failure_taxonomy": operational["mcp_tool_failure_taxonomy"],
+            "scientific_compliance_mcp_tool_failure_count": operational[
+                "scientific_compliance_mcp_tool_failure_count"
+            ],
+            "current_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                operational[
+                    "current_consecutive_scientific_compliance_mcp_tool_failure_count"
+                ]
+            ),
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": (
+                operational[
+                    "maximum_consecutive_scientific_compliance_mcp_tool_failure_count"
+                ]
+            ),
             "provider_error_event_count": operational["provider_error_event_count"],
             "session_operational_limits": operational["limits"],
         }
@@ -1523,9 +1889,34 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self._maximum_consecutive_mcp_tool_failure_count,
             int(operational["maximum_consecutive_mcp_tool_failure_count"]),
         )
+        self._accumulate_mcp_tool_failure_taxonomy(operational)
         self._provider_error_event_count += int(operational["provider_error_event_count"])
         self._retire_active_session()
         self._session = None
+
+    def _accumulate_mcp_tool_failure_taxonomy(
+        self,
+        operational: Mapping[str, Any],
+    ) -> None:
+        taxonomy = operational.get("mcp_tool_failure_taxonomy", {})
+        counts = (
+            taxonomy.get("counts_by_category", {})
+            if isinstance(taxonomy, Mapping)
+            else {}
+        )
+        maximums = (
+            taxonomy.get("maximum_consecutive_counts_by_category", {})
+            if isinstance(taxonomy, Mapping)
+            else {}
+        )
+        for category in MCP_TOOL_FAILURE_CATEGORIES:
+            self._mcp_tool_failure_counts_by_category[category] += int(
+                counts.get(category, 0)
+            )
+            self._maximum_consecutive_mcp_tool_failure_counts_by_category[category] = max(
+                self._maximum_consecutive_mcp_tool_failure_counts_by_category[category],
+                int(maximums.get(category, 0)),
+            )
 
     def _retire_active_session(self) -> None:
         """Drop protocol files and temporary prompts after retaining their audit."""

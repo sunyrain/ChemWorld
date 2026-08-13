@@ -378,6 +378,59 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
     )["error"]
 
 
+def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "test"})
+    workspace.publish_belief_checkpoint_contract(
+        {
+            "snapshot_stages": ["pre_evidence", "final"],
+            "checkpoint_complete_experiments": [0, 1],
+            "query_metric_contract": {"q0": ["score"]},
+            "allowed_feature_ids": ["potential_V"],
+            "allowed_metric_ids": ["score"],
+            "allowed_prior_fields": ["solvent"],
+            "evidence_catalog": ["experiment-1-final-assay"],
+            "nominal_information_available": False,
+        }
+    )
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="campaign-status-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+    )
+    server = ChemWorldMCPServer(workspace.root)
+
+    initial = server._status()
+    assert initial["campaign_closeout"] == {
+        "campaign_ended": False,
+        "complete_experiment_count": 0,
+        "committed_checkpoint_count": 0,
+        "required_checkpoint_count": 2,
+        "checkpoint_due": True,
+        "next_checkpoint_stage": "pre_evidence",
+        "final_recommendation_committed": False,
+    }
+
+    snapshot_root = workspace.session_root("campaign-status-test") / "belief_snapshots"
+    snapshot_root.mkdir()
+    (snapshot_root / "01-pre_evidence.json").write_text("{}", encoding="utf-8")
+    workspace.append_public_history(
+        {
+            "experiment_ended": True,
+            "campaign_ended": True,
+            "evidence_id": "experiment-1-final-assay",
+        }
+    )
+    terminal = server._status()
+    assert terminal["campaign_closeout"]["campaign_ended"] is True
+    assert terminal["campaign_closeout"]["checkpoint_due"] is True
+    assert terminal["campaign_closeout"]["next_checkpoint_stage"] == "final"
+
+
 def test_final_recommendation_is_rejected_outside_campaign(tmp_path: Path) -> None:
     workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
     workspace.initialize_fresh()

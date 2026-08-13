@@ -19,6 +19,7 @@ D1_ADMISSION_VERSION = "chemworld-work-ii-d1-admission-receipt-0.1"
 D1_TERMINAL_STATES = frozenset({"completed", "right_censored", "failed"})
 D1_INFRASTRUCTURE_FAILURES = {
     "provider_process_launch_failed": "provider_process_launch",
+    "child_reported_preoperation_infrastructure_failure": "child_provider_session",
     "missing_terminal_summary_zero_committed_operations": "child_terminal_materialization",
     "unreadable_terminal_summary_zero_committed_operations": "child_terminal_materialization",
 }
@@ -322,6 +323,7 @@ class D1CellStore:
         reason_code: str,
         committed_operation_count: int,
         log_path: Path,
+        attempt_evidence_paths: Mapping[str, Path] | None = None,
     ) -> Path:
         if committed_operation_count != 0:
             raise ValueError("D1 infrastructure resume cannot follow a committed operation")
@@ -341,6 +343,10 @@ class D1CellStore:
             "reason_code": reason_code,
             "reason_stage": D1_INFRASTRUCTURE_FAILURES[reason_code],
             "log": _binding(self.output_root, log_path),
+            "attempt_evidence": {
+                str(label): _binding(self.output_root, path)
+                for label, path in (attempt_evidence_paths or {}).items()
+            },
             "store_sha256": self.manifest["store_sha256"],
         }
         payload["attempt_sha256"] = _self_hash(payload, "attempt_sha256")
@@ -447,6 +453,7 @@ class D1CellStore:
                 key = str(row["cell_key_sha256"])
                 attempt_id = str(row["attempt_id"])
                 log = row.get("log")
+                attempt_evidence = row.get("attempt_evidence", {})
                 if (
                     row.get("schema_version") != D1_ATTEMPT_VERSION
                     or row.get("state") != "retryable_missing_infrastructure"
@@ -458,6 +465,12 @@ class D1CellStore:
                     or path.parent.name != key
                     or path.stem != attempt_id
                     or not self._binding_valid(log)
+                    or not isinstance(attempt_evidence, Mapping)
+                    or set(attempt_evidence) - {"summary", "trajectory"}
+                    or any(
+                        not self._binding_valid(binding)
+                        for binding in attempt_evidence.values()
+                    )
                     or row.get("store_sha256") != self.manifest["store_sha256"]
                     or row.get("attempt_sha256") != _self_hash(row, "attempt_sha256")
                 ):

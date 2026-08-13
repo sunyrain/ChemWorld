@@ -56,6 +56,12 @@ AP_D1_PROVIDER_SPECS = {
         },
         "pilot_suffix": "",
         "provider": None,
+        "method_resources": {
+            "input_token_limit": 1_800_000,
+            "uncached_input_token_limit": 240_000,
+            "output_token_limit": 20_000,
+            "wall_time_limit_s": 7_200.0,
+        },
     },
     "deepseek": {
         "outputs": {
@@ -90,6 +96,13 @@ AP_D1_PROVIDER_SPECS = {
             "max_consecutive_mcp_tool_failures": 1,
             "max_provider_error_events": 1,
             "progress_interval_s": 30.0,
+            "pre_action_restart_limit": 0,
+        },
+        "method_resources": {
+            "input_token_limit": 36_000_000,
+            "uncached_input_token_limit": 600_000,
+            "output_token_limit": 160_000,
+            "wall_time_limit_s": 7_200.0,
         },
     },
 }
@@ -237,19 +250,13 @@ def _build_one(
                 "max_consecutive_mcp_tool_failures": 1,
                 "max_provider_error_events": 1,
                 "progress_interval_s": 30.0,
+                "pre_action_restart_limit": 0,
             }
         )
     else:
         config["provider"] = copy.deepcopy(provider)
     config["method_resources"].pop("resource_status", None)
-    config["method_resources"].update(
-        {
-            "input_token_limit": 12_000_000,
-            "uncached_input_token_limit": 1_200_000,
-            "output_token_limit": 96_000,
-            "wall_time_limit_s": 7_200.0,
-        }
-    )
+    config["method_resources"].update(copy.deepcopy(provider_spec["method_resources"]))
     config["qualification"].update(
         {
             "max_resource_rejections": 1,
@@ -333,6 +340,7 @@ def validate_development_execution_config(
         "max_consecutive_mcp_tool_failures": 1,
         "max_provider_error_events": 1,
         "progress_interval_s": 30.0,
+        "pre_action_restart_limit": 0,
     }
     if any(provider.get(key) != value for key, value in expected_provider.items()):
         errors.append("provider recovery or progress limits are incomplete")
@@ -341,10 +349,7 @@ def validate_development_execution_config(
         errors.append("development config differs from its frozen provider contract")
     expected_resources = {
         "complete_experiment_limit": AP_D1_EXPERIMENTS,
-        "input_token_limit": 12_000_000,
-        "uncached_input_token_limit": 1_200_000,
-        "output_token_limit": 96_000,
-        "wall_time_limit_s": 7_200.0,
+        **dict(provider_spec["method_resources"]),
     }
     if (
         any(resources.get(key) != value for key, value in expected_resources.items())
