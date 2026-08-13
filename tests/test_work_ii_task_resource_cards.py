@@ -7,7 +7,7 @@ from pathlib import Path
 import pytest
 
 from chemworld.eval.provenance import canonical_json_sha256
-from chemworld.eval.work_ii_resource_calibration import (
+from chemworld.eval.work_ii_task_resources import (
     build_task_resource_formula_binding,
     materialize_task_resource_caps,
     resolve_task_resource_card,

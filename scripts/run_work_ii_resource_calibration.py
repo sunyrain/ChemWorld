@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build/check W2-26 readiness; reject execution until all pattern gates are frozen."""
+"""Build, authorize, or execute the full task-specific W2-26 calibration."""
 
 from __future__ import annotations
 

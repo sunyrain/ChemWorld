@@ -18,6 +18,10 @@ from typing import Any
 from chemworld.agents.interactive_codex_experiment import (
     validated_mcp_tool_failure_budget,
 )
+from chemworld.campaign_resources import (
+    DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS,
+    PROTECTED_CLOSEOUT_POLICY,
+)
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -25,10 +29,7 @@ from chemworld.eval.provenance import (
     write_json_atomic,
 )
 from chemworld.eval.resource_accounting import MethodResourceLimits
-from chemworld.eval.work_ii_resource_calibration import (
-    DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS,
-    PROTECTED_CLOSEOUT_POLICY,
-    RESOURCE_CALIBRATION_ARMS,
+from chemworld.eval.work_ii_task_resources import (
     TASK_RESOURCE_CALIBRATED_CAP_FIELDS,
     build_task_resource_formula_binding,
     validate_task_resource_card,
@@ -41,6 +42,7 @@ READINESS_VERSION = "chemworld-work-ii-resource-calibration-readiness-0.2"
 RUNTIME_CONFIG_ROOT = Path(
     "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.4"
 )
+RESOURCE_CALIBRATION_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 METHOD_RESOURCE_LIMIT_FIELDS = frozenset(
     field.name for field in fields(MethodResourceLimits)
 )
@@ -1648,6 +1650,7 @@ __all__ = [
     "MANIFEST_VERSION",
     "PROVIDER_ERROR_ENFORCEMENT_POLICY",
     "READINESS_VERSION",
+    "RESOURCE_CALIBRATION_ARMS",
     "SUMMARY_VERSION",
     "authorization_sha256",
     "build_authorization",
