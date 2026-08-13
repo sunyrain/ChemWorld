@@ -29,7 +29,6 @@ WORK_II_RELEASE_TEST_FILES = (
     "tests/test_work_ii_ae_formal_cohort.py",
     "tests/test_work_ii_ae_prior_qualification_v02.py",
     "tests/test_work_ii_analysis.py",
-    "tests/test_work_ii_analysis_plan_audit.py",
     "tests/test_work_ii_blind_evaluator.py",
     "tests/test_work_ii_campaign_runner.py",
     "tests/test_work_ii_catalyst_deactivation_q0.py",

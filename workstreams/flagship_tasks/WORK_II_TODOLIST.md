@@ -37,9 +37,10 @@ provider 调用前拦截同类冲突。结果待用户审核；未经审核不�
 当前 A-E formal design 已从四实验完整重构为八实验：75 个 public cells、600 个 public complete
 experiments、375 个 belief checkpoints，并为 private confirmation 保留相同的 600 个实验分母。每个 cell
 至少 6 个 unique recipes、最多 2 个 participant-chosen exact repeats；checkpoints 固定为 `0/2/4/6/8`。
-五个 task pattern 的 planning resource cards、formal manifest、analysis denominators、power/resource audit 和
-preregistration readiness 已同步重建。资源数值仍明确标为 W2-26 calibration 前的 planning envelope，formal
-execution 继续锁死。当前 WellAU 三臂 method-qualification readiness 还额外受 W2-26 未完成及四项外部授权要求
+五个 task pattern 的 planning resource cards、formal manifest 与 analysis denominators 已同步重建。旧
+power/resource audit 只描述 v0.1 的 calibration 前 planning envelope，现已退役；当前资源上限只从 W2-26
+task cards 进入执行面。formal execution 继续锁死。当前 WellAU 三臂 method qualification 还受 W2-26
+未完成及四项外部授权要求
 阻断；formal/R5 尚未启动。用户授权的 W2-34 development block 已独立完成 2 个真实 provider sessions，
 不进入 formal denominator。
 W2-31 observation/measurement seed-0 screen 已完成 `24/24` provider-free executions 与 exact replay，
@@ -449,7 +450,8 @@ uncached input、cache-hit input 和 output，不能把 cache token 误解为重
 | reaction-safety catalyst-deactivation A-S seed-0 Q0 | `54/54` completed/exact replay；0 physical/platform/unsafe；stable law 在 27/27 cells 方向一致 | 最大 yield/conversion/selectivity gaps `0.00615/0.00563/0.00532`，仅为 gates 的约 `0.10–0.12×`；机制真实激发但下游公开效应不足。科学拒绝，不扩展。详见 `WORK_II_CATALYST_DEACTIVATION_Q0_ANALYSIS_ZH.md` |
 
 正式 A-E 尚未执行，因此可以在不污染 participant outcomes 的情况下把 4 轮改为 8 轮；但已有 formal design、
-analysis plan、manifest preflight 和 power/resource 文件在重新生成前只视为历史 planning artifacts，不能作为执行授权。
+旧 manifest preflight 与 power/resource 文件只视为历史 planning artifacts，不能作为执行授权；当前 v0.2
+design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂、checkpoint 和模型分母的字段级关系互证。
 
 ## 10. 下一执行顺序
 
@@ -512,8 +514,8 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 - [x] **W2-25** A-E formal design 已从 4 改为 8 experiments/cell；checkpoints 为 `0/2/4/6/8`，每 cell
   至少 6 个 unique recipes、最多 2 个 exact repeats。五个 planning resource cards、analysis denominators、
   135-cell C2 manifest/preflight、task-aware analysis 与 private/public evaluator 均已实现；派生的
-  power/resource audit、method-qualification readiness 与 preregistration readiness 仍须在最终源码提交上重建；
-  formal execution 仍被 W2-26/W2-27 和用户授权锁死。
+  当前 task-resource cards 与 method qualification 仍须在 W2-26/W2-27 后闭合；不再重建旧 power audit、
+  method-qualification readiness 或 preregistration readiness。formal execution 仍被 W2-26/W2-27 和用户授权锁死。
 - [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
   `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
   triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
@@ -614,7 +616,6 @@ analysis plan、manifest preflight 和 power/resource 文件在重新生成前�
 
 - Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.2.json`
 - Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.2.json`
-- Power/resource audit（W2-25 planning envelope）：`workstreams/flagship_tasks/reports/work-ii-analysis-power-audit.json`
 - Formal preflight（当前仅 A-E 75 public cells / 600 complete experiments，execution blocked；四份
   A-P/A-S terminal receipts、A-E qualification 与 W2-26 同提交证据齐全后，确定性扩展为 C2 135 cells /
   1,260 experiments）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`

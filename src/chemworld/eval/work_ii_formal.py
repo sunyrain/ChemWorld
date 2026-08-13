@@ -400,6 +400,133 @@ def _string_list(value: object, label: str) -> list[str]:
     return result
 
 
+def _analysis_design_relation_errors(
+    design: Mapping[str, Any],
+    analysis: Mapping[str, Any],
+    design_relative_path: str,
+) -> list[str]:
+    """Validate the scientific relations shared by the two frozen inputs.
+
+    The formal manifest binds both complete documents independently.  The
+    analysis plan therefore names the current design and states the fields it
+    consumes, rather than carrying a second whole-design digest that becomes a
+    development-time freshness gate.
+    """
+
+    errors: list[str] = []
+    design_version = design.get("schema_version")
+    design_binding = _object(analysis.get("design_binding"), "analysis.design_binding")
+    if design_version == LEGACY_FORMAL_DESIGN_VERSION:
+        expected_binding = {
+            "path": design_relative_path,
+            "sha256": canonical_json_sha256(design),
+        }
+        if dict(design_binding) != expected_binding:
+            errors.append("analysis plan does not bind the current formal design")
+    elif dict(design_binding) != {"path": design_relative_path}:
+        errors.append("analysis plan does not select the current formal design")
+
+    arms = tuple(_string_list(design.get("prior_arms"), "design.prior_arms"))
+    if arms != FORMAL_ARMS:
+        errors.append("formal prior-arm order differs from the frozen three-arm contract")
+
+    raw_tasks = design.get("tasks")
+    if isinstance(raw_tasks, (str, bytes)) or not isinstance(raw_tasks, Sequence):
+        raise ValueError("design.tasks must be a list")
+    tasks = [dict(_object(item, "design task")) for item in raw_tasks]
+    world_cohort = _object(design.get("world_cohort"), "world_cohort")
+    public = _object(world_cohort.get("public_formal"), "world_cohort.public_formal")
+    task_world_seeds = _object(public.get("task_world_seeds"), "task_world_seeds")
+    task_ids = [str(task.get("task_id", "")) for task in tasks]
+    public_cluster_count = sum(
+        len(task_world_seeds.get(task_id, ())) for task_id in task_ids
+    )
+    campaign_contract = _object(design.get("campaign_contract"), "campaign_contract")
+    selection_policy = _object(
+        design.get("selection_and_failure_policy"), "selection_and_failure_policy"
+    )
+    expected_population = {
+        "scheduled_public_cells": public_cluster_count * len(arms),
+        "independent_task_world_clusters": public_cluster_count,
+        "tasks": len(tasks),
+        "worlds_per_task": public.get("worlds_per_task"),
+        "prior_arms": list(arms),
+        "provider_repeats_per_cell": campaign_contract.get("provider_repeats"),
+        "all_scheduled_cells_retained": selection_policy.get(
+            "failed_scientific_cells_retained_without_replacement"
+        ),
+    }
+    population = _object(analysis.get("analysis_population"), "analysis_population")
+    public_metadata_matches_schedule = (
+        public.get("independent_world_cluster_count") == public_cluster_count
+        and public.get("participant_cell_count")
+        == expected_population["scheduled_public_cells"]
+        and all(
+            len(task_world_seeds.get(task_id, ())) == public.get("worlds_per_task")
+            for task_id in task_ids
+        )
+    )
+    if dict(population) != expected_population or not public_metadata_matches_schedule:
+        errors.append("analysis population differs from the formal design")
+
+    design_checkpoints = list(
+        campaign_contract.get("checkpoint_complete_experiments", ())
+    )
+    expected_checkpoint_contract = {
+        "stage_ids": list(FORMAL_SNAPSHOT_STAGES),
+        "complete_experiments": design_checkpoints,
+        "semantic_stage_hints_forbidden": True,
+    }
+    checkpoint_contract = _object(
+        analysis.get("checkpoint_contract"), "checkpoint_contract"
+    )
+    if (
+        design_checkpoints != list(FORMAL_CHECKPOINT_EXPERIMENTS)
+        or dict(checkpoint_contract) != expected_checkpoint_contract
+    ):
+        errors.append("analysis checkpoint contract differs from the formal design")
+
+    design_primary = _object(design.get("primary_hypothesis"), "design.primary_hypothesis")
+    analysis_primary = _object(
+        analysis.get("primary_hypothesis"), "analysis.primary_hypothesis"
+    )
+    if analysis_primary.get("id") != design_primary.get("id"):
+        errors.append("analysis primary hypothesis differs from the formal design")
+
+    implementation = _object(
+        analysis.get("analysis_implementation_contract"),
+        "analysis_implementation_contract",
+    )
+    implementation_primary = _object(
+        implementation.get("primary_model"),
+        "analysis_implementation_contract.primary_model",
+    )
+    if (
+        implementation.get("expected_cluster_count")
+        != expected_population["independent_task_world_clusters"]
+        or implementation.get("expected_cell_count")
+        != expected_population["scheduled_public_cells"]
+    ):
+        errors.append("analysis implementation denominators differ from its population")
+
+    power = _object(analysis.get("power_design"), "power_design")
+    expected_residual_df = public_cluster_count - len(tasks)
+    if (
+        power.get("independent_clusters") != public_cluster_count
+        or power.get("task_fixed_effect_degrees_of_freedom") != len(tasks) - 1
+        or power.get("residual_degrees_of_freedom") != expected_residual_df
+        or power.get("alpha") != analysis_primary.get("alpha")
+        or implementation_primary.get("residual_degrees_of_freedom")
+        != expected_residual_df
+        or implementation_primary.get("one_sided_alpha")
+        != analysis_primary.get("alpha")
+        or power.get("secondary_hypotheses_separately_powered") is not False
+        or power.get("H4_confirmatory_claim_allowed") is not False
+    ):
+        errors.append("analysis power design differs from the formal population or model")
+    return errors
+
+
 def build_checkpoint_contract(config: Mapping[str, Any], arm: str) -> dict[str, Any]:
     """Materialize the complete public checkpoint contract used by one cell."""
 
@@ -1098,18 +1225,13 @@ def build_formal_preflight(
 
     design_digest = canonical_json_sha256(design)
     analysis_digest = canonical_json_sha256(analysis)
-    analysis_binding = _object(analysis.get("design_binding"), "analysis.design_binding")
-    if (
-        analysis_binding.get("path") != _relative(root, design_path)
-        or analysis_binding.get("sha256") != design_digest
-    ):
-        errors.append("analysis plan does not bind the current formal design")
-    arms = tuple(_string_list(design.get("prior_arms"), "design.prior_arms"))
-    if arms != FORMAL_ARMS:
-        errors.append("formal prior-arm order differs from the frozen three-arm contract")
-    population = _object(analysis.get("analysis_population"), "analysis_population")
-    if tuple(population.get("prior_arms", [])) != FORMAL_ARMS:
-        errors.append("analysis population prior arms differ from the formal design")
+    errors.extend(
+        _analysis_design_relation_errors(
+            design,
+            analysis,
+            _relative(root, design_path),
+        )
+    )
     law_summary_evaluation_contract = dict(
         _object(
             analysis.get("law_summary_evaluation_contract"),

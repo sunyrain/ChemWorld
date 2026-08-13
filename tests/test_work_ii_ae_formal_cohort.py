@@ -6,13 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_ae_formal_cohort import (
     load_ae_formal_cohort,
     validate_ae_public_cells,
     validate_formal_ae_qualification,
 )
-from chemworld.eval.work_ii_formal import FORMAL_ARMS, build_formal_preflight
+from chemworld.eval.work_ii_formal import (
+    FORMAL_ARMS,
+    _analysis_design_relation_errors,
+    build_formal_preflight,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
@@ -48,8 +51,12 @@ def test_v02_design_and_analysis_bind_exact_qualification_cohort() -> None:
     assert analysis["analysis_plan_id"] == "work-ii-fixed-law-prior-analysis-v0.4"
     assert analysis["design_binding"] == {
         "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
-        "sha256": canonical_json_sha256(design),
     }
+    assert _analysis_design_relation_errors(
+        design,
+        analysis,
+        "configs/benchmark/work_ii_formal_design_v0.2.json",
+    ) == []
     assert len({seed for seeds in public.values() for seed in seeds}) == 25
     assert len({seed for seeds in construction.values() for seed in seeds}) == 25
     assert not (
@@ -57,6 +64,61 @@ def test_v02_design_and_analysis_bind_exact_qualification_cohort() -> None:
         & {seed for seeds in construction.values() for seed in seeds}
     )
     assert validate_ae_public_cells(ROOT, design, _cells(public)) == []
+
+
+@pytest.mark.parametrize(
+    ("target", "replacement", "expected_error"),
+    [
+        (
+            ("analysis_population", "scheduled_public_cells"),
+            76,
+            "analysis population differs from the formal design",
+        ),
+        (
+            ("checkpoint_contract", "complete_experiments"),
+            [0, 2, 4, 6, 7],
+            "analysis checkpoint contract differs from the formal design",
+        ),
+        (
+            ("analysis_implementation_contract", "expected_cluster_count"),
+            24,
+            "analysis implementation denominators differ from its population",
+        ),
+        (
+            ("power_design", "independent_clusters"),
+            24,
+            "analysis power design differs from the formal population or model",
+        ),
+    ],
+)
+def test_v02_analysis_design_relations_reject_semantic_drift(
+    target: tuple[str, str], replacement: object, expected_error: str
+) -> None:
+    design = _load(DESIGN)
+    analysis = _load(ANALYSIS)
+    analysis[target[0]][target[1]] = replacement
+
+    errors = _analysis_design_relation_errors(
+        design,
+        analysis,
+        "configs/benchmark/work_ii_formal_design_v0.2.json",
+    )
+
+    assert expected_error in errors
+
+
+def test_v02_analysis_design_relation_rejects_reintroduced_whole_design_hash() -> None:
+    design = _load(DESIGN)
+    analysis = _load(ANALYSIS)
+    analysis["design_binding"]["sha256"] = "0" * 64
+
+    assert "analysis plan does not select the current formal design" in (
+        _analysis_design_relation_errors(
+            design,
+            analysis,
+            "configs/benchmark/work_ii_formal_design_v0.2.json",
+        )
+    )
 
 
 def test_v02_cohort_validator_rejects_construction_or_rehashed_design_tampering() -> None:
