@@ -252,6 +252,16 @@ production materialization、typed resource constructor、旧 metadata 拒绝、
 继续由独立行为测试覆盖。当前 method-qualification CLI 的默认输出名同步改为 v0.2，避免继续生成 schema
 为 v0.2、文件名却为 v0.1 的新副本。聚焦测试 39/39，下游 qualification/C2 33/33 通过。
 
+### CD-23：退役 A-E prior qualification v0.1 执行孤岛 — DONE
+
+删除 `work_ii_ae_prior_qualification.py`、其薄 CLI 和 12 条专属自测。三者只互相引用：旧模块把自己的
+plan/report/hash 协议完整复制在一个 72 KB 文件中，没有 current registry、当前 formal cohort、v0.2/v0.3
+qualification 或生产入口消费者；唯一外部命中是历史 formal preflight 的不可改写文件清单快照。当前
+A-E 资格由 v0.2 cohort/qualification 与 v0.3 shards 路径承担，保留的 v0.2 测试覆盖精确分母、release
+context、篡改拒绝、唯一 claim 和完整 1,200-cell disk validator，formal cohort 测试继续覆盖下游消费。
+因此本批删除的是自成闭环的旧协议测试，不删除当前科学不变量、真实 validator 或篡改测试，也不刷新历史
+preflight 来抹掉旧路径。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -263,7 +273,7 @@ production materialization、typed resource constructor、旧 metadata 拒绝、
 | CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | TODO | pytest `fast and current` 仍接近全套测试 | release 已删除 collect-only 双跑和精确 267 数量门；下一步只建立小于 60 秒的开发 smoke 命令，不增加逐测试 marker audit | smoke 覆盖 import、事务、无效动作回滚、replay、task registry、package resource |
-| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol 测试、A-S/A-P/impact-audit 及 preregistration/graph 闭环专属测试，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
+| CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 已删除 W2-26 synthetic schema copy、v0.1 protocol、A-E prior v0.1、A-S/A-P/impact-audit 及 preregistration/graph 闭环专属测试，并保留真实路径 canary、typed constructor、tamper、科学不变量与 formal execution tests；继续按消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | TODO | current status 同时散落于 registry、TODO、README 和报告 | `configs/current.json` 只管理稳定 current/release artifact；活跃实验状态只在对应 TODO/summary | 不再新增同步 checker；读者状态从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
