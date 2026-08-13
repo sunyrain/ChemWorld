@@ -451,6 +451,19 @@ Static S0 replay/validator。现行 summary 的 schema、campaign-plan hash、me
 物理实验、526 次 provider calls、五任务集合、replay 与阈值失败任务均由 evidence pipeline 直接验证通过；
 archive 外残留引用为 0。该批共删除 14 个执行/测试/config 文件，避免为历史入口再复制一套协议构造权威。
 
+### CD-37：收束 G2 连续修订 config 副本 — DONE
+
+G2 autonomous-material 的 tracked config 同时保留 Codex v0.1-v0.4 与 DeepSeek v0.1-v0.6，容易让使用者按
+最大版本号或模型名猜入口。消费者审计显示，Codex v0.4 是唯一有 tracked 结果说明和本地 raw run 的 Codex
+协议；DeepSeek v0.6 是当前 runner 默认、现存 raw run、terminal file index、public trajectory archive、
+Work I latent-terminal qualification 与实验 ledger 共同绑定的协议。两者必须保留。
+
+Codex v0.1-v0.3 与 DeepSeek v0.1-v0.5 没有 current registry、runner default、tracked report、raw run、
+protocol-id、path、file hash 或 canonical hash consumer；它们只是到最终执行配置之前的连续开发修订，也没有
+对应不利结果需要靠 checkout 副本解释。现删除这 8 个 config，精确内容继续由 Git 历史恢复；没有删除
+DeepSeek v0.6/Codex v0.4、terminal results、资格失败、raw trajectory、replay、public archive 或科学报告。
+现行 G2 runner/qualification 聚焦测试继续对两份 survivor 的 schema、denominator、资源和 replay 语义负责。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -467,7 +480,7 @@ archive 外残留引用为 0。该批共删除 14 个执行/测试/config 文件
 | CD-P1-05 | DOING | 宽泛 `except Exception` 可能把编程错误伪装成科学/provider failure | 已随退役 A-S supervisor、runtime-impact audit 和旧 G2 smoke 删除不再有消费者的宽泛边界；其余只在仍活跃公共执行边界按事故证据收窄，不做机械全局替换 | `KeyError/TypeError` 等编程错误保持可见；合法恢复路径测试通过 |
 | CD-P2-01 | DOING | current status 同时散落于 registry、TODO、README 和报告 | 已将 W2-26 partial/provider-blocked 与 W2-37 terminal 状态收束至 Work II TODO，并链接唯一机器 summary；`configs/current.json` 只管理稳定 current/release artifact | 不再新增同步 checker；其余活跃实验也从一个机器源派生或链接 |
 | CD-P2-02 | TODO | 大型 script 同时承担 plan、execution、validation、rendering | 只在仍活跃文件上按职责拆分，CLI 保持薄层 | 不复制 schema/hash；现有输出保持兼容或有显式迁移 |
-| CD-P2-03 | TODO | tracked 大型明细和多个版本副本增加 checkout 与选择歧义 | 只迁移无 current/immutable 消费者的 superseded payload | current registry 和冻结 replay 零断链；历史从 Git/release asset 恢复 |
+| CD-P2-03 | DOING | tracked 大型明细和多个版本副本增加 checkout 与选择歧义 | 已删除 Static S0 未晋升 qualification/campaign 链与 8 个无消费者 G2 连续修订 config；继续只迁移无 current/immutable/hash/raw-result 消费者的 superseded payload | current registry 和冻结 replay 零断链；不利结果保留；历史从 Git/release asset 恢复 |
 
 ## 5. 必须保留的控制
 
