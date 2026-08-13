@@ -52,8 +52,11 @@ from chemworld.eval.work_ii_qualification import (
     validate_qualification_attempt_authorization,
     validate_qualification_execution_authorization,
 )
-from chemworld.eval.work_ii_resource_calibration import (
-    validate_resource_calibration_authorization,
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    pattern_key as resource_calibration_pattern_key,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_authorization as validate_resource_calibration_authorization,
 )
 from chemworld.tasks import get_task
 
@@ -334,9 +337,11 @@ def _resource_calibration_execution_context(
     if (
         len(matches) != 1
         or config_digest != config_binding.get("sha256")
-        or reservation.get("rounds") != matches[0].get("rounds")
+        or resource_calibration_pattern_key(reservation)
+        != resource_calibration_pattern_key(matches[0])
         or reservation.get("authorization_sha256") != authorization.get("authorization_sha256")
-        or reservation.get("currency_ceiling_usd") != authorization.get("currency_ceiling_usd")
+        or reservation.get("currency_ceiling_usd")
+        != authorization.get("currency_ceiling_usd")
     ):
         raise RuntimeError("resource-calibration child differs from its authorized pattern")
     return (
@@ -356,8 +361,13 @@ def _resource_calibration_execution_context(
             "cost_reservation": {
                 "path": reservation_path.relative_to(ROOT).as_posix(),
                 "file_sha256": file_sha256(reservation_path),
+                "locus": reservation["locus"],
+                "task_id": reservation["task_id"],
                 "rounds": reservation["rounds"],
                 "attempt_number": reservation["attempt_number"],
+                "reservation_sequence_number": reservation[
+                    "reservation_sequence_number"
+                ],
                 "authorization_sha256": reservation["authorization_sha256"],
             },
             "pattern": {

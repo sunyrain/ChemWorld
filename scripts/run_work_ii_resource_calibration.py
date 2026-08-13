@@ -18,22 +18,42 @@ from chemworld.eval.provenance import (
     file_sha256,
     write_json_atomic,
 )
-from chemworld.eval.work_ii_resource_calibration import (
+from chemworld.eval.work_ii_resource_calibration_v02 import (
     RESOURCE_CALIBRATION_ARMS,
-    build_resource_calibration_authorization,
-    build_resource_calibration_execution_manifest,
-    build_resource_calibration_readiness,
-    build_resource_calibration_summary,
-    empty_resource_calibration_summary,
-    validate_resource_calibration_authorization,
-    validate_resource_calibration_manifest,
-    validate_resource_calibration_readiness,
-    validate_resource_calibration_summary,
+    pattern_key,
+    pattern_slug,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    build_authorization as build_resource_calibration_authorization,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    build_execution_manifest as build_resource_calibration_execution_manifest,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    build_readiness as build_resource_calibration_readiness,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    build_summary as build_resource_calibration_summary,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    empty_summary as empty_resource_calibration_summary,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_authorization as validate_resource_calibration_authorization,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_manifest as validate_resource_calibration_manifest,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_readiness as validate_resource_calibration_readiness,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
+    validate_summary as validate_resource_calibration_summary,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_MANIFEST = (
-    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
+    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.2.json"
 )
 DEFAULT_FORMAL_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 DEFAULT_AP_SELECTION_PROTOCOL = (
@@ -87,6 +107,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--cache-hit-input-usd-per-million", type=float)
     parser.add_argument("--cache-miss-input-usd-per-million", type=float)
     parser.add_argument("--output-usd-per-million", type=float)
+    parser.add_argument("--unlimited-spend-authorized", action="store_true")
     parser.add_argument("--provider-contract-confirmed-by-user", action="store_true")
     parser.add_argument("--credential-rotation-confirmed-by-user", action="store_true")
     return parser.parse_args()
@@ -117,7 +138,9 @@ def _emit(path: Path, payload: Mapping[str, object]) -> None:
 
 def _observed_currency(
     row: Mapping[str, object], authorization: Mapping[str, object]
-) -> float:
+) -> float | None:
+    if authorization.get("unlimited_spend_authorized") is True:
+        return None
     method = row.get("method_resources")
     method = method if isinstance(method, Mapping) else {}
     pricing = authorization.get("pricing")
@@ -138,42 +161,65 @@ def _observed_currency(
 
 def _load_and_validate_reservations(
     output_root: Path, authorization: Mapping[str, object]
-) -> float:
+) -> float | None:
+    unlimited = authorization.get("unlimited_spend_authorized") is True
     rows = []
     contracts = {
-        int(row["rounds"]): row
+        pattern_key(row): row
         for row in authorization["pattern_attempt_contracts"]
     }
     for path in output_root.glob(
-        "triplet_attempts/rounds-*/attempt-*/cost_reservation.json"
+        "triplet_attempts/*/attempt-*/cost_reservation.json"
     ):
         row = _load(path)
-        rounds = int(row.get("rounds", -1))
+        key = pattern_key(row)
         attempt = int(row.get("attempt_number", -1))
-        expected = contracts.get(rounds)
+        sequence = int(row.get("reservation_sequence_number", -1))
+        expected = contracts.get(key)
         if (
             expected is None
             or attempt not in {1, 2}
+            or sequence <= 0
+            or path.parent.parent.name != pattern_slug(row)
             or row.get("authorization_sha256")
             != authorization.get("authorization_sha256")
-            or row.get("reserved_cost_usd")
-            != expected.get("initial_triplet_cost_cap_usd")
+            or (
+                row.get("reserved_cost_usd")
+                != expected.get("initial_triplet_cost_cap_usd")
+            )
         ):
             raise RuntimeError("W2-26 cost reservation receipt is invalid")
-        rows.append((rounds, attempt, path, row))
-    total = 0.0
-    for rounds in sorted(contracts):
+        rows.append((sequence, key, attempt, path, row))
+    sequences = sorted(sequence for sequence, *_rest in rows)
+    if sequences != list(range(1, len(rows) + 1)):
+        raise RuntimeError("W2-26 cost reservation sequence is not contiguous")
+    observed_attempts: dict[tuple[str, str, int], list[int]] = {}
+    for _sequence, key, attempt, _path, _row in rows:
+        observed_attempts.setdefault(key, []).append(attempt)
+    for key, raw_attempts in observed_attempts.items():
         attempts = sorted(
-            attempt for observed, attempt, _path, _row in rows if observed == rounds
+            raw_attempts
         )
         if attempts != list(range(1, len(attempts) + 1)):
-            raise RuntimeError(f"W2-26 {rounds}-round reservation sequence is not contiguous")
-        for observed, _attempt, _path, row in sorted(rows):
-            if observed != rounds:
-                continue
-            total = round(total + float(row["reserved_cost_usd"]), 12)
-            if row.get("cumulative_reserved_cost_usd") != total:
-                raise RuntimeError("W2-26 cumulative cost reservation is inconsistent")
+            identity = dict(
+                zip(("locus", "task_id", "rounds"), key, strict=True)
+            )
+            raise RuntimeError(
+                f"W2-26 {pattern_slug(identity)} reservation sequence is not contiguous"
+            )
+    if unlimited:
+        if any(
+            row.get("reserved_cost_usd") is not None
+            or row.get("cumulative_reserved_cost_usd") is not None
+            for *_prefix, row in rows
+        ):
+            raise RuntimeError("W2-26 unlimited reservation contains a currency amount")
+        return None
+    total = 0.0
+    for _sequence, _key, _attempt, _path, row in sorted(rows):
+        total = round(total + float(row["reserved_cost_usd"]), 12)
+        if row.get("cumulative_reserved_cost_usd") != total:
+            raise RuntimeError("W2-26 cumulative cost reservation is inconsistent")
     if total > float(authorization["currency_ceiling_usd"]):
         raise RuntimeError("W2-26 existing reservations exceed the currency ceiling")
     return total
@@ -196,10 +242,11 @@ def _validate_triplet_report(
     rows = rows if isinstance(rows, list) else []
     if (
         report.get("schema_version")
-        != "chemworld-work-ii-resource-calibration-triplet-0.1"
+        != "chemworld-work-ii-resource-calibration-triplet-0.2"
         or digest != canonical_json_sha256(payload)
         or report.get("rounds") != pattern.get("rounds")
         or report.get("locus") != pattern.get("locus")
+        or report.get("task_id") != pattern.get("task_id")
         or report.get("world_seed") != pattern.get("world_seed")
         or report.get("config_file_sha256")
         != pattern["campaign_config_binding"]["sha256"]
@@ -214,7 +261,7 @@ def _validate_triplet_report(
         != sorted(RESOURCE_CALIBRATION_ARMS)
     ):
         raise RuntimeError(
-            f"W2-26 {pattern.get('rounds')}-round terminal triplet is invalid"
+            f"W2-26 {pattern_slug(pattern)} terminal triplet is invalid"
         )
     if manifest_path is not None and authorization_path is not None:
         reservation_bindings = []
@@ -332,10 +379,6 @@ def execute_calibration(
         summary_errors = validate_resource_calibration_summary(
             summary,
             manifest=manifest,
-            expected_source_commit=str(
-                authorization["development_runtime_commit_observed"]
-            ),
-            root=ROOT,
         )
         if summary_errors:
             raise RuntimeError(
@@ -347,16 +390,24 @@ def execute_calibration(
             "idempotent_existing_summary": True,
         }
     progress_path = output_root / "progress.jsonl"
+    execution_started = time.monotonic()
     accepted_reports: list[dict[str, object]] = []
     currency_by_cell: dict[str, float] = {}
-    hard_cost = float(authorization["all_infrastructure_resumes"]["cost_cap_usd"])
+    unlimited = authorization.get("unlimited_spend_authorized") is True
+    hard_cost = (
+        None
+        if unlimited
+        else float(authorization["all_infrastructure_resumes"]["cost_cap_usd"])
+    )
     reserved_cost = _load_and_validate_reservations(output_root, authorization)
     pattern_contracts = {
-        row["rounds"]: row for row in authorization["pattern_attempt_contracts"]
+        pattern_key(row): row for row in authorization["pattern_attempt_contracts"]
     }
-    for pattern in manifest["patterns"]:
+    total_triplets = len(manifest["patterns"])
+    for triplet_index, pattern in enumerate(manifest["patterns"], start=1):
         rounds = int(pattern["rounds"])
-        terminal_path = output_root / "terminal_triplets" / f"rounds-{rounds}.json"
+        slug = pattern_slug(pattern)
+        terminal_path = output_root / "terminal_triplets" / f"{slug}.json"
         if terminal_path.is_file():
             terminal_report = _load(terminal_path)
             _validate_triplet_report(
@@ -369,23 +420,43 @@ def execute_calibration(
             )
             accepted_reports.append(terminal_report)
             continue
-        attempts_root = output_root / "triplet_attempts" / f"rounds-{rounds}"
+        attempts_root = output_root / "triplet_attempts" / slug
         existing = sorted(attempts_root.glob("attempt-*")) if attempts_root.is_dir() else []
         if len(existing) >= 2:
-            raise RuntimeError(f"W2-26 {rounds}-round triplet exhausted its resume cap")
+            raise RuntimeError(f"W2-26 {slug} triplet exhausted its resume cap")
         attempt_number = len(existing) + 1
         attempt_root = attempts_root / f"attempt-{attempt_number}-{uuid4().hex}"
         attempt_root.mkdir(parents=True, exist_ok=False)
-        contract = pattern_contracts[rounds]
-        triplet_reservation = float(contract["initial_triplet_cost_cap_usd"])
-        if reserved_cost + triplet_reservation > hard_cost:
+        contract = pattern_contracts[pattern_key(pattern)]
+        triplet_reservation = (
+            None if unlimited else float(contract["initial_triplet_cost_cap_usd"])
+        )
+        if (
+            not unlimited
+            and float(reserved_cost) + float(triplet_reservation) > float(hard_cost)
+        ):
             raise RuntimeError("W2-26 currency ceiling would be exceeded before launch")
-        reserved_cost = round(reserved_cost + triplet_reservation, 12)
+        if not unlimited:
+            reserved_cost = round(
+                float(reserved_cost) + float(triplet_reservation), 12
+            )
         _write_once(
             attempt_root / "cost_reservation.json",
             {
+                "locus": pattern["locus"],
+                "task_id": pattern["task_id"],
                 "rounds": rounds,
                 "attempt_number": attempt_number,
+                "reservation_sequence_number": 1
+                + (
+                    len(
+                        list(
+                            output_root.glob(
+                                "triplet_attempts/*/attempt-*/cost_reservation.json"
+                            )
+                        )
+                    )
+                ),
                 "authorization_sha256": authorization["authorization_sha256"],
                 "reserved_cost_usd": triplet_reservation,
                 "cumulative_reserved_cost_usd": reserved_cost,
@@ -442,6 +513,8 @@ def execute_calibration(
                     attempt_root / f"platform-defect-{arm}.json",
                     {
                         "rounds": rounds,
+                        "locus": pattern["locus"],
+                        "task_id": pattern["task_id"],
                         "arm": arm,
                         "class": "platform_execution_failure",
                         "failure_type": type(error).__name__,
@@ -478,13 +551,41 @@ def execute_calibration(
                     {
                         "event": "resource_calibration_triplet_heartbeat",
                         "rounds": rounds,
+                        "locus": pattern["locus"],
+                        "task_id": pattern["task_id"],
                         "attempt_number": attempt_number,
+                        "stage": "provider_task_triplet",
+                        "task_triplet_index": triplet_index,
+                        "completed_task_triplets": len(accepted_reports),
+                        "total_task_triplets": total_triplets,
+                        "completed_cells": len(accepted_reports) * len(
+                            RESOURCE_CALIBRATION_ARMS
+                        ),
+                        "total_cells": total_triplets
+                        * len(RESOURCE_CALIBRATION_ARMS),
                         "active_provider_processes": sum(
                             item["process"] is not None
                             and item["process"].poll() is None
                             for item in processes
                         ),
                         "elapsed_s": round(now - started, 3),
+                        "execution_elapsed_s": round(now - execution_started, 3),
+                        "terminal_triplets_per_hour": round(
+                            len(accepted_reports)
+                            / max(now - execution_started, 1.0)
+                            * 3600.0,
+                            3,
+                        ),
+                        "eta_s": (
+                            round(
+                                (total_triplets - len(accepted_reports))
+                                * (now - execution_started)
+                                / len(accepted_reports),
+                                1,
+                            )
+                            if accepted_reports
+                            else None
+                        ),
                     },
                 )
                 next_heartbeat = now + 30.0
@@ -505,6 +606,8 @@ def execute_calibration(
                     attempt_root / f"platform-defect-{item['arm']}.json",
                     {
                         "rounds": rounds,
+                        "locus": pattern["locus"],
+                        "task_id": pattern["task_id"],
                         "arm": item["arm"],
                         "class": "platform_execution_failure",
                         "failure_type": "missing_cell_summary",
@@ -549,13 +652,19 @@ def execute_calibration(
                 "process_time_policy": config["campaign"]["process_time_policy"],
                 "closeout_policy": config["campaign"]["closeout_policy"],
             }
-            cell_id = f"{rounds}:{pattern['task_id']}:{pattern['world_seed']}:{item['arm']}"
-            currency_by_cell[cell_id] = _observed_currency(row, authorization)
+            cell_id = (
+                f"{pattern['locus']}:{pattern['task_id']}:{rounds}:"
+                f"{pattern['world_seed']}:{item['arm']}"
+            )
+            observed_currency = _observed_currency(row, authorization)
+            if observed_currency is not None:
+                currency_by_cell[cell_id] = observed_currency
             rows.append(row)
         triplet_report: dict[str, object] = {
-            "schema_version": "chemworld-work-ii-resource-calibration-triplet-0.1",
+            "schema_version": "chemworld-work-ii-resource-calibration-triplet-0.2",
             "rounds": rounds,
             "locus": pattern["locus"],
+            "task_id": pattern["task_id"],
             "config_file_sha256": pattern["campaign_config_binding"]["sha256"],
             "world_seed": pattern["world_seed"],
             "manifest_sha256": canonical_json_sha256(manifest),
@@ -563,6 +672,10 @@ def execute_calibration(
                 "development_runtime_commit_observed"
             ],
             "authorization_sha256": authorization["authorization_sha256"],
+            "calibration_campaign_contract": {
+                "process_time_policy": config["campaign"]["process_time_policy"],
+                "closeout_policy": config["campaign"]["closeout_policy"],
+            },
             "results": rows,
         }
         triplet_report["triplet_report_sha256"] = canonical_json_sha256(
@@ -575,30 +688,70 @@ def execute_calibration(
                 {
                     "event": "resource_calibration_triplet_invalidated",
                     "rounds": rounds,
+                    "locus": pattern["locus"],
+                    "task_id": pattern["task_id"],
                     "attempt_number": attempt_number,
                     "resume_requires_full_triplet_restart": True,
                 },
             )
             return {
                 "status": "infrastructure_incomplete_full_triplet_resume_required",
+                "locus": pattern["locus"],
+                "task_id": pattern["task_id"],
                 "rounds": rounds,
                 "attempt_number": attempt_number,
                 "reserved_cost_usd": reserved_cost,
             }
         _write_once(terminal_path, triplet_report)
         accepted_reports.append(triplet_report)
+        now = time.monotonic()
+        _emit(
+            progress_path,
+            {
+                "event": "resource_calibration_triplet_completed",
+                "stage": "provider_task_triplet",
+                "locus": pattern["locus"],
+                "task_id": pattern["task_id"],
+                "rounds": rounds,
+                "task_triplet_index": triplet_index,
+                "completed_task_triplets": len(accepted_reports),
+                "total_task_triplets": total_triplets,
+                "completed_cells": len(accepted_reports)
+                * len(RESOURCE_CALIBRATION_ARMS),
+                "total_cells": total_triplets * len(RESOURCE_CALIBRATION_ARMS),
+                "execution_elapsed_s": round(now - execution_started, 3),
+                "terminal_triplets_per_hour": round(
+                    len(accepted_reports)
+                    / max(now - execution_started, 1.0)
+                    * 3600.0,
+                    3,
+                ),
+                "eta_s": round(
+                    (total_triplets - len(accepted_reports))
+                    * (now - execution_started)
+                    / len(accepted_reports),
+                    1,
+                ),
+            },
+        )
     for pattern in manifest["patterns"]:
-        rounds = int(pattern["rounds"])
-        reports = [report for report in accepted_reports if report.get("rounds") == rounds]
+        reports = [
+            report
+            for report in accepted_reports
+            if pattern_key(report) == pattern_key(pattern)
+        ]
         if len(reports) != 1:
             continue
         for row in reports[0].get("results", []):
             if not isinstance(row, Mapping):
                 continue
             cell_id = (
-                f"{rounds}:{pattern['task_id']}:{pattern['world_seed']}:{row.get('arm')}"
+                f"{pattern['locus']}:{pattern['task_id']}:{pattern['rounds']}:"
+                f"{pattern['world_seed']}:{row.get('arm')}"
             )
-            currency_by_cell[cell_id] = _observed_currency(row, authorization)
+            observed_currency = _observed_currency(row, authorization)
+            if observed_currency is not None:
+                currency_by_cell[cell_id] = observed_currency
     summary = build_resource_calibration_summary(
         manifest,
         accepted_reports,
@@ -608,7 +761,6 @@ def execute_calibration(
     summary_errors = validate_resource_calibration_summary(
         summary,
         manifest=manifest,
-        root=ROOT,
     )
     if summary_errors:
         raise RuntimeError("W2-26 summary failed: " + "; ".join(summary_errors))
@@ -631,26 +783,13 @@ def main() -> int:
         if not output.is_relative_to(dynamic_root):
             raise RuntimeError("W2-26 execution manifest must use the dynamic evidence root")
         payload = build_resource_calibration_execution_manifest(
-            ROOT,
-            manifest_path,
-            formal_design_path=args.formal_design,
-            selection_protocol_paths={
-                "A_P": args.ap_selection_protocol,
-                "A_S": args.as_selection_protocol,
-            },
-            q2_generation_record_paths={
-                "A_P": args.ap_q2_generation,
-                "A_S": args.as_q2_generation,
-            },
+            ROOT, _load(manifest_path)
         )
         _write_once(output, payload)
         print(
             json.dumps(
                 {
                     "status": payload["status"],
-                    "whole_tree_hash_required": payload[
-                        "development_binding_policy"
-                    ]["whole_tree_hash_required"],
                     "output": str(output),
                 },
                 ensure_ascii=False,
@@ -660,7 +799,9 @@ def main() -> int:
         )
         return 0
     manifest = _load(manifest_path)
-    manifest_errors = validate_resource_calibration_manifest(ROOT, manifest)
+    manifest_errors = validate_resource_calibration_manifest(
+        ROOT, manifest, allow_pending=True
+    )
     if manifest_errors:
         raise RuntimeError("resource calibration manifest failed: " + "; ".join(manifest_errors))
     readiness = build_resource_calibration_readiness(
@@ -678,18 +819,23 @@ def main() -> int:
         if args.output is None:
             raise RuntimeError("--output is required for --authorize")
         required = {
-            "--currency-ceiling-usd": args.currency_ceiling_usd,
             "--approved-at": args.approved_at,
-            "--pricing-source": args.pricing_source,
-            "--pricing-observed-at": args.pricing_observed_at,
-            "--cache-hit-input-usd-per-million": (
-                args.cache_hit_input_usd_per_million
-            ),
-            "--cache-miss-input-usd-per-million": (
-                args.cache_miss_input_usd_per_million
-            ),
-            "--output-usd-per-million": args.output_usd_per_million,
         }
+        if not args.unlimited_spend_authorized:
+            required.update(
+                {
+                    "--currency-ceiling-usd": args.currency_ceiling_usd,
+                    "--pricing-source": args.pricing_source,
+                    "--pricing-observed-at": args.pricing_observed_at,
+                    "--cache-hit-input-usd-per-million": (
+                        args.cache_hit_input_usd_per_million
+                    ),
+                    "--cache-miss-input-usd-per-million": (
+                        args.cache_miss_input_usd_per_million
+                    ),
+                    "--output-usd-per-million": args.output_usd_per_million,
+                }
+            )
         missing = [flag for flag, value in required.items() if value is None]
         if not args.provider_contract_confirmed_by_user:
             missing.append("--provider-contract-confirmed-by-user")
@@ -703,17 +849,38 @@ def main() -> int:
         authorization = build_resource_calibration_authorization(
             ROOT,
             manifest_path,
-            currency_ceiling_usd=float(args.currency_ceiling_usd),
+            currency_ceiling_usd=(
+                None
+                if args.unlimited_spend_authorized
+                else float(args.currency_ceiling_usd)
+            ),
             approved_at=str(args.approved_at),
-            pricing_source=str(args.pricing_source),
-            pricing_observed_at=str(args.pricing_observed_at),
-            cache_hit_input_usd_per_million=float(
-                args.cache_hit_input_usd_per_million
+            pricing_source=(
+                "provider_contract_has_no_attributable_per_run_usd_price"
+                if args.unlimited_spend_authorized
+                else str(args.pricing_source)
             ),
-            cache_miss_input_usd_per_million=float(
-                args.cache_miss_input_usd_per_million
+            pricing_observed_at=(
+                str(args.approved_at)
+                if args.unlimited_spend_authorized
+                else str(args.pricing_observed_at)
             ),
-            output_usd_per_million=float(args.output_usd_per_million),
+            cache_hit_input_usd_per_million=(
+                None
+                if args.unlimited_spend_authorized
+                else float(args.cache_hit_input_usd_per_million)
+            ),
+            cache_miss_input_usd_per_million=(
+                None
+                if args.unlimited_spend_authorized
+                else float(args.cache_miss_input_usd_per_million)
+            ),
+            output_usd_per_million=(
+                None
+                if args.unlimited_spend_authorized
+                else float(args.output_usd_per_million)
+            ),
+            unlimited_spend_authorized=bool(args.unlimited_spend_authorized),
         )
         authorization_errors = validate_resource_calibration_authorization(
             ROOT, authorization, manifest_path
@@ -739,12 +906,14 @@ def main() -> int:
 
     if args.execute:
         if readiness["status"] != "ready_authorization_blocked":
-            missing = ",".join(str(item) for item in readiness["missing_pattern_rounds"])
+            missing = json.dumps(
+                readiness["missing_task_identities"], ensure_ascii=False
+            )
             blockers = "; ".join(
                 str(item) for item in readiness["blocking_requirements"]
             )
             raise RuntimeError(
-                "W2-26 provider execution is not ready; unresolved pattern rounds: "
+                "W2-26 provider execution is not ready; unresolved task identities: "
                 + missing
                 + "; blockers: "
                 + blockers
@@ -783,6 +952,7 @@ def main() -> int:
         )
         or args.provider_contract_confirmed_by_user
         or args.credential_rotation_confirmed_by_user
+        or args.unlimited_spend_authorized
     ):
         raise RuntimeError("provider authorization options require --authorize or --execute")
     if args.output is None:
@@ -795,7 +965,9 @@ def main() -> int:
             raise RuntimeError("committed W2-26 readiness differs from deterministic rebuild")
     else:
         summary = empty_resource_calibration_summary(manifest)
-        summary_errors = validate_resource_calibration_summary(summary)
+        summary_errors = validate_resource_calibration_summary(
+            summary, manifest=manifest
+        )
         if summary_errors:
             raise RuntimeError(
                 "resource calibration summary template failed: "
@@ -806,9 +978,11 @@ def main() -> int:
         json.dumps(
             {
                 "status": readiness["status"],
-                "provider_execution_allowed": readiness["provider_execution_allowed"],
+                "calibration_may_be_authorized": readiness[
+                    "calibration_may_be_authorized"
+                ],
                 "provider_calls_executed": readiness["provider_calls_executed"],
-                "missing_pattern_rounds": readiness["missing_pattern_rounds"],
+                "missing_task_identities": readiness["missing_task_identities"],
                 "output": str(output),
             },
             ensure_ascii=False,

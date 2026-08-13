@@ -14,6 +14,7 @@ import scripts.run_work_ii_campaign_pilot as campaign_runner
 import scripts.run_work_ii_resource_calibration as calibration_runner
 
 import chemworld.eval.work_ii_resource_calibration as calibration_module
+import chemworld.eval.work_ii_resource_calibration_v02 as calibration_v02
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_c2_admission import build_c2_selection_protocol
 from chemworld.eval.work_ii_resource_calibration import (
@@ -36,6 +37,9 @@ from chemworld.eval.work_ii_resource_calibration import (
 ROOT = Path(__file__).resolve().parents[1]
 MANIFEST = ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
 RUNNER = ROOT / "scripts/run_work_ii_resource_calibration.py"
+MANIFEST_V02 = (
+    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.2.json"
+)
 
 
 def _manifest() -> dict[str, object]:
@@ -745,8 +749,11 @@ def test_real_child_gate_honors_file_hash_kind(
     reservation_path.write_text(
         json.dumps(
             {
+                "locus": pattern["locus"],
+                "task_id": pattern["task_id"],
                 "rounds": pattern["rounds"],
                 "attempt_number": 1,
+                "reservation_sequence_number": 1,
                 "authorization_sha256": "auth",
                 "currency_ceiling_usd": 1.0,
             }
@@ -1008,3 +1015,315 @@ def test_launch_decision_brief_is_explicitly_stale() -> None:
     assert "No calibration or method-qualification provider call is currently authorized" in brief
     assert "12 / 12" not in brief
     assert "Operation-attempt hard cap | 84" not in brief
+
+
+def test_v02_manifest_has_the_exact_nine_task_locus_round_identities() -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+
+    assert tuple(calibration_v02.pattern_key(row) for row in manifest["patterns"]) == (
+        ("A_E", "electrochemical-conversion", 8),
+        ("A_E", "reaction-to-crystallization", 8),
+        ("A_E", "reaction-to-distillation", 8),
+        ("A_E", "partition-discovery", 8),
+        ("A_E", "reaction-safety-constrained", 8),
+        ("A_P", "reaction-safety-constrained", 10),
+        ("A_P", "electrochemical-conversion", 10),
+        ("A_S", "partition-discovery", 12),
+        ("A_S", "reaction-to-crystallization", 12),
+    )
+    assert manifest["expected_denominators"] == {
+        "task_triplets": 9,
+        "cells": 27,
+        "complete_experiments": 252,
+        "belief_checkpoints": 135,
+        "accepted_provider_sessions": 27,
+        "accepted_participant_model_calls": 27,
+    }
+
+
+def test_v02_pattern_slug_prevents_same_round_task_path_collisions() -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    slugs = [calibration_v02.pattern_slug(row) for row in manifest["patterns"]]
+
+    assert len(slugs) == len(set(slugs)) == 9
+    assert len({slug for slug in slugs if slug.endswith("--r8")}) == 5
+    assert len({slug for slug in slugs if slug.endswith("--r10")}) == 2
+    assert len({slug for slug in slugs if slug.endswith("--r12")}) == 2
+    assert slugs[0] == "a_e--electrochemical-conversion--r8"
+    assert slugs[4] == "a_e--reaction-safety-constrained--r8"
+
+
+def test_v02_triplet_report_binds_task_id_and_rejects_mismatch() -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    pattern = deepcopy(manifest["patterns"][0])
+    pattern["world_seed"] = 314
+    pattern["campaign_config_binding"] = {
+        "path": "configs/benchmark/work_ii_campaign_pilot.json",
+        "sha256": "1" * 64,
+        "hash_kind": "file_sha256",
+    }
+    authorization = {
+        "development_runtime_commit_observed": "2" * 40,
+        "authorization_sha256": "3" * 64,
+    }
+    report = {
+        "schema_version": "chemworld-work-ii-resource-calibration-triplet-0.2",
+        "locus": pattern["locus"],
+        "task_id": pattern["task_id"],
+        "rounds": pattern["rounds"],
+        "world_seed": pattern["world_seed"],
+        "config_file_sha256": pattern["campaign_config_binding"]["sha256"],
+        "manifest_sha256": canonical_json_sha256(manifest),
+        "development_runtime_commit_observed": authorization[
+            "development_runtime_commit_observed"
+        ],
+        "authorization_sha256": authorization["authorization_sha256"],
+        "results": [{"arm": arm} for arm in RESOURCE_CALIBRATION_ARMS],
+    }
+    report["triplet_report_sha256"] = canonical_json_sha256(report)
+
+    calibration_runner._validate_triplet_report(
+        report,
+        pattern=pattern,
+        manifest=manifest,
+        authorization=authorization,
+    )
+
+    detached = deepcopy(report)
+    detached["task_id"] = "reaction-safety-constrained"
+    detached["triplet_report_sha256"] = canonical_json_sha256(
+        {
+            key: value
+            for key, value in detached.items()
+            if key != "triplet_report_sha256"
+        }
+    )
+    with pytest.raises(RuntimeError, match="terminal triplet is invalid"):
+        calibration_runner._validate_triplet_report(
+            detached,
+            pattern=pattern,
+            manifest=manifest,
+            authorization=authorization,
+        )
+
+
+def test_v02_runner_resume_reads_one_terminal_path_per_task(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    manifest_path = repo_tmp_path / "manifest-v0.2.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    authorization = {
+        "development_runtime_commit_observed": "4" * 40,
+        "authorization_sha256": "5" * 64,
+        "currency_ceiling_usd": 0.0,
+        "all_infrastructure_resumes": {"cost_cap_usd": 0.0},
+        "pattern_attempt_contracts": [],
+    }
+    authorization_path = repo_tmp_path / "authorization-v0.2.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    output_root = repo_tmp_path / "execution"
+    terminal_root = output_root / "terminal_triplets"
+    terminal_root.mkdir(parents=True)
+    expected = []
+    for pattern in manifest["patterns"]:
+        slug = calibration_v02.pattern_slug(pattern)
+        expected.append(slug)
+        (terminal_root / f"{slug}.json").write_text(
+            json.dumps({"pattern_slug": slug, "results": []}),
+            encoding="utf-8",
+        )
+
+    observed: list[tuple[str, str]] = []
+
+    def capture_report(report, *, pattern, **_kwargs) -> None:
+        observed.append(
+            (str(report["pattern_slug"]), calibration_v02.pattern_slug(pattern))
+        )
+
+    monkeypatch.setattr(
+        calibration_runner, "validate_resource_calibration_authorization", lambda *_: []
+    )
+    monkeypatch.setattr(calibration_runner, "_validate_triplet_report", capture_report)
+    monkeypatch.setattr(
+        calibration_runner,
+        "build_resource_calibration_summary",
+        lambda *_args, **_kwargs: {
+            "status": "passed",
+            "summary_sha256": "6" * 64,
+        },
+    )
+    monkeypatch.setattr(
+        calibration_runner, "validate_resource_calibration_summary", lambda *_args, **_kwargs: []
+    )
+
+    result = calibration_runner.execute_calibration(
+        manifest_path=manifest_path,
+        authorization_path=authorization_path,
+        output_root=output_root,
+        resume=True,
+    )
+
+    assert result["status"] == "passed"
+    assert observed == [(slug, slug) for slug in expected]
+
+
+def test_v02_unlimited_reservations_keep_task_identity_without_fake_cost(
+    repo_tmp_path: Path,
+) -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    patterns = manifest["patterns"][:2]
+    authorization = {
+        "authorization_sha256": "7" * 64,
+        "currency_ceiling_usd": None,
+        "unlimited_spend_authorized": True,
+        "pattern_attempt_contracts": [
+            {
+                **{
+                    field: pattern[field]
+                    for field in ("locus", "task_id", "rounds")
+                },
+                "initial_triplet_cost_cap_usd": None,
+            }
+            for pattern in patterns
+        ],
+    }
+    output_root = repo_tmp_path / "unlimited-execution"
+    for sequence, pattern in enumerate(patterns, start=1):
+        receipt = {
+            "locus": pattern["locus"],
+            "task_id": pattern["task_id"],
+            "rounds": pattern["rounds"],
+            "attempt_number": 1,
+            "reservation_sequence_number": sequence,
+            "authorization_sha256": authorization["authorization_sha256"],
+            "reserved_cost_usd": None,
+            "cumulative_reserved_cost_usd": None,
+            "currency_ceiling_usd": None,
+        }
+        path = (
+            output_root
+            / "triplet_attempts"
+            / calibration_v02.pattern_slug(pattern)
+            / "attempt-1-test"
+            / "cost_reservation.json"
+        )
+        path.parent.mkdir(parents=True)
+        path.write_text(json.dumps(receipt), encoding="utf-8")
+
+    assert (
+        calibration_runner._load_and_validate_reservations(
+            output_root, authorization
+        )
+        is None
+    )
+    assert calibration_runner._observed_currency({}, authorization) is None
+
+
+def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    reports = []
+    for world_seed, pattern in enumerate(manifest["patterns"]):
+        pattern["world_seed"] = world_seed
+        pattern["campaign_config_binding"] = {
+            "path": "configs/benchmark/work_ii_campaign_pilot.json",
+            "sha256": "a" * 64,
+            "hash_kind": "file_sha256",
+        }
+        formula = {
+            "task_id": pattern["task_id"],
+            "complete_experiments": pattern["rounds"],
+            "maximum_participant_selected_exact_repeats": 2,
+            "checkpoint_complete_experiments": pattern[
+                "checkpoint_complete_experiments"
+            ],
+            "process_time_formula": {"protected_reserve_fraction": 0.15},
+        }
+        pattern["resource_formula_binding"] = {
+            "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1",
+            "formula": formula,
+            "canonical_json_sha256": canonical_json_sha256(formula),
+        }
+        rows = []
+        for arm in RESOURCE_CALIBRATION_ARMS:
+            rows.append(
+                {
+                    "arm": arm,
+                    "completed": True,
+                    "analysis": {
+                        "complete_experiment_count": pattern["rounds"],
+                        "belief_snapshots": [{"stage": index} for index in range(5)],
+                        "operation_attempt_count": 12,
+                        "exact_repeat_count": 2,
+                        "final_campaign_resources": {
+                            "state": {"report_only": {"process_time_s": 100.0}}
+                        },
+                    },
+                    "qualification": {
+                        "passed": True,
+                        "checks": {
+                            "tool_integrity": True,
+                            "exact_replay": True,
+                            "execution_audit": True,
+                        },
+                    },
+                    "exact_replay": {"verified": True},
+                    "method_resources": {
+                        "provider_usage_pending": False,
+                        "provider_usage_accounting_complete": True,
+                        "in_flight_model_call_count": 0,
+                        "input_token_count": 1000,
+                        "uncached_input_token_count": 500,
+                        "output_token_count": 100,
+                    },
+                    "provider_receipts": [
+                        {
+                            "status": "completed",
+                            "provider_error_event_count": 0,
+                            "provider_attempt_count": 1,
+                            "session_elapsed_s": 10.0,
+                        }
+                    ],
+                }
+            )
+        reports.append(
+            {
+                "locus": pattern["locus"],
+                "task_id": pattern["task_id"],
+                "rounds": pattern["rounds"],
+                "config_file_sha256": pattern["campaign_config_binding"]["sha256"],
+                "calibration_campaign_contract": {
+                    "process_time_policy": {"protected_reserve_s": 20.0},
+                    "closeout_policy": {
+                        "final_assay_path_total_operation_reserve": 3
+                    },
+                },
+                "results": rows,
+            }
+        )
+
+    summary = calibration_v02.build_summary(
+        manifest,
+        reports,
+        source_commit="b" * 40,
+        observed_currency_usd_by_cell={},
+    )
+
+    assert summary["status"] == "passed"
+    assert summary["currency_accounting"] == {
+        "status": "unavailable_provider_pricing",
+        "observed_cell_count": 0,
+        "expected_cell_count": 27,
+        "formal_currency_contract_required": True,
+    }
+    assert all(
+        row["observed_currency_usd"] is None for row in summary["cell_summaries"]
+    )
+    assert all(
+        card["proposed_hard_caps"]["currency_ceiling_usd"] is None
+        and card["currency_accounting"]["status"]
+        == "unavailable_provider_pricing"
+        for card in summary["resource_card_proposals"]
+    )
+    assert calibration_v02.validate_summary(summary, manifest=manifest) == []
