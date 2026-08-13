@@ -143,6 +143,22 @@ def test_local_manifest_keeps_only_w2_27_execution_semantics(
     assert "design_binding" not in manifest
     assert "blind_evaluator_contract" not in manifest
     assert "held_out_evaluator_contract" not in manifest
+
+
+def test_local_manifest_accepts_canonical_json_prior_arm_key_order(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    runtime_path, runtime = _write_runtime_config(tmp_path, monkeypatch)
+    runtime_path.write_text(
+        json.dumps(runtime, ensure_ascii=False, sort_keys=True), encoding="utf-8"
+    )
+
+    manifest = local_gate.build_method_qualification_local_manifest(
+        ROOT, DESIGN, runtime_path
+    )
+
+    assert manifest["status"] == "passed"
+    assert manifest["errors"] == []
     assert manifest["resource_calibration_card_binding"]["card_identity"] == {
         **local_gate.W2_27_RESOURCE_CARD_IDENTITY,
         "calibration_campaign_binding": manifest["resource_calibration_card_binding"][

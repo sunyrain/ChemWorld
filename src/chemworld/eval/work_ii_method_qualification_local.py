@@ -433,7 +433,7 @@ def build_method_qualification_local_manifest(
         errors.append("W2-27 campaign config has the wrong task or episode mode")
     configured_arms = config.get("prior_arms")
     configured_arms = configured_arms if isinstance(configured_arms, Mapping) else {}
-    if tuple(configured_arms) != FORMAL_ARMS:
+    if set(configured_arms) != set(FORMAL_ARMS):
         errors.append("W2-27 campaign config does not preserve the arm triplet")
     expected_arms = {
         "opaque": {"mode": "opaque_codes"},
