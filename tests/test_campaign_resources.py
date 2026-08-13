@@ -4,7 +4,7 @@ import copy
 
 import pytest
 
-from chemworld.eval.campaign_resources import (
+from chemworld.campaign_resources import (
     CampaignResourceCard,
     CampaignResourceIntegrityError,
     CampaignResourceLedger,

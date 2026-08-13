@@ -19,11 +19,11 @@ from itertools import pairwise
 from pathlib import Path
 from typing import Any
 
-from chemworld.data.logging import load_jsonl, to_builtin
-from chemworld.eval.campaign_resources import (
+from chemworld.campaign_resources import (
     CampaignResourceIntegrityError,
     CampaignResourceLedger,
 )
+from chemworld.data.logging import load_jsonl, to_builtin
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,

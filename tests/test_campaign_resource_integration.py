@@ -7,8 +7,8 @@ from typing import Any
 import gymnasium as gym
 import pytest
 
+from chemworld.campaign_resources import CampaignResourceCard, CampaignResourceLedger
 from chemworld.data.logging import load_jsonl
-from chemworld.eval.campaign_resources import CampaignResourceCard, CampaignResourceLedger
 from chemworld.eval.runner import run_agent
 from chemworld.eval.verify import verify_records
 from chemworld.physchem.electrochemical_task_contract import (
