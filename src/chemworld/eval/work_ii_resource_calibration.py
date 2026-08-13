@@ -81,6 +81,11 @@ RESOURCE_CALIBRATION_CAP_FIELDS = (
     "provider_wall_time_limit_s",
     "currency_ceiling_usd",
 )
+TASK_RESOURCE_CALIBRATED_CAP_FIELDS = tuple(
+    field
+    for field in RESOURCE_CALIBRATION_CAP_FIELDS
+    if field != "maximum_exact_repeats"
+)
 RESOURCE_CALIBRATION_OBSERVED_FIELDS = {
     "operation_attempt_limit": "operation_attempts",
     "maximum_exact_repeats": "exact_repeat_count",
@@ -112,6 +117,8 @@ def build_task_resource_formula_binding(config: Mapping[str, Any]) -> dict[str, 
     resources = resources if isinstance(resources, Mapping) else {}
     qualification = config.get("qualification")
     qualification = qualification if isinstance(qualification, Mapping) else {}
+    provider = config.get("provider")
+    provider = provider if isinstance(provider, Mapping) else {}
     payload = {
         "task_id": config.get("task_id"),
         "complete_experiments": campaign.get("complete_experiments"),
@@ -126,6 +133,34 @@ def build_task_resource_formula_binding(config: Mapping[str, Any]) -> dict[str, 
         "maximum_participant_selected_exact_repeats": qualification.get(
             "maximum_exact_repeats"
         ),
+        "campaign_design_limits": {
+            key: copy.deepcopy(campaign.get(key))
+            for key in (
+                "vessel_start_limit",
+                "final_assay_limit",
+                "nonfinal_instrument_use_limit",
+                "stock_limits",
+                "operation_repeat_limits",
+            )
+        },
+        "method_design_limits": {
+            key: copy.deepcopy(resources.get(key))
+            for key in (
+                "model_call_limit",
+                "training_environment_step_limit",
+            )
+        },
+        "provider_method_contract": {
+            key: copy.deepcopy(provider.get(key))
+            for key in (
+                "id",
+                "wire_api",
+                "model",
+                "reasoning_effort",
+                "request_timeout_s",
+                "finalization_timeout_s",
+            )
+        },
         "process_time_formula": {
             key: copy.deepcopy(value)
             for key, value in process_policy.items()
@@ -202,16 +237,26 @@ def validate_task_resource_card(
         != canonical_json_sha256(formula_payload)
         or formula_payload.get("task_id") != task_id
         or formula_payload.get("complete_experiments") != rounds
+        or isinstance(
+            formula_payload.get("maximum_participant_selected_exact_repeats"),
+            bool,
+        )
+        or not isinstance(
+            formula_payload.get("maximum_participant_selected_exact_repeats"), int
+        )
+        or formula_payload.get("maximum_participant_selected_exact_repeats", -1) < 0
         or tuple(formula_payload.get("checkpoint_complete_experiments", []))
         != RESOURCE_CALIBRATION_CHECKPOINTS.get(rounds)
     ):
         errors.append("resource card formula binding is invalid")
     caps = card.get("proposed_hard_caps")
     caps = caps if isinstance(caps, Mapping) else {}
-    for field in RESOURCE_CALIBRATION_CAP_FIELDS:
+    for field in TASK_RESOURCE_CALIBRATED_CAP_FIELDS:
         value = caps.get(field)
         if not _is_nonnegative_number(value) or value == 0:
             errors.append(f"resource card lacks positive cap {field}")
+    if "maximum_exact_repeats" in caps:
+        errors.append("resource card must not redefine the exact-repeat design invariant")
     input_limit = caps.get("input_token_limit")
     uncached_limit = caps.get("uncached_input_token_limit")
     if (
@@ -268,11 +313,15 @@ def resolve_task_resource_card(
     identity = identity if isinstance(identity, Mapping) else {}
     if identity.get("resource_formula_binding") != source_formula:
         errors.append("formal source resource formula differs from its calibrated task")
-    if formal_source_binding is not None and (
-        not isinstance(formal_source_binding.get("path"), str)
-        or not isinstance(formal_source_binding.get("sha256"), str)
-    ):
-        errors.append("formal source binding is malformed")
+    if formal_source_binding is not None:
+        source_digest = canonical_json_sha256(formal_source_config)
+        if (
+            not isinstance(formal_source_binding.get("path"), str)
+            or not isinstance(formal_source_binding.get("sha256"), str)
+            or formal_source_binding.get("config_canonical_json_sha256")
+            != source_digest
+        ):
+            errors.append("formal source binding is malformed or differs from its config")
     if errors:
         raise ValueError("task resource card failed: " + "; ".join(errors))
     return card
@@ -319,7 +368,6 @@ def materialize_task_resource_caps(
         }
     )
     resources.pop("resource_status", None)
-    qualification["maximum_exact_repeats"] = int(caps["maximum_exact_repeats"])
     qualification["resource_calibration_status"] = "passed_w2_26_task_specific"
     provider["session_wall_time_limit_s"] = float(
         caps["provider_wall_time_limit_s"]
@@ -2454,6 +2502,7 @@ __all__ = [
     "RESOURCE_CALIBRATION_MANIFEST_VERSION",
     "RESOURCE_CALIBRATION_READINESS_VERSION",
     "RESOURCE_CALIBRATION_SUMMARY_VERSION",
+    "TASK_RESOURCE_CALIBRATED_CAP_FIELDS",
     "build_resource_calibration_authorization",
     "build_resource_calibration_execution_manifest",
     "build_resource_calibration_readiness",

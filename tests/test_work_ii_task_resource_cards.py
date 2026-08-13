@@ -19,7 +19,9 @@ SOURCE = ROOT / "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json
 
 
 def _source() -> dict[str, object]:
-    return json.loads(SOURCE.read_text(encoding="utf-8"))
+    source = json.loads(SOURCE.read_text(encoding="utf-8"))
+    source["qualification"]["maximum_exact_repeats"] = 2
+    return source
 
 
 def _card(source: dict[str, object]) -> dict[str, object]:
@@ -32,6 +34,7 @@ def _card(source: dict[str, object]) -> dict[str, object]:
             "calibration_campaign_binding": {
                 "path": "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json",
                 "sha256": "1" * 64,
+                "config_canonical_json_sha256": canonical_json_sha256(source),
             },
             "resource_formula_binding": build_task_resource_formula_binding(source),
         },
@@ -39,7 +42,6 @@ def _card(source: dict[str, object]) -> dict[str, object]:
         "proposed_hard_caps": {
             "operation_attempt_limit": 123,
             "protected_closeout_operation_reserve": 24,
-            "maximum_exact_repeats": 2,
             "process_time_limit_s": 50_000.0,
             "protected_closeout_reserve_s": 5_000.0,
             "input_token_limit": 9_000_000,
@@ -97,7 +99,11 @@ def test_task_resource_card_rejects_cross_task_and_formula_drift() -> None:
         locus="A_P",
         task_id="electrochemical-conversion",
         formal_source_config=source,
-        formal_source_binding={"path": "formal.json", "sha256": "2" * 64},
+        formal_source_binding={
+            "path": "formal.json",
+            "sha256": "2" * 64,
+            "config_canonical_json_sha256": canonical_json_sha256(source),
+        },
     )
     assert resolved == card
 
@@ -119,3 +125,57 @@ def test_task_resource_card_rejects_cross_task_and_formula_drift() -> None:
             task_id="reaction-safety-constrained",
             formal_source_config=source,
         )
+
+
+@pytest.mark.parametrize(
+    ("section", "field"),
+    [
+        ("campaign", "vessel_start_limit"),
+        ("campaign", "final_assay_limit"),
+        ("campaign", "nonfinal_instrument_use_limit"),
+        ("campaign", "stock_limits"),
+        ("campaign", "operation_repeat_limits"),
+        ("method_resources", "model_call_limit"),
+        ("method_resources", "training_environment_step_limit"),
+        ("qualification", "maximum_exact_repeats"),
+        ("provider", "model"),
+    ],
+)
+def test_task_resource_formula_rejects_design_limit_drift(
+    section: str, field: str
+) -> None:
+    source = _source()
+    card = _card(source)
+    drifted = deepcopy(source)
+    value = drifted[section][field]
+    if isinstance(value, int):
+        drifted[section][field] = value + 1
+    elif isinstance(value, dict):
+        drifted[section][field] = {**value, "drift_probe": 1}
+    else:
+        drifted[section][field] = f"{value}-drift"
+    with pytest.raises(ValueError, match="resource formula"):
+        materialize_task_resource_caps(drifted, card)
+
+
+def test_observed_zero_repeats_do_not_change_repeat_design() -> None:
+    source = _source()
+    card = _card(source)
+    card["observed_maxima"] = {"exact_repeat_count": 0}
+    card["card_sha256"] = canonical_json_sha256(
+        {key: value for key, value in card.items() if key != "card_sha256"}
+    )
+    config = materialize_task_resource_caps(source, card)
+    assert config["qualification"]["maximum_exact_repeats"] == 2
+
+
+def test_card_rejects_repeat_design_as_a_measured_cap() -> None:
+    source = _source()
+    card = _card(source)
+    card["proposed_hard_caps"]["maximum_exact_repeats"] = 1
+    card["card_sha256"] = canonical_json_sha256(
+        {key: value for key, value in card.items() if key != "card_sha256"}
+    )
+    assert validate_task_resource_card(card) == [
+        "resource card must not redefine the exact-repeat design invariant"
+    ]
