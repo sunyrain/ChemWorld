@@ -15,6 +15,7 @@ import re
 import sys
 import tempfile
 import time
+from copy import deepcopy
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -1816,8 +1817,13 @@ class ChemWorldMCPServer:
             "additionalProperties": False,
         }
 
-    @staticmethod
-    def _staged_belief_snapshot_tool_schema() -> dict[str, Any]:
+    def _staged_belief_snapshot_tool_schema(self) -> dict[str, Any]:
+        """Derive the staged participant grammar from the active public contract."""
+
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        complete_schema = self._belief_snapshot_schema()
+        complete_properties = complete_schema["properties"]
+        plan = self._page_plan(contract)
         probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
         string_id = {"type": "string", "minLength": 1, "maxLength": 200}
         string_ids = {
@@ -1829,7 +1835,9 @@ class ChemWorldMCPServer:
         metric_prediction = {
             "type": "object",
             "properties": {
-                "metric_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "metric_id": {
+                    "enum": [str(item) for item in contract.get("allowed_metric_ids", [])]
+                },
                 "mean": {"type": "number"},
                 "interval_lower": {"type": "number"},
                 "interval_upper": {"type": "number"},
@@ -1851,7 +1859,9 @@ class ChemWorldMCPServer:
                 "basis": {"enum": sorted(WORK_II_LAW_BASES)},
                 "input_ids": {
                     "type": "array",
-                    "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                    "items": {
+                        "enum": [str(item) for item in contract.get("allowed_feature_ids", [])]
+                    },
                     "minItems": 1,
                     "maxItems": 2,
                     "uniqueItems": True,
@@ -1865,7 +1875,9 @@ class ChemWorldMCPServer:
         metric_law = {
             "type": "object",
             "properties": {
-                "metric_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                "metric_id": {
+                    "enum": [str(item) for item in contract.get("allowed_metric_ids", [])]
+                },
                 "intercept": {"type": "number"},
                 "link": {"enum": sorted(WORK_II_LAW_LINKS)},
                 "lower_bound": {"type": "number"},
@@ -1899,35 +1911,11 @@ class ChemWorldMCPServer:
                         "Complete snapshot except predictions and law_summary.metric_laws."
                     ),
                     "properties": {
-                        "snapshot_id": string_id,
-                        "stage": string_id,
-                        "prior_assessment": {
-                            "type": "object",
-                            "properties": {
-                                "nominal_information_available": {"type": "boolean"},
-                                "reliability_probability": {
-                                    "type": ["number", "null"],
-                                    "minimum": 0.0,
-                                    "maximum": 1.0,
-                                },
-                                "suspected_misindexed_fields": {
-                                    **string_ids,
-                                    "maxItems": 16,
-                                },
-                                "rationale": {
-                                    "type": "string",
-                                    "minLength": 1,
-                                    "maxLength": 2000,
-                                },
-                            },
-                            "required": [
-                                "nominal_information_available",
-                                "reliability_probability",
-                                "suspected_misindexed_fields",
-                                "rationale",
-                            ],
-                            "additionalProperties": False,
-                        },
+                        "snapshot_id": deepcopy(complete_properties["snapshot_id"]),
+                        "stage": deepcopy(complete_properties["stage"]),
+                        "prior_assessment": deepcopy(
+                            complete_properties["prior_assessment"]
+                        ),
                         "law_summary": {
                             "type": "object",
                             "description": "Complete law summary except metric_laws.",
@@ -1935,10 +1923,22 @@ class ChemWorldMCPServer:
                                 "schema_version": {"const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION},
                                 "summary_id": string_id,
                                 "feature_ids": {
-                                    **string_ids,
+                                    "type": "array",
+                                    "items": {
+                                        "enum": [
+                                            str(item)
+                                            for item in contract.get("allowed_feature_ids", [])
+                                        ]
+                                    },
+                                    "maxItems": 64,
+                                    "uniqueItems": True,
                                     "minItems": 1,
                                 },
-                                "evidence_ids": string_ids,
+                                "evidence_ids": deepcopy(
+                                    complete_properties["law_summary"]["properties"][
+                                        "evidence_ids"
+                                    ]
+                                ),
                                 "applicability": {
                                     "type": "string",
                                     "minLength": 1,
@@ -1961,13 +1961,13 @@ class ChemWorldMCPServer:
                             ],
                             "additionalProperties": False,
                         },
-                        "evidence_ids": string_ids,
-                        "next_experiment_intent": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 2000,
-                        },
-                        "overall_confidence": probability,
+                        "evidence_ids": deepcopy(complete_properties["evidence_ids"]),
+                        "next_experiment_intent": deepcopy(
+                            complete_properties["next_experiment_intent"]
+                        ),
+                        "overall_confidence": deepcopy(
+                            complete_properties["overall_confidence"]
+                        ),
                     },
                     "required": [
                         "snapshot_id",
@@ -1980,14 +1980,22 @@ class ChemWorldMCPServer:
                     ],
                     "additionalProperties": False,
                 },
-                "page_id": string_id,
+                "page_id": {"enum": list(plan["submission_order"])},
                 "predictions": {
                     "type": "array",
+                    "minItems": 1,
                     "maxItems": PREDICTION_PAGE_SIZE,
                     "items": {
                         "type": "object",
                         "properties": {
-                            "query_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                            "query_id": {
+                                "enum": [
+                                    str(item)
+                                    for item in dict(
+                                        contract.get("query_metric_contract", {})
+                                    )
+                                ]
+                            },
                             "metrics": {
                                 "type": "array",
                                 "items": metric_prediction,
@@ -1998,15 +2006,62 @@ class ChemWorldMCPServer:
                         "required": ["query_id", "metrics"],
                         "additionalProperties": False,
                     },
+                    "x-chemworld-page-contract": {
+                        str(page["page_id"]): deepcopy(page["query_metric_contract"])
+                        for page in plan["prediction_pages"]
+                    },
                 },
                 "metric_laws": {
                     "type": "array",
+                    "minItems": 1,
                     "maxItems": LAW_PAGE_SIZE,
                     "items": metric_law,
+                    "x-chemworld-page-contract": {
+                        str(page["page_id"]): list(page["metric_ids"])
+                        for page in plan["law_pages"]
+                    },
                 },
             },
             "required": ["action"],
             "additionalProperties": False,
+            "oneOf": [
+                {
+                    "type": "object",
+                    "properties": {
+                        "action": {"const": "begin"},
+                        "snapshot_header": {"type": "object"},
+                    },
+                    "required": ["action", "snapshot_header"],
+                    "additionalProperties": False,
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "action": {"const": "append_prediction_page"},
+                        "page_id": {"type": "string"},
+                        "predictions": {"type": "array"},
+                    },
+                    "required": ["action", "page_id", "predictions"],
+                    "additionalProperties": False,
+                },
+                {
+                    "type": "object",
+                    "properties": {
+                        "action": {"const": "append_law_page"},
+                        "page_id": {"type": "string"},
+                        "metric_laws": {"type": "array"},
+                    },
+                    "required": ["action", "page_id", "metric_laws"],
+                    "additionalProperties": False,
+                },
+                {
+                    "type": "object",
+                    "properties": {"action": {"const": "finalize"}},
+                    "required": ["action"],
+                    "additionalProperties": False,
+                },
+            ],
+            "x-chemworld-submission-order": list(plan["submission_order"]),
         }
 
     @staticmethod
@@ -2116,8 +2171,10 @@ class ChemWorldMCPServer:
                 "name": "commit_belief_snapshot",
                 "description": (
                     "Stage and finalize the next typed Work II belief snapshot inside the active "
-                    "campaign session. The compact schema is generic; material_information, "
-                    "begin, and status publish the fixed page_id to exact query/metric ID plan. "
+                    "campaign session. The input schema is derived from the active public "
+                    "contract and enumerates its legal stages, feature/evidence IDs, page IDs, "
+                    "query IDs, and metric IDs. material_information, begin, and status publish "
+                    "the same fixed page_id to exact query/metric ID plan. "
                     "The host validates stage order, experiment-count location, exact page IDs, "
                     "evidence references, held-out predictions, and executable laws. No accepted "
                     "fragment can be replaced and no participant payload is auto-repaired. "

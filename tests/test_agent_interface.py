@@ -397,6 +397,10 @@ def test_core_task_prompts_are_structured_and_public() -> None:
             text = prompt["text"]
             assert prompt["prompt_version"] == "chemworld-agent-task-prompt-0.3"
             lifecycle = prompt["experiment_lifecycle"]
+            assert lifecycle["terminate_action_template"] == '{"operation":"terminate"}'
+            assert lifecycle["final_assay_action_template"] == (
+                '{"operation":"measure","instrument":"final_assay"}'
+            )
             assert "does not by itself complete" in lifecycle["terminate_effect"]
             assert "instrument=final_assay" in lifecycle["final_assay_precondition"]
             if prompt["episode_mode"] == "campaign":

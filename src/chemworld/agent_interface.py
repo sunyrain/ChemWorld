@@ -977,6 +977,10 @@ def experiment_lifecycle_contract(episode_mode: Any) -> dict[str, str]:
         else "A valid final_assay completes the experiment and ends the episode."
     )
     return {
+        "terminate_action_template": '{"operation":"terminate"}',
+        "final_assay_action_template": (
+            '{"operation":"measure","instrument":"final_assay"}'
+        ),
         "terminate_effect": (
             "terminate marks the current process as terminated; it does not by itself "
             "complete the experiment."
@@ -995,6 +999,11 @@ def experiment_lifecycle_contract(episode_mode: Any) -> dict[str, str]:
             "is exposed only when the campaign ledger still permits it."
             if episode_mode == "campaign"
             else "discard_batch is unavailable outside campaign mode."
+        ),
+        "discard_batch_action_template": (
+            '{"operation":"discard_batch","reason":"<participant rationale>"}'
+            if episode_mode == "campaign"
+            else "unavailable outside campaign mode"
         ),
     }
 

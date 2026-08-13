@@ -3026,6 +3026,10 @@ def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
                 "final_assay_required": True,
                 "final_assay_after_terminate": True,
                 "automatic_closeout": False,
+                "terminate_action_template": '{"operation":"terminate"}',
+                "final_assay_action_template": (
+                    '{"operation":"measure","instrument":"final_assay"}'
+                ),
             }
     return contract
 

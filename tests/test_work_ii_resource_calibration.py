@@ -16,6 +16,7 @@ import scripts.run_work_ii_resource_calibration as calibration_runner
 import chemworld.eval.work_ii_resource_calibration as calibration_module
 import chemworld.eval.work_ii_resource_calibration_v02 as calibration_v02
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
+from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.work_ii_c2_admission import build_c2_selection_protocol
 from chemworld.eval.work_ii_resource_calibration import (
     RESOURCE_CALIBRATION_ARMS,
@@ -1113,6 +1114,66 @@ def test_v02_runtime_and_authorization_bind_provider_error_measure_only(
     tampered["authorization_sha256"] = calibration_v02.authorization_sha256(tampered)
     assert "W2-26 authorization runtime contract is incomplete" in (
         calibration_v02.validate_authorization(ROOT, tampered, manifest_path)
+    )
+
+
+@pytest.mark.parametrize(
+    ("locus", "task_id", "rounds", "source_path"),
+    [
+        (
+            "A_P",
+            "reaction-safety-constrained",
+            10,
+            "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json",
+        ),
+        (
+            "A_P",
+            "electrochemical-conversion",
+            10,
+            "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json",
+        ),
+        (
+            "A_S",
+            "partition-discovery",
+            12,
+            "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
+        ),
+        (
+            "A_S",
+            "reaction-to-crystallization",
+            12,
+            "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
+        ),
+    ],
+)
+def test_v02_ap_as_materialization_reaches_typed_resource_constructor(
+    locus: str,
+    task_id: str,
+    rounds: int,
+    source_path: str,
+) -> None:
+    source = json.loads((ROOT / source_path).read_text(encoding="utf-8"))
+    assert "resource_status" in source["method_resources"]
+    config = calibration_v02._materialize_runtime_config(
+        source, locus=locus, task_id=task_id, rounds=rounds
+    )
+    assert calibration_v02.RUNTIME_CONFIG_ROOT.name.endswith("v0.4")
+    assert "resource_status" not in config["method_resources"]
+    assert calibration_v02._config_errors(
+        config, locus=locus, task_id=task_id, rounds=rounds
+    ) == []
+    limits = MethodResourceLimits.from_payload(
+        config["method_resources"],
+        operation_limit=int(config["method_resources"]["operation_limit"]),
+    )
+    assert limits.complete_experiment_limit == rounds
+    stale = deepcopy(config)
+    stale["method_resources"]["resource_status"] = "metadata"
+    assert any(
+        "unsupported MethodResourceLimits fields: resource_status" in error
+        for error in calibration_v02._config_errors(
+            stale, locus=locus, task_id=task_id, rounds=rounds
+        )
     )
 
 

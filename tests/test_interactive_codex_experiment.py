@@ -592,6 +592,48 @@ def test_atomic_ipc_writes_retry_transient_permission_errors(
     assert json.loads(target.read_text(encoding="utf-8")) == {"ok": True}
 
 
+def test_expected_step_update_keeps_active_session_pointer_immutable(
+    tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    workspace = experiment_ipc.ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    initial = workspace.start_session(
+        session_id="campaign-session",
+        expected_step=1,
+        response_timeout_s=1.0,
+        session_scope="campaign",
+    )
+    active_before = workspace.active_session_path.read_bytes()
+    real_replace = experiment_ipc.os.replace
+    replaced_destinations: list[Path] = []
+
+    def reject_active_pointer_replace(source: Any, destination: Any) -> None:
+        target = Path(destination).resolve()
+        replaced_destinations.append(target)
+        if target == workspace.active_session_path.resolve():
+            raise AssertionError("expected-step updates must not replace the active pointer")
+        real_replace(source, destination)
+
+    monkeypatch.setattr(experiment_ipc.os, "replace", reject_active_pointer_replace)
+
+    workspace.update_expected_step(session_id="campaign-session", expected_step=2)
+
+    session_descriptor = json.loads(
+        (workspace.session_root("campaign-session") / "session.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    assert session_descriptor["expected_step"] == 2
+    assert workspace._session_descriptor("campaign-session")["expected_step"] == 2
+    assert workspace.active_session_path.read_bytes() == active_before
+    assert workspace.active_session_path.resolve() not in replaced_destinations
+
+    server = experiment_mcp.ChemWorldMCPServer(workspace.root)
+    for _ in range(100):
+        assert server._descriptor() == initial
+
+
 def test_material_payload_blinds_aligned_vs_misindexed_mode_labels() -> None:
     dossier = {"presentation": "anonymous", "choices": {"solvent": []}}
     aligned = _material_information_payload(
@@ -695,6 +737,10 @@ def test_public_task_contract_exposes_composition_and_explicit_closeout() -> Non
         "final_assay_required": True,
         "final_assay_after_terminate": True,
         "automatic_closeout": False,
+        "terminate_action_template": '{"operation":"terminate"}',
+        "final_assay_action_template": (
+            '{"operation":"measure","instrument":"final_assay"}'
+        ),
     }
 
 

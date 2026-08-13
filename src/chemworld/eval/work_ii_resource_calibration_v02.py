@@ -11,6 +11,7 @@ import copy
 import json
 import math
 from collections.abc import Mapping
+from dataclasses import fields
 from pathlib import Path
 from typing import Any
 
@@ -23,6 +24,7 @@ from chemworld.eval.provenance import (
     git_source_commit,
     write_json_atomic,
 )
+from chemworld.eval.resource_accounting import MethodResourceLimits
 from chemworld.eval.work_ii_resource_calibration import (
     DEFAULT_PROTECTED_CLOSEOUT_OPERATIONS,
     PROTECTED_CLOSEOUT_POLICY,
@@ -37,7 +39,10 @@ SUMMARY_VERSION = "chemworld-work-ii-resource-calibration-summary-0.2"
 AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.2"
 READINESS_VERSION = "chemworld-work-ii-resource-calibration-readiness-0.2"
 RUNTIME_CONFIG_ROOT = Path(
-    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.3"
+    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.4"
+)
+METHOD_RESOURCE_LIMIT_FIELDS = frozenset(
+    field.name for field in fields(MethodResourceLimits)
 )
 CHECKPOINTS = {
     8: (0, 2, 4, 6, 8),
@@ -219,6 +224,12 @@ def _materialize_runtime_config(
     # replacing three already-started calibration arms.
     provider["pre_action_restart_limit"] = 1
     config["provider"] = provider
+    resources = config.get("method_resources")
+    resources = resources if isinstance(resources, dict) else {}
+    # The source-level planning label is metadata, while the production runner
+    # passes this mapping directly into MethodResourceLimits.
+    resources.pop("resource_status", None)
+    config["method_resources"] = resources
     config["w2_26_runtime_identity"] = {
         "locus": locus,
         "task_id": task_id,
@@ -238,6 +249,15 @@ def _config_errors(
     resources = config.get("method_resources")
     resources = resources if isinstance(resources, Mapping) else {}
     errors: list[str] = []
+    unsupported_resource_fields = sorted(
+        set(resources).difference(METHOD_RESOURCE_LIMIT_FIELDS)
+    )
+    if unsupported_resource_fields:
+        errors.append(
+            f"{locus}/{task_id} method_resources has unsupported "
+            "MethodResourceLimits fields: "
+            + ", ".join(unsupported_resource_fields)
+        )
     if config.get("task_id") != task_id:
         errors.append(f"{locus}/{task_id} config task differs")
     if isinstance(config.get("world_seed"), bool) or not isinstance(
@@ -1055,6 +1075,70 @@ def _agent_invalid_recovery_observation(
     }
 
 
+def _terminal_provider_receipt(row: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    receipts = row.get("provider_receipts")
+    receipts = (
+        [item for item in receipts if isinstance(item, Mapping)]
+        if isinstance(receipts, list)
+        else []
+    )
+    terminal_receipts = [
+        item
+        for item in receipts
+        if item.get("pre_action_retry_classification") == "terminal_accepted"
+    ]
+    if not terminal_receipts and len(receipts) == 1:
+        # Historical single-session rows predate the explicit classification.
+        terminal_receipts = receipts
+    predecessor_receipts = [
+        item
+        for item in receipts
+        if item.get("pre_action_retry_classification")
+        == "eligible_zero_action_infrastructure_predecessor"
+    ]
+    if (
+        len(terminal_receipts) != 1
+        or len(predecessor_receipts) > 1
+        or len(receipts) != len(terminal_receipts) + len(predecessor_receipts)
+    ):
+        return None
+    return terminal_receipts[0]
+
+
+def cell_has_platform_defect(row: Mapping[str, Any]) -> bool:
+    """Return whether a W2-26 cell lacks intact execution evidence."""
+
+    receipt = _terminal_provider_receipt(row)
+    if receipt is None:
+        return True
+    method = row.get("method_resources")
+    method = method if isinstance(method, Mapping) else {}
+    qualification = row.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    checks = qualification.get("checks")
+    checks = checks if isinstance(checks, Mapping) else {}
+    try:
+        mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
+    except (KeyError, TypeError, ValueError):
+        return True
+    return (
+        method.get("provider_usage_pending") is not False
+        or method.get("provider_usage_accounting_complete") is not True
+        or method.get("in_flight_model_call_count") != 0
+        or int(mcp_failure_observation["transport_count"]) != 0
+        or int(mcp_failure_observation["unclassified_count"]) != 0
+        or any(
+            checks.get(name) is not True
+            for name in (
+                "one_campaign_session",
+                "tool_integrity",
+                "exact_replay",
+                "execution_audit",
+            )
+        )
+    )
+
+
 def validate_summary(
     summary: Mapping[str, Any], *, manifest: Mapping[str, Any]
 ) -> list[str]:
@@ -1253,30 +1337,12 @@ def build_summary(
                 if isinstance(receipts, list)
                 else []
             )
-            terminal_receipts = [
-                item
-                for item in receipts
-                if item.get("pre_action_retry_classification") == "terminal_accepted"
-            ]
-            if not terminal_receipts and len(receipts) == 1:
-                # Historical single-session rows predate the explicit accepted-session
-                # classification.  They remain valid inputs when otherwise complete.
-                terminal_receipts = receipts
-            predecessor_receipts = [
-                item
-                for item in receipts
-                if item.get("pre_action_retry_classification")
-                == "eligible_zero_action_infrastructure_predecessor"
-            ]
-            receipt_contract_valid = (
-                len(terminal_receipts) == 1
-                and len(predecessor_receipts) <= 1
-                and len(receipts) == len(terminal_receipts) + len(predecessor_receipts)
-            )
-            receipt = terminal_receipts[0] if len(terminal_receipts) == 1 else {}
+            terminal_receipt = _terminal_provider_receipt(row)
+            receipt_contract_valid = terminal_receipt is not None
+            receipt = terminal_receipt or {}
             try:
                 mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
-            except ValueError:
+            except (KeyError, TypeError, ValueError):
                 mcp_failure_observation = None
             final_resources = analysis.get("final_campaign_resources")
             final_resources = final_resources if isinstance(final_resources, Mapping) else {}
@@ -1288,24 +1354,7 @@ def build_summary(
             process_profile = process_profile if isinstance(process_profile, Mapping) else {}
             counts = process_profile.get("counts")
             counts = counts if isinstance(counts, Mapping) else {}
-            platform_failure = (
-                not receipt_contract_valid
-                or method.get("provider_usage_pending") is not False
-                or method.get("provider_usage_accounting_complete") is not True
-                or method.get("in_flight_model_call_count") != 0
-                or mcp_failure_observation is None
-                or int(mcp_failure_observation["unclassified_count"]) != 0
-                or int(mcp_failure_observation["transport_count"]) != 0
-                or any(
-                    checks.get(name) is not True
-                    for name in (
-                        "one_campaign_session",
-                        "tool_integrity",
-                        "exact_replay",
-                        "execution_audit",
-                    )
-                )
-            )
+            platform_failure = cell_has_platform_defect(row)
             complete = int(analysis.get("complete_experiment_count", 0))
             resource_checks = (
                 "planned_complete_experiments",
@@ -1314,7 +1363,6 @@ def build_summary(
                 "provider_session_completed",
                 "final_recommendation_committed",
                 "tool_integrity",
-                "no_resource_rejection",
                 "campaign_terminal",
                 "process_time_reconciled",
                 "task_required_operations_reconciled",
@@ -1603,6 +1651,7 @@ __all__ = [
     "build_execution_manifest",
     "build_readiness",
     "build_summary",
+    "cell_has_platform_defect",
     "empty_summary",
     "pattern_key",
     "pattern_slug",

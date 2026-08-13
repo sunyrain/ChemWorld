@@ -20,6 +20,7 @@ from chemworld.eval.provenance import (
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     RESOURCE_CALIBRATION_ARMS,
+    cell_has_platform_defect,
     pattern_key,
     pattern_slug,
 )
@@ -339,55 +340,9 @@ def _validate_cell_execution_binding(
 
 
 def _cell_has_platform_defect(row: Mapping[str, object]) -> bool:
-    """Return whether a closed cell lacks intact execution evidence.
+    """Compatibility wrapper around the shared W2-26 evidence classifier."""
 
-    Provider-error events are retained method observations once the cell has one
-    receipt and complete usage, replay, tool-integrity, and execution-audit
-    evidence.  They therefore remain available to qualification without being
-    promoted here into an infrastructure restart.
-    """
-
-    receipts = row.get("provider_receipts")
-    receipts = (
-        [item for item in receipts if isinstance(item, Mapping)]
-        if isinstance(receipts, list)
-        else []
-    )
-    terminal_receipts = [
-        item
-        for item in receipts
-        if item.get("pre_action_retry_classification") == "terminal_accepted"
-    ]
-    predecessor_receipts = [
-        item
-        for item in receipts
-        if item.get("pre_action_retry_classification")
-        == "eligible_zero_action_infrastructure_predecessor"
-    ]
-    receipt_contract_valid = len(receipts) == 1 or (
-        len(terminal_receipts) == 1
-        and len(predecessor_receipts) <= 1
-        and len(receipts) == len(terminal_receipts) + len(predecessor_receipts)
-    )
-    qualification = row.get("qualification")
-    qualification = qualification if isinstance(qualification, Mapping) else {}
-    checks = qualification.get("checks")
-    checks = checks if isinstance(checks, Mapping) else {}
-    method = row.get("method_resources")
-    method = method if isinstance(method, Mapping) else {}
-    platform_checks = (
-        "one_campaign_session",
-        "tool_integrity",
-        "exact_replay",
-        "execution_audit",
-    )
-    return (
-        not receipt_contract_valid
-        or method.get("provider_usage_pending") is not False
-        or method.get("provider_usage_accounting_complete") is not True
-        or method.get("in_flight_model_call_count") != 0
-        or any(checks.get(field) is not True for field in platform_checks)
-    )
+    return cell_has_platform_defect(row)
 
 
 def execute_calibration(

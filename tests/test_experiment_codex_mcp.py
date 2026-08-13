@@ -310,7 +310,7 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "append_law_page",
             "finalize",
         ]
-        assert "oneOf" not in json.dumps(snapshot)
+        assert len(snapshot["oneOf"]) == 4
         header = snapshot["properties"]["snapshot_header"]
         assert "prior_assessment" in header["required"]
         assert set(header["properties"]["prior_assessment"]["required"]) == {
@@ -320,13 +320,42 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
             "rationale",
         }
         assert "metric_laws" not in header["properties"]["law_summary"]["properties"]
+        assert header["properties"]["stage"]["enum"] == [
+            "pre_evidence",
+            "after_experiment_1",
+            "after_experiment_2",
+            "final",
+        ]
+        assert header["properties"]["prior_assessment"]["properties"][
+            "nominal_information_available"
+        ] == {"const": False}
+        assert header["properties"]["prior_assessment"]["properties"][
+            "suspected_misindexed_fields"
+        ]["items"] == {"enum": ["solvent"]}
+        assert header["properties"]["law_summary"]["properties"]["feature_ids"][
+            "items"
+        ] == {"enum": ["potential_V"]}
+        assert header["properties"]["evidence_ids"]["items"] == {
+            "enum": ["experiment-1-final-assay"]
+        }
+        assert snapshot["properties"]["page_id"]["enum"] == [
+            "predictions-001",
+            "laws-001",
+        ]
+        assert snapshot["x-chemworld-submission-order"] == [
+            "predictions-001",
+            "laws-001",
+        ]
+        assert snapshot["properties"]["predictions"]["items"]["properties"][
+            "query_id"
+        ] == {"enum": ["q0"]}
         assert snapshot["properties"]["predictions"]["maxItems"] == 4
         metric_laws = snapshot["properties"]["metric_laws"]
         assert metric_laws["maxItems"] == 2
         assert "link" in metric_laws["items"]["required"]
-        assert (
-            "sole participant-facing authority" in by_name["commit_belief_snapshot"]["description"]
-        )
+        assert "derived from the active public contract" in by_name[
+            "commit_belief_snapshot"
+        ]["description"]
         assert STAGED_BELIEF_SNAPSHOT_GUIDE in by_name["commit_belief_snapshot"]["description"]
         assert BELIEF_SNAPSHOT_SHAPE_GUIDE not in by_name["commit_belief_snapshot"]["description"]
         assert "legacy" not in by_name["commit_belief_snapshot"]["description"].lower()

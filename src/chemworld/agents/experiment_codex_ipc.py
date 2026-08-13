@@ -451,9 +451,11 @@ class ExperimentCodexWorkspace:
         descriptor = deepcopy(self._session_descriptor(session_id))
         descriptor["expected_step"] = int(expected_step)
         _atomic_write_json(self.session_root(session_id) / "session.json", descriptor)
-        active = _read_json_object(self.active_session_path)
-        if active.get("session_id") == session_id:
-            _atomic_write_json(self.active_session_path, descriptor)
+        # ``active_session.json`` is an immutable pointer for the lifetime of one
+        # provider turn.  The MCP process reads it frequently to resolve the
+        # session namespace, so replacing it after every operation creates an
+        # unnecessary Windows reader/writer sharing race.  Mutable CAS state is
+        # owned by the session descriptor and the host-side descriptor cache.
         self._session_descriptors[session_id] = deepcopy(descriptor)
 
     def wait_for_request(
