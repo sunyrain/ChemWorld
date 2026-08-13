@@ -231,6 +231,243 @@ def test_authorization_binds_every_task_and_keeps_unknown_pricing_unknown(
     assert calibration_runner._observed_currency({}, authorization) is None
 
 
+def test_task9_platform_defect_restarts_whole_triplet_once_then_exhausts_cap() -> None:
+    pattern = {
+        "locus": "A_S",
+        "task_id": "reaction-to-crystallization",
+        "rounds": 12,
+    }
+    authorization = {
+        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2}
+    }
+
+    first = calibration_runner._platform_defect_disposition(
+        provider_attempt_hard_cap=calibration_runner._provider_attempt_hard_cap(
+            authorization
+        ),
+        pattern=pattern,
+        attempt_number=1,
+        reserved_cost_usd=None,
+    )
+    assert first == {
+        "status": "infrastructure_incomplete_full_triplet_restarting",
+        "locus": "A_S",
+        "task_id": "reaction-to-crystallization",
+        "rounds": 12,
+        "attempt_number": 1,
+        "provider_attempt_hard_cap": 2,
+        "automatic_full_triplet_resume": True,
+        "next_attempt_number": 2,
+        "reserved_cost_usd": None,
+    }
+
+    exhausted = calibration_runner._platform_defect_disposition(
+        provider_attempt_hard_cap=calibration_runner._provider_attempt_hard_cap(
+            authorization
+        ),
+        pattern=pattern,
+        attempt_number=2,
+        reserved_cost_usd=None,
+    )
+    assert exhausted["status"] == (
+        "infrastructure_incomplete_full_triplet_resume_cap_exhausted"
+    )
+    assert exhausted["automatic_full_triplet_resume"] is False
+    assert exhausted["next_attempt_number"] is None
+
+
+def test_platform_restart_disposition_requires_authorized_hard_cap() -> None:
+    with pytest.raises(RuntimeError, match="provider-attempt hard cap"):
+        calibration_runner._provider_attempt_hard_cap(
+            {"runtime_enforcement": {}}
+        )
+
+
+def _one_pattern_execution(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    *,
+    platform_attempts: set[int],
+) -> tuple[dict[str, object], Path, list[tuple[int, str]]]:
+    config_path = repo_tmp_path / "task9-config.json"
+    config_path.write_text(
+        json.dumps(
+            {
+                "campaign": {
+                    "process_time_policy": {},
+                    "closeout_policy": {},
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    pattern = {
+        "locus": "A_S",
+        "task_id": "reaction-to-crystallization",
+        "rounds": 12,
+        "world_seed": 0,
+        "campaign_config_binding": {
+            "path": config_path.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(config_path),
+        },
+    }
+    manifest = {"patterns": [pattern]}
+    manifest_path = repo_tmp_path / "task9-manifest.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    authorization = {
+        "authorization_sha256": "a" * 64,
+        "development_runtime_commit_observed": "b" * 40,
+        "unlimited_spend_authorized": True,
+        "currency_ceiling_usd": None,
+        "all_infrastructure_resumes": {"cost_cap_usd": None},
+        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2},
+        "pattern_attempt_contracts": [
+            {
+                **pattern,
+                "initial_triplet_cost_cap_usd": None,
+            }
+        ],
+    }
+    authorization_path = repo_tmp_path / "task9-authorization.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    output_root = repo_tmp_path / "task9-output"
+    launches: list[tuple[int, str]] = []
+
+    class Process:
+        def __init__(self, command, **_kwargs) -> None:
+            cell_root = Path(command[command.index("--output") + 1])
+            arm = str(command[command.index("--prior-arm") + 1])
+            attempt_number = int(cell_root.parent.name.split("-")[1])
+            launches.append((attempt_number, arm))
+            cell_root.mkdir(parents=True)
+            (cell_root / "summary.json").write_text(
+                json.dumps(
+                    {
+                        "arm": arm,
+                        "platform_defect": attempt_number in platform_attempts,
+                        "qualification": {"passed": False},
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+        def poll(self) -> int:
+            return 0
+
+        def wait(self) -> int:
+            return 0
+
+    monkeypatch.setattr(
+        calibration_runner,
+        "validate_resource_calibration_authorization",
+        lambda *_args, **_kwargs: [],
+    )
+    monkeypatch.setattr(
+        calibration_runner, "_validate_cell_execution_binding", lambda *_args, **_kwargs: None
+    )
+    monkeypatch.setattr(
+        calibration_runner,
+        "_cell_has_platform_defect",
+        lambda row: bool(row["platform_defect"]),
+    )
+    monkeypatch.setattr(calibration_runner.subprocess, "Popen", Process)
+    monkeypatch.setattr(
+        calibration_runner,
+        "build_resource_calibration_summary",
+        lambda *_args, **_kwargs: {"status": "failed", "summary_sha256": "c" * 64},
+    )
+    monkeypatch.setattr(
+        calibration_runner,
+        "validate_resource_calibration_summary",
+        lambda *_args, **_kwargs: [],
+    )
+    result = calibration_runner.execute_calibration(
+        manifest_path=manifest_path,
+        authorization_path=authorization_path,
+        output_root=output_root,
+        resume=False,
+    )
+    return result, output_root, launches
+
+
+def test_task9_platform_defect_restarts_all_three_arms_without_reusing_attempt1(
+    repo_tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result, output_root, launches = _one_pattern_execution(
+        repo_tmp_path, monkeypatch, platform_attempts={1}
+    )
+
+    assert result["status"] == "failed"
+    assert launches == [
+        (attempt_number, arm)
+        for attempt_number in (1, 2)
+        for arm in calibration.RESOURCE_CALIBRATION_ARMS
+    ]
+    attempts = sorted(
+        (output_root / "triplet_attempts" / "a_s--reaction-to-crystallization--r12").glob(
+            "attempt-*"
+        )
+    )
+    assert len(attempts) == 2
+    assert all((attempt / "triplet_report.json").is_file() for attempt in attempts)
+    assert all(
+        (attempts[0] / arm / "summary.json").is_file()
+        for arm in calibration.RESOURCE_CALIBRATION_ARMS
+    )
+    progress = [
+        json.loads(line)
+        for line in (output_root / "progress.jsonl").read_text(encoding="utf-8").splitlines()
+    ]
+    assert [row["event"] for row in progress[:2]] == [
+        "resource_calibration_triplet_invalidated",
+        "resource_calibration_triplet_restarting",
+    ]
+    assert progress[1]["prior_attempt_results_reused"] is False
+
+
+def test_task9_platform_restart_cap_exhaustion_never_creates_attempt3(
+    repo_tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result, output_root, launches = _one_pattern_execution(
+        repo_tmp_path, monkeypatch, platform_attempts={1, 2}
+    )
+
+    assert result["status"] == (
+        "infrastructure_incomplete_full_triplet_resume_cap_exhausted"
+    )
+    assert result["attempt_number"] == 2
+    assert len(launches) == 6
+    attempts = list(
+        (output_root / "triplet_attempts" / "a_s--reaction-to-crystallization--r12").glob(
+            "attempt-*"
+        )
+    )
+    assert len(attempts) == 2
+    assert not (output_root / "terminal_triplets").exists()
+
+
+def test_task9_method_failure_is_retained_without_restart(
+    repo_tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    result, output_root, launches = _one_pattern_execution(
+        repo_tmp_path, monkeypatch, platform_attempts=set()
+    )
+
+    assert result["status"] == "failed"
+    assert launches == [(1, arm) for arm in calibration.RESOURCE_CALIBRATION_ARMS]
+    attempts = list(
+        (output_root / "triplet_attempts" / "a_s--reaction-to-crystallization--r12").glob(
+            "attempt-*"
+        )
+    )
+    assert len(attempts) == 1
+    assert (
+        output_root
+        / "terminal_triplets"
+        / "a_s--reaction-to-crystallization--r12.json"
+    ).is_file()
+
+
 def test_task_slug_and_terminal_report_preserve_task_identity() -> None:
     manifest = _manifest()
     slugs = [calibration.pattern_slug(row) for row in manifest["patterns"]]
@@ -296,6 +533,7 @@ def test_resume_reads_one_terminal_triplet_per_task(
         "currency_ceiling_usd": None,
         "unlimited_spend_authorized": True,
         "all_infrastructure_resumes": {"cost_cap_usd": None},
+        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2},
         "pattern_attempt_contracts": [],
     }
     authorization_path = repo_tmp_path / "authorization-v0.2.json"

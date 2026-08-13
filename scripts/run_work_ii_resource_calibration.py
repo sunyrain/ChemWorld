@@ -345,6 +345,48 @@ def _cell_has_platform_defect(row: Mapping[str, object]) -> bool:
     return cell_has_platform_defect(row)
 
 
+def _provider_attempt_hard_cap(authorization: Mapping[str, object]) -> int:
+    """Return the validated authorization-owned per-cell attempt hard cap."""
+
+    runtime = authorization.get("runtime_enforcement")
+    runtime = runtime if isinstance(runtime, Mapping) else {}
+    hard_cap = runtime.get("per_cell_provider_attempt_hard_cap")
+    if (
+        isinstance(hard_cap, bool)
+        or not isinstance(hard_cap, int)
+        or hard_cap < 1
+    ):
+        raise RuntimeError("W2-26 authorization lacks a valid provider-attempt hard cap")
+    return hard_cap
+
+
+def _platform_defect_disposition(
+    *,
+    provider_attempt_hard_cap: int,
+    pattern: Mapping[str, object],
+    attempt_number: int,
+    reserved_cost_usd: float | None,
+) -> dict[str, object]:
+    """Apply the authorized whole-triplet infrastructure restart hard cap."""
+
+    automatic_resume = attempt_number < provider_attempt_hard_cap
+    return {
+        "status": (
+            "infrastructure_incomplete_full_triplet_restarting"
+            if automatic_resume
+            else "infrastructure_incomplete_full_triplet_resume_cap_exhausted"
+        ),
+        "locus": pattern["locus"],
+        "task_id": pattern["task_id"],
+        "rounds": pattern["rounds"],
+        "attempt_number": attempt_number,
+        "provider_attempt_hard_cap": provider_attempt_hard_cap,
+        "automatic_full_triplet_resume": automatic_resume,
+        "next_attempt_number": attempt_number + 1 if automatic_resume else None,
+        "reserved_cost_usd": reserved_cost_usd,
+    }
+
+
 def execute_calibration(
     *,
     manifest_path: Path,
@@ -410,6 +452,7 @@ def execute_calibration(
     pattern_contracts = {
         pattern_key(row): row for row in authorization["pattern_attempt_contracts"]
     }
+    provider_attempt_hard_cap = _provider_attempt_hard_cap(authorization)
     total_triplets = len(manifest["patterns"])
     for triplet_index, pattern in enumerate(manifest["patterns"], start=1):
         rounds = int(pattern["rounds"])
@@ -429,7 +472,7 @@ def execute_calibration(
             continue
         attempts_root = output_root / "triplet_attempts" / slug
         existing = sorted(attempts_root.glob("attempt-*")) if attempts_root.is_dir() else []
-        if len(existing) >= 2:
+        if len(existing) >= provider_attempt_hard_cap:
             raise RuntimeError(f"W2-26 {slug} triplet exhausted its resume cap")
         attempt_number = len(existing) + 1
         attempt_root = attempts_root / f"attempt-{attempt_number}-{uuid4().hex}"
@@ -669,6 +712,12 @@ def execute_calibration(
         )
         _write_once(attempt_root / "triplet_report.json", triplet_report)
         if platform_defect:
+            disposition = _platform_defect_disposition(
+                provider_attempt_hard_cap=provider_attempt_hard_cap,
+                pattern=pattern,
+                attempt_number=attempt_number,
+                reserved_cost_usd=reserved_cost,
+            )
             _emit(
                 progress_path,
                 {
@@ -680,14 +729,31 @@ def execute_calibration(
                     "resume_requires_full_triplet_restart": True,
                 },
             )
-            return {
-                "status": "infrastructure_incomplete_full_triplet_resume_required",
-                "locus": pattern["locus"],
-                "task_id": pattern["task_id"],
-                "rounds": rounds,
-                "attempt_number": attempt_number,
-                "reserved_cost_usd": reserved_cost,
-            }
+            if disposition["automatic_full_triplet_resume"] is True:
+                _emit(
+                    progress_path,
+                    {
+                        "event": "resource_calibration_triplet_restarting",
+                        "rounds": rounds,
+                        "locus": pattern["locus"],
+                        "task_id": pattern["task_id"],
+                        "invalidated_attempt_number": attempt_number,
+                        "next_attempt_number": disposition["next_attempt_number"],
+                        "provider_attempt_hard_cap": disposition[
+                            "provider_attempt_hard_cap"
+                        ],
+                        "full_triplet_restart_from_first_arm": True,
+                        "prior_attempt_results_reused": False,
+                    },
+                )
+                return execute_calibration(
+                    manifest_path=manifest_path,
+                    authorization_path=authorization_path,
+                    output_root=output_root,
+                    resume=True,
+                    cell_runner=cell_runner,
+                )
+            return disposition
         _write_once(terminal_path, triplet_report)
         accepted_reports.append(triplet_report)
         now = time.monotonic()
