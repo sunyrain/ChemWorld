@@ -1,0 +1,639 @@
+{
+  "analysis": {
+    "action_evaluation_required": true,
+    "aligned_noninferiority_margin": -0.05,
+    "cluster_unit": "task_x_world_seed",
+    "final_metric_ids": [
+      "yield",
+      "conversion",
+      "selectivity"
+    ],
+    "primary_effect": "misspecified_pre_to_final_error_reduction_minus_aligned",
+    "safety_violations_reported": true,
+    "typed_executable_law_required": true
+  },
+  "as_d1_production": {
+    "candidate_id": "crystallization_reversible_topology",
+    "child_config": "configs/benchmark/work_ii_as_d1_production/work-ii-as-crystallization-d1-seed2.json",
+    "formal_result": false,
+    "parent_id": "work-ii-as-d1-five-seed-production",
+    "provider_call_count": 0,
+    "provider_execution_authorized": false,
+    "schema_version": "chemworld-work-ii-as-d1-campaign-child-0.1",
+    "source_static_config": "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
+    "task_id": "reaction-to-crystallization",
+    "world_seed": 2
+  },
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "stirring_speed_rpm",
+      "catalyst_amount_mol",
+      "seed_mass_g",
+      "crystallization_temperature_K",
+      "crystallization_duration_s"
+    ],
+    "allowed_metric_ids": [
+      "yield",
+      "conversion",
+      "selectivity"
+    ],
+    "allowed_prior_fields": [
+      "target_pathway_topology",
+      "reverse_rate_constant_s_inv"
+    ],
+    "held_out_queries": [
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 380.859358068556,
+          "reagent_amount_mol": 0.019214670165,
+          "seed_mass_g": 0.008,
+          "solvent": 1,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "3eb02b160e37a78a6f5f29258a102374b5008d04bab0ded5b19f1960661c30cf",
+        "query_id": "c384"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 410.397827038541,
+          "reagent_amount_mol": 0.012311344119,
+          "seed_mass_g": 0.008,
+          "solvent": 2,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "69369bdfe36155fb24bc42a6ee88506a4daa7dd7a957cf7f2dc2fe46b3e11a5d",
+        "query_id": "c402"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 355.74840048328,
+          "reagent_amount_mol": 0.016855567601,
+          "seed_mass_g": 0.008,
+          "solvent": 0,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "b4481910a0459508e716a647ba790d505cfdcb819410f0286f31dab548b7c4b7",
+        "query_id": "c420"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 400.650639506057,
+          "reagent_amount_mol": 0.014972911477,
+          "seed_mass_g": 0.008,
+          "solvent": 3,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "7512436fab98c7d1b616bf7757f94dca48cf93ade6d66b6ba58e4c57418f2258",
+        "query_id": "c438"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 369.701952347532,
+          "reagent_amount_mol": 0.018521627085,
+          "seed_mass_g": 0.008,
+          "solvent": 3,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "f11efe592489033985a4605f52810df6acaad7553baaef0d723219a225430483",
+        "query_id": "c456"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 412.400116678327,
+          "reagent_amount_mol": 0.010426259665,
+          "seed_mass_g": 0.008,
+          "solvent": 0,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "34badb68abdc3806910cb58955d337830c72b570997bb771bf804cf399f38b11",
+        "query_id": "c474"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 362.530324431136,
+          "reagent_amount_mol": 0.016182052568,
+          "seed_mass_g": 0.008,
+          "solvent": 2,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "1c7dd576a7169016e55c1ff46d25b12e3b2f779fb63278ad2659c64fe4f37e4a",
+        "query_id": "c492"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 3600.0,
+          "reaction_temperature_K": 385.523898396641,
+          "reagent_amount_mol": 0.013068304043,
+          "seed_mass_g": 0.008,
+          "solvent": 1,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "temperature",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "c195c1091a674e3bd10ac1c4993122d465a74c1deb43793f27b11c9e6fffef8c",
+        "query_id": "c510"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 5165.122293680906,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.012024556454,
+          "seed_mass_g": 0.008,
+          "solvent": 3,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "cb86e2bd6a60dc593d6fe2c4987ad34372084541d634ab151dfd7684bf1e2a36",
+        "query_id": "c385"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 4936.034570261836,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.018871306628,
+          "seed_mass_g": 0.008,
+          "solvent": 0,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "96a4e1b66a142e7112c9c5b11334aaec2542c5109103b7c1bf3634a579663b28",
+        "query_id": "c403"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 4401.230462640524,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.014675562931,
+          "seed_mass_g": 0.008,
+          "solvent": 2,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "bf6303af7cdc4daa8ade2fbe06bb2bb0d5af69910c582b0bca4afc4b7ff0bea3",
+        "query_id": "c421"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 5673.561806604266,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.016542830588,
+          "seed_mass_g": 0.008,
+          "solvent": 1,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "84c954a5c442560566c6482a9221b358a7ac57f0282c21810838740909c78280",
+        "query_id": "c439"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 4758.721080422401,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.01008151345,
+          "seed_mass_g": 0.008,
+          "solvent": 1,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "ad1f5848af107bfd8a83dd55471c9f1824dd865bb3992d23a7cc838a312acb4d",
+        "query_id": "c457"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 4987.763083353639,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.018236222398,
+          "seed_mass_g": 0.008,
+          "solvent": 2,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "9a12021a95e6db27b43204c318f18f0dfe345765cef4043acf599d1335a7807e",
+        "query_id": "c475"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 5475.783687829971,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.012752047824,
+          "seed_mass_g": 0.008,
+          "solvent": 0,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "866af7dd639b3986e024c7efc554cad97ae16417d40c64a5195f6e22014c1cbe",
+        "query_id": "c493"
+      },
+      {
+        "feature_values": {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.000315,
+          "crystallization_duration_s": 7200.0,
+          "crystallization_temperature_K": 290.0,
+          "reaction_duration_s": 4203.315070644021,
+          "reaction_temperature_K": 385.0,
+          "reagent_amount_mol": 0.015888222931,
+          "seed_mass_g": 0.008,
+          "solvent": 3,
+          "stirring_speed_rpm": 675.0
+        },
+        "intervention_family": "duration",
+        "metric_ids": [
+          "yield",
+          "conversion",
+          "selectivity"
+        ],
+        "q2_coordinate_sha256": "5907e733365c40ff0c30b2e9089d5919522dfe23fa55f35b725be3b2f0905458",
+        "query_id": "c511"
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
+    "checkpoint_complete_experiments": [
+      0,
+      3,
+      6,
+      9,
+      12
+    ],
+    "closeout_policy": {
+      "allowed_operation_classes": [
+        "discard_batch",
+        "final_assay",
+        "quench",
+        "terminate",
+        "transfer"
+      ],
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "discard_path_operations_per_batch": 1,
+      "discard_path_total_operation_reserve": 12,
+      "final_assay_path_operations_per_batch": 2,
+      "final_assay_path_total_operation_reserve": 24,
+      "planned_batches": 12,
+      "policy": "protected_closeout_reserve_enforced",
+      "resource_status": "planning_envelope_pending_w2_26_calibration"
+    },
+    "complete_experiments": 12,
+    "final_assay_limit": 12,
+    "implicit_operation_time_s": {
+      "filter_crystals": 480.0,
+      "quench": 120.0
+    },
+    "nonfinal_instrument_use_limit": 36,
+    "operation_attempt_limit": 168,
+    "operation_repeat_limits": {
+      "cool_crystallize": 12,
+      "filter_crystals": 12,
+      "heat": 12,
+      "quench": 12,
+      "seed_crystals": 12
+    },
+    "process_time_limit_s": 215712.0,
+    "process_time_policy": {
+      "formula": "10 unique + 2 exact-repeat full stages + 20% protected reserve + quench closeout allowance",
+      "implicit_operation_time_s": {
+        "filter_crystals": 480.0,
+        "quench": 120.0
+      },
+      "implicit_stage_reserve_s": 4800.0,
+      "pattern_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
+      "protected_reserve_fraction": 0.2,
+      "protected_reserve_s": 35712.0,
+      "quench_transfer_allowance_s": 1440.0,
+      "repeat_allowance_s": 29760.0,
+      "required_stage_max_s": 148800.0,
+      "resource_status": "planning_envelope_pending_w2_26_calibration"
+    },
+    "stock_limits": {
+      "catalyst_mol": 0.004536,
+      "reagent_mol": 0.288,
+      "seed_g": 0.1152,
+      "solvent_L": 0.36
+    },
+    "vessel_start_limit": 12
+  },
+  "crystallization_material_family_id": "reaction-crystallization-latent-materials-v1",
+  "episode_mode": "campaign",
+  "execution": {
+    "failure_semantics": "finish the in-flight seed triplet, then stop before next world",
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1
+  },
+  "execution_context": {
+    "c2_admission_authorized": false,
+    "evidence_status": "development_only",
+    "execution_mode": "development",
+    "execution_surface_sha256": null,
+    "freeze_id": null,
+    "release_eligible": false,
+    "release_manifest_sha256": null,
+    "tested_commit": null
+  },
+  "formal_result": false,
+  "intervention": {
+    "candidate_id": "crystallization_reversible_topology",
+    "intervention_families": [
+      "temperature",
+      "duration"
+    ],
+    "locus": "structural_mechanistic",
+    "q2_package_sha256": "cacece69875cc12a68e3375ce5a213e17e788c21e694c23ec2fe71c2ef0272de",
+    "registered_truth_law_id": "reversible_target_pathway",
+    "world_and_resource_contract_matched": true
+  },
+  "method_resources": {
+    "checkpoint_complete_experiments": [
+      3,
+      6,
+      9,
+      12
+    ],
+    "complete_experiment_limit": 12,
+    "input_token_limit": 5760000,
+    "model_call_limit": 1,
+    "operation_limit": 168,
+    "output_token_limit": 57600,
+    "resource_status": "development_d1_envelope_pending_w2_26_calibration",
+    "training_environment_step_limit": 0,
+    "uncached_input_token_limit": 768000,
+    "wall_time_limit_s": 9000.0
+  },
+  "objective": "balanced",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-as-d1-five-seed-production--crystallization_reversible_topology--seed2",
+  "pilot_id": "work-ii-as-d1-five-seed-production--crystallization_reversible_topology--seed2",
+  "prior_arms": {
+    "aligned_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_executable_law",
+        "claim": "The primary target pathway is reversible; temperature and reaction duration jointly expose accumulated reverse flux before crystallization and terminal assay.",
+        "confidence": 0.7,
+        "executable_law": {
+          "law_id": "reversible_target_pathway",
+          "world_interventions": [
+            {
+              "kind": "mechanism_family",
+              "mode": "topology_family",
+              "severity": 0.8,
+              "topology_change": {
+                "reaction_role": "primary_target_pathway",
+                "reverse_rate_constant_s_inv_at_full_severity": 0.000625,
+                "transform_id": "reversible_target_pathway_stress_v1"
+              }
+            }
+          ]
+        },
+        "intervention_families": [
+          "temperature",
+          "duration"
+        ],
+        "locus": "structural_mechanistic",
+        "schema_version": "chemworld-work-ii-initial-world-model-0.4",
+        "scope_limit": "This is an incomplete local law. Public experimental evidence is authoritative."
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "misindexed_nominal": {
+      "initial_world_model": {
+        "availability": "supplied_incomplete_executable_law",
+        "claim": "The primary target pathway is irreversible; temperature and reaction duration jointly expose accumulated forward flux before crystallization and terminal assay.",
+        "confidence": 0.7,
+        "executable_law": {
+          "law_id": "baseline",
+          "world_interventions": []
+        },
+        "intervention_families": [
+          "temperature",
+          "duration"
+        ],
+        "locus": "structural_mechanistic",
+        "schema_version": "chemworld-work-ii-initial-world-model-0.4",
+        "scope_limit": "This is an incomplete local law. Public experimental evidence is authoritative."
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    },
+    "opaque": {
+      "initial_world_model": {
+        "availability": "opaque_for_target_locus",
+        "claim": null,
+        "confidence": 0.7,
+        "executable_law": null,
+        "intervention_families": [
+          "temperature",
+          "duration"
+        ],
+        "locus": "structural_mechanistic",
+        "schema_version": "chemworld-work-ii-initial-world-model-0.4",
+        "scope_limit": "This is an incomplete local law. Public experimental evidence is authoritative."
+      },
+      "material_information": {
+        "mode": "opaque_codes"
+      }
+    }
+  },
+  "provider": {
+    "base_url": "https://api.wellau.com/v1",
+    "env_key": "WELLAU_API_KEY",
+    "finalization_timeout_s": 600.0,
+    "id": "wellau",
+    "model": "gpt-5.6-sol",
+    "name": "WellAU",
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "wire_api": "responses"
+  },
+  "qualification": {
+    "execution_authorized": false,
+    "formal_r5_authorized": false,
+    "maximum_exact_repeats": 2,
+    "minimum_unique_recipes": 10,
+    "plan_sha256": "37d9fb08c130d700e95f9c61ca497799348b42e9d9bd01a7a4a3951ca1851390",
+    "q0_q1_q2_passed": true,
+    "q2_package_sha256": "cacece69875cc12a68e3375ce5a213e17e788c21e694c23ec2fe71c2ef0272de",
+    "q2_passed": true,
+    "resource_calibration_status": "pending_w2_26"
+  },
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.5",
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_3",
+    "after_experiment_6",
+    "after_experiment_9",
+    "final"
+  ],
+  "task_id": "reaction-to-crystallization",
+  "world_interventions": [
+    {
+      "kind": "mechanism_family",
+      "mode": "topology_family",
+      "severity": 0.8,
+      "topology_change": {
+        "reaction_role": "primary_target_pathway",
+        "reverse_rate_constant_s_inv_at_full_severity": 0.000625,
+        "transform_id": "reversible_target_pathway_stress_v1"
+      }
+    }
+  ],
+  "world_seed": 2,
+  "world_split": "public-test"
+}
