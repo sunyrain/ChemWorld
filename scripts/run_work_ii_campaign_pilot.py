@@ -869,13 +869,48 @@ def _w2_26_campaign_receipt_contract(
         and receipt.get("lab_tool_integrity_verified_after_session") is True
         for receipt in predecessors
     )
-    process_attempt_count = len(receipts)
+    process_attempt_count = method_resources.get("provider_process_attempt_count")
+    logical_turn_count = method_resources.get(
+        "logical_codex_turn_count", process_attempt_count
+    )
+    accepted_receipt = receipts[terminal_index] if terminal_index is not None else {}
+    continuation_count = accepted_receipt.get("accepted_turn_continuation_count", 0)
+    thread_turns = accepted_receipt.get("turn_receipts", [])
+    thread_id = accepted_receipt.get("thread_id")
+    legacy_single_turn_receipt = continuation_count == 0 and thread_turns == []
+    same_thread_continuation_valid = legacy_single_turn_receipt or (
+        isinstance(continuation_count, int)
+        and not isinstance(continuation_count, bool)
+        and 0 <= continuation_count <= 1
+        and isinstance(thread_turns, list)
+        and len(thread_turns) == continuation_count + 1
+        and all(
+            isinstance(turn, dict)
+            and turn.get("turn_index") == index
+            and turn.get("thread_id") == thread_id
+            and turn.get("usage_complete") is True
+            and turn.get("provider_error_event_count") == 0
+            for index, turn in enumerate(thread_turns, start=1)
+        )
+    )
+    process_attempt_count_valid = (
+        isinstance(process_attempt_count, int)
+        and not isinstance(process_attempt_count, bool)
+        and 1 <= process_attempt_count <= 3
+    )
+    predecessor_count = len(predecessors)
+    accepted_participant_model_call_count = 1 + continuation_count
     counters_reconciled = (
-        method_resources.get("provider_process_attempt_count") == process_attempt_count
-        and method_resources.get("provider_session_count") == process_attempt_count
-        and method_resources.get("model_call_count") == process_attempt_count
+        process_attempt_count_valid
+        and method_resources.get("provider_session_count") == 1
+        and method_resources.get("model_call_count")
+        == accepted_participant_model_call_count
+        and logical_turn_count == process_attempt_count
+        and process_attempt_count
+        == predecessor_count + accepted_participant_model_call_count
         and method_resources.get("accepted_provider_session_count") == 1
-        and method_resources.get("accepted_participant_model_call_count") == 1
+        and method_resources.get("accepted_participant_model_call_count")
+        == accepted_participant_model_call_count
         and method_resources.get("unattributed_pre_action_process_attempt_count")
         == sum(
             receipt.get("usage_accounting_scope")
@@ -886,8 +921,9 @@ def _w2_26_campaign_receipt_contract(
     valid = (
         terminal_index is not None
         and terminal_index == len(receipts) - 1
-        and 1 <= process_attempt_count <= 2
+        and process_attempt_count_valid
         and predecessor_valid
+        and same_thread_continuation_valid
         and counters_reconciled
     )
     return {
@@ -896,8 +932,12 @@ def _w2_26_campaign_receipt_contract(
             receipts[terminal_index] if valid and terminal_index is not None else {}
         ),
         "accepted_provider_session_count": 1 if valid else 0,
-        "accepted_participant_model_call_count": 1 if valid else 0,
+        "accepted_participant_model_call_count": (
+            accepted_participant_model_call_count if valid else 0
+        ),
         "provider_process_attempt_count": process_attempt_count,
+        "logical_codex_turn_count": logical_turn_count,
+        "accepted_turn_continuation_count": continuation_count,
     }
 
 
@@ -1290,6 +1330,14 @@ def _run_cell(
                 if agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
                 and provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
                 else int(provider.get("pre_action_restart_limit", 0))
+            ),
+            accepted_turn_continuation_limit=int(
+                provider.get("accepted_turn_continuation_limit", 0)
+            ),
+            provider_process_attempt_limit=(
+                int(provider["provider_process_attempt_limit"])
+                if provider.get("provider_process_attempt_limit") is not None
+                else None
             ),
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),

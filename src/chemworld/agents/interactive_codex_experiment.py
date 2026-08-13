@@ -903,6 +903,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         session_progress_callback: Callable[[dict[str, Any]], None] | None = None,
         session_progress_interval_s: float = 30.0,
         pre_action_restart_limit: int = 1,
+        accepted_turn_continuation_limit: int = 0,
+        provider_process_attempt_limit: int | None = None,
         max_initial_prompt_bytes: int = 65_536,
         max_tool_output_bytes: int = 32_768,
         history_event_limit: int = 64,
@@ -941,6 +943,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 raise ValueError(f"{name} must be non-negative")
         if pre_action_restart_limit < 0:
             raise ValueError("pre_action_restart_limit must be non-negative")
+        if accepted_turn_continuation_limit < 0:
+            raise ValueError("accepted_turn_continuation_limit must be non-negative")
+        if provider_process_attempt_limit is not None and provider_process_attempt_limit < 1:
+            raise ValueError("provider_process_attempt_limit must be positive")
         if session_progress_interval_s <= 0:
             raise ValueError("session_progress_interval_s must be positive")
         if max_initial_prompt_bytes < 4_096:
@@ -952,6 +958,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         if session_scope == "experiment" and belief_checkpoint_contract is not None:
             raise ValueError("belief checkpoint contract requires campaign scope")
         self._process_factory: ProcessFactory
+        self._uses_default_process_factory = process_factory is None
         if process_factory is None:
             executable = codex_executable or shutil.which("codex")
             if not executable:
@@ -1022,6 +1029,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self.session_progress_callback = session_progress_callback
         self.session_progress_interval_s = float(session_progress_interval_s)
         self.pre_action_restart_limit = int(pre_action_restart_limit)
+        self.accepted_turn_continuation_limit = int(accepted_turn_continuation_limit)
+        self.provider_process_attempt_limit = (
+            None if provider_process_attempt_limit is None else int(provider_process_attempt_limit)
+        )
         self.max_initial_prompt_bytes = int(max_initial_prompt_bytes)
         self.session_scope = session_scope
         self.belief_checkpoint_contract = (
@@ -1073,6 +1084,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._all_session_usage_observed = True
         self._unattributed_pre_action_process_attempt_count = 0
         self._pre_action_restarts = 0
+        self._accepted_turn_continuations = 0
+        self._provider_process_attempt_count = 0
+        self._logical_codex_turn_count = 0
         self._handled_request_ids: set[str] = set()
         self._pending_request: IPCRequest | None = None
         self._pending_outcome: dict[str, Any] | None = None
@@ -1261,6 +1275,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 campaign_ended=campaign_ended,
             )
             self._campaign_ended_experiment_count = completed_count
+            if self._session is not None:
+                self._session["campaign_terminal"] = campaign_ended
         next_experiment_index = info.get("next_experiment_index")
         if (
             info.get("next_experiment_ready") is True
@@ -1375,8 +1391,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "interaction_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
                 "session_scope": self.session_scope,
                 "one_codex_exec_per_complete_experiment": self.session_scope == "experiment",
-                "one_codex_exec_per_campaign_cell": self.session_scope == "campaign",
-                "codex_exec_ephemeral": True,
+                "one_codex_thread_per_campaign_cell": self.session_scope == "campaign",
+                "bounded_same_thread_continuation": self.session_scope == "campaign",
+                "accepted_turn_continuation_limit": self.accepted_turn_continuation_limit,
+                "codex_exec_ephemeral": False,
                 "experiment_tool_transport": "host_owned_stdio_mcp",
                 "mcp_server": {
                     "name": "chemworld_lab",
@@ -1408,7 +1426,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     else "complete_codex_experiment_turn"
                 ),
                 "provider_session_count": self._sessions_started,
-                "logical_codex_turn_count": self._sessions_started,
+                "logical_codex_turn_count": self._logical_codex_turn_count,
                 "backend_model_response_count": None,
                 "backend_model_response_accounting_complete": False,
                 "input_token_accounting_semantics": (
@@ -1423,6 +1441,10 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         provider_usage_complete = bool(not active and self._all_session_usage_complete)
         provider_usage_observed = bool(not active and self._all_session_usage_observed)
         usage = dict(self._cumulative_usage)
+        if self._session is not None:
+            completed_turn_usage = self._session.get("completed_turn_usage")
+            if isinstance(completed_turn_usage, Mapping):
+                _merge_usage(usage, completed_turn_usage)
         operational = self._active_session_operational_audit()
         session_elapsed_s = self._completed_session_elapsed_s + float(
             operational["session_elapsed_s"]
@@ -1476,6 +1498,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             and self._session is not None
             and int(self._session.get("accepted_action_count", 0)) > 0
         )
+        accepted_participant_model_call_count = (
+            accepted_provider_session_count + self._accepted_turn_continuations
+        )
         return {
             "schema_version": "chemworld-method-resource-usage-0.1",
             "accounting_complete": False,
@@ -1501,15 +1526,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     )
                 )
             ),
-            "model_call_count": self._sessions_started,
-            "provider_session_count": self._sessions_started,
-            "provider_process_attempt_count": self._sessions_started,
+            "model_call_count": accepted_participant_model_call_count,
+            "provider_session_count": accepted_provider_session_count,
+            "provider_process_attempt_count": self._provider_process_attempt_count,
             "accepted_provider_session_count": accepted_provider_session_count,
-            "accepted_participant_model_call_count": accepted_provider_session_count,
+            "accepted_participant_model_call_count": (
+                accepted_participant_model_call_count
+            ),
             "unattributed_pre_action_process_attempt_count": (
                 self._unattributed_pre_action_process_attempt_count
             ),
-            "logical_codex_turn_count": self._sessions_started,
+            "logical_codex_turn_count": self._logical_codex_turn_count,
+            "accepted_turn_continuation_count": self._accepted_turn_continuations,
             "backend_model_response_count": None,
             "backend_model_response_accounting_complete": False,
             "input_token_count": usage["prompt_tokens"],
@@ -1582,7 +1610,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     "reasoning_effort": self.reasoning_effort,
                     "session_scope": self.session_scope,
                     "one_turn_per_experiment": self.session_scope == "experiment",
-                    "one_turn_per_campaign_cell": self.session_scope == "campaign",
+                    "one_thread_per_campaign_cell": self.session_scope == "campaign",
+                    "accepted_turn_continuation_limit": self.accepted_turn_continuation_limit,
+                    "provider_process_attempt_limit": self.provider_process_attempt_limit,
                     "workspace_tools": True,
                     "experiment_tool_transport": "host_owned_stdio_mcp",
                     "forced_notebook": False,
@@ -1820,6 +1850,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         )
         monitor = _CodexEventMonitor(process)
         self._sessions_started += 1
+        self._provider_process_attempt_count += 1
+        self._logical_codex_turn_count += 1
         self._session = {
             "session_id": session_id,
             "monitor": monitor,
@@ -1827,7 +1859,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "accepted_action_count": 0,
             "prompt_byte_count": len(prompt.encode("utf-8")),
             "prompt_sha256": hashlib.sha256(prompt.encode("utf-8")).hexdigest(),
+            "instructions_path": str(instructions_path),
+            "schema_path": str(schema_path),
             "started_at": session_started_at,
+            "turn_started_at": session_started_at,
+            "turn_receipts": [],
+            "completed_turn_usage": _empty_usage(),
+            "completed_turn_provider_error_event_count": 0,
         }
         self._session_action_count = 0
 
@@ -1916,12 +1954,24 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 pre_action_retry_candidate = (
                     accepted == 0
                     and self._pre_action_restarts < self.pre_action_restart_limit
+                    and (
+                        self.provider_process_attempt_limit is None
+                        or self._provider_process_attempt_count
+                        < self.provider_process_attempt_limit
+                    )
                     and limit_failure is None
                     and retry_failure_type is not None
                     and bridge_untouched
                     and int(operational["provider_error_event_count"]) == 0
                     and not self.workspace.mcp_tool_call_audit(session_id)
                 )
+                if self._continue_completed_accepted_turn(
+                    error=error,
+                    current_packet=current_packet,
+                    limit_failure=limit_failure,
+                    bridge_untouched=bridge_untouched,
+                ):
+                    continue
                 receipt = self._record_interrupted_session(
                     reason=failure_reason,
                     pre_action_retry_candidate_failure_type=(
@@ -1965,6 +2015,125 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             return _PROCESS_EXITED_BEFORE_FIRST_REQUEST
         return None
 
+    def _continue_completed_accepted_turn(
+        self,
+        *,
+        error: BaseException,
+        current_packet: Mapping[str, Any],
+        limit_failure: str | None,
+        bridge_untouched: bool,
+    ) -> bool:
+        """Resume one clean early-completed campaign turn on its original Codex thread."""
+
+        if self._session is None:
+            return False
+        if (
+            self.session_scope != "campaign"
+            or self._accepted_turn_continuations >= self.accepted_turn_continuation_limit
+            or (
+                self.provider_process_attempt_limit is not None
+                and self._provider_process_attempt_count >= self.provider_process_attempt_limit
+            )
+            or limit_failure is not None
+            or not bridge_untouched
+            or self._pre_action_retry_failure_type(error) != _PROCESS_EXITED_BEFORE_FIRST_REQUEST
+            or int(self._session.get("accepted_action_count", 0)) <= 0
+            or self._session.get("campaign_terminal") is True
+        ):
+            return False
+        monitor = self._session.get("monitor")
+        if not isinstance(monitor, _CodexEventMonitor):
+            return False
+        result = monitor.wait(1.0)
+        usage = result.get("usage")
+        turn_usage = usage if isinstance(usage, dict) else _empty_usage()
+        normalized_usage = _combined_session_turn_usage(self._session, turn_usage)
+        event_counts = result.get("event_counts")
+        event_counts = event_counts if isinstance(event_counts, Mapping) else {}
+        session_id = str(self._session["session_id"])
+        mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
+        taxonomy = _mcp_tool_failure_audit(
+            [item for item in mcp_tool_calls if isinstance(item, Mapping)]
+        )
+        taxonomy_counts = taxonomy["counts_by_category"]
+        provider_error_count = int(event_counts.get("error", 0)) + int(
+            event_counts.get("turn.failed", 0)
+        )
+        if provider_error_count == 0:
+            provider_errors = result.get("provider_errors")
+            provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else 0
+        thread_id = result.get("thread_id")
+        campaign_thread_id = self._session.get("thread_id")
+        eligible = (
+            result.get("status") == "completed"
+            and result.get("return_code") == 0
+            and isinstance(thread_id, str)
+            and bool(thread_id)
+            and (campaign_thread_id is None or thread_id == campaign_thread_id)
+            and int(event_counts.get("turn.completed", 0)) > 0
+            and result.get("usage_observed") is True
+            and _usage_complete(normalized_usage)
+            and provider_error_count == 0
+            and int(taxonomy_counts["provider_network"]) == 0
+            and int(taxonomy_counts["transport_ipc_os"]) == 0
+            and int(taxonomy_counts["unclassified"]) == 0
+            and self.workspace.final_recommendation_audit(session_id) is None
+        )
+        if not eligible:
+            return False
+        turn_receipts = self._session.get("turn_receipts")
+        completed_usage = self._session.get("completed_turn_usage")
+        if not isinstance(turn_receipts, list) or not isinstance(completed_usage, dict):
+            raise InteractiveCodexExperimentError("invalid accepted-turn continuation ledger")
+        turn_receipts.append(
+            to_builtin(
+                {
+                    "turn_index": len(turn_receipts) + 1,
+                    "thread_id": thread_id,
+                    "status": "completed_before_campaign_terminal",
+                    "return_code": 0,
+                    "accepted_action_count_after_turn": int(
+                        self._session["accepted_action_count"]
+                    ),
+                    "continuation_classification": "eligible_same_thread_campaign_continuation",
+                    "usage": normalized_usage,
+                    "usage_complete": True,
+                    "provider_error_event_count": 0,
+                    "event_counts": dict(event_counts),
+                    "mcp_tool_failure_taxonomy": taxonomy,
+                    "experiment_tool_integrity_verified_after_turn": True,
+                }
+            )
+        )
+        _merge_usage(completed_usage, normalized_usage)
+        self._session["thread_id"] = thread_id
+        tool_events = result.get("tool_events")
+        if isinstance(tool_events, list):
+            self._completed_tool_events.extend(
+                item for item in tool_events if isinstance(item, dict)
+            )
+        prompt = _accepted_turn_continuation_prompt(
+            session_id=session_id,
+            expected_step=self._session_action_count + 1,
+            current_packet=current_packet,
+        )
+        command = self._resume_command(
+            thread_id=thread_id,
+            instructions_path=Path(self._session["instructions_path"]),
+            schema_path=Path(self._session["schema_path"]),
+        )
+        process = self._process_factory(command, prompt, self.workspace.agent_directory)
+        self._session["monitor"] = _CodexEventMonitor(process)
+        self._session["turn_started_at"] = perf_counter()
+        self._session["continuation_prompt_byte_count"] = len(prompt.encode("utf-8"))
+        self._session["continuation_prompt_sha256"] = hashlib.sha256(
+            prompt.encode("utf-8")
+        ).hexdigest()
+        self._accepted_turn_continuations += 1
+        self._provider_process_attempt_count += 1
+        self._logical_codex_turn_count += 1
+        return True
+
     def _finalize_session(self, *, terminal_reason: str) -> None:
         if self._session is None:
             return
@@ -1985,7 +2154,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         except ExperimentCodexIPCError as error:
             integrity_error = error
         usage = result.get("usage")
-        normalized_usage = usage if isinstance(usage, dict) else _empty_usage()
+        turn_usage = usage if isinstance(usage, dict) else _empty_usage()
+        normalized_usage = _combined_session_turn_usage(self._session, turn_usage)
         usage_observed = result.get("usage_observed") is True
         _merge_usage(self._cumulative_usage, normalized_usage)
         tool_events = result.get("tool_events")
@@ -2032,7 +2202,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             if final_recommendation is not None
             else None
         )
-        usage_complete = _usage_complete(normalized_usage)
+        usage_complete = _usage_complete(turn_usage) and all(
+            receipt.get("usage_complete") is True
+            for receipt in self._session.get("turn_receipts", [])
+            if isinstance(receipt, Mapping)
+        )
         self._all_session_usage_complete = self._all_session_usage_complete and usage_complete
         self._all_session_usage_observed = self._all_session_usage_observed and usage_observed
         receipt = {
@@ -2051,12 +2225,27 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
+            "turn_usage": turn_usage,
             "usage_observed": usage_observed,
             "usage_observation_event_type": result.get("usage_observation_event_type"),
             "usage_unavailable_reason": (
                 None if usage_observed else "codex_cli_completed_without_usage_event"
             ),
             "usage_complete": usage_complete,
+            "codex_turn_count": len(self._session.get("turn_receipts", [])) + 1,
+            "accepted_turn_continuation_count": len(
+                self._session.get("turn_receipts", [])
+            ),
+            "turn_receipts": [
+                *deepcopy(self._session.get("turn_receipts", [])),
+                _terminal_turn_receipt(
+                    turn_index=len(self._session.get("turn_receipts", [])) + 1,
+                    result=result,
+                    usage=turn_usage,
+                    accepted_action_count=int(self._session.get("accepted_action_count", 0)),
+                    thread_id=result.get("thread_id"),
+                ),
+            ],
             "prompt_byte_count": self._session["prompt_byte_count"],
             "prompt_sha256": self._session["prompt_sha256"],
             "tool_events": receipt_tool_events,
@@ -2186,10 +2375,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         else:
             experiment_tool_integrity_verified = True
         usage = snapshot.get("usage")
-        normalized_usage = usage if isinstance(usage, dict) else _empty_usage()
+        turn_usage = usage if isinstance(usage, dict) else _empty_usage()
+        normalized_usage = _combined_session_turn_usage(self._session, turn_usage)
         usage_observed = snapshot.get("usage_observed") is True
         _merge_usage(self._cumulative_usage, normalized_usage)
-        usage_complete = _usage_complete(normalized_usage)
+        usage_complete = _usage_complete(turn_usage) and all(
+            receipt.get("usage_complete") is True
+            for receipt in self._session.get("turn_receipts", [])
+            if isinstance(receipt, Mapping)
+        )
         tool_events = snapshot.get("tool_events")
         session_id = str(self._session["session_id"])
         mcp_tool_calls = self.workspace.mcp_tool_call_audit(session_id)
@@ -2271,6 +2465,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
+            "turn_usage": turn_usage,
             "usage_observed": usage_observed,
             "usage_observation_event_type": snapshot.get("usage_observation_event_type"),
             "usage_unavailable_reason": (
@@ -2281,6 +2476,21 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 else "codex_cli_emitted_no_usage_before_forced_termination"
             ),
             "usage_complete": usage_complete,
+            "codex_turn_count": len(self._session.get("turn_receipts", [])) + 1,
+            "accepted_turn_continuation_count": len(
+                self._session.get("turn_receipts", [])
+            ),
+            "turn_receipts": [
+                *deepcopy(self._session.get("turn_receipts", [])),
+                _terminal_turn_receipt(
+                    turn_index=len(self._session.get("turn_receipts", [])) + 1,
+                    result=snapshot,
+                    usage=turn_usage,
+                    accepted_action_count=accepted_action_count,
+                    thread_id=snapshot.get("thread_id"),
+                    status="interrupted_before_next_action",
+                ),
+            ],
             "usage_accounting_scope": (
                 "unobserved_not_attributable_pre_action_process_attempt"
                 if unobserved_pre_action_attempt
@@ -2498,7 +2708,6 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             self.codex_executable,
             "exec",
             "--json",
-            "--ephemeral",
             "--ignore-rules",
             "--skip-git-repo-check",
             "--output-schema",
@@ -2566,6 +2775,23 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             command.insert(5, "--ignore-user-config")
         return command
 
+    def _resume_command(
+        self,
+        *,
+        thread_id: str,
+        instructions_path: Path,
+        schema_path: Path,
+    ) -> list[str]:
+        initial = self._command(instructions_path=instructions_path, schema_path=schema_path)
+        if initial and initial[-1] == "-":
+            initial = initial[:-1]
+        command = [*initial[:2], "resume", *initial[2:]]
+        for option in ("--sandbox", "-C"):
+            index = command.index(option)
+            del command[index : index + 2]
+        command.extend([thread_id, "-"])
+        return command
+
     def _model_provider_config_overrides(self) -> list[str]:
         """Render bounded Codex CLI provider overrides without exposing secrets."""
 
@@ -2608,49 +2834,68 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             return rendered
 
     def _prepare_provider_launch(self, *, temp_root: Path) -> None:
-        """Prepare an isolated Codex config for providers using bearer-token auth."""
+        """Prepare a cell-isolated persistent Codex home for exec + resume."""
 
-        if self.model_provider_auth_mode != "experimental_bearer_token":
-            self._session_process_environment = None
-            self._use_isolated_codex_home = False
-            return
-        if self.model_provider_api_key_file is None:
+        if (
+            self.model_provider_auth_mode == "experimental_bearer_token"
+            and self.model_provider_api_key_file is None
+        ):
             raise InteractiveCodexExperimentError(
                 "DeepSeek-compatible bearer-token launch requires an API-key file"
             )
-        try:
-            api_key = self.model_provider_api_key_file.read_text(encoding="utf-8").strip()
-        except OSError as error:
-            raise InteractiveCodexExperimentError(
-                "unable to read the configured provider API-key file"
-            ) from error
-        if not api_key:
-            raise InteractiveCodexExperimentError("configured provider API-key file is empty")
-        if self.model_provider_model_catalog_json is None:
+        if (
+            self.model_provider_auth_mode == "experimental_bearer_token"
+            and self.model_provider_model_catalog_json is None
+        ):
             raise InteractiveCodexExperimentError(
                 "bearer-token launch requires an explicit model_catalog_json"
             )
-        if not self.model_provider_model_catalog_json.is_file():
+        if (
+            self.model_provider_auth_mode == "experimental_bearer_token"
+            and self.model_provider_model_catalog_json is not None
+            and not self.model_provider_model_catalog_json.is_file()
+        ):
             raise InteractiveCodexExperimentError("configured model_catalog_json does not exist")
 
         codex_home = temp_root / "codex-home"
         codex_home.mkdir(parents=True, exist_ok=True)
-        config_lines = [
-            f"model = {json.dumps(self.model)}",
-            f"model_provider = {json.dumps(self.model_provider)}",
-            f"model_reasoning_effort = {json.dumps(self.reasoning_effort)}",
-            'preferred_auth_method = "apikey"',
-            'forced_login_method = "api"',
-            "model_catalog_json = "
-            + json.dumps(self.model_provider_model_catalog_json.resolve().as_posix()),
-            "",
-            f"[model_providers.{self.model_provider}]",
-            f"name = {json.dumps(self.model_provider_name)}",
-            f"base_url = {json.dumps((self.model_provider_base_url or '').rstrip('/') + '/')}",
-            f"wire_api = {json.dumps(self.model_provider_wire_api)}",
-            f"experimental_bearer_token = {json.dumps(api_key)}",
-        ]
-        (codex_home / "config.toml").write_text("\n".join(config_lines) + "\n", encoding="utf-8")
+        if self.model_provider_auth_mode == "experimental_bearer_token":
+            assert self.model_provider_api_key_file is not None
+            assert self.model_provider_model_catalog_json is not None
+            try:
+                api_key = self.model_provider_api_key_file.read_text(encoding="utf-8").strip()
+            except OSError as error:
+                raise InteractiveCodexExperimentError(
+                    "unable to read the configured provider API-key file"
+                ) from error
+            if not api_key:
+                raise InteractiveCodexExperimentError("configured provider API-key file is empty")
+            config_lines = [
+                f"model = {json.dumps(self.model)}",
+                f"model_provider = {json.dumps(self.model_provider)}",
+                f"model_reasoning_effort = {json.dumps(self.reasoning_effort)}",
+                'preferred_auth_method = "apikey"',
+                'forced_login_method = "api"',
+                "model_catalog_json = "
+                + json.dumps(self.model_provider_model_catalog_json.resolve().as_posix()),
+                "",
+                f"[model_providers.{self.model_provider}]",
+                f"name = {json.dumps(self.model_provider_name)}",
+                f"base_url = {json.dumps((self.model_provider_base_url or '').rstrip('/') + '/')}",
+                f"wire_api = {json.dumps(self.model_provider_wire_api)}",
+                f"experimental_bearer_token = {json.dumps(api_key)}",
+            ]
+            (codex_home / "config.toml").write_text(
+                "\n".join(config_lines) + "\n", encoding="utf-8"
+            )
+        elif self.model_provider == HTTPS_PROVIDER_ID:
+            source_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+            source_auth = source_home / "auth.json"
+            if not source_auth.is_file():
+                raise InteractiveCodexExperimentError(
+                    "OpenAI Codex auth is unavailable for isolated session persistence"
+                )
+            shutil.copyfile(source_auth, codex_home / "auth.json")
         environment = os.environ.copy()
         environment["CODEX_HOME"] = str(codex_home)
         self._session_process_environment = environment
@@ -3236,6 +3481,71 @@ def _empty_usage() -> dict[str, int]:
 def _merge_usage(total: dict[str, int], usage: Mapping[str, Any]) -> None:
     for key in total:
         total[key] += _nonnegative_int(usage.get(key))
+
+
+def _combined_session_turn_usage(
+    session: Mapping[str, Any],
+    current_turn_usage: Mapping[str, Any],
+) -> dict[str, int]:
+    total = _empty_usage()
+    completed = session.get("completed_turn_usage")
+    if isinstance(completed, Mapping):
+        _merge_usage(total, completed)
+    _merge_usage(total, current_turn_usage)
+    return total
+
+
+def _terminal_turn_receipt(
+    *,
+    turn_index: int,
+    result: Mapping[str, Any],
+    usage: Mapping[str, Any],
+    accepted_action_count: int,
+    thread_id: Any,
+    status: str = "campaign_terminal_turn",
+) -> dict[str, Any]:
+    event_counts = result.get("event_counts")
+    provider_errors = result.get("provider_errors")
+    provider_error_count = (
+        int(event_counts.get("error", 0)) + int(event_counts.get("turn.failed", 0))
+        if isinstance(event_counts, Mapping)
+        else 0
+    )
+    if provider_error_count == 0 and isinstance(provider_errors, list):
+        provider_error_count = len(provider_errors)
+    return {
+        "turn_index": turn_index,
+        "thread_id": thread_id,
+        "status": status,
+        "return_code": result.get("return_code"),
+        "accepted_action_count_after_turn": accepted_action_count,
+        "continuation_classification": "terminal_turn",
+        "usage": dict(usage),
+        "usage_complete": _usage_complete(usage),
+        "provider_error_event_count": provider_error_count,
+        "event_counts": dict(event_counts) if isinstance(event_counts, Mapping) else {},
+    }
+
+
+def _accepted_turn_continuation_prompt(
+    *,
+    session_id: str,
+    expected_step: int,
+    current_packet: Mapping[str, Any],
+) -> str:
+    payload = {
+        "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
+        "instruction": (
+            "Continue the same unfinished campaign from the host-owned append-only boundary. "
+            "Do not repeat or replace any accepted operation. Read the current public state, "
+            "submit the next required lab call at exactly expected_step, and continue until the "
+            "campaign terminal protocol is complete."
+        ),
+        "session_id": session_id,
+        "expected_step": expected_step,
+        "current_state": to_builtin(dict(current_packet)),
+    }
+    return _canonical_json(payload)
 
 
 def _usage_complete(usage: Mapping[str, Any]) -> bool:

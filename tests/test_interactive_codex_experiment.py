@@ -1103,6 +1103,67 @@ emit({
 })
 """
 
+_FAKE_RESUMED_THREAD_COMPLETES_CAMPAIGN = r"""
+import json
+import subprocess
+import sys
+from pathlib import Path
+
+agent = Path(sys.argv[1])
+
+def emit(value):
+    print(json.dumps(value, separators=(",", ":")), flush=True)
+
+emit({"type": "thread.started", "thread_id": "fake-early-terminal-thread"})
+action = {"operation": "terminate"}
+result = subprocess.run(
+    [
+        sys.executable,
+        str(agent / "lab_tool.py"),
+        "step",
+        "--expected-step",
+        "2",
+        "--action-json",
+        json.dumps(action, separators=(",", ":")),
+    ],
+    cwd=agent,
+    capture_output=True,
+    text=True,
+    check=False,
+)
+emit({
+    "type": "item.completed",
+    "item": {
+        "id": "command-2",
+        "type": "command_execution",
+        "command": "python lab_tool.py step --expected-step 2 --action-json JSON",
+        "aggregated_output": result.stdout,
+        "exit_code": result.returncode,
+        "status": "completed" if result.returncode == 0 else "failed",
+    },
+})
+emit({
+    "type": "item.completed",
+    "item": {
+        "id": "final",
+        "type": "agent_message",
+        "text": json.dumps({"status": "campaign_complete", "summary": "done"}),
+    },
+})
+emit({
+    "type": "turn.completed",
+    "usage": {"input_tokens": 200, "cached_input_tokens": 20, "output_tokens": 30},
+})
+"""
+
+_FAKE_ONE_ACTION_THEN_PROVIDER_ERROR = _FAKE_ONE_ACTION_THEN_COMPLETED_TURN.replace(
+    'emit({\n    "type": "turn.completed",',
+    (
+        'emit({"type": "error", "message": "provider unavailable"})\n'
+        'emit({\n    "type": "turn.completed",'
+    ),
+)
+
 
 def _fake_process_factory(
     commands: list[list[str]],
@@ -1258,7 +1319,7 @@ def test_one_codex_process_controls_two_runner_operations(
     )
 
     assert len(commands) == 1
-    assert "--ephemeral" in commands[0]
+    assert "--ephemeral" not in commands[0]
     assert "--sandbox" in commands[0]
     assert commands[0][-1] == str(agent.workspace.agent_directory)
     assert "secret_property_value" not in prompts[0]
@@ -1519,25 +1580,48 @@ def test_zero_action_process_exit_with_complete_usage_restarts_once_and_reconcil
         "accepted_provider_session_count": 1,
         "accepted_participant_model_call_count": 1,
         "provider_process_attempt_count": 2,
+        "logical_codex_turn_count": 2,
+        "accepted_turn_continuation_count": 0,
     }
 
 
-def test_completed_turn_after_accepted_action_is_terminal_method_failure_not_retry(
+def test_completed_turn_after_accepted_action_resumes_same_campaign_thread(
     tmp_path: Path,
 ) -> None:
     commands: list[list[str]] = []
     prompts: list[str] = []
+    calls = 0
+
+    def factory(command: Any, prompt: str, cwd: Path):
+        nonlocal calls
+        commands.append(list(command))
+        prompts.append(prompt)
+        calls += 1
+        script = (
+            _FAKE_ONE_ACTION_THEN_COMPLETED_TURN
+            if calls == 1
+            else _FAKE_RESUMED_THREAD_COMPLETES_CAMPAIGN
+        )
+        return subprocess.Popen(
+            [sys.executable, "-c", script, str(cwd)],
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
     agent = InteractiveCodexExperimentAgent(
         workspace=tmp_path / "workspace",
         role_id="accepted-early-terminal-test",
-        process_factory=_fake_process_factory(
-            commands,
-            prompts,
-            script=_FAKE_ONE_ACTION_THEN_COMPLETED_TURN,
-        ),
+        process_factory=factory,
         request_timeout_s=2.0,
         finalization_timeout_s=2.0,
         pre_action_restart_limit=1,
+        accepted_turn_continuation_limit=1,
+        provider_process_attempt_limit=3,
+        session_scope="campaign",
+        belief_checkpoint_contract={},
     )
     agent.reset({"task_id": "x", "budget": 2}, seed=0)
     action = agent.act_with_public_view(_context(1, 2), _view())
@@ -1551,20 +1635,170 @@ def test_completed_turn_after_accepted_action_is_terminal_method_failure_not_ret
             "experiment_ended": False,
         },
     )
-    with pytest.raises(InteractiveCodexExperimentError, match="no fallback"):
-        agent.act_with_public_view(_context(2, 1), _view())
+    second = agent.act_with_public_view(_context(2, 1), _view())
+    assert second == {"operation": "terminate"}
+    agent.update(
+        second,
+        {"score": 0.2},
+        0.2,
+        {
+            "transaction_status": "committed",
+            "operation_type": "terminate",
+            "experiment_ended": True,
+            "experiment_completed": True,
+            "experiment_summaries": [{"experiment_index": 0}],
+            "campaign_terminal": True,
+            "observed_keys": ["score"],
+            "constraint_flags": {},
+        },
+    )
 
     receipts = agent.provider_receipts()
     usage = agent.method_resource_usage()
-    assert len(commands) == 1
+    assert len(commands) == 2
     assert len(receipts) == 1
-    assert receipts[0]["accepted_action_count"] == 1
+    assert commands[0][:2] == ["codex", "exec"]
+    assert "--ephemeral" not in commands[0]
+    assert commands[1][:3] == ["codex", "exec", "resume"]
+    assert commands[1][-2:] == ["fake-early-terminal-thread", "-"]
+    assert commands[1].count("-") == 1
+    assert receipts[0]["accepted_action_count"] == 2
     assert receipts[0]["pre_action_retry_classification"] == "terminal_accepted"
-    assert receipts[0]["failure_type"] == "process_exited_before_next_action"
     assert receipts[0]["usage_complete"] is True
+    assert receipts[0]["accepted_turn_continuation_count"] == 1
+    assert [turn["thread_id"] for turn in receipts[0]["turn_receipts"]] == [
+        "fake-early-terminal-thread",
+        "fake-early-terminal-thread",
+    ]
     assert usage["accepted_provider_session_count"] == 1
+    assert usage["provider_session_count"] == 1
+    assert usage["model_call_count"] == 2
+    assert usage["accepted_participant_model_call_count"] == 2
+    assert usage["provider_process_attempt_count"] == 2
+    assert usage["logical_codex_turn_count"] == 2
+    assert usage["input_token_count"] == 300
+    assert usage["output_token_count"] == 50
     assert usage["provider_usage_accounting_complete"] is True
     assert _w2_26_campaign_receipt_contract(receipts, usage)["valid"] is True
+
+
+def test_zero_action_predecessor_then_same_thread_continuation_uses_three_processes(
+    tmp_path: Path,
+) -> None:
+    commands: list[list[str]] = []
+    calls = 0
+
+    def factory(command: Any, prompt: str, cwd: Path):
+        nonlocal calls
+        del prompt
+        commands.append(list(command))
+        scripts = (
+            _FAKE_COMPLETED_USAGE_WITHOUT_REQUEST,
+            _FAKE_ONE_ACTION_THEN_COMPLETED_TURN,
+            _FAKE_RESUMED_THREAD_COMPLETES_CAMPAIGN,
+        )
+        script = scripts[calls]
+        calls += 1
+        return subprocess.Popen(
+            [sys.executable, "-c", script, str(cwd)],
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="predecessor-plus-continuation",
+        process_factory=factory,
+        request_timeout_s=2.0,
+        finalization_timeout_s=2.0,
+        pre_action_restart_limit=1,
+        accepted_turn_continuation_limit=1,
+        provider_process_attempt_limit=3,
+        session_scope="campaign",
+        belief_checkpoint_contract={},
+    )
+    agent.reset({"task_id": "x", "budget": 2}, seed=0)
+    first = agent.act_with_public_view(_context(1, 2), _view())
+    agent.update(
+        first,
+        {"score": 0.1},
+        0.1,
+        {
+            "transaction_status": "committed",
+            "operation_type": first["operation"],
+            "experiment_ended": False,
+        },
+    )
+    second = agent.act_with_public_view(_context(2, 1), _view())
+    agent.update(
+        second,
+        {"score": 0.2},
+        0.2,
+        {
+            "transaction_status": "committed",
+            "operation_type": second["operation"],
+            "experiment_ended": True,
+            "experiment_completed": True,
+            "experiment_summaries": [{"experiment_index": 0}],
+            "campaign_terminal": True,
+            "observed_keys": ["score"],
+            "constraint_flags": {},
+        },
+    )
+
+    usage = agent.method_resource_usage()
+    receipts = agent.provider_receipts()
+    assert calls == 3
+    assert commands[2][:3] == ["codex", "exec", "resume"]
+    assert usage["provider_process_attempt_count"] == 3
+    assert usage["logical_codex_turn_count"] == 3
+    assert usage["provider_session_count"] == 1
+    assert usage["model_call_count"] == 2
+    assert usage["accepted_participant_model_call_count"] == 2
+    assert usage["input_token_count"] == 320
+    assert usage["output_token_count"] == 52
+    assert _w2_26_campaign_receipt_contract(receipts, usage)["valid"] is True
+
+
+def test_provider_error_completed_turn_is_not_continued(tmp_path: Path) -> None:
+    commands: list[list[str]] = []
+    prompts: list[str] = []
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="provider-error-no-continuation",
+        process_factory=_fake_process_factory(
+            commands,
+            prompts,
+            script=_FAKE_ONE_ACTION_THEN_PROVIDER_ERROR,
+        ),
+        request_timeout_s=2.0,
+        finalization_timeout_s=2.0,
+        accepted_turn_continuation_limit=1,
+        provider_process_attempt_limit=3,
+        session_scope="campaign",
+        belief_checkpoint_contract={},
+    )
+    agent.reset({"task_id": "x", "budget": 2}, seed=0)
+    action = agent.act_with_public_view(_context(1, 2), _view())
+    agent.update(
+        action,
+        {"score": 0.1},
+        0.1,
+        {
+            "transaction_status": "committed",
+            "operation_type": action["operation"],
+            "experiment_ended": False,
+        },
+    )
+
+    with pytest.raises(InteractiveCodexExperimentError, match="no fallback"):
+        agent.act_with_public_view(_context(2, 1), _view())
+
+    assert len(commands) == 1
+    assert agent.provider_receipts()[0]["provider_error_event_count"] == 1
 
 
 def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
