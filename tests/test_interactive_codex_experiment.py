@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import pytest
+from scripts.run_work_ii_campaign_pilot import _w2_26_campaign_receipt_contract
 
 import chemworld.agents.experiment_codex_ipc as experiment_ipc
 import chemworld.agents.experiment_codex_mcp as experiment_mcp
@@ -997,6 +998,20 @@ print(json.dumps({"type": "thread.started", "thread_id": "fake-stalled-thread"})
 time.sleep(10)
 """
 
+_FAKE_COMPLETED_USAGE_WITHOUT_REQUEST = r"""
+import json
+
+print(json.dumps({"type": "thread.started", "thread_id": "fake-pre-action-thread"}), flush=True)
+print(json.dumps({
+    "type": "turn.completed",
+    "usage": {
+        "input_tokens": 20,
+        "cached_input_tokens": 5,
+        "output_tokens": 2,
+    },
+}), flush=True)
+"""
+
 
 def _fake_process_factory(
     commands: list[list[str]],
@@ -1322,13 +1337,91 @@ def test_process_exit_before_action_is_fail_closed_after_bounded_restart(
     agent.reset({"task_id": "x", "budget": 2}, seed=0)
     with pytest.raises(InteractiveCodexExperimentError, match="no fallback"):
         agent.act_with_public_view(_context(1, 2), _view())
-    assert calls == 2
-    assert len(agent.provider_receipts()) == 2
+    assert calls == 1
+    assert len(agent.provider_receipts()) == 1
     assert all(
         receipt["status"] == "interrupted_before_next_action"
         for receipt in agent.provider_receipts()
     )
+    assert agent.provider_receipts()[0]["accepted_action_count"] == 0
+    assert agent.provider_receipts()[0]["pre_action_retry_classification"] is None
     assert agent.workspace.history_path.read_text(encoding="utf-8") == ""
+
+
+def test_zero_action_process_exit_with_complete_usage_restarts_once_and_reconciles(
+    tmp_path: Path,
+) -> None:
+    calls = 0
+
+    def factory(command: Any, prompt: str, cwd: Path):
+        nonlocal calls
+        del command, prompt
+        calls += 1
+        script = _FAKE_COMPLETED_USAGE_WITHOUT_REQUEST if calls == 1 else _FAKE_CODEX
+        return subprocess.Popen(
+            [sys.executable, "-c", script, str(cwd)],
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="pre-action-retry-success-test",
+        process_factory=factory,
+        request_timeout_s=2.0,
+        finalization_timeout_s=5.0,
+        pre_action_restart_limit=1,
+    )
+    agent.reset({"task_id": "x", "budget": 2}, seed=0)
+    first = agent.act_with_public_view(_context(1, 2), _view())
+    agent.update(
+        first,
+        {"score": 0.1},
+        0.1,
+        {
+            "transaction_status": "committed",
+            "operation_type": first["operation"],
+            "experiment_ended": False,
+        },
+    )
+    second = agent.act_with_public_view(_context(2, 1), _view())
+    agent.update(
+        second,
+        {"score": 0.2},
+        0.2,
+        {
+            "transaction_status": "committed",
+            "operation_type": second["operation"],
+            "experiment_ended": True,
+            "observed_keys": ["score"],
+            "constraint_flags": {},
+        },
+    )
+
+    receipts = agent.provider_receipts()
+    usage = agent.method_resource_usage()
+    assert calls == 2
+    assert [receipt["accepted_action_count"] for receipt in receipts] == [0, 2]
+    assert [receipt["pre_action_retry_classification"] for receipt in receipts] == [
+        "eligible_zero_action_infrastructure_predecessor",
+        "terminal_accepted",
+    ]
+    assert usage["provider_process_attempt_count"] == 2
+    assert usage["accepted_provider_session_count"] == 1
+    assert usage["accepted_participant_model_call_count"] == 1
+    assert usage["provider_usage_accounting_complete"] is True
+    assert usage["input_token_count"] == 1254
+    assert usage["output_token_count"] == 323
+    assert _w2_26_campaign_receipt_contract(receipts, usage) == {
+        "valid": True,
+        "accepted_receipt": receipts[1],
+        "accepted_provider_session_count": 1,
+        "accepted_participant_model_call_count": 1,
+        "provider_process_attempt_count": 2,
+    }
 
 
 def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
@@ -1350,7 +1443,7 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
         session_wall_time_limit_s=0.1,
         session_progress_callback=progress.append,
         session_progress_interval_s=0.02,
-        pre_action_restart_limit=0,
+        pre_action_restart_limit=1,
     )
     agent.reset({"task_id": "x", "budget": 1}, seed=0)
 
@@ -1377,6 +1470,7 @@ def test_session_wall_time_limit_stops_stalled_process_and_records_receipt(
         "unclassified": 0,
     }
     usage = agent.method_resource_usage()
+    assert len(commands) == 1
     assert usage["provider_usage_pending"] is False
     assert usage["token_counts_observed"] is False
     assert progress
@@ -1435,7 +1529,7 @@ def test_lab_tool_tamper_is_rejected_before_action_acceptance(tmp_path: Path) ->
         ),
         request_timeout_s=5.0,
         finalization_timeout_s=2.0,
-        pre_action_restart_limit=0,
+        pre_action_restart_limit=1,
     )
     agent.reset({"task_id": "x", "budget": 2}, seed=0)
 
@@ -1443,6 +1537,7 @@ def test_lab_tool_tamper_is_rejected_before_action_acceptance(tmp_path: Path) ->
         agent.act_with_public_view(_context(1, 2), _view())
 
     assert agent.workspace.history_path.read_text(encoding="utf-8") == ""
+    assert len(commands) == 1
     assert agent.provider_receipts()[0]["lab_tool_integrity_verified_after_session"] is False
 
 

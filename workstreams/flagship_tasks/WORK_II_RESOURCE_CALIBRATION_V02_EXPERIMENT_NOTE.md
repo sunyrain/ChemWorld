@@ -28,9 +28,15 @@ recovery-episode totals and maximum consecutive episodes.
   cutoff. Ordinary qualification and formal execution retain their normal hard limits.
 - Every runtime config and authorization also binds `provider_error_enforcement=measure_only` for
   W2-26 only. Provider errors remain counted and retained but do not force-kill the live calibration
-  session; any nonzero count still invalidates the affected triplet after receipt closure, produces
-  no resource card or authorization, and requires a full triplet restart. Ordinary qualification
-  and formal execution retain their source-config provider-error hard limits.
+  session. A session that subsequently completes every experiment, exact replay, integrity check,
+  and usage ledger is a terminal method/operational finding rather than a platform defect; it is not
+  replaced. Missing or incomplete trajectory, replay, integrity, or accounting remains a platform
+  defect. Ordinary qualification and formal execution retain their source-config provider-error
+  hard limits.
+- One strictly zero-action typed process/IPC predecessor may restart inside the same cell with the
+  unchanged prompt, task, arm, seed, and world. Both receipts and their complete resource usage are
+  retained. It counts as a provider-process attempt but not as an accepted participant session or
+  participant model call. No restart is allowed after an accepted experimental action.
 - Raw invalid calls and submitted participant payloads remain in the receipt. The host never
   repairs, reorders, or substitutes participant content. A participant that never commits every
   required valid checkpoint or never closes the lifecycle remains a retained method failure.
@@ -41,10 +47,13 @@ recovery-episode totals and maximum consecutive episodes.
 - MCP taxonomy must be complete and `unclassified=0`. Provider, transport, platform, replay, or
   accounting defects remain fail-closed and invalidate the affected triplet. No participant method
   failure is replaced because its resource use is unfavorable.
-- A cell passes only if every planned experiment closes, all typed checkpoints and the final
-  recommendation are committed, exact replay passes, and all resource ledgers reconcile. A-E/A-P
-  keep 15% protected process reserve; A-S keeps 20%. Repeat design stays fixed at 6/8/10 unique
-  recipes plus at most two participant-selected exact repeats.
+- A cell is resource-calibrated if every planned experiment closes, all typed checkpoints and the
+  final recommendation are committed, exact replay passes, and all resource ledgers reconcile.
+  Method gates such as recipe diversity and provider-operational behavior remain reported as
+  retained failures, but W2-27—not W2-26—decides current-method qualification. Such method failures
+  therefore contribute conservative observed resource maxima without being relabelled as method
+  passes. A-E/A-P keep 15% protected process reserve; A-S keeps 20%. Repeat design stays fixed at
+  6/8/10 unique recipes plus at most two participant-selected exact repeats.
 
 ## Expected outputs
 

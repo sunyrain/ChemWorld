@@ -22,6 +22,7 @@ from scripts.run_work_ii_campaign_pilot import (
     _checkpoint_contract,
     _provider_error_online_limit,
     _qualification,
+    _required_operation_counts,
     _world_interventions,
 )
 from scripts.run_work_ii_five_seed_campaign import (
@@ -36,6 +37,17 @@ from chemworld.campaign_resources import CampaignResourceLedger
 from chemworld.eval.provenance import canonical_json_sha256
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_w226_operation_counts_have_no_historical_runner_fallback() -> None:
+    assert _required_operation_counts({"qualification": {}}) == {}
+    assert _required_operation_counts(
+        {"qualification": {"required_operation_counts": {"step": [8, 8]}}}
+    ) == {"step": [8, 8]}
+    with pytest.raises(ValueError, match="requires explicit required_operation_counts"):
+        _required_operation_counts(
+            {"w2_26_runtime_identity": {}, "qualification": {}}
+        )
 
 
 def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:

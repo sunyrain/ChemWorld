@@ -338,6 +338,58 @@ def _validate_cell_execution_binding(
         raise RuntimeError("W2-26 child result is detached from its execution authorization")
 
 
+def _cell_has_platform_defect(row: Mapping[str, object]) -> bool:
+    """Return whether a closed cell lacks intact execution evidence.
+
+    Provider-error events are retained method observations once the cell has one
+    receipt and complete usage, replay, tool-integrity, and execution-audit
+    evidence.  They therefore remain available to qualification without being
+    promoted here into an infrastructure restart.
+    """
+
+    receipts = row.get("provider_receipts")
+    receipts = (
+        [item for item in receipts if isinstance(item, Mapping)]
+        if isinstance(receipts, list)
+        else []
+    )
+    terminal_receipts = [
+        item
+        for item in receipts
+        if item.get("pre_action_retry_classification") == "terminal_accepted"
+    ]
+    predecessor_receipts = [
+        item
+        for item in receipts
+        if item.get("pre_action_retry_classification")
+        == "eligible_zero_action_infrastructure_predecessor"
+    ]
+    receipt_contract_valid = len(receipts) == 1 or (
+        len(terminal_receipts) == 1
+        and len(predecessor_receipts) <= 1
+        and len(receipts) == len(terminal_receipts) + len(predecessor_receipts)
+    )
+    qualification = row.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    checks = qualification.get("checks")
+    checks = checks if isinstance(checks, Mapping) else {}
+    method = row.get("method_resources")
+    method = method if isinstance(method, Mapping) else {}
+    platform_checks = (
+        "one_campaign_session",
+        "tool_integrity",
+        "exact_replay",
+        "execution_audit",
+    )
+    return (
+        not receipt_contract_valid
+        or method.get("provider_usage_pending") is not False
+        or method.get("provider_usage_accounting_complete") is not True
+        or method.get("in_flight_model_call_count") != 0
+        or any(checks.get(field) is not True for field in platform_checks)
+    )
+
+
 def execute_calibration(
     *,
     manifest_path: Path,
@@ -625,28 +677,7 @@ def execute_calibration(
                 authorization=authorization,
                 reservation_path=attempt_root / "cost_reservation.json",
             )
-            receipts = row.get("provider_receipts")
-            receipts = receipts if isinstance(receipts, list) else []
-            receipt = receipts[0] if len(receipts) == 1 else {}
-            qualification = row.get("qualification")
-            qualification = qualification if isinstance(qualification, Mapping) else {}
-            checks = qualification.get("checks")
-            checks = checks if isinstance(checks, Mapping) else {}
-            platform_checks = (
-                "tool_integrity",
-                "exact_replay",
-                "execution_audit",
-            )
-            method = row.get("method_resources")
-            method = method if isinstance(method, Mapping) else {}
-            if (
-                len(receipts) != 1
-                or receipt.get("provider_error_event_count", 0) != 0
-                or method.get("provider_usage_pending") is not False
-                or method.get("provider_usage_accounting_complete") is not True
-                or method.get("in_flight_model_call_count") != 0
-                or any(checks.get(field) is not True for field in platform_checks)
-            ):
+            if _cell_has_platform_defect(row):
                 platform_defect = True
             row["calibration_campaign_contract"] = {
                 "process_time_policy": config["campaign"]["process_time_policy"],

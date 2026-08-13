@@ -137,6 +137,45 @@ def _arm_initial_world_model(config: Mapping[str, Any], arm: str) -> dict[str, A
     return dict(value)
 
 
+def _recipe_coverage_contract(config: Mapping[str, Any]) -> dict[str, Any]:
+    """Expose the runner's recipe-diversity qualification to the participant."""
+
+    campaign = config["campaign"]
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    target = int(campaign["complete_experiments"])
+    minimum_unique = int(qualification.get("minimum_unique_recipes", 0))
+    raw_maximum_repeats = qualification.get("maximum_exact_repeats")
+    maximum_repeats = (
+        target if raw_maximum_repeats is None else int(raw_maximum_repeats)
+    )
+    if not 0 <= minimum_unique <= target:
+        raise ValueError(
+            "minimum_unique_recipes must be between zero and complete_experiments"
+        )
+    if not 0 <= maximum_repeats <= target:
+        raise ValueError(
+            "maximum_exact_repeats must be between zero and complete_experiments"
+        )
+    return {
+        "target_complete_experiments": target,
+        "minimum_unique_recipes": minimum_unique,
+        "maximum_exact_repeats": maximum_repeats,
+        "recipe_identity_semantics": {
+            "unit": "completed_experiment",
+            "identity_basis": (
+                "exact equality of the ordered committed lab action objects from batch "
+                "start through the final assay, including operation names and every "
+                "submitted action parameter"
+            ),
+            "rejected_or_rolled_back_attempts_included": False,
+            "exact_repeat_count": (
+                "target completed experiments minus the number of distinct recipes"
+            ),
+        },
+    }
+
+
 def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
     campaign = config["campaign"]
     return CampaignResourceCard(
@@ -155,6 +194,7 @@ def _campaign_card(config: Mapping[str, Any]) -> CampaignResourceCard:
             "task_id": config["task_id"],
             "process_time_policy": dict(campaign["process_time_policy"]),
             "closeout_policy": dict(campaign["closeout_policy"]),
+            "recipe_coverage_contract": _recipe_coverage_contract(config),
             "scope": "one_task_prior_world_cell",
         },
     )
@@ -170,6 +210,21 @@ def _world_interventions(config: Mapping[str, Any]) -> list[dict[str, Any]]:
             raise ValueError(f"world_interventions[{index}] must be an object")
         interventions.append(dict(item))
     return interventions
+
+
+def _required_operation_counts(config: Mapping[str, Any]) -> dict[str, Any]:
+    qualification = config.get("qualification")
+    qualification = qualification if isinstance(qualification, Mapping) else {}
+    value = qualification.get("required_operation_counts")
+    if value is None:
+        if "w2_26_runtime_identity" in config:
+            raise ValueError(
+                "W2-26 runtime config requires explicit required_operation_counts"
+            )
+        return {}
+    if not isinstance(value, Mapping):
+        raise ValueError("required_operation_counts must be an object")
+    return dict(value)
 
 
 def _formal_cell_context(
@@ -658,7 +713,18 @@ def _analyze(
                     candidate = campaign_state.get("campaign_resources", {})
                     if isinstance(candidate, Mapping):
                         final_campaign_resources = dict(candidate)
-    receipt = receipts[0] if len(receipts) == 1 else {}
+    terminal_receipts = [
+        receipt
+        for receipt in receipts
+        if receipt.get("pre_action_retry_classification") == "terminal_accepted"
+    ]
+    receipt = (
+        terminal_receipts[0]
+        if len(terminal_receipts) == 1
+        else receipts[0]
+        if len(receipts) == 1
+        else {}
+    )
     recommendation = receipt.get("final_recommendation")
     recommendation = dict(recommendation) if isinstance(recommendation, Mapping) else None
     experiment_scores = [
@@ -700,6 +766,66 @@ def _analyze(
     }
 
 
+def _w2_26_campaign_receipt_contract(
+    receipts: list[dict[str, Any]],
+    method_resources: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Separate accepted-session identity from bounded zero-action process attempts."""
+
+    terminal_indices = [
+        index
+        for index, receipt in enumerate(receipts)
+        if receipt.get("pre_action_retry_classification") == "terminal_accepted"
+        and isinstance(receipt.get("accepted_action_count"), int)
+        and not isinstance(receipt.get("accepted_action_count"), bool)
+        and int(receipt["accepted_action_count"]) > 0
+    ]
+    terminal_index = terminal_indices[0] if len(terminal_indices) == 1 else None
+    predecessors = receipts[:terminal_index] if terminal_index is not None else []
+    predecessor_valid = len(predecessors) <= 1 and all(
+        receipt.get("status") == "interrupted_before_next_action"
+        and receipt.get("accepted_action_count") == 0
+        and receipt.get("pre_action_retry_classification")
+        == "eligible_zero_action_infrastructure_predecessor"
+        and receipt.get("failure_type")
+        in {"process_exited_before_first_request", "request_wait_timeout"}
+        and receipt.get("usage_observed") is True
+        and receipt.get("usage_complete") is True
+        and receipt.get("provider_error_event_count") == 0
+        and receipt.get("mcp_tool_calls") == []
+        and receipt.get("belief_snapshot_count") == 0
+        and receipt.get("final_recommendation") is None
+        and receipt.get("mcp_tool_integrity_verified_after_session") is True
+        and receipt.get("experiment_tool_integrity_verified_after_session") is True
+        and receipt.get("lab_tool_integrity_verified_after_session") is True
+        for receipt in predecessors
+    )
+    process_attempt_count = len(receipts)
+    counters_reconciled = (
+        method_resources.get("provider_process_attempt_count") == process_attempt_count
+        and method_resources.get("provider_session_count") == process_attempt_count
+        and method_resources.get("model_call_count") == process_attempt_count
+        and method_resources.get("accepted_provider_session_count") == 1
+        and method_resources.get("accepted_participant_model_call_count") == 1
+    )
+    valid = (
+        terminal_index is not None
+        and terminal_index == len(receipts) - 1
+        and 1 <= process_attempt_count <= 2
+        and predecessor_valid
+        and counters_reconciled
+    )
+    return {
+        "valid": valid,
+        "accepted_receipt": (
+            receipts[terminal_index] if valid and terminal_index is not None else {}
+        ),
+        "accepted_provider_session_count": 1 if valid else 0,
+        "accepted_participant_model_call_count": 1 if valid else 0,
+        "provider_process_attempt_count": process_attempt_count,
+    }
+
+
 def _qualification(
     *,
     analysis: Mapping[str, Any],
@@ -726,7 +852,22 @@ def _qualification(
     if provider_error_enforcement not in {None, PROVIDER_ERROR_ENFORCEMENT_POLICY}:
         raise ValueError("unsupported provider-error enforcement policy")
 
-    receipt = receipts[0] if len(receipts) == 1 else {}
+    w2_26_retry_contract_enabled = (
+        agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
+        and provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+    )
+    w2_26_receipt_contract = (
+        _w2_26_campaign_receipt_contract(receipts, method_resources)
+        if w2_26_retry_contract_enabled
+        else None
+    )
+    receipt = (
+        w2_26_receipt_contract["accepted_receipt"]
+        if w2_26_receipt_contract is not None
+        else receipts[0]
+        if len(receipts) == 1
+        else {}
+    )
     usage = method_resources
     limits = method_resource_limits
     operational_limits = operational_limits or {}
@@ -834,8 +975,12 @@ def _qualification(
                 == target_experiments
             )
         ),
-        "one_campaign_session": len(receipts) == 1
-        and method_resources.get("provider_session_count") == 1
+        "one_campaign_session": (
+            w2_26_receipt_contract["valid"]
+            if w2_26_receipt_contract is not None
+            else len(receipts) == 1
+            and method_resources.get("provider_session_count") == 1
+        )
         and receipt.get("session_scope") == "campaign",
         "provider_session_completed": provider_terminal_completed,
         "final_recommendation_committed": (
@@ -1062,10 +1207,14 @@ def _run_cell(
             max_provider_error_events=max_provider_error_events,
             session_progress_callback=on_session_progress,
             session_progress_interval_s=float(provider.get("progress_interval_s", 30.0)),
-            # D1 owns the only allowed pre-operation retry.  An inner session
-            # restart would consume an untracked provider attempt and would
-            # also violate the one-campaign-session qualification check.
-            pre_action_restart_limit=int(provider.get("pre_action_restart_limit", 0)),
+            # W2-26 alone admits one typed, zero-action infrastructure predecessor.
+            # Other paths retain their explicit provider setting (normally zero).
+            pre_action_restart_limit=(
+                1
+                if agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
+                and provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
+                else int(provider.get("pre_action_restart_limit", 0))
+            ),
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
             initial_world_model=_arm_initial_world_model(config, arm),
@@ -1205,11 +1354,7 @@ def _run_cell(
         method_resource_limits=config["method_resources"],
         receipts=receipts,
         process_time_limit_s=float(config["campaign"]["process_time_limit_s"]),
-        required_operation_counts=dict(
-            config.get("qualification", {}).get(
-                "required_operation_counts", {"electrolyze": [4, 5]}
-            )
-        ),
+        required_operation_counts=_required_operation_counts(config),
         required_snapshot_stages=list(_checkpoint_contract(config, arm)["snapshot_stages"]),
         operational_limits=provider,
         max_resource_rejections=int(

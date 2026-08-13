@@ -37,7 +37,7 @@ SUMMARY_VERSION = "chemworld-work-ii-resource-calibration-summary-0.2"
 AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.2"
 READINESS_VERSION = "chemworld-work-ii-resource-calibration-readiness-0.2"
 RUNTIME_CONFIG_ROOT = Path(
-    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.2"
+    "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.3"
 )
 CHECKPOINTS = {
     8: (0, 2, 4, 6, 8),
@@ -211,6 +211,14 @@ def _materialize_runtime_config(
         }
     )
     config["qualification"] = qualification
+    provider = config.get("provider")
+    provider = provider if isinstance(provider, dict) else {}
+    # W2-26 counts a strictly zero-action infrastructure predecessor as a
+    # provider-process attempt, not as an accepted participant session.  One
+    # bounded in-cell restart prevents a transient startup/IPC exit from
+    # replacing three already-started calibration arms.
+    provider["pre_action_restart_limit"] = 1
+    config["provider"] = provider
     config["w2_26_runtime_identity"] = {
         "locus": locus,
         "task_id": task_id,
@@ -253,6 +261,8 @@ def _config_errors(
     closeout = closeout if isinstance(closeout, Mapping) else {}
     qualification = config.get("qualification")
     qualification = qualification if isinstance(qualification, Mapping) else {}
+    provider = config.get("provider")
+    provider = provider if isinstance(provider, Mapping) else {}
     runtime_identity = config.get("w2_26_runtime_identity")
     runtime_identity = (
         runtime_identity if isinstance(runtime_identity, Mapping) else {}
@@ -267,6 +277,7 @@ def _config_errors(
         != MINIMUM_UNIQUE_RECIPES[locus]
         or qualification.get("maximum_exact_repeats") != 2
         or qualification.get("required_operation_counts") != {}
+        or provider.get("pre_action_restart_limit") != 1
         or runtime_identity.get("locus") != locus
         or runtime_identity.get("task_id") != task_id
         or runtime_identity.get("rounds") != rounds
@@ -1168,6 +1179,7 @@ def build_summary(
     cell_rows: list[dict[str, Any]] = []
     cards: list[dict[str, Any]] = []
     failures: list[dict[str, Any]] = []
+    method_findings: list[dict[str, Any]] = []
     provider_attempts = 0
     provider_sessions = 0
     for pattern in manifest.get("patterns", []):
@@ -1236,8 +1248,32 @@ def build_summary(
             method = row.get("method_resources")
             method = method if isinstance(method, Mapping) else {}
             receipts = row.get("provider_receipts")
-            receipts = receipts if isinstance(receipts, list) else []
-            receipt = receipts[0] if len(receipts) == 1 and isinstance(receipts[0], Mapping) else {}
+            receipts = (
+                [item for item in receipts if isinstance(item, Mapping)]
+                if isinstance(receipts, list)
+                else []
+            )
+            terminal_receipts = [
+                item
+                for item in receipts
+                if item.get("pre_action_retry_classification") == "terminal_accepted"
+            ]
+            if not terminal_receipts and len(receipts) == 1:
+                # Historical single-session rows predate the explicit accepted-session
+                # classification.  They remain valid inputs when otherwise complete.
+                terminal_receipts = receipts
+            predecessor_receipts = [
+                item
+                for item in receipts
+                if item.get("pre_action_retry_classification")
+                == "eligible_zero_action_infrastructure_predecessor"
+            ]
+            receipt_contract_valid = (
+                len(terminal_receipts) == 1
+                and len(predecessor_receipts) <= 1
+                and len(receipts) == len(terminal_receipts) + len(predecessor_receipts)
+            )
+            receipt = terminal_receipts[0] if len(terminal_receipts) == 1 else {}
             try:
                 mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
             except ValueError:
@@ -1253,30 +1289,58 @@ def build_summary(
             counts = process_profile.get("counts")
             counts = counts if isinstance(counts, Mapping) else {}
             platform_failure = (
-                len(receipts) != 1
-                or receipt.get("provider_error_event_count", 0) != 0
+                not receipt_contract_valid
                 or method.get("provider_usage_pending") is not False
                 or method.get("provider_usage_accounting_complete") is not True
                 or method.get("in_flight_model_call_count") != 0
                 or mcp_failure_observation is None
                 or int(mcp_failure_observation["unclassified_count"]) != 0
                 or int(mcp_failure_observation["transport_count"]) != 0
-                or int(mcp_failure_observation["provider_network_count"]) != 0
                 or any(
                     checks.get(name) is not True
-                    for name in ("tool_integrity", "exact_replay", "execution_audit")
+                    for name in (
+                        "one_campaign_session",
+                        "tool_integrity",
+                        "exact_replay",
+                        "execution_audit",
+                    )
                 )
             )
             complete = int(analysis.get("complete_experiment_count", 0))
-            passed = (
+            resource_checks = (
+                "planned_complete_experiments",
+                "typed_belief_checkpoints_complete",
+                "one_campaign_session",
+                "provider_session_completed",
+                "final_recommendation_committed",
+                "tool_integrity",
+                "no_resource_rejection",
+                "campaign_terminal",
+                "process_time_reconciled",
+                "task_required_operations_reconciled",
+                "exact_replay",
+                "execution_audit",
+                "provider_usage_reconciled",
+            )
+            resource_calibrated = (
                 not platform_failure
-                and row.get("completed") is True
-                and qualification.get("passed") is True
+                and (
+                    qualification.get("passed") is True
+                    or all(checks.get(name) is True for name in resource_checks)
+                )
                 and replay.get("verified") is True
                 and complete == key[2]
             )
-            provider_attempts += int(receipt.get("provider_attempt_count", 1))
-            provider_sessions += int(len(receipts) == 1 and receipt.get("status") == "completed")
+            method_qualification_passed = (
+                row.get("completed") is True
+                and qualification.get("passed") is True
+                and receipt.get("provider_error_event_count", 0) == 0
+            )
+            provider_attempt_count = len(receipts)
+            provider_attempts += provider_attempt_count
+            provider_sessions += int(
+                receipt_contract_valid and receipt.get("status") == "completed"
+            )
             cell_id = f"{key[0]}:{key[1]}:{key[2]}:{pattern.get('world_seed')}:{arm}"
             observed_currency = currency.get(cell_id)
             cell = {
@@ -1287,13 +1351,19 @@ def build_summary(
                 "arm": arm,
                 "status": (
                     "passed"
-                    if passed
+                    if resource_calibrated and method_qualification_passed
+                    else "resource_calibrated_method_failure_retained"
+                    if resource_calibrated
                     else "platform_defect"
                     if platform_failure
-                    else "method_failure_retained"
+                    else "resource_calibration_incomplete"
                 ),
                 "terminal": not platform_failure,
-                "calibration_passed": passed,
+                "calibration_passed": resource_calibrated,
+                "method_qualification_passed": method_qualification_passed,
+                "method_qualification_failed_checks": list(
+                    qualification.get("failed_checks", [])
+                ),
                 "complete_experiments": complete,
                 "checkpoint_count": len(analysis.get("belief_snapshots", [])),
                 "exact_replay_verified": replay.get("verified") is True,
@@ -1308,8 +1378,13 @@ def build_summary(
                 "input_tokens": int(method.get("input_token_count", 0)),
                 "uncached_input_tokens": int(method.get("uncached_input_token_count", 0)),
                 "output_tokens": int(method.get("output_token_count", 0)),
-                "provider_elapsed_s": float(receipt.get("session_elapsed_s", 0.0)),
-                "provider_attempts": int(receipt.get("provider_attempt_count", 1)),
+                "provider_elapsed_s": float(
+                    method.get(
+                        "session_elapsed_s",
+                        sum(float(item.get("session_elapsed_s", 0.0)) for item in receipts),
+                    )
+                ),
+                "provider_attempts": provider_attempt_count,
                 "agent_invalid_recovered_count": (
                     0
                     if mcp_failure_observation is None
@@ -1340,7 +1415,7 @@ def build_summary(
                 if field == "observed_currency_usd":
                     continue
                 maxima[field] = max(float(maxima[field] or 0.0), float(cell[field]))
-            if not passed:
+            if not resource_calibrated:
                 platform_defect = platform_defect or platform_failure
                 failures.append(
                     {
@@ -1349,8 +1424,17 @@ def build_summary(
                         "class": (
                             "platform_execution_failure"
                             if platform_failure
-                            else "participant_method_failure_retained"
+                            else "resource_calibration_incomplete"
                         ),
+                    }
+                )
+            elif not method_qualification_passed:
+                method_findings.append(
+                    {
+                        "pattern": key,
+                        "arm": arm,
+                        "class": "participant_method_failure_retained",
+                        "failed_checks": list(qualification.get("failed_checks", [])),
                     }
                 )
         triplet_passed = (
@@ -1489,6 +1573,7 @@ def build_summary(
         "pattern_summaries": pattern_rows,
         "cell_summaries": cell_rows,
         "all_failures": failures,
+        "retained_method_findings": method_findings,
         "resource_card_proposals": cards,
         "calibration_passed": passed,
         "method_qualification_may_be_authorized": passed,

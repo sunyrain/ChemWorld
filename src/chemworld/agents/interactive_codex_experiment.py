@@ -44,6 +44,13 @@ DEFAULT_FINALIZATION_TIMEOUT_S = 300.0
 TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT = 20
 TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S = 0.05
 
+ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR = (
+    "eligible_zero_action_infrastructure_predecessor"
+)
+TERMINAL_ACCEPTED_PRE_ACTION_RETRY_CLASSIFICATION = "terminal_accepted"
+_PROCESS_EXITED_BEFORE_FIRST_REQUEST = "process_exited_before_first_request"
+_REQUEST_WAIT_TIMEOUT = "request_wait_timeout"
+
 MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
 MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION = (
     "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2"
@@ -637,6 +644,15 @@ The host never chooses, repairs, terminates, assays, or replaces your operations
 resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
 process-time, and assay capacity to close all planned batches. The 19 process coordinates are
 evaluator-derived; do not report them yourself. Do not provide private chain-of-thought.
+
+Recipe coverage is a hard campaign qualification obligation, not optional advice. Read the
+recipe_coverage_contract in the initial prompt and satisfy its target_complete_experiments,
+minimum_unique_recipes, and maximum_exact_repeats simultaneously. Two completed experiments are
+the same recipe only when their ordered committed lab action objects are exactly equal, including
+operation names and every submitted action parameter; rejected or rolled-back attempts do not
+define recipe identity. Track completed recipes yourself from public outcomes, plan the required
+diversity before spending repeat allowance, and never assume the host will repair a repeat-heavy
+campaign.
 """
 
 
@@ -1101,6 +1117,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             context,
             public_view,
             artifact=artifact,
+            recipe_coverage_contract=_participant_recipe_coverage_contract(
+                self._task_contract
+            ),
         )
         current_manifest = self.workspace.publish_current(current_packet)
         if self._session is None:
@@ -1446,6 +1465,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         provider_error_event_count = self._provider_error_event_count + int(
             operational["provider_error_event_count"]
         )
+        accepted_provider_session_count = sum(
+            receipt.get("pre_action_retry_classification")
+            == TERMINAL_ACCEPTED_PRE_ACTION_RETRY_CLASSIFICATION
+            for receipt in self._session_receipts
+        ) + int(
+            active
+            and self._session is not None
+            and int(self._session.get("accepted_action_count", 0)) > 0
+        )
         return {
             "schema_version": "chemworld-method-resource-usage-0.1",
             "accounting_complete": False,
@@ -1473,6 +1501,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             ),
             "model_call_count": self._sessions_started,
             "provider_session_count": self._sessions_started,
+            "provider_process_attempt_count": self._sessions_started,
+            "accepted_provider_session_count": accepted_provider_session_count,
+            "accepted_participant_model_call_count": accepted_provider_session_count,
             "logical_codex_turn_count": self._sessions_started,
             "backend_model_response_count": None,
             "backend_model_response_accounting_complete": False,
@@ -1867,15 +1898,40 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 )
             except (ExperimentCodexIPCError, TimeoutError) as error:
                 limit_failure = self._active_session_limit_failure()
-                failure_reason = limit_failure or type(error).__name__
+                retry_failure_type = self._pre_action_retry_failure_type(error)
+                failure_reason = limit_failure or retry_failure_type or type(error).__name__
                 accepted = int(self._session.get("accepted_action_count", 0))
+                operational = self._active_session_operational_audit()
+                session_id = str(self._session["session_id"])
+                monitor_snapshot = monitor.snapshot()
+                attempt_usage = monitor_snapshot.get("usage")
+                attempt_usage_complete = (
+                    monitor_snapshot.get("usage_observed") is True
+                    and isinstance(attempt_usage, Mapping)
+                    and _usage_complete(attempt_usage)
+                )
+                bridge_untouched = True
+                try:
+                    self._verify_experiment_tool()
+                except ExperimentCodexIPCError:
+                    bridge_untouched = False
                 can_restart = (
                     accepted == 0
                     and self._pre_action_restarts < self.pre_action_restart_limit
                     and limit_failure is None
+                    and retry_failure_type is not None
+                    and attempt_usage_complete
+                    and bridge_untouched
+                    and int(operational["provider_error_event_count"]) == 0
+                    and not self.workspace.mcp_tool_call_audit(session_id)
                 )
                 self._record_interrupted_session(
                     reason=failure_reason,
+                    pre_action_retry_classification=(
+                        ELIGIBLE_ZERO_ACTION_INFRASTRUCTURE_PREDECESSOR
+                        if can_restart
+                        else None
+                    ),
                 )
                 if can_restart:
                     self._pre_action_restarts += 1
@@ -1897,6 +1953,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                     "acceptance; no fallback action was emitted: " + limit_failure
                 )
             return request
+
+    @staticmethod
+    def _pre_action_retry_failure_type(error: BaseException) -> str | None:
+        """Name only transient request-wait failures eligible before any MCP call."""
+
+        if isinstance(error, TimeoutError):
+            return _REQUEST_WAIT_TIMEOUT
+        if isinstance(error, ExperimentCodexIPCError) and str(error) == (
+            "Codex process exited before submitting the next operation"
+        ):
+            return _PROCESS_EXITED_BEFORE_FIRST_REQUEST
+        return None
 
     def _finalize_session(self, *, terminal_reason: str) -> None:
         if self._session is None:
@@ -1975,6 +2043,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "status": result.get("status"),
             "return_code": result.get("return_code"),
             "terminal_reason": terminal_reason,
+            "accepted_action_count": int(self._session.get("accepted_action_count", 0)),
+            "pre_action_retry_classification": (
+                TERMINAL_ACCEPTED_PRE_ACTION_RETRY_CLASSIFICATION
+                if int(self._session.get("accepted_action_count", 0)) > 0
+                else None
+            ),
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
@@ -2089,7 +2163,12 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 "the experiment tool bridge failed its post-session integrity check"
             ) from integrity_error
 
-    def _record_interrupted_session(self, *, reason: str) -> None:
+    def _record_interrupted_session(
+        self,
+        *,
+        reason: str,
+        pre_action_retry_classification: str | None = None,
+    ) -> None:
         """Retain an attempt receipt even when no environment action was emitted."""
 
         if self._session is None:
@@ -2146,6 +2225,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "thread_id": snapshot.get("thread_id"),
             "status": "interrupted_before_next_action",
             "failure_type": reason,
+            "accepted_action_count": int(self._session.get("accepted_action_count", 0)),
+            "pre_action_retry_classification": pre_action_retry_classification,
             "model_id": self.model,
             "reasoning_effort": self.reasoning_effort,
             "usage": normalized_usage,
@@ -2535,12 +2616,14 @@ def _initial_prompt(
     belief_checkpoint_manifest: Mapping[str, Any] | None = None,
 ) -> str:
     campaign = session_scope == "campaign"
+    recipe_coverage_contract = _participant_recipe_coverage_contract(task_contract)
     payload = {
         "schema_version": INTERACTIVE_CODEX_EXPERIMENT_VERSION,
         "instruction": (
             "Run the complete multi-experiment discovery campaign autonomously. Commit the "
             "required typed belief checkpoints, choose every operation after its public "
-            "outcome, preserve the shared resource ledger, and close every planned batch."
+            "outcome, preserve the shared resource ledger, close every planned batch, and "
+            "satisfy the recipe_coverage_contract as a hard qualification obligation."
             if campaign
             else "Complete one experiment autonomously and optimize the declared leaderboard "
             "score under the scoring contract's component weights, gates, safety, and "
@@ -2548,6 +2631,9 @@ def _initial_prompt(
             "through chemworld_lab.step. No host closeout is available."
         ),
         "session_scope": session_scope,
+        "recipe_coverage_contract": (
+            to_builtin(recipe_coverage_contract) if campaign else None
+        ),
         "task": to_builtin(dict(task_contract)),
         "task_contract_reference": {
             "contents_in_prompt": True,
@@ -2594,11 +2680,32 @@ def _initial_prompt(
     return _canonical_json(payload)
 
 
+def _participant_recipe_coverage_contract(
+    task_contract: Mapping[str, Any],
+) -> dict[str, Any] | None:
+    """Resolve the single campaign-card coverage contract for participant views."""
+
+    campaign_resources = task_contract.get("campaign_resources")
+    if not isinstance(campaign_resources, Mapping):
+        return None
+    card = campaign_resources.get("card")
+    if not isinstance(card, Mapping):
+        return None
+    metadata = card.get("metadata")
+    if not isinstance(metadata, Mapping):
+        return None
+    contract = metadata.get("recipe_coverage_contract")
+    if not isinstance(contract, Mapping):
+        return None
+    return deepcopy(dict(contract))
+
+
 def _bounded_current_packet(
     context: AgentDecisionContext,
     public_view: Mapping[str, Any],
     *,
     artifact: Mapping[str, Any] | None,
+    recipe_coverage_contract: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     tool = public_view.get("tool_json")
     tool_view = tool if isinstance(tool, Mapping) else {}
@@ -2644,6 +2751,7 @@ def _bounded_current_packet(
         "remaining_operations": context.remaining_operations,
         "campaign_state": compact_campaign,
         "campaign_resources": _compact_nested(resource_snapshot),
+        "recipe_coverage_contract": _compact_nested(recipe_coverage_contract),
         "visible_metrics": _compact_scalars(context.visible_metrics),
         "latest_measurement": summarize_measurement(context.latest_spectra),
         "characterization_artifact": to_builtin(artifact) if artifact else None,

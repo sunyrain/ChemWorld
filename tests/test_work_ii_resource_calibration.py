@@ -1337,8 +1337,9 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
                     },
                     "qualification": {
                         "passed": True,
-                        "checks": {
-                            "tool_integrity": True,
+                            "checks": {
+                                "one_campaign_session": True,
+                                "tool_integrity": True,
                             "exact_replay": True,
                             "execution_audit": True,
                         },
@@ -1545,27 +1546,34 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
     affected_receipt["provider_errors"] = [
         {"byte_count": 84, "sha256": "c" * 64}
     ]
-    invalidated = calibration_v02.build_summary(
+    retained_provider_finding = calibration_v02.build_summary(
         manifest,
         provider_defect_reports,
         source_commit="b" * 40,
         observed_currency_usd_by_cell={},
     )
     affected_key = calibration_v02.pattern_key(manifest["patterns"][0])
-    assert invalidated["status"] == "invalidated_platform_defect"
-    assert invalidated["calibration_passed"] is False
-    assert invalidated["method_qualification_may_be_authorized"] is False
-    assert len(invalidated["resource_card_proposals"]) == 8
-    assert all(
-        calibration_v02.pattern_key(card["card_identity"]) != affected_key
-        for card in invalidated["resource_card_proposals"]
+    assert retained_provider_finding["status"] == "passed"
+    assert retained_provider_finding["calibration_passed"] is True
+    assert retained_provider_finding["method_qualification_may_be_authorized"] is True
+    assert len(retained_provider_finding["resource_card_proposals"]) == 9
+    assert any(
+        calibration_v02.pattern_key(card["card_identity"]) == affected_key
+        for card in retained_provider_finding["resource_card_proposals"]
     )
-    assert invalidated["pattern_summaries"][0]["triplet_passed"] is False
+    assert retained_provider_finding["pattern_summaries"][0]["triplet_passed"] is True
     assert (
-        invalidated["pattern_summaries"][0]["platform_defect_detected"] is True
+        retained_provider_finding["pattern_summaries"][0]["platform_defect_detected"]
+        is False
     )
-    assert invalidated["cell_summaries"][0]["status"] == "platform_defect"
-    assert invalidated["all_failures"][0]["class"] == "platform_execution_failure"
+    assert (
+        retained_provider_finding["cell_summaries"][0]["status"]
+        == "resource_calibrated_method_failure_retained"
+    )
+    assert retained_provider_finding["all_failures"] == []
+    assert retained_provider_finding["retained_method_findings"][0]["class"] == (
+        "participant_method_failure_retained"
+    )
 
 
 def _resolved_v02_e2e_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, object]]:
@@ -1607,7 +1615,7 @@ def _resolved_v02_e2e_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, obj
                 "resource_formula_binding": (
                     calibration_v02.build_task_resource_formula_binding(config)
                 ),
-                "evidence": {"source": "provider_free_e2e_fixture"},
+                "evidence": {"source": "synthetic_orchestration_fixture"},
             }
         )
     manifest.update(
@@ -1622,8 +1630,8 @@ def _resolved_v02_e2e_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, obj
     return manifest_path, manifest
 
 
-def _write_provider_free_v02_cell_runner(repo_tmp_path: Path) -> Path:
-    runner = repo_tmp_path / "provider_free_cell_runner.py"
+def _write_synthetic_orchestration_cell_runner(repo_tmp_path: Path) -> Path:
+    runner = repo_tmp_path / "synthetic_orchestration_cell_runner.py"
     runner.write_text(
         """#!/usr/bin/env python3
 import argparse
@@ -1661,7 +1669,7 @@ matches = [
     and row["world_seed"] == args.world_seed
 ]
 if len(matches) != 1:
-    raise RuntimeError("provider-free E2E runner could not resolve one task identity")
+    raise RuntimeError("synthetic orchestration runner could not resolve one task identity")
 pattern = matches[0]
 rounds = int(pattern["rounds"])
 binding = {
@@ -1731,7 +1739,7 @@ summary = {
             "provider_error_event_count": 0,
             "provider_attempt_count": 1,
             "session_elapsed_s": float(rounds),
-            "synthetic_provider_free": True,
+            "synthetic_orchestration_fixture": True,
             "recovered_mcp_tool_failure_count": 0,
             "current_consecutive_mcp_tool_failure_count": 0,
             "maximum_consecutive_mcp_tool_failure_count": 0,
@@ -1800,7 +1808,7 @@ if invocations:
     return runner
 
 
-def test_v02_provider_free_execute_calibration_e2e(
+def test_v02_synthetic_orchestration_covers_triplet_resume_and_write_once(
     repo_tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -1835,7 +1843,7 @@ def test_v02_provider_free_execute_calibration_e2e(
         authorization_path=authorization_path,
         output_root=output_root,
         resume=False,
-        cell_runner=_write_provider_free_v02_cell_runner(repo_tmp_path),
+        cell_runner=_write_synthetic_orchestration_cell_runner(repo_tmp_path),
     )
 
     summary = json.loads((output_root / "summary.json").read_text(encoding="utf-8"))
@@ -1858,6 +1866,11 @@ def test_v02_provider_free_execute_calibration_e2e(
     assert observed_slugs == expected_slugs
     assert len(list(output_root.glob("triplet_attempts/*/attempt-*/*/summary.json"))) == 27
     assert len(list(repo_tmp_path.glob(f"{invocation_path.stem}-*.txt"))) == 27
+    assert all(
+        receipt["synthetic_orchestration_fixture"] is True
+        for path in output_root.glob("triplet_attempts/*/attempt-*/*/summary.json")
+        for receipt in json.loads(path.read_text(encoding="utf-8"))["provider_receipts"]
+    )
     assert sorted(row["reservation_sequence_number"] for row in reservations) == list(
         range(1, 10)
     )

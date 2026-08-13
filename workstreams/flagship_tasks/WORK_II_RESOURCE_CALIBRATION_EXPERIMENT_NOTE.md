@@ -31,6 +31,9 @@ scientific outcomes or select a more favorable trajectory.
   performed once later, at the release boundary.
 - Participant-selected exact repeats are measured separately from provider retries, MCP schema
   recovery, and infrastructure resume. Those operational retries are never new experiments.
+- A strictly zero-action typed process/IPC predecessor may restart once inside the same cell. It is
+  retained as a provider-process attempt but does not enter the accepted participant-session or
+  participant-call denominator. No accepted experimental action may be replaced.
 - A-E contains electrochemical conversion, reaction-to-crystallization, reaction-to-distillation,
   partition discovery, and constrained reaction safety. A-P contains electrochemical conversion
   and constrained reaction safety. A-S contains partition discovery and
@@ -54,8 +57,11 @@ For every cell and triplet, record:
 
 ## Pass/failure rules
 
-- A cell passes calibration only if all planned experiments close, the required checkpoints and
-  final recommendation are present, exact replay passes, and all resource ledgers reconcile.
+- A cell supplies a valid resource calibration when all planned experiments close, the required
+  checkpoints and final recommendation are present, exact replay passes, and all resource ledgers
+  reconcile. Recipe-diversity and provider-operational method failures remain visible and fail
+  method qualification, but do not discard an otherwise complete conservative resource envelope;
+  current-method admission is decided separately by W2-27.
 - The scientific repeat allowance remains fixed at A-E `6 unique + at most 2 repeats`, A-P
   `8 unique + at most 2 repeats`, and A-S `10 unique + at most 2 repeats`. An observed run using
   fewer repeats must not shrink this design allowance.
@@ -64,8 +70,11 @@ For every cell and triplet, record:
   quench, final assay, discard, or safe termination and its actual consumption is reported.
 - A participant scientific/method failure is retained as a calibration observation and cannot be
   replaced because its resource use is unfavorable.
-- A provider, harness, compiler/runtime, observation, replay, or accounting defect invalidates the
-  affected calibration block; that block must restart from its first cell with the same manifest.
+- A missing or incomplete provider trajectory, harness/compiler/runtime failure, observation
+  defect, failed replay/integrity check, or incomplete accounting invalidates the affected
+  calibration block; that block must restart from its first cell with the same manifest. A counted
+  transient provider error followed by complete terminal evidence is retained as a method/
+  operational failure and is not promoted to an infrastructure restart.
 - Task-local observed operation, process-time, token, provider-time, and currency maxima plus the
   frozen task-local protected reserve are the only inputs allowed to generate formal hard caps.
   A card from another task or locus is never portable merely because the round count matches.
