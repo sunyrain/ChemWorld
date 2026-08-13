@@ -14,6 +14,7 @@ from scripts.evaluate_work_ii_catalyst_deactivation_paired_provider_campaigns im
     _validate_configs,
 )
 from scripts.run_work_ii_campaign_pilot import (
+    _agent_invalid_online_limits,
     _arm_initial_world_model,
     _arm_material_information,
     _campaign_card,
@@ -41,6 +42,24 @@ def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:
     assert _execution_scope([1, 2, 3, 4]) == "terminal_seed0_preserving_continuation"
     with pytest.raises(ValueError, match="exact continuation"):
         _execution_scope([0, 1, 2, 3])
+
+
+def test_agent_invalid_measure_only_is_resource_calibration_only() -> None:
+    provider = {
+        "max_recovered_mcp_tool_failures": 3,
+        "max_consecutive_mcp_tool_failures": 1,
+    }
+
+    assert _agent_invalid_online_limits(
+        provider, agent_invalid_enforcement=None
+    ) == (3, 1)
+    assert _agent_invalid_online_limits(
+        provider, agent_invalid_enforcement="measure_only"
+    ) == (None, None)
+    with pytest.raises(RuntimeError, match="not frozen"):
+        _agent_invalid_online_limits(
+            provider, agent_invalid_enforcement="ignore_failures"
+        )
 
 
 def _preoperation_row(

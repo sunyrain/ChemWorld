@@ -9,10 +9,14 @@ from __future__ import annotations
 
 import copy
 import json
+import math
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
+from chemworld.agents.interactive_codex_experiment import (
+    validated_mcp_tool_failure_budget,
+)
 from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
@@ -96,6 +100,8 @@ EXPECTED_OBSERVED_DENOMINATORS = {
 }
 PROTECTED_RESERVE_FRACTIONS = {"A_E": 0.15, "A_P": 0.15, "A_S": 0.20}
 MINIMUM_UNIQUE_RECIPES = {"A_E": 6, "A_P": 8, "A_S": 10}
+AGENT_INVALID_ENFORCEMENT_POLICY = "measure_only"
+AGENT_INVALID_CAP_HEADROOM_MULTIPLIER = 1.2
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -204,6 +210,7 @@ def _materialize_runtime_config(
         "task_id": task_id,
         "rounds": rounds,
         "protected_closeout_reserve_fraction": fraction,
+        "agent_invalid_enforcement": AGENT_INVALID_ENFORCEMENT_POLICY,
     }
     return config
 
@@ -239,6 +246,10 @@ def _config_errors(
     closeout = closeout if isinstance(closeout, Mapping) else {}
     qualification = config.get("qualification")
     qualification = qualification if isinstance(qualification, Mapping) else {}
+    runtime_identity = config.get("w2_26_runtime_identity")
+    runtime_identity = (
+        runtime_identity if isinstance(runtime_identity, Mapping) else {}
+    )
     if (
         closeout.get("policy") != PROTECTED_CLOSEOUT_POLICY
         or set(closeout.get("allowed_operation_classes", []))
@@ -248,6 +259,11 @@ def _config_errors(
         or qualification.get("minimum_unique_recipes")
         != MINIMUM_UNIQUE_RECIPES[locus]
         or qualification.get("maximum_exact_repeats") != 2
+        or runtime_identity.get("locus") != locus
+        or runtime_identity.get("task_id") != task_id
+        or runtime_identity.get("rounds") != rounds
+        or runtime_identity.get("agent_invalid_enforcement")
+        != AGENT_INVALID_ENFORCEMENT_POLICY
     ):
         errors.append(f"{locus}/{task_id} lacks its enforced closeout design")
     return errors
@@ -722,6 +738,9 @@ def build_authorization(
         ),
         "unlimited_spend_authorized": unlimited_spend_authorized,
         "runtime_enforcement": {
+            "agent_invalid_enforcement": AGENT_INVALID_ENFORCEMENT_POLICY,
+            "participant_payload_auto_repair": False,
+            "raw_mcp_failures_retained": True,
             "per_cell_provider_attempt_hard_cap": 2,
             "reserve_full_token_cost_before_launch": True,
             "missing_infrastructure_only_resume": True,
@@ -816,7 +835,13 @@ def validate_authorization(
         errors.append("W2-26 authorization cost contract is invalid")
     runtime = authorization.get("runtime_enforcement")
     runtime = runtime if isinstance(runtime, Mapping) else {}
-    if runtime.get("per_cell_provider_attempt_hard_cap") != 2 or any(
+    if (
+        runtime.get("agent_invalid_enforcement")
+        != AGENT_INVALID_ENFORCEMENT_POLICY
+        or runtime.get("participant_payload_auto_repair") is not False
+        or runtime.get("raw_mcp_failures_retained") is not True
+        or runtime.get("per_cell_provider_attempt_hard_cap") != 2
+        or any(
         runtime.get(field) is not True
         for field in (
             "reserve_full_token_cost_before_launch",
@@ -824,6 +849,7 @@ def validate_authorization(
             "participant_scientific_or_method_failure_retained",
             "platform_defect_invalidates_affected_triplet",
             "affected_triplet_restarts_from_first_cell",
+        )
         )
     ):
         errors.append("W2-26 authorization runtime contract is incomplete")
@@ -967,6 +993,38 @@ def _positive(value: object) -> bool:
         and not isinstance(value, bool)
         and value > 0
     )
+
+
+def _agent_invalid_recovery_observation(
+    receipt: Mapping[str, Any],
+) -> dict[str, int]:
+    """Validate raw participant-invalid calls and deterministic recovery episodes."""
+
+    raw = validated_mcp_tool_failure_budget(receipt)
+    taxonomy = receipt.get("mcp_tool_failure_taxonomy")
+    taxonomy = taxonomy if isinstance(taxonomy, Mapping) else {}
+    if not isinstance(taxonomy.get("recovery_episode_taxonomy"), Mapping):
+        raise ValueError("W2-26 receipt lacks recovery episode taxonomy")
+    episode_count = int(raw["scientific_episode_count"])
+    episode_maximum = int(raw["scientific_episode_maximum"])
+    raw_count = int(raw["scientific_count"])
+    raw_maximum = int(raw["scientific_maximum"])
+    if (
+        episode_count > raw_count
+        or episode_maximum > episode_count
+        or (raw_count == 0) != (episode_count == 0)
+        or (episode_count == 0) != (episode_maximum == 0)
+    ):
+        raise ValueError("participant-invalid recovery episodes disagree with raw calls")
+    return {
+        "raw_count": raw_count,
+        "raw_maximum": raw_maximum,
+        "episode_count": episode_count,
+        "episode_maximum": episode_maximum,
+        "transport_count": int(raw["transport_count"]),
+        "provider_network_count": int(raw["provider_network_count"]),
+        "unclassified_count": int(raw["unclassified_count"]),
+    }
 
 
 def validate_summary(
@@ -1120,6 +1178,10 @@ def build_summary(
             "output_tokens": 0.0,
             "provider_elapsed_s": 0.0,
             "observed_currency_usd": None,
+            "agent_invalid_recovered_count": 0.0,
+            "agent_invalid_maximum_consecutive_count": 0.0,
+            "agent_invalid_recovery_episode_count": 0.0,
+            "agent_invalid_maximum_consecutive_recovery_episode_count": 0.0,
         }
         campaign_contract = report.get("calibration_campaign_contract")
         campaign_contract = (
@@ -1159,6 +1221,10 @@ def build_summary(
             receipts = row.get("provider_receipts")
             receipts = receipts if isinstance(receipts, list) else []
             receipt = receipts[0] if len(receipts) == 1 and isinstance(receipts[0], Mapping) else {}
+            try:
+                mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
+            except ValueError:
+                mcp_failure_observation = None
             final_resources = analysis.get("final_campaign_resources")
             final_resources = final_resources if isinstance(final_resources, Mapping) else {}
             state = final_resources.get("state")
@@ -1175,6 +1241,10 @@ def build_summary(
                 or method.get("provider_usage_pending") is not False
                 or method.get("provider_usage_accounting_complete") is not True
                 or method.get("in_flight_model_call_count") != 0
+                or mcp_failure_observation is None
+                or int(mcp_failure_observation["unclassified_count"]) != 0
+                or int(mcp_failure_observation["transport_count"]) != 0
+                or int(mcp_failure_observation["provider_network_count"]) != 0
                 or any(
                     checks.get(name) is not True
                     for name in ("tool_integrity", "exact_replay", "execution_audit")
@@ -1223,6 +1293,26 @@ def build_summary(
                 "output_tokens": int(method.get("output_token_count", 0)),
                 "provider_elapsed_s": float(receipt.get("session_elapsed_s", 0.0)),
                 "provider_attempts": int(receipt.get("provider_attempt_count", 1)),
+                "agent_invalid_recovered_count": (
+                    0
+                    if mcp_failure_observation is None
+                    else int(mcp_failure_observation["raw_count"])
+                ),
+                "agent_invalid_maximum_consecutive_count": (
+                    0
+                    if mcp_failure_observation is None
+                    else int(mcp_failure_observation["raw_maximum"])
+                ),
+                "agent_invalid_recovery_episode_count": (
+                    0
+                    if mcp_failure_observation is None
+                    else int(mcp_failure_observation["episode_count"])
+                ),
+                "agent_invalid_maximum_consecutive_recovery_episode_count": (
+                    0
+                    if mcp_failure_observation is None
+                    else int(mcp_failure_observation["episode_maximum"])
+                ),
                 "observed_currency_usd": (
                     None if observed_currency is None else float(observed_currency)
                 ),
@@ -1286,6 +1376,24 @@ def build_summary(
             "output_token_limit": int(maxima["output_tokens"]),
             "provider_wall_time_limit_s": maxima["provider_elapsed_s"],
             "currency_ceiling_usd": maxima["observed_currency_usd"],
+            "max_recovered_mcp_tool_failures": max(
+                1,
+                math.ceil(
+                    float(maxima["agent_invalid_recovery_episode_count"])
+                    * AGENT_INVALID_CAP_HEADROOM_MULTIPLIER
+                ),
+            ),
+            "max_consecutive_mcp_tool_failures": max(
+                1,
+                math.ceil(
+                    float(
+                        maxima[
+                            "agent_invalid_maximum_consecutive_recovery_episode_count"
+                        ]
+                    )
+                    * AGENT_INVALID_CAP_HEADROOM_MULTIPLIER
+                ),
+            ),
         }
         card: dict[str, Any] = {
             "card_identity": {
@@ -1373,6 +1481,8 @@ def build_summary(
 
 __all__ = [
     "AE_CONFIGS",
+    "AGENT_INVALID_CAP_HEADROOM_MULTIPLIER",
+    "AGENT_INVALID_ENFORCEMENT_POLICY",
     "AP_Q2",
     "AS_CANDIDATES",
     "AS_Q2",

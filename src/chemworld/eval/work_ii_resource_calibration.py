@@ -90,6 +90,10 @@ TASK_RESOURCE_CALIBRATED_CAP_FIELDS = tuple(
     for field in RESOURCE_CALIBRATION_CAP_FIELDS
     if field != "maximum_exact_repeats"
 )
+OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS = (
+    "max_recovered_mcp_tool_failures",
+    "max_consecutive_mcp_tool_failures",
+)
 RESOURCE_CALIBRATION_OBSERVED_FIELDS = {
     "operation_attempt_limit": "operation_attempts",
     "maximum_exact_repeats": "exact_repeat_count",
@@ -271,6 +275,20 @@ def validate_task_resource_card(
             errors.append(f"resource card lacks positive cap {field}")
     if "maximum_exact_repeats" in caps:
         errors.append("resource card must not redefine the exact-repeat design invariant")
+    recovery_caps_present = [
+        field in caps for field in OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS
+    ]
+    if any(recovery_caps_present) and not all(recovery_caps_present):
+        errors.append("resource card has an incomplete agent-invalid recovery budget")
+    elif all(recovery_caps_present):
+        for field in OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS:
+            value = caps.get(field)
+            if (
+                isinstance(value, bool)
+                or not isinstance(value, int)
+                or value <= 0
+            ):
+                errors.append(f"resource card lacks positive integer cap {field}")
     input_limit = caps.get("input_token_limit")
     uncached_limit = caps.get("uncached_input_token_limit")
     if (
@@ -392,6 +410,13 @@ def materialize_task_resource_caps(
     provider["session_wall_time_limit_s"] = float(
         caps["provider_wall_time_limit_s"]
     )
+    if all(field in caps for field in OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS):
+        provider["max_recovered_mcp_tool_failures"] = int(
+            caps["max_recovered_mcp_tool_failures"]
+        )
+        provider["max_consecutive_mcp_tool_failures"] = int(
+            caps["max_consecutive_mcp_tool_failures"]
+        )
     result["calibrated_currency_ceiling_usd"] = float(
         caps["currency_ceiling_usd"]
     )
@@ -2519,6 +2544,7 @@ def build_resource_calibration_summary(
 
 
 __all__ = [
+    "OPTIONAL_AGENT_INVALID_RECOVERY_CAP_FIELDS",
     "RESOURCE_CALIBRATION_MANIFEST_VERSION",
     "RESOURCE_CALIBRATION_READINESS_VERSION",
     "RESOURCE_CALIBRATION_SUMMARY_VERSION",

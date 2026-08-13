@@ -53,6 +53,9 @@ from chemworld.eval.work_ii_qualification import (
     validate_qualification_execution_authorization,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
+    AGENT_INVALID_ENFORCEMENT_POLICY,
+)
+from chemworld.eval.work_ii_resource_calibration_v02 import (
     pattern_key as resource_calibration_pattern_key,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
@@ -383,6 +386,23 @@ def _resource_calibration_execution_context(
     )
 
 
+def _agent_invalid_online_limits(
+    provider: Mapping[str, Any],
+    *,
+    agent_invalid_enforcement: str | None,
+) -> tuple[int | None, int | None]:
+    """Resolve participant-invalid online limits without relaxing normal execution."""
+
+    if agent_invalid_enforcement is None:
+        return (
+            int(provider.get("max_recovered_mcp_tool_failures", 0)),
+            int(provider.get("max_consecutive_mcp_tool_failures", 0)),
+        )
+    if agent_invalid_enforcement != AGENT_INVALID_ENFORCEMENT_POLICY:
+        raise RuntimeError("resource calibration agent-invalid policy is not frozen")
+    return None, None
+
+
 def _release_d1_execution_context(
     args: argparse.Namespace,
     *,
@@ -652,11 +672,14 @@ def _qualification(
     max_resource_rejections: int = 0,
     minimum_unique_recipes: int = 0,
     maximum_exact_repeats: int | None = None,
+    agent_invalid_enforcement: str | None = None,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
     if max_resource_rejections < 0:
         raise ValueError("max_resource_rejections must be non-negative")
+    if agent_invalid_enforcement not in {None, AGENT_INVALID_ENFORCEMENT_POLICY}:
+        raise ValueError("unsupported agent-invalid enforcement policy")
 
     receipt = receipts[0] if len(receipts) == 1 else {}
     usage = method_resources
@@ -676,6 +699,16 @@ def _qualification(
         and isinstance(provider_error_value, int)
         and not isinstance(provider_error_value, bool)
         and provider_error_value >= 0
+    )
+    agent_invalid_reconciled = (
+        agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
+        or (
+            mcp_failure_budget is not None
+            and int(mcp_failure_budget["scientific_episode_count"])
+            <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
+            and int(mcp_failure_budget["scientific_episode_maximum"])
+            <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
+        )
     )
     resources = analysis.get("final_campaign_resources", {})
     resources = resources if isinstance(resources, Mapping) else {}
@@ -798,10 +831,7 @@ def _qualification(
                 operational_receipt_complete
                 and float(receipt["session_elapsed_s"])
                 <= float(operational_limits.get("session_wall_time_limit_s", float("inf")))
-                and int(mcp_failure_budget["scientific_count"])
-                <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
-                and int(mcp_failure_budget["scientific_maximum"])
-                <= int(operational_limits.get("max_consecutive_mcp_tool_failures", 0))
+                and agent_invalid_reconciled
                 and int(mcp_failure_budget["transport_count"])
                 <= int(operational_limits.get("max_recovered_mcp_tool_failures", 0))
                 and int(mcp_failure_budget["transport_maximum"])
@@ -827,6 +857,35 @@ def _qualification(
             "semantics": "retained_participant_behavior_no_host_repair",
             "passed": checks["no_resource_rejection"],
         },
+        "agent_invalid_operational_policy": {
+            "enforcement": (
+                AGENT_INVALID_ENFORCEMENT_POLICY
+                if agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
+                else "source_config_hard_limits"
+            ),
+            "participant_payload_auto_repair": False,
+            "raw_mcp_failures_retained": True,
+            "observed_recovered_count": (
+                None
+                if mcp_failure_budget is None
+                else int(mcp_failure_budget["scientific_count"])
+            ),
+            "observed_maximum_consecutive_count": (
+                None
+                if mcp_failure_budget is None
+                else int(mcp_failure_budget["scientific_maximum"])
+            ),
+            "observed_recovery_episode_count": (
+                None
+                if mcp_failure_budget is None
+                else int(mcp_failure_budget["scientific_episode_count"])
+            ),
+            "observed_maximum_consecutive_recovery_episode_count": (
+                None
+                if mcp_failure_budget is None
+                else int(mcp_failure_budget["scientific_episode_maximum"])
+            ),
+        },
     }
 
 
@@ -839,6 +898,7 @@ def _run_cell(
     total_cells: int,
     cell_root: Path,
     progress_path: Path,
+    agent_invalid_enforcement: str | None = None,
 ) -> dict[str, Any]:
     cell_started = perf_counter()
     _progress(
@@ -855,6 +915,13 @@ def _run_cell(
     card = _campaign_card(config)
     world_interventions = _world_interventions(config)
     provider = config["provider"]
+    (
+        max_recovered_mcp_tool_failures,
+        max_consecutive_mcp_tool_failures,
+    ) = _agent_invalid_online_limits(
+        provider,
+        agent_invalid_enforcement=agent_invalid_enforcement,
+    )
     completed = 0
     target_experiments = int(config["campaign"]["complete_experiments"])
     failure: dict[str, str] | None = None
@@ -908,10 +975,8 @@ def _run_cell(
             session_wall_time_limit_s=float(provider["session_wall_time_limit_s"])
             if provider.get("session_wall_time_limit_s") is not None
             else None,
-            max_recovered_mcp_tool_failures=int(provider.get("max_recovered_mcp_tool_failures", 0)),
-            max_consecutive_mcp_tool_failures=int(
-                provider.get("max_consecutive_mcp_tool_failures", 0)
-            ),
+            max_recovered_mcp_tool_failures=max_recovered_mcp_tool_failures,
+            max_consecutive_mcp_tool_failures=max_consecutive_mcp_tool_failures,
             max_provider_error_events=int(provider.get("max_provider_error_events", 0)),
             session_progress_callback=on_session_progress,
             session_progress_interval_s=float(provider.get("progress_interval_s", 30.0)),
@@ -1076,6 +1141,7 @@ def _run_cell(
             if config.get("qualification", {}).get("maximum_exact_repeats") is not None
             else None
         ),
+        agent_invalid_enforcement=agent_invalid_enforcement,
     )
     row = {
         "arm": arm,
@@ -1138,6 +1204,17 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     )
     if qualification_context is not None and calibration_context is not None:
         raise RuntimeError("one child cannot be both qualification and resource calibration")
+    agent_invalid_enforcement = None
+    if calibration_context is not None:
+        runtime_enforcement = calibration_context[1].get("runtime_enforcement")
+        runtime_enforcement = (
+            runtime_enforcement if isinstance(runtime_enforcement, Mapping) else {}
+        )
+        agent_invalid_enforcement = runtime_enforcement.get(
+            "agent_invalid_enforcement"
+        )
+        if agent_invalid_enforcement != AGENT_INVALID_ENFORCEMENT_POLICY:
+            raise RuntimeError("resource calibration agent-invalid policy is not frozen")
     ap_development_context = _ap_development_execution_context(
         args,
         config_path=config_path,
@@ -1175,6 +1252,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             total_cells=len(all_arms),
             cell_root=cell_root,
             progress_path=progress_path,
+            agent_invalid_enforcement=agent_invalid_enforcement,
         )
         if qualification_context is not None:
             row["qualification_attempt_authorization_binding"] = qualification_context[2]

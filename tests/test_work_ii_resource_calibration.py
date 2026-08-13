@@ -1283,6 +1283,72 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
                             "provider_error_event_count": 0,
                             "provider_attempt_count": 1,
                             "session_elapsed_s": 10.0,
+                            "recovered_mcp_tool_failure_count": 0,
+                            "current_consecutive_mcp_tool_failure_count": 0,
+                            "maximum_consecutive_mcp_tool_failure_count": 0,
+                            "mcp_tool_failure_taxonomy": {
+                                "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1",
+                                "recovered_mcp_tool_failure_count": 0,
+                                "current_consecutive_mcp_tool_failure_count": 0,
+                                "maximum_consecutive_mcp_tool_failure_count": 0,
+                                "counts_by_category": {
+                                    "provider_network": 0,
+                                    "transport_ipc_os": 0,
+                                    "agent_invalid": 0,
+                                    "unclassified": 0,
+                                },
+                                "current_consecutive_counts_by_category": {
+                                    "provider_network": 0,
+                                    "transport_ipc_os": 0,
+                                    "agent_invalid": 0,
+                                    "unclassified": 0,
+                                },
+                                "maximum_consecutive_counts_by_category": {
+                                    "provider_network": 0,
+                                    "transport_ipc_os": 0,
+                                    "agent_invalid": 0,
+                                    "unclassified": 0,
+                                },
+                                "recovery_episode_taxonomy": {
+                                    "schema_version": (
+                                        "chemworld-mcp-tool-failure-recovery-"
+                                        "episode-taxonomy-0.1"
+                                    ),
+                                    "recovery_episode_count": 0,
+                                    "current_consecutive_recovery_episode_count": 0,
+                                    "maximum_consecutive_recovery_episode_count": 0,
+                                    "counts_by_category": {
+                                        "provider_network": 0,
+                                        "transport_ipc_os": 0,
+                                        "agent_invalid": 0,
+                                        "unclassified": 0,
+                                    },
+                                    "current_consecutive_counts_by_category": {
+                                        "provider_network": 0,
+                                        "transport_ipc_os": 0,
+                                        "agent_invalid": 0,
+                                        "unclassified": 0,
+                                    },
+                                    "maximum_consecutive_counts_by_category": {
+                                        "provider_network": 0,
+                                        "transport_ipc_os": 0,
+                                        "agent_invalid": 0,
+                                        "unclassified": 0,
+                                    },
+                                },
+                            },
+                            "scientific_compliance_mcp_tool_failure_count": 0,
+                            "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+                            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+                            "scientific_compliance_mcp_tool_failure_episode_count": 0,
+                            (
+                                "current_consecutive_scientific_compliance_"
+                                "mcp_tool_failure_episode_count"
+                            ): 0,
+                            (
+                                "maximum_consecutive_scientific_compliance_"
+                                "mcp_tool_failure_episode_count"
+                            ): 0,
                         }
                     ],
                 }
@@ -1302,6 +1368,63 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
                 "results": rows,
             }
         )
+
+    batched_invalid_receipt = reports[0]["results"][0]["provider_receipts"][0]
+    batched_invalid_receipt["recovered_mcp_tool_failure_count"] = 48
+    batched_invalid_receipt["maximum_consecutive_mcp_tool_failure_count"] = 48
+    batched_invalid_receipt["mcp_tool_failure_taxonomy"][
+        "recovered_mcp_tool_failure_count"
+    ] = 48
+    batched_invalid_receipt["mcp_tool_failure_taxonomy"][
+        "maximum_consecutive_mcp_tool_failure_count"
+    ] = 48
+    batched_invalid_receipt["mcp_tool_failure_taxonomy"]["counts_by_category"][
+        "agent_invalid"
+    ] = 48
+    batched_invalid_receipt["mcp_tool_failure_taxonomy"][
+        "maximum_consecutive_counts_by_category"
+    ]["agent_invalid"] = 48
+    batched_invalid_receipt["scientific_compliance_mcp_tool_failure_count"] = 48
+    batched_invalid_receipt[
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_count"
+    ] = 48
+    batched_invalid_receipt[
+        "scientific_compliance_mcp_tool_failure_episode_count"
+    ] = 1
+    batched_invalid_receipt[
+        "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count"
+    ] = 1
+    batched_invalid_receipt[
+        "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count"
+    ] = 1
+    batched_invalid_receipt["mcp_tool_failure_taxonomy"][
+        "recovery_episode_taxonomy"
+    ] = {
+        "schema_version": "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.1",
+        "grouping_basis": "fixture",
+        "duplicate_failure_burst_window_ms": 1000.0,
+        "recovery_episode_count": 1,
+        "current_consecutive_recovery_episode_count": 1,
+        "maximum_consecutive_recovery_episode_count": 1,
+        "counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 0,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+        "current_consecutive_counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 0,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+        "maximum_consecutive_counts_by_category": {
+            "provider_network": 0,
+            "transport_ipc_os": 0,
+            "agent_invalid": 1,
+            "unclassified": 0,
+        },
+    }
 
     summary = calibration_v02.build_summary(
         manifest,
@@ -1325,6 +1448,17 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
         and card["currency_accounting"]["status"]
         == "unavailable_provider_pricing"
         for card in summary["resource_card_proposals"]
+    )
+    first_cell = summary["cell_summaries"][0]
+    first_card = summary["resource_card_proposals"][0]
+    assert first_cell["agent_invalid_recovered_count"] == 48
+    assert first_cell["agent_invalid_recovery_episode_count"] == 1
+    assert first_card["observed_maxima"]["agent_invalid_recovered_count"] == 48
+    assert first_card["observed_maxima"]["agent_invalid_recovery_episode_count"] == 1
+    assert first_card["proposed_hard_caps"]["max_recovered_mcp_tool_failures"] == 2
+    assert (
+        first_card["proposed_hard_caps"]["max_consecutive_mcp_tool_failures"]
+        == 2
     )
     assert calibration_v02.validate_summary(summary, manifest=manifest) == []
 
@@ -1493,6 +1627,47 @@ summary = {
             "provider_attempt_count": 1,
             "session_elapsed_s": float(rounds),
             "synthetic_provider_free": True,
+            "recovered_mcp_tool_failure_count": 0,
+            "current_consecutive_mcp_tool_failure_count": 0,
+            "maximum_consecutive_mcp_tool_failure_count": 0,
+            "mcp_tool_failure_taxonomy": {
+                "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1",
+                "recovered_mcp_tool_failure_count": 0,
+                "current_consecutive_mcp_tool_failure_count": 0,
+                "maximum_consecutive_mcp_tool_failure_count": 0,
+                "counts_by_category": dict.fromkeys(
+                    ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                ),
+                "current_consecutive_counts_by_category": dict.fromkeys(
+                    ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                ),
+                "maximum_consecutive_counts_by_category": dict.fromkeys(
+                    ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                ),
+                "recovery_episode_taxonomy": {
+                    "schema_version": (
+                        "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.1"
+                    ),
+                    "recovery_episode_count": 0,
+                    "current_consecutive_recovery_episode_count": 0,
+                    "maximum_consecutive_recovery_episode_count": 0,
+                    "counts_by_category": dict.fromkeys(
+                        ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                    ),
+                    "current_consecutive_counts_by_category": dict.fromkeys(
+                        ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                    ),
+                    "maximum_consecutive_counts_by_category": dict.fromkeys(
+                        ("provider_network", "transport_ipc_os", "agent_invalid", "unclassified"), 0
+                    ),
+                },
+            },
+            "scientific_compliance_mcp_tool_failure_count": 0,
+            "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+            "scientific_compliance_mcp_tool_failure_episode_count": 0,
+            "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+            "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
         }
     ],
     "resource_calibration_execution_binding": binding,
@@ -1506,10 +1681,14 @@ args.progress_file.write_text(
 )
 invocations = os.environ.get("CHEMWORLD_W226_PROVIDER_FREE_INVOCATIONS")
 if invocations:
-    with Path(invocations).open("a", encoding="utf-8") as handle:
-        handle.write(
-            f"{pattern['locus']}:{pattern['task_id']}:{rounds}:{args.prior_arm}\\n"
-        )
+    invocation = Path(invocations).with_name(
+        f"{Path(invocations).stem}-{pattern['locus']}-{pattern['task_id']}-"
+        f"{rounds}-{args.prior_arm}.txt"
+    )
+    invocation.write_text(
+        f"{pattern['locus']}:{pattern['task_id']}:{rounds}:{args.prior_arm}\\n",
+        encoding="utf-8",
+    )
 """,
         encoding="utf-8",
     )
@@ -1573,7 +1752,7 @@ def test_v02_provider_free_execute_calibration_e2e(
     assert len(terminal_paths) == len(observed_slugs) == 9
     assert observed_slugs == expected_slugs
     assert len(list(output_root.glob("triplet_attempts/*/attempt-*/*/summary.json"))) == 27
-    assert len(invocation_path.read_text(encoding="utf-8").splitlines()) == 27
+    assert len(list(repo_tmp_path.glob(f"{invocation_path.stem}-*.txt"))) == 27
     assert sorted(row["reservation_sequence_number"] for row in reservations) == list(
         range(1, 10)
     )
@@ -1628,7 +1807,7 @@ def test_v02_provider_free_execute_calibration_e2e(
         "idempotent_existing_summary": True,
     }
     assert after_resume == before_resume
-    assert len(invocation_path.read_text(encoding="utf-8").splitlines()) == 27
+    assert len(list(repo_tmp_path.glob(f"{invocation_path.stem}-*.txt"))) == 27
     with pytest.raises(FileExistsError, match="refusing to overwrite"):
         calibration_runner.execute_calibration(
             manifest_path=manifest_path,

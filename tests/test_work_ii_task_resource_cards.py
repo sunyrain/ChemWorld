@@ -49,6 +49,8 @@ def _card(source: dict[str, object]) -> dict[str, object]:
             "output_token_limit": 90_000,
             "provider_wall_time_limit_s": 8_000.0,
             "currency_ceiling_usd": 20.0,
+            "max_recovered_mcp_tool_failures": 6,
+            "max_consecutive_mcp_tool_failures": 3,
         },
     }
     card["card_sha256"] = canonical_json_sha256(card)
@@ -86,6 +88,8 @@ def test_task_resource_card_materializes_every_executable_cap() -> None:
     assert config["method_resources"]["output_token_limit"] == 90_000
     assert config["method_resources"]["wall_time_limit_s"] == 8_000.0
     assert config["provider"]["session_wall_time_limit_s"] == 8_000.0
+    assert config["provider"]["max_recovered_mcp_tool_failures"] == 6
+    assert config["provider"]["max_consecutive_mcp_tool_failures"] == 3
     assert config["qualification"]["maximum_exact_repeats"] == 2
     assert (
         config["qualification"]["resource_calibration_status"]
@@ -206,4 +210,17 @@ def test_card_rejects_repeat_design_as_a_measured_cap() -> None:
     )
     assert validate_task_resource_card(card) == [
         "resource card must not redefine the exact-repeat design invariant"
+    ]
+
+
+def test_card_rejects_partial_agent_invalid_recovery_budget() -> None:
+    source = _source()
+    card = _card(source)
+    del card["proposed_hard_caps"]["max_consecutive_mcp_tool_failures"]
+    card["card_sha256"] = canonical_json_sha256(
+        {key: value for key, value in card.items() if key != "card_sha256"}
+    )
+
+    assert validate_task_resource_card(card) == [
+        "resource card has an incomplete agent-invalid recovery budget"
     ]
