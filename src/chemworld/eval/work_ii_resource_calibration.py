@@ -144,6 +144,8 @@ def build_task_resource_formula_binding(config: Mapping[str, Any]) -> dict[str, 
                 "final_assay_limit",
                 "nonfinal_instrument_use_limit",
                 "stock_limits",
+                "per_instrument_limits",
+                "implicit_operation_time_s",
                 "operation_repeat_limits",
             )
         },

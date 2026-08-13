@@ -168,6 +168,24 @@ def test_task_resource_formula_rejects_design_limit_drift(
         materialize_task_resource_caps(drifted, card)
 
 
+@pytest.mark.parametrize(
+    ("field", "value"),
+    [
+        ("implicit_operation_time_s", {"quench": 1.0}),
+        ("per_instrument_limits", {"hplc": 10}),
+    ],
+)
+def test_task_resource_formula_rejects_added_runtime_limit(
+    field: str, value: dict[str, float | int]
+) -> None:
+    source = _source()
+    card = _card(source)
+    drifted = deepcopy(source)
+    drifted["campaign"][field] = value
+    with pytest.raises(ValueError, match="resource formula"):
+        materialize_task_resource_caps(drifted, card)
+
+
 def test_observed_zero_repeats_do_not_change_repeat_design() -> None:
     source = _source()
     card = _card(source)
