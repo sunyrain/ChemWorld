@@ -106,6 +106,8 @@ def main() -> int:
     parser.add_argument("--commit", default="HEAD")
     parser.add_argument("--graph", type=Path, default=DEFAULT_GRAPH)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
+    parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     args = parser.parse_args()
 
     git = shutil.which("git")
@@ -161,8 +163,29 @@ def main() -> int:
 
         check_records: list[dict[str, Any]] = []
         for check_id, script, *flags in FROZEN_CHECKS:
+            command = [sys.executable, script, *flags]
+            if check_id == "method_qualification":
+                try:
+                    calibration_manifest = (
+                        args.resource_calibration_manifest.resolve().relative_to(ROOT)
+                    )
+                    calibration_summary = (
+                        args.resource_calibration_summary.resolve().relative_to(ROOT)
+                    )
+                except ValueError as error:
+                    raise RuntimeError(
+                        "release calibration evidence must be inside the repository"
+                    ) from error
+                command.extend(
+                    [
+                        "--resource-calibration-manifest",
+                        str(checkout / calibration_manifest),
+                        "--resource-calibration-summary",
+                        str(checkout / calibration_summary),
+                    ]
+                )
             result = _run(
-                [sys.executable, script, *flags],
+                command,
                 cwd=checkout,
                 env=source_env,
             )

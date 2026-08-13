@@ -130,6 +130,14 @@ exact replay、execution audit、qualification validator 和 summary writer。�
 也不手写 `qualification.passed` 或最终 summary；因此 operation-count、环境动作、回放或资格语义再次漂移时，
 会在真实生产路径上失败。该 canary 不替代 provider contract canary 或科学资格实验。
 
+### CD-11：删除 W2-27 对旧 W2-26 v0.1 readiness 的重复重建 — DONE
+
+W2-27 的 canonical readiness 已校验完整九任务 W2-26 execution manifest、summary 和 task resource cards，
+但 authorizer 与 triplet executor 仍额外调用旧三代表任务 v0.1 readiness；旧 manifest 又绑定了一份已变化的
+experiment-note Markdown hash，导致真实执行语义未变时仍可阻断 qualification。现已删除这两个入口对旧 builder
+和 `missing_pattern_rounds` 的依赖，统一消费 canonical W2-27 readiness，并要求 manifest/summary 成对显式传入；
+release audit 同样不再猜测不存在的默认版本。没有刷新旧 manifest，也没有新增 gate。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
@@ -137,8 +145,8 @@ exact replay、execution audit、qualification validator 和 summary writer。�
 | CD-P0-01 | DONE | W2-26 production runner 曾保留历史 operation-count fallback | 已删除旧 `electrolyze=4..5` 权威；W2-26 config 缺字段立即失败，普通历史/development config 不再套用任务特定规则 | production runner 根因回归测试通过；真实 semantic canary 仍与 CD-P0-02 合并执行 |
 | CD-P0-02 | DONE | W2-26 缺少最小 production-path semantic canary | 已删除自写 `qualification.passed=true` 的 27-cell synthetic runner，并以一条 scripted-participant 真实 runner canary 覆盖 materializer→environment→trajectory→replay→validator→summary | production materializer 和 runner 生成真实 raw/summary；未 monkeypatch analyzer/validator/summary builder，也未手写 pass 字段 |
 | CD-P0-03 | TODO | 平台修复后全块重跑规则可能宽于科学污染边界 | 对未来 block 分开记录 `scientific_disposition` 与 `governance_override`；当前冻结 block 仍服从现行 note | validator-only 缺陷默认可重判；扩大重跑必须逐级给出污染证据 |
-| CD-P0-04 | TODO | readiness/manifest/authorization/status 多处复制 pass 状态 | 找出每个字段的 writers/readers，选择 machine summary 为唯一派生权威 | 删除自证明 pass 字段或改为派生；状态副本数量净减少 |
-| CD-P1-01 | DOING | development 与 release provenance 仍有交叉入口；已复现旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | 开发态绕开 clean-tree、全树/说明文档 hash、旧 readiness；先区分仍可执行的 current protocol 与历史 manifest，再把 prose binding 移出 development authorization | 改说明文档/测试不使 development run stale；改 runner/evaluator/config 必须被语义 canary 捕获；不刷新旧 manifest 来换绿灯 |
+| CD-P0-04 | DOING | readiness/manifest/authorization/status 多处复制 pass 状态 | 已删除 W2-27 authorizer/executor 对旧 W2-26 v0.1 readiness 的第二次重建；继续找出剩余字段 writers/readers，并以 machine summary 派生状态 | 删除自证明 pass 字段或改为派生；状态副本数量净减少 |
+| CD-P1-01 | DONE | development 与 release provenance 曾有交叉入口；旧 v0.1 authorization 测试仅因 experiment-note Markdown hash 变化而失败 | W2-27 开发授权/执行现只校验显式的当前九任务 execution manifest + summary 对；旧 prose binding 不再参与入口，release audit 也必须显式选择冻结证据 | 改说明文档/测试不再使 development qualification stale；runner/evaluator/config 由真实语义 canary 和当前 manifest/summary 捕获；未刷新旧 manifest 来换绿灯 |
 | CD-P1-02 | DONE | `scripts/evidence_pipeline.py --check` 曾被脚本文档描述为普遍当前门 | 已限定为 release/current-artifact integration；明确不是功能开发、聚焦测试或 development experiment 前置 | 开发契约只要求 focused tests；release/current artifact 仍保留一次性 pipeline |
 | CD-P1-03 | TODO | pytest `fast and current` 仍接近全套测试 | 先建立小于 60 秒的显式 smoke roster；不增加逐测试五维 marker 审计 | smoke 覆盖 import、事务、无效动作回滚、replay、task registry、package resource |
 | CD-P1-04 | DOING | 大量测试只验证 hash、自哈希 summary、字段存在或 fixture 自己写入的 pass | 首批已删除 W2-26 复制 production schema 的 27-cell synthetic test，并补入不复制生产 summary schema 的真实路径 canary；继续按生产消费者和故障历史逐文件去重 | 每批删除测试后说明保留的独立行为测试；不删除篡改测试、科学不变量与真实 semantic canary |

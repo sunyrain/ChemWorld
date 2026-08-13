@@ -10,20 +10,15 @@ from pathlib import Path
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_formal import build_formal_preflight, validate_formal_bindings
 from chemworld.eval.work_ii_qualification import (
+    build_method_qualification_readiness,
     build_qualification_execution_authorization,
+    validate_method_qualification_readiness,
     validate_qualification_execution_authorization,
-)
-from chemworld.eval.work_ii_resource_calibration import (
-    build_resource_calibration_readiness,
-    validate_resource_calibration_readiness,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
 DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
-CALIBRATION_MANIFEST = (
-    ROOT / "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json"
-)
 DEFAULT_OUTPUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -34,6 +29,7 @@ DEFAULT_OUTPUT = (
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
     parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--currency-ceiling-usd", type=float)
     parser.add_argument("--approved-at")
@@ -51,24 +47,23 @@ def main() -> int:
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:
         raise RuntimeError("formal binding validation failed: " + "; ".join(binding_errors))
-    calibration = build_resource_calibration_readiness(
+    readiness = build_method_qualification_readiness(
         ROOT,
-        CALIBRATION_MANIFEST,
-        summary_path=args.resource_calibration_summary,
+        DESIGN,
+        ANALYSIS,
+        resource_calibration_manifest_path=args.resource_calibration_manifest.resolve(),
+        resource_calibration_summary_path=args.resource_calibration_summary.resolve(),
     )
-    calibration_errors = validate_resource_calibration_readiness(calibration)
-    if calibration_errors:
+    readiness_errors = validate_method_qualification_readiness(readiness)
+    if readiness_errors:
         raise RuntimeError(
-            "W2-26 resource-calibration readiness failed: "
-            + "; ".join(calibration_errors)
+            "method-qualification readiness failed: " + "; ".join(readiness_errors)
         )
+    calibration = readiness["resource_calibration_readiness"]
     if calibration.get("method_qualification_may_be_authorized") is not True:
-        missing = ",".join(
-            str(item) for item in calibration.get("missing_pattern_rounds", [])
-        )
         raise RuntimeError(
-            "method qualification authorization is blocked until W2-26 passes; "
-            f"unresolved pattern rounds: {missing}"
+            "method qualification authorization is blocked until the exact nine-task "
+            "W2-26 manifest and summary pass"
         )
     output = args.output.resolve()
     if args.check:

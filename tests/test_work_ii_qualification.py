@@ -93,23 +93,6 @@ def _passed_resource_calibration_gate(monkeypatch: pytest.MonkeyPatch) -> None:
         "_resource_calibration_v02_readiness",
         lambda *_args, **_kwargs: (deepcopy(readiness), []),
     )
-    runner_readiness = {
-        "status": "calibration_passed_method_qualification_eligible",
-        "method_qualification_may_be_authorized": True,
-        "missing_pattern_rounds": [],
-    }
-    monkeypatch.setattr(
-        qualification_runner,
-        "build_resource_calibration_readiness",
-        lambda *_args, **_kwargs: deepcopy(runner_readiness),
-    )
-    monkeypatch.setattr(
-        qualification_runner,
-        "validate_resource_calibration_readiness",
-        lambda _report: [],
-    )
-
-
 @pytest.fixture
 def repo_tmp_path():
     path = Path(tempfile.mkdtemp(prefix=".pytest-workii-qualification-", dir=ROOT))
@@ -322,6 +305,8 @@ def _receipt(
         progress_path=tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=tmp_path / "calibration-summary.json",
     )
     assert progress["status"] == "passed"
     receipt = build_method_qualification_receipt(
@@ -760,6 +745,8 @@ def test_qualification_triplet_runner_reserves_cost_and_terminalizes_all_arms(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 
     assert progress["status"] == "passed"
@@ -796,6 +783,8 @@ def test_qualification_triplet_runner_resumes_only_missing_infrastructure_arm(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     second = qualification_runner.execute_triplet(
         authorization_path=authorization_path,
@@ -803,6 +792,8 @@ def test_qualification_triplet_runner_resumes_only_missing_infrastructure_arm(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=True,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 
     assert first["status"] == "infrastructure_incomplete_missing_only_resume_required"
@@ -843,6 +834,8 @@ def test_qualification_triplet_runner_rejects_rehashed_terminal_tampering(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     terminal_path = output / "terminal_receipts" / "opaque.json"
     terminal = json.loads(terminal_path.read_text(encoding="utf-8"))
@@ -862,6 +855,8 @@ def test_qualification_triplet_runner_rejects_rehashed_terminal_tampering(
             progress_path=repo_tmp_path / "qualification-progress.jsonl",
             resume=True,
             cell_runner=repo_tmp_path / "fake-cell-runner.py",
+            resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+            resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
         )
 
 
@@ -889,6 +884,8 @@ def test_qualification_triplet_runner_rebuilds_report_after_terminal_only_crash(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=False,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
     (output / "report.json").unlink()
     launched_before_resume = list(_FakeQualificationProcess.launched_arms)
@@ -899,6 +896,8 @@ def test_qualification_triplet_runner_rebuilds_report_after_terminal_only_crash(
         progress_path=repo_tmp_path / "qualification-progress.jsonl",
         resume=True,
         cell_runner=repo_tmp_path / "fake-cell-runner.py",
+        resource_calibration_manifest_path=repo_tmp_path / "calibration-manifest.json",
+        resource_calibration_summary_path=repo_tmp_path / "calibration-summary.json",
     )
 
     assert progress["status"] == "passed"

@@ -26,6 +26,8 @@ def main() -> int:
     parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
     parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
     parser.add_argument("--output", type=Path, default=DEFAULT_OUTPUT)
+    parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
+    parser.add_argument("--resource-calibration-summary", type=Path, required=True)
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
 
@@ -33,6 +35,8 @@ def main() -> int:
         ROOT,
         args.design.resolve(),
         args.analysis.resolve(),
+        resource_calibration_manifest_path=args.resource_calibration_manifest.resolve(),
+        resource_calibration_summary_path=args.resource_calibration_summary.resolve(),
     )
     errors = validate_method_qualification_readiness(report)
     if errors:
