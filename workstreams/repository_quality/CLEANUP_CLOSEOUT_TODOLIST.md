@@ -146,6 +146,13 @@ release roster、current registry 和 Work II 执行入口均不读取它。继�
 manifest/readiness，并用宽泛 `except Exception` 把编程错误包装成 `fail_closed`。历史执行方法由 Git 保存，
 现行 canonical integration 工具和产物未删除。
 
+### CD-13：删除已完成且不可重入的 A-S integration bridge — DONE
+
+删除 `scripts/integrate_work_ii_as_development_result.py` 及其 7 条专属测试。该桥接器的 write-once 目标
+已经全部存在，因此在当前仓库中再次调用只会拒绝覆盖；除自己的测试外没有 current consumer。W2-26 和 A-S
+qualification runner 直接读取已生成的 canonical summary/package/D1，不依赖桥接脚本。四份 canonical 产物、
+生产 validator 与源 qualification runner 均保留，历史跨仓库搬运流程由 Git 保存。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |
