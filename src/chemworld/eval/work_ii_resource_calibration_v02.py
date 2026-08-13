@@ -359,7 +359,11 @@ def _as_configs(
 
     path = root / AS_Q2
     summary = _load(path)
-    errors = validate_summary(root, summary, deep_validate_world_reports=True)
+    # The canonical A-S summary is published only by the integration bridge
+    # after the source closeout has deeply validated every receipt.  Recheck
+    # all canonical bindings, roster, denominators, aggregates, and pass
+    # decision here without replaying the same 20,480 executions again.
+    errors = validate_summary(root, summary, deep_validate_world_reports=False)
     if errors or summary.get("all_candidates_passed") is not True:
         raise ValueError("A-S Q2 summary is absent, invalid, or not fully passed")
     generated = summary.get("participant_d1_configs_generated")
