@@ -36,6 +36,7 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
     parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
+    parser.add_argument("--formal-runtime-manifest", type=Path, required=True)
     parser.add_argument("--qualification-manifest", type=Path)
     parser.add_argument("--qualification-receipt", type=Path)
     parser.add_argument("--formal-currency-ceiling-usd", type=float)
@@ -55,7 +56,10 @@ def main() -> int:
     args = parser.parse_args()
 
     manifest = build_formal_preflight(
-        ROOT, args.design.resolve(), args.analysis.resolve()
+        ROOT,
+        args.design.resolve(),
+        args.analysis.resolve(),
+        formal_runtime_manifest_path=args.formal_runtime_manifest.resolve(),
     )
     binding_errors = validate_formal_bindings(ROOT, manifest)
     if binding_errors:

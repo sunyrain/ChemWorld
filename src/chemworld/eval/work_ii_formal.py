@@ -35,6 +35,7 @@ from chemworld.eval.work_ii_c2_admission import (
     c2_task_admission_receipt_sha256,
     validate_c2_admission_report,
 )
+from chemworld.eval.work_ii_formal_runtime import validate_formal_runtime_manifest
 
 FORMAL_PREFLIGHT_VERSION = "chemworld-work-ii-formal-matrix-preflight-0.1"
 SUPPORTED_FORMAL_ANALYSIS_VERSIONS = {
@@ -353,6 +354,7 @@ FORMAL_BLOCKING_REQUIREMENTS = (
     "current persistent-session method lacks its final qualification receipt",
     "formal execution package lacks its final user authorization receipt",
 )
+
 
 def _validate_environment_binding(root: Path, design: Mapping[str, Any]) -> list[str]:
     """Require the formal design to resolve the exact current Gate A evidence."""
@@ -754,6 +756,8 @@ def _bound_object(
 def _resolve_c2_terminal_task_specs(
     root: Path,
     admission: Mapping[str, Any],
+    *,
+    formal_runtime_configs: Mapping[tuple[str, str, int], Mapping[str, Any]] | None = None,
 ) -> tuple[list[dict[str, Any]], list[str]]:
     """Resolve A_P/A_S formal tasks only from validated terminal receipts.
 
@@ -817,6 +821,23 @@ def _resolve_c2_terminal_task_specs(
             if not isinstance(config_binding, Mapping):
                 errors.append(f"{label} lacks its campaign config binding")
                 continue
+            runtime_binding: Mapping[str, Any] | None = None
+            if formal_runtime_configs is not None:
+                runtime_row = formal_runtime_configs.get(
+                    (locus, task_id, C2_REQUIRED_ROUNDS[locus])
+                )
+                runtime_binding = (
+                    runtime_row.get("formal_campaign_config_binding")
+                    if isinstance(runtime_row, Mapping)
+                    else None
+                )
+                if not isinstance(runtime_binding, Mapping) or config_binding.get(
+                    "path"
+                ) != runtime_binding.get("path"):
+                    errors.append(
+                        f"{label} campaign config is not the materialized formal runtime config"
+                    )
+                    continue
             if not isinstance(selection_binding, Mapping):
                 errors.append(f"{label} lacks its outcome-blind selection binding")
                 continue
@@ -835,6 +856,13 @@ def _resolve_c2_terminal_task_specs(
             errors.extend(config_errors)
             errors.extend(selection_errors)
             if config is None or selection is None:
+                continue
+            if runtime_binding is not None and canonical_json_sha256(config) != runtime_binding.get(
+                "canonical_json_sha256"
+            ):
+                errors.append(
+                    f"{label} campaign config content differs from the formal runtime binding"
+                )
                 continue
             if config.get("task_id") != task_id:
                 errors.append(f"{label} campaign config task identity drifted")
@@ -1240,6 +1268,7 @@ def build_formal_preflight(
     design_path: Path,
     analysis_path: Path,
     c2_admission_plan_path: Path | None = None,
+    formal_runtime_manifest_path: Path | None = None,
 ) -> dict[str, Any]:
     """Build the deterministic C2 public schedule without provider execution.
 
@@ -1270,6 +1299,59 @@ def build_formal_preflight(
         raise ValueError(
             "analysis schema is unsupported for the formal design version"
         )
+
+    formal_runtime_manifest: dict[str, Any] | None = None
+    formal_runtime_configs: dict[tuple[str, str, int], Mapping[str, Any]] | None = None
+    formal_runtime_manifest_binding: dict[str, str] | None = None
+    if design_version == FORMAL_DESIGN_VERSION:
+        if formal_runtime_manifest_path is None:
+            errors.append("current formal design requires an explicit formal runtime manifest")
+        else:
+            formal_runtime_manifest_path = formal_runtime_manifest_path.resolve()
+            try:
+                formal_runtime_manifest_path.relative_to(root)
+            except ValueError:
+                errors.append("formal runtime manifest is outside the repository")
+            else:
+                try:
+                    formal_runtime_manifest = _load_object(formal_runtime_manifest_path)
+                except (OSError, ValueError, json.JSONDecodeError) as error:
+                    errors.append(
+                        f"formal runtime manifest cannot be loaded: {type(error).__name__}"
+                    )
+                else:
+                    runtime_errors = validate_formal_runtime_manifest(
+                        root,
+                        formal_runtime_manifest,
+                        manifest_path=formal_runtime_manifest_path,
+                    )
+                    errors.extend(f"formal runtime manifest: {item}" for item in runtime_errors)
+                    design_binding = formal_runtime_manifest.get("formal_design_binding")
+                    design_binding = design_binding if isinstance(design_binding, Mapping) else {}
+                    if design_binding.get("path") != _relative(
+                        root, design_path
+                    ) or design_binding.get("sha256") != file_sha256(design_path):
+                        errors.append(
+                            "formal runtime manifest is not bound to the requested formal design"
+                        )
+                        runtime_errors.append("requested formal design binding differs")
+                    if not runtime_errors:
+                        rows = formal_runtime_manifest.get("task_configs")
+                        rows = rows if isinstance(rows, list) else []
+                        formal_runtime_configs = {
+                            (
+                                str(row.get("locus")),
+                                str(row.get("task_id")),
+                                int(row.get("rounds", -1)),
+                            ): row
+                            for row in rows
+                            if isinstance(row, Mapping)
+                        }
+                        formal_runtime_manifest_binding = {
+                            "path": _relative(root, formal_runtime_manifest_path),
+                            "sha256": file_sha256(formal_runtime_manifest_path),
+                            "hash_kind": "file_sha256",
+                        }
 
     design_digest = canonical_json_sha256(design)
     analysis_digest = canonical_json_sha256(analysis)
@@ -1688,7 +1770,21 @@ def build_formal_preflight(
 
     for task in tasks:
         task_id = str(task.get("task_id"))
-        relative_config = str(task.get("campaign_config"))
+        runtime_row = (
+            formal_runtime_configs.get(("A_E", task_id, 8))
+            if formal_runtime_configs is not None
+            else None
+        )
+        runtime_binding = (
+            runtime_row.get("formal_campaign_config_binding")
+            if isinstance(runtime_row, Mapping)
+            else None
+        )
+        relative_config = (
+            str(runtime_binding.get("path"))
+            if isinstance(runtime_binding, Mapping)
+            else str(task.get("campaign_config"))
+        )
         seeds = [int(item) for item in task_world_seeds.get(task_id, [])]
         add_task_to_schedule(
             {
@@ -1708,7 +1804,11 @@ def build_formal_preflight(
         design_path,
         ae_cells,
     )
-    c2_specs, c2_schedule_errors = _resolve_c2_terminal_task_specs(root, c2_admission)
+    c2_specs, c2_schedule_errors = _resolve_c2_terminal_task_specs(
+        root,
+        c2_admission,
+        formal_runtime_configs=formal_runtime_configs,
+    )
     prerequisite_errors.extend(f"C2 formal schedule: {item}" for item in c2_schedule_errors)
     unavailable_seeds = {
         *development_seeds,
@@ -1889,6 +1989,8 @@ def build_formal_preflight(
         "prerequisite_errors": prerequisite_errors,
         "errors": errors,
     }
+    if design_version == FORMAL_DESIGN_VERSION:
+        report["formal_runtime_manifest_binding"] = formal_runtime_manifest_binding
     report["preflight_sha256"] = _self_hash(report)
     return report
 
@@ -2017,6 +2119,28 @@ def validate_formal_preflight(report: Mapping[str, Any]) -> list[str]:
     current_method_contract = (
         participant_contract == EXPECTED_PARTICIPANT_EXECUTION_CONTRACT
     )
+    runtime_binding = report.get("formal_runtime_manifest_binding")
+    runtime_binding = runtime_binding if isinstance(runtime_binding, Mapping) else None
+    embedded_errors = report.get("errors")
+    embedded_errors = embedded_errors if isinstance(embedded_errors, list) else []
+    if current_method_contract:
+        runtime_error_recorded = any(
+            isinstance(item, str)
+            and (
+                item.startswith("formal runtime manifest")
+                or item == "current formal design requires an explicit formal runtime manifest"
+            )
+            for item in embedded_errors
+        )
+        if runtime_binding is None:
+            if not runtime_error_recorded:
+                errors.append("current formal preflight lacks its formal runtime manifest binding")
+        elif (
+            not isinstance(runtime_binding.get("path"), str)
+            or not isinstance(runtime_binding.get("sha256"), str)
+            or runtime_binding.get("hash_kind") != "file_sha256"
+        ):
+            errors.append("formal runtime manifest binding is malformed")
     dynamic_counts = {
         "tasks": len(binding_by_key),
         "independent_task_world_clusters": len(
@@ -2477,6 +2601,34 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
             bindings.append(candidate)
         else:
             errors.append(f"formal preflight lacks {name}")
+    runtime_manifest: dict[str, Any] | None = None
+    runtime_manifest_path: Path | None = None
+    runtime_binding = report.get("formal_runtime_manifest_binding")
+    if isinstance(runtime_binding, Mapping):
+        bindings.append(runtime_binding)
+        relative = runtime_binding.get("path")
+        if isinstance(relative, str):
+            candidate_path = (root / relative).resolve()
+            if candidate_path.is_relative_to(root) and candidate_path.is_file():
+                runtime_manifest_path = candidate_path
+                try:
+                    runtime_manifest = _load_object(candidate_path)
+                except (OSError, ValueError, json.JSONDecodeError) as error:
+                    errors.append(
+                        "formal runtime manifest cannot be loaded during binding validation: "
+                        f"{type(error).__name__}"
+                    )
+                else:
+                    errors.extend(
+                        f"formal runtime manifest: {item}"
+                        for item in validate_formal_runtime_manifest(
+                            root,
+                            runtime_manifest,
+                            manifest_path=candidate_path,
+                        )
+                    )
+    elif report.get("participant_execution_contract") == EXPECTED_PARTICIPANT_EXECUTION_CONTRACT:
+        errors.append("formal preflight lacks its formal runtime manifest binding")
     rows = report.get("task_bindings")
     if not isinstance(rows, list):
         errors.append("formal preflight lacks task_bindings")
@@ -2554,6 +2706,54 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
         digest = cell.get("campaign_config_sha256")
         if not isinstance(relative, str) or seen.get(relative) != digest:
             errors.append(f"formal cell campaign binding mismatch: {cell.get('cell_id')}")
+    if runtime_manifest is not None and runtime_manifest_path is not None:
+        runtime_rows = runtime_manifest.get("task_configs")
+        runtime_rows = runtime_rows if isinstance(runtime_rows, list) else []
+        runtime_by_key = {
+            formal_task_binding_key(str(row.get("locus")), str(row.get("task_id"))): row
+            for row in runtime_rows
+            if isinstance(row, Mapping)
+        }
+        scheduled_keys: set[str] = set()
+        for row in rows if isinstance(rows, list) else []:
+            if not isinstance(row, Mapping):
+                continue
+            task_key = row.get("task_binding_key")
+            if not isinstance(task_key, str):
+                continue
+            scheduled_keys.add(task_key)
+            runtime_row = runtime_by_key.get(task_key)
+            runtime_config = (
+                runtime_row.get("formal_campaign_config_binding")
+                if isinstance(runtime_row, Mapping)
+                else None
+            )
+            campaign_config = row.get("campaign_config")
+            runtime_path = (
+                (root / str(runtime_config.get("path"))).resolve()
+                if isinstance(runtime_config, Mapping)
+                else None
+            )
+            runtime_digest = (
+                canonical_json_sha256(_load_object(runtime_path))
+                if runtime_path is not None
+                and runtime_path.is_relative_to(root)
+                and runtime_path.is_file()
+                else None
+            )
+            if (
+                not isinstance(runtime_config, Mapping)
+                or not isinstance(campaign_config, Mapping)
+                or runtime_config.get("path") != campaign_config.get("path")
+                or runtime_digest != runtime_config.get("canonical_json_sha256")
+            ):
+                errors.append(
+                    f"formal task does not consume its materialized runtime config: {task_key}"
+                )
+        schedule = report.get("schedule_policy")
+        schedule = schedule if isinstance(schedule, Mapping) else {}
+        if schedule.get("schedule_complete") is True and scheduled_keys != set(runtime_by_key):
+            errors.append("complete formal schedule does not consume all nine runtime configs")
     return errors
 
 

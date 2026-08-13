@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import tempfile
 from copy import deepcopy
 from pathlib import Path
 from typing import ClassVar
@@ -31,6 +32,8 @@ from chemworld.eval.work_ii_formal import (
     authorize_formal_preflight,
     build_checkpoint_contract,
     build_formal_preflight,
+    formal_task_binding_key,
+    validate_formal_bindings,
     validate_formal_preflight,
 )
 
@@ -41,6 +44,89 @@ CURRENT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 CURRENT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
 _VALIDATE_ENVIRONMENT_BINDING = work_ii_formal._validate_environment_binding
 _BUILD_C2_ADMISSION_REPORT = work_ii_formal.build_c2_admission_report
+
+
+@pytest.fixture
+def current_runtime_root(monkeypatch: pytest.MonkeyPatch):
+    monkeypatch.setattr(
+        work_ii_formal,
+        "validate_formal_runtime_manifest",
+        lambda *_args, **_kwargs: [],
+    )
+    with tempfile.TemporaryDirectory(
+        prefix=".pytest-work-ii-formal-runtime-", dir=ROOT
+    ) as temporary:
+        yield Path(temporary)
+
+
+def _current_runtime_manifest(
+    runtime_root: Path,
+    *,
+    c2_matches_receipts: bool,
+) -> Path:
+    design = json.loads(CURRENT_DESIGN.read_text(encoding="utf-8"))
+    rows: list[dict[str, object]] = []
+    for task in design["tasks"]:
+        task_id = str(task["task_id"])
+        source = ROOT / str(task["campaign_config"])
+        config = json.loads(source.read_text(encoding="utf-8"))
+        config["method_resources"]["model_call_limit"] = 2
+        config["provider"]["accepted_turn_continuation_limit"] = 1
+        config["provider"]["provider_process_attempt_limit"] = 3
+        config["resource_calibration_card_binding"] = {"card_sha256": "a" * 64}
+        config["formal_runtime_identity"] = {
+            "locus": "A_E",
+            "task_id": task_id,
+            "rounds": 8,
+            "provider_calls_executed": 0,
+        }
+        path = runtime_root / f"a_e--{task_id}--r8.json"
+        path.write_text(json.dumps(config), encoding="utf-8")
+        rows.append(
+            {
+                "locus": "A_E",
+                "task_id": task_id,
+                "rounds": 8,
+                "formal_campaign_config_binding": {
+                    "path": path.relative_to(ROOT).as_posix(),
+                    "canonical_json_sha256": canonical_json_sha256(config),
+                },
+            }
+        )
+
+    fixture_rows = (
+        ("A_P", "c2-shared-task", 10, "work_ii_formal_c2_ap_shared.json"),
+        ("A_P", "c2-parametric-task", 10, "work_ii_formal_c2_ap_unique.json"),
+        ("A_S", "c2-shared-task", 12, "work_ii_formal_c2_as_shared.json"),
+        ("A_S", "c2-structural-task", 12, "work_ii_formal_c2_as_unique.json"),
+    )
+    for locus, task_id, rounds, filename in fixture_rows:
+        path = ROOT / "tests/fixtures" / filename
+        if not c2_matches_receipts:
+            path = runtime_root / "a_e--electrochemical-conversion--r8.json"
+        config = json.loads(path.read_text(encoding="utf-8"))
+        rows.append(
+            {
+                "locus": locus,
+                "task_id": task_id,
+                "rounds": rounds,
+                "formal_campaign_config_binding": {
+                    "path": path.relative_to(ROOT).as_posix(),
+                    "canonical_json_sha256": canonical_json_sha256(config),
+                },
+            }
+        )
+    manifest = {
+        "schema_version": "chemworld-work-ii-formal-runtime-manifest-0.1",
+        "formal_design_binding": {
+            "path": CURRENT_DESIGN.relative_to(ROOT).as_posix(),
+            "sha256": file_sha256(CURRENT_DESIGN),
+        },
+        "task_configs": rows,
+    }
+    path = runtime_root / "manifest.json"
+    path.write_text(json.dumps(manifest), encoding="utf-8")
+    return path
 
 
 @pytest.fixture(autouse=True)
@@ -486,6 +572,121 @@ def test_current_formal_method_is_bounded_and_requires_w2_26_cards() -> None:
         and cell["provider_process_attempt_limit_per_cell_attempt"] == 3
         for cell in report["cells"]
     )
+
+
+def test_current_formal_preflight_requires_explicit_runtime_manifest() -> None:
+    report = build_formal_preflight(ROOT, CURRENT_DESIGN, CURRENT_ANALYSIS)
+
+    assert any(
+        error == "current formal design requires an explicit formal runtime manifest"
+        for error in report["errors"]
+    )
+    assert report["formal_runtime_manifest_binding"] is None
+    assert report["formal_execution_allowed"] is False
+
+
+def test_current_formal_preflight_consumes_all_runtime_configs(
+    current_runtime_root: Path,
+) -> None:
+    runtime_manifest = _current_runtime_manifest(current_runtime_root, c2_matches_receipts=True)
+    report = build_formal_preflight(
+        ROOT,
+        CURRENT_DESIGN,
+        CURRENT_ANALYSIS,
+        formal_runtime_manifest_path=runtime_manifest,
+    )
+
+    runtime = json.loads(runtime_manifest.read_text(encoding="utf-8"))
+    expected = {
+        formal_task_binding_key(str(row["locus"]), str(row["task_id"])): row[
+            "formal_campaign_config_binding"
+        ]["path"]
+        for row in runtime["task_configs"]
+    }
+    observed = {
+        str(row["task_binding_key"]): row["campaign_config"]["path"]
+        for row in report["task_bindings"]
+    }
+    assert report["schedule_policy"]["schedule_complete"] is True
+    assert report["expected_counts"]["participant_cells"] == 135
+    assert observed == expected
+    assert all(
+        not str(row["campaign_config"]["path"]).startswith("configs/benchmark/")
+        for row in report["task_bindings"]
+        if row["c2_locus"] == "A_E"
+    )
+    assert validate_formal_bindings(ROOT, report) == []
+
+    incomplete = deepcopy(report)
+    incomplete["task_bindings"] = incomplete["task_bindings"][:-1]
+    incomplete["preflight_sha256"] = canonical_json_sha256(
+        {
+            key: value
+            for key, value in incomplete.items()
+            if key != "preflight_sha256"
+        }
+    )
+    assert any(
+        "complete formal schedule does not consume all nine runtime configs" in error
+        for error in validate_formal_bindings(ROOT, incomplete)
+    )
+
+
+def test_current_formal_preflight_rejects_c2_receipt_runtime_mismatch(
+    current_runtime_root: Path,
+) -> None:
+    runtime_manifest = _current_runtime_manifest(current_runtime_root, c2_matches_receipts=False)
+    report = build_formal_preflight(
+        ROOT,
+        CURRENT_DESIGN,
+        CURRENT_ANALYSIS,
+        formal_runtime_manifest_path=runtime_manifest,
+    )
+
+    assert report["schedule_policy"]["schedule_complete"] is False
+    assert report["expected_counts"]["participant_cells"] == 75
+    assert all(cell["c2_locus"] == "A_E" for cell in report["cells"])
+    assert any(
+        "campaign config is not the materialized formal runtime config" in error
+        for error in report["prerequisite_errors"]
+    )
+
+
+def test_formal_binding_validation_detects_runtime_config_drift(
+    current_runtime_root: Path,
+) -> None:
+    runtime_manifest = _current_runtime_manifest(current_runtime_root, c2_matches_receipts=True)
+    report = build_formal_preflight(
+        ROOT,
+        CURRENT_DESIGN,
+        CURRENT_ANALYSIS,
+        formal_runtime_manifest_path=runtime_manifest,
+    )
+    runtime = json.loads(runtime_manifest.read_text(encoding="utf-8"))
+    config_path = ROOT / runtime["task_configs"][0]["formal_campaign_config_binding"]["path"]
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    config["method_resources"]["model_call_limit"] = 99
+    config_path.write_text(json.dumps(config), encoding="utf-8")
+
+    errors = validate_formal_bindings(ROOT, report)
+
+    assert any("formal binding digest mismatch" in error for error in errors)
+    assert any(
+        "formal task does not consume its materialized runtime config" in error for error in errors
+    )
+
+
+def test_current_preflight_cli_requires_runtime_manifest(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("sys.argv", ["run_work_ii_formal_matrix.py", "--preflight"])
+    args = formal_runner._parse_args()
+
+    with pytest.raises(
+        RuntimeError,
+        match="current formal preflight requires --formal-runtime-manifest",
+    ):
+        formal_runner._run_preflight(args)
 
 
 def test_formal_schedule_is_task_world_arm_ordered_and_unique() -> None:

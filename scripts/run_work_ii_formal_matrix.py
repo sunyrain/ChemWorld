@@ -56,6 +56,7 @@ def _parse_args() -> argparse.Namespace:
     mode.add_argument("--execute", action="store_true")
     parser.add_argument("--design", type=Path, default=DEFAULT_DESIGN)
     parser.add_argument("--analysis", type=Path, default=DEFAULT_ANALYSIS)
+    parser.add_argument("--formal-runtime-manifest", type=Path)
     parser.add_argument("--output", type=Path, default=DEFAULT_PREFLIGHT)
     parser.add_argument("--check", action="store_true")
     parser.add_argument("--manifest", type=Path)
@@ -90,7 +91,18 @@ def _run_preflight(args: argparse.Namespace) -> int:
         )
     ):
         raise RuntimeError("execution-only options cannot be used with --preflight")
-    report = build_formal_preflight(ROOT, args.design, args.analysis)
+    design = _load_object(args.design.resolve())
+    if (
+        design.get("schema_version") == "chemworld-work-ii-formal-design-0.2"
+        and args.formal_runtime_manifest is None
+    ):
+        raise RuntimeError("current formal preflight requires --formal-runtime-manifest")
+    report = build_formal_preflight(
+        ROOT,
+        args.design,
+        args.analysis,
+        formal_runtime_manifest_path=args.formal_runtime_manifest,
+    )
     errors = validate_formal_preflight(report)
     if errors or report["errors"]:
         raise RuntimeError(
@@ -573,8 +585,14 @@ def execute_manifest(
 
 
 def _run_execute(args: argparse.Namespace) -> int:
-    if args.check or args.output != DEFAULT_PREFLIGHT:
-        raise RuntimeError("--check and --output apply only to --preflight")
+    if (
+        args.check
+        or args.output != DEFAULT_PREFLIGHT
+        or getattr(args, "formal_runtime_manifest", None) is not None
+    ):
+        raise RuntimeError(
+            "--check, --output and --formal-runtime-manifest apply only to --preflight"
+        )
     required = {
         "--manifest": args.manifest,
         "--output-root": args.output_root,
