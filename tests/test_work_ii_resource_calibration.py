@@ -99,7 +99,8 @@ def test_manifest_freezes_exact_nine_task_contracts() -> None:
         "complete_experiments": 252,
         "belief_checkpoints": 135,
         "accepted_provider_sessions": 27,
-        "accepted_participant_model_calls": 27,
+        "accepted_participant_model_calls_minimum": 27,
+        "accepted_participant_model_calls_maximum": 54,
     }
 
 
@@ -122,6 +123,8 @@ def test_runtime_config_requires_current_execution_semantics() -> None:
 
     assert config["w2_26_runtime_identity"]["agent_invalid_enforcement"] == "measure_only"
     assert config["w2_26_runtime_identity"]["provider_error_enforcement"] == "measure_only"
+    assert config["provider"]["accepted_turn_continuation_limit"] == 1
+    assert config["provider"]["provider_process_attempt_limit"] == 3
     assert config["qualification"]["required_operation_counts"] == {}
     assert calibration._config_errors(
         config,
@@ -238,11 +241,11 @@ def test_task9_platform_defect_restarts_whole_triplet_once_then_exhausts_cap() -
         "rounds": 12,
     }
     authorization = {
-        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2}
+        "runtime_enforcement": {"per_triplet_infrastructure_attempt_hard_cap": 2}
     }
 
     first = calibration_runner._platform_defect_disposition(
-        provider_attempt_hard_cap=calibration_runner._provider_attempt_hard_cap(
+        provider_attempt_hard_cap=calibration_runner._triplet_attempt_hard_cap(
             authorization
         ),
         pattern=pattern,
@@ -262,7 +265,7 @@ def test_task9_platform_defect_restarts_whole_triplet_once_then_exhausts_cap() -
     }
 
     exhausted = calibration_runner._platform_defect_disposition(
-        provider_attempt_hard_cap=calibration_runner._provider_attempt_hard_cap(
+        provider_attempt_hard_cap=calibration_runner._triplet_attempt_hard_cap(
             authorization
         ),
         pattern=pattern,
@@ -277,8 +280,8 @@ def test_task9_platform_defect_restarts_whole_triplet_once_then_exhausts_cap() -
 
 
 def test_platform_restart_disposition_requires_authorized_hard_cap() -> None:
-    with pytest.raises(RuntimeError, match="provider-attempt hard cap"):
-        calibration_runner._provider_attempt_hard_cap(
+    with pytest.raises(RuntimeError, match="triplet-attempt hard cap"):
+        calibration_runner._triplet_attempt_hard_cap(
             {"runtime_enforcement": {}}
         )
 
@@ -320,7 +323,7 @@ def _one_pattern_execution(
         "unlimited_spend_authorized": True,
         "currency_ceiling_usd": None,
         "all_infrastructure_resumes": {"cost_cap_usd": None},
-        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2},
+        "runtime_enforcement": {"per_triplet_infrastructure_attempt_hard_cap": 2},
         "pattern_attempt_contracts": [
             {
                 **pattern,
@@ -533,7 +536,7 @@ def test_resume_reads_one_terminal_triplet_per_task(
         "currency_ceiling_usd": None,
         "unlimited_spend_authorized": True,
         "all_infrastructure_resumes": {"cost_cap_usd": None},
-        "runtime_enforcement": {"per_cell_provider_attempt_hard_cap": 2},
+        "runtime_enforcement": {"per_triplet_infrastructure_attempt_hard_cap": 2},
         "pattern_attempt_contracts": [],
     }
     authorization_path = repo_tmp_path / "authorization-v0.2.json"

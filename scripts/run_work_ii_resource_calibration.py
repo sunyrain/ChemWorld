@@ -345,18 +345,18 @@ def _cell_has_platform_defect(row: Mapping[str, object]) -> bool:
     return cell_has_platform_defect(row)
 
 
-def _provider_attempt_hard_cap(authorization: Mapping[str, object]) -> int:
-    """Return the validated authorization-owned per-cell attempt hard cap."""
+def _triplet_attempt_hard_cap(authorization: Mapping[str, object]) -> int:
+    """Return the authorization-owned whole-triplet attempt hard cap."""
 
     runtime = authorization.get("runtime_enforcement")
     runtime = runtime if isinstance(runtime, Mapping) else {}
-    hard_cap = runtime.get("per_cell_provider_attempt_hard_cap")
+    hard_cap = runtime.get("per_triplet_infrastructure_attempt_hard_cap")
     if (
         isinstance(hard_cap, bool)
         or not isinstance(hard_cap, int)
         or hard_cap < 1
     ):
-        raise RuntimeError("W2-26 authorization lacks a valid provider-attempt hard cap")
+        raise RuntimeError("W2-26 authorization lacks a valid triplet-attempt hard cap")
     return hard_cap
 
 
@@ -452,7 +452,7 @@ def execute_calibration(
     pattern_contracts = {
         pattern_key(row): row for row in authorization["pattern_attempt_contracts"]
     }
-    provider_attempt_hard_cap = _provider_attempt_hard_cap(authorization)
+    provider_attempt_hard_cap = _triplet_attempt_hard_cap(authorization)
     total_triplets = len(manifest["patterns"])
     for triplet_index, pattern in enumerate(manifest["patterns"], start=1):
         rounds = int(pattern["rounds"])

@@ -93,7 +93,8 @@ EXPECTED_DENOMINATORS = {
     "complete_experiments": 252,
     "belief_checkpoints": 135,
     "accepted_provider_sessions": 27,
-    "accepted_participant_model_calls": 27,
+    "accepted_participant_model_calls_minimum": 27,
+    "accepted_participant_model_calls_maximum": 54,
 }
 EXPECTED_OBSERVED_DENOMINATORS = {
     "task_triplets_started": 9,
@@ -103,7 +104,6 @@ EXPECTED_OBSERVED_DENOMINATORS = {
     "complete_experiments": 252,
     "belief_checkpoints": 135,
     "provider_sessions": 27,
-    "participant_model_calls": 27,
 }
 PROTECTED_RESERVE_FRACTIONS = {"A_E": 0.15, "A_P": 0.15, "A_S": 0.20}
 MINIMUM_UNIQUE_RECIPES = {"A_E": 6, "A_P": 8, "A_S": 10}
@@ -225,6 +225,12 @@ def _materialize_runtime_config(
     # bounded in-cell restart prevents a transient startup/IPC exit from
     # replacing three already-started calibration arms.
     provider["pre_action_restart_limit"] = 1
+    # A clean Codex turn may finish after accepted operations before the
+    # campaign lifecycle is terminal.  Preserve the same provider thread and
+    # append at most one continuation turn.  The shared process cap permits
+    # both the zero-action predecessor and that continuation when needed.
+    provider["accepted_turn_continuation_limit"] = 1
+    provider["provider_process_attempt_limit"] = 3
     config["provider"] = provider
     resources = config.get("method_resources")
     resources = resources if isinstance(resources, dict) else {}
@@ -300,6 +306,8 @@ def _config_errors(
         or qualification.get("maximum_exact_repeats") != 2
         or qualification.get("required_operation_counts") != {}
         or provider.get("pre_action_restart_limit") != 1
+        or provider.get("accepted_turn_continuation_limit") != 1
+        or provider.get("provider_process_attempt_limit") != 3
         or runtime_identity.get("locus") != locus
         or runtime_identity.get("task_id") != task_id
         or runtime_identity.get("rounds") != rounds
@@ -773,11 +781,11 @@ def build_authorization(
         },
         "pattern_attempt_contracts": contracts,
         "initial_schedule": {
-            "provider_process_attempts": 27,
+            "provider_process_attempts": 81,
             "cost_cap_usd": None if unlimited_spend_authorized else initial_cost,
         },
         "all_infrastructure_resumes": {
-            "provider_process_attempts": 54,
+            "provider_process_attempts": 162,
             "cost_cap_usd": None if unlimited_spend_authorized else hard_cost,
         },
         "currency_ceiling_usd": (
@@ -789,7 +797,8 @@ def build_authorization(
             "provider_error_enforcement": PROVIDER_ERROR_ENFORCEMENT_POLICY,
             "participant_payload_auto_repair": False,
             "raw_mcp_failures_retained": True,
-            "per_cell_provider_attempt_hard_cap": 2,
+            "per_cell_provider_process_attempt_hard_cap": 3,
+            "per_triplet_infrastructure_attempt_hard_cap": 2,
             "reserve_full_token_cost_before_launch": True,
             "missing_infrastructure_only_resume": True,
             "participant_scientific_or_method_failure_retained": True,
@@ -876,8 +885,8 @@ def validate_authorization(
         )
     )
     if (
-        initial.get("provider_process_attempts") != 27
-        or hard.get("provider_process_attempts") != 54
+        initial.get("provider_process_attempts") != 81
+        or hard.get("provider_process_attempts") != 162
         or not (finite_cost_contract_valid or unlimited_cost_contract_valid)
     ):
         errors.append("W2-26 authorization cost contract is invalid")
@@ -890,7 +899,8 @@ def validate_authorization(
         != PROVIDER_ERROR_ENFORCEMENT_POLICY
         or runtime.get("participant_payload_auto_repair") is not False
         or runtime.get("raw_mcp_failures_retained") is not True
-        or runtime.get("per_cell_provider_attempt_hard_cap") != 2
+        or runtime.get("per_cell_provider_process_attempt_hard_cap") != 3
+        or runtime.get("per_triplet_infrastructure_attempt_hard_cap") != 2
         or any(
         runtime.get(field) is not True
         for field in (
@@ -1175,10 +1185,24 @@ def validate_summary(
         ):
             errors.append("failed W2-26 summary is not fail closed")
         return errors
+    observed = summary.get("observed_denominators")
+    observed = observed if isinstance(observed, Mapping) else {}
+    participant_model_calls = observed.get("participant_model_calls")
+    participant_model_calls_valid = (
+        isinstance(participant_model_calls, int)
+        and not isinstance(participant_model_calls, bool)
+        and EXPECTED_DENOMINATORS["accepted_participant_model_calls_minimum"]
+        <= participant_model_calls
+        <= EXPECTED_DENOMINATORS["accepted_participant_model_calls_maximum"]
+    )
     if (
         summary.get("formal_result") is not False
         or summary.get("expected_denominators") != EXPECTED_DENOMINATORS
-        or summary.get("observed_denominators") != EXPECTED_OBSERVED_DENOMINATORS
+        or any(
+            observed.get(key) != value
+            for key, value in EXPECTED_OBSERVED_DENOMINATORS.items()
+        )
+        or not participant_model_calls_valid
         or summary.get("provider_calls_executed") != 27
         or summary.get("calibration_passed") is not True
         or summary.get("method_qualification_may_be_authorized") is not True
@@ -1343,7 +1367,6 @@ def build_summary(
                 else []
             )
             terminal_receipt = _terminal_provider_receipt(row)
-            receipt_contract_valid = terminal_receipt is not None
             receipt = terminal_receipt or {}
             try:
                 mcp_failure_observation = _agent_invalid_recovery_observation(receipt)
@@ -1389,11 +1412,17 @@ def build_summary(
                 and qualification.get("passed") is True
                 and receipt.get("provider_error_event_count", 0) == 0
             )
-            provider_attempt_count = len(receipts)
-            provider_attempts += provider_attempt_count
-            provider_sessions += int(
-                receipt_contract_valid and receipt.get("status") == "completed"
+            provider_attempt_count = int(
+                method.get("provider_process_attempt_count", len(receipts))
             )
+            accepted_provider_session_count = int(
+                method.get("accepted_provider_session_count", 0)
+            )
+            accepted_model_call_count = int(
+                method.get("accepted_participant_model_call_count", 0)
+            )
+            provider_attempts += provider_attempt_count
+            provider_sessions += accepted_provider_session_count
             cell_id = f"{key[0]}:{key[1]}:{key[2]}:{pattern.get('world_seed')}:{arm}"
             observed_currency = currency.get(cell_id)
             cell = {
@@ -1438,6 +1467,8 @@ def build_summary(
                     )
                 ),
                 "provider_attempts": provider_attempt_count,
+                "accepted_provider_sessions": accepted_provider_session_count,
+                "accepted_model_calls": accepted_model_call_count,
                 "agent_invalid_recovered_count": (
                     0
                     if mcp_failure_observation is None
@@ -1591,8 +1622,8 @@ def build_summary(
         "cells_terminal": sum(row["terminal"] for row in cell_rows),
         "complete_experiments": sum(row["complete_experiments"] for row in cell_rows),
         "belief_checkpoints": sum(row["checkpoint_count"] for row in cell_rows),
-        "provider_sessions": sum(row["provider_attempts"] > 0 for row in cell_rows),
-        "participant_model_calls": sum(row["provider_attempts"] > 0 for row in cell_rows),
+        "provider_sessions": sum(row["accepted_provider_sessions"] for row in cell_rows),
+        "participant_model_calls": sum(row["accepted_model_calls"] for row in cell_rows),
     }
     currency_cells_observed = sum(
         row.get("observed_currency_usd") is not None for row in cell_rows

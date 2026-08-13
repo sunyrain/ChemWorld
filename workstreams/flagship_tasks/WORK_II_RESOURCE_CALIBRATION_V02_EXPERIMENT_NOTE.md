@@ -10,8 +10,10 @@ Codex + ChemWorld MCP session while preserving closeout reserve, typed checkpoin
 and auditable resource accounting? The fixed coverage is nine task triplets: five A-E tasks at 8
 experiments, two A-P tasks at 10, and two A-S tasks at 12. Every triplet contains `opaque`,
 `aligned_nominal`, and `misindexed_nominal`; no task, arm, seed, round count, checkpoint plan, or
-failure rule may change after launch. Exact denominators are 9 triplets, 27 cells, 252 complete
-experiments, 135 typed checkpoints, 27 provider sessions, and 27 participant model calls.
+failure rule may change after launch. Exact scientific denominators are 9 triplets, 27 cells, 252
+complete experiments, 135 typed checkpoints, and 27 provider sessions. A clean, nonterminal Codex
+turn may continue once on the same provider thread, so accepted participant model calls are a
+measured operational denominator bounded to 27--54 rather than a new scientific sample.
 
 ## Measurements
 
@@ -39,6 +41,12 @@ recovery-episode totals and maximum consecutive episodes.
   recorded as an unattributed pre-action process attempt; it counts as a provider-process attempt
   but not as an accepted participant session or participant model call. No restart is allowed after
   an accepted experimental action.
+- If a Codex turn completes cleanly after accepted operations but before the campaign lifecycle is
+  terminal, the host may append exactly one continuation on that same provider thread, workspace,
+  trajectory, arm, seed, and expected step. Accepted operations cannot be repeated or replaced.
+  Provider/network, transport, integrity, usage-accounting, or unclassified MCP failures are not
+  eligible. Each cell therefore has at most three provider processes: one zero-action predecessor,
+  the initial accepted turn, and one same-thread continuation.
 - Raw invalid calls and submitted participant payloads remain in the receipt. The host never
   repairs, reorders, or substitutes participant content. A participant that never commits every
   required valid checkpoint or never closes the lifecycle remains a retained method failure.
