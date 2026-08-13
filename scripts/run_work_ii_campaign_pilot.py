@@ -7,6 +7,7 @@ import argparse
 import contextlib
 import json
 import tempfile
+import time
 from collections.abc import Mapping
 from pathlib import Path
 from time import perf_counter
@@ -68,6 +69,32 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG = ROOT / "configs/benchmark/work_ii_campaign_pilot.json"
 DEFAULT_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 DEFAULT_ANALYSIS = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.json"
+
+TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT = 20
+TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S = 0.05
+
+
+def _cleanup_temporary_directory_best_effort(
+    temporary: tempfile.TemporaryDirectory[str],
+) -> dict[str, Any]:
+    """Clean a closed cell workspace without replacing its durable closeout."""
+
+    last_error: OSError | None = None
+    for attempt in range(1, TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT + 1):
+        try:
+            temporary.cleanup()
+            return {"status": "completed", "attempts": attempt}
+        except OSError as error:
+            last_error = error
+            if attempt < TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT:
+                time.sleep(TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S)
+    assert last_error is not None
+    return {
+        "status": "deferred",
+        "attempts": TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT,
+        "error_type": type(last_error).__name__,
+        "error": str(last_error)[:1000],
+    }
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -977,7 +1004,10 @@ def _run_cell(
     completed = 0
     target_experiments = int(config["campaign"]["complete_experiments"])
     failure: dict[str, str] | None = None
-    with tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-") as temporary:
+    temporary_directory = tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-")
+    # Keep the cell workspace alive until its receipts, qualification, and
+    # durable summary have been closed out. Cleanup is explicitly deferred.
+    with contextlib.nullcontext(temporary_directory.name) as temporary:
 
         def on_session_progress(payload: dict[str, Any]) -> None:
             _progress(
@@ -1208,6 +1238,10 @@ def _run_cell(
         "qualification": qualification,
         "elapsed_s": round(perf_counter() - cell_started, 1),
     }
+    write_json_atomic(cell_root / "summary.json", row)
+    row["temporary_workspace_cleanup"] = _cleanup_temporary_directory_best_effort(
+        temporary_directory
+    )
     write_json_atomic(cell_root / "summary.json", row)
     _progress(
         progress_path,

@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import io
 import json
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -15,6 +17,7 @@ from chemworld.agents.interactive_codex_experiment import (
     InteractiveCodexExperimentAgent,
     InteractiveCodexExperimentError,
     _classify_mcp_tool_failure,
+    _CodexEventMonitor,
     _final_recommendation_from_payload,
     _material_information_payload,
     _mcp_tool_failure_audit,
@@ -23,6 +26,77 @@ from chemworld.agents.interactive_codex_experiment import (
     _public_task_contract,
     validated_mcp_tool_failure_budget,
 )
+
+
+def test_retire_waits_for_provider_before_removing_active_session(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    events: list[str] = []
+
+    class FakeProcess:
+        stdout = io.StringIO("")
+        stderr = io.StringIO("")
+
+        def __init__(self) -> None:
+            self.running = True
+
+        def poll(self) -> int | None:
+            return None if self.running else 0
+
+        def terminate(self) -> None:
+            events.append("terminate")
+            self.running = False
+
+        def kill(self) -> None:
+            raise AssertionError("graceful termination should succeed")
+
+        def wait(self, timeout: float | None = None) -> int:
+            del timeout
+            events.append("wait")
+            return 0
+
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="retire-order-test",
+        process_factory=lambda command, prompt, cwd: None,
+    )
+    agent.reset({"task_id": "x", "budget": 1}, seed=0)
+    session_id = "retire-order-0001"
+    agent.workspace.start_session(
+        session_id=session_id,
+        expected_step=1,
+        response_timeout_s=1.0,
+    )
+    process = FakeProcess()
+    monitor = _CodexEventMonitor(process)
+    temporary = tempfile.TemporaryDirectory(prefix="chemworld-retire-order-")
+    original_retire = agent.workspace.retire_session
+    original_cleanup = temporary.cleanup
+
+    def retire(active_session_id: str) -> None:
+        assert process.poll() == 0
+        assert agent.workspace.active_session_path.exists()
+        events.append("retire")
+        original_retire(active_session_id)
+
+    def cleanup() -> None:
+        assert not agent.workspace.active_session_path.exists()
+        events.append("cleanup")
+        original_cleanup()
+
+    monkeypatch.setattr(agent.workspace, "retire_session", retire)
+    monkeypatch.setattr(temporary, "cleanup", cleanup)
+    agent._session = {
+        "session_id": session_id,
+        "monitor": monitor,
+        "temp": temporary,
+    }
+    agent._session_temp_directories.append(temporary)
+
+    agent._retire_active_session()
+
+    assert events == ["terminate", "wait", "retire", "cleanup"]
 
 
 @pytest.mark.parametrize(

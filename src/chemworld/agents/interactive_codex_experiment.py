@@ -15,7 +15,7 @@ from collections.abc import Callable, Mapping, Sequence
 from copy import deepcopy
 from datetime import datetime
 from pathlib import Path
-from time import perf_counter
+from time import perf_counter, sleep
 from typing import IO, Any, Literal, Protocol
 from uuid import uuid4
 
@@ -41,6 +41,8 @@ from chemworld.providers.codex_subscription import (
 
 INTERACTIVE_CODEX_EXPERIMENT_VERSION = "chemworld-interactive-codex-experiment-0.6"
 DEFAULT_FINALIZATION_TIMEOUT_S = 300.0
+TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT = 20
+TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S = 0.05
 
 MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
 MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION = (
@@ -2194,12 +2196,23 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         if self._session is None:
             return
         session_id = str(self._session["session_id"])
+        monitor = self._session.get("monitor")
+        if isinstance(monitor, _CodexEventMonitor):
+            # A Codex process owns the MCP subprocess. Reap it before removing
+            # active_session.json so no late MCP request can race retirement.
+            monitor.stop()
+        self.workspace.retire_session(session_id)
         temporary = self._session.get("temp")
         if isinstance(temporary, tempfile.TemporaryDirectory):
-            temporary.cleanup()
+            for attempt in range(TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT):
+                try:
+                    temporary.cleanup()
+                    break
+                except OSError:
+                    if attempt + 1 < TEMP_DIRECTORY_CLEANUP_RETRY_LIMIT:
+                        sleep(TEMP_DIRECTORY_CLEANUP_RETRY_INTERVAL_S)
             if temporary in self._session_temp_directories:
                 self._session_temp_directories.remove(temporary)
-        self.workspace.retire_session(session_id)
         self._session_process_environment = None
         self._use_isolated_codex_home = False
 
