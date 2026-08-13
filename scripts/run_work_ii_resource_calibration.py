@@ -599,8 +599,8 @@ def execute_calibration(
                 continue
             item["process"].wait()
             item["log_handle"].close()
-            summary_path = item["cell_root"] / "summary.json"
-            if not summary_path.is_file():
+            cell_summary_path = item["cell_root"] / "summary.json"
+            if not cell_summary_path.is_file():
                 platform_defect = True
                 _write_once(
                     attempt_root / f"platform-defect-{item['arm']}.json",
@@ -615,7 +615,7 @@ def execute_calibration(
                     },
                 )
                 continue
-            row = _load(summary_path)
+            row = _load(cell_summary_path)
             _validate_cell_execution_binding(
                 row,
                 arm=str(item["arm"]),

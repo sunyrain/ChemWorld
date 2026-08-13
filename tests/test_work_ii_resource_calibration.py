@@ -1327,3 +1327,315 @@ def test_v02_unavailable_provider_pricing_is_not_reported_as_zero_cost() -> None
         for card in summary["resource_card_proposals"]
     )
     assert calibration_v02.validate_summary(summary, manifest=manifest) == []
+
+
+def _resolved_v02_e2e_manifest(repo_tmp_path: Path) -> tuple[Path, dict[str, object]]:
+    manifest = json.loads(MANIFEST_V02.read_text(encoding="utf-8"))
+    source_configs = dict(calibration_v02.AE_CONFIGS)
+    for world_seed, pattern in enumerate(manifest["patterns"]):
+        rounds = int(pattern["rounds"])
+        task_id = str(pattern["task_id"])
+        source = json.loads(
+            (ROOT / source_configs[task_id]).read_text(encoding="utf-8")
+        )
+        source["task_id"] = task_id
+        source["world_seed"] = world_seed
+        source["campaign"]["complete_experiments"] = rounds
+        source["campaign"]["checkpoint_complete_experiments"] = pattern[
+            "checkpoint_complete_experiments"
+        ]
+        source["method_resources"]["complete_experiment_limit"] = rounds
+        source["method_resources"]["checkpoint_complete_experiments"] = pattern[
+            "checkpoint_complete_experiments"
+        ][1:]
+        config = calibration_v02._materialize_runtime_config(
+            source,
+            locus=str(pattern["locus"]),
+            task_id=task_id,
+            rounds=rounds,
+        )
+        config_path = repo_tmp_path / f"{calibration_v02.pattern_slug(pattern)}.json"
+        config_path.write_text(json.dumps(config), encoding="utf-8")
+        pattern.update(
+            {
+                "status": "resolved_authorization_blocked",
+                "campaign_config_binding": {
+                    "path": config_path.relative_to(ROOT).as_posix(),
+                    "sha256": file_sha256(config_path),
+                    "hash_kind": "file_sha256",
+                },
+                "world_seed": world_seed,
+                "resource_formula_binding": (
+                    calibration_v02.build_task_resource_formula_binding(config)
+                ),
+                "evidence": {"source": "provider_free_e2e_fixture"},
+            }
+        )
+    manifest.update(
+        {
+            "status": "ready_authorization_blocked",
+            "blocking_requirements": [],
+        }
+    )
+    manifest_path = repo_tmp_path / "manifest-v0.2-e2e.json"
+    manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+    assert calibration_v02.validate_manifest(ROOT, manifest) == []
+    return manifest_path, manifest
+
+
+def _write_provider_free_v02_cell_runner(repo_tmp_path: Path) -> Path:
+    runner = repo_tmp_path / "provider_free_cell_runner.py"
+    runner.write_text(
+        """#!/usr/bin/env python3
+import argparse
+import json
+import os
+from pathlib import Path
+
+from chemworld.eval.provenance import file_sha256
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", type=Path, required=True)
+parser.add_argument("--output", type=Path, required=True)
+parser.add_argument("--progress-file", type=Path, required=True)
+parser.add_argument("--world-seed", type=int, required=True)
+parser.add_argument("--prior-arm", required=True)
+parser.add_argument("--resource-calibration-execution", action="store_true")
+parser.add_argument("--resource-calibration-manifest", type=Path, required=True)
+parser.add_argument("--resource-calibration-authorization", type=Path, required=True)
+parser.add_argument("--resource-calibration-cost-reservation", type=Path, required=True)
+args = parser.parse_args()
+
+root = Path.cwd().resolve()
+manifest = json.loads(args.resource_calibration_manifest.read_text(encoding="utf-8"))
+authorization = json.loads(
+    args.resource_calibration_authorization.read_text(encoding="utf-8")
+)
+reservation = json.loads(
+    args.resource_calibration_cost_reservation.read_text(encoding="utf-8")
+)
+config_relative = args.config.resolve().relative_to(root).as_posix()
+matches = [
+    row
+    for row in manifest["patterns"]
+    if row["campaign_config_binding"]["path"] == config_relative
+    and row["world_seed"] == args.world_seed
+]
+if len(matches) != 1:
+    raise RuntimeError("provider-free E2E runner could not resolve one task identity")
+pattern = matches[0]
+rounds = int(pattern["rounds"])
+binding = {
+    "manifest": {
+        "path": args.resource_calibration_manifest.resolve().relative_to(root).as_posix(),
+        "file_sha256": file_sha256(args.resource_calibration_manifest),
+    },
+    "authorization": {
+        "path": args.resource_calibration_authorization.resolve().relative_to(root).as_posix(),
+        "file_sha256": file_sha256(args.resource_calibration_authorization),
+        "authorization_sha256": authorization["authorization_sha256"],
+    },
+    "cost_reservation": {
+        "path": args.resource_calibration_cost_reservation.resolve().relative_to(root).as_posix(),
+        "file_sha256": file_sha256(args.resource_calibration_cost_reservation),
+        "attempt_number": reservation["attempt_number"],
+        "reservation_sequence_number": reservation["reservation_sequence_number"],
+    },
+    "pattern": {
+        "locus": pattern["locus"],
+        "task_id": pattern["task_id"],
+        "rounds": rounds,
+        "world_seed": pattern["world_seed"],
+        "prior_arm": args.prior_arm,
+        "campaign_config_sha256": pattern["campaign_config_binding"]["sha256"],
+        "campaign_config_hash_kind": pattern["campaign_config_binding"]["hash_kind"],
+    },
+}
+summary = {
+    "completed": True,
+    "arm": args.prior_arm,
+    "analysis": {
+        "complete_experiment_count": rounds,
+        "belief_snapshots": [
+            {"stage": stage}
+            for stage in pattern["checkpoint_complete_experiments"]
+        ],
+        "operation_attempt_count": rounds * 7,
+        "exact_repeat_count": 2,
+        "final_campaign_resources": {
+            "state": {"report_only": {"process_time_s": rounds * 10.0}}
+        },
+        "process_profile": {
+            "counts": {"participant_operation_attempt_count": rounds * 7}
+        },
+    },
+    "qualification": {
+        "passed": True,
+        "checks": {
+            "tool_integrity": True,
+            "exact_replay": True,
+            "execution_audit": True,
+        },
+    },
+    "exact_replay": {"verified": True},
+    "method_resources": {
+        "provider_usage_pending": False,
+        "provider_usage_accounting_complete": True,
+        "in_flight_model_call_count": 0,
+        "input_token_count": rounds * 1000,
+        "uncached_input_token_count": rounds * 500,
+        "output_token_count": rounds * 100,
+    },
+    "provider_receipts": [
+        {
+            "status": "completed",
+            "provider_error_event_count": 0,
+            "provider_attempt_count": 1,
+            "session_elapsed_s": float(rounds),
+            "synthetic_provider_free": True,
+        }
+    ],
+    "resource_calibration_execution_binding": binding,
+}
+args.output.mkdir(parents=True, exist_ok=False)
+(args.output / "summary.json").write_text(json.dumps(summary), encoding="utf-8")
+args.progress_file.parent.mkdir(parents=True, exist_ok=True)
+args.progress_file.write_text(
+    json.dumps({"event": "provider_free_cell_completed"}) + "\\n",
+    encoding="utf-8",
+)
+invocations = os.environ.get("CHEMWORLD_W226_PROVIDER_FREE_INVOCATIONS")
+if invocations:
+    with Path(invocations).open("a", encoding="utf-8") as handle:
+        handle.write(
+            f"{pattern['locus']}:{pattern['task_id']}:{rounds}:{args.prior_arm}\\n"
+        )
+""",
+        encoding="utf-8",
+    )
+    return runner
+
+
+def test_v02_provider_free_execute_calibration_e2e(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    manifest_path, manifest = _resolved_v02_e2e_manifest(repo_tmp_path)
+    authorization = calibration_v02.build_authorization(
+        ROOT,
+        manifest_path,
+        currency_ceiling_usd=None,
+        approved_at="2026-08-13T00:00:00Z",
+        pricing_source=None,
+        pricing_observed_at=None,
+        cache_hit_input_usd_per_million=None,
+        cache_miss_input_usd_per_million=None,
+        output_usd_per_million=None,
+        unlimited_spend_authorized=True,
+    )
+    authorization_path = repo_tmp_path / "authorization-v0.2-e2e.json"
+    authorization_path.write_text(json.dumps(authorization), encoding="utf-8")
+    assert calibration_v02.validate_authorization(
+        ROOT, authorization, manifest_path
+    ) == []
+    assert authorization["currency_ceiling_usd"] is None
+    assert authorization["all_infrastructure_resumes"]["cost_cap_usd"] is None
+
+    invocation_path = repo_tmp_path / "provider-free-invocations.txt"
+    monkeypatch.setenv(
+        "CHEMWORLD_W226_PROVIDER_FREE_INVOCATIONS", str(invocation_path)
+    )
+    output_root = repo_tmp_path / "execution"
+    result = calibration_runner.execute_calibration(
+        manifest_path=manifest_path,
+        authorization_path=authorization_path,
+        output_root=output_root,
+        resume=False,
+        cell_runner=_write_provider_free_v02_cell_runner(repo_tmp_path),
+    )
+
+    summary = json.loads((output_root / "summary.json").read_text(encoding="utf-8"))
+    terminal_paths = sorted((output_root / "terminal_triplets").glob("*.json"))
+    reservation_paths = sorted(
+        output_root.glob("triplet_attempts/*/attempt-*/cost_reservation.json")
+    )
+    expected_slugs = {
+        calibration_v02.pattern_slug(pattern) for pattern in manifest["patterns"]
+    }
+    observed_slugs = {path.stem for path in terminal_paths}
+    reservations = [
+        json.loads(path.read_text(encoding="utf-8"))
+        for path in reservation_paths
+    ]
+
+    assert result["status"] == "passed"
+    assert result["reserved_cost_usd"] is None
+    assert len(terminal_paths) == len(observed_slugs) == 9
+    assert observed_slugs == expected_slugs
+    assert len(list(output_root.glob("triplet_attempts/*/attempt-*/*/summary.json"))) == 27
+    assert len(invocation_path.read_text(encoding="utf-8").splitlines()) == 27
+    assert sorted(row["reservation_sequence_number"] for row in reservations) == list(
+        range(1, 10)
+    )
+    assert all(
+        row["reserved_cost_usd"] is None
+        and row["cumulative_reserved_cost_usd"] is None
+        and row["currency_ceiling_usd"] is None
+        for row in reservations
+    )
+    assert summary["observed_denominators"] == {
+        "task_triplets_started": 9,
+        "task_triplets_terminal": 9,
+        "cells_started": 27,
+        "cells_terminal": 27,
+        "complete_experiments": 252,
+        "belief_checkpoints": 135,
+        "provider_sessions": 27,
+        "participant_model_calls": 27,
+    }
+    assert summary["currency_accounting"] == {
+        "status": "unavailable_provider_pricing",
+        "observed_cell_count": 0,
+        "expected_cell_count": 27,
+        "formal_currency_contract_required": True,
+    }
+    assert all(
+        card["proposed_hard_caps"]["currency_ceiling_usd"] is None
+        for card in summary["resource_card_proposals"]
+    )
+    assert calibration_v02.validate_summary(summary, manifest=manifest) == []
+
+    before_resume = {
+        path.relative_to(output_root).as_posix(): file_sha256(path)
+        for path in output_root.rglob("*")
+        if path.is_file()
+    }
+    resumed = calibration_runner.execute_calibration(
+        manifest_path=manifest_path,
+        authorization_path=authorization_path,
+        output_root=output_root,
+        resume=True,
+        cell_runner=repo_tmp_path / "must-not-be-launched.py",
+    )
+    after_resume = {
+        path.relative_to(output_root).as_posix(): file_sha256(path)
+        for path in output_root.rglob("*")
+        if path.is_file()
+    }
+    assert resumed == {
+        "status": "passed",
+        "summary_sha256": summary["summary_sha256"],
+        "idempotent_existing_summary": True,
+    }
+    assert after_resume == before_resume
+    assert len(invocation_path.read_text(encoding="utf-8").splitlines()) == 27
+    with pytest.raises(FileExistsError, match="refusing to overwrite"):
+        calibration_runner.execute_calibration(
+            manifest_path=manifest_path,
+            authorization_path=authorization_path,
+            output_root=output_root,
+            resume=False,
+            cell_runner=repo_tmp_path / "must-not-be-launched.py",
+        )
+    with pytest.raises(RuntimeError, match="refusing to replace immutable"):
+        calibration_runner._write_once(output_root / "summary.json", summary)
