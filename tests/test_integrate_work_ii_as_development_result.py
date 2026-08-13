@@ -110,6 +110,16 @@ def test_integrates_passed_development_run_without_authorizing_execution(
     for path in integration.CANONICAL_D1.values():
         config = json.loads((destination / path).read_text(encoding="utf-8"))
         assert config["qualification"]["q2_passed"] is True
+        assert config["qualification"]["minimum_unique_recipes"] == 10
+        assert config["qualification"]["maximum_exact_repeats"] == 2
+        assert (
+            config["campaign"]["process_time_policy"]["protected_reserve_fraction"]
+            == 0.20
+        )
+        assert (
+            config["campaign"]["closeout_policy"]["policy"]
+            == "protected_closeout_reserve_enforced"
+        )
     assert (destination / "runs/development/a-s-complete/summary.json").is_file()
 
 

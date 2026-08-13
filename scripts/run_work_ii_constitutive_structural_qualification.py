@@ -40,6 +40,7 @@ from chemworld.eval.work_ii_constitutive_structural_qualification import (
     build_q2_package,
     build_qualification_plan,
     candidate_specs,
+    materialize_d1_resource_design,
     observation_binding,
     receipt_sha256,
     registered_coordinates,
@@ -566,109 +567,7 @@ def _d1_config(
             for row in selected_q2_queries(candidate_id)
         ],
     }
-    if candidate_id == PARTITION_CANDIDATE_ID:
-        operation_limit = 144
-        process_time_limit_s = 38_880.0
-        stock_limits = {
-            "solvent_L": 0.288,
-            "phase_liquid_L": 0.3456,
-            "extractant_L": 0.432,
-        }
-        repeat_limits = {"mix": 12, "settle": 12, "separate_phase": 12}
-        policy = {
-            "pattern_id": "partition-as-k12-ten-unique-two-repeat-planning",
-            "formula": "10 unique + 2 exact-repeat partition stages + 20% protected reserve",
-            "required_stage_max_s": 27_000.0,
-            "repeat_allowance_s": 5_400.0,
-            "protected_reserve_s": 6_480.0,
-            "protected_reserve_fraction": 0.20,
-            "implicit_stage_reserve_s": 0.0,
-            "resource_status": "planning_envelope_pending_w2_26_calibration",
-        }
-    else:
-        operation_limit = 168
-        process_time_limit_s = 215_712.0
-        stock_limits = {
-            "reagent_mol": 0.288,
-            "solvent_L": 0.36,
-            "catalyst_mol": 0.004536,
-            "seed_g": 0.1152,
-        }
-        repeat_limits = {
-            "heat": 12,
-            "cool_crystallize": 12,
-            "seed_crystals": 12,
-            "filter_crystals": 12,
-            "quench": 12,
-        }
-        policy = {
-            "pattern_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
-            "formula": (
-                "10 unique + 2 exact-repeat full stages + 20% protected reserve "
-                "+ quench closeout allowance"
-            ),
-            "required_stage_max_s": 148_800.0,
-            "repeat_allowance_s": 29_760.0,
-            "protected_reserve_s": 35_712.0,
-            "protected_reserve_fraction": 0.20,
-            "implicit_stage_reserve_s": 4_800.0,
-            "quench_transfer_allowance_s": 1_440.0,
-            "implicit_operation_time_s": {"filter_crystals": 480.0, "quench": 120.0},
-            "resource_status": "planning_envelope_pending_w2_26_calibration",
-        }
-    config["campaign"] = {
-        "card_id": policy["pattern_id"],
-        "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
-        "complete_experiments": 12,
-        "final_assay_limit": 12,
-        "nonfinal_instrument_use_limit": 36,
-        "operation_attempt_limit": operation_limit,
-        "operation_repeat_limits": repeat_limits,
-        "process_time_limit_s": process_time_limit_s,
-        "process_time_policy": policy,
-        "stock_limits": stock_limits,
-        "vessel_start_limit": 12,
-        "implicit_operation_time_s": dict(policy.get("implicit_operation_time_s", {})),
-        "closeout_policy": {
-            "policy": "protected_closeout_reserve_enforced",
-            "allowed_operation_classes": [
-                "discard_batch",
-                "final_assay",
-                "quench",
-                "terminate",
-                "transfer",
-            ],
-            "automatic_action_repair": False,
-            "automatic_closeout": False,
-            "planned_batches": 12,
-            "final_assay_path_operations_per_batch": 2,
-            "discard_path_operations_per_batch": 1,
-            "final_assay_path_total_operation_reserve": 24,
-            "discard_path_total_operation_reserve": 12,
-            "resource_status": "planning_envelope_pending_w2_26_calibration",
-        },
-    }
-    config["method_resources"] = {
-        "checkpoint_complete_experiments": [3, 6, 9, 12],
-        "complete_experiment_limit": 12,
-        "operation_limit": operation_limit,
-        "model_call_limit": 1,
-        "input_token_limit": 5_760_000,
-        "uncached_input_token_limit": 768_000,
-        "output_token_limit": 57_600,
-        "wall_time_limit_s": 9_000.0,
-        "training_environment_step_limit": 0,
-        "resource_status": "development_d1_envelope_pending_w2_26_calibration",
-    }
-    config["qualification"] = {
-        "q0_q1_q2_passed": True,
-        "q2_passed": True,
-        "minimum_unique_recipes": 10,
-        "maximum_exact_repeats": 2,
-        "execution_authorized": False,
-        "formal_r5_authorized": False,
-        "resource_calibration_status": "pending_w2_26",
-    }
+    config = materialize_d1_resource_design(config, candidate_id)
     config["analysis"] = {
         "final_metric_ids": list(spec["metric_ids"]),
         "primary_effect": "misspecified_pre_to_final_error_reduction_minus_aligned",

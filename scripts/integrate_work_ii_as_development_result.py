@@ -20,6 +20,7 @@ from typing import Any
 from chemworld.eval.provenance import file_sha256, write_json_atomic
 from chemworld.eval.work_ii_constitutive_structural_qualification import (
     CANDIDATE_IDS,
+    materialize_d1_resource_design,
     summary_sha256,
     validate_summary,
 )
@@ -183,10 +184,10 @@ def integrate_development_result(
                 )
             if qualification.get("q2_passed") not in {None, True}:
                 raise ValueError(f"A-S source D1 {candidate_id} contradicts its Q2 pass")
-            # The long run may predate the unified downstream field name.  This is a
-            # deterministic interface materialization from the stronger existing gate,
-            # not a change to the qualification outcome or experiment design.
-            qualification["q2_passed"] = True
+            # The frozen qualification may predate the current downstream resource
+            # semantics.  Re-materialize only the outcome-independent 12-round D1
+            # envelope; Q1/Q2 evidence and the participant design are unchanged.
+            config = materialize_d1_resource_design(config, candidate_id)
             write_json_atomic(target, config)
             staged_d1[candidate_id] = target
 
