@@ -17,10 +17,13 @@ electrochemical S0 protocols explicitly declare `static_single_stage`. Use
 `resume_static_optimization_s0.py` for an audited continuation. One-off qualification finalizers do not belong on
 the active script surface.
 
-`run_scientific_adaptation_shakedown.py` is retained only to reproduce historical development diagnostics. It
-requires explicit protocol and method inputs and is not an active experiment roadmap. Current mechanism-adaptation
-work follows the staged v0.3 protocol and must restore the current-source Gate A binding before Participant
-Gates B–E; the completed fixed-world S0 campaigns remain a separate evidence track.
+`run_scientific_adaptation_shakedown.py` is not an active experiment roadmap. It remains temporarily as the
+provider-free fixture producer for focused receipt replay, tamper, method-failure, and missing-only-resume tests;
+new experiments use the staged mechanism runner. Retire the shakedown runner once that runner exposes an equivalent
+mock seam instead of copying the historical implementation into tests. Current mechanism-adaptation development
+stabilizes the method, execution, and statistical contracts with focused functional and scientific checks. Rebuild
+the current-source Gate A chain once, only after the execution surface is stable and release freeze is authorized;
+the completed fixed-world S0 campaigns remain a separate evidence track.
 
 `scripts/evidence_pipeline.py` belongs to current-artifact maintenance and release freeze. Use `--refresh` only after
 the execution-relevant surface is stable and the relevant release/current-artifact update is authorized; use

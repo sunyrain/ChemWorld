@@ -116,7 +116,10 @@ Unsupported:
 
 ## Highest-value next evidence
 
-The next phase should restore Gate A’s current-source binding, freeze the
-Participant method and statistical contract, and execute Gates B–E. That closes
-the missing feedback-correction and online-recovery segment of the narrative
-instead of adding more static score tables.
+The next phase should stabilize the Participant method, execution, and
+statistical contracts with focused development checks. Once that surface is
+stable and release freeze is explicitly authorized, rebuild Gate A's
+current-source binding once and execute Gates B–E without further design
+changes. That closes the missing feedback-correction and online-recovery
+segment of the narrative instead of adding more static score tables or
+rebuilding source certificates after every development edit.
