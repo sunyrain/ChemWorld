@@ -223,6 +223,20 @@ after 与 exact tested commit；formal execution 仍保留所有科学分母、C
 resource-calibration 路径 11/11；Ruff、compileall、离线 wheel 构建与悬空引用扫描通过。另删除一条只读取
 stale launch brief 文案的测试；它不再为已退役报告充当保留门。未生成或刷新任何旧证据。
 
+### CD-21：删除 formal preflight 的第二套源码 SHA 权威 — DONE
+
+formal preflight 原先递归枚举整个 `src/chemworld`、四个 runtime config tree、约三十个脚本/入口、
+`pyproject.toml` 与 `uv.lock`，生成逐文件 `source_bindings`；build/check/final execution 又逐项复核。
+但最终授权已经要求 clean worktree，clean-release receipt 已在独立 clone 中执行固定测试 roster、构建并
+隔离安装 wheel，并把当前 material tree 唯一绑定到 exact tested commit。两套机制证明同一源码身份，
+前者会把任意 development 修改扩散成数百项 stale SHA。
+
+现已删除 preflight 的递归源码枚举、`source_bindings` 输出和 execution-time 第二次逐文件复核。formal
+manifest 仍逐内容绑定 design、analysis、每个 task campaign config、C2 admission receipt/outcome-blind
+selection，并直接重验 Gate A 科学证据；clean release 仍绑定 `configs`、`scripts`、`src/chemworld`、
+依赖锁与构建元数据。`tests` 不再属于 runtime material tree：测试仍必须在独立 checkout 中真实通过，
+但单独增删测试不会使未改变的 runtime implementation stale。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

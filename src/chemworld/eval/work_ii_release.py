@@ -66,7 +66,6 @@ _CLEAN_RELEASE_MATERIAL_PATHS = (
     "pyproject.toml",
     "scripts",
     "src/chemworld",
-    "tests",
     "uv.lock",
 )
 

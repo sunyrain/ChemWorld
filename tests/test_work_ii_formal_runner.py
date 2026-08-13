@@ -418,25 +418,7 @@ def test_formal_preflight_materializes_complete_135_cell_c2_denominators() -> No
         "blind_validation_executions": 810,
     }
     assert len(report["blocking_requirements"]) == 4
-    source_paths = {row["path"] for row in report["source_bindings"]}
-    assert "src/chemworld/eval/work_ii_confirmatory.py" in source_paths
-    assert "src/chemworld/envs/chemworld_env.py" in source_paths
-    assert "src/chemworld/foundation/state_ledgers.py" in source_paths
-    assert "src/chemworld/runtime/primitive_services.py" in source_paths
-    assert "src/chemworld/tasks.py" in source_paths
-    assert "src/chemworld/world/reaction_kernel.py" in source_paths
-    assert "src/chemworld/schemas/action_schema.json" in source_paths
-    assert "configs/current.json" in source_paths
-    assert (
-        "configs/methods/work_ii/"
-        "participant_methods_work_ii_wellau_sol_medium_campaign.json"
-    ) in source_paths
-    assert "configs/benchmark/mechanism_adaptation_v0.3.0_rc29.json" in source_paths
-    assert (
-        "workstreams/flagship_tasks/reports/"
-        "mechanism-adaptation-public-decision-v0.1-rc29.json"
-    ) in source_paths
-    assert "scripts/analyze_work_ii_confirmatory.py" in source_paths
+    assert "source_bindings" not in report
     assert (
         report["law_summary_evaluation_contract"]
         == EXPECTED_LAW_SUMMARY_EVALUATION_CONTRACT

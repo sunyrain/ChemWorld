@@ -306,90 +306,6 @@ FORMAL_BLOCKING_REQUIREMENTS = (
     "formal execution package lacks its final user authorization receipt",
 )
 
-_FORMAL_ENTRYPOINT_PATHS = (
-    "configs/benchmark/work_ii_c2_admission_manifest_v0.1.json",
-    "configs/benchmark/work_ii_resource_calibration_manifest_v0.1.json",
-    "src/chemworld/agents/interactive_codex_experiment.py",
-    "src/chemworld/agents/experiment_codex_ipc.py",
-    "src/chemworld/agents/experiment_codex_mcp.py",
-    "src/chemworld/campaign_resources.py",
-    "src/chemworld/eval/runner.py",
-    "src/chemworld/eval/verify.py",
-    "src/chemworld/eval/work_ii_analysis.py",
-    "src/chemworld/eval/work_ii_blind.py",
-    "src/chemworld/eval/work_ii_confirmatory.py",
-    "src/chemworld/eval/work_ii_cost.py",
-    "src/chemworld/eval/work_ii_formal.py",
-    "src/chemworld/eval/work_ii_law_summary.py",
-    "src/chemworld/eval/work_ii_prior_discovery.py",
-    "src/chemworld/eval/work_ii_process_profile.py",
-    "src/chemworld/eval/work_ii_private.py",
-    "src/chemworld/eval/work_ii_qualification.py",
-    "src/chemworld/eval/work_ii_release.py",
-    "src/chemworld/eval/work_ii_resource_calibration.py",
-    "src/chemworld/eval/work_ii_report.py",
-    "src/chemworld/eval/work_ii_truth.py",
-    "scripts/analyze_work_ii_confirmatory.py",
-    "scripts/analyze_work_ii_formal.py",
-    "scripts/authorize_work_ii_method_qualification.py",
-    "scripts/build_work_ii_private_confirmation_preflight.py",
-    "scripts/build_work_ii_method_qualification_receipt.py",
-    "scripts/build_work_ii_preregistration_freeze_receipt.py",
-    "scripts/audit_work_ii_clean_release.py",
-    "scripts/run_work_ii_campaign_pilot.py",
-    "scripts/run_work_ii_formal_matrix.py",
-    "scripts/run_work_ii_method_qualification_triplet.py",
-    "scripts/run_work_ii_method_qualification.py",
-    "scripts/run_work_ii_resource_calibration.py",
-    "pyproject.toml",
-    "uv.lock",
-)
-
-_FORMAL_IMPLEMENTATION_SUFFIXES = frozenset({".json", ".py", ".yaml", ".yml"})
-_FORMAL_RUNTIME_CONFIG_DIRECTORIES = (
-    "configs/foundation",
-    "configs/mechanisms",
-    "configs/methods/work_ii",
-    "configs/scenarios",
-)
-
-
-def _formal_source_paths(root: Path, design: Mapping[str, Any]) -> tuple[str, ...]:
-    """Return the complete implementation surface that can affect a formal run.
-
-    The formal runner imports the ChemWorld package transitively, so maintaining a
-    hand-written list of selected modules is unsafe: a change in an environment,
-    world kernel, runtime service, task registry, schema, or physical model could
-    otherwise leave an old preflight looking current.  Bind the package and its
-    runtime configuration trees as one immutable implementation surface, together
-    with the explicit release/runner entry points.
-    """
-
-    paths = set(_FORMAL_ENTRYPOINT_PATHS)
-    package_root = root / "src/chemworld"
-    for path in package_root.rglob("*"):
-        if (
-            path.is_file()
-            and "__pycache__" not in path.parts
-            and path.suffix.lower() in _FORMAL_IMPLEMENTATION_SUFFIXES
-        ):
-            paths.add(_relative(root, path))
-    for relative_directory in _FORMAL_RUNTIME_CONFIG_DIRECTORIES:
-        directory = root / relative_directory
-        for path in directory.rglob("*"):
-            if path.is_file() and path.suffix.lower() in _FORMAL_IMPLEMENTATION_SUFFIXES:
-                paths.add(_relative(root, path))
-
-    paths.add("configs/current.json")
-    environment = design.get("environment_binding")
-    environment = environment if isinstance(environment, Mapping) else {}
-    for field in ("protocol", "gate_a_plan", "public_decision"):
-        value = environment.get(field)
-        if isinstance(value, str) and value:
-            paths.add(value)
-    return tuple(sorted(paths))
-
-
 def _validate_environment_binding(root: Path, design: Mapping[str, Any]) -> list[str]:
     """Require the formal design to resolve the exact current Gate A evidence."""
 
@@ -1634,9 +1550,6 @@ def build_formal_preflight(
     c2_blockers = list(c2_admission.get("blocking_requirements", []))
     prerequisite_errors.extend(f"C2 admission: {item}" for item in c2_blockers)
 
-    source_bindings = [
-        _binding(root, path) for path in _formal_source_paths(root, design)
-    ]
     blockers = list(FORMAL_BLOCKING_REQUIREMENTS)
     if (
         design.get("formal_execution_allowed") is True
@@ -1758,7 +1671,6 @@ def build_formal_preflight(
             "blind_validation_executions": len(cells) * 2 * 3,
         },
         "task_bindings": task_bindings,
-        "source_bindings": source_bindings,
         "c2_admission": c2_admission,
         "cells": cells,
         "blocking_requirements": [*blockers, *c2_blockers],
@@ -2329,21 +2241,20 @@ def validate_formal_bindings(root: Path, report: Mapping[str, Any]) -> list[str]
             bindings.append(candidate)
         else:
             errors.append(f"formal preflight lacks {name}")
-    for name in ("task_bindings", "source_bindings"):
-        rows = report.get(name)
-        if not isinstance(rows, list):
-            errors.append(f"formal preflight lacks {name}")
-            continue
+    rows = report.get("task_bindings")
+    if not isinstance(rows, list):
+        errors.append("formal preflight lacks task_bindings")
+    else:
         for row in rows:
             if not isinstance(row, Mapping):
-                errors.append(f"formal preflight {name} contains a malformed row")
+                errors.append("formal preflight task_bindings contains a malformed row")
                 continue
-            candidate = row.get("campaign_config") if name == "task_bindings" else row
+            candidate = row.get("campaign_config")
             if isinstance(candidate, Mapping):
                 bindings.append(candidate)
             else:
-                errors.append(f"formal preflight {name} contains a malformed binding")
-            if name == "task_bindings" and row.get("c2_locus") in C2_LOCI:
+                errors.append("formal preflight task_bindings contains a malformed binding")
+            if row.get("c2_locus") in C2_LOCI:
                 for field, embedded_field, hash_function in (
                     (
                         "task_admission_receipt",
