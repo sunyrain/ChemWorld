@@ -130,6 +130,110 @@ def test_mcp_tool_failure_audit_keeps_feedback_separated_failures_as_distinct_ep
     assert episodes["maximum_consecutive_counts_by_category"]["agent_invalid"] == 3
 
 
+def test_mcp_tool_failure_audit_classifies_rejected_begin_batch_cascade() -> None:
+    def failed(
+        started_at: str,
+        *,
+        argument_keys: list[str],
+        detail: str,
+        detail_hash: str,
+    ) -> dict[str, Any]:
+        return {
+            "status": "failed",
+            "tool": "commit_belief_snapshot",
+            "started_at": started_at,
+            "error_type": "ValueError",
+            "error_code": "invalid_belief_snapshot",
+            "error_detail": detail,
+            "error_detail_sha256": detail_hash,
+            "argument_keys": argument_keys,
+        }
+
+    calls = [
+        failed(
+            "2026-08-13T10:02:58.026756+00:00",
+            argument_keys=["action", "snapshot_header"],
+            detail="prior assessment availability does not match the public dossier",
+            detail_hash="availability-1",
+        ),
+        failed(
+            "2026-08-13T10:03:11.968812+00:00",
+            argument_keys=["action", "snapshot_header"],
+            detail="prior assessment availability does not match the public dossier",
+            detail_hash="availability-2",
+        ),
+        {"status": "completed", "tool": "step"},
+        failed(
+            "2026-08-13T10:09:15.793923+00:00",
+            argument_keys=["action", "snapshot_header"],
+            detail="belief_snapshot stage does not match the requested snapshot",
+            detail_hash="wrong-stage",
+        ),
+    ]
+    calls.extend(
+        failed(
+            f"2026-08-13T10:09:15.{millisecond:06d}+00:00",
+            argument_keys=(
+                ["action"]
+                if offset == 7
+                else ["action", "page_id", "predictions"]
+            ),
+            detail="begin must be accepted before belief snapshot pages",
+            detail_hash="begin-not-accepted",
+        )
+        for offset, millisecond in enumerate(
+            (798880, 801952, 804992, 807202, 810219, 813293, 815308, 818166)
+        )
+    )
+
+    audit = _mcp_tool_failure_audit(calls)
+    episodes = audit["recovery_episode_taxonomy"]
+
+    assert audit["recovered_mcp_tool_failure_count"] == 11
+    assert audit["counts_by_category"]["agent_invalid"] == 11
+    assert audit["maximum_consecutive_counts_by_category"]["agent_invalid"] == 9
+    assert episodes["counts_by_category"]["agent_invalid"] == 3
+    assert episodes["maximum_consecutive_counts_by_category"]["agent_invalid"] == 2
+    assert episodes["dependent_batch_cascade_failure_count"] == 8
+    assert episodes["dependent_batch_cascade_group_count"] == 1
+    assert episodes["maximum_dependent_batch_cascade_size"] == 8
+    assert episodes["dependent_batch_cascades"] == [
+        {
+            "classification": "dependent_batch_cascade",
+            "upstream_call_index": 3,
+            "dependent_call_indices": list(range(4, 12)),
+        }
+    ]
+
+
+def test_mcp_tool_failure_audit_does_not_collapse_dependency_after_success() -> None:
+    begin = {
+        "status": "failed",
+        "tool": "commit_belief_snapshot",
+        "started_at": "2026-08-13T10:09:15.793923+00:00",
+        "error_type": "ValueError",
+        "error_code": "invalid_belief_snapshot",
+        "error_detail": "belief_snapshot stage does not match the requested snapshot",
+        "argument_keys": ["action", "snapshot_header"],
+    }
+    dependent = {
+        "status": "failed",
+        "tool": "commit_belief_snapshot",
+        "started_at": "2026-08-13T10:09:15.798880+00:00",
+        "error_type": "ValueError",
+        "error_code": "invalid_belief_snapshot",
+        "error_detail": "begin must be accepted before belief snapshot pages",
+        "argument_keys": ["action", "page_id", "predictions"],
+    }
+
+    episodes = _mcp_tool_failure_audit(
+        [begin, {"status": "completed", "tool": "status"}, dependent]
+    )["recovery_episode_taxonomy"]
+
+    assert episodes["counts_by_category"]["agent_invalid"] == 2
+    assert episodes["dependent_batch_cascade_failure_count"] == 0
+
+
 def test_typed_mcp_budget_requires_a_complete_consistent_taxonomy() -> None:
     taxonomy = _mcp_tool_failure_audit(
         [
