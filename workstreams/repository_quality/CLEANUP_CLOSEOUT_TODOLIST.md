@@ -384,6 +384,21 @@ surface hash、config envelope 与 provider authorization。同一调用栈的�
 release manifest/config、qualification evidence、zero-provider readiness、credential、三臂 schedule 与 pre-output
 ordering 均未削弱。缺 readiness、缺 manifest 与 development context 的聚焦入口测试 3/3、Ruff 通过。
 
+### CD-32：删除局部离线 evaluator 的全仓 clean-tree gate — DONE
+
+`evaluate_work_ii_catalyst_deactivation_paired_provider_campaigns.py` 对两份已完成 participant campaign 做固定
+配方的 counterfactual replay；它已经逐文件绑定两份 task config、participant summary、trajectory 与 action plan，
+拒绝覆盖输出，并在结果中记录运行时 `source_commit`。旧入口仍额外要求整个仓库 clean，导致无关测试、文档或
+其他 workstream 的改动都能阻止这一局部 development evaluator，却不能提高配方配对、物理重放或结果身份的
+可信度。
+
+现已删除 evaluator-local `git_worktree_dirty` blocker；保留 config/file/action-plan/trajectory/self hashes、精确
+配对检查、不可覆盖输出、失败明细与 source commit 历史记录。该脚本没有 current registry 或活跃 provider
+runner 消费者，仅由 campaign-runner 行为测试导入其纯分析函数；因此本批不改 A-E 或 W2-26 活跃导入面，也不
+刷新任何历史结果。聚焦 paired-analysis owning test 1/1、Ruff 与 skill validator 通过；同文件全测 42/43，唯一
+失败是既有 qualification CLI 已先要求 manifest、旧测试仍期待 authorization 错误优先级，已作为独立测试债保留，
+没有通过调换生产入口的 fail-closed 顺序来迎合旧断言。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

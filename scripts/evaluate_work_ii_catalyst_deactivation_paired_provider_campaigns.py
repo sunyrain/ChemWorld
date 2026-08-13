@@ -17,7 +17,6 @@ from chemworld.eval.provenance import (
     canonical_json_sha256,
     file_sha256,
     git_source_commit,
-    git_worktree_dirty,
     write_json_atomic,
 )
 from chemworld.eval.runner import run_agent
@@ -522,8 +521,6 @@ def _agent_system_contrast(campaigns: Mapping[str, Mapping[str, Any]]) -> dict[s
 
 
 def run(args: argparse.Namespace) -> dict[str, Any]:
-    if git_worktree_dirty(ROOT):
-        raise RuntimeError("paired evaluation requires a clean committed worktree")
     if args.output_root.exists() or args.summary.exists():
         raise FileExistsError("refusing to overwrite paired provider outputs")
     config_paths = {
