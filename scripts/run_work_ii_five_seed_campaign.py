@@ -154,6 +154,14 @@ def _preoperation_infrastructure_failure(
     failure_message = str(failure.get("message") or "")
     receipts = row.get("provider_receipts")
     receipts = receipts if isinstance(receipts, list) else []
+    method_resources = row.get("method_resources")
+    method_resources = method_resources if isinstance(method_resources, dict) else {}
+    token_fields = (
+        "input_token_count",
+        "uncached_input_token_count",
+        "cached_input_token_count",
+        "output_token_count",
+    )
     if any(
         not isinstance(receipt, dict)
         or receipt.get("mcp_tool_integrity_verified_after_session") is not True
@@ -162,6 +170,26 @@ def _preoperation_infrastructure_failure(
         or receipt.get("belief_snapshot_count", 0) != 0
         or receipt.get("final_recommendation") is not None
         for receipt in receipts
+    ):
+        return None
+    if (
+        method_resources.get("provider_usage_observed") is True
+        or any(method_resources.get(field, 0) != 0 for field in token_fields)
+        or any(
+            receipt.get("usage_observed") is True
+            or not isinstance(receipt.get("usage", {}), dict)
+            or any(receipt.get("usage", {}).get(field, 0) != 0 for field in (
+                "prompt_tokens",
+                "prompt_cache_hit_tokens",
+                "prompt_cache_miss_tokens",
+                "prompt_cache_write_tokens",
+                "completion_tokens",
+                "reasoning_output_tokens",
+                "total_tokens",
+            ))
+            for receipt in receipts
+            if isinstance(receipt, dict)
+        )
     ):
         return None
     if any(

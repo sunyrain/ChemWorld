@@ -56,6 +56,13 @@ def _preoperation_row(
             "belief_snapshots": [],
             "final_recommendation": None,
         },
+        "method_resources": {
+            "provider_usage_observed": False,
+            "input_token_count": 0,
+            "uncached_input_token_count": 0,
+            "cached_input_token_count": 0,
+            "output_token_count": 0,
+        },
         "provider_receipts": [
             {
                 "status": "interrupted_before_next_action",
@@ -66,6 +73,15 @@ def _preoperation_row(
                 "lab_tool_integrity_verified_after_session": True,
                 "belief_snapshot_count": 0,
                 "final_recommendation": None,
+                "usage": {
+                    "prompt_tokens": 0,
+                    "prompt_cache_hit_tokens": 0,
+                    "prompt_cache_miss_tokens": 0,
+                    "prompt_cache_write_tokens": 0,
+                    "completion_tokens": 0,
+                    "reasoning_output_tokens": 0,
+                    "total_tokens": 0,
+                },
             }
         ],
     }
@@ -90,6 +106,12 @@ def test_preoperation_infrastructure_classification_is_fail_closed() -> None:
     tampered = _preoperation_row()
     tampered["provider_receipts"][0]["mcp_tool_integrity_verified_after_session"] = False
     assert _preoperation_infrastructure_failure(tampered, records=[]) is None
+    accounted_usage = _preoperation_row(failure_type="OSError")
+    accounted_usage["method_resources"]["input_token_count"] = 1
+    assert _preoperation_infrastructure_failure(accounted_usage, records=[]) is None
+    receipt_usage = _preoperation_row(failure_type="OSError")
+    receipt_usage["provider_receipts"][0]["usage"]["total_tokens"] = 1
+    assert _preoperation_infrastructure_failure(receipt_usage, records=[]) is None
 
 
 def test_automatic_infrastructure_resume_runs_only_the_missing_pass(monkeypatch) -> None:
