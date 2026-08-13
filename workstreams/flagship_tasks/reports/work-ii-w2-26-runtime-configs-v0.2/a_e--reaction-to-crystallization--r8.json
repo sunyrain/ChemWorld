@@ -1,0 +1,259 @@
+{
+  "analysis": {
+    "final_metric_ids": [
+      "crystal_yield",
+      "crystal_purity",
+      "crystal_size",
+      "crystal_csd_quality",
+      "crystal_fines_fraction",
+      "score"
+    ]
+  },
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s",
+      "crystallization_temperature_K",
+      "crystallization_duration_s",
+      "seed_mass_g"
+    ],
+    "allowed_metric_ids": [
+      "crystal_yield",
+      "crystal_purity",
+      "crystal_csd_quality"
+    ],
+    "allowed_prior_fields": [
+      "catalyst",
+      "solvent"
+    ],
+    "held_out_queries": [
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "crystallization_duration_s": 3600.0,
+          "crystallization_temperature_K": 285.0,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "seed_mass_g": 0.005,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ],
+        "query_id": "q-c0-s0"
+      },
+      {
+        "feature_values": {
+          "catalyst": 3,
+          "crystallization_duration_s": 3600.0,
+          "crystallization_temperature_K": 285.0,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "seed_mass_g": 0.005,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ],
+        "query_id": "q-c3-s0"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "crystallization_duration_s": 3600.0,
+          "crystallization_temperature_K": 285.0,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "seed_mass_g": 0.005,
+          "solvent": 3
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ],
+        "query_id": "q-c0-s3"
+      },
+      {
+        "feature_values": {
+          "catalyst": 3,
+          "crystallization_duration_s": 3600.0,
+          "crystallization_temperature_K": 285.0,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 340.0,
+          "reagent_amount_mol": 0.01,
+          "seed_mass_g": 0.005,
+          "solvent": 3
+        },
+        "metric_ids": [
+          "crystal_yield",
+          "crystal_purity",
+          "crystal_csd_quality"
+        ],
+        "query_id": "q-c3-s3"
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-crystallization-k8-six-unique-two-repeat-planning",
+    "checkpoint_complete_experiments": [
+      0,
+      2,
+      4,
+      6,
+      8
+    ],
+    "closeout_policy": {
+      "allowed_operation_classes": [
+        "discard_batch",
+        "final_assay",
+        "quench",
+        "terminate",
+        "transfer"
+      ],
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "discard_path_operations_per_batch": 1,
+      "discard_path_total_operation_reserve": 8,
+      "final_assay_path_operations_per_batch": 2,
+      "final_assay_path_total_operation_reserve": 16,
+      "planned_batches": 8,
+      "policy": "protected_closeout_reserve_enforced",
+      "resource_status": "w2_26_runtime_envelope"
+    },
+    "complete_experiments": 8,
+    "final_assay_limit": 8,
+    "implicit_operation_time_s": {
+      "filter_crystals": 480.0,
+      "quench": 120.0
+    },
+    "nonfinal_instrument_use_limit": 16,
+    "operation_attempt_limit": 112,
+    "operation_repeat_limits": {
+      "cool_crystallize": 8,
+      "filter_crystals": 8,
+      "heat": 8,
+      "quench": 8,
+      "seed_crystals": 8
+    },
+    "process_time_limit_s": 273216.0,
+    "process_time_policy": {
+      "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each",
+      "implicit_operation_time_s": {
+        "filter_crystals": 480.0,
+        "quench": 120.0
+      },
+      "implicit_stage_reserve_s": 2880.0,
+      "pattern_id": "crystallization-k8-six-unique-two-repeat-planning",
+      "protected_reserve_fraction": 0.15,
+      "protected_reserve_s": 35136.0,
+      "quench_transfer_allowance_s": 960.0,
+      "repeat_allowance_s": 58560.0,
+      "required_stage_max_s": 175680.0,
+      "resource_status": "w2_26_runtime_envelope",
+      "timed_stage_max_s": 172800.0
+    },
+    "stock_limits": {
+      "catalyst_mol": 0.0184,
+      "reagent_mol": 0.184,
+      "seed_g": 0.46,
+      "solvent_L": 0.368
+    },
+    "vessel_start_limit": 8
+  },
+  "crystallization_material_family_id": "reaction-crystallization-latent-materials-v1",
+  "episode_mode": "campaign",
+  "execution": {
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed",
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1
+  },
+  "formal_result": false,
+  "method_resources": {
+    "checkpoint_complete_experiments": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "complete_experiment_limit": 8,
+    "input_token_limit": 4800000,
+    "model_call_limit": 1,
+    "operation_limit": 112,
+    "output_token_limit": 48000,
+    "training_environment_step_limit": 0,
+    "uncached_input_token_limit": 640000,
+    "wall_time_limit_s": 7200.0
+  },
+  "objective": "balanced",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-reaction-crystallization-prior-campaign",
+  "pilot_id": "work-ii-reaction-crystallization-prior-campaign",
+  "prior_arms": {
+    "aligned_nominal": {
+      "mode": "anonymous_nominal_properties"
+    },
+    "misindexed_nominal": {
+      "descriptor_permutation": [
+        0,
+        3,
+        2,
+        1
+      ],
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "solvent"
+    },
+    "opaque": {
+      "mode": "opaque_codes"
+    }
+  },
+  "provider": {
+    "base_url": "https://api.wellau.com/v1",
+    "env_key": "WELLAU_API_KEY",
+    "finalization_timeout_s": 600.0,
+    "id": "wellau",
+    "model": "gpt-5.6-sol",
+    "name": "WellAU",
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "wire_api": "responses"
+  },
+  "qualification": {
+    "execution_authorized": false,
+    "formal_r5_authorized": false,
+    "maximum_exact_repeats": 2,
+    "minimum_unique_recipes": 6,
+    "required_operation_counts": {},
+    "resource_calibration_status": "w2_26_runtime_envelope"
+  },
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.2",
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_6",
+    "final"
+  ],
+  "task_id": "reaction-to-crystallization",
+  "w2_26_runtime_identity": {
+    "agent_invalid_enforcement": "measure_only",
+    "locus": "A_E",
+    "protected_closeout_reserve_fraction": 0.15,
+    "provider_error_enforcement": "measure_only",
+    "rounds": 8,
+    "task_id": "reaction-to-crystallization"
+  },
+  "world_seed": 0,
+  "world_split": "public-test"
+}
