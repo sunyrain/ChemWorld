@@ -1,10 +1,9 @@
-"""Fail-closed finalization of the ChemWorld arXiv release.
+"""Fail-closed attachment of the durable raw-data archive to the arXiv release.
 
-The scientific artifacts can be built while public author metadata and a durable
-raw-data archive are still pending.  This command is the only supported path for
-crossing those two external release gates.  ``--check`` is read-only; ``--apply``
-validates all metadata before changing any tracked source, rebuilds both paper
-packages, and marks the release ready only after output integrity verification passes.
+Public author metadata already lives in the canonical manuscript. This command
+accepts only the remaining external archive identity. ``--check`` is read-only;
+``--apply`` validates the archive before changing tracked sources, rebuilds the
+current arXiv package, and marks the release ready only after integrity verification.
 """
 
 from __future__ import annotations
@@ -12,7 +11,6 @@ from __future__ import annotations
 import argparse
 import copy
 import hashlib
-import importlib.util
 import json
 import os
 import re
@@ -32,26 +30,20 @@ MANUSCRIPT = ROOT / "paper" / "experimental_intelligence_v1_manuscript.md"
 RELEASE_README = ROOT / "benchmark" / "releases" / "chemworld-serious-v1" / "README.md"
 RELEASE_MANIFEST = ROOT / "benchmark" / "releases" / "chemworld-serious-v1" / "manifest.json"
 ARXIV_BUILDER = ROOT / "paper" / "tools" / "build_arxiv_release.py"
-PROOF_BUILDER = ROOT / "paper" / "tools" / "render_publication_v1_pdf.py"
 ARXIV_BUILD = ROOT / "paper" / "arxiv" / "build"
 ARXIV_EXPORT = ROOT / "paper" / "exports" / "experimental-intelligence-v1-arxiv"
-PROOF_EXPORT = ROOT / "paper" / "exports" / "experimental-intelligence-v1"
 GENERATED_ROLLBACK_TARGETS = (
     ROOT / "paper" / "arxiv" / "main.tex",
     ROOT / "paper" / "arxiv" / "references.bib",
     ARXIV_BUILD,
     ARXIV_EXPORT,
-    PROOF_EXPORT,
 )
 
-SCHEMA = "chemworld-arxiv-release-metadata-0.1"
+SCHEMA = "chemworld-arxiv-archive-metadata-0.2"
 EXPECTED_RAW_INDEX_SHA256 = "f49884b6e2d2b87a707dce9f93f96041dd7b3636b8e97ea4de93f0b3b429d961"
 EXPECTED_RAW_BYTE_COUNT = 17_725_724_603
 EXPECTED_RAW_FILE_COUNT = 1_441
 
-_ORCID = re.compile(r"^\d{4}-\d{4}-\d{4}-[\dX]{4}$")
-_EMAIL = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
-_AFFILIATION_ID = re.compile(r"^[A-Za-z0-9._-]+$")
 _PLACEHOLDER = re.compile(
     r"(?:replace[_ -]?me|placeholder|\btodo\b|\btbd\b|\bexample\b|"
     r"\bfull name\b|\brepository name\b|department,\s*institution|chemworld authors)",
@@ -89,24 +81,12 @@ def _nonplaceholder(value: Any) -> bool:
     )
 
 
-def _orcid_checksum_valid(value: str) -> bool:
-    if _ORCID.fullmatch(value) is None:
-        return False
-    digits = value.replace("-", "")
-    total = 0
-    for character in digits[:15]:
-        total = (total + int(character)) * 2
-    result = (12 - total % 11) % 11
-    check = "X" if result == 10 else str(result)
-    return digits[-1] == check
-
-
 def validate_release_metadata(metadata: Any) -> list[str]:
     """Return deterministic blockers; an empty list means the release inputs are ready."""
     blockers: list[str] = []
     if not isinstance(metadata, Mapping):
         return ["metadata must be a JSON object"]
-    expected_keys = {"schema_version", "status", "authors", "affiliations", "archive"}
+    expected_keys = {"schema_version", "status", "archive"}
     unknown = sorted(set(metadata) - expected_keys)
     missing = sorted(expected_keys - set(metadata))
     if unknown:
@@ -117,74 +97,6 @@ def validate_release_metadata(metadata: Any) -> list[str]:
         blockers.append(f"schema_version must equal {SCHEMA}")
     if metadata.get("status") != "ready":
         blockers.append("status must equal ready")
-
-    affiliations = metadata.get("affiliations")
-    affiliation_ids: set[str] = set()
-    if not isinstance(affiliations, list) or not affiliations:
-        blockers.append("at least one affiliation is required")
-        affiliations = []
-    for index, affiliation in enumerate(affiliations):
-        prefix = f"affiliations[{index}]"
-        if not isinstance(affiliation, Mapping):
-            blockers.append(f"{prefix} must be an object")
-            continue
-        unknown_fields = sorted(set(affiliation) - {"id", "name"})
-        if unknown_fields:
-            blockers.append(f"{prefix} has unknown fields: {', '.join(unknown_fields)}")
-        affiliation_id = affiliation.get("id")
-        if not isinstance(affiliation_id, str) or _AFFILIATION_ID.fullmatch(affiliation_id) is None:
-            blockers.append(f"{prefix}.id must be a non-empty alphanumeric identifier")
-        elif affiliation_id in affiliation_ids:
-            blockers.append(f"duplicate affiliation id: {affiliation_id}")
-        else:
-            affiliation_ids.add(affiliation_id)
-        if not _nonplaceholder(affiliation.get("name")):
-            blockers.append(f"{prefix}.name must be public and non-placeholder")
-
-    authors = metadata.get("authors")
-    corresponding_count = 0
-    if not isinstance(authors, list) or not authors:
-        blockers.append("at least one author is required")
-        authors = []
-    for index, author in enumerate(authors):
-        prefix = f"authors[{index}]"
-        if not isinstance(author, Mapping):
-            blockers.append(f"{prefix} must be an object")
-            continue
-        allowed = {"name", "affiliation_ids", "corresponding", "email", "orcid"}
-        unknown_fields = sorted(set(author) - allowed)
-        if unknown_fields:
-            blockers.append(f"{prefix} has unknown fields: {', '.join(unknown_fields)}")
-        if not _nonplaceholder(author.get("name")):
-            blockers.append(f"{prefix}.name must be public and non-placeholder")
-        ids = author.get("affiliation_ids")
-        if not isinstance(ids, list) or not ids:
-            blockers.append(f"{prefix}.affiliation_ids must contain at least one id")
-        else:
-            for affiliation_id in ids:
-                if not isinstance(affiliation_id, str) or affiliation_id not in affiliation_ids:
-                    blockers.append(
-                        f"{prefix}.affiliation_ids references unknown id: {affiliation_id!r}"
-                    )
-        corresponding = author.get("corresponding")
-        if corresponding is True:
-            corresponding_count += 1
-            email = author.get("email")
-            if (
-                not _nonplaceholder(email)
-                or not isinstance(email, str)
-                or _EMAIL.fullmatch(email) is None
-            ):
-                blockers.append(f"{prefix}.email must be a public corresponding-author email")
-        elif corresponding is not False:
-            blockers.append(f"{prefix}.corresponding must be true or false")
-        orcid = author.get("orcid")
-        if orcid not in (None, "") and (
-            not isinstance(orcid, str) or not _orcid_checksum_valid(orcid)
-        ):
-            blockers.append(f"{prefix}.orcid has invalid syntax or checksum")
-    if corresponding_count != 1:
-        blockers.append("exactly one corresponding author is required")
 
     archive = metadata.get("archive")
     if not isinstance(archive, Mapping):
@@ -217,86 +129,14 @@ def validate_release_metadata(metadata: Any) -> list[str]:
     return blockers
 
 
-def _latex_escape(value: str) -> str:
-    replacements = {
-        "\\": r"\textbackslash{}",
-        "&": r"\&",
-        "%": r"\%",
-        "$": r"\$",
-        "#": r"\#",
-        "_": r"\_",
-        "{": r"\{",
-        "}": r"\}",
-        "~": r"\textasciitilde{}",
-        "^": r"\textasciicircum{}",
-    }
-    return "".join(replacements.get(character, character) for character in value)
-
-
-def _yaml_quote(value: str) -> str:
-    return "'" + value.replace("'", "''") + "'"
-
-
 def _markdown_escape(value: str) -> str:
     for character in ("\\", "[", "]", "*", "_"):
         value = value.replace(character, "\\" + character)
     return value
 
 
-def render_author_frontmatter(metadata: Mapping[str, Any]) -> tuple[str, str, list[str]]:
-    """Return PDF metadata and structured author/affiliation YAML for Pandoc."""
-    authors = metadata["authors"]
-    affiliations = metadata["affiliations"]
-    names = [str(author["name"]).strip() for author in authors]
-    lines = ["author:"]
-    for author in authors:
-        markers = [str(value) for value in author["affiliation_ids"]]
-        if author["corresponding"]:
-            markers.append("*")
-        lines.extend(
-            (
-                f"  - name: {_yaml_quote(str(author['name']).strip())}",
-                f"    affiliation_markers: {_yaml_quote(','.join(markers))}",
-            )
-        )
-    lines.append("affiliation:")
-    for affiliation in affiliations:
-        lines.extend(
-            (
-                f"  - id: {_yaml_quote(str(affiliation['id']))}",
-                f"    name: {_yaml_quote(str(affiliation['name']).strip())}",
-            )
-        )
-    corresponding = next(author for author in authors if author["corresponding"])
-    lines.append(f"correspondence: {_yaml_quote(str(corresponding['email']).strip())}")
-    return "; ".join(names), "\n".join(lines), names
-
-
-def inject_manuscript_metadata(text: str, metadata: Mapping[str, Any]) -> str:
-    pdf_author, people_frontmatter, _names = render_author_frontmatter(metadata)
+def inject_archive_metadata(text: str, metadata: Mapping[str, Any]) -> str:
     updated = text
-    pdf_line = f"pdf_author: {_yaml_quote(pdf_author)}"
-    updated, count = re.subn(
-        r"(?m)^pdf_author:\s*.*$",
-        lambda _match: pdf_line,
-        updated,
-        count=1,
-    )
-    if count != 1:
-        raise ValueError("manuscript front matter is missing pdf_author")
-    people_pattern = re.compile(
-        r"^(?:author_block:[^\n]*\n)?author:\n.*?^date:[^\n]*$",
-        flags=re.MULTILINE | re.DOTALL,
-    )
-    people_replacement = people_frontmatter + '\ndate: ""'
-    updated, count = people_pattern.subn(
-        lambda _match: people_replacement,
-        updated,
-        count=1,
-    )
-    if count != 1:
-        raise ValueError("manuscript front matter is missing the structured author region")
-
     archive = metadata["archive"]
     provider = _markdown_escape(str(archive["provider"]))
     identifier = _markdown_escape(str(archive["identifier"]))
@@ -431,8 +271,8 @@ def render_release_readme(text: str, metadata: Mapping[str, Any]) -> str:
         f"publicly archived by {provider} under "
         f"[{identifier}]({archive['url']}). The archive is bound to the frozen "
         f"{EXPECTED_RAW_FILE_COUNT:,}-file index (`{EXPECTED_RAW_INDEX_SHA256}`). Public author, "
-        "affiliation and correspondence metadata have been injected into the manuscript, and "
-        "the release manifest is marked ready only after the standard PDF/source rebuild and "
+        "affiliation and correspondence metadata remain owned by the canonical manuscript. "
+        "The release manifest is marked ready only after the current PDF/source rebuild and "
         "release-artifact integrity verification succeeds.\n"
     )
     updated, count = re.subn(
@@ -462,9 +302,7 @@ def finalized_manifest(manifest: Mapping[str, Any], metadata: Mapping[str, Any])
         "release_metadata_sha256": _canonical_sha(metadata),
     }
     updated["gates"]["raw_data_archive"] = "passed_durable_archive_identifier"
-    updated["gates"]["author_metadata"] = (
-        "passed_public_author_affiliation_and_correspondence_block"
-    )
+    updated["gates"]["author_metadata"] = "passed_canonical_manuscript_author_metadata"
     return updated
 
 
@@ -516,11 +354,6 @@ def _optional_release_tool(name: str, fallback: Path | None = None) -> str | Non
 
 def apply_preflight_blockers() -> list[str]:
     blockers: list[str] = []
-    if importlib.util.find_spec("markdown") is None:
-        blockers.append(
-            "Python package 'markdown' is unavailable; run with "
-            "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
-        )
     windows_pandoc = Path.home() / "AppData/Local/Pandoc/pandoc.exe"
     windows_tex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
     if _optional_release_tool("pandoc", windows_pandoc) is None:
@@ -801,25 +634,15 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         "member_hashes_match": True,
     }
 
-    proof = _verified_self_hashed_manifest(PROOF_EXPORT / "publication-proof-manifest.json")
-    if proof.get("status") != "publication_ready" or proof.get("publication_ready") is not True:
-        raise RuntimeError("publication proof did not enter publication_ready state")
-    proof_output_count = _verify_file_rows(proof.get("outputs"), label="publication proof manifest")
-    _verify_file_rows(proof.get("sources"), label="publication proof sources")
-
     manuscript = MANUSCRIPT.read_text(encoding="utf-8")
     bundled_manuscript = (ARXIV_EXPORT / "source" / "manuscript.md").read_text(encoding="utf-8")
     generated_tex = (ROOT / "paper" / "arxiv" / "main.tex").read_text(encoding="utf-8")
-    for author in metadata["authors"]:
-        name = str(author["name"])
-        if name not in manuscript or name not in bundled_manuscript:
-            raise RuntimeError(f"author is absent from canonical or bundled manuscript: {name}")
-        if _latex_escape(name) not in generated_tex:
-            raise RuntimeError(f"author is absent from generated TeX: {name}")
     if metadata["archive"]["url"] not in manuscript or metadata["archive"]["url"] not in (
-        PROOF_EXPORT / "experimental-intelligence-v1-publication-proof.html"
-    ).read_text(encoding="utf-8"):
-        raise RuntimeError("archive URL is absent from a final publication artifact")
+        bundled_manuscript
+    ):
+        raise RuntimeError("archive URL is absent from the canonical or bundled manuscript")
+    if "pdf_author:" not in manuscript or "correspondence:" not in manuscript:
+        raise RuntimeError("canonical manuscript author metadata is incomplete")
     if "ChemWorld Authors" in generated_tex:
         raise RuntimeError("generated TeX still contains the author placeholder")
     if r"\textbackslash{[}" in generated_tex or r"\[0.35em]" not in generated_tex:
@@ -829,7 +652,6 @@ def verify_finalized_outputs(metadata: Mapping[str, Any]) -> dict[str, Any]:
         "arxiv_bound_file_count": build_file_count,
         "source_archive_member_count": len(zip_members),
         "isolated_source_build": isolated_source,
-        "publication_proof_output_count": proof_output_count,
     }
 
 
@@ -850,7 +672,7 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
     }
     generated_snapshot = _snapshot_generated_files()
     manifest = json.loads(originals[RELEASE_MANIFEST])
-    manuscript = inject_manuscript_metadata(originals[MANUSCRIPT], metadata)
+    manuscript = inject_archive_metadata(originals[MANUSCRIPT], metadata)
     readme = render_release_readme(originals[RELEASE_README], metadata)
     ready_manifest = finalized_manifest(manifest, metadata)
 
@@ -859,7 +681,6 @@ def apply_release_metadata(metadata: Mapping[str, Any]) -> dict[str, Any]:
         _atomic_write_text(RELEASE_README, readme)
         _run([sys.executable, str(ARXIV_BUILDER)])
         _atomic_write_json(RELEASE_MANIFEST, ready_manifest)
-        _run([sys.executable, str(PROOF_BUILDER)])
         verification = verify_finalized_outputs(metadata)
     except BaseException:
         for path, value in originals.items():

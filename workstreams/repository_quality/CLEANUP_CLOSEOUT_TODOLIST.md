@@ -612,6 +612,18 @@ publication audit、latent failed-gate 显示及全部底层 evidence。冻结�
 仍由独立 release-artifact 测试校验；当前第一篇三图的 manifest、几何、可编辑性、PDF/source bundle 与读者边界由
 当前发布测试覆盖。没有刷新 story SHA、重绘旧图、删除不利结果或改变任何科学分母。
 
+### CD-49：将第一篇 finalizer 收窄到唯一未闭合的 raw archive gate — DONE
+
+旧 finalizer 同时要求调用方再次提交 authors/affiliations、重写规范稿 author frontmatter、构建已废弃的六图
+publication proof/concept atlas，并把这些输出作为 `publication_ready` 的必要条件。当前作者、单位和通讯信息已在
+规范稿、TeX 与第一篇 TODO 中闭合；当前唯一论文构建入口是三图 `build_arxiv_release.py`。旧 proof manifest 也已因
+稿件重写而失效，因此这些要求会让未来完成 17.7 GB raw archive 后仍被历史链阻断，并引入覆盖正确作者信息的风险。
+
+现保留真实外部 gate：公开 HTTPS archive、operator confirmation、1,441-file index SHA、17,725,724,603-byte
+总量、原子更新、失败回滚、安全 ZIP/TAR 解包、双格式 member equality、isolated compile 与当前 arXiv artifact
+校验。metadata schema 收窄为 archive-only；作者信息继续由规范稿单一拥有；apply 只重建当前 arXiv PDF/source
+bundle，不再调用旧 proof builder。未伪造 archive identifier，`publication_ready=false` 保持不变，等待实际外部归档。
+
 ## 4. 当前优先队列
 
 | ID | 状态 | 控制债 | 处置 | 完成标准 |

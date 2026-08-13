@@ -1,31 +1,17 @@
-# Final arXiv release metadata
+# Final raw-archive attachment
 
-The scientific package is frozen and internally attested. Two external inputs
-remain before upload: the public author/affiliation block and a durable archive
-identifier for the indexed 17.7 GB G0 raw roots.
+The current arXiv package and public author/affiliation block are complete. One
+external input remains: a durable archive identifier for the indexed 17.7 GB G0
+raw roots. The canonical manuscript remains the sole authority for author,
+affiliation and correspondence metadata.
 
 Copy `release-metadata.pending.json` to a private working path and fill it using
 this shape:
 
 ```json
 {
-  "schema_version": "chemworld-arxiv-release-metadata-0.1",
+  "schema_version": "chemworld-arxiv-archive-metadata-0.2",
   "status": "ready",
-  "authors": [
-    {
-      "name": "Full Name",
-      "affiliation_ids": ["1"],
-      "corresponding": true,
-      "email": "name@example.edu",
-      "orcid": "0000-0000-0000-0000"
-    }
-  ],
-  "affiliations": [
-    {
-      "id": "1",
-      "name": "Department, Institution, City, Postal Code, Country"
-    }
-  ],
   "archive": {
     "provider": "Repository name",
     "identifier": "10.0000/example.identifier",
@@ -54,16 +40,15 @@ uv run --extra paper python paper/tools/finalize_arxiv_release.py `
 
 Before setting `publicly_resolvable` to `true`, the operator must open the archive
 URL in an unauthenticated session and confirm that the public record exposes the
-indexed deposit. The tool rejects placeholders, missing affiliations, invalid
-ORCIDs, non-HTTPS archive URLs, an absent operator confirmation, mismatched
-raw-index identity, mismatched byte count, and the absence of exactly one
-corresponding author. It marks the release ready only after the author block and
-archive citation are written, both paper packages rebuild, and the built-in release
-integrity verifier passes. The verifier also extracts both the source ZIP and source
+indexed deposit. The tool rejects placeholders, non-HTTPS archive URLs, an absent
+operator confirmation, mismatched raw-index identity and mismatched byte count. It
+does not accept or rewrite author metadata. It marks the release ready only after
+the archive citation is written, the current arXiv package rebuilds, and the built-in
+release integrity verifier passes. The verifier also extracts both the source ZIP and source
 TAR.GZ into separate isolated temporary directories, verifies byte-identical member
 contents, and compiles each package twice with shell escape disabled, rejecting
 missing files and unresolved citations or references. Missing paper-render dependencies
 are rejected before any mutation. If any
 later build or integrity verification fails, the canonical source/status files and all generated
-PDF/source/proof artifacts are restored byte-for-byte, and `publication_ready`
+PDF/source artifacts are restored byte-for-byte, and `publication_ready`
 retains its pre-run value.

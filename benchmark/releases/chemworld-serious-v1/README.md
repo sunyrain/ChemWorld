@@ -39,5 +39,5 @@ documented in `paper/arxiv/RELEASE_FINALIZATION.md`.
 The four indexed G0 raw roots total 17,725,724,603 bytes. Their file-level hashes
 are frozen, but a durable public archive identifier has not yet been attached.
 Accordingly `manifest.json` remains `publication_ready: false` until that external
-deposit is completed. Author names and affiliations are also release metadata and
-must replace the centralized manuscript placeholder before upload.
+deposit is completed. Public author, affiliation and correspondence metadata are
+already maintained in the canonical manuscript and are not part of this remaining gate.

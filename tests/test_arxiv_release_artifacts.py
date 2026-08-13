@@ -3,7 +3,6 @@ from __future__ import annotations
 import base64
 import copy
 import hashlib
-import importlib.util
 import io
 import json
 import re
@@ -320,27 +319,11 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     pending = json.loads((ARXIV / "release-metadata.pending.json").read_text(encoding="utf-8"))
     pending_blockers = finalizer.validate_release_metadata(pending)
     assert "status must equal ready" in pending_blockers
-    assert "at least one author is required" in pending_blockers
     assert "archive.publicly_resolvable must be explicitly true" in pending_blockers
 
     ready = {
         "schema_version": finalizer.SCHEMA,
         "status": "ready",
-        "authors": [
-            {
-                "name": "Jane Q. Scientist",
-                "affiliation_ids": ["1"],
-                "corresponding": True,
-                "email": "jane.scientist@university.edu",
-                "orcid": "0000-0002-1825-0097",
-            }
-        ],
-        "affiliations": [
-            {
-                "id": "1",
-                "name": "Institute of Molecular Systems, Research City, Country",
-            }
-        ],
         "archive": {
             "provider": "Zenodo",
             "identifier": "10.5281/zenodo.12345678",
@@ -354,18 +337,18 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     manuscript = (ROOT / "paper/experimental_intelligence_v1_manuscript.md").read_text(
         encoding="utf-8"
     )
-    injected = finalizer.inject_manuscript_metadata(manuscript, ready)
-    assert "pdf_author: 'Jane Q. Scientist'" in injected
-    assert "  - name: 'Jane Q. Scientist'" in injected
-    assert "    affiliation_markers: '1,*'" in injected
-    assert "affiliation:" in injected
-    assert "correspondence: 'jane.scientist@university.edu'" in injected
-    assert "author_block:" not in injected
+    injected = finalizer.inject_archive_metadata(manuscript, ready)
+    assert injected.split("# 1. Introduction", 1)[0] == manuscript.split(
+        "# 1. Introduction", 1
+    )[0]
+    assert 'pdf_author: "Jiangjie Qiu; Yijun Li; Xiaonan Wang"' in injected
+    assert 'correspondence: "wangxiaonan@tsinghua.edu.cn"' in injected
+    assert "Jane Q. Scientist" not in injected
     assert "publicly archived by Zenodo" in injected
     assert "permits inspection of the raw execution records" in injected
     assert "SHA-256" not in injected
     assert "versioned release manifest" not in injected
-    assert finalizer.inject_manuscript_metadata(injected, ready) == injected
+    assert finalizer.inject_archive_metadata(injected, ready) == injected
     rendered_readme = finalizer.render_release_readme(
         (RELEASE / "README.md").read_text(encoding="utf-8"), ready
     )
@@ -377,19 +360,11 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert finalized["evidence"]["g0_raw_data_archive"]["file_count"] == 1441
 
     invalid = copy.deepcopy(ready)
-    invalid["authors"][0]["orcid"] = "0000-0002-1825-0098"
     invalid["archive"]["byte_count"] -= 1
     invalid_blockers = finalizer.validate_release_metadata(invalid)
-    assert "authors[0].orcid has invalid syntax or checksum" in invalid_blockers
     assert "archive.byte_count does not match the frozen G0 byte count" in invalid_blockers
 
-    expected_preflight_blockers = []
-    if importlib.util.find_spec("markdown") is None:
-        expected_preflight_blockers.append(
-            "Python package 'markdown' is unavailable; run with "
-            "`uv run --extra paper python paper/tools/finalize_arxiv_release.py ...`"
-        )
-    assert finalizer.apply_preflight_blockers() == expected_preflight_blockers
+    assert all("markdown" not in item for item in finalizer.apply_preflight_blockers())
     generated = tmp_path / "generated"
     generated.mkdir()
     original = generated / "artifact.pdf"
