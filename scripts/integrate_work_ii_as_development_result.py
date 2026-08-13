@@ -81,6 +81,7 @@ def integrate_development_result(
     source_summary: Path,
     destination_root: Path = ROOT,
     evidence_progress: Callable[[str, int, int], None] | None = None,
+    reuse_source_deep_validation: bool = False,
 ) -> dict[str, Any]:
     """Deep-validate a complete run and publish only its canonical development inputs.
 
@@ -106,7 +107,11 @@ def integrate_development_result(
         source_root,
         summary,
         evidence_progress=evidence_progress,
-        deep_validate_world_reports=True,
+        # The accelerated closeout validates every receipt before it can publish
+        # summary.json.  Its binding/roster/aggregate checks still run here, but
+        # callers may reuse that completed deep pass instead of replaying all ten
+        # worlds a second time during the mechanical repository integration.
+        deep_validate_world_reports=not reuse_source_deep_validation,
     )
     if source_errors:
         raise ValueError(
@@ -274,6 +279,14 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--source-root", type=Path, required=True)
     parser.add_argument("--source-summary", type=Path, required=True)
+    parser.add_argument(
+        "--reuse-source-deep-validation",
+        action="store_true",
+        help=(
+            "reuse the receipt-level deep validation completed by the source "
+            "closeout while retaining all summary, binding, roster, and aggregate checks"
+        ),
+    )
     args = parser.parse_args()
 
     def progress(label: str, completed: int, total: int) -> None:
@@ -295,6 +308,7 @@ def main() -> int:
         source_root=args.source_root,
         source_summary=args.source_summary,
         evidence_progress=progress,
+        reuse_source_deep_validation=bool(args.reuse_source_deep_validation),
     )
     print(json.dumps(result, ensure_ascii=False, sort_keys=True), flush=True)
     return 0 if result["resource_calibration_candidate_ready"] else 2

@@ -123,6 +123,33 @@ def test_integrates_passed_development_run_without_authorizing_execution(
     assert (destination / "runs/development/a-s-complete/summary.json").is_file()
 
 
+def test_integration_can_reuse_source_closeout_deep_validation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    source_root, source_summary, _ = _source(tmp_path, passed=True)
+    destination = tmp_path / "destination"
+    _patch_paths(monkeypatch)
+    calls: list[tuple[Path, bool]] = []
+
+    def validate(root: Path, summary: dict[str, Any], **kwargs: Any) -> list[str]:
+        calls.append((root, kwargs["deep_validate_world_reports"]))
+        return []
+
+    monkeypatch.setattr(integration, "validate_summary", validate)
+    result = integration.integrate_development_result(
+        source_root=source_root,
+        source_summary=source_summary,
+        destination_root=destination,
+        reuse_source_deep_validation=True,
+    )
+
+    assert result["status"] == "integrated_w2_26_input_ready"
+    assert calls == [
+        (source_root.resolve(), False),
+        (destination.resolve(), False),
+    ]
+
+
 def test_complete_scientific_rejection_is_retained_but_does_not_unlock_w2_26(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
