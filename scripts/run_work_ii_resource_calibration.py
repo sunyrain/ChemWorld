@@ -19,6 +19,10 @@ from chemworld.eval.provenance import (
     write_json_atomic,
 )
 from chemworld.eval.work_ii_resource_calibration_v02 import (
+    DEEPSEEK_PLANNING_RESOURCE_LIMITS,
+    DEEPSEEK_PROVIDER_CONTRACT,
+    DEEPSEEK_PROVIDER_RUNTIME,
+    DEEPSEEK_RUNTIME_CONFIG_ROOT,
     RESOURCE_CALIBRATION_ARMS,
     cell_has_platform_defect,
     pattern_key,
@@ -102,6 +106,12 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--unlimited-spend-authorized", action="store_true")
     parser.add_argument("--provider-contract-confirmed-by-user", action="store_true")
     parser.add_argument("--credential-rotation-confirmed-by-user", action="store_true")
+    parser.add_argument(
+        "--provider-cohort",
+        choices=("source", "deepseek-v4-flash"),
+        default="source",
+        help="materialize an isolated provider cohort without changing scientific coverage",
+    )
     return parser.parse_args()
 
 
@@ -825,9 +835,25 @@ def main() -> int:
         dynamic_root = (ROOT / "workstreams/flagship_tasks/reports").resolve()
         if not output.is_relative_to(dynamic_root):
             raise RuntimeError("W2-26 execution manifest must use the dynamic evidence root")
-        payload = build_resource_calibration_execution_manifest(
-            ROOT, _load(manifest_path)
-        )
+        protocol = _load(manifest_path)
+        if args.provider_cohort == "deepseek-v4-flash":
+            protocol["calibration_id"] = (
+                "work-ii-w2-26-deepseek-v4-flash-full-task-resource-calibration-v0.1"
+            )
+            protocol["experiment_note"] = (
+                "workstreams/flagship_tasks/"
+                "WORK_II_RESOURCE_CALIBRATION_DEEPSEEK_V01_EXPERIMENT_NOTE.md"
+            )
+            protocol["provider_contract"] = dict(DEEPSEEK_PROVIDER_CONTRACT)
+            payload = build_resource_calibration_execution_manifest(
+                ROOT,
+                protocol,
+                runtime_config_root=DEEPSEEK_RUNTIME_CONFIG_ROOT,
+                provider_override=DEEPSEEK_PROVIDER_RUNTIME,
+                planning_resource_overrides=DEEPSEEK_PLANNING_RESOURCE_LIMITS,
+            )
+        else:
+            payload = build_resource_calibration_execution_manifest(ROOT, protocol)
         _write_once(output, payload)
         print(
             json.dumps(

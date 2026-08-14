@@ -1,0 +1,1060 @@
+{
+  "blocking_requirements": [],
+  "calibration_id": "work-ii-w2-26-deepseek-v4-flash-full-task-resource-calibration-v0.1",
+  "claim_boundary": {
+    "formal_participant_denominator": false,
+    "supports_H1_to_H4": false,
+    "supports_law_discovery_or_transfer": false,
+    "supports_model_ranking": false
+  },
+  "expected_denominators": {
+    "accepted_participant_model_calls_maximum": 54,
+    "accepted_participant_model_calls_minimum": 27,
+    "accepted_provider_sessions": 27,
+    "belief_checkpoints": 135,
+    "cells": 27,
+    "complete_experiments": 252,
+    "task_triplets": 9
+  },
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_RESOURCE_CALIBRATION_DEEPSEEK_V01_EXPERIMENT_NOTE.md",
+  "formal_result": false,
+  "measurement_contract": {
+    "affected_triplet_restart_from_first_cell_with_same_manifest": true,
+    "cross_task_proxy_forbidden": true,
+    "participant_exact_repeats_separate_from_provider_or_infrastructure_retries": true,
+    "participant_scientific_or_method_failure_retained": true,
+    "planning_envelopes_non_authoritative_before_complete_calibration": true,
+    "platform_defect_invalidates_entire_affected_triplet": true,
+    "repeat_allowance_is_frozen_design_not_observed_cap": true,
+    "task_local_caps_only": true
+  },
+  "patterns": [
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--electrochemical-conversion--r8.json",
+        "sha256": "68684cd2e875ad92b1cab03621332faa1c2173df6594937d737eb1bc7ed3dc3d"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "evidence": {
+        "formal_design_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+          "sha256": "2d899cdc4f896dc67e537c9af0d688810027f415d591b2639c5a9eeb936116ea"
+        },
+        "selection_source": "formal_design_v0.2_all_tasks",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_campaign_pilot.json",
+          "sha256": "447e0acf6e76cd3ef63064af8e004a9c546f365e7bb3fdaed184c2846c8ef1ed"
+        }
+      },
+      "locus": "A_E",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "cf20f63dd3e6030847b6526c50d9cbb3cffe6356822176f5af320846cb47df6e",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 8,
+            "implicit_operation_time_s": null,
+            "nonfinal_instrument_use_limit": 0,
+            "operation_repeat_limits": {
+              "electrolyze": 8
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "reagent_mol": 0.184,
+              "solvent_L": 0.368
+            },
+            "vessel_start_limit": 8
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 8
+          },
+          "complete_experiment_limit": 8,
+          "complete_experiments": 8,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 6,
+          "process_time_formula": {
+            "formula": "6 unique electrolyses x 14400 s + 2 exact-repeat electrolyses x 14400 s + 15% protected time reserve",
+            "implicit_stage_reserve_s": 0.0,
+            "pattern_id": "electrochemical-k8-six-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.15,
+            "repeat_allowance_s": 28800.0,
+            "required_stage_max_s": 86400.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "electrochemical-conversion"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 8,
+      "status": "resolved_authorization_blocked",
+      "task_id": "electrochemical-conversion",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-to-crystallization--r8.json",
+        "sha256": "43c892deb23d0b12451bcfee582ae65bcb5f7dc0b79ae8bcef1acdc752a1d9c8"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "evidence": {
+        "formal_design_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+          "sha256": "2d899cdc4f896dc67e537c9af0d688810027f415d591b2639c5a9eeb936116ea"
+        },
+        "selection_source": "formal_design_v0.2_all_tasks",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_crystallization_campaign.json",
+          "sha256": "a5f7b301eab0bbf47947402068d0e29b196e8bcaaf3dfbe062574308cb9573d5"
+        }
+      },
+      "locus": "A_E",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "db626dac5673322dd5189b76aec6705203496c9be314b0d5c7383e472b6828fb",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 8,
+            "implicit_operation_time_s": {
+              "filter_crystals": 480.0,
+              "quench": 120.0
+            },
+            "nonfinal_instrument_use_limit": 16,
+            "operation_repeat_limits": {
+              "cool_crystallize": 8,
+              "filter_crystals": 8,
+              "heat": 8,
+              "quench": 8,
+              "seed_crystals": 8
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "catalyst_mol": 0.0184,
+              "reagent_mol": 0.184,
+              "seed_g": 0.46,
+              "solvent_L": 0.368
+            },
+            "vessel_start_limit": 8
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 8
+          },
+          "complete_experiment_limit": 8,
+          "complete_experiments": 8,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 6,
+          "process_time_formula": {
+            "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each",
+            "implicit_operation_time_s": {
+              "filter_crystals": 480.0,
+              "quench": 120.0
+            },
+            "implicit_stage_reserve_s": 2880.0,
+            "pattern_id": "crystallization-k8-six-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.15,
+            "quench_transfer_allowance_s": 960.0,
+            "repeat_allowance_s": 58560.0,
+            "required_stage_max_s": 175680.0,
+            "timed_stage_max_s": 172800.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "reaction-to-crystallization"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 8,
+      "status": "resolved_authorization_blocked",
+      "task_id": "reaction-to-crystallization",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-to-distillation--r8.json",
+        "sha256": "c916b5fd76cf2988394e0997a7a35a50fa4c42927c173f71336a7afc044ae535"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "evidence": {
+        "formal_design_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+          "sha256": "2d899cdc4f896dc67e537c9af0d688810027f415d591b2639c5a9eeb936116ea"
+        },
+        "selection_source": "formal_design_v0.2_all_tasks",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_distillation_campaign.json",
+          "sha256": "6ec0b509bbdd67f8a403076e57dacbc745bca0893e45f069a292023d65c28735"
+        }
+      },
+      "locus": "A_E",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "f6f1bff4c584961372b671e8fc3945d9f34e6d9c9b06e209b7b31adfabfe2111",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 8,
+            "implicit_operation_time_s": {
+              "quench": 120.0
+            },
+            "nonfinal_instrument_use_limit": 16,
+            "operation_repeat_limits": {
+              "collect_fraction": 16,
+              "distill": 8,
+              "evaporate": 8,
+              "heat": 8,
+              "quench": 8
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "catalyst_mol": 0.0184,
+              "reagent_mol": 0.184,
+              "solvent_L": 0.368
+            },
+            "vessel_start_limit": 8
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 8
+          },
+          "complete_experiment_limit": 8,
+          "complete_experiments": 8,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 6,
+          "process_time_formula": {
+            "formula": "6 unique full stages + 2 exact-repeat full stages + 15% protected time reserve + up to eight quench operations at 120 s each",
+            "implicit_operation_time_s": {
+              "quench": 120.0
+            },
+            "implicit_stage_reserve_s": 0.0,
+            "pattern_id": "distillation-k8-six-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.15,
+            "quench_transfer_allowance_s": 960.0,
+            "repeat_allowance_s": 86400.0,
+            "required_stage_max_s": 259200.0,
+            "timed_stage_max_s": 259200.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "reaction-to-distillation"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 8,
+      "status": "resolved_authorization_blocked",
+      "task_id": "reaction-to-distillation",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--partition-discovery--r8.json",
+        "sha256": "15837f769debe047fe27fdb0e1d4a1303b625ad8dbee89555a44e1da8818a577"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "evidence": {
+        "formal_design_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+          "sha256": "2d899cdc4f896dc67e537c9af0d688810027f415d591b2639c5a9eeb936116ea"
+        },
+        "selection_source": "formal_design_v0.2_all_tasks",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_partition_campaign.json",
+          "sha256": "468bc028c68f21923b4891f9d7dd706a84b781ecdf21af0fd2721021b68cb7fe"
+        }
+      },
+      "locus": "A_E",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "e41774e18c0ae31fa75385594b97484365f843e966fbb26d38127193eb46fd85",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 8,
+            "implicit_operation_time_s": null,
+            "nonfinal_instrument_use_limit": 16,
+            "operation_repeat_limits": {
+              "mix": 8,
+              "separate_phase": 8,
+              "settle": 8
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "extractant_L": 0.276,
+              "phase_liquid_L": 0.2208,
+              "solvent_L": 0.2576
+            },
+            "vessel_start_limit": 8
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 8
+          },
+          "complete_experiment_limit": 8,
+          "complete_experiments": 8,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 6,
+          "process_time_formula": {
+            "formula": "6 unique partition stages + 2 exact-repeat partition stages + 15% protected time reserve",
+            "implicit_stage_reserve_s": 0.0,
+            "pattern_id": "partition-k8-six-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.15,
+            "repeat_allowance_s": 3600.0,
+            "required_stage_max_s": 10800.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "partition-discovery"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 8,
+      "status": "resolved_authorization_blocked",
+      "task_id": "partition-discovery",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-safety-constrained--r8.json",
+        "sha256": "36045a561a56136c294e946aa365cb54ea68a4a7d8b27f35ec699c4fe650068f"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        6,
+        8
+      ],
+      "evidence": {
+        "formal_design_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_formal_design_v0.2.json",
+          "sha256": "2d899cdc4f896dc67e537c9af0d688810027f415d591b2639c5a9eeb936116ea"
+        },
+        "selection_source": "formal_design_v0.2_all_tasks",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_safety_campaign.json",
+          "sha256": "192a5b538c1a3ec1abe36accd91d49718ecf96ac68f7b6e40cd0e5875244a36b"
+        }
+      },
+      "locus": "A_E",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "171d28b80abfc00df9543901f054333360d0af0b96fd8c0b3494de32ea299757",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 8,
+            "implicit_operation_time_s": {
+              "quench": 120.0
+            },
+            "nonfinal_instrument_use_limit": 8,
+            "operation_repeat_limits": {
+              "heat": 8,
+              "quench": 8
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "catalyst_mol": 0.00506,
+              "reagent_mol": 0.276,
+              "solvent_L": 0.23
+            },
+            "vessel_start_limit": 8
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            6,
+            8
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 8
+          },
+          "complete_experiment_limit": 8,
+          "complete_experiments": 8,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            6,
+            8
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 6,
+          "process_time_formula": {
+            "formula": "6 unique heat-plus-quench stages + 2 exact-repeat heat-plus-quench stages + 15% protected time reserve",
+            "implicit_stage_reserve_s": 720.0,
+            "pattern_id": "reaction-safety-k8-six-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.15,
+            "repeat_allowance_s": 14640.0,
+            "required_stage_max_s": 43920.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "reaction-safety-constrained"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 8,
+      "status": "resolved_authorization_blocked",
+      "task_id": "reaction-safety-constrained",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--reaction-safety-constrained--r10.json",
+        "sha256": "88f79fcabc6a061dd813e419a7021810a35e78f7d706ff33c860aa660f7b7696"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        7,
+        10
+      ],
+      "evidence": {
+        "q2_summary_binding": {
+          "hash_kind": "file_sha256",
+          "path": "workstreams/flagship_tasks/reports/work-ii-reaction-safety-matched-prior-qualification-20260811.json",
+          "sha256": "972fede023af5547257493160f30c23911e12efe9633271d5b9575cce3f618a0"
+        },
+        "selection_protocol_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_c2_ap_selection_protocol_v0.1.json",
+          "sha256": "f63c78717e4084223860f7d3d79cdd5e59d48a6c0018f8a00e8965d98a4733e7"
+        },
+        "selection_source": "protected_ap_full_roster",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_reaction_safety_matched_prior_d1.json",
+          "sha256": "b7ac57143849cab7e0ee6ce5ab851be24e48117409cc0ee1119d01c9c274977f"
+        }
+      },
+      "locus": "A_P",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "5ef40c2a99df21930ec68feadd976e4598ac21eae82bc538d0df85bfe9d9f833",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 10,
+            "implicit_operation_time_s": {
+              "quench": 120.0
+            },
+            "nonfinal_instrument_use_limit": 10,
+            "operation_repeat_limits": {
+              "heat": 12,
+              "quench": 10
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "catalyst_mol": 0.006325,
+              "reagent_mol": 0.345,
+              "solvent_L": 0.575
+            },
+            "vessel_start_limit": 10
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            7,
+            10
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 10
+          },
+          "complete_experiment_limit": 10,
+          "complete_experiments": 10,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            7,
+            10
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 8,
+          "process_time_formula": {
+            "formula": "8 unique heat maxima + 2 exact-repeat heat maxima + 10 quench reserves",
+            "implicit_stage_reserve_s": 1200.0,
+            "pattern_id": "reaction-safety-a-p-k10-two-repeat",
+            "protected_reserve_fraction": 0.15,
+            "repeat_allowance_s": 28800.0,
+            "required_stage_max_s": 115200.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "reaction-safety-constrained"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 10,
+      "status": "resolved_authorization_blocked",
+      "task_id": "reaction-safety-constrained",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--electrochemical-conversion--r10.json",
+        "sha256": "574edc04b28cc676d64b68aa219bb8c7397ae766758838fe2c70063fc58762dd"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        2,
+        4,
+        7,
+        10
+      ],
+      "evidence": {
+        "q2_summary_binding": {
+          "hash_kind": "file_sha256",
+          "path": "workstreams/flagship_tasks/reports/work-ii-electrochemical-matched-prior-qualification-20260811.json",
+          "sha256": "c266efc7718e702bcbcac3575b11f690eacb6ec215694e563be9666c699aa108"
+        },
+        "selection_protocol_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_c2_ap_selection_protocol_v0.1.json",
+          "sha256": "f63c78717e4084223860f7d3d79cdd5e59d48a6c0018f8a00e8965d98a4733e7"
+        },
+        "selection_source": "protected_ap_full_roster",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_electrochemical_matched_prior_d1.json",
+          "sha256": "2df88c389ac522de6acb76ee15005dbd638840947cd9da307a9f2eeb77a39f89"
+        }
+      },
+      "locus": "A_P",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "d3109ff0ea98543906bfdd8818d8d5f752734155cceec606570fd605828ad3f2",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 10,
+            "implicit_operation_time_s": null,
+            "nonfinal_instrument_use_limit": 30,
+            "operation_repeat_limits": {
+              "electrolyze": 20
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "reagent_mol": 0.345,
+              "solvent_L": 0.2875
+            },
+            "vessel_start_limit": 10
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            2,
+            4,
+            7,
+            10
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 10
+          },
+          "complete_experiment_limit": 10,
+          "complete_experiments": 10,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            2,
+            4,
+            7,
+            10
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 8,
+          "process_time_formula": {
+            "formula": "8 unique probe+controlled electrolysis maxima + 2 exact-repeat probe+controlled maxima; no quench/transfer stage",
+            "implicit_stage_reserve_s": 0.0,
+            "pattern_id": "electrochemical-a-p-k10-two-repeat",
+            "protected_reserve_fraction": 0.15,
+            "quench_transfer_allowance_s": 0.0,
+            "repeat_allowance_s": 9000.0,
+            "required_stage_max_s": 36000.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "electrochemical-conversion"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 10,
+      "status": "resolved_authorization_blocked",
+      "task_id": "electrochemical-conversion",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+        "sha256": "dc65ab599a8501acb56a6edacaa2636f03bda6381219e5251a06c1036a84e9b6"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "evidence": {
+        "q2_summary_binding": {
+          "hash_kind": "file_sha256",
+          "path": "workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json",
+          "sha256": "ec1ed84182a7fb541df0c426266f32091b58d60b9f2be075ea9e8dec1ff0a4c6"
+        },
+        "selection_protocol_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_c2_as_selection_protocol_v0.1.json",
+          "sha256": "1cf86ae3bff9dc86614028082f5edff79090502df59deaf3c9217922d7049395"
+        },
+        "selection_source": "protected_as_full_roster",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_as_partition_d1_v0.1.json",
+          "sha256": "6cd225cbcb73103756cba424075163a2d91ad99e1c4b6b15423d46c8fc75ddb5"
+        }
+      },
+      "locus": "A_S",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "26ef56be320a4ecfdea33281ec90d2ff4702c3d74929c6d322eefba45143788d",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 12,
+            "implicit_operation_time_s": {},
+            "nonfinal_instrument_use_limit": 36,
+            "operation_repeat_limits": {
+              "mix": 12,
+              "separate_phase": 12,
+              "settle": 12
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "extractant_L": 0.432,
+              "phase_liquid_L": 0.3456,
+              "solvent_L": 0.288
+            },
+            "vessel_start_limit": 12
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            3,
+            6,
+            9,
+            12
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 12
+          },
+          "complete_experiment_limit": 12,
+          "complete_experiments": 12,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            3,
+            6,
+            9,
+            12
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 10,
+          "process_time_formula": {
+            "formula": "10 unique + 2 exact-repeat partition stages + 20% protected reserve",
+            "implicit_stage_reserve_s": 0.0,
+            "pattern_id": "partition-as-k12-ten-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.2,
+            "repeat_allowance_s": 5400.0,
+            "required_stage_max_s": 27000.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "partition-discovery"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 12,
+      "status": "resolved_authorization_blocked",
+      "task_id": "partition-discovery",
+      "world_seed": 0
+    },
+    {
+      "campaign_config_binding": {
+        "hash_kind": "file_sha256",
+        "path": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--reaction-to-crystallization--r12.json",
+        "sha256": "fe32dfe0d69b0e14f76828793adbe56528d3b7d796c9dd52ecef2cbbcc9084d4"
+      },
+      "checkpoint_complete_experiments": [
+        0,
+        3,
+        6,
+        9,
+        12
+      ],
+      "evidence": {
+        "q2_summary_binding": {
+          "hash_kind": "file_sha256",
+          "path": "workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json",
+          "sha256": "ec1ed84182a7fb541df0c426266f32091b58d60b9f2be075ea9e8dec1ff0a4c6"
+        },
+        "selection_protocol_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_c2_as_selection_protocol_v0.1.json",
+          "sha256": "1cf86ae3bff9dc86614028082f5edff79090502df59deaf3c9217922d7049395"
+        },
+        "selection_source": "protected_as_full_roster",
+        "source_campaign_config_binding": {
+          "hash_kind": "file_sha256",
+          "path": "configs/benchmark/work_ii_as_crystallization_d1_v0.1.json",
+          "sha256": "0c92dbe28d2d464baa781487f18873499327fc2064dad491cbe024a56c103ffe"
+        }
+      },
+      "locus": "A_S",
+      "resource_formula_binding": {
+        "canonical_json_sha256": "252a827ef7600b761fee6dcfd3d8f4107fbe55f833a8a803ec62a6a99f5585fa",
+        "formula": {
+          "campaign_design_limits": {
+            "final_assay_limit": 12,
+            "implicit_operation_time_s": {
+              "filter_crystals": 480.0,
+              "quench": 120.0
+            },
+            "nonfinal_instrument_use_limit": 36,
+            "operation_repeat_limits": {
+              "cool_crystallize": 12,
+              "filter_crystals": 12,
+              "heat": 12,
+              "quench": 12,
+              "seed_crystals": 12
+            },
+            "per_instrument_limits": null,
+            "stock_limits": {
+              "catalyst_mol": 0.004536,
+              "reagent_mol": 0.288,
+              "seed_g": 0.1152,
+              "solvent_L": 0.36
+            },
+            "vessel_start_limit": 12
+          },
+          "checkpoint_complete_experiments": [
+            0,
+            3,
+            6,
+            9,
+            12
+          ],
+          "closeout_formula": {
+            "allowed_operation_classes": [
+              "discard_batch",
+              "final_assay",
+              "quench",
+              "terminate",
+              "transfer"
+            ],
+            "automatic_action_repair": false,
+            "automatic_closeout": false,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_operations_per_batch": 2,
+            "planned_batches": 12
+          },
+          "complete_experiment_limit": 12,
+          "complete_experiments": 12,
+          "maximum_participant_selected_exact_repeats": 2,
+          "method_checkpoint_complete_experiments": [
+            3,
+            6,
+            9,
+            12
+          ],
+          "method_design_limits": {
+            "model_call_limit": 2,
+            "training_environment_step_limit": 0
+          },
+          "minimum_unique_recipes": 10,
+          "process_time_formula": {
+            "formula": "10 unique + 2 exact-repeat full stages + 20% protected reserve + quench closeout allowance",
+            "implicit_operation_time_s": {
+              "filter_crystals": 480.0,
+              "quench": 120.0
+            },
+            "implicit_stage_reserve_s": 4800.0,
+            "pattern_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
+            "protected_reserve_fraction": 0.2,
+            "quench_transfer_allowance_s": 1440.0,
+            "repeat_allowance_s": 29760.0,
+            "required_stage_max_s": 148800.0
+          },
+          "provider_method_contract": {
+            "finalization_timeout_s": 600.0,
+            "id": "deepseek",
+            "model": "deepseek-v4-flash",
+            "reasoning_effort": "high",
+            "request_timeout_s": 1200.0,
+            "wire_api": "responses"
+          },
+          "task_id": "reaction-to-crystallization"
+        },
+        "schema_version": "chemworld-work-ii-task-resource-formula-binding-0.1"
+      },
+      "rounds": 12,
+      "status": "resolved_authorization_blocked",
+      "task_id": "reaction-to-crystallization",
+      "world_seed": 0
+    }
+  ],
+  "prior_arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "provider_calls_executed": 0,
+  "provider_contract": {
+    "id": "deepseek",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "wire_api": "responses"
+  },
+  "provider_execution_allowed": false,
+  "schema_version": "chemworld-work-ii-resource-calibration-manifest-0.2",
+  "status": "ready_authorization_blocked"
+}

@@ -158,6 +158,66 @@ def test_manifest_freezes_exact_nine_task_contracts() -> None:
     }
 
 
+def test_deepseek_cohort_materializes_isolated_provider_and_planning_envelopes(
+    repo_tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    protocol = repo_tmp_path / "deepseek-protocol.json"
+    output = (
+        ROOT
+        / "workstreams/flagship_tasks/reports"
+        / f".{repo_tmp_path.name}-deepseek-manifest.json"
+    )
+    runtime_root = repo_tmp_path.relative_to(ROOT) / "deepseek-runtime-configs"
+    protocol.write_text(MANIFEST.read_text(encoding="utf-8"), encoding="utf-8")
+    monkeypatch.setattr(calibration, "DEEPSEEK_RUNTIME_CONFIG_ROOT", runtime_root)
+    monkeypatch.setattr(calibration_runner, "DEEPSEEK_RUNTIME_CONFIG_ROOT", runtime_root)
+    monkeypatch.setattr(
+        calibration_runner.sys,
+        "argv",
+        [
+            "run_work_ii_resource_calibration.py",
+            "--manifest",
+            str(protocol),
+            "--build-execution-manifest",
+            "--provider-cohort",
+            "deepseek-v4-flash",
+            "--output",
+            str(output),
+        ],
+    )
+
+    try:
+        assert calibration_runner.main() == 0
+        manifest = json.loads(output.read_text(encoding="utf-8"))
+        assert manifest["provider_contract"] == calibration.DEEPSEEK_PROVIDER_CONTRACT
+        assert manifest["experiment_note"].endswith(
+            "WORK_II_RESOURCE_CALIBRATION_DEEPSEEK_V01_EXPERIMENT_NOTE.md"
+        )
+        assert manifest["expected_denominators"] == calibration.EXPECTED_DENOMINATORS
+        assert calibration.validate_manifest(ROOT, manifest) == []
+        for pattern in manifest["patterns"]:
+            config = json.loads(
+                (ROOT / pattern["campaign_config_binding"]["path"]).read_text(
+                    encoding="utf-8"
+                )
+            )
+            provider = config["provider"]
+            assert {
+                key: provider[key]
+                for key in ("id", "wire_api", "model", "reasoning_effort")
+            } == calibration.DEEPSEEK_PROVIDER_CONTRACT
+            limits = calibration.DEEPSEEK_PLANNING_RESOURCE_LIMITS[
+                int(pattern["rounds"])
+            ]
+            assert all(
+                config["method_resources"][key] == value
+                for key, value in limits.items()
+            )
+    finally:
+        output.unlink(missing_ok=True)
+
+
 def test_runtime_config_requires_current_execution_semantics() -> None:
     source = json.loads(
         (ROOT / "configs/benchmark/work_ii_campaign_pilot.json").read_text(

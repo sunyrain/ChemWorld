@@ -41,6 +41,56 @@ AUTHORIZATION_VERSION = "chemworld-work-ii-resource-calibration-authorization-0.
 RUNTIME_CONFIG_ROOT = Path(
     "workstreams/flagship_tasks/reports/work-ii-w2-26-runtime-configs-v0.6"
 )
+DEEPSEEK_RUNTIME_CONFIG_ROOT = Path(
+    "workstreams/flagship_tasks/reports/"
+    "work-ii-w2-26-deepseek-runtime-configs-v0.1"
+)
+DEEPSEEK_PROVIDER_CONTRACT = {
+    "id": "deepseek",
+    "wire_api": "responses",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+}
+DEEPSEEK_PROVIDER_RUNTIME = {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "preferred_auth_method": "apikey",
+    "forced_login_method": "api",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "finalization_timeout_s": 600.0,
+    "progress_interval_s": 30.0,
+    "max_recovered_mcp_tool_failures": 3,
+    "max_consecutive_mcp_tool_failures": 1,
+    "max_provider_error_events": 1,
+}
+# W2-26 measures resource use; these provider-specific values are permissive
+# planning ceilings, not observed results or proposed formal caps.  They scale
+# the retained 10-experiment DeepSeek production envelope (36M/600k/160k) by
+# the unchanged 8/10/12 experiment denominators.
+DEEPSEEK_PLANNING_RESOURCE_LIMITS = {
+    8: {
+        "input_token_limit": 28_800_000,
+        "uncached_input_token_limit": 480_000,
+        "output_token_limit": 128_000,
+    },
+    10: {
+        "input_token_limit": 36_000_000,
+        "uncached_input_token_limit": 600_000,
+        "output_token_limit": 160_000,
+    },
+    12: {
+        "input_token_limit": 43_200_000,
+        "uncached_input_token_limit": 720_000,
+        "output_token_limit": 192_000,
+    },
+}
 RESOURCE_CALIBRATION_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 METHOD_RESOURCE_LIMIT_FIELDS = frozenset(
     field.name for field in fields(MethodResourceLimits)
@@ -136,11 +186,19 @@ def _write_runtime_config(
     locus: str,
     task_id: str,
     rounds: int,
+    runtime_config_root: Path = RUNTIME_CONFIG_ROOT,
+    provider_override: Mapping[str, Any] | None = None,
+    planning_resource_override: Mapping[str, Any] | None = None,
 ) -> tuple[Path, dict[str, Any]]:
     config = _materialize_runtime_config(
-        source, locus=locus, task_id=task_id, rounds=rounds
+        source,
+        locus=locus,
+        task_id=task_id,
+        rounds=rounds,
+        provider_override=provider_override,
+        planning_resource_override=planning_resource_override,
     )
-    target = root / RUNTIME_CONFIG_ROOT / f"{locus.lower()}--{task_id}--r{rounds}.json"
+    target = root / runtime_config_root / f"{locus.lower()}--{task_id}--r{rounds}.json"
     if target.is_file():
         if _load(target) != config:
             raise ValueError(f"{locus}/{task_id} runtime config already differs")
@@ -163,7 +221,13 @@ def pattern_slug(pattern: Mapping[str, Any]) -> str:
 
 
 def _materialize_runtime_config(
-    source: Mapping[str, Any], *, locus: str, task_id: str, rounds: int
+    source: Mapping[str, Any],
+    *,
+    locus: str,
+    task_id: str,
+    rounds: int,
+    provider_override: Mapping[str, Any] | None = None,
+    planning_resource_override: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Activate the frozen task envelope without changing participant coverage."""
 
@@ -217,8 +281,11 @@ def _materialize_runtime_config(
         }
     )
     config["qualification"] = qualification
-    provider = config.get("provider")
-    provider = provider if isinstance(provider, dict) else {}
+    if provider_override is None:
+        provider = config.get("provider")
+        provider = provider if isinstance(provider, dict) else {}
+    else:
+        provider = copy.deepcopy(dict(provider_override))
     # W2-26 counts a strictly zero-action infrastructure predecessor as a
     # provider-process attempt, not as an accepted participant session.  One
     # bounded in-cell restart prevents a transient startup/IPC exit from
@@ -233,6 +300,8 @@ def _materialize_runtime_config(
     config["provider"] = provider
     resources = config.get("method_resources")
     resources = resources if isinstance(resources, dict) else {}
+    if planning_resource_override is not None:
+        resources.update(copy.deepcopy(dict(planning_resource_override)))
     # One accepted campaign thread may contain the initial model turn plus one
     # bounded same-thread continuation.  The method ledger must admit both
     # turns or it would reject the first post-resume action before execution.
@@ -437,7 +506,14 @@ def _as_configs(
     return resolved, _binding(root, path)
 
 
-def build_execution_manifest(root: Path, protocol: Mapping[str, Any]) -> dict[str, Any]:
+def build_execution_manifest(
+    root: Path,
+    protocol: Mapping[str, Any],
+    *,
+    runtime_config_root: Path = RUNTIME_CONFIG_ROOT,
+    provider_override: Mapping[str, Any] | None = None,
+    planning_resource_overrides: Mapping[int, Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Resolve all nine task contracts without making provider calls."""
 
     root = root.resolve()
@@ -489,7 +565,16 @@ def build_execution_manifest(root: Path, protocol: Mapping[str, Any]) -> dict[st
                 }
             config_errors = _config_errors(
                 _materialize_runtime_config(
-                    config, locus=locus, task_id=task_id, rounds=rounds
+                    config,
+                    locus=locus,
+                    task_id=task_id,
+                    rounds=rounds,
+                    provider_override=provider_override,
+                    planning_resource_override=(
+                        None
+                        if planning_resource_overrides is None
+                        else planning_resource_overrides[rounds]
+                    ),
                 ),
                 locus=locus,
                 task_id=task_id,
@@ -504,6 +589,13 @@ def build_execution_manifest(root: Path, protocol: Mapping[str, Any]) -> dict[st
                 locus=locus,
                 task_id=task_id,
                 rounds=rounds,
+                runtime_config_root=runtime_config_root,
+                provider_override=provider_override,
+                planning_resource_override=(
+                    None
+                    if planning_resource_overrides is None
+                    else planning_resource_overrides[rounds]
+                ),
             )
             evidence["source_campaign_config_binding"] = source_config_binding
         except (OSError, TypeError, ValueError) as error:
@@ -579,6 +671,18 @@ def validate_manifest(
             errors.append(f"{locus}/{task_id} config binding invalid: {error}")
             continue
         errors.extend(_config_errors(config, locus=locus, task_id=task_id, rounds=rounds))
+        provider = config.get("provider")
+        provider = provider if isinstance(provider, Mapping) else {}
+        manifest_provider = manifest.get("provider_contract")
+        manifest_provider = (
+            manifest_provider if isinstance(manifest_provider, Mapping) else {}
+        )
+        reduced_provider = {
+            field: provider.get(field)
+            for field in ("id", "wire_api", "model", "reasoning_effort")
+        }
+        if reduced_provider != dict(manifest_provider):
+            errors.append(f"{locus}/{task_id} provider contract differs")
         if pattern.get("world_seed") != config.get("world_seed"):
             errors.append(f"{locus}/{task_id} world seed differs")
         if pattern.get("resource_formula_binding") != build_task_resource_formula_binding(
