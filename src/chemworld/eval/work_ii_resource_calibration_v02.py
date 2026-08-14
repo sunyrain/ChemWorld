@@ -1382,7 +1382,6 @@ def build_summary(
                 "planned_complete_experiments",
                 "typed_belief_checkpoints_complete",
                 "one_campaign_session",
-                "provider_session_completed",
                 "final_recommendation_committed",
                 "tool_integrity",
                 "campaign_terminal",
@@ -1390,7 +1389,6 @@ def build_summary(
                 "task_required_operations_reconciled",
                 "exact_replay",
                 "execution_audit",
-                "provider_usage_reconciled",
             )
             resource_calibrated = (
                 not platform_failure

@@ -2093,104 +2093,48 @@ class ChemWorldMCPServer:
             "oneOf": [],
             "x-chemworld-submission-order": list(plan["submission_order"]),
         }
-        properties = schema["properties"]
-        branches: list[dict[str, Any]] = [
+        # Keep the provider-facing grammar compact. The root properties above retain
+        # the exact enums and page contracts, while the host performs the authoritative
+        # page-specific validation. Expanding every query/metric combination into
+        # nested oneOf branches makes large electrochemical contracts too complex for
+        # some OpenAI-compatible providers to register as a function schema.
+        schema["oneOf"] = [
             {
                 "type": "object",
                 "properties": {
                     "action": {"const": "begin"},
-                    "snapshot_header": deepcopy(properties["snapshot_header"]),
+                    "snapshot_header": {"type": "object"},
                 },
                 "required": ["action", "snapshot_header"],
                 "additionalProperties": False,
-            }
-        ]
-        for page in plan["prediction_pages"]:
-            query_variants: list[dict[str, Any]] = []
-            for query_id, metric_ids in page["query_metric_contract"].items():
-                metric_variants = []
-                for metric_id in metric_ids:
-                    variant = deepcopy(metric_prediction)
-                    variant["properties"]["metric_id"] = {"const": str(metric_id)}
-                    metric_variants.append(variant)
-                query_variants.append(
-                    {
-                        "type": "object",
-                        "properties": {
-                            "query_id": {"const": str(query_id)},
-                            "metrics": {
-                                "type": "array",
-                                "minItems": len(metric_ids),
-                                "maxItems": len(metric_ids),
-                                "items": {"oneOf": metric_variants},
-                                "x-chemworld-required-ids": [
-                                    str(item) for item in metric_ids
-                                ],
-                            },
-                        },
-                        "required": ["query_id", "metrics"],
-                        "additionalProperties": False,
-                    }
-                )
-            prediction_schema = deepcopy(properties["predictions"])
-            prediction_schema.update(
-                {
-                    "minItems": len(query_variants),
-                    "maxItems": len(query_variants),
-                    "items": {"oneOf": query_variants},
-                    "x-chemworld-required-ids": [
-                        str(item) for item in page["query_metric_contract"]
-                    ],
-                }
-            )
-            branches.append(
-                {
-                    "type": "object",
-                    "properties": {
-                        "action": {"const": "append_prediction_page"},
-                        "page_id": {"const": str(page["page_id"])},
-                        "predictions": prediction_schema,
-                    },
-                    "required": ["action", "page_id", "predictions"],
-                    "additionalProperties": False,
-                }
-            )
-        for page in plan["law_pages"]:
-            law_variants = []
-            for metric_id in page["metric_ids"]:
-                variant = deepcopy(metric_law)
-                variant["properties"]["metric_id"] = {"const": str(metric_id)}
-                law_variants.append(variant)
-            law_schema = deepcopy(properties["metric_laws"])
-            law_schema.update(
-                {
-                    "minItems": len(law_variants),
-                    "maxItems": len(law_variants),
-                    "items": {"oneOf": law_variants},
-                    "x-chemworld-required-ids": [str(item) for item in page["metric_ids"]],
-                }
-            )
-            branches.append(
-                {
-                    "type": "object",
-                    "properties": {
-                        "action": {"const": "append_law_page"},
-                        "page_id": {"const": str(page["page_id"])},
-                        "metric_laws": law_schema,
-                    },
-                    "required": ["action", "page_id", "metric_laws"],
-                    "additionalProperties": False,
-                }
-            )
-        branches.append(
+            },
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"const": "append_prediction_page"},
+                    "page_id": {"type": "string"},
+                    "predictions": {"type": "array"},
+                },
+                "required": ["action", "page_id", "predictions"],
+                "additionalProperties": False,
+            },
+            {
+                "type": "object",
+                "properties": {
+                    "action": {"const": "append_law_page"},
+                    "page_id": {"type": "string"},
+                    "metric_laws": {"type": "array"},
+                },
+                "required": ["action", "page_id", "metric_laws"],
+                "additionalProperties": False,
+            },
             {
                 "type": "object",
                 "properties": {"action": {"const": "finalize"}},
                 "required": ["action"],
                 "additionalProperties": False,
-            }
-        )
-        schema["oneOf"] = branches
+            },
+        ]
         return schema
 
     @staticmethod

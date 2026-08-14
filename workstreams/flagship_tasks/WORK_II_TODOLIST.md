@@ -162,8 +162,9 @@ Jiangjie Qiu、Yijun Li、Yaotian Yang 为共同第一作者；Xiaonan Wang 为�
 - A-E 是实体层 confirmatory backbone；A-P/A-S 是形成 general initial-world-model claim 所必需的预注册
   non-entity blocks。A-O 先作为独立边界 probe 资格化，不能在看见 participant outcome 后临时并入主结论；
   D-Scope 由 Study D 单独承担。
-- 当前 formal participant 只允许 WellAU `gpt-5.6-sol`、medium reasoning、Codex harness + ChemWorld MCP。
-  DeepSeek `deepseek-v4-flash` 只用于 development harness 和预实验，结果不能混入 formal denominator。
+- 用户已将当前 formal participant 改为 DeepSeek `deepseek-v4-flash`、high reasoning、Codex harness +
+  ChemWorld MCP；WellAU 暂停。旧 DeepSeek development/calibration 结果仍不混入 formal denominator，新的
+  prospective cohort 使用独立 world identities 和单独终态存储。
 - 论文结论归属于完整 agent system，不外推为裸模型能力或跨模型排名。
 
 ## 2. 冻结执行语义
@@ -536,6 +537,18 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   `gpt-5.6-terra` 路由诊断为 HTTP 200，因此阻塞已定位为 WellAU 的 `gpt-5.6-sol` 特异推理后端，而非
   ChemWorld、本地凭证或整个 Responses 服务。r9/r10/r11 的有效终态与不利轨迹全部保留，不拼成通过、不覆盖；
   `sol` 首次恢复后，r12 使用已验证的新运行合同从 execution zero 遵循 frozen resume 语义。
+- **W2-26 DeepSeek 子阶段（2026-08-14）**：已按结果优先语义终态收束，`9/9` triplets、`27/27`
+  terminal cells、`251/252` complete experiments、`135/135` checkpoints、`27/27` exact replay，0
+  platform defects、0 terminal provider errors、0 unsafe。唯一科学分母缺口是 A-E partition aligned
+  的 `7/8` retained participant failure，不补跑。旧 method gate 的 token/resource findings 原样保留但不再
+  作为科学拒绝；DeepSeek 结果只属 development，不补齐 WellAU W2-26，也不进入 formal/R5。深入分析见
+  `WORK_II_DEEPSEEK_W2_26_STAGE_CLOSEOUT_ZH.md`。WellAU 按用户指令暂停。
+- **DeepSeek C2 prospective cohort（2026-08-14 启动）**：完整设计固定为 A-E public `75/600`、A-P
+  `30/300`、A-S `30/360`，public 共 `135 sessions / 1,260 experiments`；public 终态并冻结分析后再执行
+  A-E private `75/600`，总计 `210/1,860`。A-E v0.3 classifier fit/validation 各 `14,400/14,400`
+  终态且仅 partition-extractant 通过，因此五任务 A-E 主 estimand 已在 provider outcome 前收窄为
+  task-stratified dossier-assignment ITT；禁止声称五任务 universal selective correction。执行说明见
+  `WORK_II_DEEPSEEK_C2_PROSPECTIVE_EXPERIMENT_NOTE.md`；public runner 当前按 3 triplets / 9 sessions 并行。
 - [x] **W2-27** current WellAU method qualification triplet 已完成并通过：3/3 arms terminal、各 8/8
   experiments、每臂 1 次 provider attempt、0 provider/infrastructure failures；三臂 exact replay 各验证
   48 steps、0 mismatches，receipt validator 为 0 errors。该 development qualification 只证明当前

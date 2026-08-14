@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import contextlib
 import json
+import sys
 import tempfile
 import time
 from collections.abc import Callable, Mapping
@@ -274,6 +275,105 @@ def _formal_cell_context(
     if getattr(args, "prior_arm", None) != str(cell["prior_arm"]):
         raise RuntimeError("formal cell prior arm differs from its manifest")
     return manifest, cell
+
+
+def _prospective_cohort_context(
+    args: argparse.Namespace,
+    *,
+    config_path: Path,
+    config: Mapping[str, Any],
+    world_seed: int,
+    arms: list[str],
+) -> dict[str, Any] | None:
+    """Bind one cell to the lightweight DeepSeek C2 prospective plan.
+
+    This is intentionally a single-plan execution check, not another release or
+    readiness chain.  It protects the fixed task/world/arm denominator while
+    leaving provider usage as report-only accounting.
+    """
+
+    execute = bool(getattr(args, "prospective_cohort_execution", False))
+    plan_value = getattr(args, "prospective_cohort_plan", None)
+    cell_id = getattr(args, "prospective_cell_id", None)
+    if not execute:
+        if plan_value is not None or cell_id is not None:
+            raise RuntimeError(
+                "prospective cohort inputs require --prospective-cohort-execution"
+            )
+        return None
+    if plan_value is None or not isinstance(cell_id, str) or not cell_id:
+        raise RuntimeError(
+            "prospective cohort execution requires --prospective-cohort-plan "
+            "and --prospective-cell-id"
+        )
+    if len(arms) != 1:
+        raise RuntimeError("prospective cohort children execute exactly one arm")
+    plan_path = Path(plan_value).resolve()
+    try:
+        plan_path.relative_to(ROOT.resolve())
+    except ValueError as error:
+        raise RuntimeError("prospective cohort plan must be inside the repository") from error
+    plan = _load(plan_path)
+    if (
+        plan.get("schema_version")
+        != "chemworld-work-ii-deepseek-c2-prospective-0.1"
+        or plan.get("status") != "public_execution_authorized"
+    ):
+        raise RuntimeError("prospective cohort plan is not execution-authorized")
+    provider = plan.get("provider")
+    provider = provider if isinstance(provider, Mapping) else {}
+    config_provider = config.get("provider")
+    config_provider = config_provider if isinstance(config_provider, Mapping) else {}
+    if (
+        provider.get("id") != "deepseek"
+        or provider.get("model") != "deepseek-v4-flash"
+        or provider.get("resource_limits") != "report_only"
+        or config_provider.get("id") != provider.get("id")
+        or config_provider.get("model") != provider.get("model")
+    ):
+        raise RuntimeError("prospective cohort provider differs from the DeepSeek plan")
+    matches: list[dict[str, Any]] = []
+    for block in plan.get("public_blocks", []):
+        if not isinstance(block, Mapping):
+            continue
+        for task in block.get("tasks", []):
+            if not isinstance(task, Mapping):
+                continue
+            expected_config = (ROOT / str(task.get("config", ""))).resolve()
+            seeds = task.get("world_seeds")
+            seeds = seeds if isinstance(seeds, list) else []
+            if (
+                expected_config == config_path.resolve()
+                and task.get("task_id") == config.get("task_id")
+                and world_seed in seeds
+            ):
+                matches.append(
+                    {
+                        "cohort_id": plan.get("cohort_id"),
+                        "block": block.get("block"),
+                        "locus": block.get("locus"),
+                        "task_id": task.get("task_id"),
+                        "world_seed": world_seed,
+                        "prior_arm": arms[0],
+                        "rounds": block.get("rounds_per_session"),
+                        "cell_id": cell_id,
+                        "plan_path": plan_path.relative_to(ROOT.resolve()).as_posix(),
+                        "resource_limits": "report_only",
+                    }
+                )
+    if len(matches) != 1:
+        raise RuntimeError("prospective cohort child is not a unique scheduled task/world")
+    expected_cell_id = (
+        f"{matches[0]['block']}--{matches[0]['task_id']}--"
+        f"seed{world_seed}--{arms[0]}"
+    )
+    if cell_id != expected_cell_id:
+        raise RuntimeError("prospective cohort cell id differs from its fixed schedule")
+    if int(config.get("campaign", {}).get("complete_experiments", -1)) != int(
+        matches[0]["rounds"]
+    ):
+        raise RuntimeError("prospective cohort round count differs from its fixed schedule")
+    return matches[0]
 
 
 def _qualification_execution_context(
@@ -824,6 +924,8 @@ def _analyze(
 def _w2_26_campaign_receipt_contract(
     receipts: list[dict[str, Any]],
     method_resources: Mapping[str, Any],
+    *,
+    unlimited_provider_continuations: bool = False,
 ) -> dict[str, Any]:
     """Separate accepted-session identity from bounded zero-action process attempts."""
 
@@ -837,7 +939,9 @@ def _w2_26_campaign_receipt_contract(
     ]
     terminal_index = terminal_indices[0] if len(terminal_indices) == 1 else None
     predecessors = receipts[:terminal_index] if terminal_index is not None else []
-    predecessor_valid = len(predecessors) <= 1 and all(
+    predecessor_valid = (
+        unlimited_provider_continuations or len(predecessors) <= 1
+    ) and all(
         receipt.get("status") == "interrupted_before_next_action"
         and receipt.get("accepted_action_count") == 0
         and receipt.get("pre_action_retry_classification")
@@ -881,7 +985,8 @@ def _w2_26_campaign_receipt_contract(
     same_thread_continuation_valid = legacy_single_turn_receipt or (
         isinstance(continuation_count, int)
         and not isinstance(continuation_count, bool)
-        and 0 <= continuation_count <= 1
+        and continuation_count >= 0
+        and (unlimited_provider_continuations or continuation_count <= 1)
         and isinstance(thread_turns, list)
         and len(thread_turns) == continuation_count + 1
         and all(
@@ -896,7 +1001,8 @@ def _w2_26_campaign_receipt_contract(
     process_attempt_count_valid = (
         isinstance(process_attempt_count, int)
         and not isinstance(process_attempt_count, bool)
-        and 1 <= process_attempt_count <= 3
+        and process_attempt_count >= 1
+        and (unlimited_provider_continuations or process_attempt_count <= 3)
     )
     predecessor_count = len(predecessors)
     accepted_participant_model_call_count = 1 + continuation_count
@@ -957,6 +1063,7 @@ def _qualification(
     maximum_exact_repeats: int | None = None,
     agent_invalid_enforcement: str | None = None,
     provider_error_enforcement: str | None = None,
+    unlimited_provider_continuations: bool = False,
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -972,7 +1079,11 @@ def _qualification(
         and provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
     )
     w2_26_receipt_contract = (
-        _w2_26_campaign_receipt_contract(receipts, method_resources)
+        _w2_26_campaign_receipt_contract(
+            receipts,
+            method_resources,
+            unlimited_provider_continuations=unlimited_provider_continuations,
+        )
         if w2_26_retry_contract_enabled
         else None
     )
@@ -1054,8 +1165,9 @@ def _qualification(
     exact_repeat_limit = (
         target_experiments if maximum_exact_repeats is None else int(maximum_exact_repeats)
     )
-    host_commit_required = receipt.get("schema_version") == (
-        "chemworld-interactive-codex-session-receipt-0.2"
+    host_commit_required = (
+        receipt.get("final_recommendation_source") == "host_mcp_commit"
+        or isinstance(receipt.get("final_recommendation_commit"), Mapping)
     )
     provider_terminal_completed = (
         receipt.get("status") == "completed"
@@ -1139,12 +1251,24 @@ def _qualification(
         "provider_usage_reconciled": method_resources.get("provider_usage_pending") is False
         and method_resources.get("provider_usage_accounting_complete") is True
         and usage.get("in_flight_model_call_count") == 0
-        and int(usage.get("input_token_count", 0)) <= int(limits.get("input_token_limit", 0))
-        and int(usage.get("uncached_input_token_count", 0))
-        <= int(limits.get("uncached_input_token_limit", 0))
-        and int(usage.get("output_token_count", 0)) <= int(limits.get("output_token_limit", 0)),
+        and (
+            w2_26_receipt_contract is not None
+            or (
+                int(usage.get("input_token_count", 0))
+                <= int(limits.get("input_token_limit", 0))
+                and int(usage.get("uncached_input_token_count", 0))
+                <= int(limits.get("uncached_input_token_limit", 0))
+                and int(usage.get("output_token_count", 0))
+                <= int(limits.get("output_token_limit", 0))
+            )
+        ),
         "provider_operational_limits_reconciled": (
-            not operational_limits
+            (
+                w2_26_receipt_contract is not None
+                and operational_receipt_complete
+                and int(mcp_failure_budget["unclassified_count"]) == 0
+            )
+            or not operational_limits
             or (
                 operational_receipt_complete
                 and float(receipt["session_elapsed_s"])
@@ -1234,6 +1358,7 @@ def _run_cell(
     progress_path: Path,
     agent_invalid_enforcement: str | None = None,
     provider_error_enforcement: str | None = None,
+    provider_resource_limits_report_only: bool = False,
     agent_factory: Callable[..., Any] | None = None,
 ) -> dict[str, Any]:
     cell_started = perf_counter()
@@ -1264,6 +1389,19 @@ def _run_cell(
     )
     completed = 0
     target_experiments = int(config["campaign"]["complete_experiments"])
+    runtime_method_resource_limits = dict(config["method_resources"])
+    if provider_resource_limits_report_only:
+        for field in (
+            "input_token_limit",
+            "uncached_input_token_limit",
+            "output_token_limit",
+            "model_call_limit",
+        ):
+            # The ledger requires a numeric bound while provider usage is still
+            # in flight. sys.maxsize preserves that accounting protocol without
+            # imposing an experiment-relevant token ceiling.
+            runtime_method_resource_limits[field] = sys.maxsize
+        runtime_method_resource_limits["wall_time_limit_s"] = None
     failure: dict[str, str] | None = None
     temporary_directory = tempfile.TemporaryDirectory(prefix="chemworld-work-ii-cell-")
     # Keep the cell workspace alive until its receipts, qualification, and
@@ -1326,16 +1464,22 @@ def _run_cell(
             # W2-26 alone admits one typed, zero-action infrastructure predecessor.
             # Other paths retain their explicit provider setting (normally zero).
             pre_action_restart_limit=(
-                1
+                sys.maxsize
+                if provider_resource_limits_report_only
+                else 1
                 if agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
                 and provider_error_enforcement == PROVIDER_ERROR_ENFORCEMENT_POLICY
                 else int(provider.get("pre_action_restart_limit", 0))
             ),
-            accepted_turn_continuation_limit=int(
-                provider.get("accepted_turn_continuation_limit", 0)
+            accepted_turn_continuation_limit=(
+                sys.maxsize
+                if provider_resource_limits_report_only
+                else int(provider.get("accepted_turn_continuation_limit", 0))
             ),
             provider_process_attempt_limit=(
-                int(provider["provider_process_attempt_limit"])
+                sys.maxsize
+                if provider_resource_limits_report_only
+                else int(provider["provider_process_attempt_limit"])
                 if provider.get("provider_process_attempt_limit") is not None
                 else None
             ),
@@ -1406,7 +1550,7 @@ def _run_cell(
                 budget_override=int(config["method_resources"]["operation_limit"]),
                 episode_mode_override=config["episode_mode"],
                 step_callback=on_step,
-                method_resource_limits=dict(config["method_resources"]),
+                method_resource_limits=runtime_method_resource_limits,
                 material_information=_arm_material_information(config, arm),
                 campaign_resource_card=card,
                 electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
@@ -1494,6 +1638,7 @@ def _run_cell(
         ),
         agent_invalid_enforcement=agent_invalid_enforcement,
         provider_error_enforcement=provider_error_enforcement,
+        unlimited_provider_continuations=provider_resource_limits_report_only,
     )
     row = {
         "arm": arm,
@@ -1546,6 +1691,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         arms = [args.prior_arm]
     else:
         arms = all_arms
+    prospective_context = _prospective_cohort_context(
+        args,
+        config_path=config_path,
+        config=config,
+        world_seed=world_seed,
+        arms=arms,
+    )
     qualification_context = _qualification_execution_context(
         args,
         config_path=config_path,
@@ -1577,6 +1729,14 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         )
         if provider_error_enforcement != PROVIDER_ERROR_ENFORCEMENT_POLICY:
             raise RuntimeError("resource calibration provider-error policy is not frozen")
+    if prospective_context is not None:
+        if any(
+            context is not None
+            for context in (formal_context, qualification_context, calibration_context)
+        ):
+            raise RuntimeError("prospective cohort execution must be the only evidence mode")
+        agent_invalid_enforcement = AGENT_INVALID_ENFORCEMENT_POLICY
+        provider_error_enforcement = PROVIDER_ERROR_ENFORCEMENT_POLICY
     ap_development_context = _ap_development_execution_context(
         args,
         config_path=config_path,
@@ -1587,6 +1747,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         formal_context is not None
         or qualification_context is not None
         or calibration_context is not None
+        or prospective_context is not None
     ):
         raise RuntimeError("A-P development D1 must be the only execution mode")
     release_manifest_path = None
@@ -1595,6 +1756,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         and qualification_context is None
         and calibration_context is None
         and ap_development_context is None
+        and prospective_context is None
     ):
         release_manifest_path = _release_d1_execution_context(args, config=config)
     if args.prior_arm is not None:
@@ -1616,6 +1778,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             progress_path=progress_path,
             agent_invalid_enforcement=agent_invalid_enforcement,
             provider_error_enforcement=provider_error_enforcement,
+            provider_resource_limits_report_only=(
+                prospective_context is not None
+                or (
+                    calibration_context is not None
+                    and calibration_context[1].get("unlimited_spend_authorized") is True
+                )
+            ),
         )
         if qualification_context is not None:
             row["qualification_attempt_authorization_binding"] = qualification_context[3]
@@ -1658,6 +1827,10 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
                     "denominator_retained": True,
                 }
             write_json_atomic(cell_root / "summary.json", row)
+        if prospective_context is not None:
+            row["prospective_formal_result"] = True
+            row["prospective_cohort_cell"] = prospective_context
+            write_json_atomic(cell_root / "summary.json", row)
         results.append(row)
     report = {
         "schema_version": (
@@ -1675,6 +1848,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             formal_cell["cell_key_sha256"] if formal_cell is not None else None
         ),
         "formal_result": formal_cell is not None,
+        "prospective_formal_result": prospective_context is not None,
+        "prospective_cohort_cell": prospective_context,
         "qualification_manifest_sha256": (
             qualification_context[0].get("qualification_manifest_sha256")
             if qualification_context is not None
@@ -1687,7 +1862,9 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             config.get("legacy_source_evidence") if release_manifest_path is not None else None
         ),
         "provider_execution_authorized": (
-            release_manifest_path is not None or ap_development_context is not None
+            release_manifest_path is not None
+            or ap_development_context is not None
+            or prospective_context is not None
         ),
         "development_only": ap_development_context is not None,
         "release_manifest": (
@@ -1737,6 +1914,9 @@ def main() -> int:
     parser.add_argument("--formal-manifest", type=Path)
     parser.add_argument("--formal-cell-key")
     parser.add_argument("--allow-formal-execution", action="store_true")
+    parser.add_argument("--prospective-cohort-execution", action="store_true")
+    parser.add_argument("--prospective-cohort-plan", type=Path)
+    parser.add_argument("--prospective-cell-id")
     parser.add_argument("--qualification-execution", action="store_true")
     parser.add_argument("--qualification-manifest", type=Path)
     parser.add_argument("--qualification-authorization", type=Path)

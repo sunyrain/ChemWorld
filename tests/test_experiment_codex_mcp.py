@@ -349,28 +349,18 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
         assert metric_laws["maxItems"] == 2
         assert "link" in metric_laws["items"]["required"]
         begin_branch = snapshot["oneOf"][0]
-        assert begin_branch["properties"]["snapshot_header"] == header
-        assert begin_branch["properties"]["snapshot_header"]["properties"][
-            "law_summary"
-        ]["properties"]["schema_version"] == {
+        # The root properties retain the complete authoritative contract while
+        # oneOf stays compact enough for OpenAI-compatible provider registration.
+        assert begin_branch["properties"]["snapshot_header"] == {"type": "object"}
+        assert header["properties"]["law_summary"]["properties"]["schema_version"] == {
             "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION
         }
         prediction_branch = snapshot["oneOf"][1]
-        assert prediction_branch["properties"]["page_id"] == {
-            "const": "predictions-001"
-        }
-        prediction_variant = prediction_branch["properties"]["predictions"]["items"][
-            "oneOf"
-        ][0]
-        assert prediction_variant["properties"]["query_id"] == {"const": "q0"}
-        assert prediction_variant["properties"]["metrics"]["items"]["oneOf"][0][
-            "properties"
-        ]["metric_id"] == {"const": "score"}
+        assert prediction_branch["properties"]["page_id"] == {"type": "string"}
+        assert prediction_branch["properties"]["predictions"] == {"type": "array"}
         law_branch = snapshot["oneOf"][2]
-        assert law_branch["properties"]["page_id"] == {"const": "laws-001"}
-        assert law_branch["properties"]["metric_laws"]["items"]["oneOf"][0][
-            "properties"
-        ]["metric_id"] == {"const": "score"}
+        assert law_branch["properties"]["page_id"] == {"type": "string"}
+        assert law_branch["properties"]["metric_laws"] == {"type": "array"}
         assert "derived from the active public contract" in by_name[
             "commit_belief_snapshot"
         ]["description"]

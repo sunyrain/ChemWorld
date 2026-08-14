@@ -52,6 +52,64 @@ _PROCESS_EXITED_BEFORE_FIRST_REQUEST = "process_exited_before_first_request"
 _PROCESS_EXITED_BEFORE_NEXT_ACTION = "process_exited_before_next_action"
 _REQUEST_WAIT_TIMEOUT = "request_wait_timeout"
 
+
+def _provider_error_category(message: str) -> str:
+    """Classify a provider error without retaining its sensitive raw text."""
+
+    normalized = message.casefold()
+    categories = (
+        ("rate_limit", ("rate limit", "too many requests", "status 429", "http 429")),
+        (
+            "quota_or_balance",
+            (
+                "quota",
+                "insufficient balance",
+                "insufficient credit",
+                "billing",
+                "payment",
+            ),
+        ),
+        ("capacity", ("capacity", "overloaded", "temporarily unavailable")),
+        (
+            "authentication",
+            ("unauthorized", "invalid api key", "authentication", "status 401"),
+        ),
+        ("permission", ("forbidden", "permission", "status 403")),
+        ("model_unavailable", ("model not found", "model_not_found", "unknown model")),
+        ("context_limit", ("context length", "maximum context", "too many tokens")),
+        (
+            "request_validation",
+            ("bad request", "invalid request", "invalid_request", "status 400"),
+        ),
+        (
+            "provider_server",
+            (
+                "bad gateway",
+                "service unavailable",
+                "gateway timeout",
+                "status 500",
+                "status 502",
+                "status 503",
+                "status 504",
+                # DeepSeek may emit the undocumented 551 status for a
+                # provider-side rejection while the account and a minimal
+                # model request remain healthy. Treat it as transient server
+                # infrastructure, never as a scientific or balance failure.
+                "status 551",
+                "http 551",
+            ),
+        ),
+        (
+            "network",
+            ("connection", "dns", "timed out", "timeout", "tls", "socket"),
+        ),
+    )
+    for category, markers in categories:
+        if any(marker in normalized for marker in markers):
+            return category
+    return "provider_rejection_unclassified"
+
+
 MCP_TOOL_FAILURE_TAXONOMY_VERSION = "chemworld-mcp-tool-failure-taxonomy-0.1"
 MCP_TOOL_FAILURE_EPISODE_TAXONOMY_VERSION = (
     "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2"
@@ -865,6 +923,17 @@ class _CodexEventMonitor:
         entry = {
             "byte_count": len(encoded),
             "sha256": hashlib.sha256(encoded).hexdigest(),
+            "category": _provider_error_category(message),
+            "http_status_codes": sorted(
+                {
+                    int(value)
+                    for value in re.findall(
+                        r"(?:status|http(?:\s+status)?|code)\D{0,8}([1-5]\d{2})",
+                        message,
+                        flags=re.IGNORECASE,
+                    )
+                }
+            ),
         }
         if entry not in self._provider_errors:
             self._provider_errors.append(entry)
@@ -2044,7 +2113,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         monitor = self._session.get("monitor")
         if not isinstance(monitor, _CodexEventMonitor):
             return False
-        result = monitor.wait(1.0)
+        # A completed turn can emit its terminal event before the provider
+        # process has published its return code.  One second was too short for
+        # long DeepSeek campaign turns and misclassified clean early turns as
+        # process interruptions, preventing same-thread continuation.
+        result = monitor.wait(min(self.finalization_timeout_s, 30.0))
         usage = result.get("usage")
         turn_usage = usage if isinstance(usage, dict) else _empty_usage()
         normalized_usage = _combined_session_turn_usage(self._session, turn_usage)
@@ -2064,16 +2137,25 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             provider_error_count = len(provider_errors) if isinstance(provider_errors, list) else 0
         thread_id = result.get("thread_id")
         campaign_thread_id = self._session.get("thread_id")
-        eligible = (
-            result.get("status") == "completed"
-            and result.get("return_code") == 0
-            and isinstance(thread_id, str)
-            and bool(thread_id)
-            and (campaign_thread_id is None or thread_id == campaign_thread_id)
-            and int(event_counts.get("turn.completed", 0)) > 0
+        clean_provider_turn_completed = (
+            int(event_counts.get("turn.completed", 0)) > 0
             and result.get("usage_observed") is True
             and _usage_complete(normalized_usage)
             and provider_error_count == 0
+        )
+        provider_process_finalized_cleanly_or_was_reaped = (
+            (
+                result.get("status") == "completed"
+                and result.get("return_code") == 0
+            )
+            or result.get("status") == "timeout"
+        )
+        eligible = (
+            clean_provider_turn_completed
+            and provider_process_finalized_cleanly_or_was_reaped
+            and isinstance(thread_id, str)
+            and bool(thread_id)
+            and (campaign_thread_id is None or thread_id == campaign_thread_id)
             and int(taxonomy_counts["provider_network"]) == 0
             and int(taxonomy_counts["transport_ipc_os"]) == 0
             and int(taxonomy_counts["unclassified"]) == 0
@@ -2090,8 +2172,15 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 {
                     "turn_index": len(turn_receipts) + 1,
                     "thread_id": thread_id,
-                    "status": "completed_before_campaign_terminal",
-                    "return_code": 0,
+                    "status": (
+                        "completed_before_campaign_terminal"
+                        if result.get("status") == "completed"
+                        else "completed_before_campaign_terminal_process_reaped"
+                    ),
+                    "return_code": result.get("return_code"),
+                    "provider_process_reaped_after_clean_turn": (
+                        result.get("status") == "timeout"
+                    ),
                     "accepted_action_count_after_turn": int(
                         self._session["accepted_action_count"]
                     ),

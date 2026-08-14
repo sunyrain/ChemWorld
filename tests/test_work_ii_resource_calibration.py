@@ -378,6 +378,7 @@ def test_task9_platform_defect_restarts_whole_triplet_once_then_exhausts_cap() -
         "attempt_number": 1,
         "provider_attempt_hard_cap": 2,
         "automatic_full_triplet_resume": True,
+        "provider_funding_blocked": False,
         "next_attempt_number": 2,
         "reserved_cost_usd": None,
     }

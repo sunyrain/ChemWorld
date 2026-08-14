@@ -1253,8 +1253,9 @@ def validate_method_qualification_report(
         receipts = raw_row.get("provider_receipts")
         receipts = receipts if isinstance(receipts, list) else []
         receipt = receipts[0] if len(receipts) == 1 and isinstance(receipts[0], Mapping) else {}
-        host_commit_required = receipt.get("schema_version") == (
-            "chemworld-interactive-codex-session-receipt-0.2"
+        host_commit_required = (
+            receipt.get("final_recommendation_source") == "host_mcp_commit"
+            or isinstance(receipt.get("final_recommendation_commit"), Mapping)
         )
         provider_terminal_completed = (
             receipt.get("status") == "completed"

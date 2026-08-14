@@ -96,6 +96,21 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--authorization", type=Path)
     parser.add_argument("--allow-provider-execution", action="store_true")
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument(
+        "--result-first-unlimited-resumes",
+        action="store_true",
+        help=(
+            "development-only continuation: retain every zero-action infrastructure "
+            "attempt, apply increasing backoff, and do not stop at the authorization's "
+            "historical triplet retry count; provider funding/authentication failures "
+            "remain terminal because retrying cannot create a result"
+        ),
+    )
+    parser.add_argument(
+        "--result-first-retry-now",
+        action="store_true",
+        help="skip only the first backoff after an operator-side request-path repair",
+    )
     parser.add_argument("--currency-ceiling-usd", type=float)
     parser.add_argument("--approved-at")
     parser.add_argument("--pricing-source")
@@ -162,7 +177,10 @@ def _observed_currency(
 
 
 def _load_and_validate_reservations(
-    output_root: Path, authorization: Mapping[str, object]
+    output_root: Path,
+    authorization: Mapping[str, object],
+    *,
+    unlimited_infrastructure_resumes: bool = False,
 ) -> float | None:
     unlimited = authorization.get("unlimited_spend_authorized") is True
     rows = []
@@ -180,7 +198,11 @@ def _load_and_validate_reservations(
         expected = contracts.get(key)
         if (
             expected is None
-            or attempt not in {1, 2}
+            or attempt < 1
+            or (
+                not unlimited_infrastructure_resumes
+                and attempt not in {1, 2}
+            )
             or sequence <= 0
             or path.parent.parent.name != pattern_slug(row)
             or row.get("authorization_sha256")
@@ -346,6 +368,29 @@ def _cell_has_platform_defect(row: Mapping[str, object]) -> bool:
     return cell_has_platform_defect(row)
 
 
+def _cell_has_provider_funding_block(row: Mapping[str, object]) -> bool:
+    """Return whether the provider explicitly rejected execution for lack of funds."""
+
+    receipts = row.get("provider_receipts")
+    if not isinstance(receipts, list):
+        return False
+    for receipt in receipts:
+        if not isinstance(receipt, Mapping):
+            continue
+        errors = receipt.get("provider_errors")
+        if not isinstance(errors, list):
+            continue
+        for error in errors:
+            if not isinstance(error, Mapping):
+                continue
+            status_codes = error.get("http_status_codes")
+            if error.get("category") == "quota_or_balance" or (
+                isinstance(status_codes, list) and 402 in status_codes
+            ):
+                return True
+    return False
+
+
 def _triplet_attempt_hard_cap(authorization: Mapping[str, object]) -> int:
     """Return the authorization-owned whole-triplet attempt hard cap."""
 
@@ -363,19 +408,26 @@ def _triplet_attempt_hard_cap(authorization: Mapping[str, object]) -> int:
 
 def _platform_defect_disposition(
     *,
-    provider_attempt_hard_cap: int,
+    provider_attempt_hard_cap: int | None,
     pattern: Mapping[str, object],
     attempt_number: int,
     reserved_cost_usd: float | None,
+    provider_funding_blocked: bool = False,
 ) -> dict[str, object]:
     """Apply the authorized whole-triplet infrastructure restart hard cap."""
 
-    automatic_resume = attempt_number < provider_attempt_hard_cap
+    automatic_resume = not provider_funding_blocked and (
+        provider_attempt_hard_cap is None or attempt_number < provider_attempt_hard_cap
+    )
     return {
         "status": (
-            "infrastructure_incomplete_full_triplet_restarting"
-            if automatic_resume
-            else "infrastructure_incomplete_full_triplet_resume_cap_exhausted"
+            "provider_funding_blocked_result_preserved"
+            if provider_funding_blocked
+            else (
+                "infrastructure_incomplete_full_triplet_restarting"
+                if automatic_resume
+                else "infrastructure_incomplete_full_triplet_resume_cap_exhausted"
+            )
         ),
         "locus": pattern["locus"],
         "task_id": pattern["task_id"],
@@ -383,6 +435,7 @@ def _platform_defect_disposition(
         "attempt_number": attempt_number,
         "provider_attempt_hard_cap": provider_attempt_hard_cap,
         "automatic_full_triplet_resume": automatic_resume,
+        "provider_funding_blocked": provider_funding_blocked,
         "next_attempt_number": attempt_number + 1 if automatic_resume else None,
         "reserved_cost_usd": reserved_cost_usd,
     }
@@ -395,6 +448,8 @@ def execute_calibration(
     output_root: Path,
     resume: bool,
     cell_runner: Path = CELL_RUNNER,
+    result_first_unlimited_resumes: bool = False,
+    result_first_retry_now: bool = False,
 ) -> dict[str, object]:
     """Execute or infrastructure-resume frozen triplets without replacing cells."""
 
@@ -405,6 +460,17 @@ def execute_calibration(
     output_root = _inside_root(output_root, label="W2-26 output root")
     manifest = _load(manifest_path)
     authorization = _load(authorization_path)
+    if result_first_retry_now and not result_first_unlimited_resumes:
+        raise RuntimeError(
+            "result-first immediate retry requires unlimited-resume mode"
+        )
+    if (
+        result_first_unlimited_resumes
+        and authorization.get("unlimited_spend_authorized") is not True
+    ):
+        raise RuntimeError(
+            "result-first unlimited resumes require unlimited-spend authorization"
+        )
     authorization_errors = validate_resource_calibration_authorization(
         ROOT, authorization, manifest_path
     )
@@ -449,11 +515,19 @@ def execute_calibration(
         if unlimited
         else float(authorization["all_infrastructure_resumes"]["cost_cap_usd"])
     )
-    reserved_cost = _load_and_validate_reservations(output_root, authorization)
+    reserved_cost = _load_and_validate_reservations(
+        output_root,
+        authorization,
+        unlimited_infrastructure_resumes=result_first_unlimited_resumes,
+    )
     pattern_contracts = {
         pattern_key(row): row for row in authorization["pattern_attempt_contracts"]
     }
-    provider_attempt_hard_cap = _triplet_attempt_hard_cap(authorization)
+    provider_attempt_hard_cap = (
+        None
+        if result_first_unlimited_resumes
+        else _triplet_attempt_hard_cap(authorization)
+    )
     total_triplets = len(manifest["patterns"])
     for triplet_index, pattern in enumerate(manifest["patterns"], start=1):
         rounds = int(pattern["rounds"])
@@ -473,9 +547,31 @@ def execute_calibration(
             continue
         attempts_root = output_root / "triplet_attempts" / slug
         existing = sorted(attempts_root.glob("attempt-*")) if attempts_root.is_dir() else []
-        if len(existing) >= provider_attempt_hard_cap:
+        if (
+            provider_attempt_hard_cap is not None
+            and len(existing) >= provider_attempt_hard_cap
+        ):
             raise RuntimeError(f"W2-26 {slug} triplet exhausted its resume cap")
         attempt_number = len(existing) + 1
+        if (
+            result_first_unlimited_resumes
+            and existing
+            and not result_first_retry_now
+        ):
+            backoff_s = min(300, 30 * (2 ** max(0, attempt_number - 3)))
+            _emit(
+                progress_path,
+                {
+                    "event": "resource_calibration_infrastructure_retry_backoff",
+                    "rounds": rounds,
+                    "locus": pattern["locus"],
+                    "task_id": pattern["task_id"],
+                    "next_attempt_number": attempt_number,
+                    "backoff_s": backoff_s,
+                    "attempt_count_limit": None,
+                },
+            )
+            time.sleep(backoff_s)
         attempt_root = attempts_root / f"attempt-{attempt_number}-{uuid4().hex}"
         attempt_root.mkdir(parents=True, exist_ok=False)
         contract = pattern_contracts[pattern_key(pattern)]
@@ -517,6 +613,8 @@ def execute_calibration(
         processes: list[dict[str, object]] = []
         started = time.monotonic()
         for arm in RESOURCE_CALIBRATION_ARMS:
+            if result_first_unlimited_resumes and processes:
+                time.sleep(3.0)
             cell_root = attempt_root / arm
             child_progress = attempt_root / "progress" / f"{arm}.jsonl"
             log_path = attempt_root / "logs" / f"{arm}.log"
@@ -643,6 +741,7 @@ def execute_calibration(
             time.sleep(min(1.0, max(0.05, next_heartbeat - now)))
         rows: list[dict[str, object]] = []
         platform_defect = False
+        provider_funding_blocked = False
         config = _load(ROOT / pattern["campaign_config_binding"]["path"])
         for item in processes:
             if item["process"] is None:
@@ -678,6 +777,8 @@ def execute_calibration(
             )
             if _cell_has_platform_defect(row):
                 platform_defect = True
+            if _cell_has_provider_funding_block(row):
+                provider_funding_blocked = True
             row["calibration_campaign_contract"] = {
                 "process_time_policy": config["campaign"]["process_time_policy"],
                 "closeout_policy": config["campaign"]["closeout_policy"],
@@ -718,6 +819,7 @@ def execute_calibration(
                 pattern=pattern,
                 attempt_number=attempt_number,
                 reserved_cost_usd=reserved_cost,
+                provider_funding_blocked=provider_funding_blocked,
             )
             _emit(
                 progress_path,
@@ -728,6 +830,7 @@ def execute_calibration(
                     "task_id": pattern["task_id"],
                     "attempt_number": attempt_number,
                     "resume_requires_full_triplet_restart": True,
+                    "provider_funding_blocked": provider_funding_blocked,
                 },
             )
             if disposition["automatic_full_triplet_resume"] is True:
@@ -753,6 +856,11 @@ def execute_calibration(
                     output_root=output_root,
                     resume=True,
                     cell_runner=cell_runner,
+                    result_first_unlimited_resumes=result_first_unlimited_resumes,
+                    # The operator override applies only to the first repaired
+                    # request path. Subsequent provider-side failures need the
+                    # normal backoff instead of a tight recursive retry loop.
+                    result_first_retry_now=False,
                 )
             return disposition
         _write_once(terminal_path, triplet_report)
@@ -971,6 +1079,10 @@ def main() -> int:
             authorization_path=args.authorization,
             output_root=args.output,
             resume=bool(args.resume),
+            result_first_unlimited_resumes=bool(
+                args.result_first_unlimited_resumes
+            ),
+            result_first_retry_now=bool(args.result_first_retry_now),
         )
         print(json.dumps(progress, ensure_ascii=False, sort_keys=True), flush=True)
         return 0 if progress["status"] in {"passed", "failed"} else 1
@@ -979,6 +1091,8 @@ def main() -> int:
         args.authorization is not None
         or args.allow_provider_execution
         or args.resume
+        or args.result_first_unlimited_resumes
+        or args.result_first_retry_now
         or any(
             value is not None
             for value in (
