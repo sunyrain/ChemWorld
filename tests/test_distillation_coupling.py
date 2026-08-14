@@ -202,6 +202,54 @@ def test_fraction_collection_preserves_bottoms_remainder_and_prior_cuts() -> Non
         env.close()
 
 
+def test_repeated_distillation_consumes_only_bottoms_and_preserves_prior_receivers() -> None:
+    env = _distill()
+    try:
+        _, _, _, _, collected_info = env.step(
+            {"operation": "collect_fraction", "transfer_fraction": 0.60}
+        )
+        assert collected_info["transaction_status"] == "committed"
+        first = _runtime(env)._state
+        first_bottoms_target = _target_amount(env, "bottoms")
+        prior_collected_target = _target_amount(env, "collected_fraction")
+        prior_receiver_target = _target_amount(env, "distillate")
+        conserved_inventory = first.phases.total_amounts_mol()
+        conserved_volume = sum(
+            phase.volume_L for phase in first.phases.phases.values()
+        )
+
+        _, _, _, _, info = env.step(
+            {
+                "operation": "distill",
+                "target_temperature_K": 370.0,
+                "duration_s": 1200.0,
+                "reflux_ratio": 2.5,
+            }
+        )
+
+        state = _runtime(env)._state
+        settings = equipment_settings(state.equipment, "distillation_column")
+        history = settings["distillation_history"]
+        assert info["transaction_status"] == "committed"
+        assert len(history) == 2
+        assert history[-1]["feed_source_phase"] == "bottoms"
+        assert history[-1]["feed_target_mol"] == pytest.approx(
+            first_bottoms_target
+        )
+        assert _target_amount(env, "collected_fraction") == pytest.approx(
+            prior_collected_target
+        )
+        assert _target_amount(env, "distillate") >= prior_receiver_target
+        assert _target_amount(env, "bottoms") <= first_bottoms_target
+        assert state.phases.total_amounts_mol() == pytest.approx(conserved_inventory)
+        assert sum(
+            phase.volume_L for phase in state.phases.phases.values()
+        ) == pytest.approx(conserved_volume)
+        assert _runtime(env).constitution.check_state(state).passed
+    finally:
+        env.close()
+
+
 def test_small_fraction_uses_selected_phase_for_pressure_and_commits() -> None:
     env = _distill()
     try:

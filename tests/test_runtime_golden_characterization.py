@@ -94,6 +94,16 @@ ELECTROCHEMISTRY_FINAL = (
         "electrolyte_profile": 1,
     },
     {"operation": "electrolyze", "duration_s": 1800.0},
+    {"operation": "measure", "instrument": "ph_meter"},
+    {"operation": "measure", "instrument": "uvvis"},
+    {
+        "operation": "set_potential",
+        "potential_V": 1.25,
+        "current_mA": 75.0,
+        "electrolyte_profile": 1,
+    },
+    {"operation": "electrolyze", "duration_s": 1800.0},
+    {"operation": "measure", "instrument": "uvvis"},
     {"operation": "terminate"},
     {"operation": "measure", "instrument": "final_assay"},
 )
@@ -122,8 +132,8 @@ PARTITION_FINAL = (
 GOLDEN: dict[str, dict[str, Any]] = {
     "electrochemical-conversion": {
         "mechanism_id": "electrochemical_conversion",
-        "steps": 6,
-        "score": 0.5754343420115108,
+        "steps": 11,
+        "score": 0.441315085292618,
     },
     "equilibrium-characterization": {
         "mechanism_id": "simple_batch_reaction",
@@ -143,7 +153,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "partition-discovery": {
         "mechanism_id": "reaction_extraction",
         "steps": 8,
-        "score": 0.4727168569767468,
+        "score": 0.6581859223291314,
     },
     "public-private-generalization": {
         "mechanism_id": "parallel_series_reaction",
@@ -153,7 +163,7 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "purity-yield-tradeoff": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.27432844172007864,
+        "score": 0.27527763726400345,
     },
     "reaction-mechanism-explanation": {
         "mechanism_id": "autocatalytic_reaction",
@@ -188,12 +198,12 @@ GOLDEN: dict[str, dict[str, Any]] = {
     "reaction-to-purification": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.2913934708357755,
+        "score": 0.2946386311801042,
     },
     "tool-agent-planning": {
         "mechanism_id": "reaction_extraction",
         "steps": 17,
-        "score": 0.0,
+        "score": 0.01363242432442105,
     },
 }
 

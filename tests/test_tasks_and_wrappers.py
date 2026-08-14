@@ -470,6 +470,16 @@ def test_env_raw_signal_uses_public_task_species_contract() -> None:
                 "electrolyte_profile": 1,
             },
             {"operation": "electrolyze", "duration_s": 1800.0},
+            {"operation": "measure", "instrument": "ph_meter"},
+            {"operation": "measure", "instrument": "uvvis"},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.25,
+                "current_mA": 75.0,
+                "electrolyte_profile": 1,
+            },
+            {"operation": "electrolyze", "duration_s": 1800.0},
+            {"operation": "measure", "instrument": "uvvis"},
             {"operation": "terminate"},
         ):
             env.step(action)
@@ -918,18 +928,18 @@ def test_process_preconditions_are_stateful() -> None:
         _, _, _, _, info = env.step({"operation": "measure", "instrument": "hplc"})
         assert "seed_crystals" in info["valid_operations"]
         _, _, _, _, info = env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
-        assert set(info["valid_operations"]) == {
-            "seed_crystals",
-            "cool_crystallize",
-            "measure",
-        }
-        blocked_after_seed = env.unwrapped.operation_validator.validate(
-            {"operation": "wait", "duration_s": 60.0},
+        assert {"heat", "wait", "seed_crystals", "cool_crystallize", "measure"} <= set(
+            info["valid_operations"]
+        )
+        allowed_after_seed = env.unwrapped.operation_validator.validate(
+            {
+                "operation": "wait",
+                "duration_s": 60.0,
+                "stirring_speed_rpm": 600.0,
+            },
             env.unwrapped._state,
         )
-        assert not blocked_after_seed.preconditions[
-            "seeded_crystallization_requires_seed_assay_or_cooling"
-        ]
+        assert allowed_after_seed.is_valid
         _, _, _, _, info = env.step(
             {
                 "operation": "cool_crystallize",
@@ -937,7 +947,10 @@ def test_process_preconditions_are_stateful() -> None:
                 "duration_s": 1200.0,
             }
         )
-        assert set(info["valid_operations"]) == {"measure"}
+        assert {"heat", "wait", "seed_crystals", "cool_crystallize", "measure"} <= set(
+            info["valid_operations"]
+        )
+        assert "filter_crystals" not in info["valid_operations"]
         blocked_filter_without_assay = env.unwrapped.operation_validator.validate(
             {"operation": "filter_crystals"},
             env.unwrapped._state,
@@ -945,21 +958,18 @@ def test_process_preconditions_are_stateful() -> None:
         assert not blocked_filter_without_assay.preconditions[
             "filter_crystals_requires_current_slurry_assay"
         ]
-        assert set(info["valid_operations"]) == {
-            "measure",
-        }
-        blocked_after_cooling = env.unwrapped.operation_validator.validate(
-            {"operation": "wait", "duration_s": 60.0},
+        allowed_after_cooling = env.unwrapped.operation_validator.validate(
+            {
+                "operation": "wait",
+                "duration_s": 60.0,
+                "stirring_speed_rpm": 600.0,
+            },
             env.unwrapped._state,
         )
-        assert not blocked_after_cooling.preconditions[
-            "completed_crystallization_requires_assay_or_filter"
-        ]
+        assert allowed_after_cooling.is_valid
         _, _, _, _, info = env.step({"operation": "measure", "instrument": "hplc"})
-        assert set(info["valid_operations"]) == {
-            "filter_crystals",
-            "measure",
-        }
+        assert "filter_crystals" in info["valid_operations"]
+        assert "heat" in info["valid_operations"]
         _, _, _, _, info = env.step({"operation": "filter_crystals"})
         assert set(info["valid_operations"]) == {"measure", "terminate"}
         blocked = env.unwrapped.operation_validator.validate(

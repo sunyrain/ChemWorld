@@ -18,7 +18,7 @@ from typing import Any
 from chemworld.eval.provenance import write_json_atomic
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_PLAN = ROOT / "configs/benchmark/work_ii_deepseek_c2_prospective_v0.1.json"
+DEFAULT_PLAN = ROOT / "configs/benchmark/work_ii_deepseek_c2_prospective_v0.2.json"
 CELL_RUNNER = ROOT / "scripts/run_work_ii_campaign_pilot.py"
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
 EXPECTED_BLOCKS = {
@@ -225,6 +225,87 @@ def _cell_summary(output_root: Path, cell_id: str) -> dict[str, Any] | None:
     return value
 
 
+def _is_zero_operation_provider_failure(summary: Mapping[str, Any]) -> bool:
+    """Return whether a cell is resumable infrastructure loss, not a result."""
+
+    analysis = summary.get("analysis")
+    analysis = analysis if isinstance(analysis, Mapping) else {}
+    if any(
+        int(analysis.get(field, 0) or 0) != 0
+        for field in (
+            "complete_experiment_count",
+            "operation_attempt_count",
+            "committed_operation_count",
+        )
+    ):
+        return False
+
+    method = summary.get("method_resources")
+    method = method if isinstance(method, Mapping) else {}
+    if int(method.get("provider_error_event_count", 0) or 0) > 0:
+        return True
+
+    receipts = summary.get("provider_receipts")
+    receipts = receipts if isinstance(receipts, list) else []
+    return any(
+        isinstance(receipt, Mapping)
+        and (
+            int(receipt.get("provider_error_event_count", 0) or 0) > 0
+            or bool(receipt.get("provider_errors"))
+        )
+        for receipt in receipts
+    )
+
+
+def _is_reusable_terminal_summary(summary: Mapping[str, Any] | None) -> bool:
+    return summary is not None and not _is_zero_operation_provider_failure(summary)
+
+
+def _archive_recoverable_attempt(output_root: Path, cell_id: str) -> Path:
+    """Move one zero-operation provider attempt aside without overwriting it."""
+
+    cell_root = output_root / "cells" / cell_id
+    summary = _cell_summary(output_root, cell_id)
+    if summary is None or not _is_zero_operation_provider_failure(summary):
+        raise RuntimeError(f"refusing to archive non-recoverable cell: {cell_id}")
+
+    attempts_root = output_root / "cell_attempts" / cell_id
+    attempts_root.mkdir(parents=True, exist_ok=True)
+    attempt_number = 1
+    while (attempts_root / f"attempt-{attempt_number:04d}").exists():
+        attempt_number += 1
+    attempt_root = attempts_root / f"attempt-{attempt_number:04d}"
+    cell_root.rename(attempt_root)
+
+    companions = (
+        (output_root / "logs" / f"{cell_id}.log", "runner.log"),
+        (output_root / "cell_progress" / f"{cell_id}.jsonl", "progress.jsonl"),
+    )
+    for source, name in companions:
+        if source.exists():
+            source.rename(attempt_root / name)
+    return attempt_root
+
+
+def _triplet_is_pending(
+    triplet: Mapping[str, Any], *, output_root: Path
+) -> bool:
+    return any(
+        not _is_reusable_terminal_summary(
+            _cell_summary(
+                output_root,
+                _cell_id(
+                    str(triplet["block"]),
+                    str(triplet["task_id"]),
+                    int(triplet["world_seed"]),
+                    arm,
+                ),
+            )
+        )
+        for arm in ARMS
+    )
+
+
 def _run_triplet(
     triplet: Mapping[str, Any],
     *,
@@ -239,10 +320,28 @@ def _run_triplet(
     for arm in ARMS:
         cell_id = _cell_id(block, task_id, seed, arm)
         existing = _cell_summary(output_root, cell_id)
-        if existing is not None:
+        if _is_reusable_terminal_summary(existing):
             states.append({"arm": arm, "cell_id": cell_id, "existing": existing})
             continue
+        archived_attempt = None
+        if existing is not None:
+            archived_attempt = _archive_recoverable_attempt(output_root, cell_id)
+            progress.emit(
+                {
+                    "event": "zero_operation_infrastructure_attempt_archived",
+                    "block": block,
+                    "task_id": task_id,
+                    "world_seed": seed,
+                    "cell_id": cell_id,
+                    "prior_arm": arm,
+                    "archive": str(archived_attempt),
+                }
+            )
         cell_root = output_root / "cells" / cell_id
+        if cell_root.exists():
+            raise RuntimeError(
+                f"cell output exists without reusable or recoverable summary: {cell_root}"
+            )
         log_path = output_root / "logs" / f"{cell_id}.log"
         child_progress = output_root / "cell_progress" / f"{cell_id}.jsonl"
         log_path.parent.mkdir(parents=True, exist_ok=True)
@@ -287,6 +386,7 @@ def _run_triplet(
                 "process": process,
                 "log_handle": log_handle,
                 "log_path": log_path,
+                "archived_attempt": archived_attempt,
             }
         )
     progress.emit(
@@ -330,11 +430,17 @@ def _run_triplet(
         else:
             return_code = 0
         summary = _cell_summary(output_root, state["cell_id"])
+        reusable_terminal = _is_reusable_terminal_summary(summary)
+        recoverable_infrastructure = (
+            summary is not None and _is_zero_operation_provider_failure(summary)
+        )
         rows.append(
             {
                 "cell_id": state["cell_id"],
                 "arm": state["arm"],
-                "terminal": summary is not None,
+                "terminal": reusable_terminal,
+                "attempt_terminal": summary is not None,
+                "recoverable_infrastructure_failure": recoverable_infrastructure,
                 "completed": summary.get("completed") is True if summary else False,
                 "return_code": return_code,
                 "failure": summary.get("failure") if summary else "missing_summary",
@@ -347,6 +453,9 @@ def _run_triplet(
         "terminal_cells": sum(row["terminal"] for row in rows),
         "completed_cells": sum(row["completed"] for row in rows),
         "infrastructure_missing_cells": sum(not row["terminal"] for row in rows),
+        "recoverable_infrastructure_cells": sum(
+            row["recoverable_infrastructure_failure"] for row in rows
+        ),
         "cells": rows,
     }
     progress.emit({"event": "triplet_finished", **result})
@@ -368,6 +477,10 @@ def _write_summary(
                 arm,
             )
             summary = _cell_summary(output_root, cell_id)
+            reusable_terminal = _is_reusable_terminal_summary(summary)
+            recoverable_infrastructure = (
+                summary is not None and _is_zero_operation_provider_failure(summary)
+            )
             cells.append(
                 {
                     "cell_id": cell_id,
@@ -376,7 +489,9 @@ def _write_summary(
                     "world_seed": triplet["world_seed"],
                     "prior_arm": arm,
                     "scheduled_experiments": triplet["rounds"],
-                    "terminal": summary is not None,
+                    "terminal": reusable_terminal,
+                    "attempt_terminal": summary is not None,
+                    "recoverable_infrastructure_failure": recoverable_infrastructure,
                     "completed": summary.get("completed") is True if summary else False,
                     "complete_experiments": (
                         summary.get("analysis", {}).get("complete_experiment_count", 0)
@@ -387,6 +502,10 @@ def _write_summary(
                 }
             )
     terminal = sum(row["terminal"] for row in cells)
+    attempt_terminal = sum(row["attempt_terminal"] for row in cells)
+    recoverable_infrastructure = sum(
+        row["recoverable_infrastructure_failure"] for row in cells
+    )
     completed = sum(row["completed"] for row in cells)
     experiments = sum(int(row["complete_experiments"]) for row in cells)
     report = {
@@ -396,9 +515,11 @@ def _write_summary(
         "status": "all_public_cells_terminal" if terminal == len(cells) else "in_progress",
         "expected_sessions": len(cells),
         "terminal_sessions": terminal,
+        "attempt_terminal_sessions": attempt_terminal,
         "completed_sessions": completed,
         "retained_noncompleted_sessions": terminal - completed,
         "missing_sessions": len(cells) - terminal,
+        "recoverable_infrastructure_sessions": recoverable_infrastructure,
         "expected_complete_experiments": 1260,
         "observed_complete_experiments": experiments,
         "cells": cells,
@@ -431,7 +552,9 @@ def main() -> int:
                     "status": "ready",
                     "task_world_clusters": len(triplets),
                     "sessions": len(triplets) * 3,
-                    "complete_experiments": sum(row["rounds"] * 3 for row in triplets),
+                    "public_complete_experiments": sum(
+                        row["rounds"] * 3 for row in triplets
+                    ),
                     "private_sessions_after_public": 75,
                     "private_complete_experiments_after_public": 600,
                     "complete_sessions": 210,
@@ -461,19 +584,7 @@ def main() -> int:
     pending = [
         triplet
         for triplet in triplets
-        if any(
-            _cell_summary(
-                output_root,
-                _cell_id(
-                    str(triplet["block"]),
-                    str(triplet["task_id"]),
-                    int(triplet["world_seed"]),
-                    arm,
-                ),
-            )
-            is None
-            for arm in ARMS
-        )
+        if _triplet_is_pending(triplet, output_root=output_root)
     ]
     concurrency = args.max_concurrent_triplets or int(
         plan.get("execution", {}).get("max_concurrent_triplets", 3)

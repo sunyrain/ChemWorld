@@ -1,0 +1,112 @@
+{
+  "schema_version": "chemworld-work-ii-deepseek-c2-prospective-0.1",
+  "cohort_id": "work-ii-deepseek-c2-corrected-semantics-v0.2",
+  "status": "public_execution_authorized",
+  "provider": {
+    "id": "deepseek",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "resource_limits": "report_only"
+  },
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_DEEPSEEK_C2_PUBLIC_RERUN_EXPERIMENT_NOTE.md",
+  "prior_arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "execution": {
+    "parallelization_unit": "same_task_world_three_arm_triplet",
+    "max_concurrent_triplets": 3,
+    "missing_infrastructure_only_resume": true,
+    "scientific_or_method_failure_retained": true,
+    "outcome_based_replacement_forbidden": true,
+    "progress_interval_seconds": 30
+  },
+  "public_blocks": [
+    {
+      "block": "A_E_public",
+      "locus": "A_E",
+      "rounds_per_session": 8,
+      "tasks": [
+        {
+          "task_id": "electrochemical-conversion",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--electrochemical-conversion--r8.json",
+          "world_seeds": [934334899, 222130288, 187256385, 779398037, 533253734]
+        },
+        {
+          "task_id": "reaction-to-crystallization",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-to-crystallization--r8.json",
+          "world_seeds": [981471142, 371545319, 680821974, 854364962, 297088702]
+        },
+        {
+          "task_id": "reaction-to-distillation",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-to-distillation--r8.json",
+          "world_seeds": [439344905, 353545270, 305419816, 301573033, 510396964]
+        },
+        {
+          "task_id": "partition-discovery",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--partition-discovery--r8.json",
+          "world_seeds": [595257646, 913561854, 392161417, 114255949, 308641243]
+        },
+        {
+          "task_id": "reaction-safety-constrained",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-safety-constrained--r8.json",
+          "world_seeds": [581283898, 413319517, 311564803, 267586659, 854968543]
+        }
+      ]
+    },
+    {
+      "block": "A_P",
+      "locus": "A_P",
+      "rounds_per_session": 10,
+      "tasks": [
+        {
+          "task_id": "electrochemical-conversion",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--electrochemical-conversion--r10.json",
+          "world_seeds": [973419928, 205061234, 141388883, 594927609, 869796364]
+        },
+        {
+          "task_id": "reaction-safety-constrained",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--reaction-safety-constrained--r10.json",
+          "world_seeds": [829726730, 145076830, 624715740, 210420473, 958385461]
+        }
+      ]
+    },
+    {
+      "block": "A_S",
+      "locus": "A_S",
+      "rounds_per_session": 12,
+      "tasks": [
+        {
+          "task_id": "partition-discovery",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+          "world_seeds": [527268922, 946166808, 650846081, 110564668, 241120479]
+        },
+        {
+          "task_id": "reaction-to-crystallization",
+          "config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--reaction-to-crystallization--r12.json",
+          "world_seeds": [620418208, 698311423, 642292453, 433478377, 918459813]
+        }
+      ]
+    }
+  ],
+  "expected_public_totals": {
+    "task_world_clusters": 45,
+    "sessions": 135,
+    "complete_experiments": 1260
+  },
+  "private_block": {
+    "block": "A_E_private",
+    "start_condition": "all_public_cells_terminal_and_public_analysis_frozen",
+    "seal": "runs/private/work-ii-deepseek-c2-private-world-seal-v0.1.json",
+    "tasks": 5,
+    "worlds_per_task": 5,
+    "sessions": 75,
+    "rounds_per_session": 8,
+    "complete_experiments": 600
+  },
+  "expected_complete_totals": {
+    "sessions": 210,
+    "complete_experiments": 1860
+  }
+}

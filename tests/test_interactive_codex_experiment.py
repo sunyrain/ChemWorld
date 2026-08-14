@@ -1156,6 +1156,31 @@ emit({
 })
 """
 
+_FAKE_SECOND_ACTION_THEN_COMPLETED_TURN = (
+    _FAKE_ONE_ACTION_THEN_COMPLETED_TURN.replace(
+        '"amount_mol": 0.01', '"amount_mol": 0.02'
+    )
+    .replace('"1",\n        "--action-json"', '"2",\n        "--action-json"')
+    .replace("expected-step 1", "expected-step 2")
+    .replace('"id": "command-1"', '"id": "command-2"')
+    .replace(
+        '"input_tokens": 100, "cached_input_tokens": 10, "output_tokens": 20',
+        '"input_tokens": 200, "cached_input_tokens": 20, "output_tokens": 30',
+    )
+)
+
+_FAKE_THIRD_TURN_COMPLETES_CAMPAIGN = (
+    _FAKE_RESUMED_THREAD_COMPLETES_CAMPAIGN.replace(
+        '"2",\n        "--action-json"', '"3",\n        "--action-json"'
+    )
+    .replace("expected-step 2", "expected-step 3")
+    .replace('"id": "command-2"', '"id": "command-3"')
+    .replace(
+        '"input_tokens": 200, "cached_input_tokens": 20, "output_tokens": 30',
+        '"input_tokens": 300, "cached_input_tokens": 30, "output_tokens": 40',
+    )
+)
+
 _FAKE_ONE_ACTION_THEN_PROVIDER_ERROR = _FAKE_ONE_ACTION_THEN_COMPLETED_TURN.replace(
     'emit({\n    "type": "turn.completed",',
     (
@@ -1680,6 +1705,83 @@ def test_completed_turn_after_accepted_action_resumes_same_campaign_thread(
     assert usage["output_token_count"] == 50
     assert usage["provider_usage_accounting_complete"] is True
     assert _w2_26_campaign_receipt_contract(receipts, usage)["valid"] is True
+
+
+def test_multiple_accepted_turn_continuations_count_each_turn_usage_once(
+    tmp_path: Path,
+) -> None:
+    calls = 0
+
+    def factory(command: Any, prompt: str, cwd: Path):
+        del command, prompt
+        nonlocal calls
+        calls += 1
+        scripts = (
+            _FAKE_ONE_ACTION_THEN_COMPLETED_TURN,
+            _FAKE_SECOND_ACTION_THEN_COMPLETED_TURN,
+            _FAKE_THIRD_TURN_COMPLETES_CAMPAIGN,
+        )
+        return subprocess.Popen(
+            [sys.executable, "-c", scripts[calls - 1], str(cwd)],
+            cwd=cwd,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+
+    agent = InteractiveCodexExperimentAgent(
+        workspace=tmp_path / "workspace",
+        role_id="accepted-multiple-continuation-test",
+        process_factory=factory,
+        request_timeout_s=2.0,
+        finalization_timeout_s=2.0,
+        accepted_turn_continuation_limit=2,
+        provider_process_attempt_limit=4,
+        session_scope="campaign",
+        belief_checkpoint_contract={},
+    )
+    agent.reset({"task_id": "x", "budget": 3}, seed=0)
+    for step in (1, 2):
+        action = agent.act_with_public_view(_context(step, 4 - step), _view())
+        agent.update(
+            action,
+            {"score": step / 10.0},
+            step / 10.0,
+            {
+                "transaction_status": "committed",
+                "operation_type": action["operation"],
+                "experiment_ended": False,
+            },
+        )
+    final_action = agent.act_with_public_view(_context(3, 1), _view())
+    assert final_action == {"operation": "terminate"}
+    agent.update(
+        final_action,
+        {"score": 0.3},
+        0.3,
+        {
+            "transaction_status": "committed",
+            "operation_type": "terminate",
+            "experiment_ended": True,
+            "experiment_completed": True,
+            "experiment_summaries": [{"experiment_index": 0}],
+            "campaign_terminal": True,
+            "observed_keys": ["score"],
+            "constraint_flags": {},
+        },
+    )
+
+    usage = agent.method_resource_usage()
+    receipts = agent.provider_receipts()
+    assert calls == 3
+    assert len(receipts) == 1
+    assert receipts[0]["accepted_turn_continuation_count"] == 2
+    assert len(receipts[0]["turn_receipts"]) == 3
+    assert usage["logical_codex_turn_count"] == 3
+    assert usage["input_token_count"] == 600
+    assert usage["cached_input_token_count"] == 60
+    assert usage["output_token_count"] == 90
 
 
 def test_zero_action_predecessor_then_same_thread_continuation_uses_three_processes(

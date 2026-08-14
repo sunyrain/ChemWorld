@@ -136,6 +136,107 @@ def test_formal_runtime_dynamically_calls_validated_population_balance_provider(
         env.close()
 
 
+def test_crystallization_slurry_can_redissolve_and_recool_without_recreating_solids() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        env.step({"operation": "seed_crystals", "seed_mass_g": 0.006})
+        _, _, _, _, first_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1800.0,
+            }
+        )
+        assert first_info["transaction_status"] == "committed"
+        base: Any = env.unwrapped
+        view = base.runtime.domain_services.crystallization.species_view
+        target = view.primary_target_species
+        first = base._state
+        first_solid = first.phases.phases["solid"].species_amounts_mol[target]
+
+        _, _, _, _, heat_info = env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 300.0,
+                "duration_s": 300.0,
+                "stirring_speed_rpm": 600.0,
+            }
+        )
+        heated = base._state
+        heated_solid = heated.phases.phases["solid"].species_amounts_mol[target]
+        assert heat_info["transaction_status"] == "committed"
+        assert heated.process.metrics["crystal_redissolved_target_mol"] > 0.0
+        assert heated_solid < first_solid
+        assert heated.phases.total_amounts_mol() == pytest.approx(
+            heated.species_amounts
+        )
+
+        _, _, _, _, second_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 278.15,
+                "duration_s": 1800.0,
+            }
+        )
+        state = base._state
+        settings = equipment_settings(state.equipment, "crystallizer")
+        history = settings["execution_history"]
+        assert second_info["transaction_status"] == "committed"
+        assert len(history) == 2
+        assert history[-1]["prior_solid_target_mol"] == pytest.approx(
+            heated_solid
+        )
+        assert history[-1]["effective_seed_mass_g"] > 0.0
+        assert state.phases.phases["solid"].species_amounts_mol[target] >= (
+            heated_solid
+        )
+        assert state.phases.total_amounts_mol() == pytest.approx(
+            state.species_amounts
+        )
+        assert base.constitution.check_state(state).passed
+    finally:
+        env.close()
+
+
+def test_quench_stops_reaction_but_allows_later_thermal_holds() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS[:5]:
+            _, _, _, _, info = env.step(action)
+            assert info["transaction_status"] == "committed"
+        _, _, _, _, quench_info = env.step({"operation": "quench"})
+        assert quench_info["transaction_status"] == "committed"
+        quenched = env.unwrapped._state
+        amounts = quenched.species_amounts.copy()
+        reaction_heat = quenched.ledger.heat_reaction_J
+        reaction_count = quenched.process.metrics["reaction_advance_count"]
+
+        _, _, _, _, heat_info = env.step(
+            {
+                "operation": "heat",
+                "target_temperature_K": 350.0,
+                "duration_s": 300.0,
+                "stirring_speed_rpm": 600.0,
+            }
+        )
+        state = env.unwrapped._state
+        reactor = equipment_settings(state.equipment, "batch_reactor")
+        assert heat_info["transaction_status"] == "committed"
+        assert state.temperature_K == pytest.approx(350.0)
+        assert state.species_amounts == pytest.approx(amounts)
+        assert state.ledger.heat_reaction_J == pytest.approx(reaction_heat)
+        assert state.process.metrics["reaction_advance_count"] == reaction_count
+        assert reactor["reaction_stopped"] is True
+        assert reactor["reaction_chemistry_advanced"] is False
+        assert reactor["last_operation_semantic"] == "thermal_hold_after_quench"
+    finally:
+        env.close()
+
+
 def test_cooling_seed_and_time_perturbations_change_yield_purity_size_tradeoff() -> None:
     mild = _runtime_outcome(seed_mass_g=0.006, target_temperature_K=305.0, duration_s=1200.0)
     deep = _runtime_outcome(

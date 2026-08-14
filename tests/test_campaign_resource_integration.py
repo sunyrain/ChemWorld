@@ -180,6 +180,97 @@ def test_campaign_process_time_and_repeat_limits_are_hard_and_replayable() -> No
     assert CampaignResourceLedger.from_snapshot(ledger.snapshot()).snapshot() == ledger.snapshot()
 
 
+def test_public_duration_schema_tracks_remaining_campaign_process_time() -> None:
+    env = _make_electrochemical_env(
+        _card(process_time_limit_s=200.0),
+        budget=10,
+    )
+    try:
+        env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.020, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.0,
+                "current_mA": 60.0,
+                "electrolyte_profile": 1,
+            },
+        ):
+            _, _, _, _, info = env.step(action)
+            assert info["transaction_status"] == "committed"
+
+        ledger = env.unwrapped._campaign_resource_ledger
+        consumed = {"operation": "electrolyze", "duration_s": 150.0}
+        preflight = ledger.preflight("duration-schema-history", consumed)
+        assert preflight.allowed is True
+        ledger.record_outcome(
+            "duration-schema-history",
+            consumed,
+            {
+                "transaction_status": "committed",
+                "campaign_resource_report_delta": {"process_time_s": 150.0},
+            },
+        )
+
+        schema = env.unwrapped.action_schema("electrolyze")
+        duration = next(
+            field for field in schema["fields"] if field["field"] == "duration_s"
+        )
+        assert duration["bounds"] == {"low": 1.0, "high": 50.0}
+        assert duration["state_dependent_bounds"] is True
+        assert duration["resource_limited"] is True
+        accepted = env.unwrapped.validate_action(
+            {"operation": "electrolyze", "duration_s": 50.0}
+        )
+        rejected = env.unwrapped.validate_action(
+            {"operation": "electrolyze", "duration_s": 50.001}
+        )
+        assert accepted["valid"] is True
+        assert rejected["valid"] is False
+        assert "campaign_resource:process_time_limit" in rejected["invalid_reasons"]
+    finally:
+        env.close()
+
+
+def test_public_duration_schema_preserves_protected_closeout_time() -> None:
+    card = _card(
+        operation_attempt_limit=10,
+        process_time_limit_s=100.0,
+        metadata={
+            "task_id": "electrochemical-conversion",
+            "process_time_policy": {"protected_reserve_s": 20.0},
+            "closeout_policy": {
+                "policy": "protected_closeout_reserve_enforced",
+                "planned_batches": 2,
+                "final_assay_path_operations_per_batch": 2,
+                "final_assay_path_total_operation_reserve": 4,
+                "discard_path_operations_per_batch": 1,
+                "discard_path_total_operation_reserve": 2,
+                "allowed_operation_classes": [
+                    "discard_batch",
+                    "final_assay",
+                    "quench",
+                    "terminate",
+                    "transfer",
+                ],
+            },
+        },
+    )
+    env = _make_electrochemical_env(card, budget=10)
+    try:
+        env.reset(seed=0)
+        schema = env.unwrapped.action_schema("electrolyze")
+        duration = next(
+            field for field in schema["fields"] if field["field"] == "duration_s"
+        )
+        assert duration["bounds"] == {"low": 1.0, "high": 80.0}
+        assert duration["state_dependent_bounds"] is True
+        assert duration["resource_limited"] is True
+    finally:
+        env.close()
+
+
 def test_crystallization_implicit_quench_and_filter_time_match_reservations() -> None:
     card = CampaignResourceCard(
         card_id="crystallization-implicit-time-test",

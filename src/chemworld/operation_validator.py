@@ -400,25 +400,23 @@ class OperationValidator:
                 float(process_metrics.get("reaction_advance_count", 0.0)) > 0.0
             )
             preconditions["seed_crystals_requires_current_reaction_assay"] = current_nonfinal_assay
+        # A seeded or already-cooled slurry remains a physical batch, not a
+        # one-way workflow token.  Task policy and operation-specific
+        # preconditions decide which interventions are valid; the existence of
+        # a prior crystallization execution must not prohibit reheating,
+        # waiting, adding material, reseeding, recooling, or discarding.
         if (
-            flagship_crystallization
-            and crystal_seeded
-            and not crystallization_completed
+            crystallization_completed
             and not crystals_filtered
+            and flagship_crystallization
+            and operation_type == "filter_crystals"
         ):
-            preconditions["seeded_crystallization_requires_seed_assay_or_cooling"] = (
-                operation_type in {"seed_crystals", "measure", "cool_crystallize"}
+            preconditions["filter_crystals_requires_current_slurry_assay"] = (
+                current_nonfinal_assay
             )
-        if crystallization_completed and not crystals_filtered:
-            preconditions["completed_crystallization_requires_assay_or_filter"] = (
-                operation_type in {"measure", "filter_crystals"}
-            )
-            if flagship_crystallization and operation_type == "filter_crystals":
-                preconditions["filter_crystals_requires_current_slurry_assay"] = (
-                    current_nonfinal_assay
-                )
         if crystals_filtered:
             preconditions["isolated_crystals_require_assay_or_termination"] = operation_type in {
+                "discard_batch",
                 "measure",
                 "terminate",
             }
@@ -458,11 +456,22 @@ class OperationValidator:
         if operation_type == "cool_crystallize":
             seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
             primary_target = self.target_species[0] if self.target_species else None
-            dissolved_target_mol = (
-                float(state.species_amounts.get(primary_target, 0.0)) - seed_target_mol
-                if primary_target is not None
-                else 0.0
+            mother_liquor = (
+                None
+                if state.phases is None
+                else state.phases.phases.get("mother_liquor")
             )
+            if primary_target is None:
+                dissolved_target_mol = 0.0
+            elif mother_liquor is not None:
+                dissolved_target_mol = float(
+                    mother_liquor.species_amounts_mol.get(primary_target, 0.0)
+                )
+            else:
+                dissolved_target_mol = (
+                    float(state.species_amounts.get(primary_target, 0.0))
+                    - seed_target_mol
+                )
             preconditions["cool_crystallize_target_feed_available"] = (
                 dissolved_target_mol > self.constitution.tolerance
             )

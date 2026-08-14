@@ -2194,7 +2194,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 }
             )
         )
-        _merge_usage(completed_usage, normalized_usage)
+        # ``normalized_usage`` is the session total (completed turns plus this
+        # turn).  Adding that total back into the completed-turn accumulator
+        # counts every earlier turn again on each continuation.  Only the
+        # provider usage reported for the newly completed turn belongs here.
+        _merge_usage(completed_usage, turn_usage)
         self._session["thread_id"] = thread_id
         tool_events = result.get("tool_events")
         if isinstance(tool_events, list):

@@ -711,6 +711,44 @@ def _campaign_remaining(base: Any) -> dict[str, Any]:
     return dict(remaining) if isinstance(remaining, dict) else {}
 
 
+def _campaign_duration_capacity_s(
+    base: Any,
+    operation: str,
+) -> tuple[float | None, str | None]:
+    """Return the executable duration ceiling from the owning resource ledger."""
+
+    ledger = _campaign_ledger(base)
+    if ledger is None:
+        return None, None
+    snapshot = ledger.snapshot()
+    state = snapshot.get("state", {})
+    if not isinstance(state, dict):
+        return None, None
+    remaining = state.get("remaining", {})
+    if not isinstance(remaining, dict):
+        return None, None
+    raw_remaining = remaining.get("process_time_s")
+    if raw_remaining is None:
+        return None, None
+    capacity = max(float(raw_remaining), 0.0)
+    limiting_reason = "process_time_limit"
+    reserve = state.get("protected_closeout_reserve")
+    if isinstance(reserve, dict):
+        allowed = reserve.get("allowed_operation_classes", [])
+        allowed_operations = (
+            {str(item) for item in allowed}
+            if isinstance(allowed, list | tuple)
+            else set()
+        )
+        if operation not in allowed_operations:
+            capacity = max(
+                capacity - float(reserve.get("protected_process_time_s", 0.0)),
+                0.0,
+            )
+            limiting_reason = "protected_closeout_process_time_reserve"
+    return capacity, limiting_reason
+
+
 def _campaign_starts_vessel(base: Any, operation: str) -> bool:
     return bool(
         operation != "discard_batch"
@@ -825,26 +863,46 @@ def _campaign_schema_resource_rejection_reasons(
     ledger = _campaign_ledger(base)
     if ledger is None:
         return ()
+    reasons: list[str] = []
     stock_contract = _CAMPAIGN_RESOURCE_STOCK_FIELDS.get(operation)
-    if stock_contract is None:
-        return ()
-    stock_id, field_name = stock_contract
-    if stock_id not in ledger.card.stock_limits:
-        return ()
     remaining = _campaign_remaining(base)
-    stocks = remaining.get("stocks", {})
-    available = float(stocks.get(stock_id, 0.0)) if isinstance(stocks, dict) else 0.0
+    stock_id = ""
+    field_name = ""
+    available: float | None = None
+    if stock_contract is not None:
+        stock_id, field_name = stock_contract
+        if stock_id in ledger.card.stock_limits:
+            stocks = remaining.get("stocks", {})
+            available = (
+                float(stocks.get(stock_id, 0.0))
+                if isinstance(stocks, dict)
+                else 0.0
+            )
+    duration_capacity_s, duration_reason = _campaign_duration_capacity_s(
+        base,
+        operation,
+    )
     for field in schema.get("fields", []):
-        if not isinstance(field, dict) or field.get("field") != field_name:
+        if not isinstance(field, dict):
             continue
         bounds = field.get("bounds")
         if not isinstance(bounds, dict):
             continue
         low = float(bounds.get("low", 0.0))
         high = float(bounds.get("high", 0.0))
-        if available <= 1.0e-12 or high <= low + 1.0e-12:
-            return (f"stock_limit:{stock_id}",)
-    return ()
+        if (
+            available is not None
+            and field.get("field") == field_name
+            and (available <= 1.0e-12 or high < low - 1.0e-12)
+        ):
+            reasons.append(f"stock_limit:{stock_id}")
+        if (
+            duration_capacity_s is not None
+            and field.get("field") == "duration_s"
+            and high < low - 1.0e-12
+        ):
+            reasons.append(duration_reason or "process_time_limit")
+    return tuple(dict.fromkeys(reasons))
 
 
 def _apply_campaign_resource_schema(
@@ -877,6 +935,22 @@ def _apply_campaign_resource_schema(
             if isinstance(bounds, dict) and stock_remaining is not None:
                 old_high = float(bounds.get("high", stock_remaining))
                 new_high = min(old_high, stock_remaining)
+                field["bounds"] = {
+                    "low": float(bounds.get("low", 0.0)),
+                    "high": new_high,
+                }
+                field["recommended_range"] = {
+                    "low": float(bounds.get("low", 0.0)),
+                    "high": new_high,
+                }
+                field["state_dependent_bounds"] = True
+                field["resource_limited"] = new_high < old_high
+        if field_name == "duration_s":
+            duration_capacity_s, _ = _campaign_duration_capacity_s(base, operation)
+            bounds = field.get("bounds")
+            if duration_capacity_s is not None and isinstance(bounds, dict):
+                old_high = float(bounds.get("high", duration_capacity_s))
+                new_high = min(old_high, duration_capacity_s)
                 field["bounds"] = {
                     "low": float(bounds.get("low", 0.0)),
                     "high": new_high,

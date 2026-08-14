@@ -245,7 +245,7 @@ def test_extractant_identity_volume_and_contact_time_change_partition_outcome() 
     assert outcomes[1] != pytest.approx(outcomes[0])
 
 
-def test_wash_exposes_purity_recovery_tradeoff_and_closes_both_outlets() -> None:
+def test_wash_exposes_purity_recovery_tradeoff_and_records_removed_outlet() -> None:
     env = _run_to_selected_phase()
     try:
         before = _runtime(env)._state
@@ -256,9 +256,89 @@ def test_wash_exposes_purity_recovery_tradeoff_and_closes_both_outlets() -> None
 
         assert after.process.metrics["purity"] >= before_purity
         assert after.process.metrics["recovery"] < before_recovery
-        assert "wash_aqueous" in after.phases.phases
+        assert "wash_aqueous" not in after.phases.phases
+        removed = after.metadata["removed_phase_inventory_history"][-1]
+        assert removed["operation"] == "wash"
+        assert "wash_aqueous" in removed["inventories"]
+        assert after.process.waste_L > before.process.waste_L
         assert after.metadata["wash_material_balance_error_mol"] < 1.0e-10
         assert after.process.metrics["process_mass_balance_error"] < 1.0e-10
+        assert after.phases.total_amounts_mol() == pytest.approx(
+            after.species_amounts,
+            abs=1.0e-12,
+        )
+    finally:
+        env.close()
+
+
+def test_separated_phase_is_the_only_feed_for_a_later_recontact() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-purification", seed=0)
+    env.reset(seed=0)
+    try:
+        actions = _reaction_and_contact_actions()
+        for action in actions[:-1]:
+            _step_committed(env, action)
+        before_separation = _runtime(env)._state
+        phase_ledgers = (
+            _runtime(env).runtime.domain_services.phase_separation.phase_ledgers
+        )
+        contact_target = phase_ledgers.phase_product_amount(before_separation)
+
+        _step_committed(env, actions[-1])
+        selected = _runtime(env)._state
+        selected_target = phase_ledgers.phase_product_amount(selected)
+        assert set(selected.phases.phases) == {"organic"}
+        assert selected_target < contact_target
+        assert selected.phases.total_amounts_mol() == pytest.approx(
+            selected.species_amounts,
+            abs=1.0e-12,
+        )
+
+        _step_committed(
+            env,
+            {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.010},
+        )
+        _step_committed(
+            env,
+            {
+                "operation": "mix",
+                "duration_s": 180.0,
+                "stirring_speed_rpm": 700.0,
+            },
+        )
+        recontacted = _runtime(env)._state
+        assert phase_ledgers.phase_product_amount(recontacted) == pytest.approx(
+            selected_target,
+            abs=1.0e-12,
+        )
+        assert recontacted.phases.total_amounts_mol() == pytest.approx(
+            recontacted.species_amounts,
+            abs=1.0e-12,
+        )
+        assert _runtime(env).constitution.check_state(recontacted).passed
+    finally:
+        env.close()
+
+
+def test_material_addition_after_phase_creation_updates_the_phase_source_of_truth() -> None:
+    env = gym.make("ChemWorld", task_id="partition-discovery", seed=0)
+    try:
+        env.reset(seed=0)
+        _step_committed(
+            env,
+            {"operation": "add_phase", "phase": "aqueous", "volume_L": 0.012},
+        )
+        _step_committed(
+            env,
+            {"operation": "add_extractant", "extractant": 3, "volume_L": 0.018},
+        )
+        _step_committed(env, {"operation": "add_reagent", "amount_mol": 0.010})
+        state = _runtime(env)._state
+        assert state.phases.total_amounts_mol() == pytest.approx(
+            state.species_amounts,
+            abs=1.0e-12,
+        )
+        assert _runtime(env).constitution.check_state(state).passed
     finally:
         env.close()
 

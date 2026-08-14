@@ -188,8 +188,6 @@ class ChemWorldPhaseLedgerServices:
         truth_values = downstream_truth_values(
             state,
             phase_ledger,
-            product_amount_mol=self.phase_product_amount(state),
-            impurity_amount_mol=self.phase_impurity_amount(state),
             target_species=self.species_view.target_species_for_state(state),
             impurity_species=self.species_view.impurity_species_for_state(state),
         )

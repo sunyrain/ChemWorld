@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -12,8 +13,10 @@ from chemworld.foundation import (
     process_with_metrics,
     scale_phase_ledger,
     scale_species_initial_amounts,
+    selected_phase_id,
     upsert_equipment_record,
 )
+from chemworld.foundation.state import PhaseLedger
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import CATALYSTS, SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
@@ -36,22 +39,91 @@ class ChemWorldPrimitiveOperationServices:
         self.world = world
         self.species_view = species_view
 
+    def _declared_phase(self, species_id: str) -> str | None:
+        network = self.species_view.mechanism.network
+        index = network.species_index.get(species_id)
+        if index is None:
+            return None
+        return str(network.species[index].phase)
+
+    def _material_destination_phase(
+        self,
+        state: WorldState,
+        species_id: str | None = None,
+    ) -> str | None:
+        if state.phases is None or not state.phases.phases:
+            return None
+        selected = selected_phase_id(state.phases)
+        if selected in state.phases.phases:
+            return selected
+        if "reactor_liquid" in state.phases.phases:
+            return "reactor_liquid"
+        if species_id is not None:
+            declared = self._declared_phase(species_id)
+            if declared in state.phases.phases:
+                return declared
+        for candidate in ("aqueous", "organic", "mother_liquor", "bottoms"):
+            if candidate in state.phases.phases:
+                return candidate
+        return next(iter(state.phases.phases))
+
+    def _phase_aware_material_state(
+        self,
+        state: WorldState,
+        *,
+        additions_mol: dict[str, float] | None = None,
+        added_volume_L: float = 0.0,
+    ) -> tuple[dict[str, float], PhaseLedger | None]:
+        additions = additions_mol or {}
+        species = state.species_amounts.copy()
+        for species_id, addition in additions.items():
+            species[species_id] = species.get(species_id, 0.0) + float(addition)
+        if state.phases is None or set(state.phases.phases) == {"reactor_liquid"}:
+            return species, state.phases
+
+        phases = state.phases.phases.copy()
+        for species_id, addition in additions.items():
+            destination = self._material_destination_phase(state, species_id)
+            if destination is None:
+                continue
+            phase = phases[destination]
+            amounts = phase.species_amounts_mol.copy()
+            amounts[species_id] = amounts.get(species_id, 0.0) + float(addition)
+            phases[destination] = replace(phase, species_amounts_mol=amounts)
+        if added_volume_L > 0.0:
+            destination = self._material_destination_phase(state)
+            if destination is not None:
+                phase = phases[destination]
+                phases[destination] = replace(
+                    phase,
+                    volume_L=phase.volume_L + added_volume_L,
+                )
+        ledger = PhaseLedger(phases)
+        return ledger.total_amounts_mol(), ledger
+
     def add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
-        species = state.species_amounts.copy()
         reactant = self.species_view.reactant_species(state)
-        for species_id, addition in self.species_view.reagent_charge_amounts(
+        additions = self.species_view.reagent_charge_amounts(
             state,
             limiting_amount_mol=amount,
-        ).items():
-            species[species_id] = species.get(species_id, 0.0) + addition
+        )
+        species, phases = self._phase_aware_material_state(
+            state,
+            additions_mol=additions,
+        )
         species_ledger = self.species_view.record_added_reactant(
             state.species,
             reactant_species=reactant,
             amount_mol=amount,
         )
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
-        return state.replace(species_amounts=species, ledger=ledger, species=species_ledger)
+        return state.replace(
+            species_amounts=species,
+            phases=phases,
+            ledger=ledger,
+            species=species_ledger,
+        )
 
     def add_solvent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "volume_L", 0.025), 0.0, 0.080))
@@ -72,16 +144,28 @@ class ChemWorldPrimitiveOperationServices:
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + volume * 8.0 * float(self.world.solvent_costs[solvent])
         )
-        return state.replace(volume_L=state.volume_L + volume, ledger=ledger, equipment=equipment)
+        species, phases = self._phase_aware_material_state(
+            state,
+            added_volume_L=volume,
+        )
+        return state.replace(
+            species_amounts=species,
+            phases=phases,
+            volume_L=state.volume_L + volume,
+            ledger=ledger,
+            equipment=equipment,
+        )
 
     def add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
         catalyst = _action_index(action, "catalyst", 0, len(CATALYSTS))
         previous_settings = equipment_settings(state.equipment, "batch_reactor")
-        species = state.species_amounts.copy()
         active_catalyst = self.species_view.active_catalyst_species(state)
-        if active_catalyst is not None:
-            species[active_catalyst] = species.get(active_catalyst, 0.0) + amount
+        additions = {} if active_catalyst is None else {active_catalyst: amount}
+        species, phases = self._phase_aware_material_state(
+            state,
+            additions_mol=additions,
+        )
         equipment = upsert_equipment_record(
             state.equipment,
             equipment_id="batch_reactor",
@@ -100,7 +184,12 @@ class ChemWorldPrimitiveOperationServices:
             cost=state.ledger.cost
             + 4.0 * amount / 0.001 * float(self.world.catalyst_costs[catalyst])
         )
-        return state.replace(species_amounts=species, ledger=ledger, equipment=equipment)
+        return state.replace(
+            species_amounts=species,
+            phases=phases,
+            ledger=ledger,
+            equipment=equipment,
+        )
 
     def sample(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         volume = float(np.clip(_action_float(action, "sample_volume_L", 0.0001), 0.0, 0.002))
@@ -144,11 +233,31 @@ class ChemWorldPrimitiveOperationServices:
         metadata = {
             **state.metadata,
             "last_energy_transition": {"operation": "quench", **thermal.to_dict()},
+            "reaction_chemistry_stopped": True,
         }
+        reactor_settings = equipment_settings(state.equipment, "batch_reactor")
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id=state.vessel_id,
+            status="quenched",
+            settings={
+                "reaction_stopped": True,
+                "quench_time_s": state.ledger.time_s + duration,
+                "quench_count": int(reactor_settings.get("quench_count", 0)) + 1,
+            },
+        )
+        process = process_with_metrics(
+            state.process,
+            reaction_chemistry_stopped=1.0,
+        )
         return state.replace(
             temperature_K=target,
             quenched=True,
             ledger=ledger,
+            equipment=equipment,
+            process=process,
             metadata=metadata,
         )
 
