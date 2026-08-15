@@ -194,6 +194,27 @@ def validate_and_expand(plan_path: Path) -> tuple[dict[str, Any], list[dict[str,
     return plan, triplets
 
 
+def _select_triplets(
+    triplets: list[dict[str, Any]],
+    *,
+    block: str | None,
+    task_id: str | None,
+) -> list[dict[str, Any]]:
+    """Select a predeclared task block without changing its frozen cells."""
+
+    if task_id is not None and block is None:
+        raise ValueError("--only-task requires --only-block")
+    selected = [
+        triplet
+        for triplet in triplets
+        if (block is None or triplet["block"] == block)
+        and (task_id is None or triplet["task_id"] == task_id)
+    ]
+    if not selected:
+        raise ValueError("execution scope does not match any frozen triplet")
+    return selected
+
+
 class Progress:
     def __init__(self, path: Path) -> None:
         self.path = path.resolve()
@@ -466,6 +487,8 @@ def _write_summary(
     plan: Mapping[str, Any],
     triplets: list[Mapping[str, Any]],
     output_root: Path,
+    *,
+    execution_scope: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     cells: list[dict[str, Any]] = []
     for triplet in triplets:
@@ -508,11 +531,20 @@ def _write_summary(
     )
     completed = sum(row["completed"] for row in cells)
     experiments = sum(int(row["complete_experiments"]) for row in cells)
+    expected_experiments = sum(int(row["scheduled_experiments"]) for row in cells)
+    selected_execution = execution_scope is not None
     report = {
         "schema_version": "chemworld-work-ii-deepseek-c2-public-progress-0.1",
         "cohort_id": plan.get("cohort_id"),
         "prospective_formal_result": terminal == len(cells),
-        "status": "all_public_cells_terminal" if terminal == len(cells) else "in_progress",
+        "status": (
+            "all_selected_cells_terminal"
+            if selected_execution and terminal == len(cells)
+            else "all_public_cells_terminal"
+            if terminal == len(cells)
+            else "in_progress"
+        ),
+        "execution_scope": dict(execution_scope or {"scope": "full_public_cohort"}),
         "expected_sessions": len(cells),
         "terminal_sessions": terminal,
         "attempt_terminal_sessions": attempt_terminal,
@@ -520,7 +552,7 @@ def _write_summary(
         "retained_noncompleted_sessions": terminal - completed,
         "missing_sessions": len(cells) - terminal,
         "recoverable_infrastructure_sessions": recoverable_infrastructure,
-        "expected_complete_experiments": 1260,
+        "expected_complete_experiments": expected_experiments,
         "observed_complete_experiments": experiments,
         "cells": cells,
     }
@@ -538,31 +570,53 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--progress-file", type=Path)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--max-concurrent-triplets", type=int)
+    parser.add_argument("--only-block", choices=tuple(EXPECTED_BLOCKS))
+    parser.add_argument("--only-task")
     return parser.parse_args()
 
 
 def main() -> int:
     args = _parse_args()
     plan_path = args.plan.resolve()
-    plan, triplets = validate_and_expand(plan_path)
+    plan, all_triplets = validate_and_expand(plan_path)
+    triplets = _select_triplets(
+        all_triplets,
+        block=args.only_block,
+        task_id=args.only_task,
+    )
+    execution_scope = (
+        {
+            "scope": "predeclared_task_subset",
+            "block": args.only_block,
+            "task_id": args.only_task,
+            "triplets": len(triplets),
+            "sessions": len(triplets) * len(ARMS),
+            "complete_experiments": sum(row["rounds"] * len(ARMS) for row in triplets),
+        }
+        if args.only_block is not None
+        else None
+    )
     if args.check:
-        print(
-            json.dumps(
+        check_report = {
+            "status": "ready",
+            "execution_scope": execution_scope or {"scope": "full_public_cohort"},
+            "task_world_clusters": len(triplets),
+            "sessions": len(triplets) * len(ARMS),
+            "public_complete_experiments": sum(
+                row["rounds"] * len(ARMS) for row in triplets
+            ),
+        }
+        if execution_scope is None:
+            check_report.update(
                 {
-                    "status": "ready",
-                    "task_world_clusters": len(triplets),
-                    "sessions": len(triplets) * 3,
-                    "public_complete_experiments": sum(
-                        row["rounds"] * 3 for row in triplets
-                    ),
                     "private_sessions_after_public": 75,
                     "private_complete_experiments_after_public": 600,
                     "complete_sessions": 210,
                     "complete_experiments": 1860,
-                },
-                ensure_ascii=False,
-                sort_keys=True,
-            ),
+                }
+            )
+        print(
+            json.dumps(check_report, ensure_ascii=False, sort_keys=True),
             flush=True,
         )
         return 0
@@ -598,6 +652,7 @@ def main() -> int:
             "pending_triplets": len(pending),
             "expected_sessions": len(triplets) * 3,
             "max_concurrent_triplets": concurrency,
+            "execution_scope": execution_scope or {"scope": "full_public_cohort"},
         }
     )
     infrastructure_pause = False
@@ -618,25 +673,40 @@ def main() -> int:
                 result = future.result()
                 if result["infrastructure_missing_cells"] == 3:
                     infrastructure_pause = True
-        summary = _write_summary(plan, triplets, output_root)
+        summary = _write_summary(
+            plan,
+            triplets,
+            output_root,
+            execution_scope=execution_scope,
+        )
         progress.emit(
             {
                 "event": "public_c2_batch_finished",
                 "terminal_sessions": summary["terminal_sessions"],
                 "expected_sessions": summary["expected_sessions"],
                 "observed_complete_experiments": summary["observed_complete_experiments"],
-                "expected_complete_experiments": 1260,
+                "expected_complete_experiments": summary["expected_complete_experiments"],
             }
         )
         if infrastructure_pause:
             break
-    summary = _write_summary(plan, triplets, output_root)
-    if infrastructure_pause and summary["status"] != "all_public_cells_terminal":
+    summary = _write_summary(
+        plan,
+        triplets,
+        output_root,
+        execution_scope=execution_scope,
+    )
+    terminal_status = (
+        "all_selected_cells_terminal"
+        if execution_scope is not None
+        else "all_public_cells_terminal"
+    )
+    if infrastructure_pause and summary["status"] != terminal_status:
         summary["status"] = "paused_after_triplet_wide_infrastructure_failure"
         write_json_atomic(output_root / "summary.json", summary)
     progress.emit({"event": "public_c2_attempt_finished", **summary})
     print(json.dumps(summary, ensure_ascii=False, sort_keys=True), flush=True)
-    return 0 if summary["status"] == "all_public_cells_terminal" else 1
+    return 0 if summary["status"] == terminal_status else 1
 
 
 if __name__ == "__main__":

@@ -128,3 +128,54 @@ def test_root_summary_separates_attempt_terminal_from_cohort_terminal(
     assert report["missing_sessions"] == 1
     assert report["recoverable_infrastructure_sessions"] == 1
     assert report["prospective_formal_result"] is False
+    assert report["expected_complete_experiments"] == 30
+
+
+def test_select_triplets_preserves_exact_predeclared_task_scope() -> None:
+    triplets = [
+        {
+            "block": "A_E_public",
+            "task_id": "reaction-to-crystallization",
+            "world_seed": 1,
+        }
+    ] + [
+        {"block": "A_S", "task_id": "reaction-to-crystallization", "world_seed": seed}
+        for seed in range(2, 7)
+    ]
+
+    selected = runner._select_triplets(
+        triplets,
+        block="A_S",
+        task_id="reaction-to-crystallization",
+    )
+
+    assert [row["world_seed"] for row in selected] == [2, 3, 4, 5, 6]
+
+
+def test_selected_summary_has_scoped_denominator_and_terminal_status(
+    tmp_path: Path,
+) -> None:
+    triplet = {
+        "block": "A_S",
+        "task_id": "reaction-to-crystallization",
+        "world_seed": 1,
+        "rounds": 12,
+    }
+    for arm in runner.ARMS:
+        cell_id = runner._cell_id("A_S", triplet["task_id"], 1, arm)
+        _write_cell(
+            tmp_path,
+            cell_id,
+            _summary(cell_id, completed=True, experiments=12),
+        )
+
+    report = runner._write_summary(
+        {},
+        [triplet],
+        tmp_path,
+        execution_scope={"scope": "predeclared_task_subset"},
+    )
+
+    assert report["status"] == "all_selected_cells_terminal"
+    assert report["expected_sessions"] == 3
+    assert report["expected_complete_experiments"] == 36

@@ -25,10 +25,33 @@ from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.thermal_kernel import account_temperature_transition
 
+DEFAULT_CRYSTAL_SEED_DIAMETER_M = 100.0e-6
+
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
     value = action.get(key, default)
     return float(np.asarray(value).reshape(-1)[0])
+
+
+def _effective_seed_diameter_m(crystallizer_settings: dict[str, Any]) -> float:
+    """Return a physical seed diameter for the next population-balance step.
+
+    An empty crystal population correctly reports ``csd_d50_m == 0``.  That
+    population statistic is not a physical seed diameter and must not make a
+    subsequent cooling step invalid.  If crystals are later seeded, the
+    operation contract uses the reference seed diameter below; when no solid
+    population exists, the positive value is accepted by the PBM but carries
+    zero seed mass and therefore creates no particles.
+    """
+
+    recorded_d50_m = crystallizer_settings.get("csd_d50_m")
+    try:
+        candidate = float(recorded_d50_m)
+    except (TypeError, ValueError):
+        return DEFAULT_CRYSTAL_SEED_DIAMETER_M
+    if candidate > 0.0 and np.isfinite(candidate):
+        return candidate
+    return DEFAULT_CRYSTAL_SEED_DIAMETER_M
 
 
 def _solid_phase_amounts(
@@ -319,7 +342,7 @@ class ChemWorldCrystallizationServices:
             solubility_curve=solubility,
             kinetics=kinetics,
             seed_mass_g=effective_seed_mass_g,
-            seed_diameter_m=float(crystallizer_settings.get("csd_d50_m", 100.0e-6)),
+            seed_diameter_m=_effective_seed_diameter_m(crystallizer_settings),
         )
         execution_spec = CrystallizationExecutionSpec.closed_loop_runtime()
         provider = self.runtime_provider

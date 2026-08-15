@@ -481,6 +481,101 @@ def test_isothermal_negative_crystallization_is_a_committed_observation() -> Non
         env.close()
 
 
+def test_empty_crystal_population_remains_a_valid_formal_recooling_state() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        base: Any = env.unwrapped
+
+        _, _, _, _, first_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 330.0,
+                "duration_s": 1200.0,
+            }
+        )
+        empty_settings = equipment_settings(base._state.equipment, "crystallizer")
+        assert first_info["transaction_status"] == "committed"
+        assert empty_settings["csd_total_particle_count"] == pytest.approx(0.0)
+        assert empty_settings["csd_d50_m"] == pytest.approx(0.0)
+        assert "cool_crystallize" in {
+            action["operation"] for action in base.available_actions()
+        }
+
+        provider = RecordingProvider()
+        base.runtime.domain_services.crystallization.runtime_provider = provider
+        _, _, _, _, second_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 280.0,
+                "duration_s": 1800.0,
+            }
+        )
+
+        assert second_info["transaction_status"] == "committed"
+        assert second_info["preconditions"].get("runtime_domain_valid") is None
+        assert provider.calls[-1]["case"].seed_mass_g == pytest.approx(0.0)
+        assert provider.calls[-1]["case"].seed_diameter_m == pytest.approx(100.0e-6)
+        settings = equipment_settings(base._state.equipment, "crystallizer")
+        assert len(settings["execution_history"]) == 2
+    finally:
+        env.close()
+
+
+def test_seeding_after_empty_population_remains_a_valid_formal_path() -> None:
+    env = gym.make("ChemWorld", task_id="reaction-to-crystallization", seed=0)
+    try:
+        env.reset(seed=0)
+        for action in REACTION_STEPS:
+            env.step(action)
+        base: Any = env.unwrapped
+        _, _, _, _, first_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 330.0,
+                "duration_s": 1200.0,
+            }
+        )
+        assert first_info["transaction_status"] == "committed"
+        assert (
+            equipment_settings(base._state.equipment, "crystallizer")["csd_d50_m"]
+            == pytest.approx(0.0)
+        )
+
+        _, _, _, _, assay_info = env.step({"operation": "measure", "instrument": "hplc"})
+        _, _, _, _, seed_info = env.step(
+            {"operation": "seed_crystals", "seed_mass_g": 0.006}
+        )
+        assert assay_info["transaction_status"] == "committed"
+        assert seed_info["transaction_status"] == "committed"
+
+        provider = RecordingProvider()
+        base.runtime.domain_services.crystallization.runtime_provider = provider
+        _, _, _, _, second_info = env.step(
+            {
+                "operation": "cool_crystallize",
+                "target_temperature_K": 280.0,
+                "duration_s": 1800.0,
+            }
+        )
+
+        case = provider.calls[-1]["case"]
+        assert second_info["transaction_status"] == "committed"
+        assert second_info["preconditions"].get("runtime_domain_valid") is None
+        assert case.seed_mass_g > 0.0
+        assert case.seed_diameter_m == pytest.approx(100.0e-6)
+        assert (
+            equipment_settings(base._state.equipment, "crystallizer")[
+                "csd_total_particle_count"
+            ]
+            > 0.0
+        )
+    finally:
+        env.close()
+
+
 def test_provider_fails_closed_for_no_population_no_transfer_and_nonconvergence() -> None:
     provider = ValidatedCrystallizationRuntimeProvider()
     policy = CrystallizationExecutionSpec.strict_runtime()
