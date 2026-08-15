@@ -1,6 +1,6 @@
 # Work II TODO — Experimental Intelligence
 
-最后更新：2026-08-12
+最后更新：2026-08-15
 
 ## 0. 已冻结的执行理念：开发优先、最后一次冻结
 
@@ -19,9 +19,12 @@ release audit、运行正式 qualification，并在同一冻结 cohort 上进入
 必须限于真正影响 runtime/evaluator 的代码与配置；测试、论文、无关配置和历史报告不得仅因目录便利被纳入全树
 hash。此理念优先于本文件中历史遗留的“每次开发改动后重建审计/SHA”表述。
 
-当前状态：**正式/R5 participant outcomes 尚未执行；reaction-safety mechanism-oracle Q1、matched-prior
-Q2、world-0 D1 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2
-均已通过 5/5 worlds；electrochemical world-0 D1 已完成但为 retained operational failure，当前不进入 D2/R5。**
+当前状态：**DeepSeek C2 public participant 已终态，当前有效组合为 `135/135` sessions、
+`1,243/1,260` experiments、`121/135` qualification；registered task-aware evaluator 与删失/资源敏感性
+分析尚未完成。A-E private 延期，WellAU/Qwen/Kimi 未启动新的 replication。Paper 2 当前结果统一从
+`WORK_II_PAPER_RESULTS_ZH.md` 进入。** Reaction-safety mechanism-oracle Q1、matched-prior Q2、world-0 D1
+与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2 均通过 5/5 worlds，
+electrochemical world-0 D1 为 retained operational failure，不进入 D2/R5。
 已完成的材料信息三臂是 Work II 的前置实体层证据，不属于已经投稿的 Work I 基座论文结论：它包含
 electrochemical/crystallization、10 worlds、opaque/nominal/misindexed 三臂共 `60/60` cells 与 `2,280`
 physical experiments，全部 exact replay。Electrochemical 的正确匿名材料属性相对 opaque 提升 `0.0724`，
@@ -518,37 +521,26 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
   当前 method qualification 已终态通过，task-resource cards 仍须由完整 W2-26 闭合；不再重建旧 power
   audit、method-qualification readiness 或 preregistration readiness。formal execution 仍被 W2-26、
   private-seal 迁移和用户 release 授权锁死。
-- [ ] **W2-26** 当前为 **NOT READY / FAIL-CLOSED**。实验 note 已写入
-  `WORK_II_RESOURCE_CALIBRATION_EXPERIMENT_NOTE.md`；8/10/12 manifest、write-once 授权、费用预留、
-  triplet orchestration、30 s heartbeat、整 triplet infrastructure-only resume、严格 summary/resource-card
-  validator 与门禁测试已经实现。Development calibration 只直接绑定三个实际执行的 campaign config 及其
-  selection/Q2 输入；clean worktree、全量 material-tree hash 和共同 immutable runtime commit 已移至最终
-  release-freeze，不再作为 W2-26 开发执行前置。代表选择不依赖下游 D1 terminal receipt：8-round 绑定 formal v0.2；
-  10/12-round 分别绑定受保护 A-P/A-S selection protocol 的 rank-1 task 及 provider-free Q2 直接生成的
-  静态 D1 config。A-P protocol 的 `reaction-safety` 已仅作 canonical identifier correction 为
-  `reaction-safety-constrained`，roster/order/rule/outcome boundary 不变。A-S full Q2 与静态 config 现已生成，
-  r9 development run 完成前 7/9 triplets（21/27 cells）；第 8 个 A-S partition 两次因共享 provider outage
-  invalidated，第 9 个未启动。新授权的 r10 从头执行，前 8/9 triplets（24/27 cells）均形成终态；最后
-  A-S reaction-to-crystallization 三臂在同步 provider error 窗口后分别停在 9/12、1/12、1/12，并按冻结规则
-  整 triplet invalidated，根目录仍无全块 terminal summary。r11 在 bounded same-thread continuation 与整 triplet
-  自动重启修复后从第一组三臂重新开始；两次完整 triplet attempts 共 6 个 WellAU sessions 均在首个实验动作前
-  失败，三臂均为 0/8 experiments，随后达到预定的 infrastructure resume hard cap 并 fail-closed。独立的最小
-  `gpt-5.6-sol` Responses 请求持续得到 HTTP 502，而 models 端点保持 200；同 endpoint、同最小请求的单次
-  `gpt-5.6-terra` 路由诊断为 HTTP 200，因此阻塞已定位为 WellAU 的 `gpt-5.6-sol` 特异推理后端，而非
-  ChemWorld、本地凭证或整个 Responses 服务。r9/r10/r11 的有效终态与不利轨迹全部保留，不拼成通过、不覆盖；
-  `sol` 首次恢复后，r12 使用已验证的新运行合同从 execution zero 遵循 frozen resume 语义。
+- [x] **W2-26 旧 WellAU calibration lane 已历史收束，不再是当前 public 执行门禁。** r9/r10/r11 的完整、
+  部分和不利结果均保留，不能拼接或覆盖；`gpt-5.6-sol` 特异后端故障是当时的终态归因。连续生成的版本化
+  authorization/manifest 只是开发期控制投影，不进入当前结果入口。DeepSeek 后续使用直接 task resource cards
+  和终态机器 summary 完成 public C2；若未来重启 WellAU replication，必须建立新的独立 experiment note、预算
+  和 canary，而不是恢复旧 W2-26 授权链。
 - **W2-26 DeepSeek 子阶段（2026-08-14）**：已按结果优先语义终态收束，`9/9` triplets、`27/27`
   terminal cells、`251/252` complete experiments、`135/135` checkpoints、`27/27` exact replay，0
   platform defects、0 terminal provider errors、0 unsafe。唯一科学分母缺口是 A-E partition aligned
   的 `7/8` retained participant failure，不补跑。旧 method gate 的 token/resource findings 原样保留但不再
   作为科学拒绝；DeepSeek 结果只属 development，不补齐 WellAU W2-26，也不进入 formal/R5。深入分析见
   `WORK_II_DEEPSEEK_W2_26_STAGE_CLOSEOUT_ZH.md`。WellAU 按用户指令暂停。
-- **DeepSeek C2 prospective cohort（2026-08-14 启动）**：完整设计固定为 A-E public `75/600`、A-P
-  `30/300`、A-S `30/360`，public 共 `135 sessions / 1,260 experiments`；public 终态并冻结分析后再执行
-  A-E private `75/600`，总计 `210/1,860`。A-E v0.3 classifier fit/validation 各 `14,400/14,400`
-  终态且仅 partition-extractant 通过，因此五任务 A-E 主 estimand 已在 provider outcome 前收窄为
-  task-stratified dossier-assignment ITT；禁止声称五任务 universal selective correction。执行说明见
-  `WORK_II_DEEPSEEK_C2_PROSPECTIVE_EXPERIMENT_NOTE.md`；public runner 当前按 3 triplets / 9 sessions 并行。
+- **DeepSeek C2 corrected-semantics public cohort（2026-08-15 终态）**：基准 v0.2 的 120 个未受影响
+  sessions 与从第一单元重跑的 A-S crystallization resource-recovery 15 sessions 在完整 block 边界组合，
+  共 `45/45` triplets、`135/135` sessions terminal、`121/135` qualification、`1,243/1,260` complete
+  experiments。全 cohort 为 0 provider errors、0 dynamic physical failures、0 unsafe outcomes。硬 campaign
+  resource card 继续作为实验变量，故 completion 不能解释为纯 prior 效应。A-E partition 是当前最强
+  signal：aligned 相对 misindexed 的 first/best 配对差分别为 `+0.106/+0.200`，均为 `5/5` worlds 同方向；
+  A-S partition 显示两种 structured prior 的搜索后成绩均高于 opaque，但 aligned-vs-misindexed 尚未稳定
+  分开。A-E private 与 WellAU 继续延期。终态汇报和可复用图表位于
+  `WORK_II_PAPER_RESULTS_ZH.md` 与 `reports/figures/work-ii-deepseek-c2-public/REPORT_ZH.md`。
 - [x] **W2-27** current WellAU method qualification triplet 已完成并通过：3/3 arms terminal、各 8/8
   experiments、每臂 1 次 provider attempt、0 provider/infrastructure failures；三臂 exact replay 各验证
   48 steps、0 mismatches，receipt validator 为 0 errors。该 development qualification 只证明当前
@@ -572,13 +564,15 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 
 ### P2 — 完整 C2 冻结、执行与条件扩展
 
-- [ ] 完整核心 scope 为 **C2 = A-E + 2 A-P + 2 A-S**。首次 C2 participant outcome 前，全部 block manifests、
-  task admission receipts、analysis/failure rules 和一个共同 immutable runtime commit 必须同时冻结；A-P/A-S 尚可
-  改 runtime 时不得先启动 A-E。
-- [ ] 执行 A-E public 25 triplets；只报告 blinded progress，完成后冻结 public analysis hash。
-- [ ] 一次性解封并执行 A-E private；不得因 public 结果方向调整。
+- [x] DeepSeek corrected-semantics public 核心 scope 已固定并终态执行：**C2 public = A-E + 2 A-P +
+  2 A-S**，共 `45` task/world clusters、`135` sessions、`1,260` planned experiments；历史 pre-fix cohort
+  不与其拼接。终态后直接从 canonical summaries 生成分析，不另造 manual SHA/readiness gate。
+- [x] A-E public 25 triplets 已作为同一 DeepSeek public cohort 的组成部分全部 terminal。
+- [ ] A-E private 保持延期；只有用户在 public task-aware analysis 后重新授权才执行，且不得按 public 结果
+  方向修改 sealed coverage 或 prior arms。
 - [ ] 完成 Study C 和 C1 analysis。
-- [ ] 只有两个 A-P 和两个 A-S tasks 都通过完整资格漏斗后，才执行 C2 registered blocks。
+- [x] 两个 A-P 与两个 A-S DeepSeek public blocks 已按 corrected-semantics v0.2 plan 终态；下一步是 registered
+  task-aware evaluator 与删失敏感性分析，不再重复 participant execution。
 - [ ] C3/B 仅在 C2 后且仍需区分 seeking 与 updating 时执行；C4/D 仅在 C2 支持 executable-law formation 且
   保留 transfer claim 时执行。两者均需独立 protocol freeze、预算和用户授权，不能按结果临时改为主实验。
 
@@ -588,8 +582,8 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 |---|---|---|
 | W2-01–06 | DONE | scope、questions、cohort、estimands、participant contract |
 | W2-07–11 | REOPENED | 旧 4-experiment resource/design freeze 被新矩阵替代，需在 W2-25–27 后重新关闭 |
-| W2-12–14 | NOT STARTED | A-E public/private 与 confirmatory analysis |
-| W2-15 | DOING | manuscript skeleton/figures 已有；formal results 待补 |
+| W2-12–14 | PUBLIC TERMINAL / ANALYSIS DOING | DeepSeek public 终态；A-E private 延期，confirmatory evaluator 待完成 |
+| W2-15 | DOING | Paper 2 全结果索引和 current figures 已有；registered evaluator、删失统计与正文整合待完成 |
 | W2-17–18 | DOING | non-entity qualification；转由 W2-21–24 管理 |
 | W2-19 | CONDITIONAL | matched-evidence probe B |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
@@ -598,7 +592,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-23 | DONE | reaction-safety 与 electrochemical matched-prior Q2 均以 5/5 worlds 通过；baseline、disagreement、双反证区域、blind identification、word/schema matching 与 leakage gates 全通过 |
 | W2-24 | DONE | reaction-safety world-0 D1 与 D2 worlds 1/4 participant/evaluator 已完成；综合结论待用户审核 |
 | W2-25 | SCIENTIFICALLY REJECTED | v0.2 已完成 1,200 primary + 1,200 exact replay、0 platform failures；held-out 仅 2/5 tasks 通过，五任务 A-E universal claim 不得进入 formal participant matrix |
-| W2-26 | INCOMPLETE / PROVIDER-BLOCKED | r10 从头完成 8/9 triplets、24/27 cells；最后 A-S crystallization 三臂在同步 provider error 窗口后于 9/12、1/12、1/12 invalidated。r11 验证 continuation/restart 修复后，两次完整首 triplet attempts 的 6 个 WellAU sessions 均在首操作前失败，三臂均 0/8，按 hard cap fail-closed；持续 `sol` Responses 探针为 502、models 端点为 200，而一次性同端点 `terra` 探针为 200，故定位为 `sol` 特异后端故障。r9/r10/r11 全部保留且不拼接；`sol` 恢复后 r12 从零开始 |
+| W2-26 | HISTORICAL / SUPERSEDED | 旧 WellAU calibration lane 的 r9/r10/r11 原样保留，不再阻断 DeepSeek public；未来 WellAU replication 需新协议，不恢复版本化授权链 |
 | W2-27 | TERMINAL / METHOD QUALIFICATION PASSED | current WellAU 三臂均 8/8 terminal、qualification passed、exact replay 48 steps/arm 且 0 mismatches；receipt validator 0 errors。仅为 development method qualification，formal execution 仍未授权，W2-26 仍不完整 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-39 | TERMINAL / PLATFORM REQUALIFICATION PASSED | A-P seed-2 DeepSeek→WellAU 四块已在共享执行语义修复后从首 cell 完整重跑：`12/12` cells terminal、`94/120` experiments、`4/12` qualification completed、`9/12` 达到 10/10、全部 `11/11` 个有 committed operations 的 cells exact replay；0 provider errors、0 missing/invalid store、0 unclassified MCP failures。平台门禁通过；删失非随机，故不作 provider/model/arm 科学比较，不替代 W2-26/W2-27，也不进入 R5/C2。 |
@@ -638,6 +632,10 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 
 ## 13. 当前证据入口
 
+- Paper 2 全部结果与 claim 边界：`workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md`
+- DeepSeek C2 current 结果、图表与 source data：
+  `workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/REPORT_ZH.md`、
+  `workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/current/summary.json`
 - Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.2.json`
 - Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.2.json`
 - W2-37 A-S five-world terminal summary：`workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json`

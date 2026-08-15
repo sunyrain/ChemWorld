@@ -1,0 +1,22 @@
+﻿sequence,trajectory_step,experiment_index_base_1,operation_type,operation_payload,operation_display,transaction_status,state_display,adaptation_source,diagnostic_target,expected_effect,belief_if_supported,belief_if_not_supported,model_reasoning_display,leaderboard_score
+1,81,9,add_reagent,"{""amount_mol"": 0.004, ""operation"": ""add_reagent""}","加入底物
+0.004 mol",committed,状态 committed；累计成本 0.012；风险 0.036,experiment_memory,Further yield optimization at S1/E2: 110 mA/5400 s.,"Load 0.004 mol reagent for experiment 9 (S1/E2, high charge).",0.004 mol with 0.0025 L S1 holds; continue high-charge optimization.,Reagent baseline fails; adjust.,沿用此前有效的高浓度 S1/E2 区域，加入 0.004 mol 底物，继续优化高电荷方案。,
+2,82,9,add_solvent,"{""operation"": ""add_solvent"", ""solvent"": 1, ""volume_L"": 0.0025}","加入溶剂 S1
+2 mL",committed,状态 committed；累计成本 0.014；风险 0.250,experiment_memory,Concentrated S1/E2 setup for experiment 9.,Dissolve 0.004 mol reagent in 0.0025 L S1 for experiment 9.,Concentrated S1/E2 confirmed best; continue.,Concentration effect inconsistent; adjust.,加入 2.5 mL 溶剂 S1，固定介质与浓度，减少与电流、时长效应的混杂。,
+3,83,9,set_potential,"{""current_mA"": 70.0, ""electrolyte_profile"": 2, ""operation"": ""set_potential"", ""potential_V"": 1.18}","设定电位
+1.18 V / 70 mA
+电解质 E2",committed,状态 committed；累计成本 0.024；风险 0.250,experiment_memory,Probe for experiment 9 (S1/E2 concentrated).,Configure probe at 1.18 V/70 mA for experiment 9.,Probe consistent; proceed to high-charge stage.,Probe deviates; adjust.,先设定 1.18 V / 70 mA 的探测条件，建立当前 batch 的可比起点。,
+4,84,9,electrolyze,"{""duration_s"": 630.0, ""operation"": ""electrolyze""}","电解
+630 s",committed,状态 committed；累计成本 0.042；风险 0.250,experiment_memory,Probe electrolysis for experiment 9 at 630 s.,Run 630 s probe at 1.18 V/70 mA.,Probe fine; proceed to high-charge stage.,Probe poor; adjust.,进行 630 s 探测电解；若状态正常，再进入更高电荷的受控阶段。,
+5,85,9,set_potential,"{""current_mA"": 110.0, ""electrolyte_profile"": 2, ""operation"": ""set_potential"", ""potential_V"": 1.3}","设定电位
+1.30 V / 110 mA
+电解质 E2",committed,状态 committed；累计成本 0.052；风险 0.250,experiment_memory,Higher-charge controlled stage at 1.30 V/110 mA (S1/E2 concentrated).,Configure controlled electrolysis at 1.30 V/110 mA to push conversion higher.,110 mA raises conversion further; adopt.,110 mA degrades; revert to 100 mA.,把条件提高到 1.30 V / 110 mA，检验更高电荷能否继续提升转化和产率。,
+6,86,9,electrolyze,"{""duration_s"": 5400.0, ""operation"": ""electrolyze""}","电解
+5400 s",committed,状态 committed；累计成本 0.073；风险 0.250,experiment_memory,Controlled-stage conversion/yield at 1.30 V/110 mA for 5400 s (S1/E2).,Run 5400 s controlled electrolysis at 1.30 V/110 mA to push conversion and yield.,Higher charge raises yield further; adopt.,5400 s at 110 mA over-converts or degrades; adjust.,在高电荷条件下电解 5400 s，主动探索当前最优区附近的上界。,
+7,87,9,measure,"{""instrument"": ""uvvis"", ""operation"": ""measure""}","测量
+UV–Vis",committed,能量效率 0.978；法拉第效率 0.968；欧姆效率 0.916；传质效率 0.978,measurement,UV-vis efficiency after 110 mA/5400 s run.,Characterize faradaic/energy/transport/ohmic efficiency after higher-charge run.,Efficiency retained at 110 mA; adopt for final.,110 mA/5400 s degraded efficiency; moderate next.,调用 UV–Vis：能量效率 0.978、法拉第效率 0.968、欧姆效率 0.916、传质效率 0.978，说明效率仍然较高。,
+8,88,9,measure,"{""instrument"": ""ph_meter"", ""operation"": ""measure""}","测量
+pH meter",committed,pH_norm 0.157；沉淀信号 0.022,measurement,pH after 110 mA/5400 s run.,Measure pH_normalized and precipitation_signal after higher-charge run.,pH stable; continue.,pH drifted; note.,调用 pH meter：pH_norm 0.157、沉淀信号 0.022，未见明显沉淀或严重介质漂移。,
+9,89,9,terminate,"{""operation"": ""terminate""}",终止 batch,committed,batch 已关闭；等待终点测量,experiment_memory,Closeout of experiment 9.,Terminate experiment 9 run.,Experiment 9 ready for final assay.,Termination rejected.,依据两项中途测量关闭 batch，准备执行 final assay。,
+10,90,9,measure,"{""instrument"": ""final_assay"", ""operation"": ""measure""}","测量
+final assay",committed,转化率 0.824；选择性 0.977；选择性产率 0.787；score 0.899,measurement,"Full final-assay metrics for experiment 9 (S1/E2, 110 mA/5400 s).",Final assay of experiment 9 to score the 110 mA/5400 s recipe and close batch 9.,Higher charge improves score further; exp10 refines near this setting.,110 mA/5400 s underperforms vs exp8; exp10 uses 100 mA/4500 s.,终点得到转化率 0.824、选择性 0.977、选择性产率 0.787、score 0.899；高电荷方案得到支持。,0.8994647482448279
