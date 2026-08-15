@@ -27,6 +27,12 @@ from chemworld.eval.work_ii_study_b import (
     summarize_study_b_results,
     validate_prediction_payload,
 )
+from chemworld.eval.work_ii_study_b2 import (
+    STUDY_B2_PROTOCOL_VERSION,
+    build_study_b2_manifest,
+    prepare_study_b2_truth,
+    summarize_study_b2_results,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROTOCOL = ROOT / "configs/benchmark/work_ii_study_b_matched_evidence_v0.1.json"
@@ -377,7 +383,7 @@ def _run_cell_attempt(
     progress.emit({"stage": f"{phase}_cell_started", "cell_id": cell_id})
     result: dict[str, Any] = {
         "schema_version": STUDY_B_CELL_VERSION,
-        "study_id": "work-ii-study-b-matched-evidence-v0.1",
+        "study_id": cell.get("study_id", "work-ii-study-b-matched-evidence-v0.1"),
         "phase": phase,
         "cell_id": cell_id,
         "cluster_id": cell["cluster_id"],
@@ -619,7 +625,9 @@ def _execute_cells(
     return results
 
 
-def _canary_qualified(results: Sequence[Mapping[str, Any]]) -> tuple[bool, list[str]]:
+def _canary_qualified(
+    results: Sequence[Mapping[str, Any]], *, expected_term_count: int
+) -> tuple[bool, list[str]]:
     errors: list[str] = []
     if len(results) != 3:
         errors.append("canary denominator differs from three arms")
@@ -636,7 +644,8 @@ def _canary_qualified(results: Sequence[Mapping[str, Any]]) -> tuple[bool, list[
             errors.append(f"canary cell {result.get('cell_id')} did not complete two turns")
         scores = result.get("scores")
         if not isinstance(scores, Mapping) or any(
-            scores.get(stage, {}).get("term_count") != 48 for stage in ("pre", "post")
+            scores.get(stage, {}).get("term_count") != expected_term_count
+            for stage in ("pre", "post")
         ):
             errors.append(f"canary cell {result.get('cell_id')} has the wrong denominator")
     return not errors, errors
@@ -644,7 +653,7 @@ def _canary_qualified(results: Sequence[Mapping[str, Any]]) -> tuple[bool, list[
 
 def _write_report(summary: Mapping[str, Any], path: Path) -> None:
     lines = [
-        "# Work II Study B matched-evidence 结果",
+        f"# {summary['study_id']} matched-evidence 结果",
         "",
         f"状态: `{summary['status']}`; 完成 {summary['completed_cell_count']}/"
         f"{summary['scheduled_cell_count']} sessions; 失败 {summary['failed_cell_count']}。",
@@ -670,7 +679,8 @@ def _write_report(summary: Mapping[str, Any], path: Path) -> None:
         lines.extend(
             [
                 "",
-                "当前仅为进度性结果; 只有 30/30 terminal 后才解释 seeking 与 updating 机制。",
+                "当前仅为进度性结果; 只有全部 scheduled cells terminal 后才解释 "
+                "seeking 与 updating 机制。",
             ]
         )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
@@ -694,7 +704,33 @@ def main() -> int:
     output_root = args.output_root.resolve()
     output_root.mkdir(parents=True, exist_ok=True)
     progress = _Progress(output_root / "progress.jsonl")
-    manifest = build_study_b_manifest(args.protocol, repository_root=ROOT)
+    protocol_path = args.protocol if args.protocol.is_absolute() else ROOT / args.protocol
+    protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    if protocol.get("schema_version") == STUDY_B2_PROTOCOL_VERSION:
+        prepare_study_b2_truth(
+            protocol_path,
+            repository_root=ROOT,
+            output_root=output_root,
+            progress=progress.emit,
+        )
+        manifest = build_study_b2_manifest(
+            protocol_path,
+            repository_root=ROOT,
+            output_root=output_root,
+        )
+        summarize = summarize_study_b2_results
+    else:
+        manifest = build_study_b_manifest(args.protocol, repository_root=ROOT)
+        summarize = summarize_study_b_results
+    expected_term_count = int(
+        manifest.get(
+            "scoring_term_count",
+            sum(
+                len(query["metric_ids"])
+                for query in manifest["cells"][0]["public_packet"]["scoring_queries"]
+            ),
+        )
+    )
     _atomic_json(output_root / "input_manifest.json", manifest)
     progress.emit(
         {
@@ -722,7 +758,10 @@ def main() -> int:
             workers=args.workers,
             resume=args.resume,
         )
-        qualified, errors = _canary_qualified(canary_results)
+        qualified, errors = _canary_qualified(
+            canary_results,
+            expected_term_count=expected_term_count,
+        )
         canary_summary = {
             "schema_version": "chemworld-work-ii-study-b-canary-summary-0.1",
             "qualified": qualified,
@@ -742,7 +781,9 @@ def main() -> int:
             and json.loads(canary_path.read_text(encoding="utf-8"))["qualified"] is True
         )
         if not canary_qualified:
-            raise RuntimeError("formal Study B execution requires a qualified three-arm canary")
+            raise RuntimeError(
+                "formal matched-evidence execution requires a qualified three-arm canary"
+            )
         results = _execute_cells(
             manifest["cells"],
             provider=provider,
@@ -752,7 +793,7 @@ def main() -> int:
             workers=args.workers,
             resume=args.resume,
         )
-        summary = summarize_study_b_results(manifest, results)
+        summary = summarize(manifest, results)
         _atomic_json(output_root / "summary.json", summary)
         _write_report(summary, output_root / "REPORT_ZH.md")
     if args.analyze and not args.execute:
@@ -760,7 +801,7 @@ def main() -> int:
             json.loads(path.read_text(encoding="utf-8"))
             for path in sorted((output_root / "cells").glob("*.json"))
         ]
-        summary = summarize_study_b_results(manifest, results)
+        summary = summarize(manifest, results)
         _atomic_json(output_root / "summary.json", summary)
         _write_report(summary, output_root / "REPORT_ZH.md")
     return 0

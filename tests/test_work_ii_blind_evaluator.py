@@ -266,8 +266,18 @@ def test_blind_executor_runs_six_zero_provider_replays_once(
     tmp_path: Path,
 ) -> None:
     plan = build_blind_evaluation_plan(_cell(), _summary(), _contract())
+    intervention = {
+        "kind": "mechanism_family",
+        "mode": "constitutive_law_family",
+        "severity": 1.0,
+        "constitutive_law_change": {
+            "transform_id": "partition_power_response_stress_v1",
+            "partition_coefficient_exponent_at_full_severity": 1.75,
+        },
+    }
 
     def fake_run_agent(**kwargs):
+        assert kwargs["world_interventions"] == [intervention]
         agent = kwargs["agent"]
         output_path = Path(kwargs["output_path"])
         agent.reset({}, 0)
@@ -300,12 +310,17 @@ def test_blind_executor_runs_six_zero_provider_replays_once(
             return {"verified": True, "checked_steps": 2, "mismatches": []}
 
     monkeypatch.setattr(blind, "run_agent", fake_run_agent)
-    monkeypatch.setattr(blind, "verify_records", lambda records, tolerance: _Replay())
+    monkeypatch.setattr(
+        blind,
+        "verify_records",
+        lambda records, tolerance, world_interventions: _Replay(),
+    )
     config = {
         "task_id": "electrochemical-conversion",
         "world_split": "test",
         "objective": "test",
         "observation_noise_mode": "deterministic_keyed",
+        "world_interventions": [intervention],
     }
     output = tmp_path / "blind-output"
     report = execute_blind_evaluation_plan(

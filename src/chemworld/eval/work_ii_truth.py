@@ -655,6 +655,7 @@ def execute_evaluator_truth_plan(
                 output_path=trajectory_path,
                 budget_override=len(actions),
                 episode_mode_override="single_experiment",
+                world_interventions=config.get("world_interventions"),
                 electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
                 crystallization_material_family_id=config.get("crystallization_material_family_id"),
                 electrochemical_workflow_mode=str(query["workflow_mode"]),
@@ -675,7 +676,11 @@ def execute_evaluator_truth_plan(
             if len(final_rows) != 1:
                 raise ValueError("evaluator truth trajectory lacks one final assay")
             query_truth = _truth_metrics(final_rows[0], query["metric_ids"])
-            replay = verify_records(records, tolerance=0.0).to_dict()
+            replay = verify_records(
+                records,
+                tolerance=0.0,
+                world_interventions=config.get("world_interventions"),
+            ).to_dict()
             if replay.get("verified") is not True:
                 raise ValueError("evaluator truth trajectory does not replay exactly")
             truth[query_id] = query_truth

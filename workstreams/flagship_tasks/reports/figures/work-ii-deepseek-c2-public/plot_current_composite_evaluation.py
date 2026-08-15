@@ -62,7 +62,7 @@ plt.rcParams.update(
 ROOT = Path(__file__).resolve().parents[5]
 DEFAULT_REPORT = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-c2-current-composite-evaluation-v0.1.json"
+    "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
 )
 DEFAULT_OUTPUT = Path(__file__).resolve().parent / "current"
 ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
@@ -513,7 +513,14 @@ def _plot_blind(ax: mpl.axes.Axes, report: Mapping[str, Any]) -> None:
 def _save_figure(fig: mpl.figure.Figure, output: Path) -> None:
     output.mkdir(parents=True, exist_ok=True)
     base = output / "deepseek_c2_prediction_law_action"
-    fig.savefig(base.with_suffix(".svg"), bbox_inches="tight")
+    svg_path = base.with_suffix(".svg")
+    fig.savefig(svg_path, bbox_inches="tight")
+    svg_path.write_text(
+        "\n".join(line.rstrip() for line in svg_path.read_text(encoding="utf-8").splitlines())
+        + "\n",
+        encoding="utf-8",
+        newline="\n",
+    )
     fig.savefig(base.with_suffix(".pdf"), bbox_inches="tight")
     fig.savefig(
         base.with_suffix(".tiff"),

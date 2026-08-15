@@ -194,6 +194,16 @@ def test_truth_executor_retains_exact_four_query_denominator(
     import chemworld.eval.work_ii_truth as truth_module
 
     config = _load_config("work_ii_campaign_pilot.json")
+    intervention = {
+        "kind": "mechanism_family",
+        "mode": "constitutive_law_family",
+        "severity": 1.0,
+        "constitutive_law_change": {
+            "transform_id": "partition_power_response_stress_v1",
+            "partition_coefficient_exponent_at_full_severity": 1.75,
+        },
+    }
+    config["world_interventions"] = [intervention]
     cluster = {
         "world_cluster_id": "development-electrochemical-seed0",
         "task_id": "electrochemical-conversion",
@@ -207,6 +217,7 @@ def test_truth_executor_retains_exact_four_query_denominator(
     )
 
     def fake_run_agent(**kwargs):
+        assert kwargs["world_interventions"] == [intervention]
         actions = kwargs["agent"]._frozen_actions
         rows = []
         for action in actions:
@@ -236,7 +247,7 @@ def test_truth_executor_retains_exact_four_query_denominator(
     monkeypatch.setattr(
         truth_module,
         "verify_records",
-        lambda records, tolerance: SimpleNamespace(
+        lambda records, tolerance, world_interventions: SimpleNamespace(
             to_dict=lambda: {
                 "verified": True,
                 "checked_steps": len(records),

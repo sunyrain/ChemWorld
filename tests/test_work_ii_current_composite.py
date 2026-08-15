@@ -84,7 +84,7 @@ def test_current_composite_markdown_renderer_binds_all_locus_gate_shapes() -> No
         (
             ROOT
             / "workstreams/flagship_tasks/reports/"
-            "work-ii-deepseek-c2-current-composite-evaluation-v0.1.json"
+            "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
         ).read_text(encoding="utf-8")
     )
 
@@ -92,6 +92,6 @@ def test_current_composite_markdown_renderer_binds_all_locus_gate_shapes() -> No
 
     assert "| A_E | -0.2138 | -0.3592 | 0.990148 |" in markdown
     assert "| A_P | 0.0326 | -0.0063 | 0.079130 |" in markdown
-    assert "| A_S | -0.2567 | -0.6476 | 1.000000 |" in markdown
-    assert "49/1/85" in markdown
+    assert "| A_S | -0.2241 | -0.6286 | 1.000000 |" in markdown
+    assert "50/1/84" in markdown
     assert "1/119/1" in markdown

@@ -488,6 +488,7 @@ def execute_blind_evaluation_plan(
                 output_path=trajectory_path,
                 budget_override=len(actions),
                 episode_mode_override="single_experiment",
+                world_interventions=config.get("world_interventions"),
                 electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
                 crystallization_material_family_id=config.get("crystallization_material_family_id"),
                 electrochemical_workflow_mode=config.get("electrochemical_workflow_mode"),
@@ -515,7 +516,11 @@ def execute_blind_evaluation_plan(
                 or not math.isfinite(float(score))
             ):
                 raise ValueError("blind evaluator final score is not finite")
-            replay = verify_records(records, tolerance=0.0).to_dict()
+            replay = verify_records(
+                records,
+                tolerance=0.0,
+                world_interventions=config.get("world_interventions"),
+            ).to_dict()
             if replay.get("verified") is not True:
                 raise ValueError("blind evaluator trajectory does not replay exactly")
             receipt.update(

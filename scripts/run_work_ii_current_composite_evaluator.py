@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from collections.abc import Mapping
+from collections.abc import Callable, Mapping
 from pathlib import Path
 from typing import Any
 
@@ -25,15 +25,15 @@ DEFAULT_ANALYSIS_PLAN = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.2.jso
 DEFAULT_FORMAL_DESIGN = ROOT / "configs/benchmark/work_ii_formal_design_v0.2.json"
 DEFAULT_RAW_OUTPUT = ROOT / (
     "runs/formal/"
-    "work-ii-deepseek-c2-current-composite-evaluator-v0.1-20260815"
+    "work-ii-deepseek-c2-current-composite-evaluator-v0.2-20260815"
 )
 DEFAULT_REPORT = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-c2-current-composite-evaluation-v0.1.json"
+    "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
 )
 DEFAULT_MARKDOWN = ROOT / (
     "workstreams/flagship_tasks/reports/"
-    "WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_EVALUATION_ZH.md"
+    "WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_EVALUATION_V0.2_ZH.md"
 )
 
 
@@ -216,6 +216,10 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
                 "A-S crystallization replacement cells，不混入 superseded block。"
             ),
             (
+                "- v0.1 truth/blind 路径未把冻结的 `world_interventions` 传入 runtime 与 "
+                "exact replay；v0.2 在新输出根从第一单元完整重跑，旧结果仅保留为历史缺陷证据。"
+            ),
+            (
                 "- A-S partition 的合法 evaluator query 可将 `settle_duration_s` 外推到 "
                 "participant 搜索框之外。Truth compiler 已按物理 runtime domain 直接编译，"
                 "4 个外推 query 未 clip、未删除。"
@@ -236,7 +240,7 @@ def _render_markdown(report: Mapping[str, Any]) -> str:
     return "\n".join(lines)
 
 
-def _progress_writer(path: Path | None):
+def _progress_writer(path: Path | None) -> Callable[[Mapping[str, Any]], None]:
     def emit(payload: Mapping[str, Any]) -> None:
         rendered = json.dumps(dict(payload), ensure_ascii=False, sort_keys=True)
         if path is not None:
