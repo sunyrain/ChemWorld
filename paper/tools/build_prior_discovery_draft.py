@@ -19,6 +19,11 @@ BIBLIOGRAPHY = ROOT / "paper/prior_discovery_references.bib"
 TEMPLATE = ROOT / "paper/prior_discovery/template.tex"
 FIGURE_DIR = ROOT / "paper/figures/prior-discovery"
 FIGURE_MANIFEST = FIGURE_DIR / "figure_manifest.json"
+PUBLIC_C2_FIGURE = ROOT / (
+    "workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/"
+    "current/deepseek_c2_prediction_law_action.pdf"
+)
+PUBLIC_C2_FIGURE_BUILD_NAME = "figure-5-public-c2-capability-chain.pdf"
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-draft"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
@@ -126,6 +131,12 @@ def build() -> dict[str, Any]:
         shutil.copy2(BIBLIOGRAPHY, build_dir / "references.bib")
         for source in figure_pdfs:
             shutil.copy2(source, figure_build_dir / source.name)
+        if not PUBLIC_C2_FIGURE.is_file():
+            raise RuntimeError("current public C2 evaluator figure is unavailable")
+        shutil.copy2(
+            PUBLIC_C2_FIGURE,
+            figure_build_dir / PUBLIC_C2_FIGURE_BUILD_NAME,
+        )
         main_tex = build_dir / "main.tex"
         run(
             [
@@ -196,6 +207,7 @@ def build() -> dict[str, Any]:
             "configs/benchmark/"
             "work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
         ),
+        PUBLIC_C2_FIGURE,
         *figure_pdfs,
     ]
     manifest: dict[str, Any] = {
@@ -255,7 +267,11 @@ def build() -> dict[str, Any]:
                 "replay; it does not support a cross-task or general initial-world-model "
                 "claim."
             ),
-            "Public formal and private confirmation results remain uncollected.",
+            (
+                "Public DeepSeek participant, evaluator and matched-evidence results "
+                "are collected; "
+                "private confirmation remains uncollected."
+            ),
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

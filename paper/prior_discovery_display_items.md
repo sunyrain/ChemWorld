@@ -66,7 +66,7 @@ decision audit, never hidden chain of thought.
 
 ## Figure 5 — Prediction, executable-law and action dissociation
 
-**Status:** generated from the completed current-composite provider-free evaluator.
+**Status:** regenerated from the completed current-composite v0.2 world-intervention recovery.
 
 **Claim:** general prediction learning, selective wrong-prior correction, executable-law compression
 and action improvement are empirically separable.
@@ -76,7 +76,7 @@ and action improvement are empirically separable.
 - B: mean pre-to-final prediction-error reduction by arm and locus, showing general learning despite
   failed selective-correction gates;
 - C: law MAE minus final explicit-prediction MAE for all 135 cells; law better/equal/worse is
-  49/1/85;
+  50/1/84;
 - D: blind recommendation versus incumbent for 121 evaluable cells; better/equivalent/worse is
   1/119/1, with 14 nonterminal cells retained as unstarted.
 
@@ -85,7 +85,25 @@ Source: `workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/c
 420/420 truth executions, 675/675 checkpoint scores, 135/135 law evaluations and 726/726 launched
 blind replays with zero provider calls.
 
-## Figure 6 — Recommendation and system boundary
+## Figure 6 — Matched-evidence mechanism localization
+
+**Claim:** diagnostic evidence can improve numerical predictions without reliably recovering the
+registered structural law; seeking, numerical revision and structural identification are separable.
+
+Panels:
+
+- A: A-P matched evidence, showing pre/post convergence and 5/5 explicit rejection of the supplied
+  wrong potential direction;
+- B: A-S B2 world-level misindexed-minus-aligned update-gain contrasts, mean +0.0645, 3/5 positive,
+  exact one-sided sign-flip p=0.125;
+- C: A-S B2 pre/post error by arm, with all three post means below 0.008;
+- D: public structural audit: misindexed exact 1.75-law recovery 0/5, explicit supplied-linear
+  rejection 1/5 and empirical saturation/endpoint models 5/5.
+
+The original Study B A-S branch is historical platform-defect evidence and must not enter this
+display. Source the current panel from `work-ii-as-study-b2-phase-process-results-v0.1.json`.
+
+## Figure 7 — Recommendation and system boundary
 
 **Claim:** current final recommendations mainly retrieve the observed incumbent, while most tool
 failures occur at typed belief submission rather than physical execution.

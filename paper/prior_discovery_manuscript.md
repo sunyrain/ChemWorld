@@ -49,9 +49,12 @@ abstract: |
   laws and completed 726/726 launched blind replays. Prediction error generally decreased, but the
   registered selective-correction gate failed at all three intervention loci (A-E $p=0.990$, A-P
   $p=0.079$, A-S $p=1.000$). Executable laws were more accurate than final explicit predictions in
-  only 49/135 cells and worse in 85/135. Blind recommendations were better, equivalent and worse
-  than the observed incumbent in 1, 119 and 1 evaluable cells. Thus experimental adaptation,
-  counterfactual learning, law compression and action improvement form distinct capability layers.
+  only 50/135 cells and worse in 84/135. Blind recommendations were better, equivalent and worse
+  than the observed incumbent in 1, 119 and 1 evaluable cells. A matched-evidence follow-up found
+  a positive but mixed A-S misindexed-minus-aligned prediction-update contrast (+0.0645, 3/5 worlds,
+  exact sign-flip $p=0.125$), while 0/5 misindexed summaries recovered the registered 1.75 law.
+  Thus experimental adaptation, numerical belief revision, structural-law identification, law
+  compression and action improvement form distinct capability layers.
   The present cohort provides a controlled first map of their conversion losses, rather than a
   single endpoint ranking or a claim of cross-model generality.
 ---
@@ -297,7 +300,10 @@ identifiability gate and retains its own denominator:
    predeclared blocks; an entity-only result remains entity-specific.
 2. **Study B — Matched-evidence falsification.** A cloned-world secondary probe presents the same
    contradictory evidence to each arm, separating failure to seek evidence from failure to update
-   after seeing it. It uses independent sessions and is excluded from Study A denominators.
+   after seeing it. The current evidence surface retains the unaffected A-P Study B block and a
+   corrected A-S B2 phase-process block; the original A-S Study B branch is historical because its
+   evaluator truth source omitted the registered world intervention. All matched-evidence sessions
+   are independent and excluded from Study A denominators.
 3. **Study C — Executable law and action.** Typed law summaries, held-out predictions and blind
    recommendations test the transitions from prediction to law and from law to action; no verbal
    statement alone counts as discovery.
@@ -676,17 +682,18 @@ language model in isolation.
 
 ## 6.5 Prediction learning did not become selective wrong-model repair
 
-The current-composite evaluator executed **420/420** held-out truth queries, producing 1,620
-query--metric truth values without a provider call, and scored **675/675** checkpoints. All three
-intervention loci showed mean pre-to-final error reductions in every arm. For A-E, the opaque,
+The recovered current-composite evaluator executed **420/420** held-out truth queries, producing
+1,620 query--metric truth values without a provider call, and scored **675/675** checkpoints. All
+three intervention loci showed mean pre-to-final error reductions in every arm. For A-E, the opaque,
 aligned and misindexed reductions were 0.111, 0.097 and 0.097; for A-P they were 0.090, 0.033 and
-0.065; for A-S they were 0.157, 0.192 and 0.149. The agent therefore learned predictive information
-during the campaigns.
+0.065; for A-S they were 0.219, 0.228 and 0.221. The agent therefore learned predictive information
+during the campaigns. The A-S values come from the v0.2 world-intervention recovery; the v0.1
+evaluator result is retained only as historical defect evidence.
 
 The registered estimand was more demanding: the misindexed arm should improve more than the aligned
 arm without degrading aligned predictions. This selective-correction gate failed at every locus.
 The failure-aware primary contrasts were **-0.214** for A-E ($p=0.990$), **+0.033** for A-P
-($p=0.079$) and **-0.257** for A-S ($p=1.000$). A-E passed the aligned noninferiority component but
+($p=0.079$) and **-0.224** for A-S ($p=1.000$). A-E passed the aligned noninferiority component but
 not the misindexed-improvement component. Both A-P task means were positive, making the result
 suggestive rather than confirmatory. In A-S, crystallization showed positive observed-point
 correction whereas partition was negative; the required cross-task locus decision therefore failed.
@@ -696,23 +703,48 @@ targeted repair of a wrong initial model were thus empirically distinct.
 ## 6.6 Executable laws were often lossy and blind actions rarely improved
 
 All **135/135** final typed laws executed on their registered continuous query coordinates. Mean law
-MAE was 0.244. Relative to the effective final explicit predictions, laws were better in 49 cells,
-equal in one and worse in 85; mean law-minus-final error was +0.070. A-S showed the strongest
-pre-to-law improvement (+0.142), but even there the law remained less accurate than the final
-explicit predictions on average (+0.024). Syntax and executability were therefore solved, whereas
+MAE was 0.237. Relative to the effective final explicit predictions, laws were better in 50 cells,
+equal in one and worse in 84; mean law-minus-final error was +0.069. A-S showed the strongest
+pre-to-law improvement (+0.206), but even there the law remained less accurate than the final
+explicit predictions on average (+0.017). Syntax and executability were therefore solved, whereas
 faithful compression of a conditional belief state into a reusable relation was not.
 
 Paired blind replay retained all participant terminal states. It launched and completed **726/726**
 executions for 121 evaluable cells; 84 pre-scheduled executions for seven failed and seven
 right-censored cells were retained as unstarted rather than imputed. Recommendations were better,
-equivalent and worse than the observed incumbent in **1/119/1** cells, with mean gain -0.00082. The
+equivalent and worse than the observed incumbent in **1/119/1** cells, with recovered mean gain about
+$-0.0010$. The
 final interface was highly reproducible but almost entirely retrieved an incumbent rather than
 producing a new action advantage.
+
+## 6.7 Matched evidence separated three transitions rather than yielding a binary label
+
+The original A-S branch of Study B is not used for current scientific inference: its truth source
+was generated before the evaluator forwarded the registered structural intervention. The unaffected
+A-P block remains current, and a new A-S B2 block supplied 80/80 provider-free power-law truth queries
+and direct phase-process evidence with disjoint phase-process scoring queries. B2 completed 15/15
+two-turn sessions, 30/30 provider turns, 360/360 scoring terms per stage and zero failures.
+
+For A-P, all five misindexed public summaries explicitly rejected the supplied high-potential
+direction and recovered the peak-and-collapse response. This supports an evidence-acquisition
+component in the free-discovery loss. For A-S B2, opaque, aligned and misindexed mean errors fell from
+0.2255, 0.2736 and 0.3392 to 0.0074, 0.0060 and 0.0071. The registered misindexed-minus-aligned
+update-gain contrast was **+0.0645**, positive in **3/5** worlds (exact one-sided sign-flip
+$p=0.125$, descriptive 95% interval $[-0.0557, 0.1848]$). This is a mixed prediction-level signal,
+not a confirmatory selective-correction result.
+
+The structural audit was more restrictive: **0/5** misindexed summaries recovered the exact registered
+1.75 power law, only **1/5** explicitly rejected the supplied linear partition form, and all five
+shifted toward an empirical saturation or endpoint model. The agent therefore revised numerical
+predictions after receiving law-level evidence but did not reliably identify the registered mechanism.
+The resulting boundary is three-layered: evidence acquisition, numerical belief revision and structural
+law identification are separable; neither a pure evidence-seeking bottleneck nor a pure stubborn-updating
+claim is supported.
 
 ```{=latex}
 \begin{figure*}[!t]
 \centering
-\includegraphics[width=\textwidth]{../workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/current/deepseek_c2_prediction_law_action.pdf}
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-5-public-c2-capability-chain.pdf}
 \caption{\textbf{Prediction learning, scientific correction, executable-law compression and blind action dissociate.}
 \textbf{a,} Failure-aware selective-correction contrasts across all 45 matched task--world clusters; circles show observed contrasts, vertical ticks retain adverse failure-aware bounds and diamonds show task means. Registered locus $p$ values are shown.
 \textbf{b,} Mean pre-to-final normalized prediction-error reduction by intervention locus and initial-model arm.
@@ -730,8 +762,8 @@ selective wrong-prior correction. It also shows that executable syntax does not 
 compression and that reproducible recommendation does not guarantee action improvement. These are
 jointly observed transition losses, not missing surrogate measurements.
 
-The next programme stages address different causal questions. A matched-evidence Study B can separate
-evidence seeking from belief updating. A context-reset Study D can compare typed laws with richer
+The matched-evidence stage is now terminal with this qualified three-layer outcome. The next programme
+stages address different causal questions. A context-reset Study D can compare typed laws with richer
 evidence artifacts and test portability. Private within-family confirmation and matched cross-provider
 replication can test stability and generality. None is a repair run for the present result, and each
 requires a separate protocol and denominator. Within-family replication remains distinct from
@@ -796,6 +828,10 @@ participant denominators, whereas the observation-model screen remained a scient
 not enter a participant block. The current-composite evaluator completed held-out prediction, law
 compression and blind action for the public cohort; private confirmation, matched cross-provider
 replication and compositional transfer were not run.
+The matched-evidence A-S B2 follow-up contains only five independent public worlds; its exact
+sign-flip analysis and public-summary structural audit cannot establish a population-wide rate of
+mechanism recovery. The original A-S Study B branch is retained only as historical platform-defect
+evidence and is excluded from current scientific claims.
 Ten cells contain discard-affected checkpoint timing that cannot be retrospectively repaired. Finally,
 exact software replay does not eliminate provider variability or interface burden; provider attempts,
 schema failures, resource rejection and session outcomes are reported as operational characteristics
@@ -865,6 +901,12 @@ task--locus combinations is forbidden. Endpoint contrasts in Section 6 are descr
 outcomes, not substitutes for that registered prediction-error analysis. Prespecified sensitivity
 analyses include observed-point, complete-case, heteroscedasticity-robust and task-stratified
 cluster-bootstrap summaries.
+
+Matched-evidence analyses use the world as the inference unit and retain the prespecified contrast
+$(E_{mis,pre}-E_{mis,post})-(E_{aligned,pre}-E_{aligned,post})$. A-S B2 uses five worlds, so all
+$2^5$ sign flips are enumerated for the exact one-sided directional check and a Student-$t$ interval
+is reported descriptively. Canary sessions are excluded. Public structural-recovery counts use only
+the submitted model summary and evidence assessment, never private reasoning text.
 
 ## 9.6 Optional private confirmation boundary
 

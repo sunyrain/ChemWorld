@@ -15,7 +15,12 @@ PAPER_STORY_ANALYSIS = (
 CURRENT_COMPOSITE_EVALUATION = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-c2-current-composite-evaluation-v0.1.json"
+    "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
+)
+B2_ANALYSIS = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-as-study-b2-phase-process-results-v0.1.json"
 )
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
@@ -79,7 +84,7 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
     assert manifest["status"] == "compiled_development_draft"
     limits = " ".join(manifest["interpretation_limits"])
     assert "common three-task provider-separated source" in limits
-    assert "Public formal and private confirmation results remain uncollected." in limits
+    assert "private confirmation remains uncollected" in limits
     sources = {row["path"] for row in manifest["sources"]}
     assert (
         "workstreams/flagship_tasks/reports/"
@@ -96,6 +101,7 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     display_items = DISPLAY_ITEMS.read_text(encoding="utf-8")
     analysis = json.loads(PAPER_STORY_ANALYSIS.read_text(encoding="utf-8"))
     evaluation = json.loads(CURRENT_COMPOSITE_EVALUATION.read_text(encoding="utf-8"))
+    b2 = json.loads(B2_ANALYSIS.read_text(encoding="utf-8"))
 
     overall = analysis["overall"]
     assert overall["cell_count"] == 135
@@ -115,6 +121,17 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert denominators["law_summary_evaluated_count"] == 135
     assert denominators["blind_completed_execution_count"] == 726
     assert evaluation["provider_call_count"] == 0
+    law = evaluation["executable_law"]["overall"]["all"]
+    assert round(law["mean_normalized_mae"], 4) == 0.2371
+    assert law["law_better_than_final_prediction_count"] == 50
+    assert law["law_worse_than_final_prediction_count"] == 84
+    assert round(b2["primary_contrast"]["mean"], 4) == 0.0645
+    assert b2["primary_contrast"]["positive_world_count"] == 3
+    assert b2["public_summary_audit"]["by_arm"]["misindexed_nominal"][
+        "exact_1_75_power_law_recovery_count"
+    ] == 0
     assert "Prediction learning did not become selective wrong-model repair" in manuscript
     assert "1/119/1" in manuscript
+    assert "Matched evidence separated three transitions" in manuscript
+    assert "mean +0.0645" in display_items
     assert "generated from the completed current-composite" in display_items

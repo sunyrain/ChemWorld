@@ -12,9 +12,9 @@
 | Provider-free 可辨识性与机制资格 | 已完成 | 一部分 task/locus 通过，一部分按冻结门槛科学拒绝；失败结果全部保留 |
 | DeepSeek C2 public participant | 终态 | 135/135 sessions，1,243/1,260 experiments，121/135 qualification |
 | Participant prediction checkpoints | 已完成采集 | 675/675 snapshots，6,300 registered query predictions，24,300 query–metric values |
-| Registered current-composite evaluator | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
+| Registered current-composite evaluator v0.2 recovery | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
 | 删失与资源敏感性分析 | 已完成当前 public 主分析 | 7 failed、7 right-censored 与 84 个未启动 blind 分母全部保留；另报 observed-point sensitivity |
-| Study B matched evidence | 30/30 终态，部分机制闭环 | A-P 支持 evidence-seeking bottleneck；A-S 暴露 evidence level 与 law level 错配，尚不能定位 updating failure |
+| Matched evidence（A-P Study B + A-S B2） | 当前有效 30 sessions 终态 | A-P 支持 evidence-seeking component；B2 给出 mixed predictive contrast，但 misindexed 0/5 恢复 1.75 law，结构识别仍是独立瓶颈 |
 | A-E private | 延期 | public evaluator 后仅在需要 held-out confirmation 时重新授权 |
 | 跨 provider replication | 未启动 | WellAU/Qwen/Kimi 仅在保留跨 provider 泛化主张时需要 |
 | Manuscript story | 第一阶段证据已整合 | `paper/prior_discovery_story_zh.md`；当前 cohort 被定位为大计划的首个完整能力剖面，而非投稿终点 |
@@ -27,8 +27,9 @@
 4. 给出结构化机制假设可以改善探索组织，但“有结构”不等于“恢复了正确机制”。
 5. Endpoint optimization、prior rejection、held-out prediction correction 和 executable-law recovery 是不同能力，不能由 leaderboard score 互相替代。
 6. 有限库存、操作次数和时间是任务的一部分；provider 调用预算不设上限不意味着实验室资源无限。
-7. 固定高信息量反证可以使 A-P 错误参数方向在 5/5 worlds 被明确推翻，但相同数量的 A-S endpoint evidence 并不保证结构规律恢复。
-8. 科学纠错不仅要求模型愿意更新，还要求 evidence 与待纠正 law 处于相同可识别层级。
+7. 固定高信息量反证可以使 A-P 错误参数方向在 5/5 worlds 被明确推翻，支持自由探索损失包含 evidence-acquisition component。
+8. A-S B2 的 phase-process evidence 使 misindexed prediction gain 平均高于 aligned（+0.0645），但仅 3/5 worlds 为正，且 0/5 恢复 exact 1.75 law。
+9. 科学纠错不能压缩为 seeking/updating 二分：evidence acquisition、numerical belief revision 与 structural law identification 是三个可分离层级。
 
 当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；结果可跨 provider 泛化；private replication 已完成。
 
@@ -51,7 +52,9 @@
 | Distillation rollback Q0 | 18/18 | 物理路径成立但效应不足，科学拒绝 |
 | A-S crystallization/partition Q1-Q2 | 10,240/10,240 primary + replay | 两候选均 5/5 worlds 通过，支持进入 public C2 |
 | DeepSeek C2 public current | 135/135 sessions，1,243/1,260 experiments；420 truth、675 checkpoints、135 laws、726 blind executions | 当前 public participant 与 evaluator 已闭环；不等于 private、transfer 或跨 provider 已完成 |
-| Study B matched evidence | 10 clusters、30/30 fresh sessions、60/60 provider turns、0 participant experiments | A-P 三臂 post-error 收敛；A-S endpoint 校准与 power-law recovery 分离 |
+| Study B A-P matched evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、0 participant experiments | 5/5 misindexed sessions 明确推翻错误电位方向；当前保留 |
+| 原 Study B A-S branch | 5 clusters、15/15 sessions | truth source 未实际应用冻结的 world intervention；保留为历史平台缺陷证据，不进入当前 claim |
+| A-S Study B2 phase-process evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | prediction primary contrast +0.0645（3/5，exact p=0.125）；misindexed 0/5 exact law recovery |
 
 ## 4. DeepSeek C2 public 当前终态
 
@@ -87,9 +90,9 @@
 - 91.2% 的完成实验为唯一 recipe；84.4% 的 session 最优值出现在预算后半段，说明 persistent agent 持续利用反馈搜索。
 - 666/1,269 个 closed lifecycles 使用非终点测量，共 872 次 instrument uses；测量率从 A-E electrochemistry 的 0% 到 A-S crystallization 的 98.4%，反映任务路径差异而不是统一的“是否调用仪器”。
 - 675/675 belief checkpoints 均提交成功；A-E 每 checkpoint 含 4 个 registered queries，A-P/A-S 含 16 个，总计 6,300 query predictions，并已全部完成 evaluator scoring。
-- 三个 locus 的平均 prediction error 都有下降，但注册 selective-correction gate 均未通过：A-E `p=0.990`、A-P `p=0.079`、A-S `p=1.000`。A-P 为 suggestive，不能升级为 positive claim。
-- 135/135 final typed laws 全部可执行；overall law MAE `0.2438`，law 相对 final explicit prediction 更好/相等/更差为 `49/1/85`，说明可执行性与高保真规律压缩分离。
-- 稳定 batch identity 下 133/135 final recommendations 选择精确 observed incumbent；121 个可评价 cells 的 726 次 blind replay 全部完成，better/equivalent/worse 为 `1/119/1`，mean gain `-0.0008`。
+- 三个 locus 的平均 prediction error 都有下降；修复后的 A-S opaque/aligned/misindexed pre→final improvement 为 `0.2194/0.2276/0.2210`。注册 selective-correction gate 均未通过：A-E `p=0.990`、A-P `p=0.079`、A-S `p=1.000`。A-P 为 suggestive，不能升级为 positive claim。
+- 135/135 final typed laws 全部可执行；recovered overall law MAE `0.2371`，law 相对 final explicit prediction 更好/相等/更差为 `50/1/84`，说明可执行性与高保真规律压缩分离。
+- 稳定 batch identity 下 133/135 final recommendations 选择精确 observed incumbent；121 个可评价 cells 的 726 次 blind replay 全部完成，better/equivalent/worse 为 `1/119/1`，recovered mean gain 约 `-0.0010`。
 - 904 个 failed tool events 中 888 个来自 belief checkpoint 提交。所有 checkpoint 最终恢复，但该 schema friction 必须作为 agent-system 负担报告。
 
 ## 5. A-S crystallization 特别说明
@@ -98,12 +101,13 @@
 
 最终结果为 179/180 experiments、12/15 qualification、2 次真实库存拒绝。历史推荐索引错配属于分析层缺陷：稳定生命周期重建显示 15/15 最终推荐身份有效且都选择公开 incumbent，observed-score regret 为 0。原始历史 qualification 仍保持 12/15，4 个 discard session 的 checkpoint timing 不作事后改写。
 
-## 6. Study B matched-evidence 机制定位
+### Current-composite world-intervention recovery
 
-Study B 使用 A-P electrochemical 与 A-S partition 各 5 个 public worlds；每个 world 的 opaque、aligned、
-misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对
-8 个不重叠 queries 提交 post-evidence prediction。正式 block 为 30/30 sessions、60/60 turns、0 failures、
-0 participant physical experiments，canary 不进入分析。
+后续审计发现 v0.1 truth/blind evaluator 虽将 `world_interventions` 绑定进 plan，却未传入 runtime 与 exact replay，影响 A-S partition/crystallization。v0.2 在全新输出根从第一单元重跑 420 truth 与 726 eligible blind executions；A-E/A-P prediction、law、blind blocks 与旧报告完全一致，A-S 数值被修正，C2 总判定仍不通过。A-S law MAE 从 `0.1851` 修正为 `0.1552`，overall law MAE 从 `0.2438` 修正为 `0.2371`。v0.1 只保留为历史缺陷证据。
+
+## 6. Matched-evidence 机制定位：A-P Study B 与 A-S B2
+
+每个 matched-evidence block 都让 opaque、aligned、misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对 8 个不重叠 queries 提交 post-evidence prediction。当前有效证据由 A-P Study B 的 15 sessions 与 A-S B2 的 15 sessions 组成，合计 30/30 sessions、60/60 turns、0 failures、0 participant physical experiments；各自 canary 均不进入分析。
 
 ### A-P：固定反证使错误参数方向可纠正
 
@@ -113,17 +117,17 @@ opaque/aligned/misindexed 的平均误差分别从 `0.3037/0.2822/0.3105` 降到
 但 5/5 misindexed public summaries 都明确否定“高电位更可靠”，并恢复约 1.1 V 最优、1.3 V 以上坍塌。
 结合 Study A 的 A-P suggestive signal，这支持自由探索损失至少部分来自未取得有效反证。
 
-### A-S：数值适应不等于结构纠错
+### 原 A-S Study B：退出当前证据
 
-三臂 endpoint error 均下降约 83–86%，但 misindexed 0/5 恢复注册的 1.75 partition power law，仍主要使用
-linear/distribution-coefficient 或通用传质缩放。注册主对比为 `-0.0519`、1/5 worlds 为正；该值受到
-misindexed pre-error 更低的可改善空间影响，不能直接解释为 stubborn updating。更关键的是 packet 的 8 条
-证据全部来自 identity/fixed-process 条件，而评分发生在 phase-process queries；4/5 misindexed summaries 也明确
-指出这种证据局限。因此 A-S 当前是设计诊断：packet 能校准 endpoint，但没有提供足够干预去唯一反驳线性结构。
+原 A-S matched-evidence packet 派生自受 world-intervention 缺陷影响的 v0.1 truth source。其 15 个 participant sessions 和原始结果保留，但不再支持当前 Paper 2 claim，也不通过事后重算 truth 修补 participant 已看到的 evidence。
 
-Study B 由此形成部分机制闭环：A-P 支持 evidence-seeking bottleneck；A-S 证明 endpoint adaptation 与
-structural correction 可以分离，但尚不能完成 acquisition-vs-updating 的结构 locus 因果定位。若保留完整 C3
-主张，需要独立 B2 给出直接分离 linear 与 1.75-power law 的 phase-process 成对证据，不能事后改写本次结果。
+### A-S B2：law-level evidence 到达后仍未形成 exact law
+
+B2 在五个 public worlds 中重新执行 80/80 power-law truth queries，证据与评分均使用不重叠 phase-process 坐标，并在 qualification worlds 预先验证每条 query 至少两个 metric 达到 paired-law effect gate。15/15 sessions、30/30 turns 均一次完成，same-thread 15/15，pre/post 各 360 scoring terms。
+
+opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074/0.0060/0.0071`，对应 gain `0.2181/0.2676/0.3321`。注册主对比为 `+0.0645`，3/5 worlds 为正，exact one-sided sign-flip `p=0.125`，95% 描述区间 `[-0.0557, 0.1848]`。该方向说明 direct diagnostic evidence 带来一个 descriptive acquisition component，但不稳定。
+
+结构表述却没有闭合：misindexed 0/5 明确恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向局部饱和/endpoint 模型。B2 因此拒绝纯二分解释：模型不是“完全不更新”，因为 post error 下降约 98%；也不能说“问题只在没找到证据”，因为 law-level evidence 到达后仍未恢复注册结构。当前机制收束是 **acquisition、numerical revision 与 structural identification 三层分离**。
 
 ## 7. 负结果与不扩展决定
 
@@ -141,11 +145,13 @@ structural correction 可以分离，但尚不能完成 acquisition-vs-updating 
 ## 8. 当前结果与图表入口
 
 - 当前 Paper 2 论文故事：`../../paper/prior_discovery_story_zh.md`
-- Study B 机制分析：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
-- Study B 机器结果：`reports/work-ii-study-b-matched-evidence-results-v0.1.json`
+- 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
+- A-S B2 当前机制分析：`reports/WORK_II_AS_STUDY_B2_PHASE_PROCESS_RESULTS_ZH.md`
+- A-S B2 机器结果：`reports/work-ii-as-study-b2-phase-process-results-v0.1.json`
 - C2 agent 行为与 prediction-collection 机器分析：`reports/work-ii-deepseek-c2-paper-story-analysis-v0.1.json`
-- C2 current-composite evaluator 报告：`reports/WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_EVALUATION_ZH.md`
-- C2 current-composite evaluator 机器结果：`reports/work-ii-deepseek-c2-current-composite-evaluation-v0.1.json`
+- C2 current-composite evaluator 报告：`reports/WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_EVALUATION_V0.2_ZH.md`
+- C2 current-composite evaluator 机器结果：`reports/work-ii-deepseek-c2-current-composite-evaluation-v0.2.json`
+- C2 world-intervention recovery 审计：`reports/WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_WORLD_INTERVENTION_RECOVERY_ZH.md`
 - C2 public 详细报告：`reports/figures/work-ii-deepseek-c2-public/REPORT_ZH.md`
 - C2 current 机器 summary：`reports/figures/work-ii-deepseek-c2-public/current/summary.json`
 - C2 current source data：`reports/figures/work-ii-deepseek-c2-public/current/source_data/`
@@ -161,12 +167,11 @@ structural correction 可以分离，但尚不能完成 acquisition-vs-updating 
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action 与 failure-aware sensitivity 已闭环。当前缺口不再是 evaluator 门禁，而是大研究计划的下一步选择：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束，不再需要追加同类 B2。下一步选择是：
 
-1. **A-S Study B2（仅在保留完整 C3 时）。** 用 phase-process 成对干预直接分离 linear 与 1.75-power law，再用不重叠 phase-process queries 评分。
-2. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
-3. **Cross-provider replication。** 只有需要检验失效位置的模型普适性时，再把 Qwen、Kimi 或 WellAU 接入同一 frozen harness。
-4. **A-E private。** 只承担 held-out within-family confirmation；继续延期，除非用户明确把该 claim 纳入下一阶段。
-5. **开放式停止与推荐设计。** 未来可统一最大实验预算，允许 agent 提前结束并提交 final plan；这是一项新实验，不事后改写当前 8/10/12 次设计。
+1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
+2. **Cross-provider replication。** 只有需要检验失效位置的模型普适性时，再把 Qwen、Kimi 或 WellAU 接入同一 frozen harness。
+3. **A-E private。** 只承担 held-out within-family confirmation；继续延期，除非用户明确把该 claim 纳入下一阶段。
+4. **开放式停止与推荐设计。** 未来可统一最大实验预算，允许 agent 提前结束并提交 final plan；这是一项新实验，不事后改写当前 8/10/12 次设计。
 
 因此可以说当前 DeepSeek public prediction task 已完成，但不能说整个 Paper 2 programme 已结束。当前结果是能力链研究的第一阶段，而不是仓促收缩后的最终论文。

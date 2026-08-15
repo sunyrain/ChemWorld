@@ -33,7 +33,7 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 | Final typed laws | 135/135 | 全部成功执行和评价 |
 | Blind replay | 726/810 | 121 个 terminal-evaluable cells 全部完成；84 次因 14 个非终态 participant cells 预定不启动 |
 
-当前分析严格组合 corrected-semantics cohort 中未受影响的 120 cells 与从首 cell 完整重跑的 15-cell A-S crystallization replacement。旧的缺陷块不拼接；participant 轨迹、evaluator truth 和 blind replay 彼此分离。
+当前分析严格组合 corrected-semantics cohort 中未受影响的 120 cells 与从首 cell 完整重跑的 15-cell A-S crystallization replacement。随后发现 v0.1 evaluator 没有把冻结的 A-S `world_interventions` 传入 truth/blind runtime；v0.2 又从第一 evaluator 单元完整重跑 420 truth 与 726 eligible blind executions。旧 participant/evaluator 缺陷块均不拼接；participant 轨迹、evaluator truth 和 blind replay 彼此分离。
 
 ### 2.2 Agent 确实进行了实质性实验搜索
 
@@ -57,7 +57,7 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 |---|---:|---:|---:|
 | A-E | +0.111 | +0.097 | +0.097 |
 | A-P | +0.090 | +0.033 | +0.065 |
-| A-S | +0.157 | +0.192 | +0.149 |
+| A-S | +0.219 | +0.228 | +0.221 |
 
 但注册主问题不是“误差是否下降”，而是错误先验的改善是否显著大于正确先验，同时正确先验不退化。三个 locus 均未通过：
 
@@ -65,9 +65,9 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 |---|---:|---:|---|
 | A-E | -0.214 | 0.990 | 不通过；aligned noninferiority 通过，但 misindexed selective improvement 不通过 |
 | A-P | +0.033 | 0.079 | 两任务均为正，属 suggestive，未过注册阈值 |
-| A-S | -0.257 | 1.000 | 不通过；partition 的负方向抵消 crystallization 的局部信号 |
+| A-S | -0.224 | 1.000 | 不通过；partition 的负方向抵消 crystallization 的局部信号 |
 
-观察点敏感性也不改变结论：A-E 约为 0、A-S 仍为负。失败-aware 规则确实使 crystallization 的非终态 cells 更保守，但总体失败不能被解释成纯删失伪影。
+观察点敏感性也不改变结论：A-E 约为 0、A-S 为 -0.0066。失败-aware 规则确实使 crystallization 的非终态 cells 更保守，但总体失败不能被解释成纯删失伪影。
 
 科学含义是：agent 获得了新信息并改善了预测，却没有按干预位置稳定地把额外改进集中在错误初始模型上。**general learning 不等于 targeted model repair。**
 
@@ -79,38 +79,39 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 |---|---:|---:|---:|
 | A-E | 0.2765 | +0.0161 | +0.0855 |
 | A-P | 0.2206 | -0.0156 | +0.0780 |
-| A-S | 0.1851 | +0.1423 | +0.0236 |
-| Overall | 0.2438 | +0.0371 | +0.0701 |
+| A-S | 0.1552 | +0.2059 | +0.0167 |
+| Overall | 0.2371 | +0.0513 | +0.0686 |
 
-与 final explicit prediction 相比，law 更好/相等/更差为 49/1/85。A-S 的 pre→law 改善最强，说明结构干预确实最接近规律恢复；但即使在 A-S，规律通常仍比 agent 对具体 query 的最终预测更差。当前瓶颈因此不是 schema 或执行器，而是将局部、条件化 belief 压缩成一个保持预测质量的可复用关系。
+与 final explicit prediction 相比，law 更好/相等/更差为 50/1/84。A-S 的 pre→law 改善最强，说明结构干预确实最接近规律恢复；但即使在 A-S，规律通常仍比 agent 对具体 query 的最终预测更差。当前瓶颈因此不是 schema 或执行器，而是将局部、条件化 belief 压缩成一个保持预测质量的可复用关系。
 
 ### 3.3 Blind action：可复现，但几乎没有新行动价值
 
-121 个可评价 cells 的 726 次 blind replay 全部完成。推荐相对 incumbent 的 better/equivalent/worse 为 1/119/1，平均 gain 为 -0.00082。A-E 仅 1 个极小正增益，A-S crystallization 有 1 个明显负例；其余全部等价。
+121 个可评价 cells 的 726 次 blind replay 全部完成。推荐相对 incumbent 的 better/equivalent/worse 为 1/119/1，recovered 平均 gain 约为 -0.0010。A-E 仅 1 个极小正增益，A-S crystallization 有 1 个明显负例；其余全部等价。
 
 这与 participant 历史中 133/135 推荐精确 incumbent 一致：final action 接口稳定地重放已知最好方案，却没有显示规律驱动的未观察条件优化。可复现性是必要能力，但不是发现增益。
 
-### 3.4 Matched evidence：参数纠错与结构纠错再次分离
+### 3.4 Matched evidence：从二分定位转向三层机制
 
-Study B 在 A-P electrochemical 和 A-S partition 各选择 5 个 worlds，为三种 prior arms 提供逐字相同且不占用
-participant 实验预算的证据。每个 fresh session 先提交 pre-evidence prediction，再在同一 thread 中读取 8 条证据，
-最后预测 8 个不重叠 queries。30/30 sessions、60/60 turns 全部完成，0 failures、0 participant physical
-experiments。
+当前有效 matched-evidence 证据由 A-P Study B 和 A-S B2 各 5 个 worlds 组成。每个 fresh session 先提交
+pre-evidence prediction，再在同一 thread 中读取 8 条证据，最后预测 8 个不重叠 queries；合计 30/30 sessions、
+60/60 turns、0 failures、0 participant physical experiments。原 Study B A-S branch 的 truth source 没有实际
+应用冻结的 structural intervention，该 15-session 结果保留为历史平台缺陷证据，不进入当前 claim。
 
-A-P 给出了清晰的 seeking 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
+A-P 给出了清晰的 acquisition 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
 `0.0816/0.0804/0.0778`；5/5 misindexed sessions 都明确推翻“高电位更可靠”，并恢复约 1.1 V 最优、
 1.3 V 以上坍塌的响应。错误参数方向在固定反证到达后不再持续，说明 Study A 中的 A-P 损失至少部分发生在
 如何取得高信息量证据。
 
-A-S 没有给出同样简单的 updating 结论。三臂 endpoint error 都下降约 83–86%，但 misindexed 0/5 恢复注册的
-1.75 partition power law，仍用 linear/distribution-coefficient 或通用传质缩放。与此同时，输入证据全部来自
-identity/fixed-process 条件；4/5 misindexed summaries 主动指出缺少 phase-process 证据。因此这里同时观察到
-数值适应与结构规律未恢复，却不能断言模型在看到充分结构反证后仍拒绝更新——packet 本身没有在 law level
-形成充分反证。
+A-S B2 则直接提供预先验证可区分 linear 与 1.75-power response 的 phase-process evidence，并用另一组
+phase-process queries 评分。opaque/aligned/misindexed error 从 `0.2255/0.2736/0.3392` 降至
+`0.0074/0.0060/0.0071`；misindexed-minus-aligned update-gain contrast 为 `+0.0645`，3/5 worlds 为正，
+exact one-sided sign-flip `p=0.125`。这说明 law-level evidence 到达后存在 descriptive prediction-level
+acquisition component，但方向不稳定。
 
-Study B 由此揭示新的转换条件：**correction requires intervention-complete evidence at the same abstraction
-level as the law**。参数规律可以被局部方向性证据修正；结构规律需要能区分 mechanism family 的干预证据，
-不能由 endpoint 校准自动替代。
+更关键的是，misindexed 0/5 恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向
+经验饱和/endpoint 模型。模型显然进行了 numerical revision，却没有形成注册结构规律。因此最终机制不再是
+“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与 structural law
+identification 三层分离**。
 
 ## 4. 第一阶段的统一结论
 
@@ -120,7 +121,7 @@ level as the law**。参数规律可以被局部方向性证据修正；结构�
 2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
 3. 这种学习没有自动形成选择性的错误先验纠正，也没有可靠压缩成高保真 executable law。
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
-5. Matched evidence 能消除 A-P 错误参数方向，却不能在缺乏结构区分干预时保证 A-S power-law recovery。
+5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动增益也可以分离。**
 
@@ -130,11 +131,11 @@ level as the law**。参数规律可以被局部方向性证据修正；结构�
 
 在 A-E、A-P、A-S 三类世界模型干预下，测量 endpoint、prediction、law 和 action 的转换损失。当前 135-session public cohort 与 current-composite evaluator 已闭环。
 
-### Phase II — Evidence seeking versus belief updating（Study B 已执行，部分闭环）
+### Phase II — Evidence seeking versus belief updating（A-P Study B + A-S B2 已终态）
 
-Study B 已完成 10 clusters、30 fresh sessions。A-P 支持 evidence-seeking bottleneck；A-S 则证明只匹配证据数量
-并不足够，证据还必须与待纠正 law 的干预层级匹配。若要把结构 locus 也归因到 seeking 或 updating，需要独立
-A-S B2 提供直接分离 linear 与 1.75-power law 的 phase-process paired evidence，而不是事后修改当前 packet。
+当前有效 block 已完成 10 clusters、30 fresh sessions。A-P 支持 evidence-acquisition component；A-S B2 得到
+mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主张不支持，Phase II 以三层机制图谱
+终态收束，不再追加同类 B2 追求单一标签。
 
 ### Phase III — Law portability and compositional transfer（Study D，未启动）
 
@@ -155,7 +156,7 @@ A-S B2 提供直接分离 linear 与 1.75-power law 的 phase-process paired evi
 | 初始世界模型改变实验搜索 | supported，限当前 DeepSeek agent system |
 | 正确先验普遍提高 endpoint | rejected；只有 task-specific effects |
 | Agent 普遍降低 held-out prediction error | supported descriptively |
-| Agent 选择性纠正错误先验 | Study A overall not supported；Study B matched evidence 下 A-P supported，A-S unresolved |
+| Agent 选择性纠正错误先验 | Study A overall not supported；A-P matched evidence 支持 acquisition component；A-S B2 prediction contrast mixed、exact law recovery 不支持 |
 | Final typed laws 可以执行 | supported，135/135 |
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
@@ -169,13 +170,13 @@ A-S B2 提供直接分离 linear 与 1.75-power law 的 phase-process paired evi
 3. **Figure 3 — Endpoint archetypes**：持续优势、head-start attenuation、structured scaffold。
 4. **Figure 4 — Agent work**：实验序列表、measurement、recipe diversity 和 search timing。
 5. **Figure 5 — Prediction, law and action dissociation**：45 matched worlds、135 laws、121 blind-evaluable cells 的 current-composite 结果。
-6. **Figure 6 — Matched-evidence mechanism localization**：A-P 参数纠错、A-S endpoint/law 分离与 evidence-level mismatch。
+6. **Figure 6 — Matched-evidence mechanism localization**：A-P 参数纠错、A-S B2 world-level gain 与 0/5 exact law recovery。
 7. **Figure 7 — Failure anatomy and next experiments**：seeking、updating、compression、action、transfer 的定位框架。
 
 ## 8. 现在是否可以说“预测任务完成”
 
 可以精确地说：**当前 DeepSeek public cohort 的 prediction 数据采集、provider-free truth、675 个 checkpoint scoring、注册 selective-correction decision、135 个 law evaluation 和 726 次 blind replay 已全部完成。**
 
-不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、可选的
-A-S Study B2、Study D 的 artifact transfer，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段科学问题，
+不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、
+Study D 的 artifact transfer，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段科学问题，
 不再是 current-composite evaluator 或已完成 Study B block 的遗留门禁。

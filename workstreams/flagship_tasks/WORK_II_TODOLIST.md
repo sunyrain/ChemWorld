@@ -20,7 +20,7 @@ release audit、运行正式 qualification，并在同一冻结 cohort 上进入
 hash。此理念优先于本文件中历史遗留的“每次开发改动后重建审计/SHA”表述。
 
 当前状态：**DeepSeek C2 public participant 已终态，当前有效组合为 `135/135` sessions、
-`1,243/1,260` experiments、`121/135` qualification；registered current-composite evaluator 已完成
+`1,243/1,260` experiments、`121/135` qualification；registered current-composite evaluator v0.2 recovery 已完成
 `420/420` truth executions、`675/675` checkpoint scores、`135/135` law evaluations 与 `726/726` launched
 blind replays，0 provider calls。7 failed、7 right-censored 和 84 个未启动 blind 分母均保留。三个 locus 的
 selective-correction gate 均未通过；A-P `p=0.079` 仅属 suggestive。A-E private 延期，
@@ -28,11 +28,13 @@ WellAU/Qwen/Kimi 未启动新的 replication。Paper 2 当前结果统一从 `WO
 当前论文故事见 `paper/prior_discovery_story_zh.md`。** Reaction-safety mechanism-oracle Q1、matched-prior Q2、world-0 D1
 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2 均通过 5/5 worlds，
 electrochemical world-0 D1 为 retained operational failure，不进入 D2/R5。
-Study B matched-evidence 已完成 `10/10` clusters、`30/30` fresh sessions、`60/60` provider turns，0 failures、
-0 participant physical experiments。A-P 的错误方向先验在 5/5 worlds 被固定反证明确推翻，支持
-evidence-seeking bottleneck；A-S endpoint 明显改善但 0/5 恢复注册 1.75 power law，且 packet 缺少能区分结构
-规律的 phase-process 干预，因此只形成设计诊断，不把负 gain contrast 误写成 belief-updating failure。完整 C3
-仍需用户决定是否另行注册 A-S B2。
+Matched-evidence 当前有效证据已终态：A-P Study B 保留 `5/5` clusters、`15/15` fresh sessions、`30/30`
+provider turns；A-S B2 完成 `5/5` clusters、`15/15` fresh sessions、`30/30` provider turns、`80/80`
+provider-free truth，均为 0 failures、0 participant physical experiments。A-P 的错误方向先验在 5/5 worlds 被固定
+反证明确定推翻，支持 evidence-acquisition component。A-S B2 的 misindexed-minus-aligned update-gain contrast 为
+`+0.0645`、3/5 worlds 为正、exact one-sided sign-flip `p=0.125`，但 misindexed 0/5 恢复 exact 1.75 law，
+因此收束为 acquisition、numerical revision 与 structural identification 三层分离，而不是 seeking/updating 二分。
+原 Study B A-S truth source 未实际应用冻结 world intervention，该 15-session 分支保留为历史缺陷证据并退出当前 claim。
 已完成的材料信息三臂是 Work II 的前置实体层证据，不属于已经投稿的 Work I 基座论文结论：它包含
 electrochemical/crystallization、10 worlds、opaque/nominal/misindexed 三臂共 `60/60` cells 与 `2,280`
 physical experiments，全部 exact replay。Electrochemical 的正确匿名材料属性相对 opaque 提升 `0.0724`，
@@ -342,8 +344,9 @@ A-E primary success 同时要求：
 
 - **B — matched-evidence falsification**：2 loci × 1 task × 5 worlds = 10 clusters、30 fresh sessions。
   所有 arms 读取同一 contradictory evidence packet，用于区分 evidence-seeking failure 与 belief-updating
-  failure；不属于 free discovery，不增加 physical experiments。当前 block 已 30/30 terminal：A-P 完成定位；
-  A-S 发现 identity/fixed-process evidence 不能唯一反驳 linear law，因此保持为部分机制闭环，不事后改 packet。
+  failure；不属于 free discovery，不增加 physical experiments。当前有效 block 为 A-P 原 Study B 15 sessions 与
+  A-S B2 15 sessions：A-P 支持 evidence acquisition component；B2 给出 mixed positive prediction contrast，
+  同时 0/5 exact structural-law recovery。原 Study B A-S 分支因 evaluator truth 缺陷降为 historical。
 - **C — prediction → law → action evaluator**：不调用 provider，不新增 participant session。统一计算 held-out
   prediction error、typed executable-law error、`L_prediction→law`、`L_law→action`、calibration、blind action
   regret/gain 和 exact replay。endpoint score 只作 secondary outcome。
@@ -364,7 +367,9 @@ D 保持 conditional：C2 未证明规律可被形成和执行前，不启动 tr
 | C4 | C3 + D | 280 | 2,180 | context-reset compositional transfer of executable laws |
 
 缺少后续 block 时自动收窄标题、摘要和结论；不为维持大标题而补做未资格验证的矩阵。
-当前 B 已执行但只支持 A-P 的 acquisition 定位；在没有独立 A-S B2 前，不把 C3 的跨 locus 强主张标为完成。
+当前 B/B2 已全部执行并终态。C3 的二元跨-locus 强主张不受支持；允许的结论是 A-P acquisition component 与
+A-S structural-identification bottleneck 并存，且 B2 的 prediction-level contrast 为 mixed/weak。该结果是终态科学
+处置，不再追加同类 B2 追求更有利方向。
 
 ## 6. Pattern-owned resource contract
 
@@ -580,15 +585,16 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 - [x] A-E public 25 triplets 已作为同一 DeepSeek public cohort 的组成部分全部 terminal。
 - [ ] A-E private 保持延期；只有用户在 public task-aware analysis 后重新授权才执行，且不得按 public 结果
   方向修改 sealed coverage 或 prior arms。
-- [x] 完成当前 DeepSeek public Study C / current-composite analysis：45 clusters、135 cells、420 truth、
+- [x] 完成当前 DeepSeek public Study C / current-composite v0.2 recovery：45 clusters、135 cells、420 truth、
   675 checkpoint scores、135 executable laws、726 launched blind replays；failure-aware 与 observed-point
-  sensitivity 均已生成。历史 C1 若定义为包含 A-E private，则该更强 private claim 仍未完成。
+  sensitivity 均已生成。v0.1 未传递 A-S `world_interventions`，已从第一单元重跑并降为 historical。历史 C1 若
+  定义为包含 A-E private，则该更强 private claim 仍未完成。
 - [x] 两个 A-P 与两个 A-S DeepSeek public blocks 已按 corrected-semantics v0.2 plan 终态；registered
   task-aware evaluator 与删失敏感性分析已完成，不再重复 participant execution。
-- [x] Study B 已按独立 protocol 完整执行并分析：30/30 sessions、A-P 机制定位完成、A-S 为 evidence-law
-  level mismatch 诊断；原始分母和负结果保留。
-- [ ] C3 跨 locus 强主张仅在另行注册 A-S B2 后才可能完成；C4/D 仅在保留 transfer claim 时执行，不能按
-  结果临时改为主实验。
+- [x] Matched-evidence 机制块已终态：A-P Study B 15/15 current；原 A-S Study B 15-session branch historical；
+  A-S B2 15/15 current。B2 主对比 `+0.0645`、3/5 positive、`p=0.125`，misindexed 0/5 exact law recovery。
+- [x] C3 机制问题已收束为非二元结果；seeking/updating 的跨-locus 单标签强主张不支持。C4/D 仅在保留
+  transfer claim 时执行，不能按结果临时改为主实验。
 
 ## 11. Task tracker
 
@@ -597,9 +603,9 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-01–06 | DONE | scope、questions、cohort、estimands、participant contract |
 | W2-07–11 | REOPENED | 旧 4-experiment resource/design freeze 被新矩阵替代，需在 W2-25–27 后重新关闭 |
 | W2-12–14 | PUBLIC EVALUATOR COMPLETE / PRIVATE DEFERRED | DeepSeek public participant 与 current-composite evaluator 终态；A-E private 延期，需用户另行授权 |
-| W2-15 | CURRENT PUBLIC + STUDY B ANALYSIS COMPLETE / PROGRAMME EXPANSION PENDING | Paper 2 全结果索引、current figures、agent-behavior、registered evaluator、删失敏感性和 Study B 已整合；Study D、private、cross-provider 与 A-S B2 均为独立下一阶段决策 |
+| W2-15 | CURRENT PUBLIC + MATCHED-EVIDENCE ANALYSIS COMPLETE / PROGRAMME EXPANSION PENDING | Paper 2 全结果索引、current figures、agent-behavior、recovered evaluator、删失敏感性和 A-P/B2 matched evidence 已整合；Study D、private 与 cross-provider 为独立下一阶段决策 |
 | W2-17–18 | DOING | non-entity qualification；转由 W2-21–24 管理 |
-| W2-19 | TERMINAL / PARTIAL MECHANISM CLOSURE | matched-evidence B 30/30 terminal；A-P 支持 evidence seeking 定位，A-S 暴露 fixed-process evidence 与 structural law 错配，完整 C3 尚未完成 |
+| W2-19 | TERMINAL / THREE-LAYER MECHANISM CLOSURE | 当前有效 matched-evidence 30 sessions terminal；A-P 支持 acquisition component，A-S B2 为 mixed prediction signal + unrecovered exact law；二元 C3 强主张不支持，不再追加同类 block |
 | W2-20 | CONDITIONAL | artifact-only transfer D |
 | W2-21 | DONE | five-world oracle qualification note 已冻结 |
 | W2-22 | DONE | provider-free response-surface runner 与 readable summaries 已完成；reaction-safety absolute rejection 和两个 task 的 relative qualification 分层保留 |
