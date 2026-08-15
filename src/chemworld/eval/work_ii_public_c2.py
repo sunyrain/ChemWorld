@@ -474,14 +474,44 @@ def build_locus_cell_report(
     return report
 
 
-def _cluster_rows(report: Mapping[str, Any]) -> list[dict[str, Any]]:
+def build_public_c2_cluster_rows(
+    locus: str,
+    cell_rows: Sequence[Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    """Rebuild one locus's matched-cluster estimands without release metadata.
+
+    The scientific estimand belongs to the retained cell rows.  Formal manifests
+    remain release/provenance authorities, but are not required to recompute the
+    registered C2 contrasts from an independently bound current composite.
+    """
+
+    if locus not in LOCUS_IDS:
+        raise WorkIIPublicC2AnalysisError(f"unknown public C2 locus: {locus}")
+    if len(cell_rows) != EXPECTED_CELL_COUNTS[locus]:
+        raise WorkIIPublicC2AnalysisError(f"{locus} cell denominator mismatch")
     grouped: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
-    for row in report["cell_rows"]:
+    for row in cell_rows:
         grouped[str(row["world_cluster_id"])].append(row)
+    if len(grouped) != EXPECTED_CLUSTER_COUNTS[locus] or "" in grouped:
+        raise WorkIIPublicC2AnalysisError(f"{locus} cluster denominator mismatch")
     records = []
     for cluster_id in sorted(grouped):
         cells = grouped[cluster_id]
+        if len(cells) != len(WORK_II_ANALYSIS_ARMS):
+            raise WorkIIPublicC2AnalysisError(
+                f"{locus}/{cluster_id} does not contain one three-arm triplet"
+            )
         by_arm = {str(row["prior_arm"]): row for row in cells}
+        if set(by_arm) != set(WORK_II_ANALYSIS_ARMS):
+            raise WorkIIPublicC2AnalysisError(
+                f"{locus}/{cluster_id} lacks the registered prior arms"
+            )
+        task_ids = {str(row["task_id"]) for row in cells}
+        world_seeds = {row["world_seed"] for row in cells}
+        if len(task_ids) != 1 or len(world_seeds) != 1:
+            raise WorkIIPublicC2AnalysisError(
+                f"{locus}/{cluster_id} task/world identity drifts across arms"
+            )
         arm_records = {
             arm: by_arm[arm]["checkpoint_error"] for arm in WORK_II_ANALYSIS_ARMS
         }
@@ -489,12 +519,12 @@ def _cluster_rows(report: Mapping[str, Any]) -> list[dict[str, Any]]:
             contrast = build_cluster_correction_record(arm_records)
         except (WorkIIAnalysisError, KeyError, TypeError, ValueError) as error:
             raise WorkIIPublicC2AnalysisError(
-                f"{report['locus_id']}/{cluster_id} cannot rebuild C_prior: {error}"
+                f"{locus}/{cluster_id} cannot rebuild C_prior: {error}"
             ) from error
         first = cells[0]
         records.append(
             {
-                "locus_id": report["locus_id"],
+                "locus_id": locus,
                 "world_cluster_id": cluster_id,
                 "task_id": first["task_id"],
                 "world_seed": first["world_seed"],
@@ -504,7 +534,21 @@ def _cluster_rows(report: Mapping[str, Any]) -> list[dict[str, Any]]:
                 **contrast,
             }
         )
+    task_worlds: dict[str, set[int]] = defaultdict(set)
+    for row in records:
+        task_worlds[str(row["task_id"])].add(int(row["world_seed"]))
+    if len(task_worlds) != EXPECTED_TASK_COUNTS[locus] or any(
+        len(worlds) != EXPECTED_WORLDS_PER_TASK for worlds in task_worlds.values()
+    ):
+        raise WorkIIPublicC2AnalysisError(f"{locus} task/world roster mismatch")
     return records
+
+
+def _cluster_rows(report: Mapping[str, Any]) -> list[dict[str, Any]]:
+    return build_public_c2_cluster_rows(
+        str(report["locus_id"]),
+        report["cell_rows"],
+    )
 
 
 def _task_fixed_effect(
@@ -634,9 +678,42 @@ def _same_inference(left: Mapping[str, Any], right: Mapping[str, Any]) -> bool:
     return True
 
 
-def _ae_gate(
-    rows: Sequence[Mapping[str, Any]], legacy: Mapping[str, Any]
+def build_public_c2_locus_gate(
+    locus: str,
+    rows: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
+    """Apply the frozen failure-aware gate to one locus's cluster rows."""
+
+    if locus not in LOCUS_IDS:
+        raise WorkIIPublicC2AnalysisError(f"unknown public C2 locus: {locus}")
+    if len(rows) != EXPECTED_CLUSTER_COUNTS[locus]:
+        raise WorkIIPublicC2AnalysisError(f"{locus} cluster denominator mismatch")
+    if locus != "A_E":
+        inference = _task_fixed_effect(
+            rows,
+            value_field="H3_primary_contrast_lower_bound",
+            expected_task_count=2,
+            null=0.0,
+        )
+        directions = {
+            task: value > 0.0 for task, value in inference["task_means"].items()
+        }
+        direction_consistent = all(directions.values())
+        passed = inference["passed"] is True and direction_consistent
+        return {
+            "gate_id": f"{locus}_C_prior_adverse_lower_bound",
+            "method": "two_task_fixed_effect_C_prior_lower_bound",
+            "failure_aware": True,
+            "one_sided_alpha": ONE_SIDED_ALPHA,
+            "inference": inference,
+            "task_direction_positive": directions,
+            "both_tasks_direction_consistent": direction_consistent,
+            "effective_intersection_union_p_value": (
+                float(inference["one_sided_p_value"]) if direction_consistent else 1.0
+            ),
+            "passed": passed,
+        }
+
     components = {
         "H3_primary_contrast": _task_fixed_effect(
             rows,
@@ -657,6 +734,22 @@ def _ae_gate(
             null=ALIGNED_NONINFERIORITY_MARGIN,
         ),
     }
+    p_value = max(float(result["one_sided_p_value"]) for result in components.values())
+    return {
+        "gate_id": "A_E_current_H3",
+        "method": "three_component_H3_intersection_union",
+        "failure_aware": True,
+        "components": components,
+        "intersection_union_p_value": p_value,
+        "passed": all(result["passed"] for result in components.values()),
+    }
+
+
+def _ae_gate(
+    rows: Sequence[Mapping[str, Any]], legacy: Mapping[str, Any]
+) -> dict[str, Any]:
+    current = build_public_c2_locus_gate("A_E", rows)
+    components = current["components"]
     legacy_primary = legacy.get("primary_H3")
     legacy_primary = legacy_primary if isinstance(legacy_primary, Mapping) else {}
     legacy_components = legacy_primary.get("components")
@@ -666,13 +759,13 @@ def _ae_gate(
         and _same_inference(result, legacy_components[component])
         for component, result in components.items()
     )
-    recomputed_pass = all(result["passed"] for result in components.values())
+    recomputed_pass = current["passed"] is True
     legacy_pass = legacy_primary.get("passed") is True
     if not binding_matches or recomputed_pass is not legacy_pass:
         raise WorkIIPublicC2AnalysisError(
             "A_E existing H3 decision differs from its manifest-bound cell rows"
         )
-    p_value = max(float(result["one_sided_p_value"]) for result in components.values())
+    p_value = float(current["intersection_union_p_value"])
     try:
         legacy_p_value = _finite(
             legacy_primary.get("intersection_union_p_value"),
@@ -711,30 +804,7 @@ def _ae_gate(
 def _terminal_locus_gate(
     locus: str, rows: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
-    inference = _task_fixed_effect(
-        rows,
-        value_field="H3_primary_contrast_lower_bound",
-        expected_task_count=2,
-        null=0.0,
-    )
-    directions = {
-        task: value > 0.0 for task, value in inference["task_means"].items()
-    }
-    direction_consistent = all(directions.values())
-    passed = inference["passed"] is True and direction_consistent
-    return {
-        "gate_id": f"{locus}_C_prior_adverse_lower_bound",
-        "method": "two_task_fixed_effect_C_prior_lower_bound",
-        "failure_aware": True,
-        "one_sided_alpha": ONE_SIDED_ALPHA,
-        "inference": inference,
-        "task_direction_positive": directions,
-        "both_tasks_direction_consistent": direction_consistent,
-        "effective_intersection_union_p_value": (
-            float(inference["one_sided_p_value"]) if direction_consistent else 1.0
-        ),
-        "passed": passed,
-    }
+    return build_public_c2_locus_gate(locus, rows)
 
 
 def _failure_records(
@@ -1107,6 +1177,8 @@ __all__ = [
     "WorkIIPublicC2AnalysisError",
     "build_locus_cell_report",
     "build_public_c2_analysis",
+    "build_public_c2_cluster_rows",
+    "build_public_c2_locus_gate",
     "validate_locus_cell_report",
     "validate_public_c2_analysis",
     "validate_public_c2_analysis_plan",

@@ -133,6 +133,37 @@ def test_truth_plan_accepts_pattern_owned_query_and_evidence_denominators() -> N
     assert heat["stirring_speed_rpm"] == 400.0
 
 
+def test_partition_transfer_truth_can_extrapolate_beyond_agent_search_box() -> None:
+    config = _load_config("work_ii_as_partition_d1_v0.1.json")
+    plan = build_evaluator_truth_plan(
+        {
+            "world_cluster_id": "partition-as-d1-seed0",
+            "task_id": "partition-discovery",
+            "world_seed": 0,
+        },
+        config,
+        formal_result=False,
+        formal_preflight_sha256=None,
+    )
+
+    assert validate_evaluator_truth_plan(plan) == []
+    assert plan["truth_query_count"] == 16
+    extrapolating = [
+        query
+        for query in plan["queries"]
+        if query["feature_values"]["settle_duration_s"] > 1200.0
+    ]
+    assert len(extrapolating) == 4
+    for query in extrapolating:
+        settle = next(
+            action
+            for action in query["action_plan"]
+            if action["operation"] == "settle"
+        )
+        assert settle["duration_s"] == query["feature_values"]["settle_duration_s"]
+        assert query["compiled_plan"]["participant_search_box_required"] is False
+
+
 def test_electrochemical_matched_prior_truth_uses_autonomous_open_contract() -> None:
     config = _load_config("work_ii_electrochemical_matched_prior_d1_execution.json")
     plan = build_evaluator_truth_plan(

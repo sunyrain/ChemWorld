@@ -83,6 +83,14 @@ DeepSeek C2 public 的 45 个 task/world triplet、135 个 session 均已终态�
 
 ## 当前图表
 
+### Prediction、law 与 blind action
+
+![C2 current-composite prediction law action](current/deepseek_c2_prediction_law_action.png)
+
+该图使用 current-composite evaluator 的完整数据：45 个 matched worlds、135 个 participant cells、135 条 final typed laws 和 121 个 blind-evaluable cells。Panel a 报告 failure-aware registered contrast；panel b 显示所有 arm/locus 均存在一般 prediction error reduction；panel c 显示规律相对 final explicit prediction 多数为有损压缩；panel d 显示 blind action 几乎全部等价于 incumbent。对应 CSV 位于 `current/source_data/`。
+
+Evaluator 完整分母为 420/420 truth executions、675/675 checkpoint scores、135/135 law evaluations、726/726 launched blind replays，0 provider calls。三个 selective-correction locus 均未通过：A-E `p=0.990`、A-P `p=0.079`、A-S `p=1.000`。Blind better/equivalent/worse 为 1/119/1。
+
 ### 全任务结果
 
 ![C2 public current all-task results](current/deepseek_c2_all_task_results.png)
@@ -116,15 +124,15 @@ uv run --no-sync python workstreams/flagship_tasks/reports/figures/work-ii-deeps
   --evidence-status corrected_semantics_terminal_replacement
 ```
 
-默认输出 SVG、PDF 和 PNG。只有投稿确实需要 600-DPI TIFF 时再追加 `--export-tiff`；大体积 TIFF 不进入 Git。
+Endpoint/workflow 图默认输出 SVG、PDF 和 PNG。Prediction/law/action 图由 `plot_current_composite_evaluation.py` 生成 SVG、PDF、PNG、600-DPI LZW TIFF 与四份 source-data CSV，便于后续复用和投稿格式转换。
 
-## 尚未完成
+## 当前阶段已完成与后续任务
 
-Participant public execution 已终态，不再补跑。Paper 2 收束仍需要：
+Participant public execution 与 current-composite evaluator 均已终态，不再补跑当前 block。当前已经完成：
 
-1. 运行既定 task-aware registered evaluator；
-2. 完成右删失与资源敏感性分析；
-3. 把 endpoint optimization、prior rejection、prediction correction 和 executable-law recovery 分开报告；
-4. 完成 Study C/C1 的论文级统计和图表整合。
+1. provider-free task-aware truth、checkpoint、law 与 blind replay；
+2. failure-aware 主分析和 observed-point sensitivity；
+3. endpoint optimization、prediction correction、executable-law fidelity 与 blind action 的分层报告；
+4. current public Study C 图表和论文故事整合。
 
-A-E private 保持延期；WellAU、Qwen、Kimi 只有在论文需要 private confirmation 或跨 provider 泛化主张时才启动。
+A-E private 保持延期；Study B、Study D 和 WellAU/Qwen/Kimi cross-provider replication 属于下一阶段独立科学问题，只有在论文大故事确定相应 claim 后再由用户授权启动。

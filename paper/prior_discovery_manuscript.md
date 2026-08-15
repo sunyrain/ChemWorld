@@ -1,8 +1,8 @@
 ---
-title: "Experimental Intelligence in AI Scientists: From Initial World Models to Transferable Laws"
-title_line_one: "Experimental Intelligence in AI Scientists:"
-title_line_two: "From Initial World Models to Transferable Laws"
-subject: "Initial world models, experimental discovery and law transfer in AI agents"
+title: "Dissecting Executable Scientific Intelligence with Controlled World-Model Interventions"
+title_line_one: "Dissecting Executable Scientific Intelligence"
+title_line_two: "with Controlled World-Model Interventions"
+subject: "Causal dissection of experimental search, predictive correction, executable laws and action in AI agents"
 keywords: "AI scientist; autonomous experimentation; initial world model; world-model intervention; scientific priors; law discovery; counterfactual prediction; chemical worlds"
 pdf_author: "Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang"
 author:
@@ -30,28 +30,30 @@ equal_contribution_note: "Jiangjie Qiu, Yijun Li and Yaotian Yang contributed eq
 date: ""
 bibliography: prior_discovery_references.bib
 abstract: |
-  Scientific agents never enter an experiment with a neutral mind: they carry an initial world model
-  that may encode entities, mechanisms, parameter values and assumptions about how observations map to
-  hidden states. A useful endpoint therefore does not show whether an agent discovered the governing
-  relation, confirmed a correct model or succeeded despite a wrong one. We define initial-world-model
-  intervention as a controlled variable in executable chemical worlds. The hidden world, public
-  operations, evidence budget and safety surface are held fixed while the agent-facing model is
-  changed at matched entity/ontology, structural/mechanistic, parametric/dynamical,
-  observation/measurement or scope/compositional layers. The experimental programme is deliberately
-  sparse rather than fully factorial: an entity-level backbone is complemented by independently
-  qualified non-entity blocks, while transfer tests the scope of learned laws after a context reset.
-  The completed development matrix instantiates the entity-level slice with opaque, aligned and
-  misindexed dossiers; it is not treated as evidence for the other layers. Each agent controls a
-  multi-experiment campaign through one persistent operation-level session, records predictions and
-  belief updates at fixed checkpoints, and commits an executable law summary and final recommendation.
-  Evaluator-owned counterfactual queries, artifact-only transfer and blind replay separate evidence
-  acquisition, law compression, action and generalization. In the completed DeepSeek development
-  matrix, held-out prediction usually improved, but wrong-prior improvement did not exceed
-  aligned-prior improvement (mean primary contrast $-0.042$ across 25 task-by-world clusters); executable law
-  summaries often degraded the final explicit predictions, and no committed recommendation
-  outperformed the observed incumbent. These observations support a focused research programme on
-  experimental intelligence: how an agent turns an initial world model into evidence, an executable
-  law, a decision and a transferable scientific artifact, and where that capability chain breaks.
+  Scientific agents enter experiments with an initial world model that can guide useful search but
+  can also be wrong. Endpoint success alone cannot distinguish correct scientific inference from a
+  favorable heuristic trajectory. We used executable chemical worlds to vary entity, parametric and
+  structural information shown to one persistent experimental agent while holding the external
+  world, operations and laboratory resources fixed within matched clusters. The public DeepSeek
+  cohort reached terminal records for 135/135 sessions and completed 1,243/1,260 planned experiments
+  across nine task--intervention combinations. Prior effects were strongly context dependent.
+  Correct entity information produced a durable advantage in liquid--liquid partition, whereas
+  correct structural information gave crystallization a five-world initial head start that largely
+  narrowed during subsequent exploration. In structural partition, both correct and incorrect
+  explicit models outperformed opaque identifiers, indicating that structured search guidance and
+  model correctness can contribute separately. Agents nevertheless performed substantive
+  within-session search: 84.4% of session optima occurred after the campaign midpoint, and 91.2% of
+  completed recipes were unique. All 135 sessions submitted five belief checkpoints, comprising
+  6,300 registered counterfactual query predictions and typed law summaries. A provider-free
+  evaluator completed 420/420 truth executions, scored all 675 checkpoints, executed all 135 final
+  laws and completed 726/726 launched blind replays. Prediction error generally decreased, but the
+  registered selective-correction gate failed at all three intervention loci (A-E $p=0.990$, A-P
+  $p=0.079$, A-S $p=1.000$). Executable laws were more accurate than final explicit predictions in
+  only 49/135 cells and worse in 85/135. Blind recommendations were better, equivalent and worse
+  than the observed incumbent in 1, 119 and 1 evaluable cells. Thus experimental adaptation,
+  counterfactual learning, law compression and action improvement form distinct capability layers.
+  The present cohort provides a controlled first map of their conversion losses, rather than a
+  single endpoint ranking or a claim of cross-model generality.
 ---
 
 # 1. Introduction
@@ -94,8 +96,8 @@ worlds, while the public experimental interface and complete operation history r
 This programmability permits the agent-facing initial model to change at a chosen layer while the
 external world and evidence opportunity remain fixed.
 
-Here we introduce a controlled framework for studying experimental intelligence from initial world
-models to transferable laws. It makes four contributions.
+Here we introduce a controlled framework for studying how initial world models shape experimental
+search and whether evidence produces scientific correction. It makes four contributions.
 
 1. **The initial world model becomes a layered intervention.** Entity/ontology,
    structural/mechanistic, parametric/dynamical, observation/measurement and scope/compositional
@@ -110,13 +112,15 @@ models to transferable laws. It makes four contributions.
    experiments under a shared resource ledger, while failures, invalid actions, stopping and exact
    replay remain part of the outcome rather than being silently repaired.
 
-Development results already establish a consequential boundary in the entity/ontology layer: explicit
-information reshapes behavior, but nominal-information warnings and endpoint gains do not reliably
-reveal whether the supplied mapping is correct. The formal programme therefore begins with selective
-repair of that wrong mapping, then requires independently qualified parametric/dynamical and
-structural/mechanistic blocks before making a cross-locus claim. Observation-model interventions and
-scope-aware transfer remain separately identifiable boundaries rather than convenient post-hoc
-re-labellings of entity results.
+The terminal public cohort shows that this distinction is empirical rather than merely conceptual.
+Aligned information gives a durable advantage in one entity-level partition task and a marked initial
+head start in structural crystallization, yet it does not dominate across the nine task--locus
+combinations. Structural partition further separates explicit organization from correctness because
+both aligned and misindexed models outperform opaque identifiers. Persistent agents continue to
+search, measure and improve after their first experiment, but their stated reliability and misindex
+warnings do not selectively identify the incorrect model. We therefore organize the paper around a
+bounded result: initial world models reshape experimental search, whereas scientific correction
+requires a separate evaluator-scored transition from prediction to executable law and action.
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -277,11 +281,11 @@ validity is classified as local optimization rather than law discovery.
 The programme is layer-stratified. Its entity/ontology backbone spans electrochemical conversion,
 reaction followed by crystallization, reaction followed by distillation, phase-partition discovery
 and safety-constrained reaction. Five independently selected public worlds per task yield 25
-task-by-world clusters and 75 participant cells across opaque, aligned and misspecified arms. A
-separate private cohort repeats this entity-level comparison once under sealed within-family worlds.
-Parametric/dynamical and structural/mechanistic blocks each require two independently qualified task
-families and five worlds per task. Development, qualification, public and private identities remain
-disjoint.
+task-by-world clusters and 75 participant cells across opaque, aligned and misspecified arms.
+Parametric/dynamical and structural/mechanistic blocks each contain two independently qualified task
+families and five worlds per task, adding 30 participant cells per locus. Development, qualification
+and public identities remain disjoint. A sealed private cohort is an optional stronger study and was
+not executed in the current paper.
 
 This design uses ChemWorld's programmability to manipulate different components of $M_0$, but does
 not turn the paper into a full factorial benchmark. Every block changes one locus, has its own
@@ -317,7 +321,7 @@ measurement surface. They do not show that an agent discovers those relations.
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-2-formal-cohort.pdf}
 \caption{\textbf{Layer-stratified study architecture.}
-\textbf{a,} The entity/ontology backbone uses five task families and five public worlds per task; development, public and sealed private identities are disjoint.
+\textbf{a,} The entity/ontology backbone uses five task families and five public worlds per task; development and public identities are disjoint, and any future sealed private identities must remain disjoint from both.
 \textbf{b,} Every matched task--world cluster contains opaque, aligned and misspecified initial models for one declared locus. Campaign length and checkpoints are owned by the locus pattern rather than forced into one universal four-experiment limit.
 \textbf{c,} Parametric/dynamical and structural/mechanistic blocks require separate qualification; observation-model and scope/compositional studies retain separate admission decisions.
 \textbf{d,} Free discovery, matched-evidence falsification, evaluator truth and action tests, within-family replication and context-reset artifact transfer retain separate sessions, resources and denominators. The diagram is a design map, not completed outcome evidence.}
@@ -334,18 +338,20 @@ select or repair scientific actions.
 
 Campaign length is pattern-owned: A-E uses eight complete experiments with checkpoints after
 0, 2, 4, 6 and 8 experiments; A-P uses ten with checkpoints after 0, 2, 4, 7 and 10; A-S uses twelve
-with checkpoints after 0, 3, 6, 9 and 12. These counts remain subject to the registered resource
-calibration and final freeze before participant execution. A checkpoint records the
+with checkpoints after 0, 3, 6, 9 and 12. These pattern-owned counts and their finite resource cards
+were fixed before the terminal participant cohort. A checkpoint records the
 agent's assessment of initial-model reliability at the manipulated layer, predictions, uncertainty,
 evidence references, executable law summary and next experimental intent. Checkpoints do not create
 additional provider sessions.
 
 ## 4.3 Evaluator-owned evidence
 
-Four registered counterfactual queries per task-world cluster are executed independently by the
-evaluator. Their truth is shared across prior arms and checkpoints and is never returned to the
-participant. The primary prediction error is the mean normalized absolute error across registered
-query-metric pairs.
+The participant predicts four registered counterfactual queries per A-E checkpoint and 16 per A-P or
+A-S checkpoint. The evaluator executes each unique task-world query set independently; truth is
+shared across prior arms and checkpoints and is never returned to the participant. The primary
+prediction error is the mean normalized absolute error across registered query-metric pairs. The
+participant payloads and current-composite evaluation are complete: 420/420 truth executions produced
+1,620 query--metric truth values and all 675 checkpoints were scored without provider calls.
 
 The evaluator also executes each final typed law summary on the same registered query coordinates.
 This produces a separate cell-level record of schema validity, complete query-metric executability,
@@ -392,10 +398,10 @@ a pure infrastructure failure without persisted trajectory may resume under the 
 # 5. Development evidence
 
 The following results qualify the method and sharpen the scientific question. They are not part of
-the public formal or private-confirmation denominator, and the two provider configurations are not
-used for a cross-provider capability ranking. They instantiate only the entity/ontology layer of the
-initial-world-model intervention matrix; they should not be read as evidence that structural,
-parametric or observation-model priors have already been tested.
+the public C2 or any future private-confirmation denominator, and the two provider configurations are
+not used for a cross-provider capability ranking. Sections 5.1--5.5 instantiate the entity/ontology
+layer; Section 5.6 is a one-cluster parametric pilot. Neither block substitutes for the terminal
+multi-locus cohort reported in Section 6.
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -555,9 +561,8 @@ Across the retained development configurations, explicit priors clearly alter th
 of experimentation, and most cells improve their held-out predictions. The same evidence does not
 show selective wrong-prior rejection: aligned improvement exceeds misindexed improvement on average,
 typed law compression is frequently lossy and committed recommendations do not outperform the
-observed incumbent. The formal study is therefore necessary for prospective inference, while the
-development block already establishes that prediction repair, law recovery and action quality must
-remain separate outcomes.
+observed incumbent. These findings motivated the prospective public C2 cohort, while establishing
+that prediction repair, law recovery and action quality must remain separate outcomes.
 
 ## 5.6 Parametric initial-model pilot: rejection is not recovery
 
@@ -587,71 +592,184 @@ experimental policy.
 Final executable-law errors were **0.424**, **0.238** and **0.242** for opaque, aligned and
 misspecified, respectively. All three committed recommendations selected their own observed
 incumbent, so paired blind replay confirmed reproducibility but produced zero recommendation gain.
-This one-world pilot supports a task-specific parametric case study and admission to user review for
-a five-world extension; it does not yet support a cross-task or general initial-world-model claim.
+This one-world pilot motivated a broader two-task, five-world A-P block. It remains excluded from the
+public C2 denominator and cannot itself support a cross-task or general initial-world-model claim.
 
-# 6. Formal results
+# 6. Public C2 results
 
-This section will report the preregistered public matrix only after every scheduled cell has reached a
-completed, right-censored or failed terminal state. Arm contrasts will remain blinded during
-execution. The section is reserved for:
+## 6.1 Terminal multi-locus participant cohort
 
-- the primary selective-correction contrast and its three required conditions;
-- correct-prior utility and wrong-prior vulnerability;
-- checkpoint-level prediction-error and calibration trajectories;
-- executable law-summary coverage, continuous counterfactual error, compression stability and
-  consistency with final explicit predictions;
-- evidence-seeking, selective measurement, attribution and prior-persistence phenotypes;
-- blind incumbent-versus-recommendation outcomes;
-- complete failure, censoring, resource, token, cost and wall-time denominators.
+The current public analysis combines 120 unaffected sessions from the corrected-semantics cohort with
+a complete 15-session replacement of the A-S crystallization block after its resource contract was
+requalified. All **135/135** scheduled sessions reached a terminal record. The participant completed
+**1,243/1,260** planned experiments, and **121/135** sessions passed the operational qualification
+contract. The denominator contains **1,269** closed batch lifecycles: 1,243 ended in a final assay and
+26 were discarded. No dynamic physical failure occurred. Thirteen operations were rejected by the
+finite laboratory resource ledger, and 84 participant operation attempts did not become committed
+operations. These cells and attempts remain in their assigned denominators.
 
-The first formal result is the entity/ontology intervention in Study A-E. The paper-level
-initial-world-model claim remains conditional on terminal A-P and A-S blocks with their own
-qualification, denominators and locus-specific estimands. Any observation-model extension is reported
-as a separately frozen boundary study rather than silently pooled into the main effect.
+## 6.2 Prior effects separate into durable advantage, head start and search scaffolding
 
-No development value will be substituted for a missing formal result.
+The strongest durable aligned-prior result occurred in A-E partition. Relative to the misindexed arm,
+the aligned arm improved the first experiment by **0.106** score units and the best observed endpoint
+by **0.200**; both contrasts had the same direction in **5/5** worlds. Here, correct entity information
+changed both entry into the search space and the best region reached within eight experiments.
 
-# 7. Private confirmation and transfer
+A-S crystallization showed a different pattern. The aligned structural model improved the first
+experiment over the misindexed model by **0.141**, again in **5/5** worlds. The best-endpoint difference
+then narrowed to **0.055** and was positive in **3/5** worlds. Aligned within-session improvement was
+lower than misindexed improvement by **0.086** in every world. The structural model therefore provided
+a reproducible head start, while subsequent free exploration allowed the initially disadvantaged arm
+to recover part of the gap.
 
-After the public method and analysis code are frozen, the committed private cohort will be executed
-once. The same prediction, law-summary and control metrics will test world-held-out transfer within
-the five registered task families. Private identities will not be revealed to the participant, and a
-negative or incomplete result will not trigger a replacement run. This within-family replication is
-not compositional transfer. Study D requires a context reset and an artifact-only hand-off into a new
-task combination, with no-artifact and raw-trajectory controls; a mechanism-family-held-out result
-would require a separately registered extension.
+A-S partition separated structured guidance from model correctness. The aligned and misindexed arms
+exceeded opaque identifiers in best endpoint by **0.163** and **0.143**, respectively, whereas their
+mutual difference was only **0.020** and positive in 3/5 worlds. Supplying an explicit structural
+decomposition helped organize the search, but the endpoint alone provided little stable separation
+between the correct and incorrect versions of that decomposition.
 
-The strongest claim—discovery of a reusable law—requires joint evidence: selective wrong-prior
-correction, aligned-prior non-degradation, an executable typed law summary, valid predictions on
-unseen continuous conditions and successful preregistered transfer. Anything less will be reported as
-confirmation, local correction, policy repair or endpoint optimization according to the observed
-combination.
+The remaining task--locus combinations bounded these positive cases. A-E reaction safety had a small
+aligned-minus-misindexed best-endpoint difference of 0.036 with concordant direction in 5/5 worlds.
+The A-E distillation difference declined from 0.053 on the first experiment to 0.011 at the best
+endpoint. A-E electrochemistry was heterogeneous, A-E crystallization favored the misindexed arm on
+average, and neither A-P task showed a stable aligned endpoint advantage. Correct initial models were
+therefore not a universal performance intervention.
+
+## 6.3 Persistent agents continued to search and measured task-relevant states
+
+All nine task--locus groups had a positive mean best-minus-first score. Across cells, **91.2%** of
+completed experiments used a unique recipe, **84.4%** of session optima occurred after the campaign
+midpoint and **32.6%** occurred in the final completed experiment. The observed prior effects cannot
+be reduced to copying one supplied recipe; the persistent agent continued to use experimental
+feedback throughout the campaign.
+
+Every completed batch closed with a final assay, while non-final instrument use followed the process
+path. A-E and A-S crystallization measured intermediate states in 95.0% and 98.4% of closed
+lifecycles, A-S partition in 82.2% and distillation in 50.0%. A-E electrochemistry used no non-final
+instrument because its registered lifecycle proceeded from electrolysis directly to the final assay.
+Overall, **666/1,269** closed lifecycles contained a non-final measurement, comprising 872 instrument
+uses. Instrument use should therefore be interpreted against task semantics, not as one global
+autonomy score.
+
+## 6.4 Complete belief submission did not establish selective correction
+
+Every session submitted its pre-evidence, three intermediate and final checkpoint: **675/675** typed
+belief snapshots in total. These snapshots contained **6,300** registered counterfactual query
+predictions and **24,300** query--metric values, and all 675 included a schema-valid typed law summary.
+Submission completeness, however, did not imply epistemic selectivity. Mean stated reliability rose
+from 0.600 to 0.747 in aligned cells and from 0.592 to 0.703 in misindexed cells. At the final
+checkpoint, **48.9%** of aligned cells and **42.2%** of misindexed cells flagged a suspected misindex.
+The participant distrusted the correct explicit model at least as often as the incorrect one.
+
+Stable batch-identity reconstruction found a valid final recommendation in 135/135 cells. Of these,
+133 selected the exact observed incumbent, and 134 had zero observed-score regret; the maximum regret
+was 0.0077. The commitment interface reliably closed the campaign, but it mostly measured retrieval
+of the best observed batch rather than extrapolative action beyond the campaign history.
+
+The checkpoint interface itself was a material part of the evaluated system. The cohort recorded 904
+failed MCP tool events, of which 888 were failed `commit_belief_snapshot` submissions; 900 failures
+were classified as agent-invalid, compared with one transport/OS event and three unclassified events.
+All five checkpoints were eventually recovered in every cell, so this burden did not create missing
+prediction payloads, but it increased context and recovery work, especially for the 16-query A-P and
+A-S schemas. The result belongs to the complete DeepSeek--Codex--MCP agent system rather than the
+language model in isolation.
+
+## 6.5 Prediction learning did not become selective wrong-model repair
+
+The current-composite evaluator executed **420/420** held-out truth queries, producing 1,620
+query--metric truth values without a provider call, and scored **675/675** checkpoints. All three
+intervention loci showed mean pre-to-final error reductions in every arm. For A-E, the opaque,
+aligned and misindexed reductions were 0.111, 0.097 and 0.097; for A-P they were 0.090, 0.033 and
+0.065; for A-S they were 0.157, 0.192 and 0.149. The agent therefore learned predictive information
+during the campaigns.
+
+The registered estimand was more demanding: the misindexed arm should improve more than the aligned
+arm without degrading aligned predictions. This selective-correction gate failed at every locus.
+The failure-aware primary contrasts were **-0.214** for A-E ($p=0.990$), **+0.033** for A-P
+($p=0.079$) and **-0.257** for A-S ($p=1.000$). A-E passed the aligned noninferiority component but
+not the misindexed-improvement component. Both A-P task means were positive, making the result
+suggestive rather than confirmatory. In A-S, crystallization showed positive observed-point
+correction whereas partition was negative; the required cross-task locus decision therefore failed.
+Observed-point sensitivity did not reverse any locus decision. General predictive learning and
+targeted repair of a wrong initial model were thus empirically distinct.
+
+## 6.6 Executable laws were often lossy and blind actions rarely improved
+
+All **135/135** final typed laws executed on their registered continuous query coordinates. Mean law
+MAE was 0.244. Relative to the effective final explicit predictions, laws were better in 49 cells,
+equal in one and worse in 85; mean law-minus-final error was +0.070. A-S showed the strongest
+pre-to-law improvement (+0.142), but even there the law remained less accurate than the final
+explicit predictions on average (+0.024). Syntax and executability were therefore solved, whereas
+faithful compression of a conditional belief state into a reusable relation was not.
+
+Paired blind replay retained all participant terminal states. It launched and completed **726/726**
+executions for 121 evaluable cells; 84 pre-scheduled executions for seven failed and seven
+right-censored cells were retained as unstarted rather than imputed. Recommendations were better,
+equivalent and worse than the observed incumbent in **1/119/1** cells, with mean gain -0.00082. The
+final interface was highly reproducible but almost entirely retrieved an incumbent rather than
+producing a new action advantage.
+
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{../workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/current/deepseek_c2_prediction_law_action.pdf}
+\caption{\textbf{Prediction learning, scientific correction, executable-law compression and blind action dissociate.}
+\textbf{a,} Failure-aware selective-correction contrasts across all 45 matched task--world clusters; circles show observed contrasts, vertical ticks retain adverse failure-aware bounds and diamonds show task means. Registered locus $p$ values are shown.
+\textbf{b,} Mean pre-to-final normalized prediction-error reduction by intervention locus and initial-model arm.
+\textbf{c,} Final executable-law MAE minus final explicit-prediction MAE for all 135 cells. Positive values indicate lossy compression.
+\textbf{d,} Blind recommendation outcomes for all 121 evaluable cells; 14 nonterminal participant cells remain in the denominator as unstarted.}
+\label{fig:public-c2-capability-chain}
+\end{figure*}
+```
+
+# 7. Capability boundary and programme expansion
+
+The public DeepSeek cohort now closes the participant-to-evaluator chain. It supports a bounded claim
+that initial world models reshape task-dependent search and that prediction error can decline without
+selective wrong-prior correction. It also shows that executable syntax does not guarantee faithful law
+compression and that reproducible recommendation does not guarantee action improvement. These are
+jointly observed transition losses, not missing surrogate measurements.
+
+The next programme stages address different causal questions. A matched-evidence Study B can separate
+evidence seeking from belief updating. A context-reset Study D can compare typed laws with richer
+evidence artifacts and test portability. Private within-family confirmation and matched cross-provider
+replication can test stability and generality. None is a repair run for the present result, and each
+requires a separate protocol and denominator. Within-family replication remains distinct from
+compositional transfer.
 
 # 8. Discussion
 
 ## 8.1 Why endpoint success is insufficient
 
-The development matrices show that a deliberately wrong dossier can improve the best observed
-endpoint. This is not paradoxical. A prior can change where an agent searches, increase experimental
-diversity or direct attention toward a useful region even when its material mapping is wrong. Endpoint
-improvement measures utility of the induced search trajectory, not truth of the agent's scientific
-model.
+The public cohort shows three reasons why endpoint success is insufficient. Correct information can
+produce a durable advantage, as in A-E partition; it can provide only an early head start that later
+exploration narrows, as in A-S crystallization; or explicit structure can help both aligned and
+misindexed agents organize their search, as in A-S partition. A deliberately wrong model may therefore
+improve an endpoint by changing where an agent searches or by increasing useful experimental
+diversity. Endpoint improvement measures the utility of an induced trajectory, not the truth of the
+agent's scientific model.
 
 ## 8.2 Bias rejection must be behaviorally selective
 
-The broad tendency to distrust any explicit dossier illustrates a second ambiguity. Generic skepticism
-can generate the right verbal stance without identifying the wrong prior. A valid correction measure
-must be selective: contradictory evidence should improve wrong-prior predictions more than
-correct-prior predictions, and that improvement should influence subsequent experimental choices.
+The broad tendency to distrust any explicit model illustrates a second ambiguity. Generic skepticism
+can generate the right verbal stance without identifying the wrong prior: final misindex suspicion was
+slightly more common in aligned than misindexed cells. A valid correction measure must be selective:
+contradictory evidence should improve wrong-prior predictions more than correct-prior predictions, and
+that improvement should influence subsequent experimental choices. The registered evaluator now shows
+that this condition was not satisfied at any intervention locus, despite general prediction-error
+reduction. A-P provides a directional hypothesis for replication, but its $p=0.079$ result cannot be
+treated as a passed locus.
 
-## 8.3 Scientific understanding as a coupled capability
+## 8.3 Scientific understanding as a chain with measurable conversion losses
 
 Prediction, explanation and action can dissociate. An agent may understand a relation but lack the
 operational competence or remaining resources to exploit it; it may act successfully without an
 accurate model; or it may state the right model while continuing to choose inconsistent experiments.
-The joint evaluation therefore supports four interpretable phenotypes: understands and acts,
-understands but cannot act, acts without understanding, and neither.
+Here, this dissociation is observed directly: explicit predictions generally improved, executable
+laws were worse than final predictions in 85/135 cells, and blind actions were equivalent to the
+incumbent in 119/121 evaluable cells. The platform therefore turns an abstract capability hierarchy
+into measurable transition losses. Future interventions can target evidence seeking, updating,
+compression or action separately instead of optimizing one composite score.
 
 ## 8.4 The harness is part of the evaluated agent system
 
@@ -661,26 +779,27 @@ reconstructing its reasoning state. The same harness also introduces failure sur
 discovery, schema conformance, retry rules, context growth and checkpoint submission. Provider-side
 caching changes resource use but not the number of experiments or independent worlds. Consequently,
 the participant is the frozen combination of model, reasoning setting, prompt, Codex runtime, MCP
-interface and resource policy—not the model weights in isolation. A cross-model claim requires these
-components to be matched or explicitly manipulated; the present development providers are therefore
-reported separately.
+interface and resource policy—not the model weights in isolation. This boundary is visible in the
+current cohort: 888 of 904 failed tool events occurred during typed belief submission even though all
+675 checkpoints were ultimately recovered. A cross-model claim requires these components to be
+matched or explicitly manipulated; the present provider configurations are therefore reported
+separately.
 
 ## 8.5 Scope and limitations
 
 The study evaluates bounded executable chemical worlds rather than universal chemical fidelity or
-direct wet-laboratory validity. A single frozen participant method supports conclusions about that
-agent-system configuration, not language models in general. Five task families provide mechanistic
-breadth but only five independent public worlds per task, so the confirmatory design is powered for
-moderate-to-large effects rather than subtle differences. Evaluator queries are registered before
-participant execution, but any finite query set samples only part of a hidden law. The private cohort
-tests new worlds within the same task families rather than transfer to an unseen mechanism family.
-The current completed multi-task data manipulate only the entity/ontology layer, with one retained
-single-world parametric pilot. Structural, multi-world parametric and observation-model interventions
-remain unsupported until their independent preflights and registered blocks reach terminal state.
-Scope/compositional transfer is a further conditional claim, not a synonym for private replication.
-Finally, exact software replay does not eliminate model-provider variability;
-provider attempts and session failures are reported as operational characteristics rather than
-independent scientific samples.
+direct wet-laboratory validity. A single frozen DeepSeek--Codex participant method supports conclusions
+about that agent-system configuration, not language models in general. The public programme contains
+nine task--locus combinations but only five independent worlds per task, so small and heterogeneous
+effects cannot support broad equivalence or universal-benefit claims. A-E, A-P and A-S reached terminal
+participant denominators, whereas the observation-model screen remained a scientific boundary and did
+not enter a participant block. The current-composite evaluator completed held-out prediction, law
+compression and blind action for the public cohort; private confirmation, matched cross-provider
+replication and compositional transfer were not run.
+Ten cells contain discard-affected checkpoint timing that cannot be retrospectively repaired. Finally,
+exact software replay does not eliminate provider variability or interface burden; provider attempts,
+schema failures, resource rejection and session outcomes are reported as operational characteristics
+rather than independent scientific samples.
 
 # 9. Methods
 
@@ -730,34 +849,30 @@ rationales but not an unconstrained persistent notebook. After the campaign, exp
 and the final law summary are evaluated against sealed truth packs. The summary must execute for the
 exact registered query-metric set; the analysis records its normalized error, pre-to-summary
 improvement, error relative to the effective final checkpoint and prediction-consistency error.
-These quantities are not converted into a public binary law-discovery decision before private
-transfer.
+These quantities are reported continuously. They are not converted post hoc into a public binary
+law-discovery label, and a reusable or transferable-law claim additionally requires independent
+transfer evidence.
 
 ## 9.5 Statistical analysis
 
-The independent units are the 25 task-by-world clusters. The primary contrast is estimated with task
-fixed effects and a one-sided 0.05 criterion under an intersection--union rule. Three secondary
-hypotheses use Holm familywise correction. Task-specific contrasts are reported as heterogeneity
-estimates rather than independent confirmatory claims. Prespecified sensitivity analyses include
-complete-case, worst-case failed-arm, heteroscedasticity-robust and task-stratified cluster-bootstrap
-analyses.
+The public C2 cohort contains 45 independent matched task--world clusters: 25 in A-E, ten in A-P and
+ten in A-S. Every cluster contains three participant arms, which are paired interventions rather than
+independent samples. Prediction-to-law inference is performed separately by locus. A-E retains its
+three-component failure-aware intersection--union gate; A-P and A-S use task-fixed-effect contrasts,
+require both task means to be positive and retain adverse bounds for failed or unscorable arms. A
+global cross-locus decision requires all three locus gates to pass, and naive pooling across the nine
+task--locus combinations is forbidden. Endpoint contrasts in Section 6 are descriptive trajectory
+outcomes, not substitutes for that registered prediction-error analysis. Prespecified sensitivity
+analyses include observed-point, complete-case, heteroscedasticity-robust and task-stratified
+cluster-bootstrap summaries.
 
-## 9.6 Private confirmation boundary
+## 9.6 Optional private confirmation boundary
 
-Private confirmation is derived only after the public 75-cell matrix is terminal and the public
-confirmatory analysis, participant method and analysis source are hash-bound. An external seal
-commits five new world identities for each of the five registered task families. The validator checks
-that the 25 identities are unique, lie inside the private namespace and are disjoint from development
-and public-formal worlds. The repository records only the commitment; the seal nonce and identity
-schedule remain outside version control.
-
-The sealed schedule deterministically expands to 75 prior-arm cells with the same participant,
-campaign-resource, checkpoint, prediction, executable-summary and blind-replay contracts used in the
-public matrix. A preflight cannot authorize execution: it remains blocked until a separate private
-currency ceiling, one-shot command approval and final runner/analysis release receipt exist. Its
-identity-bearing artifact can be created only once under the ignored private run root. A completed or
-failed private cell is never replaced because of its result; at most one missing-infrastructure-only
-resume is permitted per cell, and all failures and unstarted cells remain in the denominator.
+No private participant cohort was executed for the present study. If private confirmation is pursued,
+it will use newly sealed world identities disjoint from development and public worlds, retain the same
+three-arm participant and evaluator contracts, and preserve every completed, failed and unstarted
+cell in a one-shot denominator. Such a cohort would test within-family replication. A separate
+context-reset artifact-transfer design would still be required for a compositional-transfer claim.
 
 ## 9.7 Reproducibility and failure accounting
 
@@ -770,9 +885,8 @@ executions are reported with distinct denominators.
 # 10. Data and code availability
 
 The executable environment, frozen protocols, analysis code, source data and reproducible figure
-scripts will accompany the public release. Raw provider payloads, credentials and private world
-identities are excluded. The private cohort commitment will be released before execution, and the
-identities and results will be disclosed with the final confirmation package.
+scripts will accompany the public release. Raw provider payloads and credentials are excluded. No
+private cohort data are included because that optional study was not executed.
 
 # 11. Author contributions
 

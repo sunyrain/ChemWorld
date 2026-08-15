@@ -256,6 +256,88 @@ def _reaction_safety_pattern_actions(
     }
 
 
+def _partition_pattern_actions(
+    feature_values: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    """Compile registered physical partition queries outside the agent search box.
+
+    The phase-process transfer family intentionally includes held-out settling
+    durations beyond the participant's static search-vector range.  Those values
+    remain inside the runtime operation domain and must not be clipped or rejected
+    merely because they test extrapolation.
+    """
+
+    expected = {
+        "solvent",
+        "aqueous_phase_volume_L",
+        "extractant",
+        "extractant_volume_L",
+        "mix_duration_s",
+        "settle_duration_s",
+        "stirring_speed_rpm",
+    }
+    if set(feature_values) != expected:
+        raise ValueError(
+            "partition held-out query does not match its executable pattern: "
+            f"missing={sorted(expected - set(feature_values))}, "
+            f"extra={sorted(set(feature_values) - expected)}"
+        )
+    physical = dict(feature_values)
+    numeric_bounds = {
+        "aqueous_phase_volume_L": (1.0e-6, 0.060),
+        "extractant_volume_L": (1.0e-6, 0.060),
+        "mix_duration_s": (1.0, 14_400.0),
+        "settle_duration_s": (1.0, 14_400.0),
+        "stirring_speed_rpm": (0.0, 2000.0),
+    }
+    for field, (low, high) in numeric_bounds.items():
+        value = _finite_number(physical[field], field=field)
+        if not low <= value <= high:
+            raise ValueError(f"{field} is outside its partition operation bounds")
+        physical[field] = value
+    for field in ("solvent", "extractant"):
+        value = physical[field]
+        if isinstance(value, bool) or not isinstance(value, int) or not 0 <= value < 4:
+            raise ValueError(f"{field} is outside its partition categorical domain")
+    physical["solvent_volume_L"] = float(
+        _FROZEN_RECIPE_DEFAULTS["partition-discovery"]["solvent_volume_L"]
+    )
+    actions = [
+        {
+            "operation": "add_solvent",
+            "volume_L": physical["solvent_volume_L"],
+            "solvent": physical["solvent"],
+        },
+        {
+            "operation": "add_phase",
+            "phase": "aqueous",
+            "volume_L": physical["aqueous_phase_volume_L"],
+        },
+        {
+            "operation": "add_extractant",
+            "extractant": physical["extractant"],
+            "volume_L": physical["extractant_volume_L"],
+        },
+        {
+            "operation": "mix",
+            "duration_s": physical["mix_duration_s"],
+            "stirring_speed_rpm": physical["stirring_speed_rpm"],
+        },
+        {"operation": "settle", "duration_s": physical["settle_duration_s"]},
+        {"operation": "measure", "instrument": "hplc"},
+        {"operation": "separate_phase", "target_phase": "organic"},
+        {"operation": "measure", "instrument": "hplc"},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"},
+    ]
+    return actions, {
+        "schema_version": "chemworld-work-ii-partition-truth-plan-0.1",
+        "recipe_contract": "work-ii-partition-physical-query-envelope-0.1",
+        "physical_controls": physical,
+        "participant_search_box_required": False,
+    }
+
+
 def compile_evaluator_truth_query(
     config: Mapping[str, Any],
     query: Mapping[str, Any],
@@ -281,6 +363,8 @@ def compile_evaluator_truth_query(
     }
     if task_id == "reaction-safety-constrained" and "solvent_volume_L" in feature_values:
         actions, compiled_plan = _reaction_safety_pattern_actions(feature_values)
+    elif task_id == "partition-discovery":
+        actions, compiled_plan = _partition_pattern_actions(feature_values)
     elif task_id in {"electrochemical-conversion", "reaction-to-crystallization"}:
         payload = {
             **common,

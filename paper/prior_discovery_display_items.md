@@ -1,118 +1,119 @@
-# Display plan — experimental intelligence from initial world models to transferable laws
+# Display plan — initial world models, experimental search and scientific correction
 
-This document defines the reader-facing evidence role of each proposed display. Development and
-formal evidence must remain visually distinct.
+This document defines the reader-facing role of each Paper 2 display. The current public participant
+cohort and current-composite evaluator are terminal. Endpoint, workflow, prediction, executable-law
+and blind-action displays now use the same 135-cell public evidence surface.
 
-## Figure 1 — From an initial world model to a reusable law
+## Figure 1 — Why endpoint success is not scientific correction
 
-**Claim:** an agent's initial scientific model can be intervened on at multiple layers, but only
-evaluator-valid prediction, action and transfer support reusable law discovery.
-
-Panels:
-
-- A: the external world $W$ versus the agent-facing $M_0$, with entity/ontology,
-  structural/mechanistic, parametric/dynamical, observation/measurement and scope/compositional
-  intervention layers; the current completed multi-task evidence uses only the entity layer;
-- B: persistent campaign loop from operation to observation, checkpoint and next experiment;
-- C: separate outcome channels for endpoint, prediction, prior correction, executable summary and
-  transfer;
-- D: joint decision rule distinguishing confirmation, correction, policy repair and law discovery.
-
-This is the conceptual hero figure and should not contain development effect sizes.
-
-## Figure 2 — Sparse multi-layer programme and study architecture
-
-**Claim:** ChemWorld exposes a broad programmable intervention space, but the paper uses a sparse,
-one-locus-at-a-time programme with independent qualification and denominators rather than a full
-factorial benchmark.
+**Claim:** an initial world model can change experimental search, but reusable understanding requires
+separate prediction, law and action evidence.
 
 Panels:
 
-- A: A-E entity/ontology backbone with five task families and 25 public task-by-world clusters;
-- B: A-P and A-S with two independently qualified task families each; A-O remains a separately
-  admitted boundary probe and D-Scope belongs to transfer;
-- C: pattern-owned campaigns and checkpoints: A-E 8, A-P 10 and A-S 12 complete experiments,
-  subject to resource calibration before final freeze;
-- D: strict separation of free discovery, matched-evidence falsification, evaluator truth, blind
-  outcome replay, within-family private confirmation and artifact-only compositional transfer.
+- A: fixed external world versus participant-facing initial world model;
+- B: A-E entity, A-P parametric and A-S structural interventions;
+- C: persistent experiment → observation → checkpoint → next experiment loop;
+- D: separate endpoint, prediction, executable-law and action outcomes.
 
-## Figure 3 — Development observation: priors shift behavior without selective rejection
+The figure is conceptual and contains no effect sizes.
 
-**Claim:** existing development evidence motivates the formal estimand but is not a formal agent
-capability result.
+## Figure 2 — Sparse qualification programme and terminal public cohort
 
-Use the provider-isolated paired endpoint, reliability, warning-specificity and completion panels.
-WellAU and DeepSeek must be presented as separate method/harness configurations. Do not place them on
-a common capability ranking axis. The paired endpoint/warning panels retain the common three-task
-source used for continuity, while the complete five-task DeepSeek terminal, qualification, resource
-and replay denominators are reported in the Results closeout table. Partition discovery and
-safety-constrained reaction are not omitted; their seed-0 failures and seeds 1--4 continuation are
-shown as operational/descriptive evidence only.
-
-## Figure 4 — Development confirmation: prediction repair is not reusable law recovery
-
-**Claim:** held-out prediction often improves in the DeepSeek development matrix, but misindexed
-correction does not exceed aligned improvement; executable compression and committed recommendation
-remain separate failure points.
+**Claim:** the study qualifies task–locus pairs independently instead of treating every programmable
+intervention as a successful agent experiment.
 
 Panels:
 
-- A: aligned-versus-misindexed prediction improvement for all 25 development clusters;
-- B: task-wise H3 development contrasts with retained incomplete clusters;
-- C: executable law-summary error relative to final explicit predictions;
-- D: blind recommendation outcome relative to the observed incumbent.
+- A: provider-free qualification funnel, including retained scientific rejections;
+- B: 25 A-E, 10 A-P and 10 A-S task–world clusters;
+- C: 135/135 terminal sessions, 121/135 qualification and 1,243/1,260 experiments;
+- D: complete, discarded, resource-rejected and right-censored denominators.
 
-This is post-hoc provider-separated development evidence. It must not be presented as the
-preregistered public result or as private transfer confirmation.
+Observation-model, catalyst, flow and rollback rejections belong in the boundary panel, not in a
+suppressed-results appendix.
 
-## Figure 5 — Evidence-driven correction across predeclared initial-model loci
+## Figure 3 — Three task-dependent prior-effect archetypes
 
-**Claim:** within each qualified locus, the misspecified arm improves held-out predictions more than
-the aligned arm without aligned degradation; cross-locus generalization requires concordant A-E,
-A-P and A-S results rather than pooling unlike raw contrasts.
+**Claim:** correct priors can produce a durable advantage, an early head start that later narrows, or
+only a small benefit beyond generic structured guidance.
 
-Planned panels:
+Panels:
 
-- A: A-E checkpoint-level held-out prediction-error trajectories by initial-model arm;
-- B: locus-specific $C_E$, $C_P$ and $C_S$ contrasts with task/world heterogeneity;
-- C: reliability and calibration changes at the manipulated locus against evaluator truth;
-- D: failure/censoring-aware locus decisions and the predeclared cross-locus synthesis.
+- A: A-E partition, aligned minus misindexed first and best scores (+0.106 and +0.200; 5/5 worlds);
+- B: A-S crystallization head-start attenuation (+0.141 first, +0.055 best);
+- C: A-S partition, aligned and misindexed versus opaque (+0.163 and +0.143 best), with only +0.020
+  aligned minus misindexed;
+- D: the other six task–locus contrasts as heterogeneity and boundary evidence.
 
-Do not generate this figure before formal data reach a complete terminal denominator.
+Use paired world-level points. Do not pool the nine raw effects into one leaderboard statistic.
 
-## Figure 6 — From stated law to action and blind outcome
+## Figure 4 — How the persistent agent actually experiments
 
-**Claim:** reusable understanding requires agreement between predictions, executable summaries,
-subsequent operations and independently validated recommendations.
+**Claim:** the participant performs substantive, task-aware search rather than copying a single prior
+recipe.
 
-Planned panels:
+Panels:
 
-- A: executable law-summary validity and prediction consistency;
-- B: understands-and-acts phenotype map;
-- C: blind incumbent-versus-recommendation paired outcomes;
-- D: process features associated with knowledge-to-action translation.
+- A: normalized position of the best experiment; 84.4% occur after the midpoint;
+- B: unique-recipe fraction by task and arm; overall mean 91.2%;
+- C: non-final measurement fraction by task, explicitly separating it from the universal final assay;
+- D: table-like representative trajectories with operation, public state, structured rationale and
+  checkpoint transitions.
 
-Panel A must use the frozen cell-level evaluator fields: exact registered query-metric execution,
-truth-normalized law-summary error, pre-to-summary improvement, summary-minus-final-checkpoint error
-and consistency with final explicit predictions. It is descriptive and must not introduce a binary
-public law-validity threshold; reusable-law status remains conditional on Figure 7.
+Reuse the current C2 source data and table/plot code. Model-rationale text is the explicit structured
+decision audit, never hidden chain of thought.
 
-## Figure 7 — Replication and artifact-only transfer
+## Figure 5 — Prediction, executable-law and action dissociation
 
-**Claim:** any public discovery claim survives one sealed confirmation and transfers beyond exact
-diagnostic points.
+**Status:** generated from the completed current-composite provider-free evaluator.
 
-Panels must separate within-task-family world-held-out replication from artifact-only compositional
-transfer. The latter resets the agent context and compares no artifact, raw trajectory, prose summary
-and executable-law hand-offs in a target world with a verified shared module. A negative private
-result remains visible and cannot be replaced by another private cohort.
+**Claim:** general prediction learning, selective wrong-prior correction, executable-law compression
+and action improvement are empirically separable.
+
+- A: failure-aware selective-correction evidence for all 45 matched worlds; registered p values are
+  A-E 0.990, A-P 0.079 and A-S 1.000;
+- B: mean pre-to-final prediction-error reduction by arm and locus, showing general learning despite
+  failed selective-correction gates;
+- C: law MAE minus final explicit-prediction MAE for all 135 cells; law better/equal/worse is
+  49/1/85;
+- D: blind recommendation versus incumbent for 121 evaluable cells; better/equivalent/worse is
+  1/119/1, with 14 nonterminal cells retained as unstarted.
+
+Source: `workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/current/`
+(`deepseek_c2_prediction_law_action.*` plus four source-data CSV files). The full evaluator completed
+420/420 truth executions, 675/675 checkpoint scores, 135/135 law evaluations and 726/726 launched
+blind replays with zero provider calls.
+
+## Figure 6 — Recommendation and system boundary
+
+**Claim:** current final recommendations mainly retrieve the observed incumbent, while most tool
+failures occur at typed belief submission rather than physical execution.
+
+Panels:
+
+- A: 133/135 exact-incumbent selections and observed-score regret;
+- B: blind incumbent-versus-recommendation outcome (1/119/1 better/equivalent/worse);
+- C: 904 failed tool events by tool, including 888 belief-checkpoint submissions;
+- D: physical failure, resource rejection, uncommitted operation and discard denominators.
+
+## Development figures
+
+The existing provider-separated development-prior and development-confirmation figures move to the
+supplement or an early design-validation section. They motivate the capability separation but are not
+the current public C2 result and are never used for cross-provider ranking.
+
+## Private confirmation and transfer
+
+No main figure is reserved by default. Add a separate figure only if the paper retains and executes a
+one-shot private or context-reset transfer claim. Within-family replication is not compositional
+transfer.
 
 ## Core tables
 
-1. Claim-to-estimand and success-rule table.
-2. Task, initial-world-model layer and resource-contract table.
-3. Complete public cell, failure, censoring and replay denominators.
-4. Provider, token, cost, wall-time and safety profile.
-5. Development/formal/private evidence-boundary table.
-6. Five-task development closeout table with terminal, qualification, resource, token and replay denominators.
-7. Study A--D separation table, including which observations enter each denominator.
+1. Claim, estimand, evidence layer and allowed wording.
+2. Task, initial-world-model locus, experiment budget and measurement path.
+3. Complete public cell, experiment, discard, censoring and resource denominators.
+4. Per-task paired first-score, best-score and within-session-gain contrasts.
+5. Prediction, law-summary and blind-action results from the completed current-composite evaluator.
+6. Agent-system failure composition and provider accounting.

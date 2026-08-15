@@ -7,6 +7,16 @@ ROOT = Path(__file__).resolve().parents[1]
 MANUSCRIPT = ROOT / "paper/prior_discovery_manuscript.md"
 EVIDENCE_MAP = ROOT / "paper/prior_discovery_evidence_map.md"
 DISPLAY_ITEMS = ROOT / "paper/prior_discovery_display_items.md"
+PAPER_STORY_ANALYSIS = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
+)
+CURRENT_COMPOSITE_EVALUATION = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-deepseek-c2-current-composite-evaluation-v0.1.json"
+)
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
 CLOSEOUT = (
@@ -54,8 +64,9 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "their seeds 1--4 in a separate continuation block" in manuscript
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
-    assert "common three-task" in display_items
-    assert "paired endpoint/warning panels" in display_items
+    assert "existing provider-separated development-prior" in display_items
+    assert "the current public C2 result" in display_items
+    assert "cross-provider ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "operational descriptive evidence" in limits
     assert "not pooled into the three-task paired endpoint panels" in limits
@@ -78,3 +89,32 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
         "configs/benchmark/"
         "work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
     ) in sources
+
+
+def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> None:
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    display_items = DISPLAY_ITEMS.read_text(encoding="utf-8")
+    analysis = json.loads(PAPER_STORY_ANALYSIS.read_text(encoding="utf-8"))
+    evaluation = json.loads(CURRENT_COMPOSITE_EVALUATION.read_text(encoding="utf-8"))
+
+    overall = analysis["overall"]
+    assert overall["cell_count"] == 135
+    assert overall["complete_experiment_count"] == 1_243
+    assert overall["scheduled_experiment_count"] == 1_260
+    assert overall["snapshot_count"] == 675
+    assert overall["prediction_query_count"] == 6_300
+    assert overall["prediction_metric_count"] == 24_300
+    assert analysis["prediction_task_status"]["participant_checkpoint_collection"] == "complete"
+    assert analysis["prediction_task_status"]["registered_truth_evaluator"] == "complete"
+    assert analysis["prediction_task_status"]["law_summary_evaluator"] == "complete"
+    assert analysis["prediction_task_status"]["blind_recommendation_replay"] == "complete"
+    assert analysis["prediction_task_status"]["confirmatory_prediction_claim_allowed"] is False
+    denominators = evaluation["denominators"]
+    assert denominators["truth_completed_execution_count"] == 420
+    assert denominators["checkpoint_scored_count"] == 675
+    assert denominators["law_summary_evaluated_count"] == 135
+    assert denominators["blind_completed_execution_count"] == 726
+    assert evaluation["provider_call_count"] == 0
+    assert "Prediction learning did not become selective wrong-model repair" in manuscript
+    assert "1/119/1" in manuscript
+    assert "generated from the completed current-composite" in display_items
