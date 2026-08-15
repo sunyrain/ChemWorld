@@ -23,7 +23,7 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 EXPERIMENT_CODEX_IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
-CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.1"
+CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.2"
 DEFAULT_MAX_TOOL_OUTPUT_BYTES = 32_768
 DEFAULT_HISTORY_EVENT_LIMIT = 64
 DEFAULT_HISTORY_BYTE_LIMIT = 131_072
@@ -339,7 +339,10 @@ class ExperimentCodexWorkspace:
                 session_root / "campaign_progress.json",
                 {
                     "schema_version": CAMPAIGN_PROGRESS_VERSION,
+                    "closed_batch_count": 0,
                     "completed_experiment_count": 0,
+                    "completed_experiment_indices": [],
+                    "completed_batch_ids": [],
                     "observed_evidence_ids": [],
                     "campaign_ended": False,
                 },
@@ -352,7 +355,9 @@ class ExperimentCodexWorkspace:
         self,
         *,
         session_id: str,
+        closed_batch_count: int,
         completed_experiment_count: int,
+        completed_experiment_index: int | None,
         observed_evidence_id: str | None,
         campaign_ended: bool,
     ) -> dict[str, Any]:
@@ -361,44 +366,86 @@ class ExperimentCodexWorkspace:
         descriptor = self._session_descriptor(session_id)
         if descriptor.get("session_scope") != "campaign":
             raise ExperimentCodexIPCError("campaign progress requires a campaign session")
-        if (
-            isinstance(completed_experiment_count, bool)
-            or not isinstance(completed_experiment_count, int)
-            or completed_experiment_count < 0
+        for value, label in (
+            (closed_batch_count, "closed batch count"),
+            (completed_experiment_count, "completed experiment count"),
         ):
-            raise ExperimentCodexIPCError("completed experiment count must be non-negative")
+            if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+                raise ExperimentCodexIPCError(f"{label} must be non-negative")
+        if completed_experiment_count > closed_batch_count:
+            raise ExperimentCodexIPCError(
+                "completed experiment count cannot exceed closed batch count"
+            )
         path = self.session_root(session_id) / "campaign_progress.json"
         current = _read_json_object(path)
         if current.get("schema_version") != CAMPAIGN_PROGRESS_VERSION:
             raise ExperimentCodexIPCError("campaign progress schema is invalid")
+        prior_closed = current.get("closed_batch_count")
         prior_count = current.get("completed_experiment_count")
+        prior_indices = current.get("completed_experiment_indices")
+        prior_batch_ids = current.get("completed_batch_ids")
         prior_evidence = current.get("observed_evidence_ids")
         prior_ended = current.get("campaign_ended")
         if (
-            isinstance(prior_count, bool)
+            isinstance(prior_closed, bool)
+            or not isinstance(prior_closed, int)
+            or isinstance(prior_count, bool)
             or not isinstance(prior_count, int)
+            or not isinstance(prior_indices, list)
+            or any(
+                isinstance(item, bool) or not isinstance(item, int) or item < 1
+                for item in prior_indices
+            )
+            or prior_indices != sorted(set(prior_indices))
+            or len(prior_indices) != prior_count
+            or not isinstance(prior_batch_ids, list)
+            or prior_batch_ids
+            != [f"batch-{index:04d}" for index in prior_indices]
             or not isinstance(prior_evidence, list)
             or any(not isinstance(item, str) or not item for item in prior_evidence)
             or len(set(prior_evidence)) != len(prior_evidence)
+            or len(prior_evidence) != prior_count
             or not isinstance(prior_ended, bool)
         ):
             raise ExperimentCodexIPCError("campaign progress state is malformed")
+        if closed_batch_count not in {prior_closed, prior_closed + 1}:
+            raise ExperimentCodexIPCError("campaign closed batch count is not monotonic")
         if completed_experiment_count not in {prior_count, prior_count + 1}:
             raise ExperimentCodexIPCError("campaign progress count is not monotonic")
+        if completed_experiment_count == prior_count + 1 and closed_batch_count != prior_closed + 1:
+            raise ExperimentCodexIPCError("a completed experiment must close one new batch")
+        if closed_batch_count == prior_closed and completed_experiment_count != prior_count:
+            raise ExperimentCodexIPCError("completion cannot advance without a new closed batch")
+        indices = list(prior_indices)
+        batch_ids = list(prior_batch_ids)
         evidence = list(prior_evidence)
         if completed_experiment_count == prior_count + 1:
+            if (
+                isinstance(completed_experiment_index, bool)
+                or not isinstance(completed_experiment_index, int)
+                or completed_experiment_index != closed_batch_count
+            ):
+                raise ExperimentCodexIPCError(
+                    "completed experiment index must identify the newly closed lifecycle batch"
+                )
             expected = f"experiment-{completed_experiment_count}-final-assay"
-            if observed_evidence_id not in {None, expected}:
+            if observed_evidence_id != expected:
                 raise ExperimentCodexIPCError("campaign progress evidence ID is invalid")
-            if observed_evidence_id is not None:
-                evidence.append(expected)
-        elif observed_evidence_id is not None:
-            raise ExperimentCodexIPCError("campaign progress added evidence without completion")
+            indices.append(completed_experiment_index)
+            batch_ids.append(f"batch-{completed_experiment_index:04d}")
+            evidence.append(expected)
+        elif observed_evidence_id is not None or completed_experiment_index is not None:
+            raise ExperimentCodexIPCError(
+                "campaign progress added completion identity without completion"
+            )
         if prior_ended and not campaign_ended:
             raise ExperimentCodexIPCError("campaign terminal state cannot be reversed")
         state = {
             "schema_version": CAMPAIGN_PROGRESS_VERSION,
+            "closed_batch_count": closed_batch_count,
             "completed_experiment_count": completed_experiment_count,
+            "completed_experiment_indices": indices,
+            "completed_batch_ids": batch_ids,
             "observed_evidence_ids": evidence,
             "campaign_ended": campaign_ended,
         }

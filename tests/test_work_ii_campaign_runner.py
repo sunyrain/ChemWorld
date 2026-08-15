@@ -37,6 +37,9 @@ from scripts.run_work_ii_five_seed_campaign import (
 from chemworld.agents.base import BaseAgent
 from chemworld.campaign_resources import CampaignResourceLedger
 from chemworld.eval.provenance import canonical_json_sha256
+from chemworld.eval.work_ii_constitutive_structural_qualification import (
+    apply_crystallization_recovery_resource_design,
+)
 from chemworld.eval.work_ii_resource_calibration_v02 import (
     _materialize_runtime_config,
 )
@@ -55,17 +58,22 @@ def test_analysis_closes_discarded_batch_without_polluting_next_recipe() -> None
             "action": {"operation": "discard_batch", "reason": "abandon"},
             "operation_type": "discard_batch",
             "transaction_status": "committed",
+            "experiment_index": 0,
+            "experiment_ended": True,
         },
         {
             "action": {"operation": "add_solvent", "volume_L": 0.02},
             "operation_type": "add_solvent",
             "transaction_status": "committed",
+            "experiment_index": 1,
         },
         {
             "action": {"operation": "measure", "instrument": "final_assay"},
             "operation_type": "measure",
             "instrument": "final_assay",
             "transaction_status": "committed",
+            "experiment_index": 1,
+            "experiment_ended": True,
             "leaderboard_score": 0.1,
             "observation": {"score": 0.1},
             "agent_view": {
@@ -88,6 +96,10 @@ def test_analysis_closes_discarded_batch_without_polluting_next_recipe() -> None
         records[2]["action"],
         records[3]["action"],
     ]
+    assert analysis["experiments"][0]["lifecycle_experiment_index"] == 2
+    assert analysis["experiments"][0]["completed_ordinal"] == 1
+    assert analysis["experiments"][0]["batch_id"] == "batch-0002"
+    assert analysis["completed_experiment_indices"] == [2]
 
 
 def test_analysis_does_not_call_terminal_empty_affordance_a_deadlock() -> None:
@@ -287,6 +299,192 @@ def test_w226_scripted_participant_traverses_production_semantic_path(
     assert row["completed"] is True
     assert json.loads((cell_root / "summary.json").read_text(encoding="utf-8")) == row
     assert "synthetic" not in json.dumps(row, sort_keys=True).lower()
+
+
+def test_crystallization_recovery_config_traverses_production_runner(
+    tmp_path: Path,
+) -> None:
+    source_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-26-deepseek-runtime-configs-v0.1/"
+        "a_s--reaction-to-crystallization--r12.json"
+    )
+    config = apply_crystallization_recovery_resource_design(
+        json.loads(source_path.read_text(encoding="utf-8"))
+    )
+    config["snapshot_stages"] = ["pre_evidence", "final"]
+    config["campaign"].update(
+        {
+            "complete_experiments": 1,
+            "checkpoint_complete_experiments": [0, 1],
+            "final_assay_limit": 1,
+            "operation_attempt_limit": 30,
+            "vessel_start_limit": 2,
+        }
+    )
+    config["campaign"]["closeout_policy"].update(
+        {
+            "planned_batches": 2,
+            "final_assay_path_total_operation_reserve": 4,
+            "discard_path_total_operation_reserve": 2,
+        }
+    )
+    config["method_resources"].update(
+        {
+            "complete_experiment_limit": 1,
+            "checkpoint_complete_experiments": [1],
+            "operation_limit": 30,
+        }
+    )
+    config["qualification"].update(
+        {"minimum_unique_recipes": 1, "maximum_exact_repeats": 0}
+    )
+    recommendation = {
+        "selected_experiment_index": 2,
+        "selection_rationale": "only completed recovery-canary experiment",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
+
+    class ScriptedCrystallizationRecoveryParticipant(BaseAgent):
+        name = "scripted-crystallization-recovery-canary"
+
+        def __init__(self, **_kwargs: Any) -> None:
+            self.actions = [
+                {"operation": "add_solvent", "solvent": 0, "volume_L": 0.01},
+                {"operation": "discard_batch", "reason": "canary replacement"},
+                {"operation": "add_reagent", "amount_mol": 0.024},
+                {"operation": "add_solvent", "solvent": 1, "volume_L": 0.03},
+                {
+                    "operation": "add_catalyst",
+                    "catalyst": 0,
+                    "catalyst_amount_mol": 0.000378,
+                },
+                {
+                    "operation": "heat",
+                    "target_temperature_K": 350,
+                    "duration_s": 3600,
+                    "stirring_speed_rpm": 400,
+                },
+                {"operation": "measure", "instrument": "hplc"},
+                {
+                    "operation": "cool_crystallize",
+                    "target_temperature_K": 285,
+                    "duration_s": 5400,
+                },
+                {"operation": "quench"},
+                {
+                    "operation": "heat",
+                    "target_temperature_K": 350,
+                    "duration_s": 600,
+                    "stirring_speed_rpm": 400,
+                },
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "seed_crystals", "seed_mass_g": 0.01},
+                {
+                    "operation": "cool_crystallize",
+                    "target_temperature_K": 285,
+                    "duration_s": 5400,
+                },
+                {"operation": "quench"},
+                {"operation": "measure", "instrument": "hplc"},
+                {"operation": "filter_crystals"},
+                {"operation": "terminate"},
+                {"operation": "measure", "instrument": "final_assay"},
+            ]
+
+        def act(self, history: list[Any]) -> dict[str, Any]:
+            return self.actions[len(history)]
+
+        def method_resource_usage(self) -> dict[str, Any]:
+            return {
+                "schema_version": "chemworld-method-resource-usage-0.1",
+                "accounting_complete": True,
+                "provider_usage_pending": False,
+                "provider_usage_accounting_complete": True,
+                "provider_call_accounting_complete": True,
+                "provider_token_accounting_complete": True,
+                "provider_cache_accounting_complete": True,
+                "monetary_accounting_complete": True,
+                "in_flight_model_call_count": 0,
+                "model_call_count": 1,
+                "input_token_count": 10,
+                "cached_input_token_count": 0,
+                "uncached_input_token_count": 10,
+                "output_token_count": 5,
+                "training_environment_step_count": 0,
+                "monetary_cost_usd": 0.0,
+                "cpu_time_s": 0.0,
+                "gpu_time_s": 0.0,
+                "model_provenance": {},
+                "provider_session_count": 1,
+                "provider_process_attempt_count": 1,
+                "accepted_provider_session_count": 1,
+                "accepted_participant_model_call_count": 1,
+                "unattributed_pre_action_process_attempt_count": 0,
+            }
+
+        def provider_receipts(self) -> list[dict[str, Any]]:
+            return [
+                {
+                    "session_scope": "campaign",
+                    "status": "completed",
+                    "return_code": 0,
+                    "final_payload_valid": True,
+                    "final_payload_status": "campaign_complete",
+                    "final_recommendation": recommendation,
+                    "final_recommendation_sha256": recommendation_sha256,
+                    "belief_snapshots": [
+                        {
+                            "stage": "pre_evidence",
+                            "prior_assessment": {
+                                "reliability_probability": 0.5,
+                                "suspected_misindexed_fields": [],
+                            },
+                        },
+                        {
+                            "stage": "final",
+                            "prior_assessment": {
+                                "reliability_probability": 0.5,
+                                "suspected_misindexed_fields": [],
+                            },
+                        },
+                    ],
+                    "experiment_tool_integrity_verified_after_session": True,
+                    "lab_tool_integrity_verified_after_session": True,
+                    "mcp_tool_integrity_verified_after_session": True,
+                    "recovered_mcp_tool_failure_count": 0,
+                    "current_consecutive_mcp_tool_failure_count": 0,
+                    "maximum_consecutive_mcp_tool_failure_count": 0,
+                    "provider_error_event_count": 0,
+                    "session_elapsed_s": 0.0,
+                    "pre_action_retry_classification": "terminal_accepted",
+                    "accepted_action_count": len(self.actions),
+                }
+            ]
+
+    cell_root = tmp_path / "cell"
+    row = campaign_runner._run_cell(
+        config=config,
+        world_seed=620418208,
+        arm="opaque",
+        cell_index=1,
+        total_cells=1,
+        cell_root=cell_root,
+        progress_path=tmp_path / "progress.jsonl",
+        agent_invalid_enforcement="measure_only",
+        provider_error_enforcement="measure_only",
+        agent_factory=ScriptedCrystallizationRecoveryParticipant,
+    )
+
+    state = row["analysis"]["final_campaign_resources"]["state"]
+    assert row["analysis"]["complete_experiment_count"] == 1
+    assert state["discarded_batches"] == 1
+    assert state["closed_batches"] == 2
+    assert state["final_assays"] == 1
+    assert state["operation_committed_counts"]["heat"] == 2
+    assert state["operation_committed_counts"]["cool_crystallize"] == 2
+    assert row["exact_replay"]["verified"] is True
+    assert row["qualification"]["passed"] is True
 
 
 def test_five_seed_runner_accepts_only_frozen_schedule_shapes() -> None:
@@ -845,6 +1043,55 @@ def test_qualification_accepts_frozen_neutral_snapshot_stage_ids() -> None:
         required_snapshot_stages=config["snapshot_stages"],
     )
     assert result["passed"] is True
+
+    replacement_result = _qualification(
+        analysis={
+            **analysis,
+            "final_campaign_resources": {
+                **analysis["final_campaign_resources"],
+                "state": {
+                    **analysis["final_campaign_resources"]["state"],
+                    "closed_batches": 5,
+                    "discarded_batches": 1,
+                },
+            },
+        },
+        exact_replay={"verified": True},
+        method_resources={
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        method_resource_limits={
+            "complete_experiment_limit": 4,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        receipts=[
+            {
+                "session_scope": "campaign",
+                "status": "completed",
+                "return_code": 0,
+                "final_payload_valid": True,
+                "final_payload_status": "campaign_complete",
+                "final_recommendation": recommendation,
+                "final_recommendation_sha256": recommendation_sha256,
+                "experiment_tool_integrity_verified_after_session": True,
+                "lab_tool_integrity_verified_after_session": True,
+                "mcp_tool_integrity_verified_after_session": True,
+            }
+        ],
+        process_time_limit_s=72_000.0,
+        required_operation_counts={},
+        required_snapshot_stages=config["snapshot_stages"],
+    )
+    assert replacement_result["checks"]["campaign_terminal"] is True
+    assert replacement_result["passed"] is True
 
 
 def test_qualification_accepts_ten_experiments_and_five_checkpoints() -> None:

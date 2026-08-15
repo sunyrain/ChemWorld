@@ -32,15 +32,16 @@ from chemworld.eval.work_ii_prior_discovery import (
     parse_work_ii_prediction_page,
 )
 
-MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.12"
+MCP_SERVER_VERSION = "chemworld-experiment-codex-mcp-0.13"
 IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
-CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.1"
+CAMPAIGN_PROGRESS_VERSION = "chemworld-campaign-progress-0.2"
 SERVER_NAME = "chemworld_lab"
 SUPPORTED_TOOLS = (
     "material_information",
     "status",
     "history",
     "inspect_artifact",
+    "belief_snapshot_status",
     "commit_belief_snapshot",
     "commit_final_recommendation",
     "step",
@@ -451,6 +452,8 @@ class ChemWorldMCPServer:
                 payload = self._history(arguments)
             elif name == "inspect_artifact":
                 payload = self._inspect(descriptor, arguments)
+            elif name == "belief_snapshot_status":
+                payload = self._belief_snapshot_status(descriptor)
             elif name == "commit_belief_snapshot":
                 payload = self._commit_belief_snapshot(descriptor, arguments)
             elif name == "commit_final_recommendation":
@@ -715,6 +718,76 @@ class ChemWorldMCPServer:
                         "expected": stage_schema.get("const"),
                         "observed": header.get("stage"),
                         "schema_fragment": deepcopy(stage_schema),
+                    }
+                )
+            elif "unknown feature id" in lowered:
+                context.update(
+                    {
+                        "field_path": "snapshot_header.law_summary.feature_ids",
+                        "expected": {
+                            "type": "array",
+                            "items_enum": [
+                                str(item) for item in contract.get("allowed_feature_ids", [])
+                            ],
+                            "min_items": 1,
+                            "unique_items": True,
+                        },
+                        "observed": (
+                            arguments["snapshot_header"]["law_summary"].get("feature_ids")
+                            if isinstance(arguments.get("snapshot_header"), dict)
+                            and isinstance(
+                                arguments["snapshot_header"].get("law_summary"), dict
+                            )
+                            else None
+                        ),
+                        "recovery_action": (
+                            "Replace every feature ID with an exact value from "
+                            "expected.items_enum; do not invent aliases or display names."
+                        ),
+                    }
+                )
+            elif "limitations must be a string list" in lowered:
+                context.update(
+                    {
+                        "field_path": "snapshot_header.law_summary.limitations",
+                        "expected": {"type": "array", "items": {"type": "string"}},
+                        "recovery_action": (
+                            "Submit limitations as a JSON array of strings; use [] when none."
+                        ),
+                    }
+                )
+            elif "suspected_misindexed_fields must be a string list" in lowered:
+                context.update(
+                    {
+                        "field_path": (
+                            "snapshot_header.prior_assessment.suspected_misindexed_fields"
+                        ),
+                        "expected": {
+                            "type": "array",
+                            "items_enum": [
+                                str(item) for item in contract.get("allowed_prior_fields", [])
+                            ],
+                        },
+                        "recovery_action": (
+                            "Submit suspected_misindexed_fields as an array of exact public prior "
+                            "field IDs; use [] when none."
+                        ),
+                    }
+                )
+            elif "prediction metrics must be a list" in lowered:
+                context.update(
+                    {
+                        "field_path": "predictions[].metrics",
+                        "expected": {
+                            "type": "array",
+                            "metric_ids": [
+                                str(item) for item in contract.get("allowed_metric_ids", [])
+                            ],
+                        },
+                        "recovery_action": (
+                            "Submit metrics as the exact ordered JSON array published for the "
+                            "current prediction page."
+                        ),
                     }
                 )
             return context
@@ -994,6 +1067,7 @@ class ChemWorldMCPServer:
 
     def _campaign_closeout_state(self, descriptor: dict[str, Any]) -> dict[str, Any]:
         completed_count, _ = self._completed_experiment_state()
+        progress = self._campaign_progress()
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         stages = contract.get("snapshot_stages", [])
         required_counts = contract.get("checkpoint_complete_experiments", [])
@@ -1005,7 +1079,20 @@ class ChemWorldMCPServer:
         next_required = int(required_counts[committed]) if has_next else None
         return {
             "campaign_ended": self._campaign_terminal_observed(),
+            "closed_batch_count": (
+                int(progress["closed_batch_count"]) if progress is not None else completed_count
+            ),
             "complete_experiment_count": completed_count,
+            "completed_experiment_indices": (
+                list(progress["completed_experiment_indices"])
+                if progress is not None
+                else list(range(1, completed_count + 1))
+            ),
+            "completed_batch_ids": (
+                list(progress["completed_batch_ids"])
+                if progress is not None
+                else [f"batch-{index:04d}" for index in range(1, completed_count + 1)]
+            ),
             "committed_checkpoint_count": committed,
             "required_checkpoint_count": len(stages),
             "checkpoint_due": has_next and completed_count == next_required,
@@ -1027,7 +1114,7 @@ class ChemWorldMCPServer:
             "final_recommendation_contract": (
                 {
                     "selected_experiment_index": (
-                        "1-based_integer_identifying_a_completed_experiment"
+                        "1-based_lifecycle_index_from_completed_experiment_indices"
                     ),
                     "selection_rationale_max_length": 2000,
                     "committed_before_blind_evaluation": True,
@@ -1036,6 +1123,119 @@ class ChemWorldMCPServer:
                 else None
             ),
             "prose_or_markdown_allowed": False,
+        }
+
+    def _belief_snapshot_status(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        """Expose the exact next staged payload without weakening scientific validation."""
+
+        if descriptor.get("session_scope") != "campaign":
+            raise RuntimeError("belief checkpoints are available only in campaign sessions")
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        state = self._belief_submission_state(descriptor)
+        allowed_feature_ids = [str(item) for item in contract.get("allowed_feature_ids", [])]
+        allowed_metric_ids = [str(item) for item in contract.get("allowed_metric_ids", [])]
+        allowed_prior_fields = [str(item) for item in contract.get("allowed_prior_fields", [])]
+        evidence_catalog = [str(item) for item in contract.get("evidence_catalog", [])]
+        _, observed_evidence = self._completed_experiment_state()
+        next_page_id = state.get("next_page_id")
+        plan = self._page_plan(contract)
+        if not state.get("draft_started"):
+            next_action = "begin"
+            next_payload_contract: dict[str, Any] = {
+                "required_argument_fields": ["action", "snapshot_header"],
+                "snapshot_header_required_fields": [
+                    "snapshot_id",
+                    "stage",
+                    "prior_assessment",
+                    "law_summary",
+                    "evidence_ids",
+                    "next_experiment_intent",
+                    "overall_confidence",
+                ],
+                "prior_assessment_required_fields": [
+                    "nominal_information_available",
+                    "reliability_probability",
+                    "suspected_misindexed_fields",
+                    "rationale",
+                ],
+                "law_summary_required_fields": [
+                    "schema_version",
+                    "summary_id",
+                    "feature_ids",
+                    "evidence_ids",
+                    "applicability",
+                    "limitations",
+                    "confidence",
+                ],
+                "limitations_type": "array[string]",
+                "suspected_misindexed_fields_type": "array[string]",
+            }
+        elif next_page_id is not None:
+            prediction_pages = self._prediction_page_map(plan)
+            law_pages = self._law_page_map(plan)
+            if next_page_id in prediction_pages:
+                next_action = "append_prediction_page"
+                next_payload_contract = {
+                    "required_argument_fields": ["action", "page_id", "predictions"],
+                    "page_id": next_page_id,
+                    "query_metric_contract": deepcopy(
+                        prediction_pages[str(next_page_id)]["query_metric_contract"]
+                    ),
+                    "prediction_required_fields": ["query_id", "metrics"],
+                    "metric_required_fields": [
+                        "metric_id",
+                        "mean",
+                        "interval_lower",
+                        "interval_upper",
+                        "confidence",
+                    ],
+                }
+            else:
+                next_action = "append_law_page"
+                next_payload_contract = {
+                    "required_argument_fields": ["action", "page_id", "metric_laws"],
+                    "page_id": next_page_id,
+                    "metric_ids": list(law_pages[str(next_page_id)]["metric_ids"]),
+                    "metric_law_required_fields": [
+                        "metric_id",
+                        "intercept",
+                        "link",
+                        "lower_bound",
+                        "upper_bound",
+                        "terms",
+                    ],
+                    "law_term_required_fields": [
+                        "term_id",
+                        "basis",
+                        "input_ids",
+                        "coefficient",
+                    ],
+                    "law_term_optional_fields": ["category_value"],
+                    "law_bases": sorted(WORK_II_LAW_BASES),
+                    "law_links": sorted(WORK_II_LAW_LINKS),
+                }
+        elif state.get("ready_to_finalize") is True:
+            next_action = "finalize"
+            next_payload_contract = {"required_argument_fields": ["action"]}
+        else:
+            next_action = "none"
+            next_payload_contract = {"required_argument_fields": []}
+        return {
+            "schema_version": MCP_SERVER_VERSION,
+            "next_action": next_action,
+            "submission_state": state,
+            "next_payload_contract": next_payload_contract,
+            "active_stage": state.get("stage"),
+            "allowed_feature_ids": allowed_feature_ids,
+            "allowed_metric_ids": allowed_metric_ids,
+            "allowed_prior_fields": allowed_prior_fields,
+            "allowed_evidence_ids": evidence_catalog,
+            "observed_evidence_ids": [
+                item for item in evidence_catalog if item in observed_evidence
+            ],
+            "snapshot_schema_version": WORK_II_SNAPSHOT_SCHEMA_VERSION,
+            "law_summary_schema_version": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+            "participant_payload_auto_repair": False,
         }
 
     def _commit_belief_snapshot(
@@ -1193,8 +1393,6 @@ class ChemWorldMCPServer:
             self._exact_argument_fields(
                 arguments, {"action", "snapshot_header"}, label="belief snapshot begin"
             )
-            if manifest_path.exists():
-                raise ValueError("belief snapshot draft is already started and immutable")
             header = arguments.get("snapshot_header")
             if not isinstance(header, dict):
                 raise ValueError("snapshot_header must be an object")
@@ -1221,8 +1419,23 @@ class ChemWorldMCPServer:
             )
             if not cited.issubset(context["observed_evidence"]):
                 raise ValueError("belief snapshot cites evidence that has not yet been observed")
+            if manifest_path.exists():
+                existing = _read_object(manifest_path)
+                if _encode(existing.get("snapshot_header")) == _encode(header):
+                    return {
+                        "ok": True,
+                        "already_started": True,
+                        **self._belief_submission_state(descriptor),
+                    }
+                raise ValueError(
+                    "belief snapshot draft is already started with a different immutable header"
+                )
             _write_json_once(manifest_path, manifest)
-            return {"ok": True, **self._belief_submission_state(descriptor)}
+            return {
+                "ok": True,
+                "already_started": False,
+                **self._belief_submission_state(descriptor),
+            }
         if not manifest_path.is_file():
             raise ValueError("begin must be accepted before belief snapshot pages")
         manifest = _read_object(manifest_path)
@@ -1349,6 +1562,7 @@ class ChemWorldMCPServer:
         if descriptor.get("session_scope") != "campaign":
             raise RuntimeError("final recommendations are available only in campaign sessions")
         completed_count, _ = self._completed_experiment_state()
+        completed_indices = self._completed_experiment_indices()
         if completed_count < 1 or not self._campaign_terminal_observed():
             raise RuntimeError("final recommendation is allowed only after campaign terminal")
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
@@ -1367,9 +1581,10 @@ class ChemWorldMCPServer:
         index = arguments.get("selected_experiment_index")
         if isinstance(index, bool) or not isinstance(index, int):
             raise ValueError("selected_experiment_index must be an integer")
-        if not 1 <= index <= completed_count:
+        if index not in completed_indices:
             raise ValueError(
-                "selected_experiment_index must identify a completed 1-based experiment"
+                "selected_experiment_index must be a lifecycle index from "
+                "campaign_closeout.completed_experiment_indices"
             )
         rationale = arguments.get("selection_rationale")
         if not isinstance(rationale, str) or not rationale.strip():
@@ -1398,6 +1613,8 @@ class ChemWorldMCPServer:
             "recommendation": recommendation,
             "recommendation_sha256": hashlib.sha256(_encode(recommendation)).hexdigest(),
             "complete_experiment_count": completed_count,
+            "selected_batch_id": f"batch-{index:04d}",
+            "selected_completed_ordinal": completed_indices.index(index) + 1,
             "committed_checkpoint_count": committed_snapshots,
             "committed_after_campaign_terminal": True,
             "committed_before_blind_evaluation": True,
@@ -1441,11 +1658,34 @@ class ChemWorldMCPServer:
                     value = json.loads(line)
                     if isinstance(value, dict):
                         rows.append(value)
-        ended = [row for row in rows if row.get("experiment_ended") is True]
+        ended = [
+            row
+            for row in rows
+            if row.get("experiment_ended") is True
+            and row.get("experiment_completed") is True
+        ]
         evidence = {
             str(row["evidence_id"]) for row in ended if isinstance(row.get("evidence_id"), str)
         }
         return len(ended), evidence
+
+    def _completed_experiment_indices(self) -> list[int]:
+        progress = self._campaign_progress()
+        if progress is not None:
+            return [int(item) for item in progress["completed_experiment_indices"]]
+        path = self.public / "history.jsonl"
+        indices: list[int] = []
+        if path.exists():
+            for line in path.read_text(encoding="utf-8").splitlines():
+                if not line:
+                    continue
+                row = json.loads(line)
+                if not isinstance(row, dict) or row.get("experiment_completed") is not True:
+                    continue
+                index = row.get("lifecycle_experiment_index")
+                if isinstance(index, int) and not isinstance(index, bool) and index >= 1:
+                    indices.append(index)
+        return sorted(set(indices))
 
     def _campaign_progress(self) -> dict[str, Any] | None:
         descriptor = self._descriptor()
@@ -1456,9 +1696,13 @@ class ChemWorldMCPServer:
         if not path.is_file():
             return None
         progress = _read_object(path)
+        closed = progress.get("closed_batch_count")
         count = progress.get("completed_experiment_count")
+        indices = progress.get("completed_experiment_indices")
+        batch_ids = progress.get("completed_batch_ids")
         evidence = progress.get("observed_evidence_ids")
         ended = progress.get("campaign_ended")
+        closed_valid = isinstance(closed, int) and not isinstance(closed, bool) and closed >= 0
         count_valid = isinstance(count, int) and not isinstance(count, bool) and count >= 0
         expected_catalog = (
             [f"experiment-{index}-final-assay" for index in range(1, count + 1)]
@@ -1468,14 +1712,32 @@ class ChemWorldMCPServer:
         evidence_valid = isinstance(evidence, list) and all(
             isinstance(item, str) and item for item in evidence
         )
-        canonical_evidence = (
-            [item for item in expected_catalog if item in evidence] if evidence_valid else None
+        indices_valid = (
+            isinstance(indices, list)
+            and all(
+                isinstance(item, int) and not isinstance(item, bool) and item >= 1
+                for item in indices
+            )
+            and indices == sorted(set(indices))
+            and count_valid
+            and len(indices) == count
+            and closed_valid
+            and all(item <= closed for item in indices)
+        )
+        batch_ids_valid = (
+            isinstance(batch_ids, list)
+            and indices_valid
+            and batch_ids == [f"batch-{index:04d}" for index in indices]
         )
         if (
             progress.get("schema_version") != CAMPAIGN_PROGRESS_VERSION
+            or not closed_valid
             or not count_valid
+            or count > closed
+            or not indices_valid
+            or not batch_ids_valid
             or not evidence_valid
-            or evidence != canonical_evidence
+            or evidence != expected_catalog
             or not isinstance(ended, bool)
         ):
             raise ValueError("campaign progress ledger is invalid")
@@ -2187,13 +2449,6 @@ class ChemWorldMCPServer:
         snapshot_schema = (
             self._staged_belief_snapshot_tool_schema() if campaign else {"type": "object"}
         )
-        contract = (
-            _read_object(self.reference / "belief_checkpoint_contract.json") if campaign else {}
-        )
-        checkpoint_counts = contract.get("checkpoint_complete_experiments", [])
-        completed_experiment_limit = (
-            max(int(item) for item in checkpoint_counts) if checkpoint_counts else 1
-        )
         read_annotations = {
             "readOnlyHint": True,
             "destructiveHint": False,
@@ -2241,6 +2496,21 @@ class ChemWorldMCPServer:
                 "annotations": read_annotations,
             },
             {
+                "name": "belief_snapshot_status",
+                "description": (
+                    "Read the exact next belief-snapshot action and its compact typed contract, "
+                    "including legal feature, metric, prior-field, evidence, page, and stage IDs. "
+                    "This call is read-only and is the preferred recovery path after a rejected "
+                    "belief-snapshot fragment."
+                ),
+                "inputSchema": {
+                    "type": "object",
+                    "properties": {},
+                    "additionalProperties": False,
+                },
+                "annotations": read_annotations,
+            },
+            {
                 "name": "commit_belief_snapshot",
                 "description": (
                     "Stage and finalize the next typed Work II belief snapshot inside the active "
@@ -2266,7 +2536,8 @@ class ChemWorldMCPServer:
                 "description": (
                     "After campaign terminal and the final belief checkpoint, commit exactly one "
                     "participant-selected completed experiment for evaluator-owned blind replay. "
-                    "The index is 1-based and uses the same namespace as public campaign history. "
+                    "The index is the completed batch's 1-based lifecycle_experiment_index and "
+                    "must be present in campaign_closeout.completed_experiment_indices. "
                     "The host stores the selection atomically; a repeated identical call is "
                     "idempotent and a differing second selection is rejected."
                 ),
@@ -2276,7 +2547,6 @@ class ChemWorldMCPServer:
                         "selected_experiment_index": {
                             "type": "integer",
                             "minimum": 1,
-                            "maximum": completed_experiment_limit,
                         },
                         "selection_rationale": {
                             "type": "string",

@@ -685,6 +685,49 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
     return actions
 
 
+def resource_blocked_actions(env: Any) -> list[dict[str, Any]]:
+    """Return physically valid operations blocked only by campaign resources."""
+
+    base = _base_env(env)
+    valid = set(base.operation_validator.valid_operations(base._state))
+    allowed = set(getattr(base, "allowed_operations", set(OPERATION_TYPES)))
+    blocked: list[dict[str, Any]] = []
+    operation_types = tuple(
+        getattr(base.operation_validator, "operation_types", OPERATION_TYPES)
+    )
+    for operation in operation_types:
+        if operation not in valid or operation not in allowed:
+            continue
+        if operation == "discard_batch" and not getattr(
+            base,
+            "_campaign_batch_discard_available",
+            lambda: False,
+        )():
+            continue
+        schema = action_schema(base, operation)
+        reasons = list(
+            _campaign_resource_rejection_reasons_for_operation(base, operation)
+        )
+        reasons.extend(
+            _campaign_schema_resource_rejection_reasons(base, operation, schema)
+        )
+        reasons = list(dict.fromkeys(reasons))
+        if not reasons:
+            continue
+        blocked.append(
+            {
+                "operation": operation,
+                "status": "cannot_complete",
+                "reason_codes": reasons,
+                "message": (
+                    f"Operation {operation} cannot be completed with the remaining "
+                    "campaign resources: " + ", ".join(reasons) + "."
+                ),
+            }
+        )
+    return blocked
+
+
 _CAMPAIGN_RESOURCE_STOCK_FIELDS: dict[str, tuple[str, str]] = {
     "add_reagent": ("reagent_mol", "amount_mol"),
     "add_solvent": ("solvent_L", "volume_L"),
@@ -815,6 +858,13 @@ def _campaign_resource_rejection_reasons_for_operation(
     reasons: list[str] = []
     if int(remaining.get("operation_attempts", 0)) < 1:
         reasons.append("operation_attempt_limit")
+    operation_repeats = remaining.get("operation_repeats", {})
+    if (
+        operation in ledger.card.operation_repeat_limits
+        and isinstance(operation_repeats, dict)
+        and int(operation_repeats.get(operation, 0)) < 1
+    ):
+        reasons.append(f"operation_repeat_limit:{operation}")
     if _campaign_starts_vessel(base, operation) and int(
         remaining.get("vessel_starts", 0)
     ) < 1:
@@ -1527,10 +1577,16 @@ def _failure_summary(info: dict[str, Any]) -> dict[str, Any]:
     ]
     return {
         "precondition_failed": bool(flags.get("precondition_failed", False)),
+        "campaign_resource_rejected": bool(
+            flags.get("campaign_resource_rejected", False)
+        ),
         "constitution_failed": bool(flags.get("constitution_failed", False)),
         "transaction_status": info.get("transaction_status"),
         "rollback_reason": info.get("rollback_reason"),
         "error_message": info.get("error_message"),
+        "resource_rejection_reasons": to_builtin(
+            info.get("campaign_resource_rejection_reasons", [])
+        ),
         "failed_preconditions": failed_preconditions,
     }
 
@@ -1552,10 +1608,21 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
     score = _safe_float(observation.get("score"), default=0.0)
     cost = _safe_float(observation.get("cost"), default=0.0)
     risk = _safe_float(observation.get("safety_risk"), default=0.0)
-    failed = failure["precondition_failed"]
-    status = "failed_precondition" if failed else "accepted"
+    resource_rejected = failure["campaign_resource_rejected"]
+    failed = failure["precondition_failed"] or resource_rejected
+    status = (
+        "cannot_complete"
+        if resource_rejected
+        else "failed_precondition" if failed else "accepted"
+    )
+    operation = info.get("operation_type") or "none"
+    opening = (
+        f"Operation {operation} cannot be completed with the remaining campaign resources."
+        if resource_rejected
+        else f"Operation {operation} was {status}."
+    )
     lines = [
-        f"Operation {info.get('operation_type') or 'none'} was {status}.",
+        opening,
         f"Visible score={score:.3f}, cost={cost:.3f}, safety_risk={risk:.3f}.",
         (
             "Key public metrics: "
@@ -1616,6 +1683,12 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
         )
     if summary["warnings"]:
         lines.append("Spectral warnings: " + ", ".join(summary["warnings"]) + ".")
+    if failure["resource_rejection_reasons"]:
+        lines.append(
+            "Resource limits: "
+            + ", ".join(failure["resource_rejection_reasons"])
+            + "."
+        )
     recovery = _recovery_suggestion(env, info)
     if recovery is not None:
         lines.append(f"Recovery suggestion: {recovery}")
@@ -1660,6 +1733,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "constraints": to_builtin(info.get("constraint_flags", {})),
         "campaign_state": campaign_state(env),
         "available_actions": available_actions(env),
+        "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info),
     }
 
@@ -1705,6 +1779,7 @@ __all__ = [
     "campaign_state",
     "lab_report_view",
     "observation_view",
+    "resource_blocked_actions",
     "rl_observation_spec",
     "rl_observation_view",
     "spectra_summary",

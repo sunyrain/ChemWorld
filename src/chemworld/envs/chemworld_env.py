@@ -827,7 +827,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "campaign_resource_rejected": True,
             }
             info["error_message"] = (
-                "Campaign resource preflight rejected: "
+                "Operation cannot be completed with the remaining campaign resources: "
                 + ", ".join(resource_rejection_reasons)
             )
         # Operation records are assembled from the retained rollback state,
@@ -852,8 +852,23 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             info["experiment_ended"] = True
             info["experiment_completed"] = bool(campaign_final_assay)
             info["batch_discarded"] = bool(campaign_discard)
+            lifecycle_experiment_index = self._experiment_index + 1
+            completed_ordinal = (
+                sum(
+                    item.get("final_assay") is True
+                    for item in self._experiment_summaries
+                    if isinstance(item, Mapping)
+                )
+                + 1
+                if campaign_final_assay
+                else None
+            )
             terminal_summary = {
                 "experiment_index": self._experiment_index,
+                "lifecycle_experiment_index": lifecycle_experiment_index,
+                "experiment_index_base": 1,
+                "batch_id": f"batch-{lifecycle_experiment_index:04d}",
+                "completed_ordinal": completed_ordinal,
                 "terminal_step": self._step_count,
                 "outcome": "completed" if campaign_final_assay else "discarded",
                 "leaderboard_score": (
@@ -1106,6 +1121,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         from chemworld.agent_interface import available_actions
 
         return available_actions(self, include_invalid=include_invalid)
+
+    def resource_blocked_actions(self) -> list[dict[str, Any]]:
+        from chemworld.agent_interface import resource_blocked_actions
+
+        return resource_blocked_actions(self)
 
     def action_schema(self, operation: str) -> dict[str, Any]:
         from chemworld.agent_interface import action_schema

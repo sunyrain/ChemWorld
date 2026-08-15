@@ -91,13 +91,17 @@ def test_campaign_progress_is_monotonic_and_independent_of_public_history(
 
     first = workspace.publish_campaign_progress(
         session_id="campaign-a",
+        closed_batch_count=1,
         completed_experiment_count=1,
+        completed_experiment_index=1,
         observed_evidence_id="experiment-1-final-assay",
         campaign_ended=False,
     )
     second = workspace.publish_campaign_progress(
         session_id="campaign-a",
-        completed_experiment_count=2,
+        closed_batch_count=2,
+        completed_experiment_count=1,
+        completed_experiment_index=None,
         observed_evidence_id=None,
         campaign_ended=True,
     )
@@ -107,21 +111,28 @@ def test_campaign_progress_is_monotonic_and_independent_of_public_history(
     assert first["schema_version"] == CAMPAIGN_PROGRESS_VERSION
     assert second == {
         "schema_version": CAMPAIGN_PROGRESS_VERSION,
-        "completed_experiment_count": 2,
+        "closed_batch_count": 2,
+        "completed_experiment_count": 1,
+        "completed_experiment_indices": [1],
+        "completed_batch_ids": ["batch-0001"],
         "observed_evidence_ids": ["experiment-1-final-assay"],
         "campaign_ended": True,
     }
     with pytest.raises(ExperimentCodexIPCError, match="not monotonic"):
         workspace.publish_campaign_progress(
             session_id="campaign-a",
+            closed_batch_count=1,
             completed_experiment_count=1,
+            completed_experiment_index=None,
             observed_evidence_id=None,
             campaign_ended=True,
         )
     with pytest.raises(ExperimentCodexIPCError, match="cannot be reversed"):
         workspace.publish_campaign_progress(
             session_id="campaign-a",
-            completed_experiment_count=2,
+            closed_batch_count=2,
+            completed_experiment_count=1,
+            completed_experiment_index=None,
             observed_evidence_id=None,
             campaign_ended=False,
         )

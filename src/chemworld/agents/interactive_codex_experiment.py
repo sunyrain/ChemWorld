@@ -675,7 +675,8 @@ _CAMPAIGN_SYSTEM_PROMPT = """You are the sole operation-level scientific agent i
 ChemWorld discovery campaign. One Codex process controls the full campaign across multiple fresh
 batches that share one fixed hidden world, one public prior condition, and one campaign resource
 ledger. Call material_information once. Before the first physical operation and at every required
-checkpoint, use commit_belief_snapshot only through its staged tools/list protocol: action=begin,
+checkpoint, call belief_snapshot_status, then use commit_belief_snapshot only through its staged
+tools/list protocol: action=begin,
 then every published prediction page and law page in order, then action=finalize. Submit every
 physical operation through step and use
 its public outcome before deciding the next operation. Every step call must include the bounded
@@ -685,20 +686,20 @@ adaptation source. This is a concise scientific rationale, never private chain-o
 
 This is an experiment execution task, not a coding or repository-inspection task. Do not use shell,
 file, status, or resource-listing tools and do not inspect the repository. Your first action must be
-chemworld_lab.material_information; thereafter use only chemworld_lab.commit_belief_snapshot,
-chemworld_lab.step, chemworld_lab.status, chemworld_lab.history, and chemworld_lab.inspect_artifact
+chemworld_lab.material_information; thereafter use only chemworld_lab.belief_snapshot_status,
+chemworld_lab.commit_belief_snapshot, chemworld_lab.step, chemworld_lab.status,
+chemworld_lab.history, and chemworld_lab.inspect_artifact
 as needed. Do not create notes or run commands. A non-lab tool call is invalid and wastes the cell's
 provider budget.
 
 An experiment_ended outcome closes only the current batch. When campaign_ended=false, preserve your
 scientific context and continue into the next fresh batch using the returned next_state. When
-    campaign_ended=true, commit the final checkpoint if it is due, then call
-    chemworld_lab.commit_final_recommendation exactly once. Select exactly one completed
-    1-based experiment index for evaluator-owned blind replay using only participant-visible
-    campaign evidence; no blind outcome will be returned. Only after the tool confirms the
-    commitment, return exactly one
-    JSON object with status and summary, with no prose or Markdown fence:
-    {"status":"campaign_complete","summary":"..."}.
+campaign_ended=true, commit the final checkpoint if it is due, then call
+chemworld_lab.commit_final_recommendation exactly once. Select exactly one completed batch's 1-based
+lifecycle_experiment_index from campaign_closeout.completed_experiment_indices for evaluator-owned
+blind replay using only participant-visible campaign evidence; no blind outcome will be returned.
+Only after the tool confirms the commitment, return exactly one JSON object with status and summary,
+with no prose or Markdown fence: {"status":"campaign_complete","summary":"..."}.
 The host never chooses, repairs, terminates, assays, or replaces your operations. Failed and
 resource-rejected attempts remain part of the trajectory. Keep enough operation, stock,
 process-time, and assay capacity to close all planned batches. The 19 process coordinates are
@@ -1164,7 +1165,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._global_runner_action_count = 0
         self._experiment_action_count = 0
         self._session_action_count = 0
-        self._campaign_ended_experiment_count = 0
+        self._campaign_closed_batch_count = 0
+        self._campaign_completed_experiment_count = 0
         self._belief_snapshots: list[dict[str, Any]] = []
         self._cumulative_usage = _empty_usage()
         self._completed_session_elapsed_s = 0.0
@@ -1318,14 +1320,37 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         batch_discarded = bool(info.get("batch_discarded", False))
         experiment_completed = bool(info.get("experiment_completed", not batch_discarded))
         budget_exhausted = self._last_context_remaining <= 1 and not ended
-        completed_count = self._campaign_ended_experiment_count
+        closed_count = self._campaign_closed_batch_count
+        completed_count = self._campaign_completed_experiment_count
+        lifecycle_experiment_index: int | None = None
         if self.session_scope == "campaign" and ended:
             summaries = info.get("experiment_summaries")
-            if not isinstance(summaries, list) or len(summaries) != completed_count + 1:
+            if not isinstance(summaries, list) or len(summaries) != closed_count + 1:
                 raise InteractiveCodexExperimentError(
                     "campaign terminal summary count did not advance by exactly one"
                 )
-            completed_count = len(summaries)
+            closed_count = len(summaries)
+            terminal_summary = info.get("last_terminal_summary")
+            if not isinstance(terminal_summary, Mapping):
+                terminal_summary = summaries[-1] if summaries else None
+            raw_lifecycle_index = (
+                terminal_summary.get("experiment_index")
+                if isinstance(terminal_summary, Mapping)
+                else None
+            )
+            lifecycle_experiment_index = (
+                raw_lifecycle_index + 1
+                if isinstance(raw_lifecycle_index, int)
+                and not isinstance(raw_lifecycle_index, bool)
+                and raw_lifecycle_index >= 0
+                else closed_count
+            )
+            if lifecycle_experiment_index != closed_count:
+                raise InteractiveCodexExperimentError(
+                    "campaign lifecycle experiment index does not match closed batch count"
+                )
+            if experiment_completed:
+                completed_count += 1
         evidence_id = (
             f"experiment-{completed_count}-final-assay"
             if ended and experiment_completed and completed_count > 0
@@ -1339,11 +1364,16 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         if self.session_scope == "campaign":
             self.workspace.publish_campaign_progress(
                 session_id=self._pending_request.session_id,
+                closed_batch_count=closed_count,
                 completed_experiment_count=completed_count,
+                completed_experiment_index=(
+                    lifecycle_experiment_index if ended and experiment_completed else None
+                ),
                 observed_evidence_id=evidence_id,
                 campaign_ended=campaign_ended,
             )
-            self._campaign_ended_experiment_count = completed_count
+            self._campaign_closed_batch_count = closed_count
+            self._campaign_completed_experiment_count = completed_count
             if self._session is not None:
                 self._session["campaign_terminal"] = campaign_ended
         next_experiment_index = info.get("next_experiment_index")
@@ -1365,6 +1395,17 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             "budget_exhausted": budget_exhausted,
             "campaign_ended": campaign_ended,
             "campaign_terminal_reason": info.get("campaign_terminal_reason"),
+            "closed_batch_count": closed_count,
+            "completed_experiment_count": completed_count,
+            "lifecycle_experiment_index": lifecycle_experiment_index,
+            "batch_id": (
+                f"batch-{lifecycle_experiment_index:04d}"
+                if lifecycle_experiment_index is not None
+                else None
+            ),
+            "completed_ordinal": (
+                completed_count if ended and experiment_completed else None
+            ),
             "next_experiment_ready": info.get("next_experiment_ready"),
             "next_experiment_index": next_experiment_index,
             "experiment_index_base": 1,
@@ -3160,7 +3201,11 @@ def _one_based_experiment_summary(value: object) -> object:
     result = deepcopy(dict(value))
     index = result.get("experiment_index")
     if isinstance(index, int) and not isinstance(index, bool) and index >= 0:
-        result["experiment_index"] = index + 1
+        lifecycle_index = index + 1
+        result["experiment_index"] = lifecycle_index
+        result.setdefault("lifecycle_experiment_index", lifecycle_index)
+        result.setdefault("batch_id", f"batch-{lifecycle_index:04d}")
+    result["experiment_index_base"] = 1
     return result
 
 
@@ -3185,8 +3230,28 @@ def _participant_visible_campaign(value: Mapping[str, Any]) -> dict[str, Any]:
 
     result = deepcopy(dict(value))
     summaries = result.get("experiment_summaries")
-    completed_count = len(summaries) if isinstance(summaries, list) else 0
+    closed_count = len(summaries) if isinstance(summaries, list) else 0
+    completed_count = 0
+    visible_summaries: list[object] = []
+    if isinstance(summaries, list):
+        for row in summaries:
+            visible = _one_based_experiment_summary(row)
+            if isinstance(row, Mapping):
+                completed = row.get("final_assay") is True or row.get("outcome") == "completed"
+                if row.get("outcome") is None and row.get("final_assay") is None:
+                    completed = row.get("batch_discarded") is not True
+                if completed:
+                    completed_count += 1
+                    if isinstance(visible, dict):
+                        visible["completed_ordinal"] = completed_count
+            visible_summaries.append(visible)
+    result["closed_batch_count"] = closed_count
     result["completed_experiment_count"] = completed_count
+    result["completed_experiment_indices"] = [
+        int(row["lifecycle_experiment_index"])
+        for row in visible_summaries
+        if isinstance(row, Mapping) and row.get("completed_ordinal") is not None
+    ]
     result["experiment_index_base"] = 1
     raw_index = result.get("experiment_index")
     terminal = result.get("done") is True or _mapping_flag(
@@ -3194,10 +3259,16 @@ def _participant_visible_campaign(value: Mapping[str, Any]) -> dict[str, Any]:
     )
     if isinstance(raw_index, int) and not isinstance(raw_index, bool) and raw_index >= 0:
         result["experiment_index"] = None if terminal else raw_index + 1
-    for key in ("completed_batches", "discarded_batches", "experiment_summaries"):
+    result["experiment_summaries"] = visible_summaries
+    for key in ("completed_batches", "discarded_batches"):
         rows = result.get(key)
         if isinstance(rows, list):
             result[key] = [_one_based_experiment_summary(row) for row in rows]
+    completed_batches = result.get("completed_batches")
+    if isinstance(completed_batches, list):
+        for ordinal, row in enumerate(completed_batches, start=1):
+            if isinstance(row, dict):
+                row["completed_ordinal"] = ordinal
     if result.get("last_terminal_summary") is not None:
         result["last_terminal_summary"] = _one_based_experiment_summary(
             result["last_terminal_summary"]

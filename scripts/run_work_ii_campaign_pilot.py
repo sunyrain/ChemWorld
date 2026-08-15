@@ -809,9 +809,22 @@ def _analyze(
         )
         if is_final_assay:
             recipe_sha256 = canonical_json_sha256(committed_actions)
+            raw_lifecycle_index = row.get("experiment_index")
+            lifecycle_experiment_index = (
+                raw_lifecycle_index + 1
+                if isinstance(raw_lifecycle_index, int)
+                and not isinstance(raw_lifecycle_index, bool)
+                and raw_lifecycle_index >= 0
+                else len(experiments) + 1
+            )
+            completed_ordinal = len(experiments) + 1
             experiments.append(
                 {
-                    "experiment_index": len(experiments) + 1,
+                    "experiment_index": lifecycle_experiment_index,
+                    "lifecycle_experiment_index": lifecycle_experiment_index,
+                    "experiment_index_base": 1,
+                    "batch_id": f"batch-{lifecycle_experiment_index:04d}",
+                    "completed_ordinal": completed_ordinal,
                     "operations": actions,
                     "committed_operations": committed_actions,
                     "recipe_sha256": recipe_sha256,
@@ -896,6 +909,19 @@ def _analyze(
             row.get("transaction_status") == "committed" for row in records
         ),
         "complete_experiment_count": len(experiments),
+        "closed_batch_count": max(
+            (
+                int(row["experiment_index"]) + 1
+                for row in records
+                if row.get("experiment_ended") is True
+                and isinstance(row.get("experiment_index"), int)
+                and not isinstance(row.get("experiment_index"), bool)
+            ),
+            default=len(experiments),
+        ),
+        "completed_experiment_indices": [
+            int(item["lifecycle_experiment_index"]) for item in experiments
+        ],
         "right_censored_open_experiment": bool(actions),
         "last_legal_action_count": last_legal_action_count,
         "nonterminal_no_legal_actions": not campaign_terminal
@@ -1213,9 +1239,9 @@ def _qualification(
         "final_recommendation_committed": (
             isinstance(selected_experiment_index, int)
             and not isinstance(selected_experiment_index, bool)
-            and 1 <= selected_experiment_index <= target_experiments
             and any(
-                item.get("experiment_index") == selected_experiment_index
+                item.get("lifecycle_experiment_index", item.get("experiment_index"))
+                == selected_experiment_index
                 for item in analysis.get("experiments", [])
                 if isinstance(item, Mapping)
             )
@@ -1240,7 +1266,9 @@ def _qualification(
         "no_resource_rejection": int(analysis.get("resource_rejection_count", 0))
         <= max_resource_rejections,
         "campaign_terminal": resources.get("campaign_terminal") is True
-        and state.get("closed_batches") == target_experiments
+        and isinstance(state.get("closed_batches"), int)
+        and not isinstance(state.get("closed_batches"), bool)
+        and int(state["closed_batches"]) >= target_experiments
         and state.get("final_assays") == target_experiments,
         "process_time_reconciled": "process_time_s" in report_only
         and float(report_only.get("process_time_s", 0.0)) <= process_time_limit_s,
@@ -1608,6 +1636,9 @@ def _run_cell(
             records,
             replay,
             planned_experiment_count=target_experiments,
+            maximum_experiment_count=int(
+                config["campaign"].get("vessel_start_limit", target_experiments)
+            ),
             terminal_state=trajectory_terminal_state,
             hidden_identity={
                 "prior_arm": arm,

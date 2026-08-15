@@ -512,7 +512,29 @@ def test_generated_d1_config_is_runnable_but_not_authorized(candidate_id: str) -
     if candidate_id == PARTITION_CANDIDATE_ID:
         assert card.process_time_limit_s == 38_880.0
     else:
-        assert card.process_time_limit_s == 215_712.0
+        campaign = config["campaign"]
+        assert card.process_time_limit_s == 275_640.0
+        assert campaign["operation_attempt_limit"] == 210
+        assert campaign["vessel_start_limit"] == 15
+        assert campaign["final_assay_limit"] == 12
+        assert campaign["nonfinal_instrument_use_limit"] == 36
+        assert campaign["operation_repeat_limits"] == {
+            "heat": 24,
+            "cool_crystallize": 24,
+            "seed_crystals": 24,
+            "filter_crystals": 15,
+            "quench": 15,
+        }
+        assert campaign["stock_limits"] == pytest.approx(
+            {
+                "reagent_mol": 0.36,
+                "solvent_L": 0.45,
+                "catalyst_mol": 0.00567,
+                "seed_g": 0.144,
+            }
+        )
+        assert campaign["closeout_policy"]["planned_batches"] == 15
+        assert config["method_resources"]["operation_limit"] == 210
 
 
 @pytest.mark.parametrize("candidate_id", CANDIDATE_IDS)

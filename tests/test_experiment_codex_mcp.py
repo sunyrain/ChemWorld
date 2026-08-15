@@ -27,7 +27,9 @@ def test_final_response_contract_matches_session_scope() -> None:
         "status": "campaign_complete",
         "summary_max_length": 3000,
         "final_recommendation_contract": {
-            "selected_experiment_index": ("1-based_integer_identifying_a_completed_experiment"),
+            "selected_experiment_index": (
+                "1-based_lifecycle_index_from_completed_experiment_indices"
+            ),
             "selection_rationale_max_length": 2000,
             "committed_before_blind_evaluation": True,
         },
@@ -385,8 +387,9 @@ def test_campaign_tool_schema_exposes_snapshot_and_decision_audit(tmp_path: Path
         ]
         assert "snapshot" not in snapshot["properties"]
         assert "checkpoint_due=true" in by_name["step"]["description"]
+        assert by_name["belief_snapshot_status"]["annotations"]["readOnlyHint"] is True
         recommendation = by_name["commit_final_recommendation"]["inputSchema"]
-        assert recommendation["properties"]["selected_experiment_index"]["maximum"] == 4
+        assert "maximum" not in recommendation["properties"]["selected_experiment_index"]
     finally:
         process.stdin.close()
         process.wait(timeout=5.0)
@@ -428,23 +431,35 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
     snapshots.mkdir()
     for index in range(4):
         (snapshots / f"{index + 1:02d}-stage.json").write_text("{}", encoding="utf-8")
-    for index in range(4):
+    completed_count = 0
+    for lifecycle_index in range(1, 6):
+        completed = lifecycle_index != 3
+        if completed:
+            completed_count += 1
         workspace.append_public_history(
             {
                 "experiment_ended": True,
-                "campaign_ended": index == 3,
-                "evidence_id": f"experiment-{index + 1}-final-assay",
+                "experiment_completed": completed,
+                "lifecycle_experiment_index": lifecycle_index,
+                "campaign_ended": lifecycle_index == 5,
+                "evidence_id": (
+                    f"experiment-{completed_count}-final-assay" if completed else None
+                ),
             }
         )
         workspace.publish_campaign_progress(
             session_id="campaign-final-recommendation-test",
-            completed_experiment_count=index + 1,
-            observed_evidence_id=f"experiment-{index + 1}-final-assay",
-            campaign_ended=index == 3,
+            closed_batch_count=lifecycle_index,
+            completed_experiment_count=completed_count,
+            completed_experiment_index=lifecycle_index if completed else None,
+            observed_evidence_id=(
+                f"experiment-{completed_count}-final-assay" if completed else None
+            ),
+            campaign_ended=lifecycle_index == 5,
         )
     server = ChemWorldMCPServer(workspace.root)
     recommendation = {
-        "selected_experiment_index": 2,
+        "selected_experiment_index": 5,
         "selection_rationale": "best public evidence",
     }
 
@@ -456,6 +471,9 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
         workspace.final_recommendation_audit("campaign-final-recommendation-test")["recommendation"]
         == recommendation
     )
+    audit = workspace.final_recommendation_audit("campaign-final-recommendation-test")
+    assert audit["selected_batch_id"] == "batch-0005"
+    assert audit["selected_completed_ordinal"] == 4
 
     repeated = server._call_tool("commit_final_recommendation", recommendation)
     assert repeated["isError"] is False
@@ -464,7 +482,7 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
     conflicting = server._call_tool(
         "commit_final_recommendation",
         {
-            "selected_experiment_index": 3,
+            "selected_experiment_index": 4,
             "selection_rationale": "different choice",
         },
     )
@@ -503,7 +521,10 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
     initial = server._status()
     assert initial["campaign_closeout"] | {"belief_snapshot_submission": None} == {
         "campaign_ended": False,
+        "closed_batch_count": 0,
         "complete_experiment_count": 0,
+        "completed_experiment_indices": [],
+        "completed_batch_ids": [],
         "committed_checkpoint_count": 0,
         "required_checkpoint_count": 2,
         "checkpoint_due": True,
@@ -528,7 +549,9 @@ def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -
     )
     workspace.publish_campaign_progress(
         session_id="campaign-status-test",
+        closed_batch_count=1,
         completed_experiment_count=1,
+        completed_experiment_index=1,
         observed_evidence_id="experiment-1-final-assay",
         campaign_ended=True,
     )
@@ -657,12 +680,37 @@ def test_staged_belief_snapshot_is_exact_immutable_and_canonical(tmp_path: Path)
     ]
     assert plan["law_pages"] == [{"page_id": "laws-001", "metric_ids": ["score"]}]
 
+    status = server._call_tool("belief_snapshot_status", {})
+    assert status["isError"] is False
+    status_payload = json.loads(status["content"][0]["text"])
+    assert status_payload["next_action"] == "begin"
+    assert status_payload["allowed_feature_ids"] == ["potential_V"]
+    assert status_payload["next_payload_contract"]["limitations_type"] == "array[string]"
+
     begun = server._call_tool(
         "commit_belief_snapshot",
         {"action": "begin", "snapshot_header": _staged_header(snapshot)},
     )
     assert begun["isError"] is False
     assert workspace.belief_snapshot_audit("campaign-staged-snapshot-test") == []
+
+    repeated_begin = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": _staged_header(snapshot)},
+    )
+    assert repeated_begin["isError"] is False
+    assert json.loads(repeated_begin["content"][0]["text"])["already_started"] is True
+
+    changed_header = _staged_header(snapshot)
+    changed_header["next_experiment_intent"] = "A different immutable header."
+    conflicting_begin = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": changed_header},
+    )
+    assert conflicting_begin["isError"] is True
+    assert "different immutable header" in json.loads(
+        conflicting_begin["content"][0]["text"]
+    )["error"]
 
     blocked = server._call_tool(
         "step",
@@ -815,7 +863,9 @@ def test_staged_final_checkpoint_returns_final_response_contract(tmp_path: Path)
         )
         workspace.publish_campaign_progress(
             session_id="campaign-staged-final-test",
+            closed_batch_count=index + 1,
             completed_experiment_count=index + 1,
+            completed_experiment_index=index + 1,
             observed_evidence_id=f"experiment-{index + 1}-final-assay",
             campaign_ended=index == 3,
         )
@@ -927,12 +977,37 @@ def test_staged_law_schema_version_error_returns_exact_public_const(tmp_path: Pa
     assert payload["participant_payload_auto_repair"] is False
 
 
+def test_staged_unknown_feature_error_returns_exact_allowed_ids(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "campaign-staged-feature-id-test")
+    contract_path = workspace.reference_directory / "belief_checkpoint_contract.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["snapshot_submission_protocol"] = ChemWorldMCPServer._page_plan(contract)
+    contract_path.write_text(json.dumps(contract), encoding="utf-8")
+    server = ChemWorldMCPServer(workspace.root)
+    header = _staged_header(_minimal_snapshot())
+    header["law_summary"]["feature_ids"] = ["voltage"]
+
+    result = server._call_tool(
+        "commit_belief_snapshot",
+        {"action": "begin", "snapshot_header": header},
+    )
+
+    assert result["isError"] is True
+    payload = json.loads(result["content"][0]["text"])
+    assert payload["field_path"] == "snapshot_header.law_summary.feature_ids"
+    assert payload["expected"]["items_enum"] == ["potential_V"]
+    assert payload["observed"] == ["voltage"]
+    assert "exact value" in payload["recovery_action"]
+
+
 def test_campaign_progress_survives_bounded_history_eviction(tmp_path: Path) -> None:
     workspace = _campaign_workspace(tmp_path, "campaign-eviction-test")
     for index in range(4):
         workspace.publish_campaign_progress(
             session_id="campaign-eviction-test",
+            closed_batch_count=index + 1,
             completed_experiment_count=index + 1,
+            completed_experiment_index=index + 1,
             observed_evidence_id=f"experiment-{index + 1}-final-assay",
             campaign_ended=index == 3,
         )

@@ -504,7 +504,10 @@ def test_campaign_update_publishes_progress_before_terminal_response(
     )
     assert json.loads(progress_path.read_text(encoding="utf-8")) == {
         "schema_version": experiment_ipc.CAMPAIGN_PROGRESS_VERSION,
+        "closed_batch_count": 1,
         "completed_experiment_count": 1,
+        "completed_experiment_indices": [1],
+        "completed_batch_ids": ["batch-0001"],
         "observed_evidence_ids": ["experiment-1-final-assay"],
         "campaign_ended": False,
     }
@@ -528,7 +531,9 @@ def test_campaign_update_publishes_progress_before_terminal_response(
         },
     )
     discarded_progress = json.loads(progress_path.read_text(encoding="utf-8"))
-    assert discarded_progress["completed_experiment_count"] == 2
+    assert discarded_progress["closed_batch_count"] == 2
+    assert discarded_progress["completed_experiment_count"] == 1
+    assert discarded_progress["completed_experiment_indices"] == [1]
     assert discarded_progress["observed_evidence_ids"] == ["experiment-1-final-assay"]
 
     observed_at_response: list[dict[str, Any]] = []
@@ -550,7 +555,8 @@ def test_campaign_update_publishes_progress_before_terminal_response(
     )
 
     assert observed_at_response[0]["campaign_ended"] is True
-    assert observed_at_response[0]["completed_experiment_count"] == 2
+    assert observed_at_response[0]["closed_batch_count"] == 2
+    assert observed_at_response[0]["completed_experiment_count"] == 1
 
 
 @pytest.mark.parametrize(

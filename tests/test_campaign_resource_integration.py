@@ -477,6 +477,63 @@ def test_resource_ledger_exhausted_attempts_exposes_no_executable_actions() -> N
         env.close()
 
 
+def test_repeat_exhaustion_is_not_advertised_and_reports_cannot_complete() -> None:
+    env = _make_electrochemical_env(
+        _card(
+            process_time_limit_s=1_000.0,
+            operation_repeat_limits={"electrolyze": 1},
+        ),
+        budget=12,
+    )
+    try:
+        env.reset(seed=0)
+        for action in (
+            {"operation": "add_solvent", "volume_L": 0.020, "solvent": 1},
+            {"operation": "add_reagent", "amount_mol": 0.010},
+            {
+                "operation": "set_potential",
+                "potential_V": 1.0,
+                "current_mA": 60.0,
+                "electrolyte_profile": 1,
+            },
+            {"operation": "electrolyze", "duration_s": 60.0},
+        ):
+            _, _, _, _, info = env.step(action)
+            assert info["transaction_status"] == "committed"
+
+        assert "electrolyze" not in {
+            item["operation"] for item in env.unwrapped.available_actions()
+        }
+        blocked = env.unwrapped.resource_blocked_actions()
+        electrolyze = next(
+            item for item in blocked if item["operation"] == "electrolyze"
+        )
+        assert electrolyze["status"] == "cannot_complete"
+        assert electrolyze["reason_codes"] == [
+            "operation_repeat_limit:electrolyze"
+        ]
+        assert "cannot be completed" in electrolyze["message"]
+
+        _, _, _, _, rejected = env.step(
+            {"operation": "electrolyze", "duration_s": 60.0}
+        )
+        assert rejected["transaction_status"] == "campaign_resource_rejected"
+        assert rejected["campaign_resource_rejection_reasons"] == [
+            "operation_repeat_limit:electrolyze"
+        ]
+        assert rejected["error_message"].startswith(
+            "Operation cannot be completed with the remaining campaign resources"
+        )
+        report = env.unwrapped.observation_view("lab_report")
+        assert report["status"] == "cannot_complete"
+        assert report["failure_summary"]["resource_rejection_reasons"] == [
+            "operation_repeat_limit:electrolyze"
+        ]
+        assert "cannot be completed" in report["text"]
+    finally:
+        env.close()
+
+
 def test_public_lifecycle_reserve_is_advisory_and_tracks_closeout_feasibility() -> None:
     env = _make_electrochemical_env(
         _card(

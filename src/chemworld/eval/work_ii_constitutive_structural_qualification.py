@@ -72,6 +72,128 @@ D1_CLOSEOUT_OPERATION_CLASSES = (
     "terminate",
     "transfer",
 )
+CRYSTALLIZATION_RESOURCE_DESIGN_VERSION = (
+    "crystallization-as-k12-thermal-recovery-15-start-v0.1"
+)
+CRYSTALLIZATION_TARGET_COMPLETE_EXPERIMENTS = 12
+CRYSTALLIZATION_MAX_STARTED_BATCHES = 15
+
+
+def crystallization_recovery_resource_design() -> dict[str, Any]:
+    """Return the finite A-S crystallization exploration and recovery envelope."""
+
+    target = CRYSTALLIZATION_TARGET_COMPLETE_EXPERIMENTS
+    maximum_starts = CRYSTALLIZATION_MAX_STARTED_BATCHES
+    start_ratio = maximum_starts / target
+    required_stage_max_s = 148_800.0 * start_ratio
+    repeat_allowance_s = 29_760.0 * start_ratio
+    protected_reserve_s = (required_stage_max_s + repeat_allowance_s) * 0.20
+    implicit_stage_reserve_s = 4_800.0 * start_ratio
+    quench_transfer_allowance_s = 1_440.0 * start_ratio
+    process_time_limit_s = (
+        required_stage_max_s
+        + repeat_allowance_s
+        + protected_reserve_s
+        + implicit_stage_reserve_s
+        + quench_transfer_allowance_s
+    )
+    return {
+        "card_id": CRYSTALLIZATION_RESOURCE_DESIGN_VERSION,
+        "complete_experiments": target,
+        "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+        "final_assay_limit": target,
+        "nonfinal_instrument_use_limit": 36,
+        "operation_attempt_limit": 210,
+        "operation_repeat_limits": {
+            "heat": 24,
+            "cool_crystallize": 24,
+            "seed_crystals": 24,
+            "filter_crystals": maximum_starts,
+            "quench": maximum_starts,
+        },
+        "process_time_limit_s": process_time_limit_s,
+        "process_time_policy": {
+            "pattern_id": CRYSTALLIZATION_RESOURCE_DESIGN_VERSION,
+            "formula": (
+                "12 completed experiments, up to 15 started batches, twofold "
+                "thermal/seed action counts, and 20% protected closeout reserve"
+            ),
+            "target_complete_experiments": target,
+            "maximum_started_batches": maximum_starts,
+            "started_batch_capacity_ratio": start_ratio,
+            "required_stage_max_s": required_stage_max_s,
+            "repeat_allowance_s": repeat_allowance_s,
+            "protected_reserve_s": protected_reserve_s,
+            "protected_reserve_fraction": 0.20,
+            "implicit_stage_reserve_s": implicit_stage_reserve_s,
+            "quench_transfer_allowance_s": quench_transfer_allowance_s,
+            "implicit_operation_time_s": {
+                "filter_crystals": 480.0,
+                "quench": 120.0,
+            },
+            "resource_status": "participant_recovery_envelope_v0.1",
+        },
+        "stock_limits": {
+            "reagent_mol": 0.288 * start_ratio,
+            "solvent_L": 0.36 * start_ratio,
+            "catalyst_mol": 0.004536 * start_ratio,
+            "seed_g": 0.1152 * start_ratio,
+        },
+        "vessel_start_limit": maximum_starts,
+        "implicit_operation_time_s": {
+            "filter_crystals": 480.0,
+            "quench": 120.0,
+        },
+        "closeout_policy": {
+            "policy": "protected_closeout_reserve_enforced",
+            "allowed_operation_classes": list(D1_CLOSEOUT_OPERATION_CLASSES),
+            "automatic_action_repair": False,
+            "automatic_closeout": False,
+            "planned_batches": maximum_starts,
+            "final_assay_path_operations_per_batch": 2,
+            "discard_path_operations_per_batch": 1,
+            "final_assay_path_total_operation_reserve": 2 * maximum_starts,
+            "discard_path_total_operation_reserve": maximum_starts,
+            "resource_status": "participant_recovery_envelope_v0.1",
+        },
+    }
+
+
+def apply_crystallization_recovery_resource_design(
+    source: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Apply the current recovery envelope without changing scientific content."""
+
+    config = copy.deepcopy(dict(source))
+    if config.get("task_id") not in {None, "reaction-to-crystallization"}:
+        raise ValueError("crystallization recovery resources require the crystallization task")
+    campaign = config.get("campaign")
+    if not isinstance(campaign, Mapping):
+        raise ValueError("crystallization recovery resources require a campaign config")
+    if int(campaign.get("complete_experiments", -1)) != 12:
+        raise ValueError("crystallization recovery resources require 12 complete experiments")
+    design = crystallization_recovery_resource_design()
+    config["campaign"] = copy.deepcopy(design)
+    resources = config.get("method_resources")
+    if not isinstance(resources, Mapping):
+        raise ValueError("crystallization recovery resources require method resources")
+    config["method_resources"] = {
+        **copy.deepcopy(dict(resources)),
+        "operation_limit": int(design["operation_attempt_limit"]),
+    }
+    qualification = config.get("qualification")
+    if isinstance(qualification, Mapping):
+        config["qualification"] = {
+            **copy.deepcopy(dict(qualification)),
+            "resource_calibration_status": "participant_recovery_envelope_v0.1",
+        }
+    identity = config.get("w2_26_runtime_identity")
+    if isinstance(identity, Mapping):
+        config["w2_26_runtime_identity"] = {
+            **copy.deepcopy(dict(identity)),
+            "resource_design_version": CRYSTALLIZATION_RESOURCE_DESIGN_VERSION,
+        }
+    return config
 
 
 def partition_intervention() -> dict[str, Any]:
@@ -202,63 +324,68 @@ def materialize_d1_resource_design(
             "resource_status": "planning_envelope_pending_w2_26_calibration",
         }
     else:
-        operation_limit = 168
-        process_time_limit_s = 215_712.0
-        stock_limits = {
-            "reagent_mol": 0.288,
-            "solvent_L": 0.36,
-            "catalyst_mol": 0.004536,
-            "seed_g": 0.1152,
-        }
-        repeat_limits = {
-            "heat": 12,
-            "cool_crystallize": 12,
-            "seed_crystals": 12,
-            "filter_crystals": 12,
-            "quench": 12,
-        }
-        policy = {
-            "pattern_id": "crystallization-as-k12-ten-unique-two-repeat-planning",
-            "formula": (
-                "10 unique + 2 exact-repeat full stages + 20% protected reserve "
-                "+ quench closeout allowance"
-            ),
-            "required_stage_max_s": 148_800.0,
-            "repeat_allowance_s": 29_760.0,
-            "protected_reserve_s": 35_712.0,
-            "protected_reserve_fraction": 0.20,
-            "implicit_stage_reserve_s": 4_800.0,
-            "quench_transfer_allowance_s": 1_440.0,
-            "implicit_operation_time_s": {
-                "filter_crystals": 480.0,
-                "quench": 120.0,
-            },
-            "resource_status": "planning_envelope_pending_w2_26_calibration",
-        }
+        design = crystallization_recovery_resource_design()
+        operation_limit = int(design["operation_attempt_limit"])
+        process_time_limit_s = float(design["process_time_limit_s"])
+        stock_limits = copy.deepcopy(design["stock_limits"])
+        repeat_limits = copy.deepcopy(design["operation_repeat_limits"])
+        policy = copy.deepcopy(design["process_time_policy"])
     config["campaign"] = {
         "card_id": policy["pattern_id"],
         "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
         "complete_experiments": 12,
         "final_assay_limit": 12,
-        "nonfinal_instrument_use_limit": 36,
+        "nonfinal_instrument_use_limit": (
+            int(design["nonfinal_instrument_use_limit"])
+            if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+            else 36
+        ),
         "operation_attempt_limit": operation_limit,
         "operation_repeat_limits": repeat_limits,
         "process_time_limit_s": process_time_limit_s,
         "process_time_policy": policy,
         "stock_limits": stock_limits,
-        "vessel_start_limit": 12,
+        "vessel_start_limit": (
+            int(design["vessel_start_limit"])
+            if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+            else 12
+        ),
         "implicit_operation_time_s": dict(policy.get("implicit_operation_time_s", {})),
         "closeout_policy": {
             "policy": "protected_closeout_reserve_enforced",
             "allowed_operation_classes": list(D1_CLOSEOUT_OPERATION_CLASSES),
             "automatic_action_repair": False,
             "automatic_closeout": False,
-            "planned_batches": 12,
+            "planned_batches": (
+                int(design["closeout_policy"]["planned_batches"])
+                if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+                else 12
+            ),
             "final_assay_path_operations_per_batch": 2,
             "discard_path_operations_per_batch": 1,
-            "final_assay_path_total_operation_reserve": 24,
-            "discard_path_total_operation_reserve": 12,
-            "resource_status": "planning_envelope_pending_w2_26_calibration",
+            "final_assay_path_total_operation_reserve": (
+                int(
+                    design["closeout_policy"][
+                        "final_assay_path_total_operation_reserve"
+                    ]
+                )
+                if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+                else 24
+            ),
+            "discard_path_total_operation_reserve": (
+                int(
+                    design["closeout_policy"][
+                        "discard_path_total_operation_reserve"
+                    ]
+                )
+                if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+                else 12
+            ),
+            "resource_status": (
+                "participant_recovery_envelope_v0.1"
+                if candidate_id == CRYSTALLIZATION_CANDIDATE_ID
+                else "planning_envelope_pending_w2_26_calibration"
+            ),
         },
     }
     config["method_resources"] = {
@@ -1687,9 +1814,11 @@ __all__ = [
     "WORLD_REPORT_VERSION",
     "WORLD_SEEDS",
     "analyze_candidate_world",
+    "apply_crystallization_recovery_resource_design",
     "build_prior_arms",
     "candidate_specs",
     "crystallization_intervention",
+    "crystallization_recovery_resource_design",
     "denominators",
     "effect_gate",
     "observation_binding",

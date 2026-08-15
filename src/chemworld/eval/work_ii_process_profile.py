@@ -511,12 +511,22 @@ def build_work_ii_process_profile(
     resource_replay: Mapping[str, Any],
     *,
     planned_experiment_count: int,
+    maximum_experiment_count: int | None = None,
     terminal_state: str,
 ) -> dict[str, Any]:
     """Build the 19-coordinate participant-only discovery-campaign profile."""
 
     if planned_experiment_count <= 0:
         raise WorkIIProcessProfileError("planned_experiment_count must be positive")
+    maximum_experiment_count = (
+        planned_experiment_count
+        if maximum_experiment_count is None
+        else maximum_experiment_count
+    )
+    if maximum_experiment_count < planned_experiment_count:
+        raise WorkIIProcessProfileError(
+            "maximum_experiment_count must cover planned_experiment_count"
+        )
     if terminal_state not in _TERMINAL_STATES:
         raise WorkIIProcessProfileError("terminal_state is outside the formal contract")
     if resource_replay.get("status") != "passed":
@@ -552,8 +562,8 @@ def build_work_ii_process_profile(
                 }
             )
             open_rows = []
-    if len(closed_lifecycles) > planned_experiment_count:
-        raise WorkIIProcessProfileError("closed lifecycle count exceeds the frozen plan")
+    if len(closed_lifecycles) > maximum_experiment_count:
+        raise WorkIIProcessProfileError("closed lifecycle count exceeds the finite start capacity")
 
     terminal_steps = [_step(lifecycle["rows"][-1], 1) for lifecycle in closed_lifecycles]
     final_lifecycles = [
@@ -613,12 +623,12 @@ def build_work_ii_process_profile(
 
     values: dict[str, dict[str, Any]] = {
         "closed_lifecycle_fraction": {
-            "value": closed / planned_experiment_count,
+            "value": closed / maximum_experiment_count,
             "calculation": {
                 "closed_lifecycle_count": closed,
-                "planned_lifecycle_count": planned_experiment_count,
+                "maximum_lifecycle_count": maximum_experiment_count,
             },
-            "registered_denominator_count": planned_experiment_count,
+            "registered_denominator_count": maximum_experiment_count,
             "null_reason": None,
             "source_steps": terminal_steps,
         },
@@ -802,6 +812,7 @@ def build_work_ii_process_profile(
         "participant_only": True,
         "evaluator_owned_operation_count": 0,
         "planned_experiment_count": planned_experiment_count,
+        "maximum_experiment_count": maximum_experiment_count,
         "counts": {
             "participant_record_count": len(participant_records),
             "participant_operation_attempt_count": attempted,
@@ -859,6 +870,14 @@ def validate_work_ii_process_profile(profile: Mapping[str, Any]) -> list[str]:
     planned = profile.get("planned_experiment_count")
     if isinstance(planned, bool) or not isinstance(planned, int) or planned <= 0:
         errors.append("process profile planned experiment count is invalid")
+    maximum = profile.get("maximum_experiment_count", planned)
+    if (
+        isinstance(maximum, bool)
+        or not isinstance(maximum, int)
+        or not isinstance(planned, int)
+        or maximum < planned
+    ):
+        errors.append("process profile maximum experiment count is invalid")
     if profile.get("terminal_state") not in _TERMINAL_STATES:
         errors.append("process profile terminal state is invalid")
     counts = profile.get("counts")
@@ -888,8 +907,8 @@ def validate_work_ii_process_profile(profile: Mapping[str, Any]) -> list[str]:
             != counts["closed_lifecycle_count"]
         ):
             errors.append("process profile terminal counts do not reconcile")
-        if isinstance(planned, int) and counts["closed_lifecycle_count"] > planned:
-            errors.append("process profile closed count exceeds the frozen plan")
+        if isinstance(maximum, int) and counts["closed_lifecycle_count"] > maximum:
+            errors.append("process profile closed count exceeds finite start capacity")
         if counts["committed_operation_count"] > counts["participant_operation_attempt_count"]:
             errors.append("process profile committed count exceeds attempts")
         if counts["measured_lifecycle_count"] > counts["closed_lifecycle_count"]:
@@ -1032,6 +1051,7 @@ def build_work_ii_execution_artifacts(
     exact_replay: Mapping[str, Any],
     *,
     planned_experiment_count: int,
+    maximum_experiment_count: int | None = None,
     terminal_state: str,
     hidden_identity: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
@@ -1065,6 +1085,7 @@ def build_work_ii_execution_artifacts(
             records,
             resource_replay,
             planned_experiment_count=planned_experiment_count,
+            maximum_experiment_count=maximum_experiment_count,
             terminal_state=terminal_state,
         )
     except WorkIIProcessProfileError as error:
