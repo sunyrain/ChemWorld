@@ -1,5 +1,9 @@
 # Work II Study B：matched evidence 结果与机制分析
 
+> **CURRENT DISPOSITION.** A-P electrochemical 15-session 分支不受 world-intervention 缺陷影响，
+> 继续作为当前证据；A-S partition 15-session 分支的 truth source 受缺陷影响，现仅作历史记录。
+> 当前 A-S matched-evidence 结论见 `WORK_II_AS_STUDY_B2_PHASE_PROCESS_RESULTS_ZH.md`。
+
 ## 结论先行
 
 Study B 完成了 30/30 fresh sessions、10/10 task-world clusters，0 失败、0 participant 物理实验。结果支持一个分 locus 的机制结论，而不是统一的 seeking/updating 二分答案：

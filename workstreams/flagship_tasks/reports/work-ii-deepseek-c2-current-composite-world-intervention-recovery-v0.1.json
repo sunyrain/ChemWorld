@@ -1,0 +1,432 @@
+{
+  "schema_version": "chemworld-work-ii-current-composite-world-intervention-recovery-analysis-0.1",
+  "old_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-c2-current-composite-evaluation-v0.1.json",
+  "new_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-c2-current-composite-evaluation-v0.2.json",
+  "defect": {
+    "description": "v0.1 truth and blind evaluators bound world_interventions into plans but did not forward them to runtime execution or exact replay",
+    "affected_locus": "A_S",
+    "affected_tasks": [
+      "partition-discovery",
+      "reaction-to-crystallization"
+    ],
+    "participant_trajectories_changed": false,
+    "analysis_design_changed": false
+  },
+  "integrity": {
+    "old_denominators": {
+      "blind_completed_execution_count": 726,
+      "blind_launched_execution_count": 726,
+      "blind_scheduled_execution_count": 810,
+      "blind_unstarted_execution_count": 84,
+      "cell_count": 135,
+      "checkpoint_scheduled_count": 675,
+      "checkpoint_scored_count": 675,
+      "checkpoint_unscorable_count": 0,
+      "cluster_count": 45,
+      "discard_affected_cell_count": 10,
+      "law_summary_evaluated_count": 135,
+      "law_summary_scheduled_count": 135,
+      "resource_rejection_affected_cell_count": 11,
+      "retained_failure_record_count": 14,
+      "task_count": 9,
+      "terminal_state_counts": {
+        "completed": 121,
+        "failed": 7,
+        "right_censored": 7
+      },
+      "truth_completed_execution_count": 420,
+      "truth_completed_query_metric_count": 1620,
+      "truth_failed_execution_count": 0,
+      "truth_scheduled_execution_count": 420
+    },
+    "new_denominators": {
+      "blind_completed_execution_count": 726,
+      "blind_launched_execution_count": 726,
+      "blind_scheduled_execution_count": 810,
+      "blind_unstarted_execution_count": 84,
+      "cell_count": 135,
+      "checkpoint_scheduled_count": 675,
+      "checkpoint_scored_count": 675,
+      "checkpoint_unscorable_count": 0,
+      "cluster_count": 45,
+      "discard_affected_cell_count": 10,
+      "law_summary_evaluated_count": 135,
+      "law_summary_scheduled_count": 135,
+      "resource_rejection_affected_cell_count": 11,
+      "retained_failure_record_count": 14,
+      "task_count": 9,
+      "terminal_state_counts": {
+        "completed": 121,
+        "failed": 7,
+        "right_censored": 7
+      },
+      "truth_completed_execution_count": 420,
+      "truth_completed_query_metric_count": 1620,
+      "truth_failed_execution_count": 0,
+      "truth_scheduled_execution_count": 420
+    },
+    "denominators_identical": true,
+    "new_provider_call_count": 0,
+    "new_status": "completed",
+    "new_c2_passed": false,
+    "unaffected_prediction_blocks_identical": {
+      "A_E": true,
+      "A_P": true
+    },
+    "unaffected_law_blocks_identical": {
+      "A_E": true,
+      "A_P": true
+    },
+    "unaffected_blind_blocks_identical": {
+      "A_E": true,
+      "A_P": true
+    }
+  },
+  "task_changes": [
+    {
+      "task_id": "partition-discovery",
+      "cell_count": 15,
+      "cluster_count": 5,
+      "by_arm": {
+        "opaque": {
+          "mean_pre_error": {
+            "old": 0.2967101888392305,
+            "new": 0.2966788896952009,
+            "change": -3.129914402960621e-05
+          },
+          "mean_final_error": {
+            "old": 0.21690578803435878,
+            "new": 0.21687448889032918,
+            "change": -3.129914402960621e-05
+          },
+          "mean_prediction_improvement": {
+            "old": 0.0798044008048717,
+            "new": 0.0798044008048717,
+            "change": 0.0
+          },
+          "mean_law_mae": {
+            "old": 0.24612329548381776,
+            "new": 0.2461462147114973,
+            "change": 2.2919227679552012e-05
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.05058689335541274,
+            "new": 0.05053267498370356,
+            "change": -5.4218371709179036e-05
+          },
+          "mean_law_minus_final_error": {
+            "old": 0.02921750744945896,
+            "new": 0.02927172582116813,
+            "change": 5.421837170916863e-05
+          },
+          "mean_blind_gain": {
+            "old": 0.0,
+            "new": 0.0,
+            "change": 0.0
+          }
+        },
+        "aligned_nominal": {
+          "mean_pre_error": {
+            "old": 0.3407454305424229,
+            "new": 0.34071413139839324,
+            "change": -3.129914402966172e-05
+          },
+          "mean_final_error": {
+            "old": 0.09992220900856094,
+            "new": 0.09987412052753206,
+            "change": -4.808848102888508e-05
+          },
+          "mean_prediction_improvement": {
+            "old": 0.24082322153386193,
+            "new": 0.24084001087086118,
+            "change": 1.6789336999251114e-05
+          },
+          "mean_law_mae": {
+            "old": 0.16427517095669383,
+            "new": 0.1642983454909352,
+            "change": 2.317453424136029e-05
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.17647025958572907,
+            "new": 0.17641578590745807,
+            "change": -5.447367827099425e-05
+          },
+          "mean_law_minus_final_error": {
+            "old": 0.06435296194813289,
+            "new": 0.06442422496340312,
+            "change": 7.126301527023149e-05
+          },
+          "mean_blind_gain": {
+            "old": 0.0,
+            "new": 0.0,
+            "change": 0.0
+          }
+        },
+        "misindexed_nominal": {
+          "mean_pre_error": {
+            "old": 0.22576442445655026,
+            "new": 0.22573312531252063,
+            "change": -3.129914402963396e-05
+          },
+          "mean_final_error": {
+            "old": 0.11416802071486891,
+            "new": 0.11417174426669856,
+            "change": 3.7235518296485637e-06
+          },
+          "mean_prediction_improvement": {
+            "old": 0.11159640374168134,
+            "new": 0.11156138104582206,
+            "change": -3.5022695859282527e-05
+          },
+          "mean_law_mae": {
+            "old": 0.17146646134901472,
+            "new": 0.17145894098131287,
+            "change": -7.520367701852049e-06
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.05429796310753553,
+            "new": 0.054274184331207745,
+            "change": -2.3778776327781914e-05
+          },
+          "mean_law_minus_final_error": {
+            "old": 0.05729844063414582,
+            "new": 0.05728719671461431,
+            "change": -1.1243919531507551e-05
+          },
+          "mean_blind_gain": {
+            "old": 0.0,
+            "new": 0.0,
+            "change": 0.0
+          }
+        }
+      },
+      "observed_primary_contrast": {
+        "old": -0.1292268177921806,
+        "new": -0.12927862982503913,
+        "change": -5.181203285853364e-05,
+        "old_positive_world_count": 2,
+        "new_positive_world_count": 2
+      },
+      "failure_aware_primary_lower_bound": {
+        "old": -0.1292268177921806,
+        "new": -0.12927862982503913,
+        "change": -5.181203285853364e-05,
+        "old_positive_world_count": 2,
+        "new_positive_world_count": 2
+      }
+    },
+    {
+      "task_id": "reaction-to-crystallization",
+      "cell_count": 15,
+      "cluster_count": 5,
+      "by_arm": {
+        "opaque": {
+          "mean_pre_error": {
+            "old": 0.3603474183628957,
+            "new": 0.42708974377562603,
+            "change": 0.06674232541273034
+          },
+          "mean_final_error": {
+            "old": 0.12712699987490972,
+            "new": 0.06806138866643112,
+            "change": -0.0590656112084786
+          },
+          "mean_prediction_improvement": {
+            "old": 0.23322041848798597,
+            "new": 0.35902835510919495,
+            "change": 0.12580793662120898
+          },
+          "mean_law_mae": {
+            "old": 0.12293679141438907,
+            "new": 0.07134564738789008,
+            "change": -0.05159114402649899
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.2374106269485066,
+            "new": 0.35574409638773596,
+            "change": 0.11833346943922937
+          },
+          "mean_law_minus_final_error": {
+            "old": -0.004190208460520648,
+            "new": 0.0032842587214589715,
+            "change": 0.007474467181979619
+          },
+          "mean_blind_gain": {
+            "old": -0.025011591932271426,
+            "new": -0.029609992119346465,
+            "change": -0.0045984001870750385
+          }
+        },
+        "aligned_nominal": {
+          "mean_pre_error": {
+            "old": 0.37915168731153015,
+            "new": 0.4479655942949653,
+            "change": 0.06881390698343515
+          },
+          "mean_final_error": {
+            "old": 0.2357433399707079,
+            "new": 0.23361322842290005,
+            "change": -0.0021301115478078447
+          },
+          "mean_prediction_improvement": {
+            "old": 0.14340834734082225,
+            "new": 0.21435236587206521,
+            "change": 0.07094401853124296
+          },
+          "mean_law_mae": {
+            "old": 0.22913912101619502,
+            "new": 0.182319036446775,
+            "change": -0.04682008456942002
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.1500125662953351,
+            "new": 0.2656465578481903,
+            "change": 0.1156339915528552
+          },
+          "mean_law_minus_final_error": {
+            "old": -0.0066042189545128666,
+            "new": -0.05129419197612507,
+            "change": -0.044689973021612206
+          },
+          "mean_blind_gain": {
+            "old": 0.0,
+            "new": 0.0,
+            "change": 0.0
+          }
+        },
+        "misindexed_nominal": {
+          "mean_pre_error": {
+            "old": 0.3618901000668605,
+            "new": 0.4287152935490012,
+            "change": 0.06682519348214067
+          },
+          "mean_final_error": {
+            "old": 0.1756022465477387,
+            "new": 0.09828722470502059,
+            "change": -0.07731502184271812
+          },
+          "mean_prediction_improvement": {
+            "old": 0.1862878535191218,
+            "new": 0.3304280688439806,
+            "change": 0.14414021532485882
+          },
+          "mean_law_mae": {
+            "old": 0.1769116646446412,
+            "new": 0.09574396655590584,
+            "change": -0.08116769808873536
+          },
+          "mean_pre_to_law_improvement": {
+            "old": 0.18497843542221934,
+            "new": 0.33297132699309534,
+            "change": 0.147992891570876
+          },
+          "mean_law_minus_final_error": {
+            "old": 0.0013094180969024816,
+            "new": -0.0025432581491147454,
+            "change": -0.0038526762460172267
+          },
+          "mean_blind_gain": {
+            "old": 0.0,
+            "new": 0.0,
+            "change": 0.0
+          }
+        }
+      },
+      "observed_primary_contrast": {
+        "old": 0.04287950617829957,
+        "new": 0.11607570297191538,
+        "change": 0.07319619679361582,
+        "old_positive_world_count": 3,
+        "new_positive_world_count": 5
+      },
+      "failure_aware_primary_lower_bound": {
+        "old": -0.3842409478578965,
+        "new": -0.31887013911485673,
+        "change": 0.06537080874303974,
+        "old_positive_world_count": 2,
+        "new_positive_world_count": 4
+      }
+    }
+  ],
+  "a_s_locus_change": {
+    "failure_aware_primary_estimate": {
+      "old": -0.25673388282503856,
+      "new": -0.22407438446994793
+    },
+    "observed_primary_estimate": {
+      "old": -0.04317365580694052,
+      "new": -0.006601463426561885
+    },
+    "law_all": {
+      "mean_normalized_mae": {
+        "old": 0.18514208414412528,
+        "new": 0.15521869192905272,
+        "change": -0.029923392215072564
+      },
+      "mean_pre_to_law_improvement": {
+        "old": 0.1422927907857897,
+        "new": 0.2059307710752318,
+        "change": 0.06363798028944209
+      },
+      "mean_summary_minus_final_error": {
+        "old": 0.023563983452267772,
+        "new": 0.01673832601590079,
+        "change": -0.006825657436366983
+      }
+    },
+    "blind": {
+      "old_mean_gain": -0.0037054210270031744,
+      "new_mean_gain": -0.004386665499162439,
+      "old_better_equal_worse": [
+        0,
+        26,
+        1
+      ],
+      "new_better_equal_worse": [
+        0,
+        26,
+        1
+      ]
+    }
+  },
+  "overall_change": {
+    "law_mean_normalized_mae": {
+      "old": 0.2437663797482656,
+      "new": 0.23711673703380506
+    },
+    "law_better_equal_worse": {
+      "old": [
+        49,
+        1,
+        85
+      ],
+      "new": [
+        50,
+        1,
+        84
+      ]
+    },
+    "blind_mean_gain": {
+      "old": -0.0008165165582988359,
+      "new": -0.0009685297876236306
+    },
+    "blind_better_equal_worse": {
+      "old": [
+        1,
+        119,
+        1
+      ],
+      "new": [
+        1,
+        119,
+        1
+      ]
+    }
+  },
+  "scientific_disposition": {
+    "c2_decision_changed": false,
+    "current_report_version": "v0.2",
+    "historical_report_version": "v0.1",
+    "interpretation": "The world-intervention recovery changes A-S numerical truth, prediction errors, law fidelity and blind gains, but leaves the registered public C2 decision false. Only v0.2 may support current Paper 2 numerical claims."
+  }
+}

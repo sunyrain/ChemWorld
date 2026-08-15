@@ -9,6 +9,9 @@ DeepSeek C2 public 的 45 个 task/world triplet、135 个 session 均已终态�
 1. corrected-semantics public v0.2 提供除 A-S crystallization 外的 120 个 session；
 2. resource-recovery v0.2 从第一单元完整重跑并替换 A-S crystallization 的 15 个 session。
 
+Evaluator 另以 current-composite v0.2 从第一 truth 单元重跑：v0.1 未把冻结的 A-S
+`world_interventions` 传入 truth/blind runtime 与 exact replay。A-E/A-P 结果不变，A-S 数值修正；v0.1 只保留为历史缺陷证据。
+
 旧 A-S crystallization 不与替换块拼接；pre-fix public v0.1 和两次早期 crystallization recovery 均只保留为诊断历史。当前组合不是修改 raw 结果，而是在 block 边界按平台缺陷影响范围选择有效终态证据。
 
 ## 总体分母
@@ -89,7 +92,7 @@ DeepSeek C2 public 的 45 个 task/world triplet、135 个 session 均已终态�
 
 该图使用 current-composite evaluator 的完整数据：45 个 matched worlds、135 个 participant cells、135 条 final typed laws 和 121 个 blind-evaluable cells。Panel a 报告 failure-aware registered contrast；panel b 显示所有 arm/locus 均存在一般 prediction error reduction；panel c 显示规律相对 final explicit prediction 多数为有损压缩；panel d 显示 blind action 几乎全部等价于 incumbent。对应 CSV 位于 `current/source_data/`。
 
-Evaluator 完整分母为 420/420 truth executions、675/675 checkpoint scores、135/135 law evaluations、726/726 launched blind replays，0 provider calls。三个 selective-correction locus 均未通过：A-E `p=0.990`、A-P `p=0.079`、A-S `p=1.000`。Blind better/equivalent/worse 为 1/119/1。
+Evaluator 完整分母为 420/420 truth executions、675/675 checkpoint scores、135/135 law evaluations、726/726 launched blind replays，0 provider calls。三个 selective-correction locus 均未通过：A-E `p=0.990`、A-P `p=0.079`、A-S `p=1.000`。Recovered overall law MAE 为 0.2371，law better/equal/worse 为 50/1/84；blind better/equivalent/worse 为 1/119/1。
 
 ### 全任务结果
 
@@ -133,6 +136,7 @@ Participant public execution 与 current-composite evaluator 均已终态，不�
 1. provider-free task-aware truth、checkpoint、law 与 blind replay；
 2. failure-aware 主分析和 observed-point sensitivity；
 3. endpoint optimization、prediction correction、executable-law fidelity 与 blind action 的分层报告；
-4. current public Study C 图表和论文故事整合。
+4. current public Study C 图表和论文故事整合；
+5. A-P Study B 与 A-S B2 matched-evidence 机制收束；原 Study B A-S branch 降为 historical。
 
-A-E private 保持延期；Study B、Study D 和 WellAU/Qwen/Kimi cross-provider replication 属于下一阶段独立科学问题，只有在论文大故事确定相应 claim 后再由用户授权启动。
+A-E private 保持延期；Study D 和 WellAU/Qwen/Kimi cross-provider replication 属于下一阶段独立科学问题，只有在论文大故事确定相应 claim 后再由用户授权启动。

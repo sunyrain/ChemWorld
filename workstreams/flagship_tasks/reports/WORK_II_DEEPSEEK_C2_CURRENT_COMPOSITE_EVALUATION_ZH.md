@@ -1,5 +1,9 @@
 # Work II DeepSeek C2 current-composite 评估
 
+> **HISTORICAL / PLATFORM-DEFECTIVE.** 本 v0.1 evaluator 未把冻结的 A-S `world_interventions`
+> 传入 truth/blind runtime 与 exact replay。当前结果见
+> `WORK_II_DEEPSEEK_C2_CURRENT_COMPOSITE_EVALUATION_V0.2_ZH.md`；本文件仅保留为恢复前记录。
+
 本报告把修复后的 A-S crystallization 完整替换块与其余 public participant 结果组合，完成 provider-free 的科学纠错、规律恢复和 blind action 评估。
 
 ## 完整分母
