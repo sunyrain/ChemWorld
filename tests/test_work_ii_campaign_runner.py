@@ -1232,6 +1232,97 @@ def test_new_host_commit_receipt_does_not_require_trailing_final_text() -> None:
     assert result["passed"] is True
 
 
+def test_ranking_only_terminal_recommendation_does_not_require_numeric_predictions() -> None:
+    stages = [
+        "pre_evidence",
+        "after_experiment_3",
+        "after_experiment_6",
+        "after_experiment_9",
+        "final",
+    ]
+    recommendation = {
+        "recommendation_type": "held_out_action_readout",
+        "selected_action_query_id": "candidate-a",
+        "ranking": ["candidate-a", "candidate-b"],
+        "selection_rationale": "candidate-a best applies the learned law",
+        "mechanism_application_summary": "applied the final checkpoint law",
+    }
+    recommendation_sha256 = canonical_json_sha256(recommendation)
+    analysis = {
+        "complete_experiment_count": 12,
+        "experiments": [{"experiment_index": index} for index in range(1, 13)],
+        "right_censored_open_experiment": False,
+        "belief_snapshots": [{"stage": stage} for stage in stages],
+        "resource_rejection_count": 0,
+        "final_campaign_resources": {
+            "campaign_terminal": True,
+            "state": {
+                "closed_batches": 12,
+                "final_assays": 12,
+                "operation_committed_counts": {},
+                "report_only": {"process_time_s": 7200.0},
+            },
+        },
+        "final_recommendation": recommendation,
+        "final_recommendation_sha256": recommendation_sha256,
+        "execution_audit": {"passed": True},
+    }
+    receipt = {
+        "session_scope": "campaign",
+        "status": "completed",
+        "return_code": 0,
+        "final_payload_valid": False,
+        "final_payload_status": None,
+        "final_recommendation_sha256": recommendation_sha256,
+        "final_recommendation_source": "host_mcp_commit",
+        "mcp_tool_calls": [
+            {"tool": "terminal_action_readout", "status": "completed"},
+            {"tool": "commit_final_recommendation", "status": "completed"},
+        ],
+        "experiment_tool_integrity_verified_after_session": True,
+        "lab_tool_integrity_verified_after_session": True,
+        "mcp_tool_integrity_verified_after_session": True,
+    }
+    common = {
+        "analysis": analysis,
+        "exact_replay": {"verified": True},
+        "method_resources": {
+            "provider_session_count": 1,
+            "provider_usage_pending": False,
+            "provider_usage_accounting_complete": True,
+            "in_flight_model_call_count": 0,
+            "input_token_count": 1,
+            "uncached_input_token_count": 1,
+            "output_token_count": 1,
+        },
+        "method_resource_limits": {
+            "complete_experiment_limit": 12,
+            "input_token_limit": 2,
+            "uncached_input_token_limit": 2,
+            "output_token_limit": 2,
+        },
+        "receipts": [receipt],
+        "process_time_limit_s": 72_000.0,
+        "required_operation_counts": {},
+        "required_snapshot_stages": stages,
+        "terminal_action_readout_required": True,
+    }
+
+    ranking_only = _qualification(
+        **common,
+        terminal_action_prediction_mode="ranking_only",
+    )
+    full_metrics = _qualification(
+        **common,
+        terminal_action_prediction_mode="full_metrics",
+    )
+
+    assert ranking_only["passed"] is True
+    assert ranking_only["checks"]["final_recommendation_committed"] is True
+    assert full_metrics["passed"] is False
+    assert full_metrics["failed_checks"] == ["final_recommendation_committed"]
+
+
 def test_aligned_and_misindexed_checkpoint_contracts_are_identical() -> None:
     config = _config()
     assert _checkpoint_contract(config, "aligned_nominal") == _checkpoint_contract(

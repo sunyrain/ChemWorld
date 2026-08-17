@@ -492,6 +492,200 @@ def test_final_recommendation_is_campaign_terminal_checkpoint_bound_and_idempote
     )
 
 
+def test_terminal_action_readout_is_hidden_until_final_checkpoint_and_commits_ranking(
+    tmp_path: Path,
+) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "partition-discovery"})
+    workspace.publish_belief_checkpoint_contract(
+        {
+            "snapshot_stages": ["pre_evidence", "final"],
+            "checkpoint_complete_experiments": [0, 1],
+            "query_metric_contract": {"held-out": ["score"]},
+            "allowed_feature_ids": ["solvent"],
+            "allowed_metric_ids": ["score"],
+            "allowed_prior_fields": ["partition_law_family"],
+            "evidence_catalog": ["experiment-1-final-assay"],
+            "nominal_information_available": False,
+        }
+    )
+    readout_contract = {
+        "schema_version": "chemworld-work-ii-terminal-action-readout-contract-0.1",
+        "readout_id": "test-readout",
+        "task_id": "partition-discovery",
+        "selection_mode": "rank_all_select_one",
+        "metric_ids": ["product_in_organic", "score"],
+        "candidate_queries": [
+            {"query_id": "action-a", "feature_values": {"solvent": 0}},
+            {"query_id": "action-b", "feature_values": {"solvent": 1}},
+        ],
+    }
+    workspace.publish_terminal_action_readout_contract(readout_contract)
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="campaign-action-readout-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+        terminal_action_readout_required=True,
+    )
+    server = ChemWorldMCPServer(workspace.root)
+
+    early = server._call_tool("terminal_action_readout", {})
+    early_payload = json.loads(early["content"][0]["text"])
+    assert early_payload["available"] is False
+    assert "candidate_queries" not in early_payload
+
+    workspace.publish_campaign_progress(
+        session_id="campaign-action-readout-test",
+        closed_batch_count=1,
+        completed_experiment_count=1,
+        completed_experiment_index=1,
+        observed_evidence_id="experiment-1-final-assay",
+        campaign_ended=True,
+    )
+    before_checkpoint = server._call_tool("terminal_action_readout", {})
+    before_payload = json.loads(before_checkpoint["content"][0]["text"])
+    assert before_payload["available"] is False
+    assert before_payload["reason"] == "final_belief_checkpoint_not_committed"
+    assert "candidate_queries" not in before_payload
+
+    snapshots = workspace.session_root("campaign-action-readout-test") / "belief_snapshots"
+    snapshots.mkdir()
+    (snapshots / "01-pre.json").write_text("{}", encoding="utf-8")
+    (snapshots / "02-final.json").write_text("{}", encoding="utf-8")
+
+    revealed = server._call_tool("terminal_action_readout", {})
+    revealed_payload = json.loads(revealed["content"][0]["text"])
+    assert revealed_payload["available"] is True
+    assert revealed_payload["candidate_queries"] == readout_contract["candidate_queries"]
+    assert revealed_payload["candidate_outcomes_hidden"] is True
+    assert revealed_payload["final_belief_checkpoint_locked_before_reveal"] is True
+
+    tools = {item["name"]: item for item in server._tool_definitions()}
+    recommendation_schema = tools["commit_final_recommendation"]["inputSchema"]
+    assert "candidate_predictions" in recommendation_schema["required"]
+    assert "selected_experiment_index" not in recommendation_schema["properties"]
+
+    recommendation = {
+        "candidate_predictions": [
+            {
+                "query_id": "action-a",
+                "metrics": {"product_in_organic": 0.7, "score": 0.6},
+            },
+            {
+                "query_id": "action-b",
+                "metrics": {"product_in_organic": 0.8, "score": 0.7},
+            },
+        ],
+        "ranking": ["action-b", "action-a"],
+        "selected_action_query_id": "action-b",
+        "selection_rationale": "The frozen final model predicts the highest score for action-b.",
+        "mechanism_application_summary": "Applied the final campaign mechanism without revision.",
+    }
+    committed = server._call_tool("commit_final_recommendation", recommendation)
+    assert committed["isError"] is False
+    audit = workspace.final_recommendation_audit("campaign-action-readout-test")
+    assert audit is not None
+    assert audit["recommendation"] == {
+        "recommendation_type": "held_out_action_readout",
+        **recommendation,
+    }
+    assert audit["selected_action_query_id"] == "action-b"
+    assert audit["candidate_count"] == 2
+
+    invalid = server._call_tool(
+        "commit_final_recommendation",
+        {**recommendation, "selected_action_query_id": "action-a"},
+    )
+    assert invalid["isError"] is True
+
+
+def test_ranking_only_terminal_action_readout_forbids_prediction_table(tmp_path: Path) -> None:
+    workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
+    workspace.initialize_fresh()
+    workspace.publish_material_information({"condition_id": "opaque_codes"})
+    workspace.publish_task_contract({"task_id": "partition-discovery"})
+    workspace.publish_belief_checkpoint_contract(
+        {
+            "snapshot_stages": ["pre_evidence", "final"],
+            "checkpoint_complete_experiments": [0, 1],
+            "query_metric_contract": {"held-out": ["score"]},
+            "allowed_feature_ids": ["solvent"],
+            "allowed_metric_ids": ["score"],
+            "allowed_prior_fields": ["partition_law_family"],
+            "evidence_catalog": ["experiment-1-final-assay"],
+            "nominal_information_available": False,
+        }
+    )
+    workspace.publish_terminal_action_readout_contract(
+        {
+            "schema_version": "chemworld-work-ii-terminal-action-readout-contract-0.1",
+            "readout_id": "ranking-only-readout",
+            "task_id": "partition-discovery",
+            "selection_mode": "rank_all_select_one",
+            "prediction_mode": "ranking_only",
+            "metric_ids": ["score"],
+            "candidate_queries": [
+                {"query_id": "action-a", "feature_values": {"solvent": 0}},
+                {"query_id": "action-b", "feature_values": {"solvent": 1}},
+            ],
+        }
+    )
+    workspace.publish_current({"expected_step": 1, "available_actions": []})
+    workspace.start_session(
+        session_id="campaign-ranking-only-test",
+        expected_step=1,
+        response_timeout_s=10.0,
+        session_scope="campaign",
+        terminal_action_readout_required=True,
+    )
+    workspace.publish_campaign_progress(
+        session_id="campaign-ranking-only-test",
+        closed_batch_count=1,
+        completed_experiment_count=1,
+        completed_experiment_index=1,
+        observed_evidence_id="experiment-1-final-assay",
+        campaign_ended=True,
+    )
+    snapshots = workspace.session_root("campaign-ranking-only-test") / "belief_snapshots"
+    snapshots.mkdir()
+    (snapshots / "01-pre.json").write_text("{}", encoding="utf-8")
+    (snapshots / "02-final.json").write_text("{}", encoding="utf-8")
+    server = ChemWorldMCPServer(workspace.root)
+    tools = {item["name"]: item for item in server._tool_definitions()}
+    schema = tools["commit_final_recommendation"]["inputSchema"]
+    assert "candidate_predictions" not in schema["properties"]
+    assert "candidate_predictions" not in schema["required"]
+    recommendation = {
+        "ranking": ["action-b", "action-a"],
+        "selected_action_query_id": "action-b",
+        "selection_rationale": "action-b is ranked first by the committed model.",
+        "mechanism_application_summary": "Applied the final law without revision.",
+    }
+    committed = server._call_tool("commit_final_recommendation", recommendation)
+    assert committed["isError"] is False
+    audit = workspace.final_recommendation_audit("campaign-ranking-only-test")
+    assert audit is not None
+    assert audit["recommendation"] == {
+        "recommendation_type": "held_out_action_readout",
+        **recommendation,
+    }
+    rejected = server._call_tool(
+        "commit_final_recommendation",
+        {
+            **recommendation,
+            "candidate_predictions": [
+                {"query_id": "action-a", "metrics": {"score": 0.5}},
+                {"query_id": "action-b", "metrics": {"score": 0.6}},
+            ],
+        },
+    )
+    assert rejected["isError"] is True
+
+
 def test_campaign_status_exposes_checkpoint_and_closeout_state(tmp_path: Path) -> None:
     workspace = ExperimentCodexWorkspace(tmp_path / "workspace")
     workspace.initialize_fresh()

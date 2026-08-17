@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import math
 import os
 import re
 import sys
@@ -43,6 +44,7 @@ SUPPORTED_TOOLS = (
     "inspect_artifact",
     "belief_snapshot_status",
     "commit_belief_snapshot",
+    "terminal_action_readout",
     "commit_final_recommendation",
     "step",
 )
@@ -191,6 +193,7 @@ class ChemWorldMCPServer:
             protocol = params.get("protocolVersion") if isinstance(params, dict) else "2025-06-18"
             descriptor = self._descriptor()
             campaign = descriptor.get("session_scope") == "campaign"
+            action_readout = descriptor.get("terminal_action_readout_required") is True
             return self._result(
                 request_id,
                 {
@@ -209,8 +212,16 @@ class ChemWorldMCPServer:
                             "commit_belief_snapshot. An experiment_ended outcome closes only "
                             "the current batch; continue in the same session when "
                             "campaign_ended=false. After campaign_ended=true, commit the final "
-                            "checkpoint if due, commit exactly one participant-owned selection "
-                            "with commit_final_recommendation, then submit exactly one JSON object "
+                            "checkpoint if due, "
+                            + (
+                                "call terminal_action_readout to reveal the fixed held-out "
+                                "candidate operations, then rank and commit exactly one selection "
+                                "with commit_final_recommendation, "
+                                if action_readout
+                                else "commit exactly one participant-owned completed-batch "
+                                "selection with commit_final_recommendation, "
+                            )
+                            + "then submit exactly one JSON object "
                             "matching the final response schema, with no prose or Markdown fence."
                             if campaign
                             else "After a step returns experiment_ended=true, call no more "
@@ -456,6 +467,8 @@ class ChemWorldMCPServer:
                 payload = self._belief_snapshot_status(descriptor)
             elif name == "commit_belief_snapshot":
                 payload = self._commit_belief_snapshot(descriptor, arguments)
+            elif name == "terminal_action_readout":
+                payload = self._terminal_action_readout(descriptor)
             elif name == "commit_final_recommendation":
                 payload = self._commit_final_recommendation(descriptor, arguments)
             else:
@@ -1037,9 +1050,64 @@ class ChemWorldMCPServer:
             "events": rows[-limit:],
         }
 
+    def _action_readout_contract(self) -> dict[str, Any] | None:
+        path = self.reference / "terminal_action_readout_contract.json"
+        return _read_object(path) if path.is_file() else None
+
+    def _all_checkpoints_committed(self, descriptor: dict[str, Any]) -> bool:
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        stages = contract.get("snapshot_stages")
+        if not isinstance(stages, list) or not stages:
+            return False
+        session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
+        snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
+        committed = len(list(snapshot_root.glob("*.json"))) if snapshot_root.exists() else 0
+        return committed == len(stages)
+
+    def _terminal_action_readout(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        if descriptor.get("session_scope") != "campaign":
+            raise RuntimeError("terminal action readout requires campaign scope")
+        contract = self._action_readout_contract()
+        if descriptor.get("terminal_action_readout_required") is not True or contract is None:
+            return {
+                "schema_version": MCP_SERVER_VERSION,
+                "available": False,
+                "reason": "terminal_action_readout_not_configured",
+            }
+        terminal = self._campaign_terminal_observed()
+        checkpoints = self._all_checkpoints_committed(descriptor)
+        if not terminal or not checkpoints:
+            return {
+                "schema_version": MCP_SERVER_VERSION,
+                "available": False,
+                "reason": (
+                    "campaign_not_terminal"
+                    if not terminal
+                    else "final_belief_checkpoint_not_committed"
+                ),
+                "campaign_terminal": terminal,
+                "all_belief_checkpoints_committed": checkpoints,
+                "candidate_contents_revealed": False,
+            }
+        return {
+            **deepcopy(contract),
+            "available": True,
+            "campaign_terminal": True,
+            "all_belief_checkpoints_committed": True,
+            "candidate_outcomes_hidden": True,
+            "final_belief_checkpoint_locked_before_reveal": True,
+        }
+
     def _status(self) -> dict[str, Any]:
         descriptor = self._descriptor()
         campaign = descriptor.get("session_scope") == "campaign"
+        action_readout = descriptor.get("terminal_action_readout_required") is True
+        action_contract = self._action_readout_contract() if action_readout else None
+        action_prediction_mode = (
+            str(action_contract.get("prediction_mode", "full_metrics"))
+            if isinstance(action_contract, dict)
+            else "full_metrics"
+        )
         if self._terminal_outcome is None:
             current = _read_object(self.public / "current.json")
             if not campaign:
@@ -1054,12 +1122,22 @@ class ChemWorldMCPServer:
             "terminal_outcome": self._terminal_outcome,
             "instruction": (
                 "Commit the final belief checkpoint if due, call "
-                "commit_final_recommendation exactly once, then submit the final response; "
-                "do not call step again."
+                + (
+                    "terminal_action_readout after the checkpoint is committed, then call "
+                    "commit_final_recommendation exactly once and submit the final response; "
+                    if action_readout
+                    else "commit_final_recommendation exactly once, then submit the final "
+                    "response; "
+                )
+                + "do not call step again."
                 if campaign
                 else "Submit the final response now; do not call step again."
             ),
-            "final_response_contract": self._final_response_contract(campaign=campaign),
+            "final_response_contract": self._final_response_contract(
+                campaign=campaign,
+                terminal_action_readout=action_readout,
+                terminal_prediction_mode=action_prediction_mode,
+            ),
         }
         if campaign:
             terminal["campaign_closeout"] = self._campaign_closeout_state(descriptor)
@@ -1102,23 +1180,57 @@ class ChemWorldMCPServer:
                 self.ipc / "sessions" / session_id / "final_recommendation.json"
             ).is_file(),
             "belief_snapshot_submission": self._belief_submission_state(descriptor),
+            **(
+                {
+                    "terminal_action_readout_required": True,
+                    "terminal_action_readout_available": (
+                        self._campaign_terminal_observed() and committed == len(stages)
+                    ),
+                }
+                if descriptor.get("terminal_action_readout_required") is True
+                else {}
+            ),
         }
 
     @staticmethod
-    def _final_response_contract(*, campaign: bool) -> dict[str, Any]:
+    def _final_response_contract(
+        *,
+        campaign: bool,
+        terminal_action_readout: bool = False,
+        terminal_prediction_mode: str = "full_metrics",
+    ) -> dict[str, Any]:
         return {
             "format": "json_object_only",
             "required_keys": ["status", "summary"],
             "status": "campaign_complete" if campaign else "experiment_complete",
             "summary_max_length": 3000 if campaign else 2000,
             "final_recommendation_contract": (
-                {
-                    "selected_experiment_index": (
-                        "1-based_lifecycle_index_from_completed_experiment_indices"
-                    ),
-                    "selection_rationale_max_length": 2000,
-                    "committed_before_blind_evaluation": True,
-                }
+                (
+                    {
+                        **(
+                            {
+                                "candidate_predictions": (
+                                    "every_revealed_candidate_and_metric"
+                                )
+                            }
+                            if terminal_prediction_mode == "full_metrics"
+                            else {"candidate_predictions": "not_submitted"}
+                        ),
+                        "ranking": "all_candidate_query_ids_exactly_once",
+                        "selected_action_query_id": "ranking_first_item",
+                        "selection_rationale_max_length": 2000,
+                        "mechanism_application_summary_max_length": 1200,
+                        "revealed_after_final_belief_checkpoint": True,
+                    }
+                    if terminal_action_readout
+                    else {
+                        "selected_experiment_index": (
+                            "1-based_lifecycle_index_from_completed_experiment_indices"
+                        ),
+                        "selection_rationale_max_length": 2000,
+                        "committed_before_blind_evaluation": True,
+                    }
+                )
                 if campaign
                 else None
             ),
@@ -1554,6 +1666,105 @@ class ChemWorldMCPServer:
         )
         return {"ok": True, **self._belief_submission_state(descriptor)}
 
+    @staticmethod
+    def _action_readout_recommendation(
+        contract: dict[str, Any], arguments: dict[str, Any]
+    ) -> dict[str, Any]:
+        candidates = contract.get("candidate_queries")
+        metric_ids = contract.get("metric_ids")
+        if (
+            contract.get("schema_version")
+            != "chemworld-work-ii-terminal-action-readout-contract-0.1"
+            or not isinstance(candidates, list)
+            or not candidates
+            or not isinstance(metric_ids, list)
+            or not metric_ids
+        ):
+            raise ValueError("terminal action readout contract is malformed")
+        query_ids = [
+            str(item.get("query_id"))
+            for item in candidates
+            if isinstance(item, dict) and isinstance(item.get("query_id"), str)
+        ]
+        metrics = [str(item) for item in metric_ids]
+        prediction_mode = str(contract.get("prediction_mode", "full_metrics"))
+        if len(query_ids) != len(candidates) or len(set(query_ids)) != len(query_ids):
+            raise ValueError("terminal action candidate IDs are malformed")
+        if len(set(metrics)) != len(metrics):
+            raise ValueError("terminal action metric IDs are malformed")
+
+        predictions: list[dict[str, Any]] = []
+        if prediction_mode == "full_metrics":
+            raw_predictions = arguments.get("candidate_predictions")
+            if not isinstance(raw_predictions, list) or len(raw_predictions) != len(query_ids):
+                raise ValueError("candidate_predictions must cover every terminal candidate")
+            observed: set[str] = set()
+            for raw in raw_predictions:
+                if not isinstance(raw, dict):
+                    raise ValueError("candidate prediction must be an object")
+                query_id = raw.get("query_id")
+                values = raw.get("metrics")
+                if (
+                    not isinstance(query_id, str)
+                    or query_id not in query_ids
+                    or query_id in observed
+                ):
+                    raise ValueError("candidate prediction query_id is invalid or duplicated")
+                if not isinstance(values, dict) or set(values) != set(metrics):
+                    raise ValueError("candidate prediction metric coverage is invalid")
+                normalized_metrics: dict[str, float] = {}
+                for metric_id in metrics:
+                    value = values[metric_id]
+                    if (
+                        isinstance(value, bool)
+                        or not isinstance(value, int | float)
+                        or not math.isfinite(float(value))
+                        or not 0.0 <= float(value) <= 1.0
+                    ):
+                        raise ValueError(
+                            "candidate prediction metric must be finite in [0, 1]"
+                        )
+                    normalized_metrics[metric_id] = float(value)
+                observed.add(query_id)
+                predictions.append({"query_id": query_id, "metrics": normalized_metrics})
+        elif prediction_mode == "ranking_only":
+            if arguments.get("candidate_predictions") is not None:
+                raise ValueError("ranking-only action readout forbids candidate_predictions")
+        else:
+            raise ValueError("terminal action prediction mode is invalid")
+
+        ranking = arguments.get("ranking")
+        if (
+            not isinstance(ranking, list)
+            or len(ranking) != len(query_ids)
+            or any(not isinstance(item, str) for item in ranking)
+            or set(ranking) != set(query_ids)
+            or len(set(ranking)) != len(ranking)
+        ):
+            raise ValueError("ranking must contain every terminal candidate exactly once")
+        selected = arguments.get("selected_action_query_id")
+        if not isinstance(selected, str) or selected != ranking[0]:
+            raise ValueError("selected_action_query_id must equal the first ranked candidate")
+        rationale = arguments.get("selection_rationale")
+        mechanism = arguments.get("mechanism_application_summary")
+        if not isinstance(rationale, str) or not rationale.strip() or len(rationale) > 2000:
+            raise ValueError("selection_rationale must be 1-2000 characters")
+        if not isinstance(mechanism, str) or not mechanism.strip() or len(mechanism) > 1200:
+            raise ValueError("mechanism_application_summary must be 1-1200 characters")
+        recommendation = {
+            "recommendation_type": "held_out_action_readout",
+            "ranking": list(ranking),
+            "selected_action_query_id": selected,
+            "selection_rationale": rationale.strip(),
+            "mechanism_application_summary": mechanism.strip(),
+        }
+        if prediction_mode == "full_metrics":
+            by_id = {row["query_id"]: row for row in predictions}
+            recommendation["candidate_predictions"] = [
+                by_id[query_id] for query_id in query_ids
+            ]
+        return recommendation
+
     def _commit_final_recommendation(
         self,
         descriptor: dict[str, Any],
@@ -1578,23 +1789,34 @@ class ChemWorldMCPServer:
             raise RuntimeError(
                 "all required belief checkpoints must be committed before final recommendation"
             )
-        index = arguments.get("selected_experiment_index")
-        if isinstance(index, bool) or not isinstance(index, int):
-            raise ValueError("selected_experiment_index must be an integer")
-        if index not in completed_indices:
-            raise ValueError(
-                "selected_experiment_index must be a lifecycle index from "
-                "campaign_closeout.completed_experiment_indices"
+        action_readout_contract = (
+            self._action_readout_contract()
+            if descriptor.get("terminal_action_readout_required") is True
+            else None
+        )
+        if action_readout_contract is not None:
+            recommendation = self._action_readout_recommendation(
+                action_readout_contract,
+                arguments,
             )
-        rationale = arguments.get("selection_rationale")
-        if not isinstance(rationale, str) or not rationale.strip():
-            raise ValueError("selection_rationale must be a non-empty string")
-        if len(rationale) > 2000:
-            raise ValueError("selection_rationale exceeds 2000 characters")
-        recommendation = {
-            "selected_experiment_index": index,
-            "selection_rationale": rationale.strip(),
-        }
+        else:
+            index = arguments.get("selected_experiment_index")
+            if isinstance(index, bool) or not isinstance(index, int):
+                raise ValueError("selected_experiment_index must be an integer")
+            if index not in completed_indices:
+                raise ValueError(
+                    "selected_experiment_index must be a lifecycle index from "
+                    "campaign_closeout.completed_experiment_indices"
+                )
+            rationale = arguments.get("selection_rationale")
+            if not isinstance(rationale, str) or not rationale.strip():
+                raise ValueError("selection_rationale must be a non-empty string")
+            if len(rationale) > 2000:
+                raise ValueError("selection_rationale exceeds 2000 characters")
+            recommendation = {
+                "selected_experiment_index": index,
+                "selection_rationale": rationale.strip(),
+            }
         path = self.ipc / "sessions" / session_id / "final_recommendation.json"
         if path.exists():
             existing = _read_object(path)
@@ -1608,17 +1830,39 @@ class ChemWorldMCPServer:
                 "recommendation_sha256": hashlib.sha256(_encode(recommendation)).hexdigest(),
                 "instruction": "Submit the final response now; do not call more tools.",
             }
-        record = {
+        record: dict[str, Any] = {
             "schema_version": MCP_SERVER_VERSION,
             "recommendation": recommendation,
             "recommendation_sha256": hashlib.sha256(_encode(recommendation)).hexdigest(),
             "complete_experiment_count": completed_count,
-            "selected_batch_id": f"batch-{index:04d}",
-            "selected_completed_ordinal": completed_indices.index(index) + 1,
             "committed_checkpoint_count": committed_snapshots,
             "committed_after_campaign_terminal": True,
             "committed_before_blind_evaluation": True,
         }
+        if action_readout_contract is not None:
+            record.update(
+                {
+                    "recommendation_type": "held_out_action_readout",
+                    "selected_action_query_id": recommendation[
+                        "selected_action_query_id"
+                    ],
+                    "terminal_action_readout_contract_sha256": hashlib.sha256(
+                        _encode(action_readout_contract)
+                    ).hexdigest(),
+                    "candidate_count": len(
+                        action_readout_contract.get("candidate_queries", [])
+                    ),
+                    "committed_after_terminal_action_reveal": True,
+                }
+            )
+        else:
+            index = int(recommendation["selected_experiment_index"])
+            record.update(
+                {
+                    "selected_batch_id": f"batch-{index:04d}",
+                    "selected_completed_ordinal": completed_indices.index(index) + 1,
+                }
+            )
         _atomic_json(path, record)
         return {
             "ok": True,
@@ -2445,7 +2689,102 @@ class ChemWorldMCPServer:
         }
 
     def _tool_definitions(self) -> list[dict[str, Any]]:
-        campaign = self._descriptor().get("session_scope") == "campaign"
+        descriptor = self._descriptor()
+        campaign = descriptor.get("session_scope") == "campaign"
+        action_readout = descriptor.get("terminal_action_readout_required") is True
+        action_contract = self._action_readout_contract() if action_readout else None
+        action_prediction_mode = (
+            str(action_contract.get("prediction_mode", "full_metrics"))
+            if isinstance(action_contract, dict)
+            else "full_metrics"
+        )
+        metric_ids = (
+            [str(item) for item in action_contract.get("metric_ids", [])]
+            if isinstance(action_contract, dict)
+            else []
+        )
+        candidate_count = (
+            len(action_contract.get("candidate_queries", []))
+            if isinstance(action_contract, dict)
+            and isinstance(action_contract.get("candidate_queries"), list)
+            else 0
+        )
+        final_recommendation_schema: dict[str, Any]
+        if action_readout:
+            properties: dict[str, Any] = {
+                "ranking": {
+                    "type": "array",
+                    "minItems": candidate_count,
+                    "maxItems": candidate_count,
+                    "uniqueItems": True,
+                    "items": {"type": "string", "minLength": 1},
+                },
+                "selected_action_query_id": {"type": "string", "minLength": 1},
+                "selection_rationale": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                },
+                "mechanism_application_summary": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 1200,
+                },
+            }
+            required = [
+                "ranking",
+                "selected_action_query_id",
+                "selection_rationale",
+                "mechanism_application_summary",
+            ]
+            if action_prediction_mode == "full_metrics":
+                properties["candidate_predictions"] = {
+                    "type": "array",
+                    "minItems": candidate_count,
+                    "maxItems": candidate_count,
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "query_id": {"type": "string", "minLength": 1},
+                            "metrics": {
+                                "type": "object",
+                                "properties": {
+                                    metric_id: {
+                                        "type": "number",
+                                        "minimum": 0.0,
+                                        "maximum": 1.0,
+                                    }
+                                    for metric_id in metric_ids
+                                },
+                                "required": metric_ids,
+                                "additionalProperties": False,
+                            },
+                        },
+                        "required": ["query_id", "metrics"],
+                        "additionalProperties": False,
+                    },
+                }
+                required.insert(0, "candidate_predictions")
+            final_recommendation_schema = {
+                "type": "object",
+                "properties": properties,
+                "required": required,
+                "additionalProperties": False,
+            }
+        else:
+            final_recommendation_schema = {
+                "type": "object",
+                "properties": {
+                    "selected_experiment_index": {"type": "integer", "minimum": 1},
+                    "selection_rationale": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 2000,
+                    },
+                },
+                "required": ["selected_experiment_index", "selection_rationale"],
+                "additionalProperties": False,
+            }
         snapshot_schema = (
             self._staged_belief_snapshot_tool_schema() if campaign else {"type": "object"}
         )
@@ -2532,31 +2871,37 @@ class ChemWorldMCPServer:
                 },
             },
             {
-                "name": "commit_final_recommendation",
+                "name": "terminal_action_readout",
                 "description": (
-                    "After campaign terminal and the final belief checkpoint, commit exactly one "
-                    "participant-selected completed experiment for evaluator-owned blind replay. "
-                    "The index is the completed batch's 1-based lifecycle_experiment_index and "
-                    "must be present in campaign_closeout.completed_experiment_indices. "
-                    "The host stores the selection atomically; a repeated identical call is "
-                    "idempotent and a differing second selection is rejected."
+                    "Reveal the fixed held-out candidate operations only after campaign terminal "
+                    "and after every required belief checkpoint is committed. Before that gate, "
+                    "the tool returns only an unavailable status and never candidate contents. "
+                    "Candidate outcomes and hidden ranks are never revealed."
                 ),
                 "inputSchema": {
                     "type": "object",
-                    "properties": {
-                        "selected_experiment_index": {
-                            "type": "integer",
-                            "minimum": 1,
-                        },
-                        "selection_rationale": {
-                            "type": "string",
-                            "minLength": 1,
-                            "maxLength": 2000,
-                        },
-                    },
-                    "required": ["selected_experiment_index", "selection_rationale"],
+                    "properties": {},
                     "additionalProperties": False,
                 },
+                "annotations": read_annotations,
+            },
+            {
+                "name": "commit_final_recommendation",
+                "description": (
+                    (
+                        "After terminal_action_readout, submit predictions for every candidate, "
+                        "rank every candidate exactly once, and commit the first-ranked held-out "
+                        "action. The already committed final belief checkpoint cannot be revised. "
+                        if action_readout
+                        else "After campaign terminal and the final belief checkpoint, commit "
+                        "exactly one participant-selected completed experiment for "
+                        "evaluator-owned blind replay. The index is the completed batch's "
+                        "1-based lifecycle_experiment_index. "
+                    )
+                    + "The host stores the selection atomically; a repeated identical call is "
+                    "idempotent and a differing second selection is rejected."
+                ),
+                "inputSchema": final_recommendation_schema,
                 "annotations": {
                     "readOnlyHint": False,
                     "destructiveHint": False,

@@ -1090,6 +1090,8 @@ def _qualification(
     agent_invalid_enforcement: str | None = None,
     provider_error_enforcement: str | None = None,
     unlimited_provider_continuations: bool = False,
+    terminal_action_readout_required: bool = False,
+    terminal_action_prediction_mode: str = "full_metrics",
 ) -> dict[str, Any]:
     """Apply the frozen per-cell qualification contract fail-closed."""
 
@@ -1099,6 +1101,8 @@ def _qualification(
         raise ValueError("unsupported agent-invalid enforcement policy")
     if provider_error_enforcement not in {None, PROVIDER_ERROR_ENFORCEMENT_POLICY}:
         raise ValueError("unsupported provider-error enforcement policy")
+    if terminal_action_prediction_mode not in {"full_metrics", "ranking_only"}:
+        raise ValueError("unsupported terminal action prediction mode")
 
     w2_26_retry_contract_enabled = (
         agent_invalid_enforcement == AGENT_INVALID_ENFORCEMENT_POLICY
@@ -1175,6 +1179,9 @@ def _qualification(
     recommendation = analysis.get("final_recommendation")
     recommendation = recommendation if isinstance(recommendation, Mapping) else {}
     selected_experiment_index = recommendation.get("selected_experiment_index")
+    selected_action_query_id = recommendation.get("selected_action_query_id")
+    action_predictions = recommendation.get("candidate_predictions")
+    action_ranking = recommendation.get("ranking")
     recommendation_hash = canonical_json_sha256(recommendation) if recommendation else None
     expected_stages = required_snapshot_stages or [
         "pre_evidence",
@@ -1237,13 +1244,26 @@ def _qualification(
         and receipt.get("session_scope") == "campaign",
         "provider_session_completed": provider_terminal_completed,
         "final_recommendation_committed": (
-            isinstance(selected_experiment_index, int)
-            and not isinstance(selected_experiment_index, bool)
-            and any(
-                item.get("lifecycle_experiment_index", item.get("experiment_index"))
-                == selected_experiment_index
-                for item in analysis.get("experiments", [])
-                if isinstance(item, Mapping)
+            (
+                isinstance(selected_action_query_id, str)
+                and bool(selected_action_query_id)
+                and isinstance(action_ranking, list)
+                and bool(action_ranking)
+                and action_ranking[0] == selected_action_query_id
+                and (
+                    "candidate_predictions" not in recommendation
+                    if terminal_action_prediction_mode == "ranking_only"
+                    else isinstance(action_predictions, list) and bool(action_predictions)
+                )
+                if terminal_action_readout_required
+                else isinstance(selected_experiment_index, int)
+                and not isinstance(selected_experiment_index, bool)
+                and any(
+                    item.get("lifecycle_experiment_index", item.get("experiment_index"))
+                    == selected_experiment_index
+                    for item in analysis.get("experiments", [])
+                    if isinstance(item, Mapping)
+                )
             )
             and recommendation_hash == analysis.get("final_recommendation_sha256")
             and recommendation_hash == receipt.get("final_recommendation_sha256")
@@ -1514,6 +1534,11 @@ def _run_cell(
             session_scope="campaign",
             belief_checkpoint_contract=_checkpoint_contract(config, arm),
             initial_world_model=_arm_initial_world_model(config, arm),
+            terminal_action_readout_contract=(
+                dict(config["terminal_action_readout"])
+                if isinstance(config.get("terminal_action_readout"), Mapping)
+                else None
+            ),
         )
 
         def on_step(record: Any, trace: list[dict[str, Any]]) -> None:
@@ -1670,6 +1695,16 @@ def _run_cell(
         agent_invalid_enforcement=agent_invalid_enforcement,
         provider_error_enforcement=provider_error_enforcement,
         unlimited_provider_continuations=provider_resource_limits_report_only,
+        terminal_action_readout_required=isinstance(
+            config.get("terminal_action_readout"), Mapping
+        ),
+        terminal_action_prediction_mode=str(
+            config.get("terminal_action_readout", {}).get(
+                "prediction_mode", "full_metrics"
+            )
+            if isinstance(config.get("terminal_action_readout"), Mapping)
+            else "full_metrics"
+        ),
     )
     row = {
         "arm": arm,

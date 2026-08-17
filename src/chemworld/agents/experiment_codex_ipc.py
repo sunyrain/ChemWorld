@@ -183,6 +183,25 @@ class ExperimentCodexWorkspace:
             **_fingerprint(path),
         }
 
+    def publish_terminal_action_readout_contract(
+        self,
+        contract: Mapping[str, Any],
+    ) -> dict[str, Any]:
+        """Write a terminal-only held-out action packet for a campaign cell."""
+
+        self._require_initialized()
+        normalized = _bounded_json_object(
+            contract,
+            max_bytes=self.max_artifact_bytes,
+            label="terminal action readout contract",
+        )
+        path = self.reference_directory / "terminal_action_readout_contract.json"
+        _atomic_write_json(path, normalized)
+        return {
+            "relative_path": "reference/terminal_action_readout_contract.json",
+            **_fingerprint(path),
+        }
+
     def publish_artifact(
         self,
         *,
@@ -304,6 +323,7 @@ class ExperimentCodexWorkspace:
         expected_step: int = 1,
         response_timeout_s: float,
         session_scope: str = "experiment",
+        terminal_action_readout_required: bool = False,
     ) -> dict[str, Any]:
         """Create a new session namespace while preserving optional Agent files."""
 
@@ -316,6 +336,8 @@ class ExperimentCodexWorkspace:
             raise ValueError("response_timeout_s must be positive")
         if session_scope not in {"experiment", "campaign"}:
             raise ValueError("session_scope must be experiment or campaign")
+        if terminal_action_readout_required and session_scope != "campaign":
+            raise ValueError("terminal action readout requires campaign scope")
         session_root = self.session_root(session_id)
         if session_root.exists():
             raise FileExistsError(f"session already exists: {session_id}")
@@ -332,6 +354,7 @@ class ExperimentCodexWorkspace:
             "max_tool_output_bytes": self.max_tool_output_bytes,
             "response_timeout_s": float(response_timeout_s),
             "session_scope": session_scope,
+            "terminal_action_readout_required": bool(terminal_action_readout_required),
         }
         _atomic_write_json(session_root / "session.json", descriptor)
         if session_scope == "campaign":

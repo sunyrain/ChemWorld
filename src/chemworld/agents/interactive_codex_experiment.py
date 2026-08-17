@@ -715,6 +715,58 @@ diversity before spending repeat allowance, and never assume the host will repai
 campaign.
 """
 
+_LEGACY_CAMPAIGN_CLOSEOUT_INSTRUCTION = """When
+campaign_ended=true, commit the final checkpoint if it is due, then call
+chemworld_lab.commit_final_recommendation exactly once. Select exactly one completed batch's 1-based
+lifecycle_experiment_index from campaign_closeout.completed_experiment_indices for evaluator-owned
+blind replay using only participant-visible campaign evidence; no blind outcome will be returned.
+Only after the tool confirms the commitment, return exactly one JSON object with status and summary,
+with no prose or Markdown fence: {"status":"campaign_complete","summary":"..."}.
+"""
+
+_ACTION_READOUT_CAMPAIGN_CLOSEOUT_INSTRUCTION = """When
+campaign_ended=true, commit the final checkpoint if it is due. The terminal held-out action packet
+is intentionally unavailable before every required checkpoint is committed. After the final
+checkpoint, call chemworld_lab.terminal_action_readout to reveal the fixed unseen candidate
+operations without outcomes. Predict every required metric for every candidate, rank all
+candidates, and commit the top-ranked candidate with chemworld_lab.commit_final_recommendation.
+Do not revise or replace the already committed final belief checkpoint after seeing candidates.
+Only after the tool confirms the commitment, return exactly one JSON object with status and summary,
+with no prose or Markdown fence: {"status":"campaign_complete","summary":"..."}.
+"""
+
+
+_RANKING_ONLY_ACTION_READOUT_CAMPAIGN_CLOSEOUT_INSTRUCTION = """When
+campaign_ended=true, commit the final checkpoint if it is due. The terminal held-out action packet
+is intentionally unavailable before every required checkpoint is committed. After the final
+checkpoint, call chemworld_lab.terminal_action_readout to reveal the fixed unseen candidate
+operations without outcomes. Do not submit per-candidate numeric outcome predictions. Rank all
+candidates exactly once, and commit the top-ranked candidate with
+chemworld_lab.commit_final_recommendation. Do not revise or replace the already committed final
+belief checkpoint after seeing candidates. Only after the tool confirms the commitment, return
+exactly one JSON object with status and summary, with no prose or Markdown fence:
+{"status":"campaign_complete","summary":"..."}.
+"""
+
+
+def _campaign_system_prompt(
+    *, terminal_action_readout: bool, terminal_prediction_mode: str = "full_metrics"
+) -> str:
+    if not terminal_action_readout:
+        return _CAMPAIGN_SYSTEM_PROMPT
+    if terminal_prediction_mode not in {"full_metrics", "ranking_only"}:
+        raise ValueError("unsupported terminal action prediction mode")
+    if _LEGACY_CAMPAIGN_CLOSEOUT_INSTRUCTION not in _CAMPAIGN_SYSTEM_PROMPT:
+        raise RuntimeError("campaign closeout instruction drifted")
+    return _CAMPAIGN_SYSTEM_PROMPT.replace(
+        _LEGACY_CAMPAIGN_CLOSEOUT_INSTRUCTION,
+        (
+            _RANKING_ONLY_ACTION_READOUT_CAMPAIGN_CLOSEOUT_INSTRUCTION
+            if terminal_prediction_mode == "ranking_only"
+            else _ACTION_READOUT_CAMPAIGN_CLOSEOUT_INSTRUCTION
+        ),
+    )
+
 
 class InteractiveCodexExperimentError(RuntimeError):
     """The Codex process failed before producing an executable operation."""
@@ -982,6 +1034,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         session_scope: str = "experiment",
         belief_checkpoint_contract: Mapping[str, Any] | None = None,
         initial_world_model: Mapping[str, Any] | None = None,
+        terminal_action_readout_contract: Mapping[str, Any] | None = None,
     ) -> None:
         if not model:
             raise ValueError(f"unsupported Codex model: {model}")
@@ -1027,6 +1080,8 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             raise ValueError("campaign scope requires a belief checkpoint contract")
         if session_scope == "experiment" and belief_checkpoint_contract is not None:
             raise ValueError("belief checkpoint contract requires campaign scope")
+        if session_scope == "experiment" and terminal_action_readout_contract is not None:
+            raise ValueError("terminal action readout contract requires campaign scope")
         self._process_factory: ProcessFactory
         self._uses_default_process_factory = process_factory is None
         if process_factory is None:
@@ -1113,6 +1168,11 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self.initial_world_model = (
             deepcopy(dict(initial_world_model)) if initial_world_model is not None else None
         )
+        self.terminal_action_readout_contract = (
+            deepcopy(dict(terminal_action_readout_contract))
+            if terminal_action_readout_contract is not None
+            else None
+        )
         self.workspace = ExperimentCodexWorkspace(
             workspace,
             max_tool_output_bytes=max_tool_output_bytes,
@@ -1122,6 +1182,35 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._mcp_server_path = Path(__file__).with_name("experiment_codex_mcp.py").resolve()
         self._source_project_root = Path(__file__).resolve().parents[3]
         self._mcp_server_sha256 = _file_sha256(self._mcp_server_path)
+
+        # Keep post-startup failure accounting total.  A provider/process failure can occur
+        # before BaseAgent.reset() is reached; the runner still needs to emit a retained,
+        # machine-readable failure record rather than raising while collecting receipts.
+        self._session = None
+        self._sessions_started = 0
+        self._sessions_completed = 0
+        self._all_session_usage_complete = False
+        self._all_session_usage_observed = False
+        self._unattributed_pre_action_process_attempt_count = 0
+        self._pre_action_restarts = 0
+        self._accepted_turn_continuations = 0
+        self._provider_process_attempt_count = 0
+        self._logical_codex_turn_count = 0
+        self._session_receipts = []
+        self._cumulative_usage = _empty_usage()
+        self._completed_session_elapsed_s = 0.0
+        self._recovered_mcp_tool_failure_count = 0
+        self._maximum_consecutive_mcp_tool_failure_count = 0
+        self._maximum_consecutive_mcp_tool_failure_episode_count = 0
+        self._mcp_tool_failure_counts_by_category = _empty_mcp_tool_failure_counts()
+        self._maximum_consecutive_mcp_tool_failure_counts_by_category = (
+            _empty_mcp_tool_failure_counts()
+        )
+        self._mcp_tool_failure_episode_counts_by_category = _empty_mcp_tool_failure_counts()
+        self._maximum_consecutive_mcp_tool_failure_episode_counts_by_category = (
+            _empty_mcp_tool_failure_counts()
+        )
+        self._provider_error_event_count = 0
 
     def _verify_experiment_tool(self) -> None:
         """Fail closed if either active MCP source or legacy fallback changes."""
@@ -1145,6 +1234,13 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         self._belief_checkpoint_manifest = (
             self.workspace.publish_belief_checkpoint_contract(self.belief_checkpoint_contract or {})
             if self.session_scope == "campaign"
+            else None
+        )
+        self._terminal_action_readout_manifest = (
+            self.workspace.publish_terminal_action_readout_contract(
+                self.terminal_action_readout_contract
+            )
+            if self.terminal_action_readout_contract is not None
             else None
         )
         self._session: dict[str, Any] | None = None
@@ -1529,6 +1625,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
                 ),
                 "task_contract_reference": deepcopy(self._task_contract_manifest),
                 "belief_checkpoint_contract_reference": deepcopy(self._belief_checkpoint_manifest),
+                "terminal_action_readout_contract_reference": deepcopy(
+                    self._terminal_action_readout_manifest
+                ),
                 "workspace": self.workspace.manifest(),
                 "usage_accounting_granularity": (
                     "complete_codex_campaign_turn"
@@ -1916,6 +2015,9 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             expected_step=1,
             response_timeout_s=self.request_timeout_s,
             session_scope=self.session_scope,
+            terminal_action_readout_required=(
+                self.terminal_action_readout_contract is not None
+            ),
         )
         temporary = tempfile.TemporaryDirectory(prefix="chemworld-interactive-codex-")
         self._session_temp_directories.append(temporary)
@@ -1923,7 +2025,18 @@ class InteractiveCodexExperimentAgent(BaseAgent):
         instructions_path = temp_root / "instructions.md"
         schema_path = temp_root / "final-schema.json"
         instructions_path.write_text(
-            _CAMPAIGN_SYSTEM_PROMPT if self.session_scope == "campaign" else _SYSTEM_PROMPT,
+            _campaign_system_prompt(
+                terminal_action_readout=(
+                    self.terminal_action_readout_contract is not None
+                ),
+                terminal_prediction_mode=str(
+                    (self.terminal_action_readout_contract or {}).get(
+                        "prediction_mode", "full_metrics"
+                    )
+                ),
+            )
+            if self.session_scope == "campaign"
+            else _SYSTEM_PROMPT,
             encoding="utf-8",
         )
         schema_path.write_text(
@@ -1943,6 +2056,7 @@ class InteractiveCodexExperimentAgent(BaseAgent):
             material_manifest=self._material_manifest,
             session_scope=self.session_scope,
             belief_checkpoint_manifest=self._belief_checkpoint_manifest,
+            terminal_action_readout_manifest=self._terminal_action_readout_manifest,
         )
         if len(prompt.encode("utf-8")) > self.max_initial_prompt_bytes:
             raise InteractiveCodexExperimentError(
@@ -3044,6 +3158,7 @@ def _initial_prompt(
     material_manifest: Mapping[str, Any],
     session_scope: str = "experiment",
     belief_checkpoint_manifest: Mapping[str, Any] | None = None,
+    terminal_action_readout_manifest: Mapping[str, Any] | None = None,
 ) -> str:
     campaign = session_scope == "campaign"
     recipe_coverage_contract = _participant_recipe_coverage_contract(task_contract)
@@ -3089,6 +3204,19 @@ def _initial_prompt(
                 ],
             }
             if campaign
+            else None
+        ),
+        "terminal_action_readout": (
+            {
+                "required": True,
+                "contents_in_prompt": False,
+                **to_builtin(dict(terminal_action_readout_manifest or {})),
+                "reveal_gate": "campaign_terminal_and_all_belief_checkpoints_committed",
+                "reveal_with": "chemworld_lab.terminal_action_readout",
+                "outcomes_revealed": False,
+                "participant_must_rank_all_candidates": True,
+            }
+            if terminal_action_readout_manifest is not None
             else None
         ),
         "initial_public_state": to_builtin(dict(current_packet)),
