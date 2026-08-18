@@ -547,7 +547,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     )
     panel_label(ax_a, "a", x=-0.018)
 
-    ax_b.set_title("Study A: sparse locus-specific blocks", loc="left", fontweight="bold", pad=5)
+    ax_b.set_title("Prospective search blocks", loc="left", fontweight="bold", pad=5)
     block_specs = [
         ("Entity", "Entity / ontology", "5 tasks × 5 worlds", "8 experiments", COLORS["blue"]),
         ("Parametric", "Parameters / dynamics", "2 tasks × 5 worlds", "10 experiments", COLORS["aligned"]),
@@ -571,17 +571,17 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         ax_b.text(0.25, y - 0.038, f"{coverage} · {campaign}", ha="left", va="center", fontsize=6.0, color=COLORS["muted"])
         for arm_index, arm_color in enumerate((COLORS["opaque"], COLORS["aligned"], COLORS["misindexed"])):
             ax_b.add_patch(Circle((0.78 + arm_index * 0.075, y), 0.026, facecolor=arm_color, edgecolor="white", linewidth=0.5))
-    ax_b.text(0.855, 0.93, "opaque · aligned · wrong", ha="center", fontsize=6.2, color=COLORS["muted"])
+    ax_b.text(0.855, 0.93, "opaque · aligned · misspecified", ha="center", fontsize=5.8, color=COLORS["muted"])
     ax_b.text(0.50, 0.08, "Observation-model extensions require separate validation", ha="center", fontsize=5.9, color=COLORS["muted"])
     panel_label(ax_b, "b", x=-0.10)
 
     ax_c.set_title("Evidence partitions", loc="left", fontweight="bold", pad=5)
     evidence_boxes = [
-        (0.03, 0.73, "Study A\nfree discovery", COLORS["teal_light"], COLORS["aligned"]),
-        (0.63, 0.73, "Study B\nmatched evidence", COLORS["red_light"], COLORS["red"]),
-        (0.33, 0.47, "Study C\nlaw + action", COLORS["blue_light"], COLORS["blue"]),
-        (0.03, 0.20, "Private\nreplication", COLORS["violet_light"], COLORS["violet"]),
-        (0.63, 0.20, "Study D\nartifact portability", COLORS["orange_light"], COLORS["misindexed"]),
+        (0.03, 0.73, "Prospective\nsearch", COLORS["teal_light"], COLORS["aligned"]),
+        (0.63, 0.73, "Matched\nevidence", COLORS["red_light"], COLORS["red"]),
+        (0.33, 0.47, "Executable law\nand action", COLORS["blue_light"], COLORS["blue"]),
+        (0.03, 0.20, "Future within-family\nreplication", COLORS["violet_light"], COLORS["violet"]),
+        (0.63, 0.20, "Future context-reset\nportability", COLORS["orange_light"], COLORS["misindexed"]),
     ]
     for x, y, label, face, edge in evidence_boxes:
         width = 0.34
@@ -598,7 +598,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         ("Entity prospective", "25 · 75 · 600", COLORS["blue"]),
         ("Parametric", "10 · 30 · 300", COLORS["aligned"]),
         ("Structural", "10 · 30 · 360", COLORS["violet"]),
-        ("Entity private", "25 · 75 · 600", COLORS["misindexed"]),
+        ("Future private", "25 · 75 · 600", COLORS["misindexed"]),
     ]
     for index, (label, value, color) in enumerate(denominator_rows):
         y = 0.80 - index * 0.19
@@ -1099,7 +1099,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
             for seed in range(5):
                 y = center + float(seed_offsets[seed])
                 y_ticks.append(y)
-                y_labels.append(f"{ROW_TASK_LABEL[task]} s{seed}")
+                y_labels.append(f"{ROW_TASK_LABEL[task]} world {seed + 1}")
                 for arm in ARM_ORDER:
                     row = row_lookup.get((task, seed, arm))
                     value = None if row is None else row.get(metric)
@@ -1177,10 +1177,10 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         "adequate_law__correct_action",
     ]
     category_labels = [
-        "Inadequate law\n+ wrong action",
-        "Inadequate law\n+ correct action",
-        "Adequate law\n+ wrong action",
-        "Adequate law\n+ correct action",
+        "Inadequate\nlaw + wrong\naction",
+        "Inadequate\nlaw + correct\naction",
+        "Adequate\nlaw + wrong\naction",
+        "Adequate\nlaw + correct\naction",
     ]
     category_colors = [COLORS["red"], COLORS["orange_light"], COLORS["misindexed"], COLORS["aligned"]]
     counts = [sum(row["mechanism_action_category"] == category for row in eligible) for category in category_order]
@@ -1188,6 +1188,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     for bar, count in zip(bars, counts):
         ax_c.text(bar.get_x() + bar.get_width() / 2, count + 0.8, str(count), ha="center", va="bottom", fontsize=8, fontweight="bold")
     ax_c.set_xticks(np.arange(4), category_labels)
+    ax_c.tick_params(axis="x", labelsize=5.0)
     ax_c.set_ylim(0, max(counts) + 8)
     ax_c.set_ylabel("Eligible cells (n=42)")
     ax_c.set_title("C  Law adequacy did not guarantee\naction correctness", loc="left", fontweight="bold", pad=6)
@@ -1215,7 +1216,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     panel_label(ax_d, "d", x=-0.11)
 
     fig.suptitle(
-        "W2-50 formal open-action matrix: complete plans still do not close law-to-action transfer",
+        "Formal open-action matrix: complete plans still do not close law-to-action transfer",
         x=0.09,
         y=0.975,
         ha="left",
@@ -1771,9 +1772,8 @@ def main() -> int:
         "interpretation_limits": [
             "Figure 1 shows the layered initial-world-model concept; Figure 2 shows the frozen entity/ontology confirmatory core and separated study denominators, not participant outcomes.",
             "Structural, parametric and observation-model interventions remain registered extensions with no participant outcomes in this figure package.",
-            "Figure 3 contains development-only provider-isolated descriptive evidence.",
-            "Figure 4 contains DeepSeek development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
-            "Figure 6 contains the W2-50 multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
+            "Figures 3 and 4 contain supplementary development-only descriptive evidence.",
+            "Figure 6 contains the formal multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
             "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
             "No arm-level formal inference, law-discovery sufficiency claim, transfer claim or cross-provider capability ranking is supported.",
         ],

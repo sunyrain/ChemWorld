@@ -643,7 +643,7 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-01–06 | DONE | scope、questions、cohort、estimands、participant contract |
 | W2-07–11 | REOPENED | 旧 4-experiment resource/design freeze 被新矩阵替代，需在 W2-25–27 后重新关闭 |
 | W2-12–14 | PUBLIC EVALUATOR COMPLETE / PRIVATE DEFERRED | DeepSeek public participant 与 current-composite evaluator 终态；A-E private 延期，需用户另行授权 |
-| W2-15 | CURRENT PUBLIC + MATCHED-EVIDENCE ANALYSIS COMPLETE / PROGRAMME EXPANSION PENDING | Paper 2 全结果索引、current figures、agent-behavior、recovered evaluator、删失敏感性和 A-P/B2 matched evidence 已整合；Study D、private 与 cross-provider 为独立下一阶段决策 |
+| W2-15 | CURRENT PUBLIC + MATCHED-EVIDENCE ANALYSIS COMPLETE / PROGRAMME EXPANSION PENDING | Paper 2 已按“先验—证据修正—未见行动”三条主问题重构；prospective cohort、有效 matched-evidence 和 formal open-action 保留在主文，exploratory/pilot/prototype/repair/运行计数下沉补充材料；正文已清理服务名称、运行代号和接口侧细节。Study D、private 与 cross-provider 为独立下一阶段决策 |
 | W2-17–18 | DOING | non-entity qualification；转由 W2-21–24 管理 |
 | W2-19 | TERMINAL / THREE-LAYER MECHANISM CLOSURE | 当前有效 matched-evidence 30 sessions terminal；A-P 支持 acquisition component，A-S B2 为 mixed prediction signal + unrecovered exact law；二元 C3 强主张不支持，不再追加同类 block |
 | W2-20 | CONDITIONAL | artifact-only transfer D |

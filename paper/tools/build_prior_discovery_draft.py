@@ -23,7 +23,7 @@ PUBLIC_C2_FIGURE = ROOT / (
     "workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/"
     "current/deepseek_c2_prediction_law_action.pdf"
 )
-PUBLIC_C2_FIGURE_BUILD_NAME = "figure-5-public-c2-capability-chain.pdf"
+PUBLIC_C2_FIGURE_BUILD_NAME = "figure-3-capability-chain.pdf"
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-draft"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
@@ -262,13 +262,12 @@ def build() -> dict[str, Any]:
         "interpretation_limits": [
             "Figures 1 and 2 describe the frozen design.",
             (
-                "Figure 3 and its paired endpoint/warning panels are development-only and "
-                "retain the common three-task provider-separated source."
+                "Figure 3 reports completed prospective and matched-evidence outcomes; the "
+                "earlier exploratory endpoint and warning panels remain supplementary."
             ),
             (
-                "Figure 4 is a post-hoc zero-provider evaluator confirmation of the "
-                "retained five-task DeepSeek development matrix; it is descriptive and "
-                "not the public formal result."
+                "Figure 4 reports the completed formal multi-task open-action assay; its "
+                "three retained crystallization failures remain in the scheduled denominator."
             ),
             (
                 "Partition discovery and safety-constrained reaction include immutable "
@@ -283,15 +282,13 @@ def build() -> dict[str, Any]:
                 "claim."
             ),
             (
-                "Public DeepSeek participant, evaluator and matched-evidence results "
-                "are collected; "
+                "The public participant, evaluator and matched-evidence results are collected; "
                 "private confirmation remains uncollected."
             ),
             (
-                "The five-world longitudinal open-action matrix is development evidence: "
-                "the earlier W2-48 block remains separate; the current W2-50 matrix has "
-                "45 scheduled cells, 42 eligible action readouts and three retained "
-                "crystallization failures. Arm-level effects are not claimed."
+                "The five-world longitudinal open-action matrix contains 45 scheduled cells, "
+                "42 eligible action readouts and three retained crystallization failures. "
+                "Arm-level effects are not claimed."
             ),
             (
                 "Electrochemical, crystallization and safety open-action interface checks "
