@@ -1,6 +1,6 @@
 # Paper 2 大故事：从实验优化到可执行科学智能
 
-更新时间：2026-08-15
+更新时间：2026-08-17
 
 本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。
 
@@ -10,11 +10,11 @@
 
 ChemWorld 将这条链拆成彼此不可替代的层级：
 
-> initial world model → evidence seeking → endpoint adaptation → counterfactual prediction → executable law → blind action → transfer
+> initial world model → evidence acquisition → endpoint adaptation → counterfactual prediction → executable law → unseen action selection → artifact portability
 
-当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。换言之，实验适应、预测学习、规律压缩和行动改进不是同一个能力，也不会自动级联。
+当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。新的五世界开放动作矩阵进一步把这一边界推进到未见行动：15 个 persistent sessions 完成 180 次自主实验后，面对结果未知但执行语义完全公开的候选 ActionPlan，0/15 选择真实 Top-1；其中两个达到 law-adequate 的 readout 仍然选错。换言之，实验适应、数值学习、结构识别、规律压缩和行动迁移不是同一个能力，也不会自动级联。
 
-这不是一个低档次的模型失败故事。它建立了一个此前常被总分掩盖的研究对象：**科学智能的转换损失与失效位置**。当前 cohort 是第一张失效地图，后续 provider、private world、主动取证和 artifact transfer 都可在同一能力链上定位，而不是继续堆叠不可解释的 leaderboard。
+这不是一个低档次的模型失败故事。它建立了一个此前常被总分掩盖的研究对象：**科学智能的转换损失与失效位置**。当前证据已经从 endpoint 一直观测到未见行动选择，形成第一张贯穿取证、预测、规律与行动的失效地图；后续 provider、private world 和 context-reset artifact portability 都可在同一能力链上定位，而不是继续堆叠不可解释的 leaderboard。
 
 ## 2. 当前第一阶段的完整证据
 
@@ -113,17 +113,49 @@ acquisition component，但方向不稳定。
 “seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与 structural law
 identification 三层分离**。
 
+### 3.5 Open action：规律形成仍不保证未见行动正确
+
+C2 的 blind replay 主要比较 final recommendation 与 participant 已经观察过的 incumbent，因此它能证明
+推荐是否可重放，却不能充分检验 agent 能否把实验知识迁移到一个新的行动集合。W2-48 为此引入纵向
+open-action assay：同一 persistent session 先自主完成 12 次实验和 `0/3/6/9/12` checkpoints，final
+checkpoint 后才看到 8 个完整公开的 ActionPlan；候选 outcome、真实排序和其他臂证据保持隐藏。Public plan、
+truth plan 与 executed plan 逐字绑定，从而排除了旧 feature-only packet 隐藏执行语义的解释。
+
+旧 W2-48 五个 fresh partition worlds 的三臂矩阵完成 `15/15` sessions、`180/180` participant
+experiments、`120/120` provider-free truth 和 `120/120` exact replay，binding 全部通过。`13/15`
+cells 满足完整资格；另外两个虽然完成 12 次实验并提交排序，但 campaign/checkpoint 完整性未通过，
+继续保留在 scheduled denominator。它是历史 development block，不与新矩阵合并。
+
+| Arm | Eligible | Mean selected rank | Mean normalized regret | Top-1 |
+|---|---:|---:|---:|---:|
+| Opaque | 4/5 | 4.25 | 0.3671 | 0/5 |
+| Aligned | 4/5 | 6.50 | 0.7658 | 0/5 |
+| Misindexed | 5/5 | 6.60 | 0.7477 | 0/5 |
+
+旧 W2-48 的 15 个 terminal readout 均未选择真实 Top-1。更新后的 W2-50 多任务五世界矩阵包含
+`45/45` cell records、`42/45` 可评分 cells、`240/240` truth 和 `240/240` exact replay；其中
+`11/42` 选择真实 Top-1。W2-50 的 mechanism–action joint outcome 为 `30/42`
+inadequate-law/wrong-action、`11/42` inadequate-law/correct-action、`1/42` adequate-law/wrong-action、
+`0/42` adequate-law/correct-action。三条结晶失败保留在 scheduled denominator；seed2/aligned repair
+只作技术敏感性结果，不替换原始 cell。
+
+W2-50 已经把 full-plan/ranking-only 接口放入 electrochemical、reaction-to-crystallization 和
+reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很明显：Top-1 分别为 4/15、3/12 和
+4/15，平均 selected rank 分别为 3.60、4.58 和 2.00。这里支持的是跨任务运行和 law-to-action
+边界，不支持 pooled prior-arm 泛化；三条结晶失败仍作为结果的一部分保留。
+
 ## 4. 第一阶段的统一结论
 
-当前 cohort 与 Study B 同时支持以下五句话：
+当前 cohort、Study B 与 open-action development 同时支持以下六句话：
 
 1. 初始世界模型会因任务和干预位置不同而改变实验起点、搜索组织和 endpoint。
 2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
 3. 这种学习没有自动形成选择性的错误先验纠正，也没有可靠压缩成高保真 executable law。
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
 5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
+6. 即使候选执行语义完整公开，较合格的规律也不保证 agent 能在未见 ActionPlan 中选出正确行动。
 
-最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动增益也可以分离。**
+最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
 
 ## 5. 更大的论文计划
 
@@ -131,17 +163,23 @@ identification 三层分离**。
 
 在 A-E、A-P、A-S 三类世界模型干预下，测量 endpoint、prediction、law 和 action 的转换损失。当前 135-session public cohort 与 current-composite evaluator 已闭环。
 
-### Phase II — Evidence seeking versus belief updating（A-P Study B + A-S B2 已终态）
+### Phase II — Evidence acquisition versus belief revision（A-P Study B + A-S B2 已终态）
 
 当前有效 block 已完成 10 clusters、30 fresh sessions。A-P 支持 evidence-acquisition component；A-S B2 得到
 mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主张不支持，Phase II 以三层机制图谱
 终态收束，不再追加同类 B2 追求单一标签。
 
-### Phase III — Law portability and compositional transfer（Study D，未启动）
+### Phase III — From recovered law to unseen action（open-action development 已终态）
+
+W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records，并在 final checkpoint 后揭示 8 个
+完整 ActionPlan。42 个可评分 readout 中有 11 个 Top-1；唯一 adequate-law cell 仍然选错 action，
+因此 Phase III 不是缺失实验，而是当前新的转换损失结果：从规律到未见行动的迁移尚未闭合。
+
+### Phase IV — Artifact portability and compositional transfer（Study D，未启动）
 
 将 agent 生成的 artifact 在 context reset 后交给新 session，测试它能否改善 target prediction、law 和 action。当前 law fidelity 结果意味着 D 不能默认成功；未来可以比较原始 typed law、结构化 evidence bundle 和更高保真 artifact。
 
-### Phase IV — Generality（需用户另行授权）
+### Phase V — Generality（需用户另行授权）
 
 - A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
 - Cross-provider：Qwen、Kimi、WellAU 等进入同一 frozen harness，检验失效位置是 agent-system 特异还是跨模型稳定。
@@ -161,7 +199,9 @@ mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
 | 结论跨 provider 泛化 | 未测试 |
-| 规律可以 transfer | 未测试 |
+| Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
+| Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
+| 规律 artifact 可在 context reset 后 portability/transfer | 未测试 |
 
 ## 7. 主文叙事与图表
 
@@ -170,13 +210,17 @@ mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主
 3. **Figure 3 — Endpoint archetypes**：持续优势、head-start attenuation、structured scaffold。
 4. **Figure 4 — Agent work**：实验序列表、measurement、recipe diversity 和 search timing。
 5. **Figure 5 — Prediction, law and action dissociation**：45 matched worlds、135 laws、121 blind-evaluable cells 的 current-composite 结果。
-6. **Figure 6 — Matched-evidence mechanism localization**：A-P 参数纠错、A-S B2 world-level gain 与 0/5 exact law recovery。
-7. **Figure 7 — Failure anatomy and next experiments**：seeking、updating、compression、action、transfer 的定位框架。
+6. **Matched-evidence companion analysis**：A-P 参数纠错、A-S B2 world-level gain 与 0/5 exact law recovery；当前作为 Figure 5 的文字/表格伴随分析。
+7. **Figure 6 — Multi-task open-action transfer**：W2-50 的 rank、regret、law–action joint categories 与任务异质性；完整 ActionPlan binding 由正文说明。
+8. **Figure 7 — Failure anatomy and next experiments**：暂不生成新图，先以表格保留 incumbent retrieval 与工具失败边界。
 
 ## 8. 现在是否可以说“预测任务完成”
 
 可以精确地说：**当前 DeepSeek public cohort 的 prediction 数据采集、provider-free truth、675 个 checkpoint scoring、注册 selective-correction decision、135 个 law evaluation 和 726 次 blind replay 已全部完成。**
 
+还可以进一步说：**当前 W2-50 多任务五世界 open-action 已完成 45/45 cell records、42/45 可评分
+cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立为独立失效层。**
+
 不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、
-Study D 的 artifact transfer，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段科学问题，
-不再是 current-composite evaluator 或已完成 Study B block 的遗留门禁。
+Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
+科学问题，不再是 current-composite evaluator、Study B 或 open-action development 的遗留门禁。

@@ -1,6 +1,6 @@
 # Work II TODO — Experimental Intelligence
 
-最后更新：2026-08-15
+最后更新：2026-08-17
 
 ## 0. 已冻结的执行理念：开发优先、最后一次冻结
 
@@ -76,6 +76,46 @@ operations、`2/2` session exact replay，0 provider/platform failures。两个�
 conversion/selectivity 纯物理 gaps 仅 `0.01026/0.01226/0.00899`，分别为 gate 的
 `0.205x/0.245x/0.167x`，0/16 超门。因此保留“闭环轨迹可显著分岔”的观察，但不声称真实 provider 已使
 固定配方机制差超过 gate，不推翻 W2-33 科学拒绝。
+
+W2-40 原 full-32-prediction 纵向方案从未执行，现已归档并移除独立 launcher。它按隐藏真实名次从 128-grid
+抽取候选，同时把机制测量和综合决策捆绑在 32 项 terminal prediction 中；不再是当前设计入口。其候选网格
+配置仅因 W2-43 历史 canary 的可解释性保留，并显式标为 historical input。
+
+W2-41 保留为 terminal schema 历史诊断：`6/6` retained sessions、`4/6` completed；进入 terminal 的样本中
+full-32 相对 ranking-only 增加约 `35,164 vs 2,368` output tokens，证明完整数值表操作负担过高，但不单独
+估计 action quality。
+
+W2-42 保留为 fixed-context 历史诊断：`6/6` records、`4/6` completed；所有完成样本即使获得正确
+`FAMILY_B_POWER / exponent=1.75` law，仍选择真实第 5 名，平均 normalized regret `0.5418`。它证明旧 packet
+不是单机制可识别动作题，但不否定现实多维综合决策。
+
+W2-43 是当前有效的真实纵向 canary：`3/3` same-thread sessions、`36/36` autonomous experiments、
+`15/15` checkpoints、`3/3` ranking-only terminal readouts，0 collisions/provider/platform failures。三臂选择
+真实第 `8/3/1` 名，说明单一 world 同时混合探索策略、直接经验和局部外推；它验证接口和行为可观测性，
+不支持 arm-level 结论。
+
+W2-44–W2-46 strict exponent-sensitive matched-action 支线终态：合计 `800/800` truth 与 exact replay、
+0 failures、0 provider calls；修正版仍仅 `2/20` contrast×world、`0/5` rosters 通过。负结果、配置和 note
+保留，独立 launchers、专用实现和专属 tests 已退役；不再恢复近似 crossover 主路径。
+
+W2-47 已归档为 **HISTORICAL / PROTOCOL-DIAGNOSTIC ONLY**：单 world 三臂 development run 完成
+`36/36` participant experiments 与 `24/24` provider-free truth/replay，但 terminal packet 只公开
+feature values，未公开完整 executable action plan；因此不作为 action-quality 证据。
+
+W2-48 五世界开放动作 development 矩阵已终态：`15/15` persistent sessions、`180/180` 自主实验、
+`120/120` provider-free truth 与 `120/120` exact replay，public/truth plan binding 通过；`13/15` cells
+eligible，2 个 campaign/checkpoint 不完整单元保留在分母。`0/15` 选择真实 Top-1；opaque/aligned/
+misindexed 的 eligible mean rank 为 `4.25/6.50/6.60`，mean normalized regret 为
+`0.3671/0.7658/0.7477`。2 个 terminal readout 为 adequate-law/wrong-action，13 个为
+inadequate-law/wrong-action。该结果验证完整 ActionPlan 纵向协议并暴露 action-transfer 缺口，但因属
+development 且只有 3 个完整三臂 clusters，不作 arm-level formal claim，也不为追求完整率补跑。
+
+W2-49 多任务 open-action development 资格已完成当前收束。资源契约按 pilot 已观察到的 stock/time
+失败类别冻结修正并从首 arm 重跑后，electrochemical 与 reaction-to-crystallization 最新 block 各为
+`3/3` eligible、`36/36` experiments、`16/16` truth 与 replay；原 pilot 中 reaction-safety-constrained
+为 `3/3` eligible、`36/36` experiments、`16/16` truth 与 replay。三个额外任务的最新未污染 blocks
+合计 `9/9` eligible、`108/108` experiments，证明 full-plan/ranking-only harness 可跨任务运行；均为
+单世界 development evidence，不作 prior-arm 泛化。
 
 2026-08-12 平台/设计收束快照：当前正式预检继续诚实锁定为 `75` cells、`25` clusters、`600`
 experiments，`formal_execution_allowed=false`，并显式保留 `11` 个未满足门禁。C2 的 outcome-blind task
@@ -616,6 +656,17 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-27 | TERMINAL / METHOD QUALIFICATION PASSED | current WellAU 三臂均 8/8 terminal、qualification passed、exact replay 48 steps/arm 且 0 mismatches；receipt validator 0 errors。仅为 development method qualification，formal execution 仍未授权，W2-26 仍不完整 |
 | W2-38 | READY/BLOCKED | A-P 两项独立 terminal D1 均按最小未暴露 Q2-passed seed 选择 seed 2；静态三臂 10-experiment 配置 ready，provider/R5 未授权 |
 | W2-39 | TERMINAL / PLATFORM REQUALIFICATION PASSED | A-P seed-2 DeepSeek→WellAU 四块已在共享执行语义修复后从首 cell 完整重跑：`12/12` cells terminal、`94/120` experiments、`4/12` qualification completed、`9/12` 达到 10/10、全部 `11/11` 个有 committed operations 的 cells exact replay；0 provider errors、0 missing/invalid store、0 unclassified MCP failures。平台门禁通过；删失非随机，故不作 provider/model/arm 科学比较，不替代 W2-26/W2-27，也不进入 R5/C2。 |
+| W2-40 | ARCHIVED / SUPERSEDED BY W2-47 | 原 5-world full-32-prediction 设计从未执行；note 已归档、launcher 已删除。旧 config 只作为 W2-43 候选网格历史输入保留，不是当前执行入口。 |
+| W2-41 | TERMINAL / DEVELOPMENT DIAGNOSTIC ONLY | terminal schema canary 保留 `6/6` sessions，完成 `4/6`；full/lean 各有 1 个 pre-reveal law-turn schema failure。已进入 terminal 的 full 相对 lean 平均增量 output tokens 为 `35,164 vs 2,368`，elapsed 为 `244.6 vs 18.8 s`；仅证明 full-32 操作负担过高，不作 action-quality 结论。 |
+| W2-42 | TERMINAL / DIAGNOSTIC; FOLLOW-UP BRANCH CLOSED | fixed correct-law terminal replay 保留 `6/6` records、完成 `4/6`；full/lean 各缺 1 个 payload，lean failure 带 provider error。全部完成样本均选择真实第 5 名，full/lean regret 同为 `0.5418`。它证明旧多维 packet 不能由 target law 单独排序，并触发 W2-44–W2-46；后续严格 partition matched-action 支线已终态拒绝。 |
+| W2-43 | TERMINAL / TRUE 12-ROUND DEVELOPMENT CANARY | 三个持久 sessions 各自主完成 `12/12` experiments 与 `5/5` checkpoints，final 后揭示候选并 ranking-only 排序；修复旧 full-metrics qualification 误分类后为 `3/3` completed uncontaminated、`36/36` participant experiments、0 collisions/failures。misindexed/aligned/opaque 分别选择真实第 `1/3/8` 名，normalized regret `0/0.3620/1.0`；三条 final-law MAE 均不合格。单一已暴露 world 仅作纵向流程和行为 canary，不作 arm-level claim；W2-41/W2-42 不回答该纵向问题。 |
+| W2-44 | TERMINAL / SCIENTIFICALLY REJECTED BEFORE PROVIDER | 固定过程 64-action pool 在 5 worlds × 2 laws 完成 `640/640` truth 与 exact replay、0 failures、0 provider；仅 1 组 contrast 满足冻结的跨-world reversal/gap，低于 4 组要求，不放宽门槛。 |
+| W2-45 | TERMINAL / ANALYTIC ROSTER REJECTED BEFORE PROVIDER | 解析 crossover 完成 `80/80` truth/replay、0 failures、0 provider；设计公式遗漏固定 `0.020 L` solvent 对总 organic volume 的贡献，4 组 contrast 均未跨 5 worlds 通过。正确 runtime truth 保留，解析 roster 被否定。 |
+| W2-46 | TERMINAL / STRICT EXPONENT-ACTION BRANCH CLOSED | 修正总 organic volume 并使用 common-random-number evaluator truth 后完成 `80/80` truth/replay、0 failures、0 provider；仅 `2/20` contrast×world 与 `0/5` world rosters 通过。当前 partition 严格 exponent→action 支线终止，不再建立同类 crossover 后继块。 |
+| W2-47 | HISTORICAL / PROTOCOL DIAGNOSTIC ONLY | 单 world 三臂 development run 已完成；旧 feature-only terminal packet 未公开完整 action plan，结果不进入 action-quality claim。原始 runs 保留，旧 note/config/launcher/materializer/tests 已归档。 |
+| W2-48 | TERMINAL / DEVELOPMENT FIVE-WORLD MATRIX | `15/15` sessions、`180/180` participant experiments、`13/15` eligible、`120/120` truth + replay、binding passed；`0/15` Top-1，2 adequate-law/wrong-action + 13 inadequate-law/wrong-action。仅 3 个完整三臂 clusters，不作 arm-level formal claim，不补跑。 |
+| W2-49 | TERMINAL / MULTI-TASK DEVELOPMENT QUALIFICATION | electrochemical、reaction-to-crystallization 与 reaction-safety 的最新未污染单世界 blocks 合计 `9/9` eligible、`108/108` participant experiments、`48/48` truth + replay；full-plan/ranking-only harness 跨任务通过，科学比较留待 fresh multi-world block。 |
+| W2-50 | TERMINAL / FRESH MULTI-WORLD OPEN ACTION AUDITED | `45/45` cell records、`15/15` clusters、`240/240` truth 与 `240/240` exact replay 完成；`42/45` cells 为 `completed_uncontaminated`，`3` 个 reaction-to-crystallization failures 保留（2 个 agent-induced resource/process exhaustion，1 个 provider/session interruption）。动作指标只使用 42 个合格 cells；不补跑、不替换、不宣称 15/15 全 cell 的 arm-level 普适结论。另完成独立 `seed2/aligned_nominal` repair：12/12 final assays，但 1 次 `stock_limit:seed_g` rejection，故仅作技术敏感性结果，不回写原始分母。审计与收束见 `reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md`。 |
 | W2-37 | DONE / BOTH CANDIDATES PASSED | restart3 从 execution 0 完成 `10,240/10,240` primary 与 `10,240/10,240` exact replay，0 physical/platform/unsafe；crystallization reversible topology 与 partition power response 均 `5/5` worlds 通过，已生成两份 locked D1 config。它们仍 `formal_result=false`、`execution_authorized=false`，不等于 participant/R5 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
@@ -659,6 +710,22 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 - Formal design（W2-25 八实验设计）：`configs/benchmark/work_ii_formal_design_v0.2.json`
 - Analysis plan（W2-25 八实验分母）：`configs/benchmark/work_ii_analysis_plan_v0.2.json`
 - W2-37 A-S five-world terminal summary：`workstreams/flagship_tasks/reports/work-ii-as-paired-law-q1-q2-five-world-20260812.json`
+- W2-48/W2-49 open-action development 收束：
+  `workstreams/flagship_tasks/reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`、
+  `workstreams/flagship_tasks/WORK_II_AS_OPEN_ACTION_DECISION_EXPERIMENT_NOTE.md`、
+  `configs/benchmark/work_ii_as_open_action_decision_v0.1.json`、
+  `workstreams/flagship_tasks/WORK_II_MULTI_TASK_OPEN_ACTION_RESOURCE_RECOVERY_V2_EXPERIMENT_NOTE.md`
+- W2-41 terminal schema development canary：
+  `workstreams/flagship_tasks/WORK_II_TERMINAL_SCHEMA_LEAN_CANARY_EXPERIMENT_NOTE.md`
+- W2-42 fixed-context terminal-only replay：
+  `workstreams/flagship_tasks/WORK_II_TERMINAL_SCHEMA_FIXED_CONTEXT_REPLAY_EXPERIMENT_NOTE.md`
+- W2-43 true twelve-round longitudinal ranking canary：
+  `workstreams/flagship_tasks/WORK_II_AS_LONGITUDINAL_RANKING_CANARY_EXPERIMENT_NOTE.md`、
+  `configs/benchmark/work_ii_as_longitudinal_ranking_canary_v0.1.json`、
+  `workstreams/flagship_tasks/reports/WORK_II_AS_LONGITUDINAL_RANKING_CANARY_ZH.md`
+- W2-40 与 W2-44–W2-46 归档入口及终态收束：
+  `workstreams/flagship_tasks/archive/longitudinal_action_design/README.md`、
+  `workstreams/flagship_tasks/reports/WORK_II_AS_LONGITUDINAL_MATCHED_ACTIONS_CLOSEOUT_ZH.md`
 - Formal preflight（当前仅 A-E 75 public cells / 600 complete experiments，execution blocked；四份
   A-P/A-S terminal receipts、A-E qualification 与 W2-26 同提交证据齐全后，确定性扩展为 C2 135 cells /
   1,260 experiments）：`workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json`

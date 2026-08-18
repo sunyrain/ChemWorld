@@ -74,6 +74,7 @@ ARM_LABELS = {
 ARM_MARKERS = {"opaque": "o", "aligned_nominal": "s", "misindexed_nominal": "^"}
 LOCI = ("A_E", "A_P", "A_S")
 LOCUS_COLORS = {"A_E": "#4C72B0", "A_P": "#2A9D8F", "A_S": "#C65D57"}
+LOCUS_LABELS = {"A_E": "Entity", "A_P": "Parametric", "A_S": "Structural"}
 TASK_LABELS = {
     "electrochemical-conversion": "Electrochemistry",
     "partition-discovery": "Partition",
@@ -234,7 +235,7 @@ def _plot_prediction(
         start = y - 0.45
         for task in TASK_ORDER[locus]:
             positions[(locus, task)] = y
-            labels.append(f"{locus}  {TASK_LABELS[task]}")
+            labels.append(f"{LOCUS_LABELS[locus]}  {TASK_LABELS[task]}")
             ticks.append(y)
             y += 1.0
         ax.axhspan(start, y - 0.55, color=LOCUS_COLORS[locus], alpha=0.045, lw=0)
@@ -300,7 +301,7 @@ def _plot_prediction(
         "Selective correction contrast, $C_{prior}$\n"
         "(misindexed improvement - aligned improvement)"
     )
-    ax.set_title("Registered selective-correction evidence across 45 matched worlds", loc="left")
+    ax.set_title("Prespecified selective-correction evidence across 45 matched worlds", loc="left")
     gate = report["prediction_correction"]["locus_results"]
     p_values = {
         locus: gate[locus]["gate"].get(
@@ -309,7 +310,7 @@ def _plot_prediction(
         )
         for locus in LOCI
     }
-    note = "  ".join(f"{locus}: p={p_values[locus]:.3f}" for locus in LOCI)
+    note = "  ".join(f"{LOCUS_LABELS[locus]}: p={p_values[locus]:.3f}" for locus in LOCI)
     ax.text(1.0, 1.02, note, transform=ax.transAxes, ha="right", va="bottom", fontsize=6)
     ax.legend(
         handles=[
@@ -377,7 +378,7 @@ def _plot_checkpoint(ax: mpl.axes.Axes, report: Mapping[str, Any]) -> None:
             color = "white" if image.norm(value) > 0.62 else "#272727"
             ax.text(column, row, f"{value:.3f}", ha="center", va="center", color=color)
     ax.set_xticks(range(len(ARMS)), [ARM_LABELS[arm] for arm in ARMS], rotation=20, ha="right")
-    ax.set_yticks(range(len(LOCI)), LOCI)
+    ax.set_yticks(range(len(LOCI)), [LOCUS_LABELS[locus] for locus in LOCI])
     ax.set_title("Prediction error reduction", loc="left", pad=8)
     ax.set_xlabel("Prior arm")
     ax.set_ylabel("Intervention locus")
@@ -417,7 +418,7 @@ def _plot_law(ax: mpl.axes.Axes, law_rows: list[dict[str, Any]]) -> None:
     padding = 0.04 * (max(values) - min(values))
     ax.set_xlim(min(values) - padding, max(values) + padding)
     ax.axvline(0.0, color="#4D4D4D", ls="--", lw=0.9)
-    ax.set_yticks(range(len(LOCI)), LOCI)
+    ax.set_yticks(range(len(LOCI)), [LOCUS_LABELS[locus] for locus in LOCI])
     ax.set_ylim(len(LOCI) - 0.55, -0.55)
     ax.set_xlabel("Law MAE - final prediction MAE")
     ax.set_title("Executable laws are often lossy", loc="left", pad=8)
@@ -485,7 +486,7 @@ def _plot_blind(ax: mpl.axes.Axes, report: Mapping[str, Any]) -> None:
                     fontsize=6,
                 )
         left += percentages
-    ax.set_yticks(y, LOCI)
+    ax.set_yticks(y, [LOCUS_LABELS[locus] for locus in LOCI])
     ax.set_xlim(0.0, 100.0)
     ax.set_xlabel("Share of blind-evaluable cells (%)")
     ax.set_title("Final actions rarely beat the incumbent", loc="left", pad=8)

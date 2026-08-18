@@ -73,9 +73,20 @@ class _Progress:
             handle.write(line)
         stage = row.get("stage")
         cell = row.get("cell_id", "-")
-        completed = row.get("completed_cells")
-        total = row.get("total_cells")
-        suffix = f" {completed}/{total}" if completed is not None and total is not None else ""
+        suffix = ""
+        for completed_key, total_key, label in (
+            ("completed_cells", "total_cells", "cells"),
+            ("completed_units", "total_units", "units"),
+            ("completed_truth_queries", "total_truth_queries", "truth"),
+            ("completed_worlds", "total_worlds", "worlds"),
+            ("completed_queries", "total_queries", "queries"),
+        ):
+            completed = row.get(completed_key)
+            total = row.get(total_key)
+            if completed is not None and total is not None:
+                suffix += f" {label}={completed}/{total}"
+        if row.get("elapsed_s") is not None:
+            suffix += f" elapsed_s={row['elapsed_s']}"
         print(f"[study-b] {stage} {cell}{suffix}", flush=True)
 
 

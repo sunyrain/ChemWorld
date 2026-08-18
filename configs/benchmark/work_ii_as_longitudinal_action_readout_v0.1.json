@@ -1,0 +1,46 @@
+{
+  "schema_version": "chemworld-work-ii-as-longitudinal-action-readout-protocol-0.1",
+  "study_id": "work-ii-as-longitudinal-action-readout-v0.1",
+  "status": "historical_candidate_grid_input_only_retired_unexecuted_design",
+  "experiment_note": "workstreams/flagship_tasks/archive/longitudinal_action_design/notes/WORK_II_AS_LONGITUDINAL_ACTION_READOUT_EXPERIMENT_NOTE.md",
+  "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+  "fresh_world_seeds": [153150025, 395988875, 302275745, 481313948, 491681886],
+  "arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "campaign_complete_experiments": 12,
+  "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+  "terminal_reveal_gate": "campaign_terminal_and_all_belief_checkpoints_committed",
+  "selection_mode": "rank_all_select_one",
+  "candidate_count": 8,
+  "candidate_pool_count": 128,
+  "action_rank_positions": [1, 18, 35, 52, 69, 86, 103, 120],
+  "minimum_action_pair_count": 4,
+  "maximum_adequate_law_normalized_mae": 0.05,
+  "metric_ids": [
+    "product_in_organic",
+    "product_in_aqueous",
+    "phase_ratio",
+    "score"
+  ],
+  "candidate_grid": {
+    "volume_configs": [
+      {"aqueous_phase_volume_L": 0.012, "extractant_volume_L": 0.018},
+      {"aqueous_phase_volume_L": 0.020, "extractant_volume_L": 0.020},
+      {"aqueous_phase_volume_L": 0.028, "extractant_volume_L": 0.014},
+      {"aqueous_phase_volume_L": 0.016, "extractant_volume_L": 0.030}
+    ],
+    "mixing_configs": [
+      {"mix_duration_s": 180.0, "settle_duration_s": 600.0, "stirring_speed_rpm": 450.0},
+      {"mix_duration_s": 480.0, "settle_duration_s": 1500.0, "stirring_speed_rpm": 950.0}
+    ]
+  },
+  "execution": {
+    "participant_session_count": 15,
+    "participant_physical_experiment_count": 180,
+    "canary_session_count": 3,
+    "max_concurrent_sessions": 3,
+    "same_thread_required": true,
+    "provider_execution_authorized": false,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}

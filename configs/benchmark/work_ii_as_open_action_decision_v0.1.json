@@ -1,0 +1,116 @@
+{
+  "schema_version": "chemworld-work-ii-as-open-action-decision-protocol-0.1",
+  "study_id": "work-ii-as-open-action-decision-v0.1",
+  "status": "development_design_provider_execution_not_authorized",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_AS_OPEN_ACTION_DECISION_EXPERIMENT_NOTE.md",
+  "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+  "candidate_packet_namespace": "work-ii-as-open-action-decision-public-plans-v0.1",
+  "supersedes": [
+    "W2-47 feature-only terminal packet",
+    "workstreams/flagship_tasks/archive/longitudinal_action_design/configs/work_ii_as_longitudinal_decision_v0.1_HISTORICAL.json"
+  ],
+  "formal_world_seeds": [395988875, 302275745, 481313948, 491681886, 846172309],
+  "formal_candidate_packet_seeds": [501, 602, 703, 804, 905],
+  "development_pilot": {
+    "world_seed": 153150025,
+    "candidate_packet_seed": 400,
+    "purpose": "same-world disclosure-only interface diagnostic",
+    "formal_denominator": false
+  },
+  "arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "campaign_complete_experiments": 12,
+  "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+  "terminal_reveal_gate": "campaign_terminal_and_all_belief_checkpoints_committed",
+  "prediction_mode": "ranking_only",
+  "selection_mode": "rank_all_select_one",
+  "candidate_count": 8,
+  "participant_workflow": {
+    "mode": "open_action_sequence",
+    "canonical_template": false,
+    "agent_may_choose_operation_order": true,
+    "agent_may_choose_intermediate_measurements": true,
+    "agent_may_choose_phase_separation": true,
+    "agent_may_choose_reagent_use": true
+  },
+  "terminal_action_disclosure": {
+    "mode": "full_public_action_plan_without_outcomes",
+    "public_fields": [
+      "query_id",
+      "initial_state_contract",
+      "ordered_operations",
+      "all_operation_parameters",
+      "measurement_positions",
+      "terminal_assay",
+      "objective",
+      "metric_ids",
+      "workflow_family",
+      "omitted_optional_operations"
+    ],
+    "hidden_fields": [
+      "candidate_outcomes",
+      "hidden_ranks",
+      "checkpoint_truth",
+      "participant_outcomes",
+      "evaluator_noise_draws"
+    ],
+    "no_implicit_defaults": true,
+    "public_plan_hash_equals_truth_plan_hash": true,
+    "truth_plan_hash_equals_executed_plan_hash": true
+  },
+  "candidate_selection": {
+    "uses_hidden_truth": false,
+    "uses_hidden_rank": false,
+    "uses_checkpoint_outcomes": false,
+    "uses_participant_outcomes": false,
+    "distinct_pair_count": 8,
+    "volume_count_per_regime": 2,
+    "mixing_count_per_regime": 4,
+    "workflow_family_counts_are_frozen_before_truth": true,
+    "rule": "public-plan-pool-sha256-permutation_then_frozen_coverage_assignment"
+  },
+  "mechanism_readout": {
+    "checkpoint_query_count_per_world": 16,
+    "metric_ids": ["product_in_organic", "product_in_aqueous", "phase_ratio", "score"],
+    "final_family_required": true,
+    "final_exponent_required_when_applicable": true,
+    "executable_law_required": true,
+    "null_family_or_exponent_is_failure": true,
+    "maximum_adequate_law_normalized_mae": 0.05
+  },
+  "analysis": {
+    "statistical_unit": "task_x_world_seed_cluster",
+    "primary_endpoint": "selected_action_plan_raw_regret",
+    "primary_paired_contrasts": [
+      "misindexed_nominal_minus_aligned_nominal",
+      "opaque_minus_aligned_nominal"
+    ],
+    "secondary_endpoints": [
+      "selected_rank",
+      "top1",
+      "normalized_regret",
+      "selected_minus_candidate_mean",
+      "complete_ranking_kendall_tau",
+      "candidate_score_range",
+      "candidate_overlap",
+      "public_plan_binding"
+    ],
+    "support_distance_association": "descriptive_only",
+    "mechanism_action_association": "descriptive_only",
+    "inference_scope": "five_cluster_direction_consistency_and_paired_descriptive_effects",
+    "strong_population_claim_allowed": false
+  },
+  "execution": {
+    "cluster_count": 5,
+    "participant_session_count": 15,
+    "participant_physical_experiment_count": 180,
+    "candidate_truth_execution_count": 40,
+    "checkpoint_truth_execution_count": 80,
+    "provider_free_truth_execution_count": 120,
+    "provider_free_exact_replay_count": 120,
+    "public_plan_binding_validation_count": 40,
+    "same_thread_required": true,
+    "provider_execution_authorized": false,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}

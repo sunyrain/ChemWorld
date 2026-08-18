@@ -1,0 +1,58 @@
+{
+  "schema_version": "chemworld-work-ii-as-study-b4-law-guided-decision-protocol-0.1",
+  "study_id": "work-ii-as-study-b4-law-guided-decision-v0.1",
+  "status": "provider_execution_authorized_after_preflight",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_AS_STUDY_B4_LAW_GUIDED_DECISION_EXPERIMENT_NOTE.md",
+  "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+  "candidate_grid_source": "configs/benchmark/work_ii_as_study_b3_identifiable_law_action_v0.1.json",
+  "fresh_public_world_seeds": [867768867, 690534015, 488627350, 368103785, 611154621],
+  "arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "evidence_query_ids": [
+    "b3-s3-e3-v3-m0",
+    "b3-s3-e3-v3-m1",
+    "b3-s2-e2-v0-m0",
+    "b3-s2-e2-v3-m1",
+    "b3-s1-e3-v3-m0",
+    "b3-s1-e3-v0-m0",
+    "b3-s3-e0-v3-m0",
+    "b3-s3-e0-v3-m1"
+  ],
+  "action_rank_positions": [1, 18, 35, 52, 69, 86, 103, 120],
+  "minimum_action_pair_count": 4,
+  "improvement_margin": 0.02,
+  "metric_ids": [
+    "product_in_organic",
+    "product_in_aqueous",
+    "phase_ratio",
+    "score"
+  ],
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "progress_interval_s": 30.0
+  },
+  "execution": {
+    "session_turns": 2,
+    "participant_physical_experiments": 0,
+    "canary_sessions": 3,
+    "formal_sessions": 15,
+    "max_concurrent_sessions": 3,
+    "progress_interval_seconds": 30,
+    "infrastructure_retry_limit": 2,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}

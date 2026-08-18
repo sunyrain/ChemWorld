@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-08-15
+更新日期：2026-08-17
 
 本文件是 Paper 2 当前唯一的结果导航入口。它不替代 raw run、机器 summary、实验 note 或冻结 analysis plan；历史报告只描述各自执行时点，不再作为当前状态入口。
 
@@ -15,6 +15,7 @@
 | Registered current-composite evaluator v0.2 recovery | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
 | 删失与资源敏感性分析 | 已完成当前 public 主分析 | 7 failed、7 right-censored 与 84 个未启动 blind 分母全部保留；另报 observed-point sensitivity |
 | Matched evidence（A-P Study B + A-S B2） | 当前有效 30 sessions 终态 | A-P 支持 evidence-seeking component；B2 给出 mixed predictive contrast，但 misindexed 0/5 恢复 1.75 law，结构识别仍是独立瓶颈 |
+| Open-action longitudinal development | 当前开发阶段终态 | A-S 五世界 `15/15` sessions、`180/180` experiments，`13/15` eligible；三项额外任务仅各自 `seed=0`，最新未污染 blocks 合计 `9/9` eligible、`108/108` experiments |
 | A-E private | 延期 | public evaluator 后仅在需要 held-out confirmation 时重新授权 |
 | 跨 provider replication | 未启动 | WellAU/Qwen/Kimi 仅在保留跨 provider 泛化主张时需要 |
 | Manuscript story | 第一阶段证据已整合 | `paper/prior_discovery_story_zh.md`；当前 cohort 被定位为大计划的首个完整能力剖面，而非投稿终点 |
@@ -30,6 +31,8 @@
 7. 固定高信息量反证可以使 A-P 错误参数方向在 5/5 worlds 被明确推翻，支持自由探索损失包含 evidence-acquisition component。
 8. A-S B2 的 phase-process evidence 使 misindexed prediction gain 平均高于 aligned（+0.0645），但仅 3/5 worlds 为正，且 0/5 恢复 exact 1.75 law。
 9. 科学纠错不能压缩为 seeking/updating 二分：evidence acquisition、numerical belief revision 与 structural law identification 是三个可分离层级。
+10. 机制形成与动作迁移也不能合并：A-S 五世界 open-action 中 `0/15` Top-1，且 2 个 adequate-law readout 仍选择错误 action。
+11. 完整公开 ActionPlan 的纵向协议已在 partition 及三个额外任务跑通，旧 feature-only packet 的动作语义缺口已关闭。
 
 当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；结果可跨 provider 泛化；private replication 已完成。
 
@@ -55,6 +58,8 @@
 | Study B A-P matched evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、0 participant experiments | 5/5 misindexed sessions 明确推翻错误电位方向；当前保留 |
 | 原 Study B A-S branch | 5 clusters、15/15 sessions | truth source 未实际应用冻结的 world intervention；保留为历史平台缺陷证据，不进入当前 claim |
 | A-S Study B2 phase-process evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | prediction primary contrast +0.0645（3/5，exact p=0.125）；misindexed 0/5 exact law recovery |
+| A-S open-action five-world development | 5 worlds、15/15 sessions、180/180 experiments、13/15 eligible、120/120 truth + replay | 完整 ActionPlan 下 `0/15` Top-1；机制 adequacy 与 action correctness 分离，不作 arm-level formal claim |
+| Multi-task open-action qualification | 三个额外任务各自仅 `seed=0`；最新未污染 blocks 合计 9/9 eligible、108/108 experiments、48/48 truth + replay | 证明同一 longitudinal/ranking-only harness 可跨电化学、结晶和反应安全运行；不是 5-seed 结果，不作 prior-arm 推断 |
 
 ## 4. DeepSeek C2 public 当前终态
 
@@ -145,6 +150,7 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 ## 8. 当前结果与图表入口
 
 - 当前 Paper 2 论文故事：`../../paper/prior_discovery_story_zh.md`
+- Open-action development 收束：`reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`
 - 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
 - A-S B2 当前机制分析：`reports/WORK_II_AS_STUDY_B2_PHASE_PROCESS_RESULTS_ZH.md`
 - A-S B2 机器结果：`reports/work-ii-as-study-b2-phase-process-results-v0.1.json`
@@ -167,7 +173,7 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束，不再需要追加同类 B2。下一步选择是：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束，不再需要追加同类 B2。后续 open-action development 又完成 A-S 五世界矩阵和三个额外任务的接口资格，进一步把 action transfer 从结构规律恢复中分离出来；它们已按 development evidence 收束，不需要为追求完整率补跑。下一步选择是：
 
 1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
 2. **Cross-provider replication。** 只有需要检验失效位置的模型普适性时，再把 Qwen、Kimi 或 WellAU 接入同一 frozen harness。

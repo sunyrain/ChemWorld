@@ -1,0 +1,73 @@
+{
+  "schema_version": "chemworld-work-ii-as-longitudinal-decision-protocol-0.1",
+  "study_id": "work-ii-as-longitudinal-decision-v0.1",
+  "status": "historical_protocol_diagnostic_only",
+  "experiment_note": "workstreams/flagship_tasks/archive/longitudinal_action_design/notes/WORK_II_AS_LONGITUDINAL_DECISION_EXPERIMENT_NOTE_W2-47_HISTORICAL.md",
+  "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+  "world_seeds": [153150025, 395988875, 302275745, 481313948, 491681886],
+  "candidate_packet_seeds": [400, 501, 602, 703, 804],
+  "candidate_packet_namespace": "work-ii-as-longitudinal-decision-public-packets-v0.1",
+  "arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "campaign_complete_experiments": 12,
+  "checkpoint_complete_experiments": [0, 3, 6, 9, 12],
+  "terminal_reveal_gate": "campaign_terminal_and_all_belief_checkpoints_committed",
+  "prediction_mode": "ranking_only",
+  "selection_mode": "rank_all_select_one",
+  "candidate_count": 8,
+  "candidate_grid": {
+    "volume_configs": [
+      {"aqueous_phase_volume_L": 0.012, "extractant_volume_L": 0.018},
+      {"aqueous_phase_volume_L": 0.020, "extractant_volume_L": 0.020},
+      {"aqueous_phase_volume_L": 0.028, "extractant_volume_L": 0.014},
+      {"aqueous_phase_volume_L": 0.016, "extractant_volume_L": 0.030}
+    ],
+    "mixing_configs": [
+      {"mix_duration_s": 180.0, "settle_duration_s": 600.0, "stirring_speed_rpm": 450.0},
+      {"mix_duration_s": 480.0, "settle_duration_s": 1500.0, "stirring_speed_rpm": 950.0}
+    ]
+  },
+  "candidate_selection": {
+    "uses_hidden_truth": false,
+    "uses_hidden_rank": false,
+    "distinct_pair_count": 8,
+    "volume_count_per_regime": 2,
+    "mixing_count_per_regime": 4,
+    "rule": "sha256_pair_permutation_then_balanced_public_axis_assignment"
+  },
+  "mechanism_readout": {
+    "checkpoint_query_count_per_world": 16,
+    "metric_ids": ["product_in_organic", "product_in_aqueous", "phase_ratio", "score"],
+    "final_family_required": true,
+    "final_exponent_required": true,
+    "executable_law_required": true,
+    "maximum_adequate_law_normalized_mae": 0.05
+  },
+  "analysis": {
+    "statistical_unit": "task_x_world_seed_cluster",
+    "primary_endpoint": "selected_action_raw_regret",
+    "primary_paired_contrasts": [
+      "misindexed_nominal_minus_aligned_nominal",
+      "opaque_minus_aligned_nominal"
+    ],
+    "candidate_overlap_policy": "retain_primary_and_label_direct_support",
+    "low_score_range_policy": "retain_and_report",
+    "inference_scope": "five_cluster_direction_consistency_and_paired_descriptive_effects",
+    "strong_population_claim_allowed": false,
+    "mechanism_action_association": "descriptive_only",
+    "exploration_action_association": "descriptive_only"
+  },
+  "execution": {
+    "cluster_count": 5,
+    "participant_session_count": 15,
+    "participant_physical_experiment_count": 180,
+    "candidate_truth_execution_count": 40,
+    "checkpoint_truth_execution_count": 80,
+    "provider_free_truth_execution_count": 120,
+    "provider_free_exact_replay_count": 120,
+    "max_concurrent_sessions": 3,
+    "same_thread_required": true,
+    "provider_execution_authorized": false,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}

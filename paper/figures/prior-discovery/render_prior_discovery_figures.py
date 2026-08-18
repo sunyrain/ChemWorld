@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the first four figures for the prior-correction manuscript."""
+"""Render the prior-correction manuscript figures."""
 
 from __future__ import annotations
 
@@ -85,6 +85,12 @@ ARM_COLOR = {
     "opaque": COLORS["opaque"],
     "aligned_nominal": COLORS["aligned"],
     "misindexed_nominal": COLORS["misindexed"],
+}
+ROW_TASK_LABEL = {
+    "electrochemical-conversion": "Electro",
+    "reaction-to-crystallization": "Crystal",
+    "reaction-to-distillation": "Distill",
+    "reaction-safety-constrained": "Safety",
 }
 
 
@@ -322,7 +328,7 @@ def render_figure_1() -> list[Path]:
     ax_a.text(
         0.50,
         0.045,
-        "One preregistered component of M0 changes; W and the public contract stay fixed",
+        "One prespecified component of M0 changes; W and the public contract stay fixed",
         ha="center",
         va="center",
         fontsize=6.8,
@@ -370,7 +376,7 @@ def render_figure_1() -> list[Path]:
     ax_b.text(
         0.50,
         0.07,
-        "Pattern-owned campaign: A-E 8 · A-P 10 · A-S 12 complete experiments",
+        "Intervention-specific campaign: entity 8 · parametric 10 · structural 12 experiments",
         ha="center",
         fontsize=6.6,
         color=COLORS["muted"],
@@ -504,7 +510,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     for ax in (ax_a, ax_b, ax_c, ax_d):
         setup_schematic_ax(ax)
 
-    ax_a.set_title("A-E: five task families form the entity / ontology backbone", loc="left", fontweight="bold", pad=5)
+    ax_a.set_title("Five task families form the entity / ontology backbone", loc="left", fontweight="bold", pad=5)
     task_colors = [COLORS["blue"], COLORS["aligned"], COLORS["misindexed"], COLORS["violet"], COLORS["red"]]
     short_names = ["Electrochemical", "Crystallization", "Distillation", "Partition", "Safety-constrained"]
     mechanisms = [
@@ -534,7 +540,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     ax_a.text(
         0.50,
         0.02,
-        "Development, public-formal and private-confirmation identities are disjoint",
+        "Exploratory, prospective and private-confirmation worlds are disjoint",
         ha="center",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -543,9 +549,9 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
 
     ax_b.set_title("Study A: sparse locus-specific blocks", loc="left", fontweight="bold", pad=5)
     block_specs = [
-        ("A-E", "Entity / ontology", "5 tasks × 5 worlds", "8 experiments", COLORS["blue"]),
-        ("A-P", "Parameters / dynamics", "2 tasks × 5 worlds", "10 experiments", COLORS["aligned"]),
-        ("A-S", "Structure / mechanism", "2 tasks × 5 worlds", "12 experiments", COLORS["violet"]),
+        ("Entity", "Entity / ontology", "5 tasks × 5 worlds", "8 experiments", COLORS["blue"]),
+        ("Parametric", "Parameters / dynamics", "2 tasks × 5 worlds", "10 experiments", COLORS["aligned"]),
+        ("Structural", "Structure / mechanism", "2 tasks × 5 worlds", "12 experiments", COLORS["violet"]),
     ]
     for index, (block, locus, coverage, campaign, color) in enumerate(block_specs):
         y = 0.74 - index * 0.25
@@ -558,7 +564,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
             block,
             facecolor="#F7F9FA",
             edgecolor=color,
-            fontsize=7.0,
+            fontsize=5.9,
             fontweight="bold",
         )
         ax_b.text(0.25, y + 0.035, locus, ha="left", va="center", fontsize=6.5, fontweight="bold", color=COLORS["ink"])
@@ -566,7 +572,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         for arm_index, arm_color in enumerate((COLORS["opaque"], COLORS["aligned"], COLORS["misindexed"])):
             ax_b.add_patch(Circle((0.78 + arm_index * 0.075, y), 0.026, facecolor=arm_color, edgecolor="white", linewidth=0.5))
     ax_b.text(0.855, 0.93, "opaque · aligned · wrong", ha="center", fontsize=6.2, color=COLORS["muted"])
-    ax_b.text(0.50, 0.08, "A-O requires a separate admission; scope is tested only after context reset", ha="center", fontsize=6.3, color=COLORS["muted"])
+    ax_b.text(0.50, 0.08, "Observation-model extensions require separate validation", ha="center", fontsize=5.9, color=COLORS["muted"])
     panel_label(ax_b, "b", x=-0.10)
 
     ax_c.set_title("Evidence partitions", loc="left", fontweight="bold", pad=5)
@@ -575,7 +581,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         (0.63, 0.73, "Study B\nmatched evidence", COLORS["red_light"], COLORS["red"]),
         (0.33, 0.47, "Study C\nlaw + action", COLORS["blue_light"], COLORS["blue"]),
         (0.03, 0.20, "Private\nreplication", COLORS["violet_light"], COLORS["violet"]),
-        (0.63, 0.20, "Study D\nartifact transfer", COLORS["orange_light"], COLORS["misindexed"]),
+        (0.63, 0.20, "Study D\nartifact portability", COLORS["orange_light"], COLORS["misindexed"]),
     ]
     for x, y, label, face, edge in evidence_boxes:
         width = 0.34
@@ -584,15 +590,15 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     arrow(ax_c, (0.80, 0.71), (0.57, 0.64), color=COLORS["red"], connectionstyle="arc3,rad=0.1")
     arrow(ax_c, (0.43, 0.46), (0.20, 0.37), color=COLORS["violet"], connectionstyle="arc3,rad=0.1")
     arrow(ax_c, (0.57, 0.46), (0.80, 0.37), color=COLORS["misindexed"], connectionstyle="arc3,rad=-0.1")
-    ax_c.text(0.50, 0.10, "No evaluator feedback enters the participant session", ha="center", fontsize=6.4, color=COLORS["muted"])
+    ax_c.text(0.50, 0.10, "Evaluator outcomes remain hidden during each session", ha="center", fontsize=6.2, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.10)
 
     ax_d.set_title("Planned block denominators", loc="left", fontweight="bold", pad=5)
     denominator_rows = [
-        ("A-E public", "25 · 75 · 600", COLORS["blue"]),
-        ("A-P", "10 · 30 · 300", COLORS["aligned"]),
-        ("A-S", "10 · 30 · 360", COLORS["violet"]),
-        ("A-E private", "25 · 75 · 600", COLORS["misindexed"]),
+        ("Entity prospective", "25 · 75 · 600", COLORS["blue"]),
+        ("Parametric", "10 · 30 · 300", COLORS["aligned"]),
+        ("Structural", "10 · 30 · 360", COLORS["violet"]),
+        ("Entity private", "25 · 75 · 600", COLORS["misindexed"]),
     ]
     for index, (label, value, color) in enumerate(denominator_rows):
         y = 0.80 - index * 0.19
@@ -600,7 +606,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         ax_d.text(0.11, y, label, ha="left", va="center", fontsize=6.3, color=COLORS["ink"], fontweight="bold")
         ax_d.text(0.91, y, value, ha="right", va="center", fontsize=6.2, color=color, fontweight="bold")
     ax_d.text(0.07, 0.08, "clusters · sessions · experiments", ha="left", fontsize=6.1, color=COLORS["muted"])
-    ax_d.text(0.07, 0.035, "Final evaluator counts follow the resource/design freeze", ha="left", fontsize=5.8, color=COLORS["muted"])
+    ax_d.text(0.07, 0.035, "Evaluator counts follow the prespecified design", ha="left", fontsize=5.8, color=COLORS["muted"])
     panel_label(ax_d, "d", x=-0.10)
 
     fig.suptitle(
@@ -615,7 +621,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     fig.text(
         0.045,
         0.018,
-        "World programmability defines the intervention space; qualification, matched arms and separate denominators preserve causal interpretability.",
+        "World programmability defines the intervention space; validation, matched arms and separate denominators preserve causal interpretability.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -642,7 +648,7 @@ def normalize_development_rows() -> tuple[list[dict[str, Any]], list[dict[str, A
     warning_rows: list[dict[str, Any]] = []
     for provider_key, endpoint_name, warning_name in (
         ("WellAU/Codex", "wellau_endpoint_contrasts.csv", "wellau_misindex_warning_rates.csv"),
-        ("DeepSeek recovery", "deepseek_recovery_endpoint_contrasts.csv", "deepseek_recovery_misindex_warning_rates.csv"),
+        ("DeepSeek/Codex", "deepseek_recovery_endpoint_contrasts.csv", "deepseek_recovery_misindex_warning_rates.csv"),
     ):
         for row in read_csv(figure_source / endpoint_name):
             endpoint_rows.append(
@@ -684,64 +690,138 @@ def style_quant_axis(ax: mpl.axes.Axes) -> None:
     ax.set_axisbelow(True)
 
 
+def style_row_axis(ax: mpl.axes.Axes) -> None:
+    ax.spines["left"].set_color("#94A2AA")
+    ax.spines["bottom"].set_color("#94A2AA")
+    ax.tick_params(color="#94A2AA", length=3)
+    ax.grid(axis="x", color=COLORS["grid"], linewidth=0.65, zorder=0)
+    ax.set_axisbelow(True)
+
+
 def plot_endpoint_panel(
     ax: mpl.axes.Axes,
     rows: list[dict[str, Any]],
     provider: str,
-    y_limits: tuple[float, float],
+    x_limits: tuple[float, float],
+    *,
+    show_y_labels: bool,
 ) -> None:
     selected = [row for row in rows if row["provider"] == provider]
-    offsets = {"aligned_nominal": -0.14, "misindexed_nominal": 0.14}
+    seed_offsets = np.linspace(-0.27, 0.27, 5)
+    block_step = 1.28
+    task_centers = [index * block_step for index in range(len(TASK_ORDER))]
+    y_ticks: list[float] = []
+    y_labels: list[str] = []
+
     for task_index, task in enumerate(TASK_ORDER):
+        center = task_centers[task_index]
+        y_by_seed = {seed: center + float(seed_offsets[seed]) for seed in range(5)}
+        y_ticks.extend(y_by_seed.values())
+        y_labels.extend(
+            f"{ROW_TASK_LABEL[task]} s{seed}" for seed in range(5)
+        )
+        values_by_arm: dict[str, dict[int, float]] = {}
         for arm in ("aligned_nominal", "misindexed_nominal"):
-            values = [
-                float(row["difference"])
-                for row in selected
+            arm_rows = [
+                row for row in selected
                 if row["task_id"] == task and row["comparison_arm"] == arm
             ]
-            x_center = task_index + offsets[arm]
-            jitter = deterministic_offsets(len(values))
+            values_by_arm[arm] = {
+                int(row["world_seed"]): float(row["difference"])
+                for row in arm_rows
+            }
+
+        for seed in range(5):
+            y = y_by_seed[seed]
+            aligned_value = values_by_arm["aligned_nominal"].get(seed)
+            misindexed_value = values_by_arm["misindexed_nominal"].get(seed)
+            if aligned_value is not None and misindexed_value is not None:
+                ax.plot(
+                    [aligned_value, misindexed_value],
+                    [y, y],
+                    color="#C7D0D4",
+                    linewidth=0.9,
+                    alpha=0.9,
+                    solid_capstyle="round",
+                    zorder=1,
+                )
+            for arm, value in (
+                ("aligned_nominal", aligned_value),
+                ("misindexed_nominal", misindexed_value),
+            ):
+                if value is None:
+                    continue
+                ax.scatter(
+                    value,
+                    y,
+                    s=34,
+                    color=ARM_COLOR[arm],
+                    alpha=0.95,
+                    edgecolor="white",
+                    linewidth=0.65,
+                    zorder=3,
+                )
+
+        mean_y = center + 0.43
+        for arm, text_offset in (
+            ("aligned_nominal", -0.08),
+            ("misindexed_nominal", 0.08),
+        ):
+            arm_values = list(values_by_arm[arm].values())
+            if not arm_values:
+                continue
+            mean = float(np.mean(arm_values))
             ax.scatter(
-                x_center + jitter,
-                values,
-                s=26,
+                mean,
+                mean_y,
+                s=30,
+                marker="D",
                 color=ARM_COLOR[arm],
-                alpha=0.72,
                 edgecolor="white",
-                linewidth=0.45,
-                zorder=3,
-            )
-            mean = float(np.mean(values))
-            ax.plot(
-                [x_center - 0.09, x_center + 0.09],
-                [mean, mean],
-                color=ARM_COLOR[arm],
-                linewidth=2.1,
-                solid_capstyle="round",
+                linewidth=0.65,
                 zorder=4,
             )
             ax.text(
-                x_center,
-                mean + 0.035,
-                f"{mean:+.3f}\n(n={len(values)})",
+                mean,
+                mean_y + text_offset,
+                f"{mean:+.3f}",
                 ha="center",
-                va="bottom",
-                fontsize=6.0,
+                va="center",
+                fontsize=4.9,
                 color=ARM_COLOR[arm],
                 fontweight="bold",
+                zorder=5,
             )
-    ax.axhline(0, color=COLORS["ink"], linewidth=0.85)
-    ax.set_xticks(range(3), [TASK_LABEL[task] for task in TASK_ORDER])
-    ax.set_ylim(*y_limits)
-    ax.set_ylabel("Paired difference in best endpoint score")
-    ax.set_title(f"{provider}\nPaired seeds; bars show means", loc="left", fontweight="bold", pad=6)
-    style_quant_axis(ax)
+
+        if task_index < len(TASK_ORDER) - 1:
+            ax.axhline(
+                center + 0.68,
+                color="#B8C2C7",
+                linewidth=0.8,
+                zorder=1,
+            )
+
+    ax.axvline(0, color=COLORS["ink"], linewidth=0.85, zorder=2)
+    ax.set_xlim(*x_limits)
+    ax.set_ylim(task_centers[-1] + 0.74, -0.50)
+    ax.set_yticks(y_ticks)
+    ax.set_yticklabels(y_labels if show_y_labels else [])
+    ax.tick_params(axis="y", labelsize=5.4, length=0)
+    ax.set_xlabel("Paired difference in best endpoint score", labelpad=3)
+    ax.set_ylabel("Task / world seed" if show_y_labels else "")
+    ax.set_title(
+        f"{provider}\nRows are task-world pairs; diamonds are means",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_row_axis(ax)
 
 
 def build_denominator_rows(wellau: dict[str, Any], deepseek: dict[str, Any]) -> list[dict[str, Any]]:
     providers = [
         ("WellAU/Codex", wellau["wellau_fallback"]["denominators"]),
-        ("DeepSeek recovery", deepseek["denominators"]),
+        ("DeepSeek/Codex", deepseek["denominators"]),
     ]
     rows: list[dict[str, Any]] = []
     for provider, denominator in providers:
@@ -781,17 +861,17 @@ def render_figure_3(
     low = min(-0.24, min(y_values) - 0.05)
     high = max(0.44, max(y_values) + 0.08)
 
-    fig = plt.figure(figsize=(7.2, 6.05))
+    fig = plt.figure(figsize=(7.2, 6.35))
     grid = fig.add_gridspec(
         2,
         2,
-        left=0.075,
+        left=0.16,
         right=0.985,
         bottom=0.125,
         top=0.82,
-        wspace=0.32,
-        hspace=0.45,
-        height_ratios=[1.03, 1.0],
+        wspace=0.28,
+        hspace=0.42,
+        height_ratios=[1.42, 0.92],
         width_ratios=[1.08, 0.92],
     )
     ax_a = fig.add_subplot(grid[0, 0])
@@ -799,14 +879,26 @@ def render_figure_3(
     ax_c = fig.add_subplot(grid[1, 0])
     ax_d = fig.add_subplot(grid[1, 1])
 
-    plot_endpoint_panel(ax_a, endpoint_rows, "WellAU/Codex", (low, high))
-    plot_endpoint_panel(ax_b, endpoint_rows, "DeepSeek recovery", (low, high))
+    plot_endpoint_panel(
+        ax_a,
+        endpoint_rows,
+        "WellAU/Codex",
+        (low, high),
+        show_y_labels=True,
+    )
+    plot_endpoint_panel(
+        ax_b,
+        endpoint_rows,
+        "DeepSeek/Codex",
+        (low, high),
+        show_y_labels=False,
+    )
     ax_b.set_ylabel("")
     panel_label(ax_a, "a", x=-0.10)
     panel_label(ax_b, "b", x=-0.10)
 
     # c — warning specificity matrix
-    providers = ["WellAU/Codex", "DeepSeek recovery"]
+    providers = ["WellAU/Codex", "DeepSeek/Codex"]
     row_labels: list[str] = []
     y_lookup: dict[tuple[str, str], int] = {}
     index = 0
@@ -877,7 +969,7 @@ def render_figure_3(
                 fontsize=6.1,
                 color=COLORS["ink"],
             )
-    ax_d.set_xticks(x, ["WellAU/\nCodex", "DeepSeek\nrecovery"])
+    ax_d.set_xticks(x, ["WellAU/\nCodex", "DeepSeek/\nCodex"])
     ax_d.set_ylim(0, 1.11)
     ax_d.set_yticks(np.linspace(0, 1, 6), [f"{int(value * 100)}%" for value in np.linspace(0, 1, 6)])
     ax_d.set_ylabel("Retained denominator reached")
@@ -887,7 +979,7 @@ def render_figure_3(
     panel_label(ax_d, "d", x=-0.10)
 
     fig.suptitle(
-        "Explicit priors reshape development behavior, but warnings are not selective",
+        "Explicit priors reshape exploratory behavior, but warnings are not selective",
         x=0.075,
         y=0.975,
         ha="left",
@@ -897,21 +989,22 @@ def render_figure_3(
     )
     fig.legend(
         handles=[
-            mpl.lines.Line2D([], [], marker="o", linestyle="", color=COLORS["aligned"], label="Aligned − opaque"),
-            mpl.lines.Line2D([], [], marker="o", linestyle="", color=COLORS["misindexed"], label="Misindexed − opaque"),
+            mpl.lines.Line2D([], [], marker="o", linestyle="", color=COLORS["aligned"], label="Aligned - opaque"),
+            mpl.lines.Line2D([], [], marker="o", linestyle="", color=COLORS["misindexed"], label="Misindexed - opaque"),
+            mpl.lines.Line2D([], [], marker="D", linestyle="", color=COLORS["ink"], label="Descriptive mean"),
         ],
         loc="upper left",
-        bbox_to_anchor=(0.075, 0.905),
-        ncol=2,
+        bbox_to_anchor=(0.16, 0.905),
+        ncol=3,
         fontsize=6.5,
         borderaxespad=0,
         handletextpad=0.35,
         columnspacing=1.1,
     )
     fig.text(
-        0.075,
+        0.16,
         0.025,
-        "Development-only descriptive evidence. Points are paired world seeds and horizontal marks are means; no formal tests or cross-provider capability comparison are performed. "
+        "Exploratory descriptive evidence. Each row is one task-world pair; a short within-row segment links the two contrasts and diamonds show task means. No confirmatory tests or cross-provider capability comparison are performed. "
         "The two providers use separate method/harness contracts. Endpoint gains and verbal warnings do not establish law discovery, wrong-prior rejection or transfer.",
         ha="left",
         va="bottom",
@@ -920,6 +1013,244 @@ def render_figure_3(
         wrap=True,
     )
     return export_figure(fig, "figure-3-development-prior-effects")
+
+
+def normalize_open_action_rows(summary: dict[str, Any]) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for raw in summary["cell_rows"]:
+        cluster_parts = str(raw["cluster_id"]).split("--")
+        task_id = cluster_parts[1]
+        rows.append(
+            {
+                "cell_id": raw["cell_id"],
+                "cluster_id": raw["cluster_id"],
+                "task_id": task_id,
+                "world_seed": int(raw["world_seed"]),
+                "arm": raw["arm"],
+                "status": raw["status"],
+                "eligible": raw["status"] == "completed_uncontaminated",
+                "selected_rank": raw.get("selected_rank"),
+                "normalized_regret": raw.get("normalized_regret"),
+                "top1_selected": raw.get("top1_selected"),
+                "law_adequate": raw.get("law_adequate"),
+                "mechanism_action_category": raw.get("mechanism_action_category"),
+                "selected_minus_random_candidate_mean": raw.get("selected_minus_random_candidate_mean"),
+            }
+        )
+    return rows
+
+
+def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, Any]) -> list[Path]:
+    eligible = [row for row in rows if row["eligible"]]
+    task_order = [
+        "electrochemical-conversion",
+        "reaction-to-crystallization",
+        "reaction-safety-constrained",
+    ]
+    task_labels = {
+        "electrochemical-conversion": "Electrochemical",
+        "reaction-to-crystallization": "Crystallization",
+        "reaction-safety-constrained": "Reaction safety",
+    }
+    task_colors = {
+        "electrochemical-conversion": COLORS["blue"],
+        "reaction-to-crystallization": COLORS["violet"],
+        "reaction-safety-constrained": COLORS["red"],
+    }
+    fig = plt.figure(figsize=(7.2, 6.25))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        left=0.16,
+        right=0.985,
+        bottom=0.13,
+        top=0.82,
+        wspace=0.28,
+        hspace=0.45,
+        height_ratios=[1.38, 0.95],
+        width_ratios=[1.05, 0.95],
+    )
+    ax_a = fig.add_subplot(grid[0, 0])
+    ax_b = fig.add_subplot(grid[0, 1])
+    ax_c = fig.add_subplot(grid[1, 0])
+    ax_d = fig.add_subplot(grid[1, 1])
+
+    def plot_cell_metric(
+        ax: mpl.axes.Axes,
+        metric: str,
+        ylabel: str,
+        title: str,
+        xlim: tuple[float, float],
+        *,
+        show_y_labels: bool,
+    ) -> None:
+        seed_offsets = np.linspace(-0.27, 0.27, 5)
+        block_step = 1.22
+        task_centers = [index * block_step for index in range(len(task_order))]
+        y_ticks: list[float] = []
+        y_labels: list[str] = []
+        row_lookup = {
+            (row["task_id"], int(row["world_seed"]), row["arm"]): row
+            for row in eligible
+        }
+
+        for task_index, task in enumerate(task_order):
+            center = task_centers[task_index]
+            for seed in range(5):
+                y = center + float(seed_offsets[seed])
+                y_ticks.append(y)
+                y_labels.append(f"{ROW_TASK_LABEL[task]} s{seed}")
+                for arm in ARM_ORDER:
+                    row = row_lookup.get((task, seed, arm))
+                    value = None if row is None else row.get(metric)
+                    if value is None:
+                        continue
+                    marker = "*" if row.get("top1_selected") else "o"
+                    ax.scatter(
+                        float(value),
+                        y,
+                        s=38 if marker == "*" else 32,
+                        marker=marker,
+                        color=ARM_COLOR[arm],
+                        edgecolor="white",
+                        linewidth=0.65,
+                        alpha=0.95,
+                        zorder=3,
+                    )
+                if any(
+                    row_lookup.get((task, seed, arm)) is None
+                    for arm in ARM_ORDER
+                ):
+                    ax.text(
+                        xlim[0] + 0.018 * (xlim[1] - xlim[0]),
+                        y,
+                        "×",
+                        ha="center",
+                        va="center",
+                        fontsize=7.0,
+                        color=COLORS["muted"],
+                        zorder=4,
+                    )
+            if task_index < len(task_order) - 1:
+                ax.axhline(
+                    center + 0.67,
+                    color="#B8C2C7",
+                    linewidth=0.8,
+                    zorder=1,
+                )
+
+        ax.set_xlim(*xlim)
+        ax.set_ylim(task_centers[-1] + 0.60, -0.50)
+        ax.set_yticks(y_ticks)
+        ax.set_yticklabels(y_labels if show_y_labels else [])
+        ax.tick_params(axis="y", labelsize=5.4, length=0)
+        ax.set_ylabel(ylabel if show_y_labels else "")
+        ax.set_title(title, loc="left", fontweight="bold", pad=6)
+        style_row_axis(ax)
+
+    plot_cell_metric(
+        ax_a,
+        "selected_rank",
+        "Selected true rank (lower is better)",
+        "A  Unseen-plan ranking is task dependent",
+        (0.5, 8.8),
+        show_y_labels=True,
+    )
+    ax_a.axvline(4.5, color=COLORS["muted"], linewidth=0.8, linestyle="--", label="Random expected rank")
+    ax_a.legend(loc="upper right", fontsize=5.8)
+    panel_label(ax_a, "a", x=-0.11)
+
+    plot_cell_metric(
+        ax_b,
+        "normalized_regret",
+        "Normalized regret (lower is better)",
+        "B  Regret remains large in crystallization",
+        (-0.03, 1.05),
+        show_y_labels=False,
+    )
+    panel_label(ax_b, "b", x=-0.11)
+
+    category_order = [
+        "inadequate_law__wrong_action",
+        "inadequate_law__correct_action",
+        "adequate_law__wrong_action",
+        "adequate_law__correct_action",
+    ]
+    category_labels = [
+        "Inadequate law\n+ wrong action",
+        "Inadequate law\n+ correct action",
+        "Adequate law\n+ wrong action",
+        "Adequate law\n+ correct action",
+    ]
+    category_colors = [COLORS["red"], COLORS["orange_light"], COLORS["misindexed"], COLORS["aligned"]]
+    counts = [sum(row["mechanism_action_category"] == category for row in eligible) for category in category_order]
+    bars = ax_c.bar(np.arange(4), counts, color=category_colors, edgecolor="white", linewidth=0.7)
+    for bar, count in zip(bars, counts):
+        ax_c.text(bar.get_x() + bar.get_width() / 2, count + 0.8, str(count), ha="center", va="bottom", fontsize=8, fontweight="bold")
+    ax_c.set_xticks(np.arange(4), category_labels)
+    ax_c.set_ylim(0, max(counts) + 8)
+    ax_c.set_ylabel("Eligible cells (n=42)")
+    ax_c.set_title("C  Law adequacy did not guarantee\naction correctness", loc="left", fontweight="bold", pad=6)
+    style_quant_axis(ax_c)
+    ax_c.text(0.02, 0.95, "3 crystallization failures retained outside action metrics", transform=ax_c.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
+    panel_label(ax_c, "c", x=-0.11)
+
+    task_means: list[float] = []
+    task_ns: list[int] = []
+    for task in task_order:
+        task_values = [float(row["selected_rank"]) for row in eligible if row["task_id"] == task and row.get("selected_rank") is not None]
+        task_means.append(float(np.mean(task_values)))
+        task_ns.append(len(task_values))
+    x = np.arange(3)
+    ax_d.axhline(4.5, color=COLORS["muted"], linewidth=0.8, linestyle="--")
+    ax_d.scatter(x, task_means, s=74, color=[task_colors[task] for task in task_order], edgecolor="white", linewidth=0.8, zorder=3)
+    for position, mean, n in zip(x, task_means, task_ns):
+        ax_d.text(position, mean + 0.28, f"{mean:.2f}\n(n={n})", ha="center", va="bottom", fontsize=6.3, fontweight="bold")
+    ax_d.set_xticks(x, [task_labels[task] for task in task_order])
+    ax_d.set_ylim(0.5, 8.8)
+    ax_d.set_ylabel("Mean selected true rank")
+    ax_d.set_title("D  Task means summarize heterogeneity;\nno pooled arm effect", loc="left", fontweight="bold", pad=6)
+    style_quant_axis(ax_d)
+    ax_d.text(0.02, 0.95, "Dashed line: random expected rank = 4.5", transform=ax_d.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
+    panel_label(ax_d, "d", x=-0.11)
+
+    fig.suptitle(
+        "W2-50 formal open-action matrix: complete plans still do not close law-to-action transfer",
+        x=0.09,
+        y=0.975,
+        ha="left",
+        fontsize=12.0,
+        fontweight="bold",
+        color=COLORS["ink"],
+    )
+    fig.legend(
+        handles=[
+            mpl.lines.Line2D([], [], marker="o", linestyle="", color=ARM_COLOR[arm], label=ARM_LABEL[arm])
+            for arm in ARM_ORDER
+        ] + [
+            mpl.lines.Line2D([], [], marker="*", linestyle="", color=COLORS["ink"], label="Top-1 selected")
+        ],
+        loc="upper left",
+        bbox_to_anchor=(0.16, 0.905),
+        ncol=4,
+        fontsize=6.4,
+        borderaxespad=0,
+        handletextpad=0.35,
+        columnspacing=1.0,
+    )
+    fig.text(
+        0.16,
+        0.028,
+        f"45 scheduled cells across 3 tasks × 5 worlds × 3 arms; 42 eligible for action metrics; 3 crystallization failures retained. "
+        f"Truth and exact replay: {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']}. "
+        "Each row is one task-world cluster; arm colors identify nominal alternatives and no ordered trajectory is implied. Stars mark Top-1 selection; × marks a missing terminal action readout. Means are descriptive; no arm-level inferential claim is made.",
+        ha="left",
+        va="bottom",
+        fontsize=6.2,
+        color=COLORS["muted"],
+        wrap=True,
+    )
+    return export_figure(fig, "figure-6-open-action-formal")
 
 
 def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
@@ -1026,9 +1357,9 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     )
     ax_b.set_xlim(-0.28, 0.33)
     ax_b.invert_yaxis()
-    ax_b.set_xlabel("H3 = misindexed improvement - aligned improvement")
+    ax_b.set_xlabel("$C_{prior}$ = misindexed improvement - aligned improvement")
     ax_b.set_title(
-        "Only safety has a positive\ntask-level mean H3",
+        "Only safety has a positive\ntask-level mean $C_{prior}$",
         loc="left",
         fontweight="bold",
         pad=7,
@@ -1143,7 +1474,7 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
         )
     ax_d.set_xticks(range(3), ["Better", "Equivalent", "Worse"])
     ax_d.set_ylim(0, 73)
-    ax_d.set_ylabel("Qualified participant cells")
+    ax_d.set_ylabel("Eligible participant cells")
     ax_d.set_title(
         "Recommendations do not beat\nthe observed incumbent",
         loc="left",
@@ -1154,7 +1485,7 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     ax_d.text(
         0.03,
         0.91,
-        "414/414 paired blind replays completed\n69 qualified cells; 0 provider calls",
+        "414/414 paired blind replays completed\n69 eligible cells; no additional model calls",
         transform=ax_d.transAxes,
         ha="left",
         va="top",
@@ -1198,10 +1529,10 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     fig.text(
         0.075,
         0.027,
-        "DeepSeek development-only evidence: 25 task x seed clusters, 75 retained cells, "
+        "DeepSeek exploratory evidence: 25 task × world clusters, 75 retained cells, "
         "100/100 evaluator-truth queries and 414/414 blind replays. Open points mark "
-        "clusters with a retained failed arm; frozen missing-outcome rules remain in H3. "
-        "No formal test, private transfer claim or cross-provider ranking is performed.",
+        "clusters with a retained failed arm; prespecified missing-outcome rules are retained. "
+        "No confirmatory test, private transfer claim or cross-provider ranking is performed.",
         ha="left",
         va="bottom",
         fontsize=6.35,
@@ -1224,6 +1555,14 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "work-ii-deepseek-five-task-development-evaluation-20260811.json"
     )
+    open_action_summary_path = ROOT / (
+        "runs/formal/"
+        "work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/summary.json"
+    )
+    open_action_audit_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"
+    )
     source_paths = [
         design_path,
         analysis_path,
@@ -1233,6 +1572,8 @@ def main() -> int:
         deepseek_closeout_path,
         deepseek_closeout_sources_path,
         deepseek_confirmation_path,
+        open_action_summary_path,
+        open_action_audit_path,
     ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
@@ -1242,6 +1583,9 @@ def main() -> int:
     deepseek_closeout = json.loads(deepseek_closeout_path.read_text(encoding="utf-8"))
     deepseek_confirmation = json.loads(
         deepseek_confirmation_path.read_text(encoding="utf-8")
+    )
+    open_action_summary = json.loads(
+        open_action_summary_path.read_text(encoding="utf-8")
     )
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
@@ -1261,6 +1605,14 @@ def main() -> int:
         raise ValueError("unexpected DeepSeek truth-query denominator")
     if confirmation_denominators.get("blind_completed_execution_count") != 414:
         raise ValueError("unexpected DeepSeek blind-replay denominator")
+    if open_action_summary.get("scheduled_cell_count") != 45:
+        raise ValueError("unexpected W2-50 scheduled cell denominator")
+    if open_action_summary.get("eligible_cell_count") != 42:
+        raise ValueError("unexpected W2-50 eligible cell denominator")
+    if open_action_summary.get("provider_free_truth_query_count") != 240:
+        raise ValueError("unexpected W2-50 truth denominator")
+    if open_action_summary.get("provider_free_exact_replay_count") != 240:
+        raise ValueError("unexpected W2-50 exact-replay denominator")
 
     endpoint_rows, warning_rows = normalize_development_rows()
     denominator_rows = build_denominator_rows(wellau, deepseek_closeout)
@@ -1354,16 +1706,37 @@ def main() -> int:
             "blind_recommendation_gain",
         ],
     )
+    open_action_rows = normalize_open_action_rows(open_action_summary)
+    write_csv(
+        SOURCE_DIR / "figure-6-open-action-formal.csv",
+        open_action_rows,
+        [
+            "cell_id",
+            "cluster_id",
+            "task_id",
+            "world_seed",
+            "arm",
+            "status",
+            "eligible",
+            "selected_rank",
+            "normalized_regret",
+            "top1_selected",
+            "law_adequate",
+            "mechanism_action_category",
+            "selected_minus_random_candidate_mean",
+        ],
+    )
 
     outputs = {
         "figure_1": render_figure_1(),
         "figure_2": render_figure_2(design, preflight),
         "figure_3": render_figure_3(endpoint_rows, warning_rows, denominator_rows),
         "figure_4": render_figure_4(deepseek_confirmation),
+        "figure_6": render_figure_6_open_action(open_action_rows, open_action_summary),
     }
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
-        "status": "development_and_design_figures",
+        "status": "development_and_formal_descriptive_figures",
         "backend": "python_matplotlib",
         "formal_hypothesis_tests_run": False,
         "provider_groups_mixed_in_scientific_contrasts": False,
@@ -1381,6 +1754,8 @@ def main() -> int:
             "confirmation_cluster_rows": len(figure_4_cluster_rows),
             "confirmation_law_rows": len(figure_4_law_rows),
             "confirmation_blind_rows": len(figure_4_blind_rows),
+            "open_action_rows": len(open_action_rows),
+            "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
         },
         "figures": {
             figure_id: [
@@ -1398,8 +1773,9 @@ def main() -> int:
             "Structural, parametric and observation-model interventions remain registered extensions with no participant outcomes in this figure package.",
             "Figure 3 contains development-only provider-isolated descriptive evidence.",
             "Figure 4 contains DeepSeek development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
+            "Figure 6 contains the W2-50 multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
             "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
-            "No formal inference, law-discovery claim, transfer claim or cross-provider capability ranking is supported.",
+            "No arm-level formal inference, law-discovery sufficiency claim, transfer claim or cross-provider capability ranking is supported.",
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

@@ -29,7 +29,7 @@ OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
 BUILD_MANIFEST = EXPORT_DIR / "build-manifest.json"
 SOURCE_DATE_EPOCH = 1_786_406_400  # 2026-08-11 00:00:00 UTC
-EXPECTED_FIGURE_IDS = ("figure_1", "figure_2", "figure_3", "figure_4")
+EXPECTED_FIGURE_IDS = ("figure_1", "figure_2", "figure_3", "figure_4", "figure_6")
 
 
 def sha256_file(path: Path) -> str:
@@ -192,6 +192,11 @@ def build() -> dict[str, Any]:
         ROOT
         / (
             "workstreams/flagship_tasks/reports/"
+            "WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md"
+        ),
+        ROOT
+        / (
+            "workstreams/flagship_tasks/reports/"
             "work-ii-deepseek-five-task-development-complete-20260810.json"
         ),
         ROOT / (
@@ -201,6 +206,16 @@ def build() -> dict[str, Any]:
         ROOT / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-parametric-initial-model-pilot-evaluation-20260811.json"
+        ),
+        ROOT
+        / (
+            "workstreams/flagship_tasks/reports/"
+            "WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"
+        ),
+        ROOT
+        / (
+            "runs/formal/"
+            "work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/summary.json"
         ),
         ROOT
         / (
@@ -271,6 +286,16 @@ def build() -> dict[str, Any]:
                 "Public DeepSeek participant, evaluator and matched-evidence results "
                 "are collected; "
                 "private confirmation remains uncollected."
+            ),
+            (
+                "The five-world longitudinal open-action matrix is development evidence: "
+                "the earlier W2-48 block remains separate; the current W2-50 matrix has "
+                "45 scheduled cells, 42 eligible action readouts and three retained "
+                "crystallization failures. Arm-level effects are not claimed."
+            ),
+            (
+                "Electrochemical, crystallization and safety open-action interface checks "
+                "used one world seed per task and are not multi-world replication."
             ),
         ],
     }
