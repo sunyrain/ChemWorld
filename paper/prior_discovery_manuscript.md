@@ -1,9 +1,9 @@
 ---
-title: "Dissecting Executable Scientific Intelligence with Controlled World-Model Interventions"
+title: "Dissecting Executable Scientific Intelligence with Controlled Prior Interventions"
 title_line_one: "Dissecting Executable Scientific Intelligence"
-title_line_two: "with Controlled World-Model Interventions"
+title_line_two: "with Controlled Prior Interventions"
 subject: "Causal dissection of experimental search, predictive correction, executable laws and action transfer in AI agents"
-keywords: "AI scientist; autonomous experimentation; initial world model; world-model intervention; scientific priors; law discovery; counterfactual prediction; action transfer; chemical worlds"
+keywords: "AI scientist; autonomous experimentation; agent-facing priors; controlled prior intervention; law consistency; counterfactual prediction; action transfer; chemical worlds"
 pdf_author: "Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang"
 author:
   - name: "Jiangjie Qiu"
@@ -30,39 +30,26 @@ equal_contribution_note: "Jiangjie Qiu, Yijun Li and Yaotian Yang contributed eq
 date: ""
 bibliography: prior_discovery_references.bib
 abstract: |
-  Scientific agents enter experiments with an initial world model that can guide useful search but
-  can also be wrong. Endpoint success alone cannot distinguish correct scientific inference from a
-  favorable heuristic trajectory. We used executable chemical worlds to vary entity, parametric and
-  structural information shown to one persistent experimental agent while holding the external
-  world, operations and laboratory resources fixed within matched clusters. The prospective
-  cohort completed 135/135 sessions and 1,243/1,260 planned experiments
-  across nine task--intervention combinations. Prior effects were strongly context dependent.
-  Correct entity information produced a durable advantage in liquid--liquid partition, whereas
-  correct structural information gave crystallization a five-world initial head start that largely
-  narrowed during subsequent exploration. In structural partition, both correct and incorrect
-  explicit models outperformed opaque identifiers, indicating that structured search guidance and
-  model correctness can contribute separately. Agents nevertheless performed substantive
-  within-session search: 84.4% of session optima occurred after the campaign midpoint, and 91.2% of
-  completed recipes were unique. All 135 sessions submitted five belief checkpoints, comprising
-  6,300 prespecified counterfactual query predictions and typed law summaries. An independent
-  evaluator requiring no additional model calls completed 420/420 truth executions, scored all 675 checkpoints, executed all 135 final
-  laws and completed 726/726 launched blind replays. Prediction error generally decreased, but the
-  prespecified selective-correction criterion failed at the entity ($p=0.990$), parametric
-  ($p=0.079$) and structural ($p=1.000$) intervention loci. Executable laws were more accurate than final explicit predictions in
-  only 50/135 cells and worse in 84/135. Blind recommendations were better, equivalent and worse
-  than the observed incumbent in 1, 119 and 1 evaluable cells. A matched-evidence follow-up found
-  a positive but mixed structural misindexed-minus-aligned prediction-update contrast (+0.0645, 3/5 worlds,
-  exact sign-flip $p=0.125$), while 0/5 misindexed summaries recovered the prespecified 1.75 law.
-  A separate multi-task, five-world longitudinal open-action study completed 45/45 scheduled
-  cell records and 240/240 truth plus exact-replay queries before revealing eight fully specified
-  but outcome-hidden action plans. Among 42 eligible cells, 11 selected the true top-ranked plan;
-  30 had both an inadequate law and a wrong action, while the sole adequate-law cell selected the
-  wrong action. Three crystallization failures were retained in the scheduled denominator.
-  Thus evidence acquisition, numerical belief revision, structural-law identification, law
-  compression and unseen-action selection form distinct capability layers; context-reset artifact
-  portability remains untested.
-  The present cohort provides a controlled first map of their conversion losses, rather than a
-  single endpoint ranking or a claim of cross-model generality.
+  Scientific agents enter experiments with agent-facing priors that can guide useful search but can
+  also be wrong. Endpoint success alone cannot distinguish scientific correction from a favorable
+  heuristic trajectory. We varied entity, parametric and structural information shown to one
+  persistent experimental agent while holding the external executable world, operations and
+  resources fixed within matched clusters. The prospective design contained 45 independent
+  task--world clusters and three initial-model arms per cluster. Prior effects were strongly
+  task-dependent: correct entity information produced a durable advantage in liquid--liquid
+  partition, correct structural information produced a crystallization head start that narrowed
+  during exploration, and both aligned and misspecified structural models improved partition search
+  relative to opaque identifiers. Prediction error generally decreased, but the prespecified
+  selective-correction criterion failed at all three intervention loci. Matched evidence further
+  separated numerical revision from structural identification: the structural update contrast was
+  positive in 3/5 worlds (+0.0645; exact sign-flip $p=0.125$), yet 0/5 misspecified summaries
+  recovered the prespecified 1.75 law. Final typed laws were more accurate than final explicit
+  predictions in 50/135 cells and worse in 84/135. In a separate multi-task open-action assay,
+  11/42 eligible readouts selected the true top-ranked unseen plan; one law-adequate cell still
+  selected the wrong action. These results locate measurable conversion losses between evidence,
+  prediction, executable-law consistency and unseen action selection. They are bounded to the fixed
+  agent-system configuration and executable chemical worlds studied here, and do not establish
+  cross-model generality or context-reset portability.
 ---
 
 # 1. Introduction
@@ -119,7 +106,7 @@ search and whether evidence produces scientific correction. It makes four contri
 2. **Discovery is evaluated through evidence-conditioned transitions, not self-report alone.** Fixed
    checkpoints bind beliefs to evaluator-owned counterfactual queries and to the next experimental
    operation selected by the agent.
-3. **Endpoint success is separated from reusable understanding.** Blind incumbent replay,
+3. **Endpoint success is separated from executable-law consistency and transfer.** Blind incumbent replay,
    executable law summaries and post-exploration ranking of unseen, fully specified ActionPlans
    distinguish local optimization, law recovery and action transfer; context-reset artifact
    portability remains a separate higher-order test.
@@ -144,7 +131,7 @@ cell selected the wrong action.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-1-prior-to-law.pdf}
-\caption{\textbf{From an initial world model to a reusable law.}
+\caption{\textbf{From an initial world model to an executable law.}
 \textbf{a,} The current entity-level instantiation uses opaque, aligned and misindexed dossiers in the same fixed executable world; the same intervention logic can target structural, parametric or observation-model assumptions.
 \textbf{b,} One persistent session repeatedly predicts, selects an operation, observes the public outcome and updates its belief and executable law summary across a shared-resource campaign.
 \textbf{c,} Participant trajectories and evaluator-owned held-out truth remain separate until the campaign ends; prediction error, calibration and blind recommendation outcomes are scored afterward.
@@ -291,8 +278,8 @@ intermediate transitions that connect them.
 2. **Predictive recovery:** whether held-out counterfactual prediction error decreases.
 3. **Prior correction:** whether evidence selectively improves the wrong-prior condition without
    degrading the correct-prior condition.
-4. **Reusable law recovery:** whether the final executable summary predicts unseen continuous
-   conditions without losing the quality of the agent's conditional predictions.
+4. **Executable-law consistency:** whether the final typed summary executes on prespecified held-out
+   coordinates and preserves the quality of the agent's conditional predictions.
 5. **Action transfer:** whether knowledge acquired during exploration supports ranking and selecting
    previously unseen, fully specified executable plans rather than merely retrieving an observed
    incumbent.
@@ -347,10 +334,10 @@ identifiability criterion and retains its own denominator:
    a committed recommendation can reproduce observed value, while a separate longitudinal
    open-action assay tests whether the agent can rank previously unseen, fully specified ActionPlans;
    no verbal statement alone counts as discovery.
-4. **Artifact-only compositional transfer.** After source-world learning, raw evidence,
-   prose summaries or executable laws are transferred to a context-reset agent in a new combination.
-   No-artifact, trajectory and typed-law conditions are compared, and within-family replication is
-   kept separate from genuine compositional transfer.
+4. **Future artifact portability (not executed).** After source-world learning, raw evidence,
+   prose summaries or executable laws could be transferred to a context-reset agent in a new
+   combination. This future study is not part of the present evidence, and within-family replication
+   remains separate from compositional transfer.
 
 Observation/measurement interventions are reserved as a separate boundary probe. They require
 two-task identifiability and an exploratory three-arm study and are not included in the present
@@ -403,8 +390,9 @@ The evaluator also executes each final typed law summary on the same prespecifie
 This produces a separate cell-level record of schema validity, complete query-metric executability,
 truth-normalized error, error change relative to the pre-evidence and effective-final checkpoints,
 and consistency with the participant's final explicit predictions. These public measures are
-descriptive: no post-hoc binary validity threshold is applied, and reusable-law status remains
-unavailable without the prespecified private transfer test.
+descriptive and are reported as executable-law consistency/compression; they do not establish
+reusable-law status. A reusable or transferable law would require independent coordinates or a
+context-reset transfer test.
 
 After the campaign, the participant commits one completed experiment as its final recommendation.
 The evaluator then performs paired blind replay of the observed incumbent and the committed
@@ -421,11 +409,12 @@ initial-state assumptions, measurement positions, terminal assay and omitted-ope
 candidate outcomes, evaluator ranks and other-arm evidence remain hidden. The evaluator executes
 exactly the public plan and verifies identity among the disclosed, truth-evaluated and executed plans.
 
-The five-world partition matrix contains three initial-model arms per world, 15 persistent sessions
-and 180 participant experiments. The primary action endpoint is within-world regret of the selected
-plan; selected rank, Top-1, complete ranking and mechanism adequacy are reported separately. This
-matrix is an exploratory action-transfer study analyzed separately from the prospective locus tests. Scheduled cells
-remain in the denominator, and no arm-level inference is made when a world lacks a complete triplet.
+The formal multi-task matrix contains three task families, five worlds per task and three initial-model
+arms, giving 45 scheduled cells. Each cell contains 12 autonomous experiments and five checkpoints;
+42 cells were eligible for action metrics and three crystallization failures remained in the scheduled
+denominator. The primary action endpoint is within-world regret of the selected plan; selected rank,
+Top-1, complete ranking and law adequacy are reported separately. This matrix is analyzed separately
+from the prospective locus tests, and no arm-level inference is made when a world lacks a complete triplet.
 
 ## 4.5 Hypotheses and estimands
 
@@ -577,7 +566,7 @@ safety-constrained task had a positive task-level mean; the other four task mean
 The evaluator executed **71/75** final typed law summaries on the same prespecified coordinates. The
 summary improved on the final explicit predictions in 12/23 opaque, 7/24 aligned and only 3/24
 misindexed cells; it was worse in the remaining 11, 17 and 21 cells, respectively. Thus, an agent can
-improve its checkpoint predictions without compressing that improvement into a reusable executable
+improve its checkpoint predictions without compressing that improvement into a consistent executable
 law. Blind replay sharpened the action boundary: **414/414** scheduled executions completed across
 69 eligible cells, but the committed recommendation beat the observed incumbent in 0 cells, was
 equivalent in 66 and was worse in 3. These results do not prove that correction is impossible; they
@@ -757,7 +746,7 @@ MAE was 0.237. Relative to the effective final explicit predictions, laws were b
 equal in one and worse in 84; mean law-minus-final error was +0.069. The structural locus showed the strongest
 pre-to-law improvement (+0.206), but even there the law remained less accurate than the final
 explicit predictions on average (+0.017). Syntax and executability were therefore solved, whereas
-faithful compression of a conditional belief state into a reusable relation was not.
+faithful compression of a conditional belief state into an executable relation that retained its prediction quality was not.
 
 Paired blind replay retained all final participant states. It launched and completed **726/726**
 executions for 121 evaluable cells; 84 pre-scheduled executions for seven failed and seven
@@ -856,8 +845,9 @@ Across eligible cells, **11/42** final readouts selected the true Top-1 plan; th
 was 3.31/8 and the mean normalized regret was 0.297. The joint mechanism--action outcome was more
 informative than Top-1 alone: **30/42** cells had an inadequate law and wrong action, **11/42** had
 an inadequate law but a correct action, **1/42** had an adequate law but a wrong action, and **0/42**
-combined an adequate law with a correct action. Thus law adequacy was not sufficient for action
-correctness, while action correctness could occasionally occur without an adequate law.
+combined an adequate law with a correct action. A law-adequate counterexample therefore still
+produced a wrong action. This is a counterexample to logical guarantee, not a population-level
+estimate of sufficiency; action correctness could nevertheless occur without an adequate law.
 
 Task heterogeneity is large: electrochemical conversion reached Top-1 in 4/15 cells with mean rank
 3.60, reaction safety in 4/15 with mean rank 2.00, and crystallization in 3/12 with mean rank 4.58.
@@ -899,8 +889,8 @@ rejection, it is not merged into the original 45-cell denominator.
 The public prospective cohort now closes the participant-to-evaluator chain. It supports a bounded claim
 that initial world models reshape task-dependent search and that prediction error can decline without
 selective wrong-prior correction. It also shows that executable syntax does not guarantee faithful law
-compression and that reproducible recommendation does not guarantee action transfer. The
-The formal multi-task assay extends this chain beyond incumbent replay across three task families: complete action semantics
+compression and that reproducible recommendation does not guarantee action transfer. The formal
+multi-task assay extends this chain beyond incumbent replay across three task families: complete action semantics
 and occasional law adequacy did not yield reliable unseen-plan selection. These are jointly observed
 transition losses, not missing surrogate measurements.
 
@@ -946,16 +936,17 @@ incumbent in 119/121 evaluable cells. The platform therefore turns an abstract c
 into measurable transition losses. Future interventions can target evidence acquisition, numerical
 revision, law compression or action transfer separately instead of optimizing one composite score.
 
-## 9.4 Law adequacy is not sufficient for unseen-action selection
+## 9.4 A law-adequate counterexample does not guarantee unseen-action correctness
 
 The longitudinal assay distinguishes action transfer from incumbent retrieval. The participant could
 not blame an incorrect ranking on missing workflow details because every candidate was a complete
 ActionPlan and the evaluator executed exactly the public sequence. Nevertheless, only 11/42 eligible
 readouts selected the true Top-1 plan, and the sole law-adequate/wrong-action cell shows that law
-adequacy is not sufficient for action correctness. This
-does not show that a recovered law is causally harmful: the study is descriptive, three crystallization
-cells were ineligible and only 12 task--world clusters retain all three arms. It does show a transfer
-loss under distribution shift from self-selected experiments to a newly revealed candidate set.
+adequacy did not prevent an incorrect action in this cell. This does not show that a recovered law is
+causally harmful or that adequacy is generally insufficient: the study is descriptive, three
+crystallization cells were ineligible and only 12 task--world clusters retain all three arms. It does
+show a transfer loss under distribution shift from self-selected experiments to a newly revealed
+candidate set.
 Exploration support, conditional process knowledge and the ability to compose multiple decision-relevant
 factors remain separate requirements.
 
@@ -1067,8 +1058,9 @@ the submitted model summary and evidence assessment, never private reasoning tex
 
 ## 10.6 Open-action plan construction and analysis
 
-For the five-world partition action assay, an outcome-blind generator constructed eight candidate
-ActionPlans per world before participant execution. Candidate selection used only the declared plan
+For the formal multi-task action assay, an outcome-blind generator constructed eight candidate
+ActionPlans per world across three task families and five worlds per task before participant execution.
+Candidate selection used only the declared plan
 coverage criteria and could not read evaluator scores, participant trajectories, checkpoint outcomes or later
 model responses. Every plan began from the same fresh-batch contract and disclosed its full operation
 sequence and parameters. Independent validation executed all candidate and checkpoint truth queries
@@ -1078,11 +1070,14 @@ plan evaluated.
 After 12 participant experiments and the final checkpoint, the participant returned a complete
 ranking and selected one candidate. Evaluator-owned outcomes were then used to calculate selected
 rank, Top-1, raw regret, normalized regret, complete-ranking agreement and the joint mechanism--action
-category. A cell was eligible only when all 12 experiments, five checkpoints, final ranking,
-resource reconciliation and execution-integrity checks completed without contamination. All scheduled
-cells remained in the denominator. Arm summaries are descriptive because this exploratory study had
-only five worlds and two incomplete cells. The three additional interface validations used one world
-seed per task and were evaluated only as interface checks, not as multi-world scientific evidence.
+category. A law was classified as adequate when its normalized held-out mechanism MAE was at most
+0.05 under the frozen evaluator threshold; otherwise it was classified as inadequate. This binary
+label was fixed before action outcomes were interpreted. A cell was eligible only when all 12
+experiments, five checkpoints, final ranking, resource reconciliation and execution-integrity checks
+completed without contamination. All 45 scheduled cells remained in the denominator. Arm summaries
+are descriptive because three crystallization cells were ineligible and only 12 task--world clusters
+retain all three arms. The three additional interface validations used one world seed per task and
+were evaluated only as interface checks, not as multi-world scientific evidence.
 
 ## 10.7 Optional private confirmation boundary
 
@@ -1102,9 +1097,11 @@ reported with distinct denominators.
 
 # 11. Data and code availability
 
-The executable environment, prespecified protocols, analysis code, source data and reproducible figure
-scripts will accompany the public release. Raw interaction payloads and credentials are excluded. No
-private cohort data are included because that optional study was not executed.
+The current source release contains the executable environment, prespecified protocols, analysis code,
+source data and reproducible figure scripts used for this manuscript. The fixed agent-system
+configuration, prompt contract, reasoning setting and sampling parameters are bound in the release
+metadata. Raw interaction payloads and credentials are excluded, and no private cohort data are
+included because that optional study was not executed.
 
 # 12. Competing interests
 

@@ -441,7 +441,7 @@ def render_figure_1() -> list[Path]:
     ax_d.plot([x0, x0 + width], [y0 + height / 2, y0 + height / 2], color=COLORS["grid"], linewidth=1.0)
     cells = [
         (x0, y0 + height / 2, COLORS["red_light"], "States a law,\ndoes not act"),
-        (x0 + width / 2, y0 + height / 2, COLORS["green_light"], "Reusable law\nunderstands + acts"),
+        (x0 + width / 2, y0 + height / 2, COLORS["green_light"], "Executable law\nconsistent + acts"),
         (x0, y0, "#F0F2F3", "Neither"),
         (x0 + width / 2, y0, COLORS["orange_light"], "Endpoint heuristic\nacts without law"),
     ]
@@ -454,7 +454,7 @@ def render_figure_1() -> list[Path]:
             ha="center",
             va="center",
             fontsize=6.7,
-            fontweight="bold" if "Reusable" in label else "normal",
+            fontweight="bold" if "Executable" in label else "normal",
             color=COLORS["ink"],
         )
     ax_d.text(0.56, 0.06, "Evidence-aligned action →", ha="center", fontsize=6.7, color=COLORS["muted"])
@@ -1197,7 +1197,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     ax_c.set_xticks(np.arange(4), category_labels)
     ax_c.set_ylim(0, max(counts) + 8)
     ax_c.set_ylabel("Eligible cells (n=42)")
-    ax_c.set_title("C  Law adequacy did not guarantee\naction correctness", loc="left", fontweight="bold", pad=6)
+    ax_c.set_title("C  A law-adequate counterexample still\nproduced a wrong action", loc="left", fontweight="bold", pad=6)
     style_quant_axis(ax_c)
     ax_c.text(0.02, 0.95, "3 crystallization failures retained outside action metrics", transform=ax_c.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.11)
@@ -1503,7 +1503,7 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     panel_label(ax_d, "d", x=-0.10, y=1.10)
 
     fig.suptitle(
-        "Held-out evaluation separates prediction repair from reusable law recovery",
+        "Held-out evaluation separates prediction repair from law consistency",
         x=0.075,
         y=0.975,
         ha="left",

@@ -8,7 +8,8 @@ longitudinal open-action matrix is a separate exploratory evidence layer and mus
 
 ## Figure 1 — Why endpoint success is not scientific correction
 
-**Claim:** an initial world model can change experimental search, but reusable understanding requires
+**Claim:** an initial world model can change experimental search, but executable-law consistency and
+unseen-action performance require
 separate prediction, law and action evidence.
 
 Panels:
@@ -108,7 +109,8 @@ the corrected structural matched-evidence source dataset.
 ## Figure 6 — Multi-task open-action transfer
 
 **Claim:** complete ActionPlans remove hidden-workflow ambiguity, but autonomous exploration and
-occasional law adequacy still do not reliably produce the best unseen action.
+occasional law adequacy still do not reliably produce the best unseen action. A law-adequate
+counterexample can still produce a wrong action; this is not a population-level sufficiency estimate.
 
 Panels:
 
