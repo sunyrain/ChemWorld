@@ -52,11 +52,13 @@ def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() 
     assert "69/75" in combined
     assert "290/300" in combined
     assert "formal hypothesis test" in manuscript
-    assert "provider groups are never pooled into a capability ranking" in manuscript
-    assert "267,929,149 input tokens" in manuscript
-    assert "97.05%" in manuscript
-    assert "repeated model output" in manuscript
-    assert "Web search is disabled" in manuscript
+    assert "exploratory configurations are never pooled into a capability ranking" in manuscript
+    assert "267,929,149 input tokens" not in manuscript
+    assert "97.05%" not in manuscript
+    assert "repeated model output" not in manuscript
+    assert "Web search is disabled" not in manuscript
+    assert "DeepSeek" not in manuscript
+    assert "Codex" not in manuscript
     assert "not the model weights in isolation" in manuscript
 
 
@@ -66,12 +68,12 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     figure_manifest = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
     evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
 
-    assert "their seeds 1--4 in a separate continuation block" in manuscript
+    assert "The seeds 1--4 continuation block is therefore not a substitute" in manuscript
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
-    assert "existing provider-separated development-prior" in display_items
-    assert "the current public C2 result" in display_items
-    assert "cross-provider ranking" in display_items
+    assert "existing configuration-separated development-prior" in display_items
+    assert "the current public evaluator result" in display_items
+    assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "operational descriptive evidence" in limits
     assert "not pooled into the three-task paired endpoint panels" in limits
@@ -83,7 +85,7 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
     assert manifest["formal_result"] is False
     assert manifest["status"] == "compiled_development_draft"
     limits = " ".join(manifest["interpretation_limits"])
-    assert "common three-task provider-separated source" in limits
+    assert "common three-task configuration-separated source" in limits
     assert "private confirmation remains uncollected" in limits
     sources = {row["path"] for row in manifest["sources"]}
     assert (
@@ -134,4 +136,4 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert "1/119/1" in manuscript
     assert "Matched evidence separated three transitions" in manuscript
     assert "mean +0.0645" in display_items
-    assert "generated from the completed current-composite" in display_items
+    assert "generated from the completed held-out evaluation" in display_items

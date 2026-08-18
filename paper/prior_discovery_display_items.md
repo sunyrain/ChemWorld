@@ -68,8 +68,8 @@ structured action rationale, never hidden chain of thought.
 
 ## Figure 5 — Prediction, executable-law and action dissociation
 
-**Status:** regenerated from the completed current-composite held-out evaluation after correction of
-the structural world-intervention omission. This is the current public C2 result.
+**Status:** regenerated from the completed held-out evaluation after correction of the structural
+world-intervention omission. This is the current public evaluator result.
 
 **Claim:** general prediction learning, selective wrong-prior correction, executable-law compression
 and action transfer are empirically separable.
@@ -83,10 +83,9 @@ and action transfer are empirically separable.
 - D: blind recommendation versus incumbent for 121 evaluable cells; better/equivalent/worse is
   1/119/1, with 14 incomplete cells retained as unstarted.
 
-Source: `workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/current/`
-(`deepseek_c2_prediction_law_action.*` plus four source-data CSV files). The full evaluator completed
-420/420 truth executions, 675/675 checkpoint scores, 135/135 law evaluations and 726/726 launched
-blind replays with zero provider calls.
+Source: the completed public evaluator package and its four source-data CSV files. The full evaluator
+completed 420/420 truth executions, 675/675 checkpoint scores, 135/135 law evaluations and 726/726
+launched blind replays without additional participant calls.
 
 ## Matched-evidence mechanism localization (companion analysis; no standalone current figure)
 
@@ -120,8 +119,8 @@ Panels:
   0 adequate/correct), with three crystallization failures retained outside action metrics;
 - D: task-level means for electrochemical conversion, crystallization and reaction safety.
 
-The W2-50 matrix contains 45 scheduled cells, 42 eligible action readouts, 240/240 truth executions
-and 240/240 exact replays. The independent seed2/aligned repair is sensitivity evidence only and is
+The formal multi-task matrix contains 45 scheduled cells, 42 eligible action readouts, 240/240 truth
+executions and 240/240 exact replays. The independent aligned-arm repair is sensitivity evidence only and is
 not merged into this denominator. Arm means are descriptive because failures are task-concentrated
 and only 12 task--world clusters retain all three arms.
 
@@ -133,9 +132,9 @@ composition and resource/discard denominators in the core tables until a separat
 
 ## Exploratory figures
 
-The existing provider-separated development-prior and exploratory-confirmation figures move to the
+The existing configuration-separated development-prior and exploratory-confirmation figures move to the
 supplement or an early design-validation section. They motivate the capability separation but are not
-the prospective public-cohort result and are never used for cross-provider ranking.
+the prospective public-cohort result and are never used for cross-system ranking.
 
 ## Private confirmation and transfer
 
@@ -151,4 +150,4 @@ transfer.
 4. Per-task paired first-score, best-score and within-session-gain contrasts.
 5. Prediction, law-summary and blind-action results from the completed held-out evaluator.
 6. Longitudinal open-action selected rank, regret, eligibility and mechanism--action joint outcomes.
-7. Agent-system failure composition and provider accounting.
+7. Agent-system failure composition and execution diagnostics.

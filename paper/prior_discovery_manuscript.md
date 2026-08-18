@@ -34,7 +34,7 @@ abstract: |
   can also be wrong. Endpoint success alone cannot distinguish correct scientific inference from a
   favorable heuristic trajectory. We used executable chemical worlds to vary entity, parametric and
   structural information shown to one persistent experimental agent while holding the external
-  world, operations and laboratory resources fixed within matched clusters. The prospective DeepSeek
+  world, operations and laboratory resources fixed within matched clusters. The prospective
   cohort completed 135/135 sessions and 1,243/1,260 planned experiments
   across nine task--intervention combinations. Prior effects were strongly context dependent.
   Correct entity information produced a durable advantage in liquid--liquid partition, whereas
@@ -136,7 +136,7 @@ search, measure and improve after their first experiment, but their stated relia
 warnings do not selectively identify the incorrect model. We therefore organize the paper around a
 bounded result: initial world models reshape experimental search, whereas scientific correction
 requires separately scored transitions from prediction to executable law and from law to unseen
-action. W2-50 makes the latter loss observable across three task families: after 12 experiments per
+action. The formal open-action assay makes the latter loss observable across three task families: after 12 experiments per
 session, only 11/42 eligible readouts selected the top-ranked unseen plan, and the sole law-adequate
 cell selected the wrong action.
 
@@ -332,29 +332,29 @@ This design uses ChemWorld's programmability to manipulate different components 
 not turn the paper into a full factorial benchmark. Every block changes one locus, has its own
 identifiability criterion and retains its own denominator:
 
-1. **Study A — Initial-model-conditioned free discovery.** Entity interventions span five task
+1. **Initial-model-conditioned free discovery.** Entity interventions span five task
    families; parametric and structural interventions each span two validated task families. A
    cross-locus claim requires evidence from all three prespecified blocks; an entity-only result
    remains entity-specific.
-2. **Study B — Matched-evidence falsification.** A cloned-world secondary probe presents the same
+2. **Matched-evidence falsification.** A cloned-world secondary probe presents the same
    contradictory evidence to each arm, separating failure to seek evidence from failure to update
    after seeing it. The analysis includes the unaffected parametric block and a corrected structural
    phase-process block. An earlier structural run was excluded because its evaluator truth source
    omitted the prespecified world intervention. All matched-evidence sessions are independent and
-   excluded from Study A denominators.
-3. **Study C — Executable law and action.** Typed law summaries and held-out predictions test the
+   excluded from the free-discovery denominator.
+3. **Executable law and action.** Typed law summaries and held-out predictions test the
    transition from conditional belief to executable relation. Blind incumbent replay tests whether
    a committed recommendation can reproduce observed value, while a separate longitudinal
    open-action assay tests whether the agent can rank previously unseen, fully specified ActionPlans;
    no verbal statement alone counts as discovery.
-4. **Study D — Artifact-only compositional transfer.** After source-world learning, raw evidence,
+4. **Artifact-only compositional transfer.** After source-world learning, raw evidence,
    prose summaries or executable laws are transferred to a context-reset agent in a new combination.
    No-artifact, trajectory and typed-law conditions are compared, and within-family replication is
    kept separate from genuine compositional transfer.
 
 Observation/measurement interventions are reserved as a separate boundary probe. They require
 two-task identifiability and an exploratory three-arm study and are not included in the present
-denominator. Scope/compositional assumptions are tested only in Study D. This preserves a complete
+denominator. Scope/compositional assumptions are tested only in the future portability study. This preserves a complete
 conceptual intervention space without claiming that every programmable coordinate has already been
 executed.
 
@@ -375,9 +375,9 @@ measurement surface. They do not show that an agent discovers those relations.
 \end{figure*}
 ```
 
-## 4.2 Persistent experimental agent (Study A)
+## 4.2 Persistent experimental agent
 
-Each cell is controlled by one persistent Codex process and one provider session. After every public
+Each cell is controlled by one persistent agent process across one campaign. After every public
 outcome, the participant chooses the next operation through the host-owned laboratory tool. The host
 validates schemas, executes transactions, updates resources and protects private state, but does not
 select or repair scientific actions.
@@ -388,7 +388,7 @@ with checkpoints after 0, 3, 6, 9 and 12. These pattern-owned counts and their f
 were fixed before participant execution. A checkpoint records the
 agent's assessment of initial-model reliability at the manipulated layer, predictions, uncertainty,
 evidence references, executable law summary and next experimental intent. Checkpoints do not create
-additional provider sessions.
+additional independent sessions.
 
 ## 4.3 Evaluator-owned evidence
 
@@ -409,7 +409,7 @@ unavailable without the prespecified private transfer test.
 After the campaign, the participant commits one completed experiment as its final recommendation.
 The evaluator then performs paired blind replay of the observed incumbent and the committed
 recommendation. These executions use separate resources and do not enter participant-operation or
-provider denominators.
+independent-sample denominators.
 
 ## 4.4 Longitudinal open-action assay
 
@@ -461,7 +461,7 @@ a pure infrastructure failure without a persisted trajectory may resume under th
 
 The following exploratory results characterize the method and sharpen the scientific question. They
 are analyzed separately from the prospective cohort and from any future private-confirmation
-denominator; the two provider configurations are not used for a cross-provider capability ranking.
+denominator; the two exploratory configurations are not used for a cross-system capability ranking.
 Sections 5.1--5.5 instantiate the entity/ontology layer, whereas Section 5.6 reports a preliminary
 one-cluster parametric study. Neither substitutes for the prospective multi-locus cohort in Section 6.
 
@@ -469,44 +469,43 @@ one-cluster parametric study. Neither substitutes for the prospective multi-locu
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-3-development-prior-effects.pdf}
-\caption{\textbf{Provider-separated exploratory evidence for prior-sensitive behavior.}
-\textbf{a,b,} Paired world-seed differences in the best endpoint observed during four-experiment campaigns for aligned versus opaque and misindexed versus opaque information. Each row is one task--world pair; a short within-row segment links the two contrasts and diamonds are descriptive task means. WellAU/Codex contains five pairs per task except the aligned distillation contrast ($n=4$); DeepSeek recovery contains five pairs except the misindexed crystallization contrast ($n=4$).
-\textbf{c,} Final explicit misindex warnings, shown as flagged cells over available final belief records for every provider, task and prior arm.
-\textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled denominator and are not replaced. Panels a--c use the common three-task paired endpoint/warning dataset; the complete five-task DeepSeek operational denominator is shown in Table~\ref{tab:deepseek-five-task-closeout}. All panels are exploratory descriptive summaries; no confidence interval, confirmatory hypothesis test or cross-provider capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
+\caption{\textbf{Exploratory evidence for prior-sensitive behavior.}
+\textbf{a,b,} Paired world-seed differences in the best endpoint observed during four-experiment campaigns for aligned versus opaque and misindexed versus opaque information. Each row is one task--world pair; a short within-row segment links the two contrasts and diamonds are descriptive task means. The baseline exploratory configuration contains five pairs per task except the aligned distillation contrast ($n=4$); the continuation configuration contains five pairs except the misindexed crystallization contrast ($n=4$).
+\textbf{c,} Final explicit misindex warnings, shown as flagged cells over available final belief records for each exploratory configuration, task and prior arm.
+\textbf{d,} Completed-cell, complete-experiment and exact-replay denominators. Failures remain in the scheduled denominator and are not replaced. Panels a--c use the common three-task paired endpoint/warning dataset; the complete five-task exploratory denominator is shown in Table~\ref{tab:five-task-closeout}. All panels are exploratory descriptive summaries; no confidence interval, confirmatory hypothesis test or cross-system capability comparison is performed. Endpoint gains and verbal warnings do not establish law discovery, selective wrong-prior correction or transfer.}
 \label{fig:development-prior-effects}
 \end{figure*}
 ```
 
 ## 5.1 Entity-level priors reshape endpoint behavior
 
-One exploratory matrix used a fixed persistent-session interface with a WellAU-provided Codex
-model. It produced 44 completed cells out of 45 and 176 complete experiments out of 180. Mean paired
+One exploratory matrix used a fixed persistent-agent interface. It produced 44 completed cells out of
+45 and 176 complete experiments out of 180. Mean paired
 aligned-minus-opaque differences in the best observed endpoint were +0.211 for electrochemical
 conversion, +0.057 for crystallization and -0.036 for distillation, with the distillation contrast
 based on four complete pairs. Misindexed information was not consistently harmful, and explicit
 misindex warnings included substantial false positives in aligned cells.
 
-A DeepSeek exploratory cohort was completed across all five task families, retaining the original
+A second exploratory cohort was completed across all five task families, retaining the original
 seed-0 records for partition discovery and safety-constrained reaction and adding seeds 1--4 in a
-separate continuation. their seeds 1--4 in a separate continuation block are therefore not substitutes
+separate continuation. The seeds 1--4 continuation block is therefore not a substitute
 for the immutable seed-0 records. No seed-0 outcome was rerun or replaced. Every scheduled cell produced a final
 record (**75/75**); **69/75** cells met the prespecified completion criteria,
 with **290/300** complete experiments, **2,663/2,587** operation attempts/committed operations,
-**73** validation failures, **3** resource rejections, **69** recovered tool-interface failures and
-**0** provider-error events. Exact physical/resource replay passed for **75/75** trajectories.
-Provider accounting covered 72/75 cells; the remaining three stopped before a provider-reported
-completion event and retain usage as unavailable rather than zero. This exploratory cohort remains
+**73** validation failures, **3** resource rejections and **69** recovered tool-interface failures.
+Exact physical/resource replay passed for **75/75** trajectories. This exploratory cohort remains
 descriptive: it is separate from the prospective matrix, has no private transfer confirmation or
-confirmatory hypothesis test. No formal hypothesis test is used for its endpoint contrasts, and provider groups are never pooled into a capability ranking.
+confirmatory hypothesis test. No formal hypothesis test is used for its endpoint contrasts, and the
+exploratory configurations are never pooled into a capability ranking.
 
 ```{=latex}
 \begin{table*}[!t]
 \centering
-\caption{\textbf{Completeness of the five-task DeepSeek exploratory cohort.} All five task families reached the
+\caption{\textbf{Completeness of the five-task exploratory cohort.} All five task families reached the
 scheduled five-seed denominator. The partition and safety continuation retained their original
 seed-0 outcomes; their operational rows are reported descriptively and are not pooled
 with the common three-task paired endpoint panels.}
-\label{tab:deepseek-five-task-closeout}
+\label{tab:five-task-closeout}
 \scriptsize
 \begin{tabular}{lrrrrrr}
 \toprule
@@ -525,8 +524,8 @@ Safety-constrained reaction & 15/15 & 14/15 & 58/60 & 494/472 & 17 & 15/15 \\
 ```{=latex}
 \begin{table}[!t]
 \centering
-\caption{\textbf{DeepSeek five-task exploratory endpoint contrasts.} Values are descriptive paired-seed means in best endpoint score; the partition and safety rows are continuation observations and are not pooled into the common three-task Figure 3 endpoint panels.}
-\label{tab:deepseek-development-contrasts}
+\caption{\textbf{Five-task exploratory endpoint contrasts.} Values are descriptive paired-seed means in best endpoint score; the partition and safety rows are continuation observations and are not pooled into the common three-task Figure 3 endpoint panels.}
+\label{tab:five-task-development-contrasts}
 \scriptsize
 \begin{tabular}{lcc}
 \toprule
@@ -546,7 +545,7 @@ The ordering is not aligned, opaque, then misindexed. In distillation, every pai
 explicit-information arms over opaque identifiers, and the misindexed mean gain was larger. In
 partition discovery, both explicit-information contrasts were negative, whereas the safety task was
 mixed. These task-pattern differences are descriptive and are partly coupled to the continuation
-contract; they do not support a pooled provider effect. A better endpoint therefore cannot be treated
+contract; they do not support a pooled configuration effect. A better endpoint therefore cannot be treated
 as evidence that the agent accepted a correct prior, rejected a wrong prior or recovered the hidden
 law.
 
@@ -554,11 +553,11 @@ law.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-4-development-confirmation.pdf}
-\caption{\textbf{Held-out evaluation of the five-task DeepSeek exploratory matrix.}
+\caption{\textbf{Held-out evaluation of the five-task exploratory matrix.}
 \textbf{a,} Aligned-prior and misindexed-prior reductions in normalized held-out prediction error for all 25 task-by-world clusters. The identity line marks equal improvement; filled points are complete three-arm clusters and open points retain at least one failed arm under the prespecified missing-outcome rule.
 \textbf{b,} The primary exploratory contrast $C_{\mathrm{prior}}$ by task and seed. Diamonds are task means; positive values favor greater correction in the misindexed arm.
 \textbf{c,} Executable law-summary error minus final explicit-prediction error for 71 evaluable summaries. Negative values indicate beneficial compression.
-\textbf{d,} Paired blind replay of the committed recommendation versus the observed incumbent for 69 eligible cells. The evaluator completed 414/414 replays without additional model calls. All panels are exploratory descriptive evidence; no confirmatory test, private transfer claim or cross-provider ranking is performed.}
+\textbf{d,} Paired blind replay of the committed recommendation versus the observed incumbent for 69 eligible cells. The evaluator completed 414/414 replays without additional participant calls. All panels are exploratory descriptive evidence; no confirmatory test, private transfer claim or cross-system ranking is performed.}
 \label{fig:development-confirmation}
 \end{figure*}
 ```
@@ -587,7 +586,7 @@ outcomes.
 
 ## 5.3 Verbal suspicion is not selective correction
 
-Across available final belief records, final DeepSeek misindex warnings were 0/5, 5/5 and 3/5
+Across available final belief records, final misindex warnings were 0/5, 5/5 and 3/5
 for opaque, aligned and misindexed electrochemical cells; 0/4, 5/5 and 4/4 in crystallization;
 0/5, 5/5 and 5/5 in distillation; 0/4, 2/4 and 3/4 in partition discovery; and 0/5, 2/4 and
 0/5 in safety-constrained reaction. The model therefore often associated dossier presence with
@@ -596,27 +595,18 @@ correct and incorrect dossiers. Mean aligned-minus-misindexed changes in self-re
 reliability were small or heterogeneous across tasks, including negative changes in several
 continuation cells.
 
-This is a scientifically useful negative boundary. A warning token or reduced stated confidence is
+This is a scientifically useful negative boundary. A warning flag or reduced stated confidence is
 not a valid bias-rejection endpoint unless it predicts evaluator-scored correction and subsequent
 evidence-aligned action.
 
 ## 5.4 Persistent-session accounting exposes a separate operational layer
 
-The 75 DeepSeek trajectories accumulated **267,929,149 input tokens**, including
-**260,033,536 cached tokens** (97.05%), **7,895,613 uncached input tokens** and **2,932,468 output
-tokens**. These are cumulative turn-level provider counters for long-lived sessions. The large cached
-fraction therefore reflects reuse of the shared prompt and growing campaign history; it is not
-repeated model output and does not represent additional independent experimental evidence. Usage was
-available for 72/75 cells. The other three cells stopped before final usage metadata were returned;
-their usage remains unavailable rather than being imputed as zero.
-
-Operational failures also require their own denominator. The matrix recorded 73 schema-validation
-failures and 69 recovered tool-interface failures but no provider-error events. Moreover, 76 of 2,663
-operation attempts did not become committed operations. Thus, a zero provider-error count would have
-hidden most of the execution burden: model-to-tool conformance, recovery and resource preflight were
-more consequential than provider transport in this block. These events are properties of the complete
-agent system and remain separate from both physical outcomes and independent world-level scientific
-samples.
+Long-lived campaigns introduce an operational layer that is distinct from scientific evidence. Shared
+history, checkpoint schemas, resource preflight and recovery rules affect how a persistent agent can
+execute a campaign, but they do not create additional independent worlds or experiments. Accordingly,
+implementation usage, transport events and interface diagnostics are tracked separately from physical
+outcomes and are not interpreted as capability contrasts. The complete exploratory records retain
+these diagnostics for auditability while the reader-facing results focus on the scientific denominators.
 
 ## 5.5 Exploratory conclusion
 
@@ -634,7 +624,7 @@ initial world model. An evaluator-only screen selected one electrochemical seed 
 potential/current window and a matched but misspecified window were strongly separable in the
 executable world. This screen fixed the intervention before any participant outcome was observed.
 The subsequent preliminary study retained one opaque, one aligned and one misspecified cell. Each
-cell used one persistent WellAU `gpt-5.6-sol` medium Codex session, four complete experiments and four
+cell used one persistent agent session, four complete experiments and four
 belief checkpoints under a shared within-cell resource ledger.
 
 All **3/3** cells, **12/12** participant experiments and **12/12** checkpoints completed. A separate
@@ -736,7 +726,7 @@ failed tool-interface events, of which 888 were rejected typed-checkpoint submis
 were classified as agent-invalid, compared with one transport/OS event and three unclassified events.
 All five checkpoints were eventually recovered in every cell, so this burden did not create missing
 prediction payloads, but it increased context and recovery work, especially for the 16-query
-parametric and structural schemas. The result belongs to the complete DeepSeek--Codex agent system
+parametric and structural schemas. The result belongs to the complete evaluated agent-system configuration
 and its tool interface rather than the language model in isolation.
 
 ## 6.5 Prediction learning did not become selective wrong-model repair
@@ -783,7 +773,7 @@ An earlier structural matched-evidence run is excluded from scientific inference
 source was generated before the evaluator received the prespecified structural intervention. The
 unaffected parametric block remains in the analysis, and a corrected structural block supplied 80/80
 independently evaluated power-law truth queries and direct phase-process evidence with disjoint
-phase-process scoring queries. The corrected study completed 15/15 two-turn sessions, 30/30 model
+phase-process scoring queries. The corrected study completed 15/15 two-turn sessions and all registered
 turns, 360/360 scoring terms per stage and zero failures.
 
 For the parametric study, all five misindexed public summaries explicitly rejected the supplied high-potential
@@ -811,7 +801,7 @@ claim is supported.
 \textbf{b,} Mean pre-to-final normalized prediction-error reduction by intervention locus and initial-model arm.
 \textbf{c,} Final executable-law MAE minus final explicit-prediction MAE for all 135 cells. Positive values indicate lossy compression.
 \textbf{d,} Blind recommendation outcomes for all 121 evaluable cells; 14 incomplete participant cells remain in the denominator as unstarted.}
-\label{fig:public-c2-capability-chain}
+\label{fig:public-capability-chain}
 \end{figure*}
 ```
 
@@ -835,19 +825,19 @@ no longer be attributed to an undisclosed execution workflow.
 
 ## 7.2 The multi-task formal matrix exposes a task-dependent action-transfer boundary
 
-The W2-50 matrix completed **45/45** scheduled cell records across three task families, five
+The formal multi-task matrix completed **45/45** scheduled cell records across three task families, five
 world seeds and three initial-model arms. Independent evaluation completed **240/240** truth
 executions and **240/240** exact replays without additional model calls, and verified that public,
 evaluator-truth and executed ActionPlans were identical. **42/45** cells were uncontaminated and
 eligible for action metrics. The three excluded cells were all crystallization cells and remain in
 the denominator: two ended after agent-selected resource/process exhaustion and one was right-censored
-by a provider/session interruption. The independent `seed2/aligned_nominal` repair is reported as a
+by an interrupted campaign. An independent aligned-arm repair is reported as a
 technical sensitivity result and does not replace the original cell.
 
 ```{=latex}
 \begin{table*}[!t]
 \centering
-\caption{\textbf{W2-50 multi-task open-action matrix.} Rank and regret summaries use the 42 eligible cells; all 45 scheduled cells remain in the denominator and the three crystallization failures are retained. Lower rank and regret are better.}
+\caption{\textbf{Formal multi-task open-action matrix.} Rank and regret summaries use the 42 eligible cells; all 45 scheduled cells remain in the denominator and the three crystallization failures are retained. Lower rank and regret are better.}
 \label{tab:open-action-matrix}
 \scriptsize
 \begin{tabular}{lrrrrr}
@@ -889,15 +879,15 @@ means must remain descriptive.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{W2-50 multi-task open-action matrix.} \textbf{a,} Selected true rank for every eligible cell, with rows grouping task--world clusters, arm colors identifying the three nominal alternatives, and the dashed line marking the random expected rank of 4.5. No ordered trajectory is implied between arms. \textbf{b,} Normalized regret for the same rows. \textbf{c,} Joint law--action categories among 42 eligible cells; the three crystallization failures remain outside action metrics but inside the scheduled denominator. \textbf{d,} Task-level means show heterogeneity across chemical workflows, not a pooled arm effect. All candidate ActionPlans were complete and public to the participant; candidate outcomes and true ranks remained hidden until the terminal readout. Truth and exact replay were both 240/240.}
+\caption{\textbf{Formal multi-task open-action matrix.} \textbf{a,} Selected true rank for every eligible cell, with rows grouping task--world clusters, arm colors identifying the three nominal alternatives, and the dashed line marking the random expected rank of 4.5. No ordered trajectory is implied between arms. \textbf{b,} Normalized regret for the same rows. \textbf{c,} Joint law--action categories among 42 eligible cells; the three crystallization failures remain outside action metrics but inside the scheduled denominator. \textbf{d,} Task-level means show heterogeneity across chemical workflows, not a pooled arm effect. All candidate ActionPlans were complete and public to the participant; candidate outcomes and true ranks remained hidden until the terminal readout. Truth and exact replay were both 240/240.}
 \label{fig:open-action-formal}
 \end{figure*}
 ```
 
 ## 7.3 The repair result is sensitivity evidence, not a replacement cell
 
-The independent `seed2/aligned_nominal` repair completed all 12 experiments and produced a terminal
-readout, but the agent first proposed an infeasible `seed_crystals(0.02 g)` operation and triggered
+The independent aligned-arm repair completed all 12 experiments and produced a terminal readout, but
+the agent first proposed an infeasible crystallization seeding operation and triggered
 one resource rejection before adapting. The repaired readout selected rank 8/8 with normalized
 regret 1.0 and remained in the inadequate-law/wrong-action category. This confirms that the original
 interruption can be crossed in a fresh session, while also exposing a genuine resource-planning risk
@@ -906,19 +896,19 @@ rejection, it is not merged into the original 45-cell denominator.
 
 # 8. Capability boundary and programme expansion
 
-The public DeepSeek cohort now closes the participant-to-evaluator chain. It supports a bounded claim
+The public prospective cohort now closes the participant-to-evaluator chain. It supports a bounded claim
 that initial world models reshape task-dependent search and that prediction error can decline without
 selective wrong-prior correction. It also shows that executable syntax does not guarantee faithful law
 compression and that reproducible recommendation does not guarantee action transfer. The
-W2-50 extends this chain beyond incumbent replay across three task families: complete action semantics
+The formal multi-task assay extends this chain beyond incumbent replay across three task families: complete action semantics
 and occasional law adequacy did not yield reliable unseen-plan selection. These are jointly observed
 transition losses, not missing surrogate measurements.
 
 The matched-evidence study resolves a three-layer outcome, and the longitudinal open-action study
 identifies an additional action-transfer loss. The next studies address different causal questions.
-A context-reset Study D can
+A context-reset portability study can
 compare typed laws with richer evidence artifacts and test portability. Private within-family
-confirmation and matched cross-provider replication can test stability and generality. None is a
+confirmation and matched cross-system replication can test stability and generality. None is a
 repeat of the present analysis, and each requires a separate protocol and denominator.
 Within-family replication remains distinct from compositional transfer.
 
@@ -971,40 +961,38 @@ factors remain separate requirements.
 
 ## 9.5 The harness is part of the evaluated agent system
 
-A persistent Codex session contributes capabilities that a stateless model call does not: it retains
+A persistent agent session contributes capabilities that a stateless model call does not: it retains
 the campaign history, chooses among tools after each observation and can revise a plan without a host
 reconstructing its reasoning state. The same harness also introduces failure surfaces through tool
-discovery, schema conformance, retry rules, context growth and checkpoint submission. Provider-side
-caching changes resource use but not the number of experiments or independent worlds. Consequently,
-the participant is the fixed combination of model, reasoning setting, prompt, Codex runtime, tool
-interface and resource policy—not the model weights in isolation. This boundary is visible in the
-current cohort: 888 of 904 failed tool events occurred during typed belief submission even though all
-675 checkpoints were ultimately recovered. A cross-model claim requires these components to be
-matched or explicitly manipulated; the present provider configurations are therefore reported
-separately.
+discovery, schema conformance, retry rules, context growth and checkpoint submission. Context reuse
+changes resource use but not the number of experiments or independent worlds. Consequently, the
+participant is the fixed combination of model, reasoning setting, prompt, persistent session, tool
+interface and resource policy—not the model weights in isolation. A cross-system claim requires these
+components to be matched or explicitly manipulated; this study therefore treats the agent-system
+configuration as the unit of interpretation.
 
 ## 9.6 Scope and limitations
 
 The study evaluates bounded executable chemical worlds rather than universal chemical fidelity or
-direct wet-laboratory validity. A single fixed DeepSeek--Codex participant method supports conclusions
+direct wet-laboratory validity. A single fixed participant configuration supports conclusions
 about that agent-system configuration, not language models in general. The public programme contains
 nine task--locus combinations but only five independent worlds per task, so small and heterogeneous
 effects cannot support broad equivalence or universal-benefit claims. Entity, parametric and structural
 studies reached their prespecified participant denominators, whereas the observation-model screen
 remained a scientific boundary and did not enter a participant study. The held-out evaluator completed prediction, law
-compression and blind action for the public cohort; private confirmation, matched cross-provider
+compression and blind action for the public cohort; private confirmation, matched cross-system
 replication and compositional transfer were not run.
 The corrected structural matched-evidence study contains only five independent public worlds; its
 exact sign-flip analysis and structural recovery assessment cannot establish a population-wide rate
 of mechanism recovery. The earlier run affected by an evaluator omission is excluded from scientific
 inference. The longitudinal open-action study is descriptive: it contains 42 eligible cells, three
 retained crystallization failures and 12 complete three-arm task--world clusters, so its arm means
-are not causal estimates. The independent seed2 repair is a sensitivity result with one resource
+are not causal estimates. The independent aligned-arm repair is a sensitivity result with one resource
 rejection, not a replacement cell. Context-reset artifact portability remains untested.
 Ten cells contain discard-affected checkpoint timing that cannot be retrospectively repaired. Finally,
-exact software replay does not eliminate provider variability or interface burden; provider attempts,
-schema failures, resource rejection and session outcomes are reported as operational characteristics
-rather than independent scientific samples.
+exact software replay does not eliminate implementation variability or interface burden; process
+attempts, schema failures, resource rejection and session outcomes are reported as operational
+characteristics rather than independent scientific samples.
 
 # 10. Methods
 
@@ -1031,10 +1019,9 @@ quench and transfer time, and final-assay reserve across all experiments in a ca
 
 ## 10.3 Persistent agent and tool execution
 
-Each participant cell launches one Codex Responses process and retains one provider session across the
-complete pattern-owned campaign. Web search is disabled. The participant instructions prohibit shell use,
-file changes and repository inspection and require physical decisions to pass through the host-owned
-laboratory interface, implemented through the Model Context Protocol (MCP). The bounded domain tools
+Each participant cell launches one persistent agent process and retains one session across the complete
+pattern-owned campaign. The participant instructions prohibit shell use, file changes and repository
+inspection and require physical decisions to pass through the host-owned laboratory interface. The bounded domain tools
 expose material information, belief checkpoints, operation submission, public state and history,
 artifact inspection and final
 recommendation commitment. The host validates and executes submitted actions but never chooses a
@@ -1042,10 +1029,9 @@ fallback scientific action.
 
 Every operation submission contains a brief structured rationale stating its expected effect,
 diagnostic target and evidence dependence. Tool records retain call order, status, timestamps and
-error classes without retaining raw provider payloads or private chain-of-thought. A provider
-retry or infrastructure resume is an operational attempt within the same cell, not a new experiment or
-independent sample. Belief checkpoints are tool calls inside the existing session rather than separate
-provider conversations.
+error classes without retaining raw interaction payloads or private chain-of-thought. An infrastructure
+retry or resume is an operational attempt within the same cell, not a new experiment or independent
+sample. Belief checkpoints are tool calls inside the existing session rather than separate conversations.
 
 ## 10.4 Belief and law-summary checkpoints
 
@@ -1093,7 +1079,7 @@ After 12 participant experiments and the final checkpoint, the participant retur
 ranking and selected one candidate. Evaluator-owned outcomes were then used to calculate selected
 rank, Top-1, raw regret, normalized regret, complete-ranking agreement and the joint mechanism--action
 category. A cell was eligible only when all 12 experiments, five checkpoints, final ranking,
-resource reconciliation and provider accounting completed without contamination. All scheduled
+resource reconciliation and execution-integrity checks completed without contamination. All scheduled
 cells remained in the denominator. Arm summaries are descriptive because this exploratory study had
 only five worlds and two incomplete cells. The three additional interface validations used one world
 seed per task and were evaluated only as interface checks, not as multi-world scientific evidence.
@@ -1110,14 +1096,14 @@ context-reset artifact-portability design would still be required for a composit
 
 Participant trajectories, evaluator truth sets and blind-replay sets are stored separately and joined
 through stable record identifiers. Every completed participant trajectory must pass physical replay,
-campaign-resource replay and hidden-boundary verification. Provider process attempts, provider sessions,
-tool calls, operation attempts, committed operations, complete experiments, cells and evaluator
-executions are reported with distinct denominators.
+campaign-resource replay and hidden-boundary verification. Process attempts, sessions, tool calls,
+operation attempts, committed operations, complete experiments, cells and evaluator executions are
+reported with distinct denominators.
 
 # 11. Data and code availability
 
 The executable environment, prespecified protocols, analysis code, source data and reproducible figure
-scripts will accompany the public release. Raw provider payloads and credentials are excluded. No
+scripts will accompany the public release. Raw interaction payloads and credentials are excluded. No
 private cohort data are included because that optional study was not executed.
 
 # 12. Competing interests

@@ -547,7 +547,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     )
     panel_label(ax_a, "a", x=-0.018)
 
-    ax_b.set_title("Study A: sparse locus-specific blocks", loc="left", fontweight="bold", pad=5)
+    ax_b.set_title("Sparse locus-specific blocks", loc="left", fontweight="bold", pad=5)
     block_specs = [
         ("Entity", "Entity / ontology", "5 tasks × 5 worlds", "8 experiments", COLORS["blue"]),
         ("Parametric", "Parameters / dynamics", "2 tasks × 5 worlds", "10 experiments", COLORS["aligned"]),
@@ -577,11 +577,11 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
 
     ax_c.set_title("Evidence partitions", loc="left", fontweight="bold", pad=5)
     evidence_boxes = [
-        (0.03, 0.73, "Study A\nfree discovery", COLORS["teal_light"], COLORS["aligned"]),
-        (0.63, 0.73, "Study B\nmatched evidence", COLORS["red_light"], COLORS["red"]),
-        (0.33, 0.47, "Study C\nlaw + action", COLORS["blue_light"], COLORS["blue"]),
+        (0.03, 0.73, "Free\ndiscovery", COLORS["teal_light"], COLORS["aligned"]),
+        (0.63, 0.73, "Matched\nevidence", COLORS["red_light"], COLORS["red"]),
+        (0.33, 0.47, "Law +\naction", COLORS["blue_light"], COLORS["blue"]),
         (0.03, 0.20, "Private\nreplication", COLORS["violet_light"], COLORS["violet"]),
-        (0.63, 0.20, "Study D\nartifact portability", COLORS["orange_light"], COLORS["misindexed"]),
+        (0.63, 0.20, "Artifact\nportability", COLORS["orange_light"], COLORS["misindexed"]),
     ]
     for x, y, label, face, edge in evidence_boxes:
         width = 0.34
@@ -702,6 +702,7 @@ def plot_endpoint_panel(
     ax: mpl.axes.Axes,
     rows: list[dict[str, Any]],
     provider: str,
+    display_label: str,
     x_limits: tuple[float, float],
     *,
     show_y_labels: bool,
@@ -718,7 +719,7 @@ def plot_endpoint_panel(
         y_by_seed = {seed: center + float(seed_offsets[seed]) for seed in range(5)}
         y_ticks.extend(y_by_seed.values())
         y_labels.extend(
-            f"{ROW_TASK_LABEL[task]} s{seed}" for seed in range(5)
+            f"{ROW_TASK_LABEL[task]} world {seed + 1}" for seed in range(5)
         )
         values_by_arm: dict[str, dict[int, float]] = {}
         for arm in ("aligned_nominal", "misindexed_nominal"):
@@ -810,7 +811,7 @@ def plot_endpoint_panel(
     ax.set_xlabel("Paired difference in best endpoint score", labelpad=3)
     ax.set_ylabel("Task / world seed" if show_y_labels else "")
     ax.set_title(
-        f"{provider}\nRows are task-world pairs; diamonds are means",
+        f"{display_label}\nRows are task-world pairs; diamonds are means",
         loc="left",
         fontweight="bold",
         pad=6,
@@ -883,6 +884,7 @@ def render_figure_3(
         ax_a,
         endpoint_rows,
         "WellAU/Codex",
+        "Baseline exploratory configuration",
         (low, high),
         show_y_labels=True,
     )
@@ -890,6 +892,7 @@ def render_figure_3(
         ax_b,
         endpoint_rows,
         "DeepSeek/Codex",
+        "Continuation exploratory configuration",
         (low, high),
         show_y_labels=False,
     )
@@ -899,13 +902,17 @@ def render_figure_3(
 
     # c — warning specificity matrix
     providers = ["WellAU/Codex", "DeepSeek/Codex"]
+    provider_labels = {
+        "WellAU/Codex": "Baseline configuration",
+        "DeepSeek/Codex": "Continuation configuration",
+    }
     row_labels: list[str] = []
     y_lookup: dict[tuple[str, str], int] = {}
     index = 0
     for provider in providers:
         for task in TASK_ORDER:
             y_lookup[(provider, task)] = index
-            row_labels.append(f"{provider.split('/')[0].replace(' recovery', '')} · {TASK_LABEL[task].replace(chr(10), ' ')}")
+            row_labels.append(f"{provider_labels[provider]} · {TASK_LABEL[task].replace(chr(10), ' ')}")
             index += 1
     for row in warning_rows:
         y = y_lookup[(row["provider"], row["task_id"])]
@@ -969,7 +976,7 @@ def render_figure_3(
                 fontsize=6.1,
                 color=COLORS["ink"],
             )
-    ax_d.set_xticks(x, ["WellAU/\nCodex", "DeepSeek/\nCodex"])
+    ax_d.set_xticks(x, ["Baseline\nconfiguration", "Continuation\nconfiguration"])
     ax_d.set_ylim(0, 1.11)
     ax_d.set_yticks(np.linspace(0, 1, 6), [f"{int(value * 100)}%" for value in np.linspace(0, 1, 6)])
     ax_d.set_ylabel("Retained denominator reached")
@@ -1004,8 +1011,8 @@ def render_figure_3(
     fig.text(
         0.16,
         0.025,
-        "Exploratory descriptive evidence. Each row is one task-world pair; a short within-row segment links the two contrasts and diamonds show task means. No confirmatory tests or cross-provider capability comparison are performed. "
-        "The two providers use separate method/harness contracts. Endpoint gains and verbal warnings do not establish law discovery, wrong-prior rejection or transfer.",
+        "Exploratory descriptive evidence. Each row is one task-world pair; a short within-row segment links the two contrasts and diamonds show task means. No confirmatory tests or cross-system capability comparison are performed. "
+        "The two configurations use separate method and interface contracts. Endpoint gains and verbal warnings do not establish law discovery, wrong-prior rejection or transfer.",
         ha="left",
         va="bottom",
         fontsize=6.5,
@@ -1099,7 +1106,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
             for seed in range(5):
                 y = center + float(seed_offsets[seed])
                 y_ticks.append(y)
-                y_labels.append(f"{ROW_TASK_LABEL[task]} s{seed}")
+                y_labels.append(f"{ROW_TASK_LABEL[task]} world {seed + 1}")
                 for arm in ARM_ORDER:
                     row = row_lookup.get((task, seed, arm))
                     value = None if row is None else row.get(metric)
@@ -1215,7 +1222,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     panel_label(ax_d, "d", x=-0.11)
 
     fig.suptitle(
-        "W2-50 formal open-action matrix: complete plans still do not close law-to-action transfer",
+        "Formal multi-task open-action matrix: complete plans still do not close law-to-action transfer",
         x=0.09,
         y=0.975,
         ha="left",
@@ -1529,10 +1536,10 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     fig.text(
         0.075,
         0.027,
-        "DeepSeek exploratory evidence: 25 task × world clusters, 75 retained cells, "
+        "Five-task exploratory evidence: 25 task × world clusters, 75 retained cells, "
         "100/100 evaluator-truth queries and 414/414 blind replays. Open points mark "
         "clusters with a retained failed arm; prespecified missing-outcome rules are retained. "
-        "No confirmatory test, private transfer claim or cross-provider ranking is performed.",
+        "No confirmatory test, private transfer claim or cross-system ranking is performed.",
         ha="left",
         va="bottom",
         fontsize=6.35,
@@ -1771,11 +1778,11 @@ def main() -> int:
         "interpretation_limits": [
             "Figure 1 shows the layered initial-world-model concept; Figure 2 shows the frozen entity/ontology confirmatory core and separated study denominators, not participant outcomes.",
             "Structural, parametric and observation-model interventions remain registered extensions with no participant outcomes in this figure package.",
-            "Figure 3 contains development-only provider-isolated descriptive evidence.",
-            "Figure 4 contains DeepSeek development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
-            "Figure 6 contains the W2-50 multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
+            "Figure 3 contains development-only configuration-separated descriptive evidence.",
+            "Figure 4 contains development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
+            "Figure 6 contains the formal multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
             "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
-            "No arm-level formal inference, law-discovery sufficiency claim, transfer claim or cross-provider capability ranking is supported.",
+            "No arm-level formal inference, law-discovery sufficiency claim, transfer claim or cross-system capability ranking is supported.",
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

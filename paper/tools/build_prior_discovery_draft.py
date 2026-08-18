@@ -263,11 +263,11 @@ def build() -> dict[str, Any]:
             "Figures 1 and 2 describe the frozen design.",
             (
                 "Figure 3 and its paired endpoint/warning panels are development-only and "
-                "retain the common three-task provider-separated source."
+                "retain the common three-task configuration-separated source."
             ),
             (
-                "Figure 4 is a post-hoc zero-provider evaluator confirmation of the "
-                "retained five-task DeepSeek development matrix; it is descriptive and "
+                "Figure 4 is a post-hoc evaluator confirmation of the "
+                "retained five-task development matrix; it is descriptive and "
                 "not the public formal result."
             ),
             (
@@ -283,13 +283,13 @@ def build() -> dict[str, Any]:
                 "claim."
             ),
             (
-                "Public DeepSeek participant, evaluator and matched-evidence results "
+                "Public participant, evaluator and matched-evidence results "
                 "are collected; "
                 "private confirmation remains uncollected."
             ),
             (
                 "The five-world longitudinal open-action matrix is development evidence: "
-                "the earlier W2-48 block remains separate; the current W2-50 matrix has "
+                "the earlier block remains separate; the current matrix has "
                 "45 scheduled cells, 42 eligible action readouts and three retained "
                 "crystallization failures. Arm-level effects are not claimed."
             ),
