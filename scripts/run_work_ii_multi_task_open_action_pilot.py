@@ -20,6 +20,7 @@ from run_work_ii_campaign_pilot import _checkpoint_contract
 from work_ii_longitudinal_runtime import Progress, _execute_cells
 
 from chemworld.eval.provenance import canonical_json_sha256, write_json_atomic
+from chemworld.eval.work_ii_evidence_to_action import split_registered_query_pool_maximin
 from chemworld.eval.work_ii_longitudinal_action_readout import (
     _world_campaign_config,
     summarize_results,
@@ -44,6 +45,7 @@ STUDY_ID = "work-ii-multi-task-open-action-pilot-v0.1"
 FORMAL_RESULT = False
 FORMAL_PREFLIGHT_SHA256: str | None = None
 TESTED_COMMIT: str | None = None
+QUERY_SPLIT_STRATEGY = "hash"
 TASKS: dict[str, str] = {
     "electrochemical-conversion": "a_p--electrochemical-conversion--r10.json",
     "reaction-to-crystallization": "a_s--reaction-to-crystallization--r12.json",
@@ -200,6 +202,16 @@ def _select_split_queries(source: Mapping[str, Any], task_id: str) -> tuple[list
     raw = checkpoint.get("held_out_queries")
     if not isinstance(raw, list) or len(raw) < 16:
         raise ValueError(f"{task_id}: expected at least 16 registered held-out queries")
+    if QUERY_SPLIT_STRATEGY == "registered_public_feature_maximin":
+        allowed_features = checkpoint.get("allowed_feature_ids")
+        if not isinstance(allowed_features, list) or not allowed_features:
+            raise ValueError(f"{task_id}: maximin split requires allowed feature IDs")
+        return split_registered_query_pool_maximin(
+            raw,
+            allowed_feature_ids=[str(item) for item in allowed_features],
+        )
+    if QUERY_SPLIT_STRATEGY != "hash":
+        raise ValueError(f"{task_id}: unsupported query split strategy")
     ordered = sorted(
         (deepcopy(dict(item)) for item in raw if isinstance(item, Mapping)),
         key=lambda item: (sha256(f"{PACKET_SEED}:{task_id}:{item['query_id']}".encode()).hexdigest(), str(item["query_id"])),

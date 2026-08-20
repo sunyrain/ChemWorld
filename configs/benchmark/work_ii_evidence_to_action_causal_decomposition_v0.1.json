@@ -1,0 +1,152 @@
+{
+  "schema_version": "chemworld-work-ii-evidence-to-action-protocol-0.1",
+  "study_id": "work-ii-evidence-to-action-causal-decomposition-v0.1",
+  "status": "development_design_provider_execution_not_authorized",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_EVIDENCE_TO_ACTION_CAUSAL_DECOMPOSITION_EXPERIMENT_NOTE.md",
+  "task_runtime_sources": {
+    "electrochemical-conversion": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--electrochemical-conversion--r10.json",
+    "reaction-to-crystallization": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--reaction-to-crystallization--r12.json",
+    "reaction-safety-constrained": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--reaction-safety-constrained--r10.json"
+  },
+  "qualification_world_seeds": [0, 1, 2, 3, 4],
+  "formal_world_seeds": [636790627, 719869860, 836245547, 367466803, 855385889],
+  "candidate_packet_seed_base": 2026082000,
+  "prior_arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "conditions": {
+    "no_evidence": {
+      "physical_experiments": 0,
+      "fresh_context": true,
+      "donor_dependency": false,
+      "information": "task contract and initial world model only",
+      "checkpoint_stages": ["terminal_ranking"]
+    },
+    "yoked_evidence": {
+      "physical_experiments": 0,
+      "fresh_context": true,
+      "donor_dependency": true,
+      "information": "stepwise participant-visible donor actions and observations without donor reasoning",
+      "checkpoint_stages": ["pre_evidence", "after_experiment_3", "after_experiment_6", "after_experiment_9", "final", "terminal_ranking"]
+    },
+    "autonomous_exploration": {
+      "physical_experiments": 12,
+      "fresh_context": true,
+      "donor_dependency": false,
+      "information": "autonomous tool access under the fixed resource contract",
+      "checkpoint_stages": ["pre_evidence", "after_experiment_3", "after_experiment_6", "after_experiment_9", "final", "terminal_ranking"]
+    },
+    "learned_law_only": {
+      "physical_experiments": 0,
+      "fresh_context": true,
+      "donor_dependency": true,
+      "information": "donor final typed law only",
+      "checkpoint_stages": ["artifact_received", "terminal_ranking"]
+    },
+    "oracle_law": {
+      "physical_experiments": 0,
+      "fresh_context": true,
+      "donor_dependency": false,
+      "information": "provider-free oracle law in the same typed schema and scientific scope",
+      "checkpoint_stages": ["artifact_received", "terminal_ranking"]
+    }
+  },
+  "donor_contract": {
+    "condition": "autonomous_exploration",
+    "derived_conditions": ["yoked_evidence", "learned_law_only"],
+    "transfer_public_action_observation_events": true,
+    "yoked_public_fields": [
+      "action",
+      "non_null_scientific_observation",
+      "observed_keys",
+      "observed_reward",
+      "transaction_status",
+      "rollback_reason"
+    ],
+    "transfer_campaign_resource_state": false,
+    "transfer_donor_reasoning": false,
+    "transfer_hidden_evaluator_fields": false,
+    "transfer_candidate_information": false,
+    "replacement_donor_allowed": false,
+    "missing_donor_status": "not_started_due_to_missing_donor"
+  },
+  "candidate_contract": {
+    "candidate_count": 8,
+    "selection_rule": "registered_16_query_public_feature_gower_maximin_8_candidate_remainder_checkpoint",
+    "selection_reads_truth": false,
+    "same_packet_across_worlds_within_task": true,
+    "complete_action_plans": true,
+    "same_packet_within_task_world_prior_stratum": true,
+    "condition_specific_reveal_gate_required": true,
+    "reveal_gates": {
+      "no_evidence": "session_start",
+      "yoked_evidence": "after_evidence_round_12",
+      "autonomous_exploration": "after_experiment_12_final_checkpoint",
+      "learned_law_only": "session_start_with_artifact",
+      "oracle_law": "session_start_with_artifact"
+    },
+    "outcomes_and_ranks_hidden": true,
+    "public_truth_executed_plan_identity_required": true,
+    "development_minimum_raw_score_range": 0.15,
+    "development_minimum_candidates_with_raw_regret_at_least_0_05": 3,
+    "top1_gap_is_reported_not_qualified": true
+  },
+  "artifact_contract": {
+    "learned_artifact_source": "autonomous_donor_final_typed_law",
+    "oracle_artifact_source": "provider_free_disjoint_grid_fitted_predictive_law",
+    "same_schema_required": true,
+    "same_feature_and_metric_scope_required": true,
+    "shared_maximum_artifact_word_count": 600,
+    "oracle_fit_may_not_use_candidate_outcomes": true,
+    "minimum_oracle_candidate_rank_correlation": 0.80,
+    "candidate_outcomes_may_not_appear": true
+  },
+  "analysis": {
+    "paired_contrast_unit": "task_world_prior_stratum",
+    "independent_inference_cluster": "task_world",
+    "independent_cluster_count": 15,
+    "prior_arm_role": "repeated_factor_and_effect_modifier_within_task_world",
+    "primary_aggregation": "mean_paired_contrast_over_prior_arms_within_task_world_then_across_task_world_clusters",
+    "uncertainty": "cluster_resampling_of_worlds_within_task",
+    "primary_endpoint": "failure_aware_normalized_regret",
+    "primary_contrast": "autonomous_exploration_minus_no_evidence",
+    "secondary_contrasts": [
+      "yoked_evidence_minus_no_evidence",
+      "autonomous_exploration_minus_yoked_evidence",
+      "learned_law_only_minus_no_evidence",
+      "oracle_law_minus_learned_law_only",
+      "oracle_law_minus_no_evidence"
+    ],
+    "secondary_endpoints": [
+      "selected_rank",
+      "top1",
+      "within_0_01_of_best",
+      "complete_ranking_agreement",
+      "pairwise_ranking_agreement_excluding_truth_gaps_below_0_01",
+      "law_implied_ranking_agreement",
+      "law_implied_top1_following",
+      "pre_to_final_prediction_error_change",
+      "final_executable_law_error",
+      "resource_or_process_failure"
+    ],
+    "missing_terminal_failure_aware_normalized_regret": 1.0,
+    "missing_terminal_top1": 0,
+    "missing_terminal_rank": null,
+    "paired_inference": "paired_within_task_world_prior_clustered_by_task_world_with_all_scheduled_failures_retained"
+  },
+  "execution": {
+    "provider_profile": "deepseek-v4-flash-high-codex-harness",
+    "provider_execution_authorized": false,
+    "task_count": 3,
+    "formal_world_count_per_task": 5,
+    "prior_arm_count": 3,
+    "condition_count": 5,
+    "scheduled_session_count": 225,
+    "autonomous_session_count": 45,
+    "participant_physical_experiment_count": 540,
+    "operational_canary": "first_complete_task_world_cluster_all_priors_and_conditions",
+    "max_concurrent_autonomous_sessions": 4,
+    "max_concurrent_nonphysical_sessions": 8,
+    "progress_interval_seconds": 30,
+    "scientific_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}
