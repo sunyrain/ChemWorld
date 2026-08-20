@@ -33,6 +33,13 @@ budget, but fitting may not read candidate outcomes. Development qualification r
 rank correlation at least `0.80`; failure rejects the oracle design rather than revealing candidate
 scores or silently substituting an outcome table.
 
+The dense oracle qualification grid contains `96` queries per task and is reused across the five
+development worlds within that task (`1,440` provider-free task-world queries total). It is built
+deterministically over the public feature envelope of the registered 16-query coverage pool, then
+filtered only by the public ActionPlan compiler. Terminal-candidate query IDs and exact candidate
+feature rows are excluded before any truth is evaluated. The public construction may oversample by
+up to `8x` solely to obtain the fixed compile-valid denominator; it may not inspect outcomes.
+
 ## Measurements and estimands
 
 All conditions submit one complete terminal ranking. Autonomous and yoked conditions additionally

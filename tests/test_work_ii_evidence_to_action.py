@@ -10,6 +10,7 @@ from chemworld.eval.work_ii_evidence_to_action import (
     DONOR_CONDITION,
     DONOR_DERIVED_CONDITIONS,
     build_design_manifest,
+    build_disjoint_oracle_grid,
     build_learned_law_artifact,
     build_oracle_law_artifact,
     build_yoked_evidence_packet,
@@ -84,6 +85,12 @@ def test_tampered_donor_dependency_is_rejected() -> None:
         "learned_law_only: donor dependency is invalid" in error
         for error in validate_protocol(protocol)
     )
+
+
+def test_tampered_oracle_grid_contract_is_rejected() -> None:
+    protocol = deepcopy(_protocol())
+    protocol["oracle_grid_contract"]["selection_reads_truth"] = True
+    assert "oracle grid construction may not read truth" in validate_protocol(protocol)
 
 
 def test_candidate_packet_qualification_uses_spread_not_top1_gap() -> None:
@@ -309,6 +316,41 @@ def test_oracle_fitter_uses_only_disjoint_registered_grid() -> None:
     assert artifact["fit_query_ids"] == [f"fit-q{index}" for index in range(8)]
     assert artifact["fit_used_candidate_outcomes"] is False
     assert artifact["law_summary"]["metric_laws"][0]["metric_id"] == "score"
+
+
+def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -> None:
+    registered = [
+        {
+            "query_id": f"registered-q{index:02d}",
+            "feature_values": {
+                "temperature": 300.0 + 10.0 * index,
+                "catalyst": index % 4,
+                "fixed_amount": 0.01,
+            },
+        }
+        for index in range(16)
+    ]
+    kwargs = {
+        "allowed_feature_ids": ["temperature", "catalyst", "fixed_amount"],
+        "allowed_metric_ids": ["yield", "score"],
+        "candidate_query_ids": [f"registered-q{index:02d}" for index in range(0, 16, 2)],
+        "query_count": 96,
+        "grid_id": "oracle-grid-test",
+    }
+    first = build_disjoint_oracle_grid(registered, **kwargs)
+    second = build_disjoint_oracle_grid(registered, **kwargs)
+    assert first == second
+    assert len(first) == 96
+    assert len({row["query_id"] for row in first}) == 96
+    candidate_features = {
+        json.dumps(registered[index]["feature_values"], sort_keys=True)
+        for index in range(0, 16, 2)
+    }
+    assert not candidate_features & {
+        json.dumps(row["feature_values"], sort_keys=True) for row in first
+    }
+    assert {row["feature_values"]["catalyst"] for row in first} == {0, 1, 2, 3}
+    assert all("truth" not in row for row in first)
 
 
 def test_terminal_ranking_uses_continuous_regret_and_tie_aware_agreement() -> None:

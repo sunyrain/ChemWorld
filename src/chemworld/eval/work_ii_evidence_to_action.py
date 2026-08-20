@@ -57,6 +57,7 @@ CANDIDATE_REVEAL_GATES = {
     "learned_law_only": "session_start_with_artifact",
     "oracle_law": "session_start_with_artifact",
 }
+_HALTON_PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
 
 
 def _string_list(value: Any) -> list[str]:
@@ -183,6 +184,31 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
         word_count = artifact.get("shared_maximum_artifact_word_count")
         if not isinstance(word_count, int) or isinstance(word_count, bool) or word_count <= 0:
             errors.append("shared artifact word limit must be a positive integer")
+
+    oracle_grid = protocol.get("oracle_grid_contract")
+    if not isinstance(oracle_grid, Mapping):
+        errors.append("oracle grid contract is missing")
+    else:
+        if oracle_grid.get("selection_reads_truth") is not False:
+            errors.append("oracle grid construction may not read truth")
+        if oracle_grid.get("same_grid_across_worlds_within_task") is not True:
+            errors.append("oracle grid must be fixed across worlds within task")
+        if oracle_grid.get("candidate_feature_rows_excluded") is not True:
+            errors.append("oracle grid must exclude terminal candidate feature rows")
+        query_count = oracle_grid.get("query_count_per_task")
+        if (
+            not isinstance(query_count, int)
+            or isinstance(query_count, bool)
+            or query_count < 16
+        ):
+            errors.append("oracle grid must contain at least 16 queries per task")
+        oversampling = oracle_grid.get("compile_valid_oversampling_factor")
+        if (
+            not isinstance(oversampling, int)
+            or isinstance(oversampling, bool)
+            or oversampling < 1
+        ):
+            errors.append("oracle grid compile-valid oversampling factor is invalid")
 
     execution = protocol.get("execution")
     if not isinstance(execution, Mapping):
@@ -479,6 +505,117 @@ def build_oracle_law_artifact(
     }
 
 
+def _radical_inverse(index: int, base: int) -> float:
+    value = 0.0
+    scale = 1.0 / base
+    while index:
+        index, digit = divmod(index, base)
+        value += digit * scale
+        scale /= base
+    return value
+
+
+def build_disjoint_oracle_grid(
+    registered_queries: Sequence[Mapping[str, Any]],
+    *,
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    candidate_query_ids: Sequence[str],
+    query_count: int,
+    grid_id: str,
+) -> list[dict[str, Any]]:
+    """Build a truth-blind dense grid over the registered public feature envelope.
+
+    Continuous coordinates use a deterministic Halton design and small integer-valued
+    categorical coordinates cycle over their registered levels. Exact terminal-candidate
+    feature rows are skipped, so disjointness is scientific as well as identifier based.
+    """
+
+    if query_count < 16:
+        raise ValueError("oracle grid must contain at least 16 queries")
+    if not registered_queries:
+        raise ValueError("registered query pool is empty")
+    if not allowed_feature_ids or len(allowed_feature_ids) > len(_HALTON_PRIMES):
+        raise ValueError("oracle grid feature denominator is unsupported")
+    candidate_ids = {str(query_id) for query_id in candidate_query_ids}
+    rows_by_id = {str(row.get("query_id")): row for row in registered_queries}
+    if not candidate_ids.issubset(rows_by_id):
+        raise ValueError("terminal candidate IDs are outside the registered query pool")
+
+    feature_columns: dict[str, list[Any]] = {}
+    for feature_id in allowed_feature_ids:
+        values: list[Any] = []
+        for row in registered_queries:
+            features = row.get("feature_values")
+            if not isinstance(features, Mapping) or feature_id not in features:
+                raise ValueError("registered query lacks the oracle feature scope")
+            values.append(features[feature_id])
+        feature_columns[feature_id] = values
+
+    candidate_features = {
+        json.dumps(
+            {
+                feature_id: rows_by_id[query_id]["feature_values"][feature_id]
+                for feature_id in allowed_feature_ids
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        for query_id in candidate_ids
+    }
+    grid: list[dict[str, Any]] = []
+    seen_features: set[str] = set()
+    design_index = 1
+    maximum_attempts = query_count * 100
+    while len(grid) < query_count and design_index <= maximum_attempts:
+        features: dict[str, Any] = {}
+        for feature_index, feature_id in enumerate(allowed_feature_ids):
+            values = feature_columns[feature_id]
+            unique = sorted(set(values), key=lambda value: (str(type(value)), str(value)))
+            if len(unique) == 1:
+                features[feature_id] = unique[0]
+                continue
+            categorical = len(unique) <= 4 and all(
+                isinstance(value, int) and not isinstance(value, bool) for value in unique
+            )
+            if categorical:
+                position = (
+                    design_index * _HALTON_PRIMES[feature_index] + feature_index
+                ) % len(unique)
+                features[feature_id] = unique[position]
+                continue
+            if not all(
+                isinstance(value, int | float)
+                and not isinstance(value, bool)
+                and math.isfinite(float(value))
+                for value in unique
+            ):
+                raise ValueError(
+                    f"{feature_id}: oracle grid supports only numeric/categorical values"
+                )
+            low = min(float(value) for value in unique)
+            high = max(float(value) for value in unique)
+            coordinate = _radical_inverse(
+                design_index, _HALTON_PRIMES[feature_index]
+            )
+            features[feature_id] = low + (high - low) * coordinate
+        rendered = json.dumps(features, sort_keys=True, separators=(",", ":"))
+        design_index += 1
+        if rendered in candidate_features or rendered in seen_features:
+            continue
+        seen_features.add(rendered)
+        grid.append(
+            {
+                "query_id": f"{grid_id}--q{len(grid) + 1:03d}",
+                "feature_values": features,
+                "metric_ids": [str(metric_id) for metric_id in allowed_metric_ids],
+            }
+        )
+    if len(grid) != query_count:
+        raise ValueError("oracle grid could not realize its registered query denominator")
+    return grid
+
+
 def _oracle_basis_specs(
     fit_queries: Sequence[Mapping[str, Any]],
     allowed_feature_ids: Sequence[str],
@@ -572,15 +709,24 @@ def _ridge_coefficients(
 def _select_oracle_ridge_penalty(matrix: np.ndarray, response: np.ndarray) -> float:
     penalties = (1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0, 10.0)
     candidates: list[tuple[float, float]] = []
+    fold_count = len(response) if len(response) <= 16 else 8
     for penalty in penalties:
         errors: list[float] = []
-        for held_out in range(len(response)):
-            retained = [index for index in range(len(response)) if index != held_out]
+        for fold in range(fold_count):
+            held_out = [
+                index for index in range(len(response)) if index % fold_count == fold
+            ]
+            retained = [
+                index for index in range(len(response)) if index % fold_count != fold
+            ]
             intercept, coefficients = _ridge_coefficients(
                 matrix[retained], response[retained], penalty
             )
-            prediction = intercept + float(coefficients @ matrix[held_out])
-            errors.append(abs(prediction - float(response[held_out])))
+            predictions = intercept + matrix[held_out] @ coefficients
+            errors.extend(
+                abs(float(prediction) - float(response[index]))
+                for prediction, index in zip(predictions, held_out, strict=True)
+            )
         candidates.append((sum(errors) / len(errors), penalty))
     return min(candidates, key=lambda item: (item[0], -item[1]))[1]
 
@@ -596,10 +742,10 @@ def fit_oracle_law_from_disjoint_grid(
 ) -> dict[str, Any]:
     """Fit a fixed typed predictive law without reading terminal candidate outcomes."""
 
-    if len(fit_queries) != 8:
-        raise ValueError("oracle fit grid must contain exactly eight registered queries")
+    if len(fit_queries) < 8:
+        raise ValueError("oracle fit grid must contain at least eight registered queries")
     fit_ids = [str(row.get("query_id")) for row in fit_queries]
-    if len(set(fit_ids)) != 8 or set(fit_ids) != set(map(str, fit_truth)):
+    if len(set(fit_ids)) != len(fit_queries) or set(fit_ids) != set(map(str, fit_truth)):
         raise ValueError("oracle fit query/truth denominator differs")
     if set(fit_ids) & set(map(str, candidate_query_ids)):
         raise ValueError("oracle fit grid overlaps the terminal candidate packet")
@@ -655,7 +801,8 @@ def fit_oracle_law_from_disjoint_grid(
         "evidence_ids": fit_ids,
         "applicability": "registered complete-ActionPlan candidate domain",
         "limitations": [
-            "provider-free quadratic ridge surrogate fitted only on the disjoint registered grid"
+            "provider-free quadratic ridge surrogate fitted only on the disjoint "
+            "registered dense grid"
         ],
         "confidence": 1.0,
     }
@@ -979,6 +1126,7 @@ __all__ = [
     "PROTOCOL_SCHEMA",
     "YOKED_CHECKPOINTS",
     "build_design_manifest",
+    "build_disjoint_oracle_grid",
     "build_learned_law_artifact",
     "build_oracle_law_artifact",
     "build_yoked_evidence_packet",

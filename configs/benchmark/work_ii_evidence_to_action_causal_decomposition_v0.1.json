@@ -99,6 +99,16 @@
     "minimum_oracle_candidate_rank_correlation": 0.80,
     "candidate_outcomes_may_not_appear": true
   },
+  "oracle_grid_contract": {
+    "construction_rule": "deterministic_halton_over_registered_public_feature_envelope_then_public_compile_filter",
+    "query_count_per_task": 96,
+    "compile_valid_oversampling_factor": 8,
+    "selection_reads_truth": false,
+    "same_grid_across_worlds_within_task": true,
+    "candidate_query_ids_excluded": true,
+    "candidate_feature_rows_excluded": true,
+    "fit_and_candidate_outcomes_disjoint": true
+  },
   "analysis": {
     "paired_contrast_unit": "task_world_prior_stratum",
     "independent_inference_cluster": "task_world",
