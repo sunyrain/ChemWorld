@@ -9,6 +9,7 @@ from chemworld.eval.work_ii_evidence_to_action import (
     CONDITIONS,
     DONOR_CONDITION,
     DONOR_DERIVED_CONDITIONS,
+    analyze_terminal_results,
     build_design_manifest,
     build_disjoint_oracle_grid,
     build_learned_law_artifact,
@@ -410,3 +411,41 @@ def test_missing_terminal_ranking_receives_failure_aware_worst_case() -> None:
     assert result["top1"] == 0
     assert result["selected_rank"] is None
     assert result["failure_aware_normalized_regret"] == 1.0
+
+
+def test_terminal_analysis_pairs_priors_and_retains_missing_sessions() -> None:
+    manifest = build_design_manifest(_protocol())
+    truth = {
+        f"q{index}": {"score": 1.0 - index * 0.1} for index in range(8)
+    }
+    truth_by_cluster = {cluster["cluster_id"]: truth for cluster in manifest["clusters"]}
+    results = {}
+    for cell in manifest["cells"]:
+        ranking = [f"q{index}" for index in range(8)]
+        if cell["condition"] in {"no_evidence", "learned_law_only"}:
+            ranking[0], ranking[1] = ranking[1], ranking[0]
+        results[cell["cell_id"]] = {
+            "status": "completed",
+            "submission": {"ranking": ranking},
+        }
+    missing_id = manifest["cells"][0]["cell_id"]
+    del results[missing_id]
+    analysis = analyze_terminal_results(
+        manifest,
+        results,
+        candidate_truth_by_cluster=truth_by_cluster,
+    )
+    assert analysis["scheduled_session_count"] == 225
+    assert analysis["received_result_count"] == 224
+    assert analysis["missing_or_unranked_session_count"] == 1
+    assert len(analysis["paired_rows"]) == 45 * 6
+    assert all(
+        row["independent_cluster_count"] == 15
+        for row in analysis["contrast_summaries"]
+    )
+    primary = next(
+        row
+        for row in analysis["contrast_summaries"]
+        if row["contrast"] == "autonomous_exploration_minus_no_evidence"
+    )
+    assert primary["mean_failure_aware_normalized_regret_difference"] < 0.0

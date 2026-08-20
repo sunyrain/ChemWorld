@@ -57,6 +57,14 @@ CANDIDATE_REVEAL_GATES = {
     "learned_law_only": "session_start_with_artifact",
     "oracle_law": "session_start_with_artifact",
 }
+PRESPECIFIED_CONTRASTS = (
+    ("autonomous_exploration", "no_evidence"),
+    ("yoked_evidence", "no_evidence"),
+    ("autonomous_exploration", "yoked_evidence"),
+    ("learned_law_only", "no_evidence"),
+    ("oracle_law", "learned_law_only"),
+    ("oracle_law", "no_evidence"),
+)
 _HALTON_PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
 
 
@@ -1001,6 +1009,138 @@ def score_terminal_ranking(
     }
 
 
+def analyze_terminal_results(
+    design_manifest: Mapping[str, Any],
+    results: Mapping[str, Mapping[str, Any]],
+    *,
+    candidate_truth_by_cluster: Mapping[str, Mapping[str, Mapping[str, Any]]],
+) -> dict[str, Any]:
+    """Score the frozen denominator and aggregate paired contrasts by task-world cluster."""
+
+    if design_manifest.get("schema_version") != MANIFEST_SCHEMA:
+        raise ValueError("evidence-to-action design manifest schema is invalid")
+    cells = design_manifest.get("cells")
+    if not isinstance(cells, list) or not cells:
+        raise ValueError("evidence-to-action design manifest has no cells")
+    cell_ids = [str(cell.get("cell_id")) for cell in cells if isinstance(cell, Mapping)]
+    if len(cell_ids) != len(cells) or len(set(cell_ids)) != len(cells):
+        raise ValueError("evidence-to-action design cell identities are invalid")
+    if set(map(str, results)) - set(cell_ids):
+        raise ValueError("result records contain cells outside the scheduled denominator")
+
+    scored_rows: list[dict[str, Any]] = []
+    by_stratum_condition: dict[tuple[str, str], dict[str, Any]] = {}
+    for cell in cells:
+        cluster_id = str(cell["cluster_id"])
+        truth = candidate_truth_by_cluster.get(cluster_id)
+        if not isinstance(truth, Mapping):
+            raise ValueError(f"{cluster_id}: candidate truth is missing")
+        result = results.get(str(cell["cell_id"]))
+        result = result if isinstance(result, Mapping) else {}
+        submission = result.get("submission")
+        submission = submission if isinstance(submission, Mapping) else result
+        ranking = submission.get("ranking")
+        ranking = (
+            list(ranking)
+            if isinstance(ranking, Sequence) and not isinstance(ranking, (str, bytes))
+            else None
+        )
+        score = score_terminal_ranking(ranking, truth)
+        row = {
+            "cell_id": str(cell["cell_id"]),
+            "cluster_id": cluster_id,
+            "stratum_id": str(cell["stratum_id"]),
+            "task_id": str(cell["task_id"]),
+            "world_seed": int(cell["world_seed"]),
+            "prior_arm": str(cell["prior_arm"]),
+            "condition": str(cell["condition"]),
+            "scheduled": True,
+            "result_status": str(result.get("status", "missing_result")),
+            **score,
+        }
+        scored_rows.append(row)
+        by_stratum_condition[(row["stratum_id"], row["condition"])] = row
+
+    paired_rows: list[dict[str, Any]] = []
+    strata = design_manifest.get("strata")
+    if not isinstance(strata, list):
+        raise ValueError("evidence-to-action design strata are missing")
+    for stratum in strata:
+        stratum_id = str(stratum["stratum_id"])
+        for treatment, control in PRESPECIFIED_CONTRASTS:
+            treatment_row = by_stratum_condition[(stratum_id, treatment)]
+            control_row = by_stratum_condition[(stratum_id, control)]
+            paired_rows.append(
+                {
+                    "contrast": f"{treatment}_minus_{control}",
+                    "cluster_id": str(stratum["cluster_id"]),
+                    "stratum_id": stratum_id,
+                    "prior_arm": str(stratum["prior_arm"]),
+                    "failure_aware_normalized_regret_difference": (
+                        float(treatment_row["failure_aware_normalized_regret"])
+                        - float(control_row["failure_aware_normalized_regret"])
+                    ),
+                    "top1_difference": int(treatment_row["top1"])
+                    - int(control_row["top1"]),
+                }
+            )
+
+    contrast_summaries: list[dict[str, Any]] = []
+    for treatment, control in PRESPECIFIED_CONTRASTS:
+        contrast = f"{treatment}_minus_{control}"
+        rows = [row for row in paired_rows if row["contrast"] == contrast]
+        cluster_ids = sorted({str(row["cluster_id"]) for row in rows})
+        cluster_rows: list[dict[str, Any]] = []
+        for cluster_id in cluster_ids:
+            cluster_values = [row for row in rows if row["cluster_id"] == cluster_id]
+            if len(cluster_values) != len(PRIOR_ARMS):
+                raise ValueError(f"{cluster_id}: paired contrast lacks all prior arms")
+            cluster_rows.append(
+                {
+                    "cluster_id": cluster_id,
+                    "prior_arm_count": len(cluster_values),
+                    "mean_failure_aware_normalized_regret_difference": sum(
+                        float(row["failure_aware_normalized_regret_difference"])
+                        for row in cluster_values
+                    )
+                    / len(cluster_values),
+                    "mean_top1_difference": sum(
+                        int(row["top1_difference"]) for row in cluster_values
+                    )
+                    / len(cluster_values),
+                }
+            )
+        contrast_summaries.append(
+            {
+                "contrast": contrast,
+                "paired_stratum_count": len(rows),
+                "independent_cluster_count": len(cluster_rows),
+                "mean_failure_aware_normalized_regret_difference": sum(
+                    float(row["mean_failure_aware_normalized_regret_difference"])
+                    for row in cluster_rows
+                )
+                / len(cluster_rows),
+                "mean_top1_difference": sum(
+                    float(row["mean_top1_difference"]) for row in cluster_rows
+                )
+                / len(cluster_rows),
+                "cluster_rows": cluster_rows,
+            }
+        )
+    return {
+        "schema_version": "chemworld-work-ii-evidence-to-action-terminal-analysis-0.1",
+        "scheduled_session_count": len(cells),
+        "received_result_count": len(results),
+        "missing_or_unranked_session_count": sum(
+            row["status"] == "failed_missing_terminal_ranking" for row in scored_rows
+        ),
+        "independent_cluster_count": len(design_manifest.get("clusters", [])),
+        "cell_rows": scored_rows,
+        "paired_rows": paired_rows,
+        "contrast_summaries": contrast_summaries,
+    }
+
+
 def build_design_manifest(protocol: Mapping[str, Any]) -> dict[str, Any]:
     """Compile all scheduled cells and donor dependencies for the frozen design."""
 
@@ -1122,9 +1262,11 @@ __all__ = [
     "DONOR_CONDITION",
     "DONOR_DERIVED_CONDITIONS",
     "MANIFEST_SCHEMA",
+    "PRESPECIFIED_CONTRASTS",
     "PRIOR_ARMS",
     "PROTOCOL_SCHEMA",
     "YOKED_CHECKPOINTS",
+    "analyze_terminal_results",
     "build_design_manifest",
     "build_disjoint_oracle_grid",
     "build_learned_law_artifact",
