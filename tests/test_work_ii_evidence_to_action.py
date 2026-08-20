@@ -12,6 +12,7 @@ from chemworld.eval.work_ii_evidence_to_action import (
     analyze_terminal_results,
     build_design_manifest,
     build_disjoint_oracle_grid,
+    build_hybrid_disjoint_oracle_grid,
     build_learned_law_artifact,
     build_oracle_law_artifact,
     build_yoked_evidence_packet,
@@ -354,6 +355,75 @@ def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -
     }
     assert {row["feature_values"]["catalyst"] for row in first} == {0, 1, 2, 3}
     assert all("truth" not in row for row in first)
+
+
+def test_hybrid_oracle_grid_has_fixed_global_and_candidate_neighborhood_coverage() -> None:
+    registered = [
+        {
+            "query_id": f"registered-q{index:02d}",
+            "feature_values": {
+                "temperature": 300.0 + 10.0 * index,
+                "catalyst": index % 4,
+            },
+        }
+        for index in range(16)
+    ]
+    candidate_ids = [f"registered-q{index:02d}" for index in range(0, 16, 2)]
+    grid = build_hybrid_disjoint_oracle_grid(
+        registered,
+        allowed_feature_ids=["catalyst", "temperature"],
+        allowed_metric_ids=["score"],
+        candidate_query_ids=candidate_ids,
+        global_query_count=32,
+        neighborhood_query_count=64,
+        neighborhood_span_fraction=0.18,
+        grid_id="hybrid-test",
+    )
+    assert len(grid) == 96
+    assert sum(row["grid_component"] == "global" for row in grid) == 32
+    assert sum(row["grid_component"] == "candidate_neighborhood" for row in grid) == 64
+    candidate_features = {
+        json.dumps(registered[index]["feature_values"], sort_keys=True)
+        for index in range(0, 16, 2)
+    }
+    assert not candidate_features & {
+        json.dumps(row["feature_values"], sort_keys=True) for row in grid
+    }
+    assert all("truth" not in row for row in grid)
+
+
+def test_oracle_fitter_emits_executable_conditional_cubic_terms() -> None:
+    fit_queries = [
+        {
+            "query_id": f"fit-q{index:03d}",
+            "feature_values": {"catalyst": index % 2, "x": index / 95.0},
+        }
+        for index in range(96)
+    ]
+    fit_truth = {
+        row["query_id"]: {
+            "score": (
+                row["feature_values"]["x"] ** 3
+                + row["feature_values"]["catalyst"]
+                * row["feature_values"]["x"] ** 2
+            )
+        }
+        for row in fit_queries
+    }
+    artifact = fit_oracle_law_from_disjoint_grid(
+        fit_queries,
+        fit_truth,
+        candidate_query_ids=[f"candidate-q{index}" for index in range(8)],
+        allowed_feature_ids=["catalyst", "x"],
+        allowed_metric_ids=["score"],
+        summary_id="conditional-cubic-oracle",
+    )
+    bases = {
+        term["basis"]
+        for term in artifact["law_summary"]["metric_laws"][0]["terms"]
+    }
+    assert "cubic" in bases
+    assert "conditional_quadratic" in bases
 
 
 def test_dense_96_point_oracle_law_remains_executable() -> None:

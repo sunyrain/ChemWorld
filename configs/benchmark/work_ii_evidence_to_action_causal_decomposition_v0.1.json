@@ -100,10 +100,15 @@
     "candidate_outcomes_may_not_appear": true
   },
   "oracle_grid_contract": {
-    "construction_rule": "deterministic_halton_over_registered_public_feature_envelope_then_public_compile_filter",
+    "construction_rule": "deterministic_32_global_halton_plus_64_public_candidate_neighborhood_then_public_compile_filter",
     "query_count_per_task": 96,
+    "global_query_count_per_task": 32,
+    "candidate_neighborhood_query_count_per_task": 64,
+    "candidate_neighborhood_span_fraction": 0.18,
     "compile_valid_oversampling_factor": 8,
     "selection_reads_truth": false,
+    "selection_reads_candidate_outcomes": false,
+    "selection_uses_public_candidate_feature_locations": true,
     "same_grid_across_worlds_within_task": true,
     "candidate_query_ids_excluded": true,
     "candidate_feature_rows_excluded": true,

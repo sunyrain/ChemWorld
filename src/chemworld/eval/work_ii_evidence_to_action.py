@@ -199,6 +199,10 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
     else:
         if oracle_grid.get("selection_reads_truth") is not False:
             errors.append("oracle grid construction may not read truth")
+        if oracle_grid.get("selection_reads_candidate_outcomes") is not False:
+            errors.append("oracle grid construction may not read candidate outcomes")
+        if oracle_grid.get("selection_uses_public_candidate_feature_locations") is not True:
+            errors.append("oracle grid must declare its use of public candidate features")
         if oracle_grid.get("same_grid_across_worlds_within_task") is not True:
             errors.append("oracle grid must be fixed across worlds within task")
         if oracle_grid.get("candidate_feature_rows_excluded") is not True:
@@ -210,6 +214,23 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
             or query_count < 16
         ):
             errors.append("oracle grid must contain at least 16 queries per task")
+        global_count = oracle_grid.get("global_query_count_per_task")
+        neighborhood_count = oracle_grid.get("candidate_neighborhood_query_count_per_task")
+        if (
+            not isinstance(global_count, int)
+            or isinstance(global_count, bool)
+            or not isinstance(neighborhood_count, int)
+            or isinstance(neighborhood_count, bool)
+            or global_count + neighborhood_count != query_count
+        ):
+            errors.append("oracle global and neighborhood denominators must sum to the grid")
+        span = oracle_grid.get("candidate_neighborhood_span_fraction")
+        if (
+            not isinstance(span, int | float)
+            or isinstance(span, bool)
+            or not 0.0 < float(span) <= 0.5
+        ):
+            errors.append("oracle candidate-neighborhood span is invalid")
         oversampling = oracle_grid.get("compile_valid_oversampling_factor")
         if (
             not isinstance(oversampling, int)
@@ -636,6 +657,147 @@ def build_disjoint_oracle_grid(
     return grid
 
 
+def build_hybrid_disjoint_oracle_grid(
+    registered_queries: Sequence[Mapping[str, Any]],
+    *,
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    candidate_query_ids: Sequence[str],
+    global_query_count: int,
+    neighborhood_query_count: int,
+    neighborhood_span_fraction: float,
+    grid_id: str,
+) -> list[dict[str, Any]]:
+    """Combine global coverage with outcome-blind local coverage near decision candidates.
+
+    Candidate feature locations are public design inputs, but their outcomes are never read. Exact
+    candidate rows remain excluded. The local component improves fidelity where the terminal
+    decision is made without turning the oracle artifact into a candidate-outcome lookup table.
+    """
+
+    if global_query_count < 1 or neighborhood_query_count < 1:
+        raise ValueError("hybrid oracle grid components must be positive")
+    if not 0.0 < neighborhood_span_fraction <= 0.5:
+        raise ValueError("oracle neighborhood span fraction must lie in (0, 0.5]")
+    rows_by_id = {str(row.get("query_id")): row for row in registered_queries}
+    candidate_ids = [str(query_id) for query_id in candidate_query_ids]
+    if len(candidate_ids) != 8 or len(set(candidate_ids)) != 8:
+        raise ValueError("hybrid oracle grid requires eight unique candidate IDs")
+    if not set(candidate_ids).issubset(rows_by_id):
+        raise ValueError("terminal candidate IDs are outside the registered query pool")
+
+    global_rows = build_disjoint_oracle_grid(
+        registered_queries,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        candidate_query_ids=candidate_ids,
+        query_count=global_query_count,
+        grid_id=f"{grid_id}--global",
+    )
+    candidate_rows = [rows_by_id[query_id] for query_id in candidate_ids]
+    feature_columns = {
+        feature_id: [
+            row["feature_values"][feature_id] for row in registered_queries
+        ]
+        for feature_id in allowed_feature_ids
+    }
+    candidate_features = {
+        json.dumps(
+            {
+                feature_id: row["feature_values"][feature_id]
+                for feature_id in allowed_feature_ids
+            },
+            sort_keys=True,
+            separators=(",", ":"),
+        )
+        for row in candidate_rows
+    }
+    seen_features = {
+        json.dumps(row["feature_values"], sort_keys=True, separators=(",", ":"))
+        for row in global_rows
+    }
+    neighborhood_rows: list[dict[str, Any]] = []
+    design_index = 1
+    maximum_attempts = neighborhood_query_count * 200
+    while len(neighborhood_rows) < neighborhood_query_count and design_index <= maximum_attempts:
+        anchor = candidate_rows[(design_index - 1) % len(candidate_rows)]
+        cycle = (design_index - 1) // len(candidate_rows) + 1
+        features: dict[str, Any] = {}
+        for feature_index, feature_id in enumerate(allowed_feature_ids):
+            values = feature_columns[feature_id]
+            unique = sorted(set(values), key=lambda value: (str(type(value)), str(value)))
+            anchor_value = anchor["feature_values"][feature_id]
+            if len(unique) == 1:
+                features[feature_id] = anchor_value
+                continue
+            categorical = len(unique) <= 4 and all(
+                isinstance(value, int) and not isinstance(value, bool) for value in unique
+            )
+            if categorical:
+                # Preserve the anchor category for most local samples while ensuring that the
+                # conditional response is estimable at regular, truth-blind intervals.
+                if cycle % 4:
+                    features[feature_id] = anchor_value
+                else:
+                    alternatives = [value for value in unique if value != anchor_value]
+                    coordinate = _radical_inverse(
+                        cycle + feature_index, _HALTON_PRIMES[feature_index]
+                    )
+                    position = min(int(coordinate * len(alternatives)), len(alternatives) - 1)
+                    features[feature_id] = alternatives[position]
+                continue
+            if not all(
+                isinstance(value, int | float)
+                and not isinstance(value, bool)
+                and math.isfinite(float(value))
+                for value in unique
+            ):
+                raise ValueError(
+                    f"{feature_id}: hybrid oracle grid supports only numeric/categorical values"
+                )
+            low = min(float(value) for value in unique)
+            high = max(float(value) for value in unique)
+            coordinate = _radical_inverse(cycle, _HALTON_PRIMES[feature_index])
+            perturbation = (2.0 * coordinate - 1.0) * neighborhood_span_fraction
+            features[feature_id] = min(
+                high,
+                max(low, float(anchor_value) + (high - low) * perturbation),
+            )
+        rendered = json.dumps(features, sort_keys=True, separators=(",", ":"))
+        design_index += 1
+        if rendered in candidate_features or rendered in seen_features:
+            continue
+        seen_features.add(rendered)
+        neighborhood_rows.append(
+            {
+                "query_id": f"{grid_id}--neighborhood-q{len(neighborhood_rows) + 1:04d}",
+                "feature_values": features,
+                "metric_ids": [str(metric_id) for metric_id in allowed_metric_ids],
+                "grid_component": "candidate_neighborhood",
+            }
+        )
+    if len(neighborhood_rows) != neighborhood_query_count:
+        raise ValueError("oracle neighborhood grid could not realize its denominator")
+    for row in global_rows:
+        row["grid_component"] = "global"
+
+    combined: list[dict[str, Any]] = []
+    global_index = 0
+    neighborhood_index = 0
+    total = global_query_count + neighborhood_query_count
+    for position in range(total):
+        expected_global = ((position + 1) * global_query_count) // total
+        if global_index < expected_global:
+            combined.append(global_rows[global_index])
+            global_index += 1
+        else:
+            combined.append(neighborhood_rows[neighborhood_index])
+            neighborhood_index += 1
+    if global_index != global_query_count or neighborhood_index != neighborhood_query_count:
+        raise AssertionError("hybrid oracle grid interleave lost a registered row")
+    return combined
+
+
 def _oracle_basis_specs(
     fit_queries: Sequence[Mapping[str, Any]],
     allowed_feature_ids: Sequence[str],
@@ -645,6 +807,7 @@ def _oracle_basis_specs(
         for feature_id in allowed_feature_ids
     }
     numeric: list[str] = []
+    categorical_specs: list[dict[str, Any]] = []
     specs: list[dict[str, Any]] = []
     for feature_id in allowed_feature_ids:
         values = feature_values[feature_id]
@@ -656,7 +819,7 @@ def _oracle_basis_specs(
         )
         if integer_categorical:
             for level in unique[1:]:
-                specs.append(
+                categorical_specs.append(
                     {
                         "basis": "categorical_level",
                         "input_ids": [feature_id],
@@ -671,7 +834,7 @@ def _oracle_basis_specs(
             for value in values
         ):
             for level in unique[1:]:
-                specs.append(
+                categorical_specs.append(
                     {
                         "basis": "categorical_level",
                         "input_ids": [feature_id],
@@ -684,13 +847,30 @@ def _oracle_basis_specs(
             [
                 {"basis": "linear", "input_ids": [feature_id]},
                 {"basis": "quadratic", "input_ids": [feature_id]},
+                {"basis": "cubic", "input_ids": [feature_id]},
             ]
         )
+    specs = categorical_specs + specs
     for left_index, left_id in enumerate(numeric):
         for right_id in numeric[left_index + 1 :]:
             specs.append(
                 {"basis": "interaction", "input_ids": [left_id, right_id]}
             )
+    for categorical in categorical_specs:
+        categorical_id = categorical["input_ids"][0]
+        for numeric_id in numeric:
+            for basis in (
+                "conditional_linear",
+                "conditional_quadratic",
+                "conditional_cubic",
+            ):
+                specs.append(
+                    {
+                        "basis": basis,
+                        "input_ids": [categorical_id, numeric_id],
+                        "category_value": categorical["category_value"],
+                    }
+                )
     if len(specs) > 64:
         raise ValueError("oracle fit basis exceeds the shared typed-law term limit")
     return specs
@@ -701,11 +881,22 @@ def _oracle_basis_value(spec: Mapping[str, Any], features: Mapping[str, Any]) ->
     input_ids = spec["input_ids"]
     if basis == "categorical_level":
         return float(features[input_ids[0]] == spec["category_value"])
+    conditional_powers = {
+        "conditional_linear": 1,
+        "conditional_quadratic": 2,
+        "conditional_cubic": 3,
+    }
+    if basis in conditional_powers:
+        return float(features[input_ids[0]] == spec["category_value"]) * (
+            float(features[input_ids[1]]) ** conditional_powers[basis]
+        )
     values = [float(features[feature_id]) for feature_id in input_ids]
     if basis == "linear":
         return values[0]
     if basis == "quadratic":
         return values[0] ** 2
+    if basis == "cubic":
+        return values[0] ** 3
     return values[0] * values[1]
 
 
@@ -821,8 +1012,8 @@ def fit_oracle_law_from_disjoint_grid(
         "evidence_ids": fit_ids,
         "applicability": "registered complete-ActionPlan candidate domain",
         "limitations": [
-            "provider-free quadratic ridge surrogate fitted only on the disjoint "
-            "registered dense grid"
+            "provider-free conditional cubic ridge surrogate fitted only on the disjoint "
+            "registered hybrid grid"
         ],
         "confidence": 1.0,
     }
@@ -1367,6 +1558,7 @@ __all__ = [
     "analyze_terminal_results",
     "build_design_manifest",
     "build_disjoint_oracle_grid",
+    "build_hybrid_disjoint_oracle_grid",
     "build_learned_law_artifact",
     "build_oracle_law_artifact",
     "build_yoked_evidence_packet",

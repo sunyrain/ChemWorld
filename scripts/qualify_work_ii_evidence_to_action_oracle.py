@@ -14,7 +14,7 @@ from work_ii_longitudinal_runtime import Progress
 
 from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_evidence_to_action import (
-    build_disjoint_oracle_grid,
+    build_hybrid_disjoint_oracle_grid,
     evaluate_oracle_law_candidate_order,
     fit_oracle_law_from_disjoint_grid,
     split_registered_query_pool_maximin,
@@ -40,7 +40,7 @@ DEFAULT_CANDIDATE_ROOT = (
 DEFAULT_OUTPUT = (
     ROOT
     / "runs/development/work-ii-evidence-to-action-causal-decomposition-v0.1"
-    / "oracle-qualification-v0.4"
+    / "oracle-qualification-v0.5"
 )
 
 
@@ -182,18 +182,23 @@ def _compile_valid_grid(
     source: dict[str, Any],
     proposed: list[dict[str, Any]],
     *,
-    required_count: int,
+    required_component_counts: dict[str, int],
 ) -> list[dict[str, Any]]:
     retained: list[dict[str, Any]] = []
+    counts = dict.fromkeys(required_component_counts, 0)
     for query in proposed:
+        component = str(query.get("grid_component"))
+        if component not in counts or counts[component] >= required_component_counts[component]:
+            continue
         try:
             compile_evaluator_truth_query(source, query)
         except (TypeError, ValueError):
             continue
         retained.append(query)
-        if len(retained) == required_count:
+        counts[component] += 1
+        if counts == required_component_counts:
             break
-    if len(retained) != required_count:
+    if counts != required_component_counts:
         raise ValueError(
             "public compile-valid oracle grid did not reach its registered denominator"
         )
@@ -248,21 +253,33 @@ def main() -> int:
         candidate_ids = [str(row["query_id"]) for row in candidates]
         grid_contract = protocol["oracle_grid_contract"]
         target_grid_count = int(grid_contract["query_count_per_task"])
-        proposed_grid = build_disjoint_oracle_grid(
+        global_count = int(grid_contract["global_query_count_per_task"])
+        neighborhood_count = int(
+            grid_contract["candidate_neighborhood_query_count_per_task"]
+        )
+        oversampling = int(grid_contract["compile_valid_oversampling_factor"])
+        proposed_grid = build_hybrid_disjoint_oracle_grid(
             registered,
             allowed_feature_ids=feature_ids,
             allowed_metric_ids=metric_ids,
             candidate_query_ids=candidate_ids,
-            query_count=(
-                target_grid_count * int(grid_contract["compile_valid_oversampling_factor"])
+            global_query_count=global_count * oversampling,
+            neighborhood_query_count=neighborhood_count * oversampling,
+            neighborhood_span_fraction=float(
+                grid_contract["candidate_neighborhood_span_fraction"]
             ),
             grid_id=f"oracle-grid--{task_id}",
         )
         grid = _compile_valid_grid(
             source,
             proposed_grid,
-            required_count=target_grid_count,
+            required_component_counts={
+                "global": global_count,
+                "candidate_neighborhood": neighborhood_count,
+            },
         )
+        if len(grid) != target_grid_count:
+            raise AssertionError("compiled hybrid oracle grid denominator differs")
         write_json_atomic(
             output_root / task_id / "registered_oracle_grid.json",
             {
@@ -273,6 +290,10 @@ def main() -> int:
                 "proposed_query_count": len(proposed_grid),
                 "compile_valid_query_count": len(grid),
                 "candidate_query_ids": candidate_ids,
+                "component_counts": {
+                    "global": global_count,
+                    "candidate_neighborhood": neighborhood_count,
+                },
                 "queries": grid,
             },
         )

@@ -28,7 +28,16 @@ WORK_II_LEGACY_SNAPSHOT_STAGES = (
     "final",
 )
 WORK_II_LAW_BASES = frozenset(
-    {"linear", "quadratic", "interaction", "categorical_level"}
+    {
+        "linear",
+        "quadratic",
+        "cubic",
+        "interaction",
+        "categorical_level",
+        "conditional_linear",
+        "conditional_quadratic",
+        "conditional_cubic",
+    }
 )
 WORK_II_LAW_LINKS = frozenset({"identity", "logistic"})
 
@@ -113,8 +122,17 @@ class WorkIILawTerm:
         missing = [feature_id for feature_id in self.input_ids if feature_id not in features]
         if missing:
             raise ValueError(f"law term {self.term_id} lacks feature values: {missing}")
+        conditional_powers = {
+            "conditional_linear": 1,
+            "conditional_quadratic": 2,
+            "conditional_cubic": 3,
+        }
         if self.basis == "categorical_level":
             return self.coefficient * float(features[self.input_ids[0]] == self.category_value)
+        if self.basis in conditional_powers:
+            active = float(features[self.input_ids[0]] == self.category_value)
+            numeric = _finite(features[self.input_ids[1]], f"features.{self.input_ids[1]}")
+            return self.coefficient * active * numeric ** conditional_powers[self.basis]
         values = [
             _finite(features[feature_id], f"features.{feature_id}")
             for feature_id in self.input_ids
@@ -123,6 +141,8 @@ class WorkIILawTerm:
             basis_value = values[0]
         elif self.basis == "quadratic":
             basis_value = values[0] ** 2
+        elif self.basis == "cubic":
+            basis_value = values[0] ** 3
         elif self.basis == "interaction":
             basis_value = values[0] * values[1]
         else:  # pragma: no cover - construction validates this invariant
@@ -136,7 +156,7 @@ class WorkIILawTerm:
             "input_ids": list(self.input_ids),
             "coefficient": self.coefficient,
         }
-        if self.basis == "categorical_level":
+        if self.basis == "categorical_level" or self.basis.startswith("conditional_"):
             payload["category_value"] = self.category_value
         return payload
 
@@ -406,7 +426,12 @@ def parse_work_ii_law_summary(
             term = _mapping(raw_term, f"metric_laws[{metric_index}].terms[{term_index}]")
             basis = _text(term.get("basis"), f"terms[{term_index}].basis")
             expected_fields = {"term_id", "basis", "input_ids", "coefficient"}
-            if basis == "categorical_level":
+            conditional_bases = {
+                "conditional_linear",
+                "conditional_quadratic",
+                "conditional_cubic",
+            }
+            if basis == "categorical_level" or basis in conditional_bases:
                 expected_fields.add("category_value")
             _exact_fields(term, expected_fields, f"metric_laws[{metric_index}].terms[{term_index}]")
             if basis not in WORK_II_LAW_BASES:
@@ -416,13 +441,13 @@ def parse_work_ii_law_summary(
                 raise ValueError("law_summary term IDs must be unique within a metric")
             seen_term_ids.add(term_id)
             input_ids = _string_tuple(term["input_ids"], f"terms[{term_index}].input_ids")
-            required_inputs = 2 if basis == "interaction" else 1
+            required_inputs = 2 if basis == "interaction" or basis in conditional_bases else 1
             if len(input_ids) != required_inputs:
                 raise ValueError(f"{basis} law terms require {required_inputs} input IDs")
             if not set(input_ids).issubset(set(feature_ids)):
                 raise ValueError("law_summary term references an undeclared feature")
             category_value: str | int | float | None = None
-            if basis == "categorical_level":
+            if basis == "categorical_level" or basis in conditional_bases:
                 candidate = term["category_value"]
                 if isinstance(candidate, bool) or not isinstance(candidate, str | int | float):
                     raise ValueError("categorical law category_value has an unsupported type")

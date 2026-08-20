@@ -2135,8 +2135,8 @@ class ChemWorldMCPServer:
         law_term_common = {
             "title": "Executable law term",
             "description": (
-                "One typed law term. input_ids is always an array; category_value is the only "
-                "optional field."
+                "One typed law term. input_ids is always an array. category_value is required "
+                "for categorical_level and conditional_* bases and omitted otherwise."
             ),
             "type": "object",
             "properties": {
@@ -2152,7 +2152,10 @@ class ChemWorldMCPServer:
                 },
                 "input_ids": {
                     "type": "array",
-                    "description": "One or two feature IDs; submit a JSON array, not a scalar.",
+                    "description": (
+                        "One or two feature IDs; conditional_* uses [categorical, numeric]. "
+                        "Submit a JSON array, not a scalar."
+                    ),
                     "items": {"enum": feature_ids},
                     "minItems": 1,
                     "maxItems": 2,

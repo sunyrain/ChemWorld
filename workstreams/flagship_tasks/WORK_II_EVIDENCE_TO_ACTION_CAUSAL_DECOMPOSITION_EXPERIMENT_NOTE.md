@@ -33,12 +33,15 @@ budget, but fitting may not read candidate outcomes. Development qualification r
 rank correlation at least `0.80`; failure rejects the oracle design rather than revealing candidate
 scores or silently substituting an outcome table.
 
-The dense oracle qualification grid contains `96` queries per task and is reused across the five
-development worlds within that task (`1,440` provider-free task-world queries total). It is built
-deterministically over the public feature envelope of the registered 16-query coverage pool, then
-filtered only by the public ActionPlan compiler. Terminal-candidate query IDs and exact candidate
-feature rows are excluded before any truth is evaluated. The public construction may oversample by
-up to `8x` solely to obtain the fixed compile-valid denominator; it may not inspect outcomes.
+The current oracle qualification grid contains `96` queries per task and is reused across the five
+development worlds within that task (`1,440` provider-free task-world queries total). It combines
+`32` deterministic global Halton points with `64` deterministic local perturbations around the
+public terminal-candidate feature locations. The local design uses feature locations but never
+candidate outcomes; exact candidate rows remain excluded. Both components are filtered only by the
+public ActionPlan compiler and may oversample by up to `8x` solely to fill their separately fixed
+compile-valid denominators. The shared typed law now permits cubic curvature and categorical-by-
+continuous conditional terms, while retaining the same feature and metric scope for learned and
+oracle artifacts.
 
 ## Measurements and estimands
 
@@ -121,6 +124,11 @@ in `15/15` development worlds without new provider or physics calls. Minimum can
 is `0.598` for electrochemistry, `0.275` for crystallization and `0.195` for reaction safety. The
 first disjoint-oracle attempt, fitted only on the eight remainder queries, is rejected: just `3/15`
 worlds reach Spearman `rho >= 0.80` and only `1/15` recovers the true Top-1. These eight points are
-therefore insufficient to operationalize a correct oracle. A denser registered provider-free grid,
-still disjoint from terminal candidates and fitted without candidate outcomes, is required before
-the oracle condition or any provider session is authorized.
+therefore insufficient to operationalize a correct oracle. The first 96-point global-grid attempt
+is also rejected after completing all `1,440/1,440` provider-free truth queries: `7/15` worlds pass
+the rank gate (electrochemistry `3/5`, crystallization `0/5`, reaction safety `4/5`). Its corrected
+categorical coverage establishes that the remaining failure is model locality and typed-law
+expressiveness rather than a missing category. The next qualification block therefore keeps the
+96-query denominator but allocates `32` global and `64` outcome-blind candidate-neighborhood points
+and adds conditional cubic terms. No provider session is authorized unless the restarted block
+passes all `15/15` worlds.
