@@ -137,3 +137,11 @@ The first launch of this hybrid block stopped within its first cluster because v
 query IDs exceeded the Windows trajectory path limit. It produced no complete cluster and is a
 platform-invalid development attempt. The identical scientific design restarts under compact query
 IDs in a new output root; no completed result is reused or relabelled.
+
+The compact-ID restart completed all `1,440/1,440` provider-free truth queries and passed `15/15`
+development task-world clusters. Candidate-order Spearman correlation ranges from `0.810` to
+`1.000`: electrochemistry `5/5`, crystallization `5/5`, and reaction safety `5/5`. Fit/candidate
+overlap is zero in every cluster and provider calls remain zero. Top-1 agreement is `4/15` and
+remains descriptive as preregistered; it is not silently promoted into a new gate. The oracle-law
+construction is therefore qualified for the formal worlds, while participant provider execution
+remains separately unauthorized until the execution orchestrator and canary are ready.
