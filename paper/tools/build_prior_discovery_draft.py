@@ -23,7 +23,7 @@ PUBLIC_C2_FIGURE = ROOT / (
     "workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/"
     "current/deepseek_c2_prediction_law_action.pdf"
 )
-PUBLIC_C2_FIGURE_BUILD_NAME = "figure-5-public-c2-capability-chain.pdf"
+PUBLIC_C2_FIGURE_BUILD_NAME = "figure-5-capability-chain.pdf"
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-draft"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
@@ -96,7 +96,7 @@ def load_figure_pdfs() -> list[Path]:
         raise RuntimeError("figure manifest self-hash mismatch")
     figures = manifest.get("figures")
     if not isinstance(figures, dict) or set(figures) != set(EXPECTED_FIGURE_IDS):
-        raise RuntimeError("draft requires exactly Figures 1--4")
+        raise RuntimeError("draft requires exactly generated Figures 1--4 and 6")
     pdfs: list[Path] = []
     for figure_id in EXPECTED_FIGURE_IDS:
         outputs = figures[figure_id]
@@ -207,6 +207,22 @@ def build() -> dict[str, Any]:
             "workstreams/flagship_tasks/reports/"
             "work-ii-parametric-initial-model-pilot-evaluation-20260811.json"
         ),
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
+        ),
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
+        ),
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-study-b-matched-evidence-results-v0.1.json"
+        ),
+        ROOT / (
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-as-study-b2-phase-process-results-v0.1.json"
+        ),
         ROOT
         / (
             "workstreams/flagship_tasks/reports/"
@@ -260,27 +276,24 @@ def build() -> dict[str, Any]:
             },
         ],
         "interpretation_limits": [
-            "Figures 1 and 2 describe the frozen design.",
+            "Figures 1 and 2 state the identification problem and executed study architecture.",
             (
-                "Figure 3 and its paired endpoint/warning panels are development-only and "
-                "retain the common three-task configuration-separated source."
+                "Figure 3 combines prospective formal locus decisions with retrospective "
+                "starting-state and first-recipe manipulation summaries; first-recipe "
+                "divergence has no repeated same-arm baseline."
             ),
             (
-                "Figure 4 is a post-hoc evaluator confirmation of the "
-                "retained five-task development matrix; it is descriptive and "
-                "not the public formal result."
+                "Figure 4 uses only the corrected five-world structural matched-evidence "
+                "study; its selective-update contrast and structural recovery rates are "
+                "descriptive and non-confirmatory."
             ),
             (
-                "Partition discovery and safety-constrained reaction include immutable "
-                "seed-0 failures plus seeds 1--4 continuation; they remain operational "
-                "descriptive evidence and are not pooled into the common paired endpoint "
-                "panels."
+                "Figure 5 reports completed prospective prediction, executable-law and "
+                "blind-incumbent evaluation without additional participant calls."
             ),
             (
-                "The electrochemical parametric initial-model result is one development "
-                "world with three participant cells, shared truth queries and paired blind "
-                "replay; it does not support a cross-task or general initial-world-model "
-                "claim."
+                "Development matrices motivate the prospective design but remain separate "
+                "from its causal denominators and are not used for cross-system ranking."
             ),
             (
                 "Public participant, evaluator and matched-evidence results "
@@ -288,14 +301,10 @@ def build() -> dict[str, Any]:
                 "private confirmation remains uncollected."
             ),
             (
-                "The five-world longitudinal open-action matrix is development evidence: "
-                "the earlier block remains separate; the current matrix has "
+                "The five-world unseen-plan matrix has "
                 "45 scheduled cells, 42 eligible action readouts and three retained "
-                "crystallization failures. Arm-level effects are not claimed."
-            ),
-            (
-                "Electrochemical, crystallization and safety open-action interface checks "
-                "used one world seed per task and are not multi-world replication."
+                "crystallization failures. It has no no-evidence or pre-exploration "
+                "ranking control, so causal action-transfer and arm-level effects are not claimed."
             ),
         ],
     }

@@ -1,155 +1,102 @@
-# Display plan — initial world models, experimental search and scientific correction
+# Display plan — causal dissection of scientific agency
 
-This document defines the reader-facing role of each Paper 2 display. The current public participant
-cohort and held-out evaluator are complete. Endpoint, workflow, prediction, executable-law
-and blind-incumbent displays use the same 135-cell public evidence surface. The five-world
-longitudinal open-action matrix is a separate exploratory evidence layer and must retain its own
-15-session denominator and non-formal interpretation.
+The six main figures follow one argument: endpoint success is ambiguous; a controlled starting-model
+intervention makes the ambiguity identifiable; free discovery, matched evidence, executable
+compression and unseen-plan selection then locate distinct transition losses. Development matrices
+remain background evidence and do not occupy main display space.
 
-## Figure 1 — Why endpoint success is not scientific correction
+## Figure 1 — Endpoint success does not reveal what the agent learned
 
-**Claim:** an initial world model can change experimental search, but executable-law consistency and
-unseen-action performance require
-separate prediction, law and action evidence.
+**Claim:** the same useful endpoint can arise from different epistemic trajectories.
 
-Panels:
+- A: intervene on the agent's initial model while fixing the executable world;
+- B: persistent evidence-to-action trajectory;
+- C: participant history remains separate from evaluator truth;
+- D: predictive recovery and evidence-aligned action define distinguishable outcomes.
 
-- A: fixed external world versus participant-facing initial world model;
-- B: entity, parametric and structural interventions;
-- C: persistent experiment → observation → checkpoint → next experiment loop;
-- D: separate endpoint, prediction, executable-law and action outcomes.
+Conceptual only; no effect sizes or future-study denominators.
 
-The figure is conceptual and contains no effect sizes.
+## Figure 2 — One intervention logic across three scientific loci
 
-## Figure 2 — Layer-stratified design and prospective public cohort
+**Claim:** entity, parametric and structural blocks use the same matched-arm logic but retain distinct
+scientific semantics and denominators.
 
-**Claim:** the study qualifies task–locus pairs independently instead of treating every programmable
-intervention as a successful agent experiment.
+- A: five task families and five public worlds in the entity backbone;
+- B: locus-specific 8-, 10- and 12-experiment campaigns;
+- C: free discovery, matched evidence, law evaluation and unseen-plan selection as separate evidence
+  partitions; future portability is greyed;
+- D: executed prospective totals of 45 clusters, 135 sessions and 1,260 planned experiments.
 
-Panels:
+The figure is an architecture map, not outcome evidence.
 
-- A: evaluator-only environment-validation funnel, including retained scientific exclusions;
-- B: 25 entity, 10 parametric and 10 structural task–world clusters;
-- C: 135/135 completed sessions, 121/135 eligible sessions and 1,243/1,260 experiments;
-- D: complete, discarded, resource-rejected and right-censored denominators.
+## Figure 3 — Prior uptake and selective-correction failure
 
-Observation-model, catalyst, flow and rollback rejections belong in the boundary panel, not in a
-suppressed-results appendix.
+**Claim:** the starting-model intervention reaches the trajectory and general prediction learning
+occurs, but the wrong model is not selectively repaired.
 
-## Figure 3 — Three task-dependent prior-effect archetypes
+- A: pre-evidence normalized prediction errors by arm and locus;
+- B: first complete recipe differs in 45/45 aligned--misspecified, 45/45 opaque--aligned and 44/45
+  opaque--misspecified matched clusters;
+- C: pre-to-final prediction-error reduction in every arm and locus;
+- D: failure-aware locus contrasts and prespecified p values: entity 0.990, parametric 0.079 and
+  structural 1.000.
 
-**Claim:** correct priors can produce a durable advantage, an early head start that later narrows, or
-only a small benefit beyond generic structured guidance.
+Panel B is a retrospective manipulation check without a repeated same-arm baseline.
 
-Panels:
+## Figure 4 — Matched evidence localizes the structural bottleneck
 
-- A: entity-level partition, aligned minus misindexed first and best scores (+0.106 and +0.200; 5/5 worlds);
-- B: structural crystallization head-start attenuation (+0.141 first, +0.055 best);
-- C: structural partition, aligned and misindexed versus opaque (+0.163 and +0.143 best), with only +0.020
-  aligned minus misindexed;
-- D: the other six task–locus contrasts as heterogeneity and boundary evidence.
+**Claim:** identical diagnostic evidence can restore numerical predictions without recovering the
+governing structural law.
 
-Use paired world-level points. Do not pool the nine raw effects into one leaderboard statistic.
-
-## Figure 4 — How the persistent agent actually experiments
-
-**Claim:** the participant performs substantive, task-aware search rather than copying a single prior
-recipe.
-
-Panels:
-
-- A: normalized position of the best experiment; 84.4% occur after the midpoint;
-- B: unique-recipe fraction by task and arm; overall mean 91.2%;
-- C: non-final measurement fraction by task, explicitly separating it from the universal final assay;
-- D: table-like representative trajectories with operation, public state, structured rationale and
-  checkpoint transitions.
-
-Reuse the prospective-cohort source data and table/plot code. Model-rationale text is the explicit
-structured action rationale, never hidden chain of thought.
-
-## Figure 5 — Prediction, executable-law and action dissociation
-
-**Status:** regenerated from the completed held-out evaluation after correction of the structural
-world-intervention omission. This is the current public evaluator result.
-
-**Claim:** general prediction learning, selective wrong-prior correction, executable-law compression
-and action transfer are empirically separable.
-
-- A: failure-aware selective-correction evidence for all 45 matched worlds; prespecified p values are
-  entity 0.990, parametric 0.079 and structural 1.000;
-- B: mean pre-to-final prediction-error reduction by arm and locus, showing general learning despite
-  unmet selective-correction criteria;
-- C: law MAE minus final explicit-prediction MAE for all 135 cells; law better/equal/worse is
-  50/1/84;
-- D: blind recommendation versus incumbent for 121 evaluable cells; better/equivalent/worse is
-  1/119/1, with 14 incomplete cells retained as unstarted.
-
-Source: the completed public evaluator package and its four source-data CSV files. The full evaluator
-completed 420/420 truth executions, 675/675 checkpoint scores, 135/135 law evaluations and 726/726
-launched blind replays without additional participant calls.
-
-## Matched-evidence mechanism localization (companion analysis; no standalone current figure)
-
-**Claim:** diagnostic evidence can improve numerical predictions without reliably recovering the
-prespecified structural law; seeking, numerical revision and structural identification are separable.
-
-Panels:
-
-- A: parametric matched evidence, showing pre/post convergence and 5/5 explicit rejection of the supplied
-  wrong potential direction;
-- B: structural world-level misindexed-minus-aligned update-gain contrasts, mean +0.0645, 3/5 positive,
+- A: pre-to-post structural error for all 15 corrected matched-evidence cells;
+- B: post-evidence means of 0.0074, 0.0060 and 0.0071;
+- C: five world-level misspecified-minus-aligned update-gain contrasts, mean +0.0645, 3/5 positive,
   exact one-sided sign-flip p=0.125;
-- C: structural pre/post error by arm, with all three post means below 0.008;
-- D: structural recovery analysis: misindexed exact 1.75-law recovery 0/5, explicit supplied-linear
-  rejection 1/5 and empirical saturation/endpoint models 5/5.
+- D: misspecified summaries show 5/5 numerical convergence, 5/5 saturation/endpoint models, 1/5
+  explicit linear-prior rejection and 0/5 exact 1.75-law recovery.
 
-The earlier structural run affected by an evaluator omission must not enter this display. Use only
-the corrected structural matched-evidence source dataset.
+The earlier structural run affected by an evaluator omission is excluded. The corrected five-world
+analysis is descriptive and non-confirmatory.
 
-## Figure 6 — Multi-task open-action transfer
+## Figure 5 — Prediction, law compression and incumbent replay dissociate
 
-**Claim:** complete ActionPlans remove hidden-workflow ambiguity, but autonomous exploration and
-occasional law adequacy still do not reliably produce the best unseen action. A law-adequate
-counterexample can still produce a wrong action; this is not a population-level sufficiency estimate.
+**Claim:** general prediction learning does not imply selective correction, faithful executable
+compression or an action advantage over an observed incumbent.
 
-Panels:
+- A: failure-aware correction contrasts for all 45 matched worlds;
+- B: mean prediction improvement by arm and locus;
+- C: executable-law error minus final explicit-prediction error; better/equal/worse is 50/1/84;
+- D: blind incumbent replay for 121 evaluable cells; better/equivalent/worse is 1/119/1.
 
-- A: selected true rank for every eligible cell, with each task--world cluster occupying one row,
-  arm colors identifying the nominal alternatives, and the random expected rank shown;
-- B: normalized regret for the same 42 eligible cells;
-- C: joint law--action categories (30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong,
-  0 adequate/correct), with three crystallization failures retained outside action metrics;
-- D: task-level means for electrochemical conversion, crystallization and reaction safety.
+The completed evaluator contains 420/420 truth executions, 675/675 checkpoint scores, 135/135 law
+evaluations and 726/726 launched blind replays without additional participant calls.
 
-The formal multi-task matrix contains 45 scheduled cells, 42 eligible action readouts, 240/240 truth
-executions and 240/240 exact replays. The independent aligned-arm repair is sensitivity evidence only and is
-not merged into this denominator. Arm means are descriptive because failures are task-concentrated
-and only 12 task--world clusters retain all three arms.
+## Figure 6 — Terminal unseen-plan selection is partial and task dependent
 
-## Figure 7 — Failure anatomy and system boundary (deferred)
+**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but terminal ranking remains
+uneven across tasks and does not align cleanly with thresholded law adequacy.
 
-**Status:** not generated in the current figure package. Keep incumbent retrieval, tool-contract failure
-composition and resource/discard denominators in the core tables until a separate figure is authorized.
+- A: selected true rank for every eligible cell;
+- B: normalized regret;
+- C: joint law--action categories: 30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong and
+  0 adequate/correct;
+- D: task-level mean ranks of 3.60, 4.58 and 2.00.
 
+The matrix contains 45 scheduled cells, 42 eligible readouts, 240/240 truth executions and 240/240
+exact replays. The random-rank line is geometric context, not a no-evidence control. Arm means and any
+action-transfer interpretation remain descriptive.
 
-## Exploratory figures
+## Supplementary exploratory evidence
 
-The existing configuration-separated development-prior and exploratory-confirmation figures move to the
-supplement or an early design-validation section. They motivate the capability separation but are not
-the prospective public-cohort result and are never used for cross-system ranking.
-
-## Private confirmation and transfer
-
-No main figure is reserved by default. Add a separate figure only if the paper retains and executes a
-one-shot private or context-reset transfer claim. Within-family replication is not compositional
-transfer.
+Configuration-separated development results retain exact denominators, failures and replay records in
+the evidence package. Their reader-facing role is to explain why endpoint score, verbal suspicion,
+prediction, executable law and action had to be separated. They are not pooled with the prospective
+cohort or used for cross-system ranking.
 
 ## Core tables
 
-1. Claim, estimand, evidence layer and allowed wording.
-2. Task, initial-world-model locus, experiment budget and measurement path.
-3. Complete public cell, experiment, discard, censoring and resource denominators.
-4. Per-task paired first-score, best-score and within-session-gain contrasts.
-5. Prediction, law-summary and blind-action results from the completed held-out evaluator.
-6. Longitudinal open-action selected rank, regret, eligibility and mechanism--action joint outcomes.
-7. Agent-system failure composition and execution diagnostics.
+1. Initial-model loci, task coverage and campaign budgets.
+2. Claim, estimand, evidence layer and allowed wording.
+3. Prospective session, experiment, resource and failure denominators.
+4. Formal unseen-plan rank, Top-1 and regret by arm.
+5. Statistical estimands, inference units and missing-outcome rules.

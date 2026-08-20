@@ -51,32 +51,29 @@ def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() 
     assert "75/75" in combined
     assert "69/75" in combined
     assert "290/300" in combined
-    assert "formal hypothesis test" in manuscript
-    assert "exploratory configurations are never pooled into a capability ranking" in manuscript
+    assert "protocol-development" in manuscript
+    assert "not part of the prospective denominator" in manuscript
     assert "267,929,149 input tokens" not in manuscript
     assert "97.05%" not in manuscript
     assert "repeated model output" not in manuscript
     assert "Web search is disabled" not in manuscript
-    assert "DeepSeek" not in manuscript
-    assert "Codex" not in manuscript
-    assert "not the model weights in isolation" in manuscript
+    assert "fixed DeepSeek-V4-Flash experimental-agent configuration" in manuscript
+    assert "complete agent--tool configuration" in manuscript
 
 
 def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> None:
-    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
     display_items = DISPLAY_ITEMS.read_text(encoding="utf-8")
     figure_manifest = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
     evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
 
-    assert "The seeds 1--4 continuation block is therefore not a substitute" in manuscript
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
-    assert "existing configuration-separated development-prior" in display_items
-    assert "the current public evaluator result" in display_items
+    assert "Prior uptake and selective-correction failure" in display_items
+    assert "Matched evidence localizes the structural bottleneck" in display_items
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
-    assert "operational descriptive evidence" in limits
-    assert "not pooled into the three-task paired endpoint panels" in limits
+    assert "no same-arm replicate baseline" in limits
+    assert "five-world corrected structural matched-evidence study" in limits
 
 
 def test_draft_manifest_preserves_development_formal_private_boundaries() -> None:
@@ -85,7 +82,8 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
     assert manifest["formal_result"] is False
     assert manifest["status"] == "compiled_development_draft"
     limits = " ".join(manifest["interpretation_limits"])
-    assert "common three-task configuration-separated source" in limits
+    assert "first-recipe" in limits
+    assert "non-confirmatory" in limits
     assert "private confirmation remains uncollected" in limits
     sources = {row["path"] for row in manifest["sources"]}
     assert (
@@ -132,8 +130,8 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert b2["public_summary_audit"]["by_arm"]["misindexed_nominal"][
         "exact_1_75_power_law_recovery_count"
     ] == 0
-    assert "Prediction learning did not become selective wrong-model repair" in manuscript
+    assert "Prediction learning does not become selective wrong-model repair" in manuscript
     assert "1/119/1" in manuscript
-    assert "Matched evidence separated three transitions" in manuscript
+    assert "Matched evidence localizes the structural bottleneck" in manuscript
     assert "mean +0.0645" in display_items
-    assert "generated from the completed held-out evaluation" in display_items
+    assert "completed evaluator contains" in display_items

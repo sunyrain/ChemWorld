@@ -6,9 +6,9 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
-import textwrap
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Any, Iterable
+from typing import Any
 
 import matplotlib
 
@@ -337,7 +337,7 @@ def render_figure_1() -> list[Path]:
     panel_label(ax_a, "a")
 
     # b — persistent campaign loop
-    ax_b.set_title("One session controls a complete campaign", loc="left", fontweight="bold", pad=5)
+    ax_b.set_title("Trace one evidence-to-action trajectory", loc="left", fontweight="bold", pad=5)
     center = (0.50, 0.54)
     nodes = [
         (0.50, 0.84, "Predict\n+ confidence", COLORS["violet_light"], COLORS["violet"]),
@@ -434,7 +434,7 @@ def render_figure_1() -> list[Path]:
     panel_label(ax_c, "c")
 
     # d — decision rule
-    ax_d.set_title("Classify what the agent actually achieved", loc="left", fontweight="bold", pad=5)
+    ax_d.set_title("Locate the conversion that failed", loc="left", fontweight="bold", pad=5)
     x0, y0, width, height = 0.20, 0.17, 0.72, 0.66
     ax_d.add_patch(Rectangle((x0, y0), width, height, facecolor="none", edgecolor=COLORS["ink"], linewidth=0.9))
     ax_d.plot([x0 + width / 2, x0 + width / 2], [y0, y0 + height], color=COLORS["grid"], linewidth=1.0)
@@ -462,7 +462,7 @@ def render_figure_1() -> list[Path]:
     panel_label(ax_d, "d")
 
     fig.suptitle(
-        "A useful endpoint is not sufficient evidence of law discovery",
+        "Endpoint success does not reveal what the agent learned",
         x=0.045,
         y=0.965,
         ha="left",
@@ -473,7 +473,7 @@ def render_figure_1() -> list[Path]:
     fig.text(
         0.045,
         0.018,
-        "The agent-facing initial model is manipulated under one fixed world; prediction, executable law, action and transfer remain separate evidence channels.",
+        "The agent-facing initial model is manipulated under one fixed world; search, prediction, executable law and unseen-plan selection remain separate evidence channels.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -540,7 +540,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     ax_a.text(
         0.50,
         0.02,
-        "Exploratory, prospective and private-confirmation worlds are disjoint",
+        "Five independently selected public worlds per task",
         ha="center",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -580,8 +580,8 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         (0.03, 0.73, "Free\ndiscovery", COLORS["teal_light"], COLORS["aligned"]),
         (0.63, 0.73, "Matched\nevidence", COLORS["red_light"], COLORS["red"]),
         (0.33, 0.47, "Law +\naction", COLORS["blue_light"], COLORS["blue"]),
-        (0.03, 0.20, "Private\nreplication", COLORS["violet_light"], COLORS["violet"]),
-        (0.63, 0.20, "Artifact\nportability", COLORS["orange_light"], COLORS["misindexed"]),
+        (0.03, 0.20, "Unseen-plan\nselection", COLORS["violet_light"], COLORS["violet"]),
+        (0.63, 0.20, "Future artifact\nportability", "#F1F3F4", COLORS["muted"]),
     ]
     for x, y, label, face, edge in evidence_boxes:
         width = 0.34
@@ -589,16 +589,15 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     arrow(ax_c, (0.20, 0.71), (0.43, 0.64), color=COLORS["aligned"], connectionstyle="arc3,rad=-0.1")
     arrow(ax_c, (0.80, 0.71), (0.57, 0.64), color=COLORS["red"], connectionstyle="arc3,rad=0.1")
     arrow(ax_c, (0.43, 0.46), (0.20, 0.37), color=COLORS["violet"], connectionstyle="arc3,rad=0.1")
-    arrow(ax_c, (0.57, 0.46), (0.80, 0.37), color=COLORS["misindexed"], connectionstyle="arc3,rad=-0.1")
     ax_c.text(0.50, 0.10, "Evaluator outcomes remain hidden during each session", ha="center", fontsize=6.2, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.10)
 
-    ax_d.set_title("Planned block denominators", loc="left", fontweight="bold", pad=5)
+    ax_d.set_title("Executed prospective denominators", loc="left", fontweight="bold", pad=5)
     denominator_rows = [
         ("Entity prospective", "25 · 75 · 600", COLORS["blue"]),
         ("Parametric", "10 · 30 · 300", COLORS["aligned"]),
         ("Structural", "10 · 30 · 360", COLORS["violet"]),
-        ("Entity private", "25 · 75 · 600", COLORS["misindexed"]),
+        ("Total", "45 · 135 · 1,260", COLORS["ink"]),
     ]
     for index, (label, value, color) in enumerate(denominator_rows):
         y = 0.80 - index * 0.19
@@ -610,7 +609,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     panel_label(ax_d, "d", x=-0.10)
 
     fig.suptitle(
-        "A sparse programme intervenes on the initial world model one locus at a time",
+        "The same causal intervention spans three scientific loci",
         x=0.045,
         y=0.965,
         ha="left",
@@ -621,7 +620,7 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
     fig.text(
         0.045,
         0.018,
-        "World programmability defines the intervention space; validation, matched arms and separate denominators preserve causal interpretability.",
+        "Executed prospective and matched-evidence blocks are foregrounded; private replication and context-reset portability remain future tests.",
         ha="left",
         fontsize=6.7,
         color=COLORS["muted"],
@@ -1159,7 +1158,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         ax_a,
         "selected_rank",
         "Selected true rank (lower is better)",
-        "A  Unseen-plan ranking is task dependent",
+        "Unseen-plan ranking is task dependent",
         (0.5, 8.8),
         show_y_labels=True,
     )
@@ -1171,7 +1170,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         ax_b,
         "normalized_regret",
         "Normalized regret (lower is better)",
-        "B  Regret remains large in crystallization",
+        "Regret remains large in crystallization",
         (-0.03, 1.05),
         show_y_labels=False,
     )
@@ -1184,10 +1183,10 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         "adequate_law__correct_action",
     ]
     category_labels = [
-        "Inadequate law\n+ wrong action",
-        "Inadequate law\n+ correct action",
-        "Adequate law\n+ wrong action",
-        "Adequate law\n+ correct action",
+        "Bad law\nWrong action",
+        "Bad law\nCorrect action",
+        "Adequate law\nWrong action",
+        "Adequate law\nCorrect action",
     ]
     category_colors = [COLORS["red"], COLORS["orange_light"], COLORS["misindexed"], COLORS["aligned"]]
     counts = [sum(row["mechanism_action_category"] == category for row in eligible) for category in category_order]
@@ -1195,9 +1194,10 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     for bar, count in zip(bars, counts):
         ax_c.text(bar.get_x() + bar.get_width() / 2, count + 0.8, str(count), ha="center", va="bottom", fontsize=8, fontweight="bold")
     ax_c.set_xticks(np.arange(4), category_labels)
+    ax_c.tick_params(axis="x", labelsize=5.6)
     ax_c.set_ylim(0, max(counts) + 8)
     ax_c.set_ylabel("Eligible cells (n=42)")
-    ax_c.set_title("C  A law-adequate counterexample still\nproduced a wrong action", loc="left", fontweight="bold", pad=6)
+    ax_c.set_title("A law-adequate counterexample still\nproduced a wrong action", loc="left", fontweight="bold", pad=6)
     style_quant_axis(ax_c)
     ax_c.text(0.02, 0.95, "3 crystallization failures retained outside action metrics", transform=ax_c.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
     panel_label(ax_c, "c", x=-0.11)
@@ -1216,13 +1216,13 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     ax_d.set_xticks(x, [task_labels[task] for task in task_order])
     ax_d.set_ylim(0.5, 8.8)
     ax_d.set_ylabel("Mean selected true rank")
-    ax_d.set_title("D  Task means summarize heterogeneity;\nno pooled arm effect", loc="left", fontweight="bold", pad=6)
+    ax_d.set_title("Task means summarize heterogeneity;\nno pooled arm effect", loc="left", fontweight="bold", pad=6)
     style_quant_axis(ax_d)
     ax_d.text(0.02, 0.95, "Dashed line: random expected rank = 4.5", transform=ax_d.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
     panel_label(ax_d, "d", x=-0.11)
 
     fig.suptitle(
-        "Formal multi-task open-action matrix: complete plans still do not close law-to-action transfer",
+        "Terminal selection of unseen plans is partial and task dependent",
         x=0.09,
         y=0.975,
         ha="left",
@@ -1250,7 +1250,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         0.028,
         f"45 scheduled cells across 3 tasks × 5 worlds × 3 arms; 42 eligible for action metrics; 3 crystallization failures retained. "
         f"Truth and exact replay: {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']}. "
-        "Each row is one task-world cluster; arm colors identify nominal alternatives and no ordered trajectory is implied. Stars mark Top-1 selection; × marks a missing terminal action readout. Means are descriptive; no arm-level inferential claim is made.",
+        "Each row is one task-world cluster; arm colors identify nominal alternatives and no ordered trajectory is implied. Stars mark Top-1 selection; × marks a missing terminal action readout. The random-rank line is a geometric reference, not a no-evidence or pre-exploration control; no causal action-transfer or arm-level inferential claim is made.",
         ha="left",
         va="bottom",
         fontsize=6.2,
@@ -1549,19 +1549,530 @@ def render_figure_4(confirmation: dict[str, Any]) -> list[Path]:
     return export_figure(fig, "figure-4-development-confirmation")
 
 
+def build_prospective_story_rows(
+    checkpoint_rows: list[dict[str, str]],
+    experiment_rows: list[dict[str, str]],
+    locus_decisions: dict[str, dict[str, Any]],
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
+    """Build the compact, formal story layer without additional provider calls."""
+    initial_rows: list[dict[str, Any]] = []
+    improvement_rows: list[dict[str, Any]] = []
+    for locus in ("A_E", "A_P", "A_S"):
+        by_stage = {
+            (row["stage"], row["prior_arm"]): float(row["mean_normalized_mae"])
+            for row in checkpoint_rows
+            if row["locus"] == locus
+        }
+        for arm in ARM_ORDER:
+            pre = by_stage[("pre_evidence", arm)]
+            final = by_stage[("final", arm)]
+            initial_rows.append(
+                {"locus": locus, "arm": arm, "mean_normalized_mae": pre}
+            )
+            improvement_rows.append(
+                {
+                    "locus": locus,
+                    "arm": arm,
+                    "mean_pre_to_final_improvement": pre - final,
+                }
+            )
+
+    first_rows = [
+        row for row in experiment_rows if int(row["experiment_index"]) == 1
+    ]
+    cluster_lookup: dict[tuple[str, str, int], dict[str, dict[str, str]]] = {}
+    for row in first_rows:
+        key = (row["block"], row["task"], int(row["world_seed"]))
+        cluster_lookup.setdefault(key, {})[row["arm"]] = row
+    pair_specs = [
+        ("opaque", "aligned_nominal", "Opaque vs aligned"),
+        ("opaque", "misindexed_nominal", "Opaque vs misspecified"),
+        ("aligned_nominal", "misindexed_nominal", "Aligned vs misspecified"),
+    ]
+    recipe_rows: list[dict[str, Any]] = []
+    for left, right, label in pair_specs:
+        comparable = [
+            cells
+            for cells in cluster_lookup.values()
+            if left in cells and right in cells
+        ]
+        different = sum(
+            cells[left]["recipe_sha256"] != cells[right]["recipe_sha256"]
+            for cells in comparable
+        )
+        recipe_rows.append(
+            {
+                "comparison": label,
+                "different_first_recipe_count": different,
+                "matched_cluster_count": len(comparable),
+                "different_fraction": different / len(comparable),
+            }
+        )
+
+    decision_rows = [
+        {
+            "locus": locus,
+            "primary_estimate": float(locus_decisions[locus]["primary_estimate"]),
+            "p_value": float(locus_decisions[locus]["p_value"]),
+            "passed": bool(locus_decisions[locus]["passed"]),
+        }
+        for locus in ("A_E", "A_P", "A_S")
+    ]
+    return initial_rows, recipe_rows, improvement_rows, decision_rows
+
+
+def render_figure_3_prospective(
+    initial_rows: list[dict[str, Any]],
+    recipe_rows: list[dict[str, Any]],
+    improvement_rows: list[dict[str, Any]],
+    decision_rows: list[dict[str, Any]],
+) -> list[Path]:
+    locus_order = ["A_E", "A_P", "A_S"]
+    locus_labels = ["Entity", "Parametric", "Structural"]
+    fig = plt.figure(figsize=(7.2, 5.45))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        left=0.09,
+        right=0.985,
+        bottom=0.125,
+        top=0.82,
+        wspace=0.31,
+        hspace=0.48,
+        width_ratios=[1.05, 0.95],
+    )
+    ax_a, ax_b, ax_c, ax_d = [
+        fig.add_subplot(grid[row, col]) for row in range(2) for col in range(2)
+    ]
+
+    x = np.arange(3, dtype=float)
+    width = 0.22
+    for arm_index, arm in enumerate(ARM_ORDER):
+        values = [
+            next(
+                row["mean_normalized_mae"]
+                for row in initial_rows
+                if row["locus"] == locus and row["arm"] == arm
+            )
+            for locus in locus_order
+        ]
+        ax_a.bar(
+            x + (arm_index - 1) * width,
+            values,
+            width=width * 0.88,
+            color=ARM_COLOR[arm],
+            edgecolor="white",
+            linewidth=0.6,
+            label=ARM_LABEL[arm],
+        )
+    ax_a.set_xticks(x, locus_labels)
+    ax_a.set_ylim(0, 0.46)
+    ax_a.set_ylabel("Pre-evidence normalized MAE")
+    ax_a.set_title(
+        "Starting predictions are arm dependent,\nnot uniformly ordered by correctness",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_a)
+    panel_label(ax_a, "a", x=-0.12)
+
+    bars = ax_b.barh(
+        np.arange(3),
+        [row["different_fraction"] for row in recipe_rows],
+        color=[COLORS["blue"], COLORS["misindexed"], COLORS["violet"]],
+        edgecolor="white",
+        linewidth=0.7,
+        height=0.58,
+    )
+    for bar, row in zip(bars, recipe_rows, strict=True):
+        ax_b.text(
+            0.98,
+            bar.get_y() + bar.get_height() / 2,
+            f"{row['different_first_recipe_count']}/{row['matched_cluster_count']}",
+            ha="right",
+            va="center",
+            fontsize=7.0,
+            color="white",
+            fontweight="bold",
+        )
+    ax_b.set_yticks(
+        np.arange(3), [row["comparison"] for row in recipe_rows]
+    )
+    ax_b.set_xlim(0, 1.02)
+    ax_b.set_xlabel("Fraction with a different first complete recipe")
+    ax_b.set_title(
+        "The intervention enters the first\nexperimental trajectory",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_row_axis(ax_b)
+    panel_label(ax_b, "b", x=-0.12)
+
+    for arm_index, arm in enumerate(ARM_ORDER):
+        values = [
+            next(
+                row["mean_pre_to_final_improvement"]
+                for row in improvement_rows
+                if row["locus"] == locus and row["arm"] == arm
+            )
+            for locus in locus_order
+        ]
+        ax_c.bar(
+            x + (arm_index - 1) * width,
+            values,
+            width=width * 0.88,
+            color=ARM_COLOR[arm],
+            edgecolor="white",
+            linewidth=0.6,
+        )
+    ax_c.axhline(0, color="#89989F", linewidth=0.8)
+    ax_c.set_xticks(x, locus_labels)
+    ax_c.set_ylim(-0.02, 0.28)
+    ax_c.set_ylabel("Mean pre-to-final error reduction")
+    ax_c.set_title(
+        "Predictions improve in every arm\nat every intervention locus",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_c)
+    panel_label(ax_c, "c", x=-0.12)
+
+    estimates = [row["primary_estimate"] for row in decision_rows]
+    colors = [COLORS["red"], COLORS["aligned"], COLORS["red"]]
+    y = np.arange(3)
+    ax_d.axvline(0, color="#89989F", linewidth=1.0)
+    ax_d.hlines(y, 0, estimates, color=colors, linewidth=2.0)
+    ax_d.scatter(estimates, y, s=68, color=colors, edgecolor="white", linewidth=0.8, zorder=3)
+    for index, row in enumerate(decision_rows):
+        ax_d.text(
+            0.095,
+            index,
+            f"p={row['p_value']:.3f} · not passed",
+            ha="left",
+            va="center",
+            fontsize=6.3,
+            color=COLORS["muted"],
+        )
+    ax_d.set_yticks(y, locus_labels)
+    ax_d.set_xlim(-0.28, 0.28)
+    ax_d.invert_yaxis()
+    ax_d.set_xlabel("Failure-aware selective-correction contrast")
+    ax_d.set_title(
+        "General learning does not become\nselective wrong-model repair",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_row_axis(ax_d)
+    panel_label(ax_d, "d", x=-0.12)
+
+    fig.suptitle(
+        "Initial models redirect search, but evidence does not selectively repair the wrong model",
+        x=0.09,
+        y=0.975,
+        ha="left",
+        fontsize=12.0,
+        fontweight="bold",
+        color=COLORS["ink"],
+    )
+    fig.legend(
+        handles=[
+            mpl.patches.Patch(color=ARM_COLOR[arm], label=ARM_LABEL[arm])
+            for arm in ARM_ORDER
+        ],
+        loc="upper left",
+        bbox_to_anchor=(0.09, 0.905),
+        ncol=3,
+        fontsize=6.4,
+        borderaxespad=0,
+        handletextpad=0.35,
+        columnspacing=1.1,
+    )
+    fig.text(
+        0.09,
+        0.027,
+        "Prospective cohort: 45 matched task–world clusters and 135 persistent campaigns. Panels a–c are descriptive manipulation and learning summaries; first-recipe divergence has no same-arm replicate baseline. Panel d reports the prespecified failure-aware locus decisions; positive values favor selective repair.",
+        ha="left",
+        va="bottom",
+        fontsize=6.35,
+        color=COLORS["muted"],
+        wrap=True,
+    )
+    return export_figure(fig, "figure-3-prior-uptake-and-correction")
+
+
+def build_matched_story_rows(
+    matched: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, Any]]]:
+    cell_rows: list[dict[str, Any]] = []
+    for world in matched["world_rows"]:
+        for arm in ARM_ORDER:
+            cell_rows.append(
+                {
+                    "world_seed": int(world["world_seed"]),
+                    "arm": arm,
+                    "pre_error": float(world["errors"][arm]["pre"]),
+                    "post_error": float(world["errors"][arm]["post"]),
+                }
+            )
+    contrast_rows = [
+        {
+            "world_seed": int(row["world_seed"]),
+            "primary_contrast": float(row["primary_contrast"]),
+            "post_misindexed_minus_aligned": float(
+                row["post_misindexed_minus_aligned"]
+            ),
+        }
+        for row in matched["world_rows"]
+    ]
+    audit = matched["public_summary_audit"]["by_arm"]["misindexed_nominal"]
+    qualitative_rows = [
+        {"transition": "Numerical convergence", "count": 5, "denominator": 5},
+        {
+            "transition": "Saturation / endpoint model",
+            "count": int(audit["empirical_saturation_or_endpoint_model_count"]),
+            "denominator": int(audit["world_count"]),
+        },
+        {
+            "transition": "Explicitly rejected linear prior",
+            "count": int(audit["explicit_supplied_linear_partition_rejection_count"]),
+            "denominator": int(audit["world_count"]),
+        },
+        {
+            "transition": "Recovered exact 1.75 law",
+            "count": int(audit["exact_1_75_power_law_recovery_count"]),
+            "denominator": int(audit["world_count"]),
+        },
+    ]
+    return cell_rows, contrast_rows, qualitative_rows
+
+
+def render_figure_4_matched(
+    cell_rows: list[dict[str, Any]],
+    contrast_rows: list[dict[str, Any]],
+    qualitative_rows: list[dict[str, Any]],
+    matched: dict[str, Any],
+    parametric_audit: dict[str, Any],
+) -> list[Path]:
+    fig = plt.figure(figsize=(7.2, 5.45))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        left=0.105,
+        right=0.985,
+        bottom=0.13,
+        top=0.82,
+        wspace=0.34,
+        hspace=0.50,
+        width_ratios=[1.05, 0.95],
+    )
+    ax_a, ax_b, ax_c, ax_d = [
+        fig.add_subplot(grid[row, col]) for row in range(2) for col in range(2)
+    ]
+
+    for arm_index, arm in enumerate(ARM_ORDER):
+        rows = sorted(
+            (row for row in cell_rows if row["arm"] == arm),
+            key=lambda row: row["world_seed"],
+        )
+        offset = (arm_index - 1) * 0.045
+        for row in rows:
+            ax_a.plot(
+                [0 + offset, 1 + offset],
+                [row["pre_error"], row["post_error"]],
+                color=ARM_COLOR[arm],
+                alpha=0.55,
+                linewidth=1.0,
+            )
+            ax_a.scatter(
+                [0 + offset, 1 + offset],
+                [row["pre_error"], row["post_error"]],
+                s=18,
+                color=ARM_COLOR[arm],
+                edgecolor="white",
+                linewidth=0.4,
+                zorder=3,
+            )
+    ax_a.set_xticks([0, 1], ["Before matched evidence", "After matched evidence"])
+    ax_a.set_ylim(0, 0.49)
+    ax_a.set_ylabel("Normalized prediction error")
+    ax_a.set_title(
+        "Identical phase-process evidence drives\nall arms toward accurate predictions",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_a)
+    panel_label(ax_a, "a", x=-0.13)
+
+    post_by_arm = [
+        [row["post_error"] for row in cell_rows if row["arm"] == arm]
+        for arm in ARM_ORDER
+    ]
+    boxes = ax_b.boxplot(
+        post_by_arm,
+        positions=np.arange(3),
+        widths=0.52,
+        patch_artist=True,
+        showfliers=False,
+        medianprops={"color": COLORS["ink"], "linewidth": 1.1},
+        whiskerprops={"color": "#87969D", "linewidth": 0.8},
+        capprops={"color": "#87969D", "linewidth": 0.8},
+        boxprops={"color": "#87969D", "linewidth": 0.8},
+    )
+    for patch, arm in zip(boxes["boxes"], ARM_ORDER, strict=True):
+        patch.set_facecolor(ARM_COLOR[arm])
+        patch.set_alpha(0.24)
+    for index, (arm, values) in enumerate(zip(ARM_ORDER, post_by_arm, strict=True)):
+        ax_b.scatter(
+            index + deterministic_offsets(len(values), 0.13),
+            values,
+            s=24,
+            color=ARM_COLOR[arm],
+            edgecolor="white",
+            linewidth=0.45,
+            zorder=3,
+        )
+        ax_b.text(
+            index,
+            0.0124,
+            f"mean {np.mean(values):.4f}",
+            ha="center",
+            va="bottom",
+            fontsize=6.1,
+            color=COLORS["muted"],
+        )
+    ax_b.set_xticks(range(3), [ARM_LABEL[arm] for arm in ARM_ORDER])
+    ax_b.set_ylim(0, 0.0142)
+    ax_b.set_ylabel("Post-evidence normalized error")
+    ax_b.set_title(
+        "Numerical predictions converge\nacross initial-model conditions",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_b)
+    panel_label(ax_b, "b", x=-0.13)
+
+    values = [row["primary_contrast"] for row in contrast_rows]
+    ax_c.axvline(0, color="#89989F", linewidth=1.0)
+    ax_c.scatter(
+        values,
+        np.arange(5),
+        s=43,
+        color=COLORS["misindexed"],
+        edgecolor="white",
+        linewidth=0.7,
+        zorder=3,
+    )
+    mean_value = float(matched["primary_contrast"]["mean"])
+    ax_c.axvline(mean_value, color=COLORS["ink"], linewidth=1.6, linestyle="--")
+    ax_c.set_yticks(np.arange(5), [f"World {index + 1}" for index in range(5)])
+    ax_c.set_xlim(-0.075, 0.225)
+    ax_c.invert_yaxis()
+    ax_c.set_xlabel("Misspecified - aligned update gain")
+    ax_c.set_title(
+        "The selective-update signal is mixed\nacross five independent worlds",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_c.text(
+        0.05,
+        0.08,
+        f"mean {mean_value:+.4f}\n3/5 positive · p=0.125",
+        transform=ax_c.transAxes,
+        ha="left",
+        va="bottom",
+        fontsize=6.4,
+        color=COLORS["muted"],
+    )
+    style_row_axis(ax_c)
+    panel_label(ax_c, "c", x=-0.13)
+
+    qualitative_labels = [row["transition"] for row in qualitative_rows]
+    qualitative_values = [row["count"] / row["denominator"] for row in qualitative_rows]
+    q_colors = [COLORS["blue"], COLORS["violet"], COLORS["misindexed"], COLORS["red"]]
+    bars = ax_d.barh(
+        np.arange(4),
+        qualitative_values,
+        height=0.56,
+        color=q_colors,
+        edgecolor="white",
+        linewidth=0.7,
+    )
+    for bar, row in zip(bars, qualitative_rows, strict=True):
+        x_text = 0.97 if row["count"] else 0.03
+        ax_d.text(
+            x_text,
+            bar.get_y() + bar.get_height() / 2,
+            f"{row['count']}/{row['denominator']}",
+            ha="right" if row["count"] else "left",
+            va="center",
+            fontsize=6.8,
+            color="white" if row["count"] else COLORS["ink"],
+            fontweight="bold",
+        )
+    ax_d.set_yticks(np.arange(4), qualitative_labels)
+    ax_d.set_xlim(0, 1.02)
+    ax_d.invert_yaxis()
+    ax_d.set_xlabel("Misspecified summaries meeting criterion")
+    ax_d.set_title(
+        "Numerical revision stops short of\nstructural-law identification",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_row_axis(ax_d)
+    panel_label(ax_d, "d", x=-0.13)
+
+    fig.suptitle(
+        "Matched evidence restores numerical predictions without structural identification",
+        x=0.105,
+        y=0.975,
+        ha="left",
+        fontsize=12.0,
+        fontweight="bold",
+        color=COLORS["ink"],
+    )
+    fig.legend(
+        handles=[
+            mpl.lines.Line2D([], [], marker="o", linestyle="", color=ARM_COLOR[arm], label=ARM_LABEL[arm])
+            for arm in ARM_ORDER
+        ],
+        loc="upper left",
+        bbox_to_anchor=(0.105, 0.905),
+        ncol=3,
+        fontsize=6.4,
+        borderaxespad=0,
+        handletextpad=0.35,
+        columnspacing=1.1,
+    )
+    fig.text(
+        0.105,
+        0.027,
+        f"Corrected structural matched-evidence study: 5 worlds × 3 initial-model arms. All arms received the same direct phase-process evidence; the five-world contrast is descriptive and non-confirmatory. Parametric matched evidence separately yielded {parametric_audit['explicit_direction_rejection_count']}/5 wrong-direction rejections and {parametric_audit['peak_and_collapse_response_count']}/5 peak-and-collapse summaries.",
+        ha="left",
+        va="bottom",
+        fontsize=6.25,
+        color=COLORS["muted"],
+        wrap=True,
+    )
+    return export_figure(fig, "figure-4-matched-evidence-localization")
+
+
 def main() -> int:
     configure_matplotlib()
     design_path = ROOT / "configs/benchmark/work_ii_formal_design_v0.1.json"
-    analysis_path = ROOT / "configs/benchmark/work_ii_analysis_plan_v0.1.json"
     preflight_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-formal-matrix-runner-preflight-v0.1.json"
-    wellau_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-development-basic-analysis-v0.1.json"
-    deepseek_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-recovery-amended-analysis-v0.1.json"
-    deepseek_closeout_path = ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-five-task-development-complete-20260810.json"
-    deepseek_closeout_sources_path = ROOT / "configs/benchmark/work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
-    deepseek_confirmation_path = ROOT / (
-        "workstreams/flagship_tasks/reports/"
-        "work-ii-deepseek-five-task-development-evaluation-20260811.json"
-    )
     open_action_summary_path = ROOT / (
         "runs/formal/"
         "work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/summary.json"
@@ -1570,48 +2081,50 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"
     )
+    public_source_dir = ROOT / (
+        "workstreams/flagship_tasks/reports/figures/"
+        "work-ii-deepseek-c2-public/current/source_data"
+    )
+    checkpoint_summary_path = public_source_dir / "checkpoint_error_summary.csv"
+    experiment_metrics_path = public_source_dir / "experiment_metrics.csv"
+    story_analysis_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
+    )
+    matched_evidence_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-study-b-matched-evidence-results-v0.1.json"
+    )
+    structural_matched_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-as-study-b2-phase-process-results-v0.1.json"
+    )
     source_paths = [
         design_path,
-        analysis_path,
         preflight_path,
-        wellau_path,
-        deepseek_path,
-        deepseek_closeout_path,
-        deepseek_closeout_sources_path,
-        deepseek_confirmation_path,
         open_action_summary_path,
         open_action_audit_path,
+        checkpoint_summary_path,
+        experiment_metrics_path,
+        story_analysis_path,
+        matched_evidence_path,
+        structural_matched_path,
     ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
     preflight = json.loads(preflight_path.read_text(encoding="utf-8"))
-    wellau = json.loads(wellau_path.read_text(encoding="utf-8"))
-    deepseek = json.loads(deepseek_path.read_text(encoding="utf-8"))
-    deepseek_closeout = json.loads(deepseek_closeout_path.read_text(encoding="utf-8"))
-    deepseek_confirmation = json.loads(
-        deepseek_confirmation_path.read_text(encoding="utf-8")
-    )
     open_action_summary = json.loads(
         open_action_summary_path.read_text(encoding="utf-8")
     )
+    story_analysis = json.loads(story_analysis_path.read_text(encoding="utf-8"))
+    matched_evidence = json.loads(
+        matched_evidence_path.read_text(encoding="utf-8")
+    )
+    structural_matched = json.loads(
+        structural_matched_path.read_text(encoding="utf-8")
+    )
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
-    if wellau.get("formal_result") is not False or deepseek.get("formal_result") is not False:
-        raise ValueError("development Figure 3 cannot consume formal results")
-    if deepseek_closeout.get("formal_result") is not False:
-        raise ValueError("DeepSeek five-task closeout must remain development-only")
-    closeout_denominators = deepseek_closeout.get("denominators", {})
-    if closeout_denominators.get("terminal_record_count") != 75:
-        raise ValueError("unexpected DeepSeek five-task closeout terminal denominator")
-    if closeout_denominators.get("qualified_cell_count") != 69:
-        raise ValueError("unexpected DeepSeek five-task closeout qualified denominator")
-    confirmation_denominators = deepseek_confirmation.get("denominators", {})
-    if deepseek_confirmation.get("status") != "passed":
-        raise ValueError("DeepSeek development evaluator confirmation did not pass")
-    if confirmation_denominators.get("truth_completed_query_count") != 100:
-        raise ValueError("unexpected DeepSeek truth-query denominator")
-    if confirmation_denominators.get("blind_completed_execution_count") != 414:
-        raise ValueError("unexpected DeepSeek blind-replay denominator")
     if open_action_summary.get("scheduled_cell_count") != 45:
         raise ValueError("unexpected W2-50 scheduled cell denominator")
     if open_action_summary.get("eligible_cell_count") != 42:
@@ -1621,97 +2134,64 @@ def main() -> int:
     if open_action_summary.get("provider_free_exact_replay_count") != 240:
         raise ValueError("unexpected W2-50 exact-replay denominator")
 
-    endpoint_rows, warning_rows = normalize_development_rows()
-    denominator_rows = build_denominator_rows(wellau, deepseek_closeout)
-    write_csv(
-        SOURCE_DIR / "figure-3-endpoint-contrasts.csv",
-        endpoint_rows,
-        ["provider", "task_id", "comparison_arm", "left_arm", "right_arm", "world_seed", "difference"],
+    checkpoint_rows = read_csv(checkpoint_summary_path)
+    experiment_rows = read_csv(experiment_metrics_path)
+    locus_decisions = story_analysis["current_composite_evaluator"][
+        "locus_decisions"
+    ]
+    (
+        initial_rows,
+        recipe_rows,
+        improvement_rows,
+        decision_rows,
+    ) = build_prospective_story_rows(
+        checkpoint_rows,
+        experiment_rows,
+        locus_decisions,
     )
     write_csv(
-        SOURCE_DIR / "figure-3-warning-rates.csv",
-        warning_rows,
-        ["provider", "task_id", "arm", "flag_count", "denominator", "flag_rate"],
+        SOURCE_DIR / "figure-3-initial-prediction-error.csv",
+        initial_rows,
+        ["locus", "arm", "mean_normalized_mae"],
     )
     write_csv(
-        SOURCE_DIR / "figure-3-execution-denominators.csv",
-        denominator_rows,
-        ["provider", "metric", "numerator", "denominator", "rate"],
-    )
-    figure_4_cluster_rows = [
-        {
-            "task_id": row["task_id"],
-            "world_seed": row["world_seed"],
-            "complete_case": row["complete_case"],
-            "aligned_improvement": row["arm_primary_improvements"][
-                "aligned_nominal"
-            ],
-            "misindexed_improvement": row["arm_primary_improvements"][
-                "misindexed_nominal"
-            ],
-            "H3_primary_contrast": row["H3_primary_contrast"],
-        }
-        for row in deepseek_confirmation["cluster_rows"]
-    ]
-    figure_4_law_rows = [
-        {
-            "cell_id": row["cell_id"],
-            "task_id": row["task_id"],
-            "world_seed": row["world_seed"],
-            "prior_arm": row["prior_arm"],
-            "participant_state": row["participant_state"],
-            "law_summary_minus_final_error": row[
-                "law_summary_minus_final_error"
-            ],
-        }
-        for row in deepseek_confirmation["cell_rows"]
-        if isinstance(row.get("law_summary_minus_final_error"), int | float)
-    ]
-    figure_4_blind_rows = [
-        {
-            "cell_id": row["cell_id"],
-            "task_id": row["task_id"],
-            "world_seed": row["world_seed"],
-            "prior_arm": row["prior_arm"],
-            "blind_recommendation_gain": row["blind_recommendation_gain"],
-        }
-        for row in deepseek_confirmation["cell_rows"]
-        if isinstance(row.get("blind_recommendation_gain"), int | float)
-    ]
-    write_csv(
-        SOURCE_DIR / "figure-4-cluster-contrasts.csv",
-        figure_4_cluster_rows,
+        SOURCE_DIR / "figure-3-first-recipe-divergence.csv",
+        recipe_rows,
         [
-            "task_id",
-            "world_seed",
-            "complete_case",
-            "aligned_improvement",
-            "misindexed_improvement",
-            "H3_primary_contrast",
+            "comparison",
+            "different_first_recipe_count",
+            "matched_cluster_count",
+            "different_fraction",
         ],
     )
     write_csv(
-        SOURCE_DIR / "figure-4-law-summary-vs-final.csv",
-        figure_4_law_rows,
-        [
-            "cell_id",
-            "task_id",
-            "world_seed",
-            "prior_arm",
-            "participant_state",
-            "law_summary_minus_final_error",
-        ],
+        SOURCE_DIR / "figure-3-prediction-improvement.csv",
+        improvement_rows,
+        ["locus", "arm", "mean_pre_to_final_improvement"],
     )
     write_csv(
-        SOURCE_DIR / "figure-4-blind-recommendation.csv",
-        figure_4_blind_rows,
-        [
-            "cell_id",
-            "task_id",
-            "world_seed",
-            "prior_arm",
-            "blind_recommendation_gain",
-        ],
+        SOURCE_DIR / "figure-3-locus-decisions.csv",
+        decision_rows,
+        ["locus", "primary_estimate", "p_value", "passed"],
+    )
+
+    matched_cell_rows, matched_contrast_rows, matched_qualitative_rows = (
+        build_matched_story_rows(structural_matched)
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-matched-structural-cells.csv",
+        matched_cell_rows,
+        ["world_seed", "arm", "pre_error", "post_error"],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-matched-structural-contrasts.csv",
+        matched_contrast_rows,
+        ["world_seed", "primary_contrast", "post_misindexed_minus_aligned"],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-matched-structural-recovery.csv",
+        matched_qualitative_rows,
+        ["transition", "count", "denominator"],
     )
     open_action_rows = normalize_open_action_rows(open_action_summary)
     write_csv(
@@ -1737,13 +2217,24 @@ def main() -> int:
     outputs = {
         "figure_1": render_figure_1(),
         "figure_2": render_figure_2(design, preflight),
-        "figure_3": render_figure_3(endpoint_rows, warning_rows, denominator_rows),
-        "figure_4": render_figure_4(deepseek_confirmation),
+        "figure_3": render_figure_3_prospective(
+            initial_rows,
+            recipe_rows,
+            improvement_rows,
+            decision_rows,
+        ),
+        "figure_4": render_figure_4_matched(
+            matched_cell_rows,
+            matched_contrast_rows,
+            matched_qualitative_rows,
+            structural_matched,
+            matched_evidence["public_summary_audit"]["A_P_misindexed"],
+        ),
         "figure_6": render_figure_6_open_action(open_action_rows, open_action_summary),
     }
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
-        "status": "development_and_formal_descriptive_figures",
+        "status": "formal_results_with_bounded_secondary_analyses",
         "backend": "python_matplotlib",
         "formal_hypothesis_tests_run": False,
         "provider_groups_mixed_in_scientific_contrasts": False,
@@ -1755,12 +2246,13 @@ def main() -> int:
             for path in source_paths
         ],
         "source_data": {
-            "endpoint_rows": len(endpoint_rows),
-            "warning_rows": len(warning_rows),
-            "denominator_rows": len(denominator_rows),
-            "confirmation_cluster_rows": len(figure_4_cluster_rows),
-            "confirmation_law_rows": len(figure_4_law_rows),
-            "confirmation_blind_rows": len(figure_4_blind_rows),
+            "prospective_initial_rows": len(initial_rows),
+            "prospective_recipe_comparisons": len(recipe_rows),
+            "prospective_improvement_rows": len(improvement_rows),
+            "prospective_locus_decisions": len(decision_rows),
+            "matched_structural_cell_rows": len(matched_cell_rows),
+            "matched_structural_contrast_rows": len(matched_contrast_rows),
+            "matched_structural_recovery_rows": len(matched_qualitative_rows),
             "open_action_rows": len(open_action_rows),
             "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
         },
@@ -1776,13 +2268,12 @@ def main() -> int:
             for figure_id, paths in outputs.items()
         },
         "interpretation_limits": [
-            "Figure 1 shows the layered initial-world-model concept; Figure 2 shows the frozen entity/ontology confirmatory core and separated study denominators, not participant outcomes.",
-            "Structural, parametric and observation-model interventions remain registered extensions with no participant outcomes in this figure package.",
-            "Figure 3 contains development-only configuration-separated descriptive evidence.",
-            "Figure 4 contains development-only evaluator confirmation; H3 values are descriptive and use the frozen missing-outcome rules.",
-            "Figure 6 contains the formal multi-task open-action matrix; 42 eligible cells are used for action metrics and three crystallization failures remain in the scheduled denominator.",
-            "Partition discovery and safety-constrained reaction complete the five-task development coverage but remain operational descriptive evidence; they are not pooled into the three-task paired endpoint panels.",
-            "No arm-level formal inference, law-discovery sufficiency claim, transfer claim or cross-system capability ranking is supported.",
+            "Figure 1 states the identification problem; Figure 2 separates executed evidence from future portability studies.",
+            "Figure 3 combines the prospective formal locus decisions with retrospective manipulation summaries; first-recipe divergence has no same-arm replicate baseline.",
+            "Figure 4 reports a five-world corrected structural matched-evidence study; its prediction contrast is descriptive and non-confirmatory.",
+            "Figure 6 reports terminal unseen-plan selection for 42 eligible cells; three crystallization failures remain in the scheduled denominator.",
+            "The open-action matrix has no no-evidence or pre-exploration action baseline, so it does not identify a causal action-transfer effect.",
+            "No cross-provider capability ranking or context-reset portability claim is supported.",
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)
@@ -1796,8 +2287,8 @@ def main() -> int:
             {
                 "status": "completed",
                 "figures": len(outputs),
-                "endpoint_rows": len(endpoint_rows),
-                "warning_rows": len(warning_rows),
+                "prospective_story_rows": len(initial_rows) + len(recipe_rows) + len(improvement_rows) + len(decision_rows),
+                "matched_story_rows": len(matched_cell_rows) + len(matched_contrast_rows) + len(matched_qualitative_rows),
                 "manifest_sha256": manifest["manifest_sha256"],
                 "output_dir": str(OUTPUT_DIR),
             },
