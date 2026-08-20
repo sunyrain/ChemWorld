@@ -16,8 +16,10 @@ from chemworld.eval.work_ii_evidence_to_action import (
     build_oracle_law_artifact,
     build_yoked_evidence_packet,
     evaluate_candidate_packet,
+    evaluate_law_action_agreement,
     evaluate_oracle_law_candidate_order,
     fit_oracle_law_from_disjoint_grid,
+    predict_candidate_ranking_from_law,
     score_terminal_ranking,
     split_registered_query_pool,
     split_registered_query_pool_maximin,
@@ -449,3 +451,30 @@ def test_terminal_analysis_pairs_priors_and_retains_missing_sessions() -> None:
         if row["contrast"] == "autonomous_exploration_minus_no_evidence"
     )
     assert primary["mean_failure_aware_normalized_regret_difference"] < 0.0
+
+
+def test_law_implied_ranking_is_outcome_blind_and_action_agreement_is_separate() -> None:
+    candidates = [
+        {"query_id": f"q{index}", "feature_values": {"x": float(index)}}
+        for index in range(8)
+    ]
+    law = _linear_oracle_law()
+    implied = predict_candidate_ranking_from_law(
+        law,
+        candidate_queries=candidates,
+        allowed_feature_ids=["x"],
+        allowed_metric_ids=["score"],
+        evidence_catalog=["fit-q1", "fit-q2"],
+    )
+    assert implied["law_implied_ranking"] == [f"q{index}" for index in reversed(range(8))]
+    assert implied["candidate_outcomes_used"] is False
+
+    submitted = list(implied["law_implied_ranking"])
+    submitted[0], submitted[1] = submitted[1], submitted[0]
+    agreement = evaluate_law_action_agreement(
+        submitted,
+        implied["law_implied_ranking"],
+    )
+    assert agreement["law_action_complete_ranking_agreement"] == 0
+    assert agreement["law_implied_top1_followed"] == 0
+    assert agreement["law_action_pairwise_agreement"] < 1.0

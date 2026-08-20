@@ -943,6 +943,92 @@ def evaluate_oracle_law_candidate_order(
     }
 
 
+def predict_candidate_ranking_from_law(
+    law_payload: Mapping[str, Any],
+    *,
+    candidate_queries: Sequence[Mapping[str, Any]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    evidence_catalog: Sequence[str],
+    score_metric_id: str = "score",
+) -> dict[str, Any]:
+    """Evaluate an executable participant/oracle law without reading candidate outcomes."""
+
+    if len(candidate_queries) != 8:
+        raise ValueError("law-implied ranking requires exactly eight candidates")
+    law = parse_work_ii_law_summary(
+        law_payload,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        evidence_catalog=evidence_catalog,
+        required_metric_ids=allowed_metric_ids,
+    )
+    predictions: dict[str, float] = {}
+    for row in candidate_queries:
+        query_id = str(row.get("query_id"))
+        features = row.get("feature_values")
+        if query_id in predictions or not isinstance(features, Mapping):
+            raise ValueError("candidate identity or features are invalid")
+        prediction = law.predict(features)
+        if score_metric_id not in prediction:
+            raise ValueError("executable law does not predict the ranking score")
+        predictions[query_id] = float(prediction[score_metric_id])
+    ranking = sorted(predictions, key=lambda query_id: (-predictions[query_id], query_id))
+    return {
+        "law_implied_ranking": ranking,
+        "law_implied_selected_query_id": ranking[0],
+        "candidate_score_predictions": predictions,
+        "candidate_outcomes_used": False,
+    }
+
+
+def evaluate_law_action_agreement(
+    submitted_ranking: Sequence[str] | None,
+    law_implied_ranking: Sequence[str] | None,
+) -> dict[str, Any]:
+    """Separate failure to use a law from failure of the law itself."""
+
+    if submitted_ranking is None or law_implied_ranking is None:
+        return {
+            "law_action_complete_ranking_agreement": None,
+            "law_action_spearman_rank_correlation": None,
+            "law_implied_top1_followed": None,
+            "law_action_pairwise_agreement": None,
+        }
+    submitted = [str(query_id) for query_id in submitted_ranking]
+    implied = [str(query_id) for query_id in law_implied_ranking]
+    if (
+        len(submitted) != 8
+        or len(implied) != 8
+        or len(set(submitted)) != 8
+        or set(submitted) != set(implied)
+    ):
+        raise ValueError(
+            "law and action rankings must be permutations of the same eight candidates"
+        )
+    submitted_positions = {query_id: index for index, query_id in enumerate(submitted)}
+    implied_positions = {query_id: index for index, query_id in enumerate(implied)}
+    ordered_ids = sorted(submitted)
+    submitted_ranks = [float(submitted_positions[query_id]) for query_id in ordered_ids]
+    implied_ranks = [float(implied_positions[query_id]) for query_id in ordered_ids]
+    agreements = 0
+    pairs = 0
+    for left_index, left_id in enumerate(ordered_ids):
+        for right_id in ordered_ids[left_index + 1 :]:
+            pairs += 1
+            submitted_order = submitted_positions[left_id] - submitted_positions[right_id]
+            implied_order = implied_positions[left_id] - implied_positions[right_id]
+            agreements += int(submitted_order * implied_order > 0)
+    return {
+        "law_action_complete_ranking_agreement": int(submitted == implied),
+        "law_action_spearman_rank_correlation": _pearson_correlation(
+            submitted_ranks, implied_ranks
+        ),
+        "law_implied_top1_followed": int(submitted[0] == implied[0]),
+        "law_action_pairwise_agreement": agreements / pairs,
+    }
+
+
 def score_terminal_ranking(
     ranking: Sequence[str] | None,
     candidate_truth: Mapping[str, Mapping[str, Any]],
@@ -1277,8 +1363,10 @@ __all__ = [
     "build_oracle_law_artifact",
     "build_yoked_evidence_packet",
     "evaluate_candidate_packet",
+    "evaluate_law_action_agreement",
     "evaluate_oracle_law_candidate_order",
     "fit_oracle_law_from_disjoint_grid",
+    "predict_candidate_ranking_from_law",
     "score_terminal_ranking",
     "split_registered_query_pool",
     "split_registered_query_pool_maximin",
