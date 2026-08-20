@@ -334,7 +334,7 @@ def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -
         for index in range(16)
     ]
     kwargs = {
-        "allowed_feature_ids": ["temperature", "catalyst", "fixed_amount"],
+        "allowed_feature_ids": ["catalyst", "temperature", "fixed_amount"],
         "allowed_metric_ids": ["yield", "score"],
         "candidate_query_ids": [f"registered-q{index:02d}" for index in range(0, 16, 2)],
         "query_count": 96,

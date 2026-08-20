@@ -591,9 +591,10 @@ def build_disjoint_oracle_grid(
                 isinstance(value, int) and not isinstance(value, bool) for value in unique
             )
             if categorical:
-                position = (
-                    design_index * _HALTON_PRIMES[feature_index] + feature_index
-                ) % len(unique)
+                coordinate = _radical_inverse(
+                    design_index, _HALTON_PRIMES[feature_index]
+                )
+                position = min(int(coordinate * len(unique)), len(unique) - 1)
                 features[feature_id] = unique[position]
                 continue
             if not all(
@@ -625,6 +626,13 @@ def build_disjoint_oracle_grid(
         )
     if len(grid) != query_count:
         raise ValueError("oracle grid could not realize its registered query denominator")
+    for feature_id, values in feature_columns.items():
+        unique = set(values)
+        categorical = len(unique) <= 4 and all(
+            isinstance(value, int) and not isinstance(value, bool) for value in unique
+        )
+        if categorical and {row["feature_values"][feature_id] for row in grid} != unique:
+            raise ValueError(f"{feature_id}: oracle grid omits a registered categorical level")
     return grid
 
 
