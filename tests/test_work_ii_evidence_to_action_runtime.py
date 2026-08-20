@@ -11,6 +11,7 @@ from chemworld.eval.work_ii_evidence_to_action_runtime import (
     TERMINAL_SUBMISSION_SCHEMA,
     build_donor_derivatives,
     build_recipient_context,
+    execute_stratum,
     execute_terminal_recipient,
     execute_yoked_recipient,
     resolve_dependency_status,
@@ -363,3 +364,211 @@ def test_yoked_runtime_runs_five_cumulative_snapshots_then_terminal_ranking() ->
         4,
         5,
     ]
+
+
+def _stratum_cells() -> list[dict]:
+    donor_id = "stratum-1--autonomous_exploration"
+    return [
+        {
+            "cell_id": f"stratum-1--{condition}",
+            "stratum_id": "stratum-1",
+            "condition": condition,
+            "dependency_cell_ids": (
+                [donor_id]
+                if condition in {"yoked_evidence", "learned_law_only"}
+                else []
+            ),
+        }
+        for condition in (
+            "no_evidence",
+            "yoked_evidence",
+            "autonomous_exploration",
+            "learned_law_only",
+            "oracle_law",
+        )
+    ]
+
+
+def _oracle_artifact() -> dict:
+    return {
+        "artifact_type": "provider_free_disjoint_grid_fitted_predictive_law",
+        "candidate_information_included": False,
+        "law_summary": {"summary_id": "oracle-law"},
+    }
+
+
+class _StratumClient:
+    model = "fake-stratum-model"
+
+    def __init__(self) -> None:
+        self.calls: list[dict] = []
+
+    def complete_json(self, **kwargs):
+        context = json.loads(kwargs["user_prompt"])
+        self.calls.append(context)
+        stage = context["stage"]
+        if stage == "terminal_ranking":
+            payload = {
+                "schema_version": TERMINAL_SUBMISSION_SCHEMA,
+                "ranking": [f"q{index}" for index in range(8)],
+                "selected_query_id": "q0",
+                "decision_rationale": "The visible information favors q0.",
+            }
+        else:
+            evidence_ids = [
+                event["evidence_id"]
+                for round_row in context["visible_yoked_evidence_rounds"]
+                for event in round_row["events"]
+            ]
+            payload = {
+                "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
+                "snapshot_id": f"snapshot-{stage}",
+                "stage": stage,
+                "prior_assessment": {
+                    "nominal_information_available": False,
+                    "reliability_probability": None,
+                    "suspected_misindexed_fields": [],
+                    "rationale": "No nominal prior is visible.",
+                },
+                "predictions": [
+                    {
+                        "query_id": "checkpoint-q",
+                        "metrics": [
+                            {
+                                "metric_id": "score",
+                                "mean": 0.5,
+                                "interval_lower": 0.2,
+                                "interval_upper": 0.8,
+                                "confidence": 0.7,
+                            }
+                        ],
+                    }
+                ],
+                "law_summary": {
+                    "schema_version": "chemworld-work-ii-law-summary-0.1",
+                    "summary_id": f"law-{stage}",
+                    "feature_ids": ["temperature"],
+                    "metric_laws": [
+                        {
+                            "metric_id": "score",
+                            "intercept": 0.5,
+                            "link": "identity",
+                            "lower_bound": 0.0,
+                            "upper_bound": 1.0,
+                            "terms": [],
+                        }
+                    ],
+                    "evidence_ids": evidence_ids,
+                    "applicability": "registered checkpoint domain",
+                    "limitations": [],
+                    "confidence": 0.7,
+                },
+                "evidence_ids": evidence_ids,
+                "next_experiment_intent": "Observe the next yoked experiment.",
+                "overall_confidence": 0.7,
+            }
+        return SimpleNamespace(
+            payload=payload,
+            model=self.model,
+            request_id=f"request-{len(self.calls)}",
+            attempts=1,
+            usage={"prompt_tokens": 100, "completion_tokens": 40},
+        )
+
+
+def _completed_donor(_cell: dict) -> dict:
+    trajectory = [
+        {
+            "action": {"operation": "measure", "instrument": "final_assay"},
+            "agent_visible_observation": {
+                "observation": {"score": experiment / 12.0},
+                "observed_reward": experiment / 12.0,
+            },
+            "observed_keys": ["score"],
+            "transaction_status": "committed",
+            "rollback_reason": None,
+        }
+        for experiment in range(1, 13)
+    ]
+    return {
+        "status": "completed_uncontaminated",
+        "physical_experiment_count": 12,
+        "provider_call_count": 4,
+        "participant_ranking": [f"q{index}" for index in range(8)],
+        "trajectory_rows": trajectory,
+        "campaign_summary": {
+            "analysis": {
+                "belief_snapshots": [
+                    {
+                        "stage": "final",
+                        "law_summary": {
+                            "schema_version": "chemworld-work-ii-law-summary-0.1",
+                            "summary_id": "learned-law",
+                            "feature_ids": ["temperature"],
+                            "metric_laws": [],
+                            "evidence_ids": [],
+                            "applicability": "candidate domain",
+                            "limitations": [],
+                            "confidence": 0.7,
+                        },
+                    }
+                ]
+            }
+        },
+    }
+
+
+def test_stratum_orchestrator_executes_all_conditions_after_eligible_donor() -> None:
+    client = _StratumClient()
+    result = execute_stratum(
+        client,
+        cells=_stratum_cells(),
+        autonomous_executor=_completed_donor,
+        task_contract={"task_id": "test-task", "objective": "maximize score"},
+        initial_world_model={"arm": "opaque", "nominal_information": None},
+        candidate_packet=_candidate_packet(),
+        oracle_law_artifact=_oracle_artifact(),
+        query_metric_contract={"checkpoint-q": ["score"]},
+        allowed_feature_ids=["temperature"],
+        allowed_metric_ids=["score"],
+        allowed_prior_fields=[],
+        nominal_information_available=False,
+    )
+    assert result["status"] == "completed"
+    assert len(result["cell_results"]) == 5
+    assert result["provider_call_count"] == 13
+    assert result["participant_physical_experiment_count"] == 12
+    assert result["blocked_cell_ids"] == []
+    assert len(client.calls) == 9
+
+
+def test_stratum_orchestrator_retains_failed_donor_descendants_without_calls() -> None:
+    client = _StratumClient()
+
+    def failed_donor(_cell: dict) -> dict:
+        return {
+            "status": "failed_retained",
+            "physical_experiment_count": 3,
+            "provider_call_count": 2,
+        }
+
+    result = execute_stratum(
+        client,
+        cells=_stratum_cells(),
+        autonomous_executor=failed_donor,
+        task_contract={"task_id": "test-task", "objective": "maximize score"},
+        initial_world_model={"arm": "opaque", "nominal_information": None},
+        candidate_packet=_candidate_packet(),
+        oracle_law_artifact=_oracle_artifact(),
+        query_metric_contract={"checkpoint-q": ["score"]},
+        allowed_feature_ids=["temperature"],
+        allowed_metric_ids=["score"],
+        allowed_prior_fields=[],
+        nominal_information_available=False,
+    )
+    assert result["status"] == "completed_with_failed_donor_dependencies_retained"
+    assert len(result["cell_results"]) == 5
+    assert len(result["blocked_cell_ids"]) == 2
+    assert result["provider_call_count"] == 4
+    assert result["participant_physical_experiment_count"] == 3
+    assert len(client.calls) == 2

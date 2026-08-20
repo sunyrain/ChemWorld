@@ -11,6 +11,8 @@ from chemworld.eval.provenance import canonical_json_sha256
 from chemworld.eval.work_ii_evidence_to_action import (
     CONDITION_STAGES,
     CONDITIONS,
+    DONOR_CONDITION,
+    DONOR_DERIVED_CONDITIONS,
     build_learned_law_artifact,
     build_yoked_evidence_packet,
 )
@@ -47,6 +49,10 @@ class JsonRecipientClient(Protocol):
         max_tokens: int = 4096,
         output_schema: Mapping[str, Any] | None = None,
     ) -> Any: ...
+
+
+class AutonomousStratumExecutor(Protocol):
+    def __call__(self, cell: Mapping[str, Any]) -> Mapping[str, Any]: ...
 
 
 def _assert_public(value: Any, *, path: str = "context") -> None:
@@ -513,13 +519,187 @@ def build_donor_derivatives(
     }
 
 
+def execute_stratum(
+    client: JsonRecipientClient,
+    *,
+    cells: Sequence[Mapping[str, Any]],
+    autonomous_executor: AutonomousStratumExecutor,
+    task_contract: Mapping[str, Any],
+    initial_world_model: Mapping[str, Any],
+    candidate_packet: Mapping[str, Any] | Sequence[Any],
+    oracle_law_artifact: Mapping[str, Any],
+    query_metric_contract: Mapping[str, Sequence[str]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    allowed_prior_fields: Sequence[str],
+    nominal_information_available: bool,
+    max_tokens: int = 8192,
+) -> dict[str, Any]:
+    """Execute one five-condition stratum while preserving its donor dependency graph."""
+
+    if len(cells) != len(CONDITIONS):
+        raise ValueError("one execution stratum must contain exactly five cells")
+    by_condition = {str(cell.get("condition")): cell for cell in cells}
+    if set(by_condition) != set(CONDITIONS):
+        raise ValueError("execution stratum differs from the five-condition contract")
+    stratum_ids = {str(cell.get("stratum_id")) for cell in cells}
+    if len(stratum_ids) != 1 or stratum_ids == {"None"}:
+        raise ValueError("all execution cells must belong to one explicit stratum")
+    candidates = _public_candidates(candidate_packet)
+    candidate_ids = [str(row["query_id"]) for row in candidates]
+    results: dict[str, dict[str, Any]] = {}
+
+    def terminal_condition(
+        condition: str,
+        *,
+        law_artifact: Mapping[str, Any] | None = None,
+    ) -> dict[str, Any]:
+        cell = by_condition[condition]
+        context = build_recipient_context(
+            condition=condition,
+            stage="terminal_ranking",
+            task_contract=task_contract,
+            initial_world_model=initial_world_model,
+            candidate_packet=candidate_packet,
+            law_artifact=law_artifact,
+        )
+        terminal = execute_terminal_recipient(client, context, max_tokens=max_tokens)
+        return {
+            "cell_id": str(cell["cell_id"]),
+            "condition": condition,
+            "status": "completed",
+            "terminal_result": terminal,
+            "submission": deepcopy(dict(terminal["submission"])),
+            "provider_call_count": 1,
+            "physical_experiment_count": 0,
+        }
+
+    no_evidence = terminal_condition("no_evidence")
+    results[no_evidence["cell_id"]] = no_evidence
+
+    oracle = terminal_condition("oracle_law", law_artifact=oracle_law_artifact)
+    results[oracle["cell_id"]] = oracle
+
+    donor_cell = by_condition[DONOR_CONDITION]
+    donor_payload = dict(autonomous_executor(donor_cell))
+    donor_payload.setdefault("cell_id", str(donor_cell["cell_id"]))
+    donor_payload.setdefault("condition", DONOR_CONDITION)
+    donor_id = str(donor_payload["cell_id"])
+    if donor_id != str(donor_cell["cell_id"]):
+        raise ValueError("autonomous executor returned a different donor identity")
+    if "submission" not in donor_payload:
+        donor_ranking = donor_payload.get("participant_ranking")
+        if isinstance(donor_ranking, list):
+            donor_payload["submission"] = {"ranking": deepcopy(donor_ranking)}
+    results[donor_id] = donor_payload
+
+    dependency_status = resolve_dependency_status(
+        {"dependency_cell_ids": [donor_id]},
+        results,
+    )
+    physical_count = donor_payload.get("physical_experiment_count")
+    if (
+        not isinstance(physical_count, int)
+        or isinstance(physical_count, bool)
+        or not 0 <= physical_count <= 12
+    ):
+        raise ValueError("autonomous donor physical-experiment count is invalid")
+    if dependency_status == "ready" and physical_count != 12:
+        raise ValueError("eligible autonomous donor must complete all 12 experiments")
+    donor_submission = donor_payload.get("submission")
+    donor_ranking = (
+        donor_submission.get("ranking")
+        if isinstance(donor_submission, Mapping)
+        else None
+    )
+    if dependency_status == "ready" and (
+        not isinstance(donor_ranking, list)
+        or len(donor_ranking) != 8
+        or len(set(map(str, donor_ranking))) != 8
+        or set(map(str, donor_ranking)) != set(candidate_ids)
+    ):
+        raise ValueError("eligible autonomous donor lacks its complete terminal ranking")
+    if dependency_status != "ready":
+        blocked = []
+        for condition in DONOR_DERIVED_CONDITIONS:
+            cell = by_condition[condition]
+            row = {
+                "cell_id": str(cell["cell_id"]),
+                "condition": condition,
+                "status": "not_started_due_to_missing_donor",
+                "dependency_cell_id": donor_id,
+                "provider_call_count": 0,
+                "physical_experiment_count": 0,
+            }
+            results[row["cell_id"]] = row
+            blocked.append(row["cell_id"])
+        return {
+            "schema_version": "chemworld-work-ii-evidence-to-action-stratum-result-0.1",
+            "stratum_id": next(iter(stratum_ids)),
+            "status": "completed_with_failed_donor_dependencies_retained",
+            "cell_results": results,
+            "blocked_cell_ids": blocked,
+            "provider_call_count": sum(
+                int(row.get("provider_call_count", 0)) for row in results.values()
+            ),
+            "participant_physical_experiment_count": physical_count,
+        }
+
+    trajectory_rows = donor_payload.get("trajectory_rows")
+    if not isinstance(trajectory_rows, list):
+        raise ValueError("eligible autonomous donor result lacks trajectory rows")
+    derivatives = build_donor_derivatives(
+        donor_cell_id=donor_id,
+        donor_result=donor_payload,
+        trajectory_rows=trajectory_rows,
+        candidate_query_ids=candidate_ids,
+    )
+
+    yoked_cell = by_condition["yoked_evidence"]
+    yoked = execute_yoked_recipient(
+        client,
+        task_contract=task_contract,
+        initial_world_model=initial_world_model,
+        candidate_packet=candidate_packet,
+        yoked_evidence_packet=derivatives["yoked_evidence_packet"],
+        query_metric_contract=query_metric_contract,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        allowed_prior_fields=allowed_prior_fields,
+        nominal_information_available=nominal_information_available,
+        max_tokens=max_tokens,
+    )
+    yoked["cell_id"] = str(yoked_cell["cell_id"])
+    yoked["submission"] = deepcopy(dict(yoked["terminal_result"]["submission"]))
+    results[yoked["cell_id"]] = yoked
+
+    learned = terminal_condition(
+        "learned_law_only",
+        law_artifact=derivatives["learned_law_artifact"],
+    )
+    results[learned["cell_id"]] = learned
+    return {
+        "schema_version": "chemworld-work-ii-evidence-to-action-stratum-result-0.1",
+        "stratum_id": next(iter(stratum_ids)),
+        "status": "completed",
+        "cell_results": results,
+        "blocked_cell_ids": [],
+        "provider_call_count": sum(
+            int(row.get("provider_call_count", 0)) for row in results.values()
+        ),
+        "participant_physical_experiment_count": physical_count,
+    }
+
+
 __all__ = [
     "RECIPIENT_CONTEXT_SCHEMA",
     "RECIPIENT_SYSTEM_PROMPT",
     "TERMINAL_SUBMISSION_SCHEMA",
+    "AutonomousStratumExecutor",
     "JsonRecipientClient",
     "build_donor_derivatives",
     "build_recipient_context",
+    "execute_stratum",
     "execute_terminal_recipient",
     "execute_yoked_recipient",
     "resolve_dependency_status",
