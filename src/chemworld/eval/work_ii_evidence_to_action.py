@@ -405,6 +405,10 @@ def build_yoked_evidence_packet(
             str(key): deepcopy(value) for key, value in scientific.items() if value is not None
         }
         event = {
+            "evidence_id": (
+                f"donor-experiment-{completed_experiments + 1:02d}-"
+                f"event-{event_index:03d}"
+            ),
             "event_index": event_index,
             "donor_experiment_number": completed_experiments + 1,
             "action": deepcopy(dict(action)),

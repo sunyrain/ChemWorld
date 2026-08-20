@@ -268,6 +268,162 @@ def execute_terminal_recipient(
     }
 
 
+def _snapshot_required_shape(
+    stage: str,
+    query_metric_contract: Mapping[str, Sequence[str]],
+) -> dict[str, Any]:
+    return {
+        "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
+        "snapshot_id": "unique string",
+        "stage": stage,
+        "prior_assessment": {
+            "nominal_information_available": "boolean matching the supplied prior",
+            "reliability_probability": "number in [0,1], or null for opaque prior",
+            "suspected_misindexed_fields": ["public prior field ID"],
+            "rationale": "string",
+        },
+        "predictions": [
+            {
+                "query_id": query_id,
+                "metrics": [
+                    {
+                        "metric_id": metric_id,
+                        "mean": "number",
+                        "interval_lower": "number <= mean",
+                        "interval_upper": "number >= mean",
+                        "confidence": "number in [0,1]",
+                    }
+                    for metric_id in metric_ids
+                ],
+            }
+            for query_id, metric_ids in query_metric_contract.items()
+        ],
+        "law_summary": {
+            "schema_version": "chemworld-work-ii-law-summary-0.1",
+            "summary_id": "unique string",
+            "feature_ids": ["public feature ID"],
+            "metric_laws": ["typed executable metric law"],
+            "evidence_ids": ["visible evidence ID"],
+            "applicability": "string",
+            "limitations": ["string"],
+            "confidence": "number in [0,1]",
+        },
+        "evidence_ids": ["visible evidence ID"],
+        "next_experiment_intent": "string",
+        "overall_confidence": "number in [0,1]",
+    }
+
+
+def execute_yoked_recipient(
+    client: JsonRecipientClient,
+    *,
+    task_contract: Mapping[str, Any],
+    initial_world_model: Mapping[str, Any],
+    candidate_packet: Mapping[str, Any] | Sequence[Any],
+    yoked_evidence_packet: Mapping[str, Any],
+    query_metric_contract: Mapping[str, Sequence[str]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    allowed_prior_fields: Sequence[str],
+    nominal_information_available: bool,
+    max_tokens: int = 8192,
+) -> dict[str, Any]:
+    """Run the five matched yoked checkpoints and one terminal ranking turn."""
+
+    snapshot_stages = (
+        "pre_evidence",
+        "after_experiment_3",
+        "after_experiment_6",
+        "after_experiment_9",
+        "final",
+    )
+    snapshots: list[dict[str, Any]] = []
+    receipts: list[dict[str, Any]] = []
+    for stage in snapshot_stages:
+        context = build_recipient_context(
+            condition="yoked_evidence",
+            stage=stage,
+            task_contract=task_contract,
+            initial_world_model=initial_world_model,
+            candidate_packet=candidate_packet,
+            yoked_evidence_packet=yoked_evidence_packet,
+        )
+        context_without_hash = {
+            key: deepcopy(value) for key, value in context.items() if key != "context_sha256"
+        }
+        context_without_hash["previous_belief_snapshots"] = deepcopy(snapshots)
+        context_without_hash["required_json_shape"] = _snapshot_required_shape(
+            stage,
+            query_metric_contract,
+        )
+        _assert_public(context_without_hash)
+        context_without_hash["context_sha256"] = canonical_json_sha256(
+            context_without_hash
+        )
+        completion = client.complete_json(
+            system_prompt=RECIPIENT_SYSTEM_PROMPT,
+            user_prompt=json.dumps(context_without_hash, ensure_ascii=False, sort_keys=True),
+            max_tokens=max_tokens,
+            output_schema=None,
+        )
+        visible_ids = [
+            str(event["evidence_id"])
+            for round_row in context["visible_yoked_evidence_rounds"]
+            for event in round_row["events"]
+        ]
+        snapshot = validate_yoked_snapshot_submission(
+            completion.payload,
+            stage=stage,
+            query_metric_contract=query_metric_contract,
+            allowed_feature_ids=allowed_feature_ids,
+            allowed_metric_ids=allowed_metric_ids,
+            allowed_prior_fields=allowed_prior_fields,
+            evidence_catalog=visible_ids,
+            nominal_information_available=nominal_information_available,
+        )
+        snapshots.append(snapshot)
+        receipts.append(
+            {
+                "stage": stage,
+                "context_sha256": context_without_hash["context_sha256"],
+                "provider_model": str(completion.model),
+                "provider_request_id": getattr(completion, "request_id", None),
+                "provider_attempts": int(completion.attempts),
+                "provider_usage": deepcopy(dict(completion.usage)),
+            }
+        )
+
+    terminal_context = build_recipient_context(
+        condition="yoked_evidence",
+        stage="terminal_ranking",
+        task_contract=task_contract,
+        initial_world_model=initial_world_model,
+        candidate_packet=candidate_packet,
+        yoked_evidence_packet=yoked_evidence_packet,
+    )
+    terminal_without_hash = {
+        key: deepcopy(value)
+        for key, value in terminal_context.items()
+        if key != "context_sha256"
+    }
+    terminal_without_hash["previous_belief_snapshots"] = deepcopy(snapshots)
+    _assert_public(terminal_without_hash)
+    terminal_without_hash["context_sha256"] = canonical_json_sha256(
+        terminal_without_hash
+    )
+    terminal = execute_terminal_recipient(client, terminal_without_hash, max_tokens=max_tokens)
+    return {
+        "status": "completed",
+        "condition": "yoked_evidence",
+        "snapshot_count": len(snapshots),
+        "belief_snapshots": snapshots,
+        "snapshot_provider_receipts": receipts,
+        "terminal_result": terminal,
+        "provider_call_count": len(receipts) + 1,
+        "physical_experiment_count": 0,
+    }
+
+
 def validate_yoked_snapshot_submission(
     payload: Mapping[str, Any],
     *,
@@ -365,6 +521,7 @@ __all__ = [
     "build_donor_derivatives",
     "build_recipient_context",
     "execute_terminal_recipient",
+    "execute_yoked_recipient",
     "resolve_dependency_status",
     "terminal_output_schema",
     "validate_terminal_submission",

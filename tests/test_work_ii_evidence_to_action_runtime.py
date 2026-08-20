@@ -12,6 +12,7 @@ from chemworld.eval.work_ii_evidence_to_action_runtime import (
     build_donor_derivatives,
     build_recipient_context,
     execute_terminal_recipient,
+    execute_yoked_recipient,
     resolve_dependency_status,
     validate_terminal_submission,
 )
@@ -253,3 +254,112 @@ def test_eligible_donor_builds_only_yoked_evidence_and_final_law() -> None:
     assert derivatives["yoked_evidence_packet"]["complete_experiment_count"] == 12
     assert derivatives["learned_law_artifact"]["law_summary"]["summary_id"] == "final-law"
     assert "private donor reasoning" not in rendered
+
+
+def test_yoked_runtime_runs_five_cumulative_snapshots_then_terminal_ranking() -> None:
+    class FakeYokedClient:
+        model = "fake-yoked-model"
+
+        def __init__(self) -> None:
+            self.contexts: list[dict] = []
+
+        def complete_json(self, **kwargs):
+            context = json.loads(kwargs["user_prompt"])
+            self.contexts.append(context)
+            stage = context["stage"]
+            if stage == "terminal_ranking":
+                payload = {
+                    "schema_version": TERMINAL_SUBMISSION_SCHEMA,
+                    "ranking": [f"q{index}" for index in range(8)],
+                    "selected_query_id": "q0",
+                    "decision_rationale": "The cumulative evidence favors q0.",
+                }
+            else:
+                evidence_ids = [
+                    event["evidence_id"]
+                    for round_row in context["visible_yoked_evidence_rounds"]
+                    for event in round_row["events"]
+                ]
+                payload = {
+                    "schema_version": "chemworld-work-ii-belief-snapshot-0.1",
+                    "snapshot_id": f"snapshot-{stage}",
+                    "stage": stage,
+                    "prior_assessment": {
+                        "nominal_information_available": False,
+                        "reliability_probability": None,
+                        "suspected_misindexed_fields": [],
+                        "rationale": "No nominal prior is visible.",
+                    },
+                    "predictions": [
+                        {
+                            "query_id": "checkpoint-q",
+                            "metrics": [
+                                {
+                                    "metric_id": "score",
+                                    "mean": 0.5,
+                                    "interval_lower": 0.2,
+                                    "interval_upper": 0.8,
+                                    "confidence": 0.7,
+                                }
+                            ],
+                        }
+                    ],
+                    "law_summary": {
+                        "schema_version": "chemworld-work-ii-law-summary-0.1",
+                        "summary_id": f"law-{stage}",
+                        "feature_ids": ["temperature"],
+                        "metric_laws": [
+                            {
+                                "metric_id": "score",
+                                "intercept": 0.5,
+                                "link": "identity",
+                                "lower_bound": 0.0,
+                                "upper_bound": 1.0,
+                                "terms": [],
+                            }
+                        ],
+                        "evidence_ids": evidence_ids,
+                        "applicability": "registered checkpoint domain",
+                        "limitations": [],
+                        "confidence": 0.7,
+                    },
+                    "evidence_ids": evidence_ids,
+                    "next_experiment_intent": "Observe the next yoked experiment.",
+                    "overall_confidence": 0.7,
+                }
+            return SimpleNamespace(
+                payload=payload,
+                model=self.model,
+                request_id=f"request-{len(self.contexts)}",
+                attempts=1,
+                usage={"prompt_tokens": 100, "completion_tokens": 40},
+            )
+
+    client = FakeYokedClient()
+    result = execute_yoked_recipient(
+        client,
+        task_contract={"task_id": "test-task", "objective": "maximize score"},
+        initial_world_model={"arm": "opaque", "nominal_information": None},
+        candidate_packet=_candidate_packet(),
+        yoked_evidence_packet=_yoked_packet(),
+        query_metric_contract={"checkpoint-q": ["score"]},
+        allowed_feature_ids=["temperature"],
+        allowed_metric_ids=["score"],
+        allowed_prior_fields=[],
+        nominal_information_available=False,
+    )
+    assert result["status"] == "completed"
+    assert result["snapshot_count"] == 5
+    assert result["provider_call_count"] == 6
+    assert result["physical_experiment_count"] == 0
+    assert [
+        len(context["visible_yoked_evidence_rounds"]) for context in client.contexts
+    ] == [0, 3, 6, 9, 12, 12]
+    assert [len(context.get("previous_belief_snapshots", [])) for context in client.contexts] == [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+    ]
