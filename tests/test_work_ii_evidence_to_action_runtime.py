@@ -1,0 +1,187 @@
+from __future__ import annotations
+
+import json
+from copy import deepcopy
+from types import SimpleNamespace
+
+import pytest
+
+from chemworld.eval.work_ii_evidence_to_action import build_yoked_evidence_packet
+from chemworld.eval.work_ii_evidence_to_action_runtime import (
+    TERMINAL_SUBMISSION_SCHEMA,
+    build_recipient_context,
+    execute_terminal_recipient,
+    validate_terminal_submission,
+)
+
+
+def _candidate_packet() -> dict:
+    return {
+        "candidate_outcomes_included": False,
+        "candidates": [
+            {
+                "query_id": f"q{index}",
+                "action_plan": [
+                    {"operation": "heat", "target_temperature_K": 300.0 + index},
+                    {"operation": "measure", "instrument": "final_assay"},
+                ],
+            }
+            for index in range(8)
+        ],
+    }
+
+
+def _yoked_packet() -> dict:
+    rows = []
+    for experiment in range(1, 13):
+        rows.append(
+            {
+                "action": {"operation": "measure", "instrument": "final_assay"},
+                "agent_visible_observation": {
+                    "observation": {"score": experiment / 12.0},
+                    "observed_reward": experiment / 12.0,
+                },
+                "observed_keys": ["score"],
+                "transaction_status": "committed",
+                "rollback_reason": None,
+            }
+        )
+    return build_yoked_evidence_packet(rows, donor_cell_id="donor-1")
+
+
+def _base_kwargs() -> dict:
+    return {
+        "task_contract": {"task_id": "test-task", "objective": "maximize score"},
+        "initial_world_model": {"arm": "opaque", "nominal_information": None},
+        "candidate_packet": _candidate_packet(),
+    }
+
+
+def test_no_evidence_receives_candidates_but_no_evidence_or_artifact() -> None:
+    context = build_recipient_context(
+        condition="no_evidence",
+        stage="terminal_ranking",
+        **_base_kwargs(),
+    )
+    assert len(context["candidate_packet"]) == 8
+    assert context["visible_yoked_evidence_rounds"] == []
+    assert context["law_artifact"] is None
+    assert context["physical_experiment_authority"] is False
+
+
+def test_yoked_reveal_gate_is_cumulative_and_candidates_are_terminal_only() -> None:
+    packet = _yoked_packet()
+    after_three = build_recipient_context(
+        condition="yoked_evidence",
+        stage="after_experiment_3",
+        yoked_evidence_packet=packet,
+        **_base_kwargs(),
+    )
+    assert len(after_three["visible_yoked_evidence_rounds"]) == 3
+    assert after_three["candidate_packet"] is None
+
+    terminal = build_recipient_context(
+        condition="yoked_evidence",
+        stage="terminal_ranking",
+        yoked_evidence_packet=packet,
+        **_base_kwargs(),
+    )
+    assert len(terminal["visible_yoked_evidence_rounds"]) == 12
+    assert len(terminal["candidate_packet"]) == 8
+
+
+def test_artifact_only_context_rejects_wrong_or_candidate_leaking_artifact() -> None:
+    artifact = {
+        "artifact_type": "participant_final_typed_law",
+        "candidate_information_included": False,
+        "law_summary": {"summary_id": "donor-law"},
+    }
+    context = build_recipient_context(
+        condition="learned_law_only",
+        stage="terminal_ranking",
+        law_artifact=artifact,
+        **_base_kwargs(),
+    )
+    assert context["law_artifact"]["law_summary"]["summary_id"] == "donor-law"
+    assert len(context["candidate_packet"]) == 8
+
+    leaking = deepcopy(artifact)
+    leaking["candidate_information_included"] = True
+    with pytest.raises(ValueError, match="candidate blindness"):
+        build_recipient_context(
+            condition="learned_law_only",
+            stage="terminal_ranking",
+            law_artifact=leaking,
+            **_base_kwargs(),
+        )
+
+
+def test_public_context_recursively_rejects_hidden_truth() -> None:
+    packet = _candidate_packet()
+    packet["candidates"][0]["candidate_truth"] = {"score": 1.0}
+    with pytest.raises(ValueError, match="forbidden fields"):
+        build_recipient_context(
+            condition="no_evidence",
+            stage="terminal_ranking",
+            **{**_base_kwargs(), "candidate_packet": packet},
+        )
+
+
+def test_terminal_submission_requires_complete_permutation_and_first_selection() -> None:
+    payload = {
+        "schema_version": TERMINAL_SUBMISSION_SCHEMA,
+        "ranking": [f"q{index}" for index in range(8)],
+        "selected_query_id": "q0",
+        "decision_rationale": "q0 best matches the available evidence.",
+    }
+    parsed = validate_terminal_submission(
+        payload,
+        candidate_query_ids=[f"q{index}" for index in range(8)],
+    )
+    assert parsed["selected_query_id"] == "q0"
+
+    invalid = deepcopy(payload)
+    invalid["selected_query_id"] = "q1"
+    with pytest.raises(ValueError, match="first-ranked"):
+        validate_terminal_submission(
+            invalid,
+            candidate_query_ids=[f"q{index}" for index in range(8)],
+        )
+
+
+def test_terminal_runtime_uses_one_strict_provider_turn() -> None:
+    context = build_recipient_context(
+        condition="no_evidence",
+        stage="terminal_ranking",
+        **_base_kwargs(),
+    )
+
+    class FakeClient:
+        model = "fake-model"
+
+        def __init__(self) -> None:
+            self.calls: list[dict] = []
+
+        def complete_json(self, **kwargs):
+            self.calls.append(kwargs)
+            return SimpleNamespace(
+                payload={
+                    "schema_version": TERMINAL_SUBMISSION_SCHEMA,
+                    "ranking": [f"q{index}" for index in range(8)],
+                    "selected_query_id": "q0",
+                    "decision_rationale": "The first candidate is preferred.",
+                },
+                model=self.model,
+                request_id="request-1",
+                attempts=1,
+                usage={"prompt_tokens": 100, "completion_tokens": 20},
+            )
+
+    client = FakeClient()
+    result = execute_terminal_recipient(client, context)
+    assert result["status"] == "completed"
+    assert result["submission"]["ranking"][0] == "q0"
+    assert len(client.calls) == 1
+    assert client.calls[0]["output_schema"]["additionalProperties"] is False
+    sent = json.loads(client.calls[0]["user_prompt"])
+    assert sent["candidate_outcomes_included"] is False
