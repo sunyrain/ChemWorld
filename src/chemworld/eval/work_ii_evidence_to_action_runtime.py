@@ -8,7 +8,12 @@ from copy import deepcopy
 from typing import Any, Protocol
 
 from chemworld.eval.provenance import canonical_json_sha256
-from chemworld.eval.work_ii_evidence_to_action import CONDITION_STAGES, CONDITIONS
+from chemworld.eval.work_ii_evidence_to_action import (
+    CONDITION_STAGES,
+    CONDITIONS,
+    build_learned_law_artifact,
+    build_yoked_evidence_packet,
+)
 from chemworld.eval.work_ii_prior_discovery import parse_work_ii_belief_snapshot
 
 RECIPIENT_CONTEXT_SCHEMA = "chemworld-work-ii-evidence-to-action-recipient-context-0.1"
@@ -289,13 +294,78 @@ def validate_yoked_snapshot_submission(
     return parsed.to_dict()
 
 
+def resolve_dependency_status(
+    cell: Mapping[str, Any],
+    completed_results: Mapping[str, Mapping[str, Any]],
+) -> str:
+    """Resolve a scheduled cell without replacing a failed autonomous donor."""
+
+    dependencies = cell.get("dependency_cell_ids")
+    if not isinstance(dependencies, list):
+        raise ValueError("cell dependency list is invalid")
+    if not dependencies:
+        return "ready"
+    if len(dependencies) != 1:
+        raise ValueError("recipient cell must have exactly one autonomous donor")
+    donor_id = str(dependencies[0])
+    donor = completed_results.get(donor_id)
+    if donor is None:
+        return "waiting_for_donor"
+    campaign_summary = donor.get("campaign_summary")
+    campaign_summary = campaign_summary if isinstance(campaign_summary, Mapping) else {}
+    completed = donor.get("status") == "completed_uncontaminated" or (
+        donor.get("completed") is True or campaign_summary.get("completed") is True
+    )
+    return "ready" if completed else "not_started_due_to_missing_donor"
+
+
+def build_donor_derivatives(
+    *,
+    donor_cell_id: str,
+    donor_result: Mapping[str, Any],
+    trajectory_rows: Sequence[Mapping[str, Any]],
+    candidate_query_ids: Sequence[str],
+) -> dict[str, Any]:
+    """Create the two allowed donor products after an eligible autonomous terminal."""
+
+    dependency_status = resolve_dependency_status(
+        {"dependency_cell_ids": [donor_cell_id]},
+        {donor_cell_id: donor_result},
+    )
+    if dependency_status != "ready":
+        raise ValueError("failed autonomous donor may not produce recipient artifacts")
+    campaign_summary = donor_result.get("campaign_summary")
+    campaign_summary = (
+        campaign_summary if isinstance(campaign_summary, Mapping) else donor_result
+    )
+    yoked = build_yoked_evidence_packet(
+        trajectory_rows,
+        donor_cell_id=donor_cell_id,
+    )
+    learned = build_learned_law_artifact(
+        campaign_summary,
+        donor_cell_id=donor_cell_id,
+        candidate_query_ids=candidate_query_ids,
+    )
+    return {
+        "schema_version": "chemworld-work-ii-evidence-to-action-donor-derivatives-0.1",
+        "donor_cell_id": donor_cell_id,
+        "yoked_evidence_packet": yoked,
+        "learned_law_artifact": learned,
+        "donor_reasoning_transferred": False,
+        "candidate_information_transferred": False,
+    }
+
+
 __all__ = [
     "RECIPIENT_CONTEXT_SCHEMA",
     "RECIPIENT_SYSTEM_PROMPT",
     "TERMINAL_SUBMISSION_SCHEMA",
     "JsonRecipientClient",
+    "build_donor_derivatives",
     "build_recipient_context",
     "execute_terminal_recipient",
+    "resolve_dependency_status",
     "terminal_output_schema",
     "validate_terminal_submission",
     "validate_yoked_snapshot_submission",

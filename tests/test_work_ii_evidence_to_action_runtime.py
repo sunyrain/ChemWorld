@@ -9,8 +9,10 @@ import pytest
 from chemworld.eval.work_ii_evidence_to_action import build_yoked_evidence_packet
 from chemworld.eval.work_ii_evidence_to_action_runtime import (
     TERMINAL_SUBMISSION_SCHEMA,
+    build_donor_derivatives,
     build_recipient_context,
     execute_terminal_recipient,
+    resolve_dependency_status,
     validate_terminal_submission,
 )
 
@@ -185,3 +187,69 @@ def test_terminal_runtime_uses_one_strict_provider_turn() -> None:
     assert client.calls[0]["output_schema"]["additionalProperties"] is False
     sent = json.loads(client.calls[0]["user_prompt"])
     assert sent["candidate_outcomes_included"] is False
+
+
+def test_dependency_resolution_retains_failed_donor_without_replacement() -> None:
+    cell = {"dependency_cell_ids": ["donor-1"]}
+    assert resolve_dependency_status(cell, {}) == "waiting_for_donor"
+    assert (
+        resolve_dependency_status(cell, {"donor-1": {"status": "failed_retained"}})
+        == "not_started_due_to_missing_donor"
+    )
+    assert (
+        resolve_dependency_status(
+            cell,
+            {"donor-1": {"status": "completed_uncontaminated"}},
+        )
+        == "ready"
+    )
+
+
+def test_eligible_donor_builds_only_yoked_evidence_and_final_law() -> None:
+    trajectory = []
+    for experiment in range(1, 13):
+        trajectory.append(
+            {
+                "action": {"operation": "measure", "instrument": "final_assay"},
+                "agent_visible_observation": {
+                    "observation": {"score": experiment / 12.0},
+                    "observed_reward": experiment / 12.0,
+                },
+                "observed_keys": ["score"],
+                "transaction_status": "committed",
+                "rollback_reason": None,
+                "agent_trace": "private donor reasoning",
+            }
+        )
+    donor = {
+        "status": "completed_uncontaminated",
+        "campaign_summary": {
+            "analysis": {
+                "belief_snapshots": [
+                    {
+                        "stage": "final",
+                        "law_summary": {
+                            "schema_version": "chemworld-work-ii-law-summary-0.1",
+                            "summary_id": "final-law",
+                            "feature_ids": ["temperature"],
+                            "metric_laws": [],
+                            "evidence_ids": [],
+                            "applicability": "candidate domain",
+                            "limitations": [],
+                            "confidence": 0.8,
+                        },
+                    }
+                ]
+            }
+        },
+    }
+    derivatives = build_donor_derivatives(
+        donor_cell_id="donor-1",
+        donor_result=donor,
+        trajectory_rows=trajectory,
+        candidate_query_ids=[f"q{index}" for index in range(8)],
+    )
+    rendered = json.dumps(derivatives)
+    assert derivatives["yoked_evidence_packet"]["complete_experiment_count"] == 12
+    assert derivatives["learned_law_artifact"]["law_summary"]["summary_id"] == "final-law"
+    assert "private donor reasoning" not in rendered
