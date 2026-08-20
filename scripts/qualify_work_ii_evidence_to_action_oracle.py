@@ -40,7 +40,7 @@ DEFAULT_CANDIDATE_ROOT = (
 DEFAULT_OUTPUT = (
     ROOT
     / "runs/development/work-ii-evidence-to-action-causal-decomposition-v0.1"
-    / "oracle-qualification-v0.5"
+    / "oracle-qualification-v0.6"
 )
 
 
@@ -268,7 +268,9 @@ def main() -> int:
             neighborhood_span_fraction=float(
                 grid_contract["candidate_neighborhood_span_fraction"]
             ),
-            grid_id=f"oracle-grid--{task_id}",
+            # Compact IDs keep Windows trajectory paths below MAX_PATH. The task-index prefix is
+            # stable under the frozen protocol order and remains unique within this study.
+            grid_id=f"e2a-o-t{task_index + 1}",
         )
         grid = _compile_valid_grid(
             source,

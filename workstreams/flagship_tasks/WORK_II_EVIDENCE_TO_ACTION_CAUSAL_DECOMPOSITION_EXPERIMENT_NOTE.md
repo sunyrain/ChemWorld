@@ -132,3 +132,8 @@ expressiveness rather than a missing category. The next qualification block ther
 96-query denominator but allocates `32` global and `64` outcome-blind candidate-neighborhood points
 and adds conditional cubic terms. No provider session is authorized unless the restarted block
 passes all `15/15` worlds.
+
+The first launch of this hybrid block stopped within its first cluster because verbose neighborhood
+query IDs exceeded the Windows trajectory path limit. It produced no complete cluster and is a
+platform-invalid development attempt. The identical scientific design restarts under compact query
+IDs in a new output root; no completed result is reused or relabelled.
