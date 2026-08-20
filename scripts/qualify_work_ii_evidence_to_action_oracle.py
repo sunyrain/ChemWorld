@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
@@ -40,7 +40,7 @@ DEFAULT_CANDIDATE_ROOT = (
 DEFAULT_OUTPUT = (
     ROOT
     / "runs/development/work-ii-evidence-to-action-causal-decomposition-v0.1"
-    / "oracle-qualification-v0.2"
+    / "oracle-qualification-v0.3"
 )
 
 
@@ -57,6 +57,56 @@ def _truth(path: Path) -> dict[str, dict[str, Any]]:
     if report.get("status") != "completed" or not isinstance(truth, dict):
         raise ValueError(f"{path}: evaluator truth is incomplete")
     return {str(query_id): dict(metrics) for query_id, metrics in truth.items()}
+
+
+def _execute_truth_shard(
+    task_id: str,
+    world_seed: int,
+    source: dict[str, Any],
+    queries: list[dict[str, Any]],
+    shard_index: int,
+    shard_root: Path,
+) -> dict[str, Any]:
+    report_path = shard_root / "report.json"
+    if report_path.is_file():
+        return _load(report_path)
+    task_runner.WORLD_SEED = world_seed
+    task_runner.RESOURCE_PROFILE = "resource_recovery_v2"
+    task_runner.FORMAL_RESULT = False
+    task_runner.FORMAL_PREFLIGHT_SHA256 = None
+    task_runner.TESTED_COMMIT = None
+    runtime = task_runner._prepare_runtime(
+        source,
+        task_id=task_id,
+        checkpoint_queries=queries,
+    )
+    cluster = {
+        "world_cluster_id": (
+            f"E2A_ORACLE--{task_id}--seed{world_seed}--shard{shard_index:02d}"
+        ),
+        "task_id": task_id,
+        "world_seed": world_seed,
+    }
+    plan = build_evaluator_truth_plan(
+        cluster,
+        runtime,
+        formal_result=False,
+        formal_preflight_sha256=None,
+    )
+    errors = validate_evaluator_truth_plan(plan)
+    if errors:
+        raise ValueError(
+            f"{task_id}/seed-{world_seed}/shard-{shard_index}: invalid plan: "
+            f"{'; '.join(errors)}"
+        )
+    report = execute_evaluator_truth_plan(plan, runtime, shard_root)
+    errors = validate_evaluator_truth_report(report, plan)
+    if errors or report.get("status") != "completed":
+        raise ValueError(
+            f"{task_id}/seed-{world_seed}/shard-{shard_index}: truth failed: "
+            f"{'; '.join(errors) or report.get('status')}"
+        )
+    return report
 
 
 def _grid_report(
@@ -77,49 +127,18 @@ def _grid_report(
     shards = [grid[index::shard_count] for index in range(shard_count)]
     shards = [shard for shard in shards if shard]
 
-    def run_shard(shard_index: int, queries: list[dict[str, Any]]) -> dict[str, Any]:
-        shard_root = cluster_root / "grid-truth-shards" / f"shard-{shard_index:02d}"
-        report_path = shard_root / "report.json"
-        if report_path.is_file():
-            return _load(report_path)
-        task_runner.WORLD_SEED = world_seed
-        runtime = task_runner._prepare_runtime(
-            source,
-            task_id=task_id,
-            checkpoint_queries=queries,
-        )
-        cluster = {
-            "world_cluster_id": (
-                f"E2A_ORACLE--{task_id}--seed{world_seed}--shard{shard_index:02d}"
-            ),
-            "task_id": task_id,
-            "world_seed": world_seed,
-        }
-        plan = build_evaluator_truth_plan(
-            cluster,
-            runtime,
-            formal_result=False,
-            formal_preflight_sha256=None,
-        )
-        errors = validate_evaluator_truth_plan(plan)
-        if errors:
-            raise ValueError(
-                f"{task_id}/seed-{world_seed}/shard-{shard_index}: invalid plan: "
-                f"{'; '.join(errors)}"
-            )
-        report = execute_evaluator_truth_plan(plan, runtime, shard_root)
-        errors = validate_evaluator_truth_report(report, plan)
-        if errors or report.get("status") != "completed":
-            raise ValueError(
-                f"{task_id}/seed-{world_seed}/shard-{shard_index}: truth failed: "
-                f"{'; '.join(errors) or report.get('status')}"
-            )
-        return report
-
     reports: list[dict[str, Any]] = []
-    with ThreadPoolExecutor(max_workers=workers) as executor:
+    with ProcessPoolExecutor(max_workers=workers) as executor:
         futures = {
-            executor.submit(run_shard, index, shard): index
+            executor.submit(
+                _execute_truth_shard,
+                task_id,
+                world_seed,
+                source,
+                shard,
+                index,
+                cluster_root / "grid-truth-shards" / f"shard-{index:02d}",
+            ): index
             for index, shard in enumerate(shards, start=1)
         }
         for future in as_completed(futures):
@@ -279,16 +298,25 @@ def main() -> int:
                 shard_count=int(args.shards),
             )
             fit_truth = {str(key): dict(value) for key, value in report["truth"].items()}
-            candidate_report = (
+            retained_task_root = (
                 candidate_root
                 / task_id
                 / f"seed-{world_seed}"
                 / task_id
-                / "candidate-truth/report.json"
             )
-            candidate_truth = _truth(candidate_report)
-            if set(candidate_truth) != set(candidate_ids):
-                raise ValueError(f"{task_id}/seed-{world_seed}: candidate truth identity differs")
+            all_registered_truth = {
+                **_truth(retained_task_root / "candidate-truth/report.json"),
+                **_truth(retained_task_root / "checkpoint-truth/report.json"),
+            }
+            if len(all_registered_truth) != 16 or not set(candidate_ids).issubset(
+                all_registered_truth
+            ):
+                raise ValueError(
+                    f"{task_id}/seed-{world_seed}: registered truth identity differs"
+                )
+            candidate_truth = {
+                query_id: all_registered_truth[query_id] for query_id in candidate_ids
+            }
             artifact = fit_oracle_law_from_disjoint_grid(
                 grid,
                 fit_truth,

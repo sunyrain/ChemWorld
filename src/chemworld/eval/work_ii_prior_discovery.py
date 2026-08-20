@@ -360,7 +360,10 @@ def parse_work_ii_law_summary(
     if not set(feature_ids).issubset(allowed_features):
         raise ValueError("law_summary contains an unknown feature ID")
     evidence_ids = _string_tuple(
-        value["evidence_ids"], "law_summary.evidence_ids", allow_empty=True
+        value["evidence_ids"],
+        "law_summary.evidence_ids",
+        allow_empty=True,
+        maximum_items=128,
     )
     if not set(evidence_ids).issubset(set(evidence_catalog)):
         raise ValueError("law_summary cites an unknown evidence ID")

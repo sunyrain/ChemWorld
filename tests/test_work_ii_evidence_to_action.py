@@ -353,6 +353,43 @@ def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -
     assert all("truth" not in row for row in first)
 
 
+def test_dense_96_point_oracle_law_remains_executable() -> None:
+    fit_queries = [
+        {"query_id": f"fit-q{index:03d}", "feature_values": {"x": index / 95.0}}
+        for index in range(96)
+    ]
+    fit_truth = {
+        row["query_id"]: {"score": row["feature_values"]["x"] ** 2}
+        for row in fit_queries
+    }
+    candidates = [
+        {"query_id": f"candidate-q{index}", "feature_values": {"x": index / 7.0}}
+        for index in range(8)
+    ]
+    candidate_truth = {
+        row["query_id"]: {"score": row["feature_values"]["x"] ** 2}
+        for row in candidates
+    }
+    artifact = fit_oracle_law_from_disjoint_grid(
+        fit_queries,
+        fit_truth,
+        candidate_query_ids=list(candidate_truth),
+        allowed_feature_ids=["x"],
+        allowed_metric_ids=["score"],
+        summary_id="dense-quadratic-oracle",
+    )
+    qualification = evaluate_oracle_law_candidate_order(
+        artifact,
+        candidate_queries=candidates,
+        candidate_truth=candidate_truth,
+        allowed_feature_ids=["x"],
+        allowed_metric_ids=["score"],
+        minimum_rank_correlation=0.8,
+    )
+    assert qualification["status"] == "passed"
+    assert qualification["spearman_rank_correlation"] == 1.0
+
+
 def test_terminal_ranking_uses_continuous_regret_and_tie_aware_agreement() -> None:
     truth = {
         f"q{index}": {"score": score}
