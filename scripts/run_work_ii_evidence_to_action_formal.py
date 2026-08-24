@@ -8,8 +8,10 @@ import hashlib
 import json
 import subprocess
 import tempfile
+import threading
 import time
 from collections.abc import Mapping, Sequence
+from contextlib import contextmanager
 from copy import deepcopy
 from pathlib import Path
 from types import SimpleNamespace
@@ -85,6 +87,39 @@ def _load(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ValueError(f"{path} must contain an object")
     return value
+
+
+@contextmanager
+def _periodic_liveness(
+    progress: Progress,
+    payload: Mapping[str, Any],
+    *,
+    interval_s: float = 30.0,
+):
+    """Emit bounded liveness while a provider-free truth helper is inside one unit."""
+
+    stopped = threading.Event()
+    started = time.perf_counter()
+
+    def emit() -> None:
+        counter = 0
+        while not stopped.wait(interval_s):
+            counter += 1
+            progress.emit(
+                {
+                    **dict(payload),
+                    "liveness_counter": counter,
+                    "elapsed_s": round(time.perf_counter() - started, 1),
+                }
+            )
+
+    thread = threading.Thread(target=emit, daemon=True)
+    thread.start()
+    try:
+        yield
+    finally:
+        stopped.set()
+        thread.join(timeout=interval_s)
 
 
 def _sha256_file(path: Path) -> str:
@@ -603,7 +638,16 @@ def _execute_formal_oracle_truth(
             "total_queries": len(grid),
         }
     )
-    report = execute_evaluator_truth_plan(plan, oracle_runtime, output_root)
+    with _periodic_liveness(
+        progress,
+        {
+            "stage": "e2a_formal_oracle_truth_liveness",
+            "cluster_id": cluster_id,
+            "completed_queries": 0,
+            "total_queries": len(grid),
+        },
+    ):
+        report = execute_evaluator_truth_plan(plan, oracle_runtime, output_root)
     errors = validate_evaluator_truth_report(report, plan)
     if errors or report.get("status") != "completed":
         raise ValueError(
@@ -690,13 +734,24 @@ def prepare_formal(
                 "total_clusters": cluster_total,
             }
         )
-        task_manifest = task_runner._prepare_task(
-            task_id,
-            source_path,
-            cluster_root,
+        with _periodic_liveness(
             progress,
-            cluster_id=cluster_id,
-        )
+            {
+                "stage": "e2a_formal_candidate_checkpoint_truth_liveness",
+                "cluster_id": cluster_id,
+                "completed_clusters": cluster_index - 1,
+                "total_clusters": cluster_total,
+                "completed_queries": 0,
+                "total_queries": 16,
+            },
+        ):
+            task_manifest = task_runner._prepare_task(
+                task_id,
+                source_path,
+                cluster_root,
+                progress,
+                cluster_id=cluster_id,
+            )
         task_root = cluster_root / task_id
         campaign_config_path = task_root / "campaign-config.json"
         campaign_config = _load(campaign_config_path)
