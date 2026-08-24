@@ -69,6 +69,7 @@ DEFAULT_OUTPUT = ROOT / "runs/formal/w2-51-e2a-20260824"
 RESULT_SCHEMA = "chemworld-work-ii-evidence-to-action-formal-stratum-0.1"
 MANIFEST_SCHEMA = "chemworld-work-ii-evidence-to-action-formal-manifest-0.1"
 AUTHORIZATION_SCHEMA = "chemworld-work-ii-evidence-to-action-execution-authorization-0.1"
+PREPARATION_SUMMARY_SCHEMA = "chemworld-work-ii-e2a-formal-preparation-summary-0.1"
 
 EXECUTION_SURFACE = (
     "configs/benchmark/work_ii_evidence_to_action_causal_decomposition_v0.1.json",
@@ -664,6 +665,472 @@ def _execute_formal_oracle_truth(
     return report
 
 
+def _write_json_once_or_match(path: Path, payload: Mapping[str, Any]) -> None:
+    if path.is_file():
+        if _load(path) != dict(payload):
+            raise RuntimeError(f"retained derived evidence differs: {path}")
+        return
+    write_json_atomic(path, dict(payload))
+
+
+def _verify_retained_truth_report(
+    path: Path,
+    *,
+    expected_query_count: int,
+) -> tuple[dict[str, Any], int, str | None, str | None]:
+    report = _load(path)
+    expected_hash = canonical_json_sha256(
+        {key: value for key, value in report.items() if key != "report_sha256"}
+    )
+    if report.get("report_sha256") != expected_hash:
+        raise RuntimeError(f"retained truth report self-hash differs: {path}")
+    if (
+        report.get("status") != "completed"
+        or report.get("formal_result") is not True
+        or report.get("truth_query_count") != expected_query_count
+        or report.get("completed_truth_query_count") != expected_query_count
+        or report.get("failed_truth_query_count") != 0
+        or report.get("evaluator_provider_call_count") != 0
+        or report.get("participant_operation_denominator_impact") != 0
+        or report.get("participant_feedback_emitted") is not False
+    ):
+        raise RuntimeError(f"retained formal truth report is incomplete or contaminated: {path}")
+    receipts = report.get("receipts")
+    if not isinstance(receipts, list) or len(receipts) != expected_query_count:
+        raise RuntimeError(f"retained formal truth receipt denominator differs: {path}")
+    exact_replay_count = sum(
+        isinstance(receipt, Mapping)
+        and receipt.get("status") == "completed"
+        and isinstance(receipt.get("exact_replay"), Mapping)
+        and receipt["exact_replay"].get("verified") is True
+        for receipt in receipts
+    )
+    if exact_replay_count != expected_query_count:
+        raise RuntimeError(f"retained formal exact replay is incomplete: {path}")
+
+    retained_commit: str | None = None
+    first_receipt = dict(receipts[0])
+    trajectory = first_receipt.get("trajectory")
+    if isinstance(trajectory, Mapping) and trajectory.get("path"):
+        trajectory_path = path.parent / str(trajectory["path"])
+        with trajectory_path.open("r", encoding="utf-8") as handle:
+            first_record = json.loads(handle.readline())
+        metadata = first_record.get("agent_metadata")
+        if isinstance(metadata, Mapping) and metadata.get("git_commit"):
+            retained_commit = str(metadata["git_commit"])
+    binding_sha256 = report.get("formal_preflight_sha256")
+    return (
+        report,
+        exact_replay_count,
+        str(binding_sha256) if binding_sha256 else None,
+        retained_commit,
+    )
+
+
+def _retained_oracle_task_bundle(
+    *,
+    protocol: Mapping[str, Any],
+    output_root: Path,
+    task_id: str,
+) -> dict[str, Any]:
+    task_items = list(protocol["task_runtime_sources"].items())
+    task_index = next(
+        index
+        for index, (candidate_task_id, _path) in enumerate(task_items, start=1)
+        if str(candidate_task_id) == task_id
+    )
+    runtime_path = Path(str(protocol["task_runtime_sources"][task_id]))
+    source = _load((ROOT / runtime_path).resolve())
+    grid, candidates, feature_ids, metric_ids = _oracle_grid_for_task(
+        task_id,
+        source,
+        protocol,
+        task_index=task_index,
+    )
+    retained_grid = _load(
+        output_root / "prepared" / "tasks" / task_id / "oracle-grid.json"
+    )
+    if (
+        retained_grid.get("query_count") != len(grid)
+        or retained_grid.get("queries") != grid
+        or retained_grid.get("candidate_outcomes_used") is not False
+        or retained_grid.get("candidate_query_ids_excluded") is not True
+    ):
+        raise RuntimeError(f"retained oracle grid differs from the frozen task grid: {task_id}")
+    return {
+        "grid": grid,
+        "candidate_feature_queries": candidates,
+        "feature_ids": feature_ids,
+        "metric_ids": metric_ids,
+    }
+
+
+def _write_rejected_preparation_report_zh(
+    path: Path,
+    summary: Mapping[str, Any],
+) -> None:
+    failure = dict(summary["failure"])
+    gate_display = (
+        "candidate opportunity gate"
+        if failure["gate"] == "frozen_formal_candidate_opportunity_gate"
+        else "oracle rank gate"
+    )
+    qualified_phrase = (
+        "前七个"
+        if summary["qualified_cluster_count"] == 7
+        else f"前 {summary['qualified_cluster_count']} 个"
+    )
+    oracle = failure.get("oracle_qualification")
+    oracle_rho = oracle.get("spearman_rank_correlation") if isinstance(oracle, Mapping) else None
+    oracle_rho_text = f"{oracle_rho:.6f}" if isinstance(oracle_rho, (int, float)) else "n/a"
+    top1_text = (
+        str(bool(oracle.get("top1_agreement"))).lower()
+        if isinstance(oracle, Mapping)
+        else "n/a"
+    )
+    overlap_text = (
+        str(oracle.get("fit_candidate_overlap_count"))
+        if isinstance(oracle, Mapping)
+        else "n/a"
+    )
+    lines = [
+        "# W2-51 evidence-to-action 正式 provider-free 收口",
+        "",
+        "## 结论",
+        "",
+        f"正式 provider-free preparation 在冻结的 {gate_display} 上科学拒绝。",
+        "provider cohort、operational canary 和 participant experiments 均未启动; 不得替换 world、",
+        "放宽阈值或补跑以获得更有利结果。",
+        "",
+        "## 精确分母",
+        "",
+        f"- 计划 cluster: {summary['planned_cluster_count']}",
+        f"- 已完成 truth/replay 的 cluster: {summary['attempted_cluster_count']}",
+        f"- 完整通过: {summary['qualified_cluster_count']}",
+        f"- 科学拒绝: {summary['scientifically_rejected_cluster_count']}",
+        f"- 因冻结门控未启动: {summary['not_started_cluster_count']}",
+        (
+            "- provider-free truth 与 exact replay: "
+            f"{summary['provider_free_truth_query_count']}/"
+            f"{summary['provider_free_truth_query_planned_count']}"
+        ),
+        f"- evaluator/provider calls: {summary['provider_free_evaluator_provider_call_count']}",
+        f"- participant/provider calls: {summary['participant_provider_call_count']}",
+        f"- participant physical experiments: {summary['participant_physical_experiment_count']}",
+        "",
+        "## 触发门控",
+        "",
+        f"- cluster: {failure['cluster_id']}",
+        f"- task: {failure['task_id']}",
+        f"- world seed: {failure['world_seed']}",
+        f"- gate: {failure['gate']}",
+        f"- 冻结阈值: rho >= {failure['minimum_rank_correlation']:.2f}",
+        f"- 实测 Spearman rho: {oracle_rho_text}",
+        f"- Top-1 agreement: {top1_text}",
+        f"- fit/candidate overlap: {overlap_text}",
+        "",
+        "## 处置",
+        "",
+        (
+            "W2-51 以 `scientifically_rejected_before_provider` 终止。"
+            f"{qualified_phrase}通过结果、失败 cluster"
+        ),
+        "及其余未启动分母全部保留; 该块不产生五条件 participant 因果对比。",
+    ]
+    content = "\n".join(lines) + "\n"
+    if path.is_file():
+        if path.read_text(encoding="utf-8") != content:
+            raise RuntimeError(f"retained readable preparation report differs: {path}")
+        return
+    path.write_text(content, encoding="utf-8")
+
+
+def finalize_rejected_preparation(
+    *,
+    protocol: Mapping[str, Any],
+    output_root: Path,
+    progress: Progress | None = None,
+) -> dict[str, Any]:
+    """Materialize a frozen scientific-gate rejection without executing new truth."""
+
+    if (output_root / "input_manifest.json").exists():
+        raise RuntimeError("a passed formal preparation cannot be finalized as rejected")
+    if (output_root / "execution-authorization.json").exists() or (
+        output_root / "formal"
+    ).exists():
+        raise RuntimeError("provider execution exists; provider-free rejection is not applicable")
+
+    errors = validate_protocol(protocol)
+    if errors:
+        raise ValueError("; ".join(errors))
+    design = build_design_manifest(protocol)
+    task_bundles: dict[str, dict[str, Any]] = {}
+    qualification_rows: list[dict[str, Any]] = []
+    unstarted_clusters: list[dict[str, Any]] = []
+    failure: dict[str, Any] | None = None
+    truth_count = 0
+    exact_replay_count = 0
+    evaluator_provider_calls = 0
+    binding_sha256s: set[str] = set()
+    retained_commits: set[str] = set()
+
+    candidate_count = int(protocol["candidate_contract"]["candidate_count"])
+    checkpoint_count = candidate_count
+    oracle_count = int(protocol["oracle_grid_contract"]["query_count_per_task"])
+    minimum_rho = float(
+        protocol["artifact_contract"]["minimum_oracle_candidate_rank_correlation"]
+    )
+
+    for cluster in design["clusters"]:
+        cluster_id = str(cluster["cluster_id"])
+        task_id = str(cluster["task_id"])
+        world_seed = int(cluster["world_seed"])
+        cluster_root = (
+            output_root
+            / "prepared"
+            / "clusters"
+            / task_id
+            / f"seed-{world_seed}"
+            / task_id
+        )
+        candidate_report_path = cluster_root / "candidate-truth" / "report.json"
+        checkpoint_report_path = cluster_root / "checkpoint-truth" / "report.json"
+        oracle_report_path = cluster_root / "oracle-grid-truth" / "report.json"
+
+        if not candidate_report_path.is_file() and not checkpoint_report_path.is_file():
+            unstarted_clusters.append(
+                {
+                    "cluster_id": cluster_id,
+                    "task_id": task_id,
+                    "world_seed": world_seed,
+                    "status": "not_started_due_to_provider_free_gate_failure",
+                }
+            )
+            continue
+        if failure is not None:
+            raise RuntimeError("formal truth exists after the first frozen scientific gate failure")
+        if not candidate_report_path.is_file() or not checkpoint_report_path.is_file():
+            raise RuntimeError(f"{cluster_id}: retained candidate/checkpoint truth is incomplete")
+
+        candidate_report, candidate_replay, binding, commit = _verify_retained_truth_report(
+            candidate_report_path,
+            expected_query_count=candidate_count,
+        )
+        checkpoint_report, checkpoint_replay, checkpoint_binding, checkpoint_commit = (
+            _verify_retained_truth_report(
+                checkpoint_report_path,
+                expected_query_count=checkpoint_count,
+            )
+        )
+        for value in (binding, checkpoint_binding):
+            if value:
+                binding_sha256s.add(value)
+        for value in (commit, checkpoint_commit):
+            if value:
+                retained_commits.add(value)
+        truth_count += candidate_count + checkpoint_count
+        exact_replay_count += candidate_replay + checkpoint_replay
+        evaluator_provider_calls += int(candidate_report["evaluator_provider_call_count"])
+        evaluator_provider_calls += int(checkpoint_report["evaluator_provider_call_count"])
+
+        candidate_qualification = evaluate_candidate_packet(
+            candidate_report["truth"],
+            protocol["candidate_contract"],
+        )
+        row: dict[str, Any] = {
+            "cluster_id": cluster_id,
+            "task_id": task_id,
+            "world_seed": world_seed,
+            "candidate_qualification": candidate_qualification,
+            "oracle_qualification": None,
+            "provider_free_truth_query_count": candidate_count + checkpoint_count,
+            "exact_replay_query_count": candidate_replay + checkpoint_replay,
+        }
+        if candidate_qualification["status"] != "passed":
+            if oracle_report_path.exists():
+                raise RuntimeError(
+                    f"{cluster_id}: oracle truth exists after candidate gate failure"
+                )
+            failure = {
+                "cluster_id": cluster_id,
+                "task_id": task_id,
+                "world_seed": world_seed,
+                "gate": "frozen_formal_candidate_opportunity_gate",
+                "candidate_qualification": candidate_qualification,
+                "oracle_qualification": None,
+                "minimum_rank_correlation": minimum_rho,
+            }
+            qualification_rows.append(row)
+            continue
+
+        if not oracle_report_path.is_file():
+            raise RuntimeError(f"{cluster_id}: retained oracle truth is incomplete")
+        oracle_report, oracle_replay, oracle_binding, oracle_commit = (
+            _verify_retained_truth_report(
+                oracle_report_path,
+                expected_query_count=oracle_count,
+            )
+        )
+        if oracle_binding:
+            binding_sha256s.add(oracle_binding)
+        if oracle_commit:
+            retained_commits.add(oracle_commit)
+        truth_count += oracle_count
+        exact_replay_count += oracle_replay
+        evaluator_provider_calls += int(oracle_report["evaluator_provider_call_count"])
+
+        if task_id not in task_bundles:
+            task_bundles[task_id] = _retained_oracle_task_bundle(
+                protocol=protocol,
+                output_root=output_root,
+                task_id=task_id,
+            )
+        bundle = task_bundles[task_id]
+        candidate_packet = _load(cluster_root / "public_candidate_packet.json")
+        packet_ids = [str(item["query_id"]) for item in candidate_packet["candidates"]]
+        candidate_ids = [
+            str(item["query_id"]) for item in bundle["candidate_feature_queries"]
+        ]
+        if (
+            candidate_packet.get("candidate_outcomes_included") is not False
+            or packet_ids != candidate_ids
+        ):
+            raise RuntimeError(f"{cluster_id}: retained public candidate packet differs")
+
+        artifact = fit_oracle_law_from_disjoint_grid(
+            bundle["grid"],
+            oracle_report["truth"],
+            candidate_query_ids=candidate_ids,
+            allowed_feature_ids=bundle["feature_ids"],
+            allowed_metric_ids=bundle["metric_ids"],
+            summary_id=f"oracle--{task_id}--seed{world_seed}",
+        )
+        oracle_qualification = evaluate_oracle_law_candidate_order(
+            artifact,
+            candidate_queries=bundle["candidate_feature_queries"],
+            candidate_truth=candidate_report["truth"],
+            allowed_feature_ids=bundle["feature_ids"],
+            allowed_metric_ids=bundle["metric_ids"],
+            minimum_rank_correlation=minimum_rho,
+        )
+        row.update(
+            {
+                "oracle_qualification": oracle_qualification,
+                "provider_free_truth_query_count": candidate_count
+                + checkpoint_count
+                + oracle_count,
+                "exact_replay_query_count": candidate_replay
+                + checkpoint_replay
+                + oracle_replay,
+            }
+        )
+        qualification_rows.append(row)
+        if oracle_qualification["status"] != "passed":
+            failure = {
+                "cluster_id": cluster_id,
+                "task_id": task_id,
+                "world_seed": world_seed,
+                "gate": "frozen_formal_oracle_rank_gate",
+                "candidate_qualification": candidate_qualification,
+                "oracle_qualification": oracle_qualification,
+                "minimum_rank_correlation": minimum_rho,
+            }
+            _write_json_once_or_match(
+                cluster_root / "rejected-oracle-artifact.json",
+                artifact,
+            )
+            _write_json_once_or_match(
+                cluster_root / "rejected-oracle-qualification.json",
+                oracle_qualification,
+            )
+        else:
+            retained_artifact_path = cluster_root / "oracle-artifact.json"
+            if not retained_artifact_path.is_file() or _load(retained_artifact_path) != artifact:
+                raise RuntimeError(f"{cluster_id}: retained passed oracle artifact differs")
+
+    if failure is None:
+        raise RuntimeError("no frozen scientific preparation gate failure was found")
+    if len(binding_sha256s) != 1 or len(retained_commits) != 1:
+        raise RuntimeError("retained formal source binding is incomplete or inconsistent")
+
+    planned_cluster_count = len(design["clusters"])
+    attempted_cluster_count = len(qualification_rows)
+    qualified_cluster_count = sum(
+        row["candidate_qualification"]["status"] == "passed"
+        and isinstance(row["oracle_qualification"], Mapping)
+        and row["oracle_qualification"]["status"] == "passed"
+        for row in qualification_rows
+    )
+    planned_truth_count = planned_cluster_count * (
+        candidate_count + checkpoint_count + oracle_count
+    )
+    summary: dict[str, Any] = {
+        "schema_version": PREPARATION_SUMMARY_SCHEMA,
+        "status": "scientifically_rejected_before_provider",
+        "terminal_decision": "do_not_execute_provider_cohort",
+        "study_id": protocol["study_id"],
+        "planned_cluster_count": planned_cluster_count,
+        "attempted_cluster_count": attempted_cluster_count,
+        "qualified_cluster_count": qualified_cluster_count,
+        "scientifically_rejected_cluster_count": 1,
+        "not_started_cluster_count": len(unstarted_clusters),
+        "candidate_gate_pass_count": sum(
+            row["candidate_qualification"]["status"] == "passed"
+            for row in qualification_rows
+        ),
+        "oracle_gate_pass_count": sum(
+            isinstance(row["oracle_qualification"], Mapping)
+            and row["oracle_qualification"]["status"] == "passed"
+            for row in qualification_rows
+        ),
+        "provider_free_truth_query_planned_count": planned_truth_count,
+        "provider_free_truth_query_count": truth_count,
+        "provider_free_exact_replay_count": exact_replay_count,
+        "provider_free_evaluator_provider_call_count": evaluator_provider_calls,
+        "provider_execution_requested_by_user": True,
+        "provider_execution_started": False,
+        "operational_canary_started": False,
+        "participant_provider_call_count": 0,
+        "participant_session_count": 0,
+        "participant_physical_experiment_count": 0,
+        "outcome_based_replacement_count": 0,
+        "formal_world_replacement_count": 0,
+        "retained_source_binding": {
+            "formal_preflight_sha256": next(iter(binding_sha256s)),
+            "git_commit": next(iter(retained_commits)),
+        },
+        "failure": failure,
+        "qualification_rows": qualification_rows,
+        "unstarted_clusters": unstarted_clusters,
+    }
+    if (
+        attempted_cluster_count + len(unstarted_clusters) != planned_cluster_count
+        or truth_count != exact_replay_count
+        or evaluator_provider_calls != 0
+    ):
+        raise RuntimeError("rejected preparation accounting differs")
+    summary["summary_sha256"] = canonical_json_sha256(summary)
+    summary_path = output_root / "provider-free-preparation-summary.json"
+    summary_already_exists = summary_path.is_file()
+    _write_json_once_or_match(summary_path, summary)
+    _write_rejected_preparation_report_zh(output_root / "REPORT_ZH.md", summary)
+    if progress is not None and not summary_already_exists:
+        progress.emit(
+            {
+                "stage": "e2a_formal_provider_free_preparation_rejected",
+                "status": summary["status"],
+                "attempted_clusters": attempted_cluster_count,
+                "planned_clusters": planned_cluster_count,
+                "truth_queries": truth_count,
+                "exact_replay_queries": exact_replay_count,
+                "provider_calls": 0,
+                "failure_cluster_id": failure["cluster_id"],
+                "failure_gate": failure["gate"],
+            }
+        )
+    return summary
+
+
 def prepare_formal(
     *,
     protocol: Mapping[str, Any],
@@ -763,6 +1230,11 @@ def prepare_formal(
             protocol["candidate_contract"],
         )
         if candidate_qualification["status"] != "passed":
+            finalize_rejected_preparation(
+                protocol=protocol,
+                output_root=output_root,
+                progress=progress,
+            )
             raise RuntimeError(f"{cluster_id}: frozen formal candidate opportunity gate failed")
         oracle_report = _execute_formal_oracle_truth(
             cluster_id=cluster_id,
@@ -794,6 +1266,11 @@ def prepare_formal(
             ),
         )
         if oracle_qualification["status"] != "passed":
+            finalize_rejected_preparation(
+                protocol=protocol,
+                output_root=output_root,
+                progress=progress,
+            )
             raise RuntimeError(f"{cluster_id}: frozen formal oracle rank gate failed")
         oracle_artifact_path = task_root / "oracle-artifact.json"
         write_json_atomic(oracle_artifact_path, artifact)
@@ -1933,12 +2410,28 @@ def main() -> int:
     parser.add_argument("--execute-canary", action="store_true")
     parser.add_argument("--execute-remaining", action="store_true")
     parser.add_argument("--analyze", action="store_true")
+    parser.add_argument("--finalize-rejected-preparation", action="store_true")
     parser.add_argument("--allow-provider-execution", action="store_true")
     args = parser.parse_args()
-    if not any((args.prepare, args.execute_canary, args.execute_remaining, args.analyze)):
-        parser.error("select --prepare, --execute-canary, --execute-remaining, or --analyze")
+    if not any(
+        (
+            args.prepare,
+            args.execute_canary,
+            args.execute_remaining,
+            args.analyze,
+            args.finalize_rejected_preparation,
+        )
+    ):
+        parser.error(
+            "select --prepare, --execute-canary, --execute-remaining, --analyze, "
+            "or --finalize-rejected-preparation"
+        )
     if args.execute_canary and args.execute_remaining:
         parser.error("canary and remaining execution are separate operational gates")
+    if args.finalize_rejected_preparation and any(
+        (args.prepare, args.execute_canary, args.execute_remaining, args.analyze)
+    ):
+        parser.error("rejected preparation finalization must run by itself")
     output_root = (
         args.output_root if args.output_root.is_absolute() else ROOT / args.output_root
     ).resolve()
@@ -1949,6 +2442,13 @@ def main() -> int:
     protocol = _load(protocol_path)
     progress = Progress(output_root / "progress.jsonl")
     manifest_path = output_root / "input_manifest.json"
+    if args.finalize_rejected_preparation:
+        finalize_rejected_preparation(
+            protocol=protocol,
+            output_root=output_root,
+            progress=progress,
+        )
+        return 0
     if args.prepare:
         manifest = prepare_formal(
             protocol=protocol,

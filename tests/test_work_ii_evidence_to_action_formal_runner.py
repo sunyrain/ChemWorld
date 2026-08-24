@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib
+import json
 import os
 import sys
 from pathlib import Path
@@ -173,3 +174,117 @@ def test_canary_allows_scientific_donor_failure_but_not_schema_failure() -> None
         },
     }
     assert any("participant_schema" in item for item in formal_runner._canary_defects(invalid))
+
+
+def test_finalize_rejected_preparation_preserves_frozen_denominator(
+    tmp_path: Path,
+    monkeypatch,
+) -> None:
+    task_id = "task"
+    world_seed = 17
+    cluster_id = "cluster-17"
+    cluster_root = (
+        tmp_path / "prepared" / "clusters" / task_id / f"seed-{world_seed}" / task_id
+    )
+    for name in ("candidate-truth", "checkpoint-truth", "oracle-grid-truth"):
+        report_path = cluster_root / name / "report.json"
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text("{}\n", encoding="utf-8")
+    candidate_ids = [f"c{index}" for index in range(8)]
+    (cluster_root / "public_candidate_packet.json").write_text(
+        json.dumps(
+            {
+                "candidate_outcomes_included": False,
+                "candidates": [{"query_id": query_id} for query_id in candidate_ids],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    protocol = {
+        "study_id": "study",
+        "candidate_contract": {"candidate_count": 8},
+        "oracle_grid_contract": {"query_count_per_task": 96},
+        "artifact_contract": {"minimum_oracle_candidate_rank_correlation": 0.8},
+    }
+    monkeypatch.setattr(formal_runner, "validate_protocol", lambda _protocol: [])
+    monkeypatch.setattr(
+        formal_runner,
+        "build_design_manifest",
+        lambda _protocol: {
+            "clusters": [
+                {
+                    "cluster_id": cluster_id,
+                    "task_id": task_id,
+                    "world_seed": world_seed,
+                }
+            ]
+        },
+    )
+
+    def retained_report(path: Path, *, expected_query_count: int):
+        return (
+            {
+                "truth": {},
+                "evaluator_provider_call_count": 0,
+            },
+            expected_query_count,
+            "b" * 64,
+            "c" * 40,
+        )
+
+    monkeypatch.setattr(
+        formal_runner,
+        "_verify_retained_truth_report",
+        retained_report,
+    )
+    monkeypatch.setattr(
+        formal_runner,
+        "evaluate_candidate_packet",
+        lambda *_args, **_kwargs: {"status": "passed"},
+    )
+    monkeypatch.setattr(
+        formal_runner,
+        "_retained_oracle_task_bundle",
+        lambda **_kwargs: {
+            "grid": [],
+            "candidate_feature_queries": [
+                {"query_id": query_id} for query_id in candidate_ids
+            ],
+            "feature_ids": [],
+            "metric_ids": [],
+        },
+    )
+    monkeypatch.setattr(
+        formal_runner,
+        "fit_oracle_law_from_disjoint_grid",
+        lambda *_args, **_kwargs: {"artifact_type": "test"},
+    )
+    oracle_qualification = {
+        "status": "failed",
+        "spearman_rank_correlation": 0.738095,
+        "top1_agreement": False,
+        "fit_candidate_overlap_count": 0,
+    }
+    monkeypatch.setattr(
+        formal_runner,
+        "evaluate_oracle_law_candidate_order",
+        lambda *_args, **_kwargs: oracle_qualification,
+    )
+
+    summary = formal_runner.finalize_rejected_preparation(
+        protocol=protocol,
+        output_root=tmp_path,
+    )
+
+    assert summary["status"] == "scientifically_rejected_before_provider"
+    assert summary["attempted_cluster_count"] == 1
+    assert summary["qualified_cluster_count"] == 0
+    assert summary["provider_free_truth_query_count"] == 112
+    assert summary["provider_free_exact_replay_count"] == 112
+    assert summary["participant_provider_call_count"] == 0
+    assert summary["participant_physical_experiment_count"] == 0
+    assert summary["failure"]["cluster_id"] == cluster_id
+    assert (tmp_path / "provider-free-preparation-summary.json").is_file()
+    assert (tmp_path / "REPORT_ZH.md").is_file()
+    assert (cluster_root / "rejected-oracle-artifact.json").is_file()
