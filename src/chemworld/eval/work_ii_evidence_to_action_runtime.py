@@ -16,7 +16,13 @@ from chemworld.eval.work_ii_evidence_to_action import (
     build_learned_law_artifact,
     build_yoked_evidence_packet,
 )
-from chemworld.eval.work_ii_prior_discovery import parse_work_ii_belief_snapshot
+from chemworld.eval.work_ii_prior_discovery import (
+    WORK_II_LAW_BASES,
+    WORK_II_LAW_LINKS,
+    WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+    WORK_II_SNAPSHOT_SCHEMA_VERSION,
+    parse_work_ii_belief_snapshot,
+)
 
 RECIPIENT_CONTEXT_SCHEMA = "chemworld-work-ii-evidence-to-action-recipient-context-0.1"
 TERMINAL_SUBMISSION_SCHEMA = "chemworld-work-ii-evidence-to-action-terminal-submission-0.1"
@@ -78,8 +84,10 @@ def _public_candidates(candidate_packet: Mapping[str, Any] | Sequence[Any]) -> l
         raise ValueError("candidate packet must contain a candidate list")
     candidates = [deepcopy(dict(row)) for row in raw if isinstance(row, Mapping)]
     query_ids = [str(row.get("query_id")) for row in candidates]
-    if len(candidates) != 8 or len(set(query_ids)) != 8 or any(
-        query_id in {"", "None"} for query_id in query_ids
+    if (
+        len(candidates) != 8
+        or len(set(query_ids)) != 8
+        or any(query_id in {"", "None"} for query_id in query_ids)
     ):
         raise ValueError("candidate packet must contain eight unique query IDs")
     _assert_public(candidates, path="candidate_packet")
@@ -203,6 +211,243 @@ def terminal_output_schema(candidate_query_ids: Sequence[str]) -> dict[str, Any]
     }
 
 
+def yoked_snapshot_output_schema(
+    *,
+    stage: str,
+    query_metric_contract: Mapping[str, Sequence[str]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    allowed_prior_fields: Sequence[str],
+    evidence_catalog: Sequence[str],
+    nominal_information_available: bool,
+) -> dict[str, Any]:
+    """Build the strict provider grammar for one cumulative yoked checkpoint."""
+
+    query_ids = [str(query_id) for query_id in query_metric_contract]
+    feature_ids = [str(feature_id) for feature_id in allowed_feature_ids]
+    metric_ids = [str(metric_id) for metric_id in allowed_metric_ids]
+    prior_fields = [str(field_id) for field_id in allowed_prior_fields]
+    evidence_ids = [str(evidence_id) for evidence_id in evidence_catalog]
+    if not query_ids or not feature_ids or not metric_ids:
+        raise ValueError(
+            "yoked snapshot schema requires non-empty query, feature and metric scopes"
+        )
+    if len(set(query_ids)) != len(query_ids):
+        raise ValueError("yoked snapshot schema query IDs must be unique")
+    probability = {"type": "number", "minimum": 0.0, "maximum": 1.0}
+    common_term_properties = {
+        "term_id": {"type": "string", "minLength": 1, "maxLength": 200},
+        "input_ids": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 2,
+            "uniqueItems": True,
+            "items": {"type": "string", "enum": feature_ids},
+        },
+        "coefficient": {"type": "number"},
+    }
+    conditional_bases = {
+        "categorical_level",
+        "conditional_linear",
+        "conditional_quadratic",
+        "conditional_cubic",
+    }
+    law_term = {
+        "oneOf": [
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["term_id", "basis", "input_ids", "coefficient"],
+                "properties": {
+                    **common_term_properties,
+                    "basis": {
+                        "type": "string",
+                        "enum": sorted(WORK_II_LAW_BASES - conditional_bases),
+                    },
+                },
+            },
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "term_id",
+                    "basis",
+                    "input_ids",
+                    "coefficient",
+                    "category_value",
+                ],
+                "properties": {
+                    **common_term_properties,
+                    "basis": {"type": "string", "enum": sorted(conditional_bases)},
+                    "category_value": {"type": ["string", "number"]},
+                },
+            },
+        ]
+    }
+    prediction_variants: list[dict[str, Any]] = []
+    for query_id, raw_metrics in query_metric_contract.items():
+        required_metrics = [str(metric_id) for metric_id in raw_metrics]
+        if not required_metrics or not set(required_metrics).issubset(set(metric_ids)):
+            raise ValueError("yoked snapshot query metric scope is invalid")
+        prediction_variants.append(
+            {
+                "type": "object",
+                "additionalProperties": False,
+                "required": ["query_id", "metrics"],
+                "properties": {
+                    "query_id": {"type": "string", "const": str(query_id)},
+                    "metrics": {
+                        "type": "array",
+                        "minItems": len(required_metrics),
+                        "maxItems": len(required_metrics),
+                        "items": {
+                            "type": "object",
+                            "additionalProperties": False,
+                            "required": [
+                                "metric_id",
+                                "mean",
+                                "interval_lower",
+                                "interval_upper",
+                                "confidence",
+                            ],
+                            "properties": {
+                                "metric_id": {"type": "string", "enum": required_metrics},
+                                "mean": {"type": "number"},
+                                "interval_lower": {"type": "number"},
+                                "interval_upper": {"type": "number"},
+                                "confidence": probability,
+                            },
+                        },
+                    },
+                },
+            }
+        )
+    metric_law = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "metric_id",
+            "intercept",
+            "link",
+            "lower_bound",
+            "upper_bound",
+            "terms",
+        ],
+        "properties": {
+            "metric_id": {"type": "string", "enum": metric_ids},
+            "intercept": {"type": "number"},
+            "link": {"type": "string", "enum": sorted(WORK_II_LAW_LINKS)},
+            "lower_bound": {"type": "number"},
+            "upper_bound": {"type": "number"},
+            "terms": {"type": "array", "maxItems": 64, "items": law_term},
+        },
+    }
+    return {
+        "type": "object",
+        "additionalProperties": False,
+        "required": [
+            "schema_version",
+            "snapshot_id",
+            "stage",
+            "prior_assessment",
+            "predictions",
+            "law_summary",
+            "evidence_ids",
+            "next_experiment_intent",
+            "overall_confidence",
+        ],
+        "properties": {
+            "schema_version": {"type": "string", "const": WORK_II_SNAPSHOT_SCHEMA_VERSION},
+            "snapshot_id": {"type": "string", "minLength": 1, "maxLength": 200},
+            "stage": {"type": "string", "const": stage},
+            "prior_assessment": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "nominal_information_available",
+                    "reliability_probability",
+                    "suspected_misindexed_fields",
+                    "rationale",
+                ],
+                "properties": {
+                    "nominal_information_available": {
+                        "type": "boolean",
+                        "const": nominal_information_available,
+                    },
+                    "reliability_probability": (
+                        probability if nominal_information_available else {"type": "null"}
+                    ),
+                    "suspected_misindexed_fields": {
+                        "type": "array",
+                        "uniqueItems": True,
+                        "items": {"type": "string", "enum": prior_fields},
+                    },
+                    "rationale": {"type": "string", "minLength": 1, "maxLength": 2000},
+                },
+            },
+            "predictions": {
+                "type": "array",
+                "minItems": len(query_ids),
+                "maxItems": len(query_ids),
+                "items": {"oneOf": prediction_variants},
+            },
+            "law_summary": {
+                "type": "object",
+                "additionalProperties": False,
+                "required": [
+                    "schema_version",
+                    "summary_id",
+                    "feature_ids",
+                    "metric_laws",
+                    "evidence_ids",
+                    "applicability",
+                    "limitations",
+                    "confidence",
+                ],
+                "properties": {
+                    "schema_version": {
+                        "type": "string",
+                        "const": WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
+                    },
+                    "summary_id": {"type": "string", "minLength": 1, "maxLength": 200},
+                    "feature_ids": {
+                        "type": "array",
+                        "minItems": 1,
+                        "uniqueItems": True,
+                        "items": {"type": "string", "enum": feature_ids},
+                    },
+                    "metric_laws": {
+                        "type": "array",
+                        "minItems": len(metric_ids),
+                        "maxItems": len(metric_ids),
+                        "items": metric_law,
+                    },
+                    "evidence_ids": {
+                        "type": "array",
+                        "uniqueItems": True,
+                        "items": {"type": "string", "enum": evidence_ids},
+                    },
+                    "applicability": {"type": "string", "minLength": 1, "maxLength": 2000},
+                    "limitations": {
+                        "type": "array",
+                        "maxItems": 16,
+                        "uniqueItems": True,
+                        "items": {"type": "string", "minLength": 1, "maxLength": 200},
+                    },
+                    "confidence": probability,
+                },
+            },
+            "evidence_ids": {
+                "type": "array",
+                "uniqueItems": True,
+                "items": {"type": "string", "enum": evidence_ids},
+            },
+            "next_experiment_intent": {"type": "string", "minLength": 1, "maxLength": 2000},
+            "overall_confidence": probability,
+        },
+    }
+
+
 def validate_terminal_submission(
     payload: Mapping[str, Any],
     *,
@@ -218,9 +463,7 @@ def validate_terminal_submission(
         raise ValueError("terminal ranking must be a list")
     normalized = [str(query_id) for query_id in ranking]
     expected_ids = [str(query_id) for query_id in candidate_query_ids]
-    if len(normalized) != 8 or len(set(normalized)) != 8 or set(normalized) != set(
-        expected_ids
-    ):
+    if len(normalized) != 8 or len(set(normalized)) != 8 or set(normalized) != set(expected_ids):
         raise ValueError("terminal ranking must be a permutation of all candidates")
     if payload.get("selected_query_id") != normalized[0]:
         raise ValueError("selected query must equal the first-ranked candidate")
@@ -363,9 +606,7 @@ def execute_yoked_recipient(
             query_metric_contract,
         )
         _assert_public(context_without_hash)
-        context_without_hash["context_sha256"] = canonical_json_sha256(
-            context_without_hash
-        )
+        context_without_hash["context_sha256"] = canonical_json_sha256(context_without_hash)
         completion = client.complete_json(
             system_prompt=RECIPIENT_SYSTEM_PROMPT,
             user_prompt=json.dumps(context_without_hash, ensure_ascii=False, sort_keys=True),
@@ -408,15 +649,11 @@ def execute_yoked_recipient(
         yoked_evidence_packet=yoked_evidence_packet,
     )
     terminal_without_hash = {
-        key: deepcopy(value)
-        for key, value in terminal_context.items()
-        if key != "context_sha256"
+        key: deepcopy(value) for key, value in terminal_context.items() if key != "context_sha256"
     }
     terminal_without_hash["previous_belief_snapshots"] = deepcopy(snapshots)
     _assert_public(terminal_without_hash)
-    terminal_without_hash["context_sha256"] = canonical_json_sha256(
-        terminal_without_hash
-    )
+    terminal_without_hash["context_sha256"] = canonical_json_sha256(terminal_without_hash)
     terminal = execute_terminal_recipient(client, terminal_without_hash, max_tokens=max_tokens)
     return {
         "status": "completed",
@@ -497,9 +734,7 @@ def build_donor_derivatives(
     if dependency_status != "ready":
         raise ValueError("failed autonomous donor may not produce recipient artifacts")
     campaign_summary = donor_result.get("campaign_summary")
-    campaign_summary = (
-        campaign_summary if isinstance(campaign_summary, Mapping) else donor_result
-    )
+    campaign_summary = campaign_summary if isinstance(campaign_summary, Mapping) else donor_result
     yoked = build_yoked_evidence_packet(
         trajectory_rows,
         donor_cell_id=donor_cell_id,
@@ -549,6 +784,42 @@ def execute_stratum(
     candidate_ids = [str(row["query_id"]) for row in candidates]
     results: dict[str, dict[str, Any]] = {}
 
+    def observed_calls(before: int | None, *, default: int) -> int:
+        after = getattr(client, "total_provider_call_count", None)
+        if isinstance(before, int) and isinstance(after, int) and after >= before:
+            return after - before
+        return default
+
+    def failed_recipient(
+        cell: Mapping[str, Any],
+        condition: str,
+        error: Exception,
+        *,
+        before_calls: int | None,
+        default_calls: int,
+    ) -> dict[str, Any]:
+        classification = getattr(error, "classification", None)
+        if not isinstance(classification, str):
+            classification = (
+                "participant_schema" if isinstance(error, ValueError) else "runner_infrastructure"
+            )
+        row: dict[str, Any] = {
+            "cell_id": str(cell["cell_id"]),
+            "condition": condition,
+            "status": "failed_retained",
+            "failure": {
+                "type": type(error).__name__,
+                "classification": classification,
+                "message": str(error)[:2000],
+            },
+            "provider_call_count": observed_calls(before_calls, default=default_calls),
+            "physical_experiment_count": 0,
+        }
+        receipt = getattr(error, "receipt", None)
+        if isinstance(receipt, Mapping):
+            row["failed_provider_receipt"] = deepcopy(dict(receipt))
+        return row
+
     def terminal_condition(
         condition: str,
         *,
@@ -563,7 +834,17 @@ def execute_stratum(
             candidate_packet=candidate_packet,
             law_artifact=law_artifact,
         )
-        terminal = execute_terminal_recipient(client, context, max_tokens=max_tokens)
+        before = getattr(client, "total_provider_call_count", None)
+        try:
+            terminal = execute_terminal_recipient(client, context, max_tokens=max_tokens)
+        except Exception as error:  # retained participant/provider failure
+            return failed_recipient(
+                cell,
+                condition,
+                error,
+                before_calls=before if isinstance(before, int) else None,
+                default_calls=1,
+            )
         return {
             "cell_id": str(cell["cell_id"]),
             "condition": condition,
@@ -608,9 +889,7 @@ def execute_stratum(
         raise ValueError("eligible autonomous donor must complete all 12 experiments")
     donor_submission = donor_payload.get("submission")
     donor_ranking = (
-        donor_submission.get("ranking")
-        if isinstance(donor_submission, Mapping)
-        else None
+        donor_submission.get("ranking") if isinstance(donor_submission, Mapping) else None
     )
     if dependency_status == "ready" and (
         not isinstance(donor_ranking, list)
@@ -656,21 +935,31 @@ def execute_stratum(
     )
 
     yoked_cell = by_condition["yoked_evidence"]
-    yoked = execute_yoked_recipient(
-        client,
-        task_contract=task_contract,
-        initial_world_model=initial_world_model,
-        candidate_packet=candidate_packet,
-        yoked_evidence_packet=derivatives["yoked_evidence_packet"],
-        query_metric_contract=query_metric_contract,
-        allowed_feature_ids=allowed_feature_ids,
-        allowed_metric_ids=allowed_metric_ids,
-        allowed_prior_fields=allowed_prior_fields,
-        nominal_information_available=nominal_information_available,
-        max_tokens=max_tokens,
-    )
-    yoked["cell_id"] = str(yoked_cell["cell_id"])
-    yoked["submission"] = deepcopy(dict(yoked["terminal_result"]["submission"]))
+    before_yoked = getattr(client, "total_provider_call_count", None)
+    try:
+        yoked = execute_yoked_recipient(
+            client,
+            task_contract=task_contract,
+            initial_world_model=initial_world_model,
+            candidate_packet=candidate_packet,
+            yoked_evidence_packet=derivatives["yoked_evidence_packet"],
+            query_metric_contract=query_metric_contract,
+            allowed_feature_ids=allowed_feature_ids,
+            allowed_metric_ids=allowed_metric_ids,
+            allowed_prior_fields=allowed_prior_fields,
+            nominal_information_available=nominal_information_available,
+            max_tokens=max_tokens,
+        )
+        yoked["cell_id"] = str(yoked_cell["cell_id"])
+        yoked["submission"] = deepcopy(dict(yoked["terminal_result"]["submission"]))
+    except Exception as error:  # retained cumulative-recipient failure
+        yoked = failed_recipient(
+            yoked_cell,
+            "yoked_evidence",
+            error,
+            before_calls=before_yoked if isinstance(before_yoked, int) else None,
+            default_calls=1,
+        )
     results[yoked["cell_id"]] = yoked
 
     learned = terminal_condition(
@@ -678,12 +967,16 @@ def execute_stratum(
         law_artifact=derivatives["learned_law_artifact"],
     )
     results[learned["cell_id"]] = learned
+    retained_failures = [
+        cell_id for cell_id, row in results.items() if row.get("status") == "failed_retained"
+    ]
     return {
         "schema_version": "chemworld-work-ii-evidence-to-action-stratum-result-0.1",
         "stratum_id": next(iter(stratum_ids)),
-        "status": "completed",
+        "status": "completed" if not retained_failures else "completed_with_retained_failures",
         "cell_results": results,
         "blocked_cell_ids": [],
+        "failed_cell_ids": retained_failures,
         "provider_call_count": sum(
             int(row.get("provider_call_count", 0)) for row in results.values()
         ),
@@ -706,4 +999,5 @@ __all__ = [
     "terminal_output_schema",
     "validate_terminal_submission",
     "validate_yoked_snapshot_submission",
+    "yoked_snapshot_output_schema",
 ]

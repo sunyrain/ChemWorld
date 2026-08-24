@@ -344,13 +344,20 @@ def _build_terminal_contract(task_id: str, study_id: str, public: Sequence[Mappi
     return contract
 
 
-def _prepare_task(task_id: str, source_path: Path, output_root: Path, progress: Progress) -> dict[str, Any]:
+def _prepare_task(
+    task_id: str,
+    source_path: Path,
+    output_root: Path,
+    progress: Progress,
+    *,
+    cluster_id: str | None = None,
+) -> dict[str, Any]:
     source = _load(source_path)
     candidate_raw, checkpoint_raw = _select_split_queries(source, task_id)
     runtime = _prepare_runtime(source, task_id=task_id, checkpoint_queries=checkpoint_raw)
     metrics = _task_metrics(runtime)
     public, compiled = _candidate_packet(runtime, task_id, candidate_raw)
-    cluster_id = f"A_S_MULTI_TASK_OAD--{task_id}--seed{WORLD_SEED}"
+    cluster_id = cluster_id or f"A_S_MULTI_TASK_OAD--{task_id}--seed{WORLD_SEED}"
     contract = _build_terminal_contract(task_id, STUDY_ID, public)
     config = _world_campaign_config(runtime, study_id=STUDY_ID, world_seed=WORLD_SEED, terminal_contract=contract)
     config["formal_result"] = FORMAL_RESULT
