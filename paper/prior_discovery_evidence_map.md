@@ -40,6 +40,9 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Adequate executable law is sufficient for correct unseen action | W2-50 mechanism--action joint outcome | Same W2-50 evidence | Not supported | 30/42 inadequate-law/wrong-action, 11/42 inadequate-law/correct-action, 1/42 adequate-law/wrong-action and 0/42 adequate-law/correct-action |
 | W2-50 establishes an arm-level aligned-versus-misindexed effect | W2-50 multi-task open-action matrix | Same W2-50 evidence | Unsupported | Arm summaries are descriptive (opaque 5/14 Top-1, aligned 3/14, misindexed 3/14); failures are concentrated in crystallization and only 12 task--world clusters retain all arms |
 | Independent seed2/aligned repair replaces the original crystallization cell | W2-50 technical sensitivity repair | `WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md` and repair run summary | Not supported | Repair completed 12/12 experiments but had one resource rejection and selected rank 8/8; keep it separate from the original 45-cell denominator |
+| Development-qualified oracle laws remain decision-valid in all fresh formal worlds | W2-51 provider-free formal preparation | `WORK_II_EVIDENCE_TO_ACTION_FORMAL_CLOSEOUT_ZH.md` and `work-ii-evidence-to-action-formal-closeout-v0.1.json` | Not supported | The first eight clusters completed 896/896 truth and replay; candidate gates were 8/8 but oracle gates 7/8, with fresh crystallization rho=0.738095 below 0.80 |
+| Exploration, yoked evidence or a learned law causally improves unseen-plan selection | W2-51 five-condition causal decomposition | Same W2-51 closeout evidence | Not estimated | The oracle-control gate rejected the design before the operational canary; 0/225 participant sessions and 0/540 participant experiments started, so none of the five contrasts exists |
+| W2-51 shows that the participant failed causal action transfer | W2-51 provider-free formal preparation | Same W2-51 closeout evidence | Unsupported | The negative result concerns oracle-control qualification, not participant behavior; retain seven passed, one rejected and seven unstarted clusters without substitution |
 | The complete-plan action assay operates across chemical tasks | Multi-task seed-0 interface qualification | `WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md` and the three task-level summaries | Supported only as interface qualification | Latest uncontaminated electrochemical, crystallization and safety blocks total 9/9 eligible and 108/108 experiments; each task used only seed 0, so this is not multi-world replication |
 | B4 fixed-evidence law-guided decision is current complete evidence | Historical incomplete protocol | Retained B4 summary and experiment note | Not current | 11/15 completed, four participant-schema failures and 0/11 Top-1; preserve as diagnostic and do not combine with W2-48 |
 | Recovered laws transfer to sealed worlds or mechanism families | Private confirmation | Future one-shot private cohort | Not collected | Forbidden until confirmation reaches terminal state |
@@ -101,6 +104,12 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
   inadequate-law/correct-action, 1 adequate-law/wrong-action and 0 adequate-law/correct-action.
   Three crystallization failures remain in the scheduled denominator; the independent seed2 repair
   is sensitivity evidence only.
+- W2-51 planned 15 task--world clusters, 225 fresh sessions and 540 autonomous-donor experiments for
+  a five-condition causal decomposition. Formal provider-free preparation completed 896/896 truth
+  executions and exact replays across the first eight clusters, with candidate gates 8/8 and oracle
+  gates 7/8. A fresh crystallization oracle obtained rho=0.738095 below the frozen 0.80 threshold.
+  The remaining seven clusters and every participant session were not started; provider calls,
+  participant experiments and estimated causal contrasts are all zero.
 - Multi-task action-interface qualification uses one world (`seed=0`) per task. The latest clean
   electrochemical, crystallization and safety blocks total 9/9 eligible sessions, 108/108 participant
   experiments, 48/48 truth executions and 48/48 exact replays. Never relabel these as three 5-seed

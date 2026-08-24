@@ -144,9 +144,19 @@ reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很�
 4/15，平均 selected rank 分别为 3.60、4.58 和 2.00。这里支持的是跨任务运行和 law-to-action
 边界，不支持 pooled prior-arm 泛化；三条结晶失败仍作为结果的一部分保留。
 
+W2-50 仍没有 no-evidence 或 pre-exploration ranking control，因此不能回答“探索证据本身是否因果性地
+改善未见计划选择”。W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
+learned-law-only 与 oracle-law 五条件设计，计划 15 个 task-world clusters、225 个 fresh sessions 和
+540 次 participant experiments。正式 provider-free preparation 在前 8 个 clusters 完成 `896/896`
+truth 与 exact replay，candidate gates 为 8/8，但 oracle gates 仅 7/8：第三个 fresh
+crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80`。因此全部 provider sessions
+在 operational canary 前被拒绝，剩余 7 个 clusters 未启动，五个 participant contrasts 均未估计。
+这不是 W2-50 的阴性 participant effect，而是 causal control 本身未能跨 fresh world 资格化；它进一步
+限制了我们把终端排序升级为 action-transfer 因果主张。
+
 ## 4. 第一阶段的统一结论
 
-当前 cohort、Study B 与 open-action development 同时支持以下六句话：
+当前 cohort、Study B 与 open-action evidence 同时支持以下七句话：
 
 1. 初始世界模型会因任务和干预位置不同而改变实验起点、搜索组织和 endpoint。
 2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
@@ -154,6 +164,7 @@ reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很�
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
 5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
 6. 即使候选执行语义完整公开，较合格的规律也不保证 agent 能在未见 ActionPlan 中选出正确行动。
+7. 当前还不能把这一 action boundary 解释为探索或 learned law 的因果效应：W2-51 的 fresh formal oracle control 未达冻结正确性门槛，participant cohort 因而没有启动。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
 
@@ -169,11 +180,18 @@ reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很�
 mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主张不支持，Phase II 以三层机制图谱
 终态收束，不再追加同类 B2 追求单一标签。
 
-### Phase III — From recovered law to unseen action（open-action development 已终态）
+### Phase III — From recovered law to unseen action（描述性终态；causal follow-up 已关闭）
 
 W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records，并在 final checkpoint 后揭示 8 个
 完整 ActionPlan。42 个可评分 readout 中有 11 个 Top-1；唯一 adequate-law cell 仍然选错 action，
 因此 Phase III 不是缺失实验，而是当前新的转换损失结果：从规律到未见行动的迁移尚未闭合。
+
+W2-51 随后尝试用五条件设计把这个描述性边界分解为 evidence acquisition、experiment choice、artifact
+portability 和 artifact-quality loss。development oracle 在 15/15 worlds 通过，但 fresh formal
+preparation 的第 8 个 cluster 以 `rho=0.738095<0.80` 失败。按冻结规则，`896/896` 已完成 truth/replay
+和失败结果保留，0 participant sessions、0 provider calls、0 participant experiments；不更换 world、
+不补跑，也不报告不存在的因果对比。若未来重新研究 causal action transfer，必须提出明确不同且能在 fresh
+worlds 稳健资格化的新 control construction，作为新实验另行授权。
 
 ### Phase IV — Artifact portability and compositional transfer（Study D，未启动）
 
@@ -201,6 +219,7 @@ W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records
 | 结论跨 provider 泛化 | 未测试 |
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
+| 自主探索或 learned law 因果性地改善未见计划选择 | 未估计；W2-51 在 participant 前因 fresh crystallization oracle `rho=0.738095<0.80` 科学拒绝，0/225 sessions 启动 |
 | 规律 artifact 可在 context reset 后 portability/transfer | 未测试 |
 
 ## 7. 主文叙事与图表
@@ -212,7 +231,8 @@ W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records
 5. **Figure 5 — Prediction, law and action dissociation**：45 matched worlds、135 laws、121 blind-evaluable cells 的 current-composite 结果。
 6. **Matched-evidence companion analysis**：A-P 参数纠错、A-S B2 world-level gain 与 0/5 exact law recovery；当前作为 Figure 5 的文字/表格伴随分析。
 7. **Figure 6 — Multi-task open-action transfer**：W2-50 的 rank、regret、law–action joint categories 与任务异质性；完整 ActionPlan binding 由正文说明。
-8. **Figure 7 — Failure anatomy and next experiments**：暂不生成新图，先以表格保留 incumbent retrieval 与工具失败边界。
+8. **Supplementary qualification funnel — W2-51**：只展示 15 planned、8 attempted、7 passed、1 oracle rejection、7 not started 与 0 participant calls；不绘制 participant effect panel。
+9. **Figure 7 — Failure anatomy and next experiments**：暂不生成新图，先以表格保留 incumbent retrieval 与工具失败边界。
 
 ## 8. 现在是否可以说“预测任务完成”
 
@@ -221,6 +241,9 @@ W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records
 还可以进一步说：**当前 W2-50 多任务五世界 open-action 已完成 45/45 cell records、42/45 可评分
 cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立为独立失效层。**
 
+同时可以说：**W2-51 已按冻结规则完成正式判定并在 provider 前科学拒绝；它关闭了当前五条件设计，
+但没有测得 action-transfer 因果效应。**
+
 不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、
 Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
-科学问题，不再是 current-composite evaluator、Study B 或 open-action development 的遗留门禁。
+科学问题，不再是 current-composite evaluator、Study B、W2-50 或 W2-51 的遗留门禁。

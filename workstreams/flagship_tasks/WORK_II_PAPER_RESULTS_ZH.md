@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-08-17
+更新日期：2026-08-24
 
 本文件是 Paper 2 当前唯一的结果导航入口。它不替代 raw run、机器 summary、实验 note 或冻结 analysis plan；历史报告只描述各自执行时点，不再作为当前状态入口。
 
@@ -15,7 +15,8 @@
 | Registered current-composite evaluator v0.2 recovery | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
 | 删失与资源敏感性分析 | 已完成当前 public 主分析 | 7 failed、7 right-censored 与 84 个未启动 blind 分母全部保留；另报 observed-point sensitivity |
 | Matched evidence（A-P Study B + A-S B2） | 当前有效 30 sessions 终态 | A-P 支持 evidence-seeking component；B2 给出 mixed predictive contrast，但 misindexed 0/5 恢复 1.75 law，结构识别仍是独立瓶颈 |
-| Open-action longitudinal development | 当前开发阶段终态 | A-S 五世界 `15/15` sessions、`180/180` experiments，`13/15` eligible；三项额外任务仅各自 `seed=0`，最新未污染 blocks 合计 `9/9` eligible、`108/108` experiments |
+| W2-50 fresh multi-task open action | 正式描述性终态 | `45/45` cell records、`42/45` eligible、`240/240` truth 与 exact replay；11/42 Top-1，三项 crystallization failures 保留，不作 causal action-transfer claim |
+| W2-51 evidence-to-action 五条件分解 | 正式 provider 前科学拒绝 | 前 8 个 clusters 完成 `896/896` truth 与 exact replay；candidate 8/8、oracle 7/8，fresh crystallization world 的 `rho=0.738095<0.80`；0 participant/provider calls、0 participant experiments，不产生五个因果对比 |
 | A-E private | 延期 | public evaluator 后仅在需要 held-out confirmation 时重新授权 |
 | 跨 provider replication | 未启动 | WellAU/Qwen/Kimi 仅在保留跨 provider 泛化主张时需要 |
 | Manuscript story | 第一阶段证据已整合 | `paper/prior_discovery_story_zh.md`；当前 cohort 被定位为大计划的首个完整能力剖面，而非投稿终点 |
@@ -33,8 +34,9 @@
 9. 科学纠错不能压缩为 seeking/updating 二分：evidence acquisition、numerical belief revision 与 structural law identification 是三个可分离层级。
 10. 机制形成与动作迁移也不能合并：A-S 五世界 open-action 中 `0/15` Top-1，且 2 个 adequate-law readout 仍选择错误 action。
 11. 完整公开 ActionPlan 的纵向协议已在 partition 及三个额外任务跑通，旧 feature-only packet 的动作语义缺口已关闭。
+12. W2-51 的 fresh formal world 暴露了 oracle-control 泛化边界：development `15/15` 资格并未保证 formal crystallization 排序正确；因 participant cohort 未启动，当前 action-transfer 仍只有描述性边界，没有五条件因果效应估计。
 
-当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；结果可跨 provider 泛化；private replication 已完成。
+当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；自由探索或 learned law 因果性地改善未见 ActionPlan 选择；结果可跨 provider 泛化；private replication 已完成。
 
 ## 3. 证据程序全景
 
@@ -60,6 +62,8 @@
 | A-S Study B2 phase-process evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | prediction primary contrast +0.0645（3/5，exact p=0.125）；misindexed 0/5 exact law recovery |
 | A-S open-action five-world development | 5 worlds、15/15 sessions、180/180 experiments、13/15 eligible、120/120 truth + replay | 完整 ActionPlan 下 `0/15` Top-1；机制 adequacy 与 action correctness 分离，不作 arm-level formal claim |
 | Multi-task open-action qualification | 三个额外任务各自仅 `seed=0`；最新未污染 blocks 合计 9/9 eligible、108/108 experiments、48/48 truth + replay | 证明同一 longitudinal/ranking-only harness 可跨电化学、结晶和反应安全运行；不是 5-seed 结果，不作 prior-arm 推断 |
+| W2-50 fresh multi-task open action | 3 tasks × 5 worlds × 3 arms；45/45 records、42/45 eligible、240/240 truth 与 exact replay | 完整计划终端选择为有界描述性结果：11/42 Top-1，mean rank 3.31/8，normalized regret 0.297；无 no-evidence/pre-exploration control |
+| W2-51 五条件 causal decomposition | 计划 15 clusters、225 sessions、540 participant experiments；正式完成前 8 clusters 的 896/896 truth/replay，candidate 8/8、oracle 7/8 | fresh crystallization oracle `rho=0.738095<0.80`，正式 provider 前科学拒绝；余下 7 clusters 与全部 participant 分母未启动，五个因果对比均未估计 |
 
 ## 4. DeepSeek C2 public 当前终态
 
@@ -143,13 +147,17 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 - flow reversible-path、catalyst deactivation 和 distillation rollback 效应不足；
 - catalyst paired provider trajectories 的同配方机制 gap 未超 gate；
 - electrochemical D1 为 retained operational failure；
-- A-P 尚未表现稳定 parametric-prior 优势。
+- A-P 尚未表现稳定 parametric-prior 优势；
+- W2-51 的 fresh formal crystallization oracle 未达到冻结排序门槛，因而不执行 provider cohort，也不把 W2-50 事后升级为 causal action-transfer evidence。
 
 这些结果防止论文把 task-specific success 扩大成普遍机制恢复主张。
 
 ## 8. 当前结果与图表入口
 
 - 当前 Paper 2 论文故事：`../../paper/prior_discovery_story_zh.md`
+- W2-51 正式收口：`reports/WORK_II_EVIDENCE_TO_ACTION_FORMAL_CLOSEOUT_ZH.md`
+- W2-51 机器收口：`reports/work-ii-evidence-to-action-formal-closeout-v0.1.json`
+- W2-50 正式审计：`reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md`
 - Open-action development 收束：`reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`
 - 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
 - A-S B2 当前机制分析：`reports/WORK_II_AS_STUDY_B2_PHASE_PROCESS_RESULTS_ZH.md`
@@ -173,11 +181,12 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束，不再需要追加同类 B2。后续 open-action development 又完成 A-S 五世界矩阵和三个额外任务的接口资格，进一步把 action transfer 从结构规律恢复中分离出来；它们已按 development evidence 收束，不需要为追求完整率补跑。下一步选择是：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束。W2-50 随后完成多任务未见 ActionPlan 终端排序，但因缺少 no-evidence/pre-exploration control 仍是描述性结果。W2-51 试图补齐五条件 causal decomposition，却在 fresh formal crystallization world 的 oracle-control gate 上于 provider 前科学拒绝；不替换 world、不补跑，也不产生 participant contrast。下一步选择是：
 
 1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
 2. **Cross-provider replication。** 只有需要检验失效位置的模型普适性时，再把 Qwen、Kimi 或 WellAU 接入同一 frozen harness。
 3. **A-E private。** 只承担 held-out within-family confirmation；继续延期，除非用户明确把该 claim 纳入下一阶段。
 4. **开放式停止与推荐设计。** 未来可统一最大实验预算，允许 agent 提前结束并提交 final plan；这是一项新实验，不事后改写当前 8/10/12 次设计。
+5. **新的 causal action-transfer 研究。** 只有在提出与当前 W2-51 明确区分、能跨 fresh worlds 稳健资格化的 control construction 后，才作为新实验重新授权；不得把它称为 W2-51 补跑。
 
 因此可以说当前 DeepSeek public prediction task 已完成，但不能说整个 Paper 2 programme 已结束。当前结果是能力链研究的第一阶段，而不是仓促收缩后的最终论文。

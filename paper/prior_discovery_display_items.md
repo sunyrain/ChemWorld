@@ -27,7 +27,9 @@ scientific semantics and denominators.
   partitions; future portability is greyed;
 - D: executed prospective totals of 45 clusters, 135 sessions and 1,260 planned experiments.
 
-The figure is an architecture map, not outcome evidence.
+The figure is an architecture map, not outcome evidence. The W2-51 five-condition follow-up belongs in
+the supplementary qualification funnel: 15 planned task--world clusters, eight attempted, seven
+qualified, one oracle rejection, seven not started and zero participant sessions.
 
 ## Figure 3 — Prior uptake and selective-correction failure
 
@@ -84,14 +86,20 @@ uneven across tasks and does not align cleanly with thresholded law adequacy.
 
 The matrix contains 45 scheduled cells, 42 eligible readouts, 240/240 truth executions and 240/240
 exact replays. The random-rank line is geometric context, not a no-evidence control. Arm means and any
-action-transfer interpretation remain descriptive.
+action-transfer interpretation remain descriptive. W2-51 is not pooled into this figure because its
+provider-free oracle gate failed before participant execution and no condition effect was observed.
 
-## Supplementary exploratory evidence
+## Supplementary qualification and exploratory evidence
 
 Configuration-separated development results retain exact denominators, failures and replay records in
 the evidence package. Their reader-facing role is to explain why endpoint score, verbal suspicion,
 prediction, executable law and action had to be separated. They are not pooled with the prospective
 cohort or used for cross-system ranking.
+
+One supplementary qualification panel reports the W2-51 formal negative result without an effect
+plot: 896/896 completed truth and exact replay in the first eight clusters, candidate gates 8/8,
+oracle gates 7/8, failed fresh crystallization rho 0.738095 versus the frozen 0.80 threshold, and zero
+participant/provider calls or participant experiments.
 
 ## Core tables
 
@@ -99,4 +107,5 @@ cohort or used for cross-system ranking.
 2. Claim, estimand, evidence layer and allowed wording.
 3. Prospective session, experiment, resource and failure denominators.
 4. Formal unseen-plan rank, Top-1 and regret by arm.
-5. Statistical estimands, inference units and missing-outcome rules.
+5. W2-51 causal-decomposition qualification, terminal gate and unstarted denominators.
+6. Statistical estimands, inference units and missing-outcome rules.

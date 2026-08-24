@@ -1,6 +1,7 @@
 # Work II evidence-to-action causal decomposition
 
-Status: development design; provider execution is not authorized.
+Status: terminal; formal provider-free oracle gate failed before provider execution. The design below
+is the frozen protocol and is retained without outcome-based replacement.
 
 ## Question and fixed coverage
 
@@ -145,3 +146,24 @@ overlap is zero in every cluster and provider calls remain zero. Top-1 agreement
 remains descriptive as preregistered; it is not silently promoted into a new gate. The oracle-law
 construction is therefore qualified for the formal worlds, while participant provider execution
 remains separately unauthorized until the execution orchestrator and canary are ready.
+
+## Formal closeout
+
+After the user authorized completion of W2-51 and the formal launcher was connected, the first
+preparation attempt stopped without a complete cluster because the long provider-free truth helper
+did not expose the required internal liveness. That platform-invalid attempt is retained and was not
+reused. The identical scientific design restarted from its first cluster with 30-second liveness.
+
+The restart completed `896/896` provider-free truth queries and exact replays across the first eight
+frozen task-world clusters, with zero provider calls. All eight candidate gates passed. The first
+seven oracle gates passed: electrochemistry `5/5` and the first two crystallization formal worlds,
+with Spearman `rho=0.810--0.976`. The eighth cluster,
+`reaction-to-crystallization / seed836245547`, completed its full `112/112` truth and replay block
+but obtained oracle candidate-order `rho=0.738095`, below the frozen `0.80` threshold. Its fit and
+candidate sets remained disjoint and its Top-1 disagreed with truth.
+
+The frozen oracle gate therefore rejected the formal control before the operational canary. The
+remaining seven task-world clusters, all `225` participant sessions and all `540` planned participant
+experiments were not started; provider calls and participant physical experiments are both zero. No
+formal world, seed, threshold or unfavorable result was replaced. W2-51 terminates as
+`scientifically_rejected_before_provider` and estimates none of the five participant contrasts.

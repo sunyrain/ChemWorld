@@ -46,8 +46,10 @@ abstract: |
   11 selected the top-ranked plan and mean rank was 3.31/8, but performance was strongly
   task-dependent and did not align with thresholded law adequacy. Because this assay lacked a
   pre-exploration or no-evidence ranking control, it describes terminal selection rather than causal
-  transfer. Useful search, predictive learning, model correction, explicit law formation and action
-  selection therefore did not behave as one capability. The framework shifts evaluation from
+  transfer. A prespecified five-condition causal follow-up did not enter participant execution because
+  its oracle-law control failed fresh-world rank qualification. Useful search, predictive learning,
+  model correction, explicit law formation and action selection therefore did not behave as one
+  capability. The framework shifts evaluation from
   whether an agent finds a good experiment to identifying which scientific transformations its
   evidence actually supports.
 ---
@@ -98,9 +100,12 @@ to independently evaluated predictions and typed executable summaries. Matched-e
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
 assay reveals eight complete, previously unseen ActionPlans only after autonomous exploration and
-measures terminal ranking without hidden workflow defaults. These outcomes distinguish experimental
-search, predictive learning, selective model correction, executable-summary fidelity and unseen
-action selection rather than collapsing them into one score.
+measures terminal ranking without hidden workflow defaults. A five-condition follow-up was designed
+to compare no evidence, yoked evidence, autonomous exploration, a transferred learned law and a
+provider-free oracle law, but its oracle control failed the frozen rank gate in a fresh formal world
+before any participant session began. These outcomes distinguish experimental search, predictive
+learning, selective model correction, executable-summary fidelity and unseen action selection rather
+than collapsing them into one score.
 
 The resulting picture is not a single success or failure. Initial models altered search in
 reproducible but task-dependent ways. Experimental evidence generally improved predictions, yet did
@@ -402,6 +407,15 @@ denominator. The primary action endpoint is within-world regret of the selected 
 Top-1, complete ranking and law adequacy are reported separately. This matrix is analyzed separately
 from the prospective locus tests, and no arm-level inference is made when a world lacks a complete triplet.
 
+A separate causal follow-up prespecified five information conditions within each task--world--prior
+stratum: no evidence, stepwise evidence yoked from an autonomous donor, autonomous exploration,
+the donor's learned law in a fresh context and a provider-free oracle law in a fresh context. Across
+three tasks, five formal worlds and three priors, the intended denominator was 225 sessions; only the
+45 autonomous donors would have executed 12 experiments each. Before participant execution, every
+task--world required an outcome-disjoint oracle law to reproduce the eight-candidate ordering with
+Spearman rank correlation at least 0.80. Failure rejected the control design rather than authorizing
+world replacement or revealing an outcome table.
+
 ## 4.5 Hypotheses and estimands
 
 Let $E_{a,k}^{(\ell)}$ denote held-out prediction error for initial-model arm $a$, checkpoint $k$ and
@@ -682,6 +696,24 @@ remained in the inadequate-law/wrong-action category. The repair shows that a fr
 the original interruption while revealing a genuine resource-planning risk. It has a different
 trajectory and is not merged into the original 45-cell denominator.
 
+## 7.4 The causal action-transfer follow-up failed before participant execution
+
+The terminal matrix cannot identify whether acquired evidence caused better selection, so we prepared
+the separate five-condition follow-up described above. Its provider-free formal stage fixed 15
+task--world clusters and 1,680 candidate, checkpoint and oracle-grid truth executions with exact
+replay. The first eight clusters completed **896/896** truth executions and exact replays without a
+provider call. All eight candidate-opportunity gates passed, and seven oracle laws passed the frozen
+rank criterion.
+
+The eighth cluster was a fresh crystallization world. Its outcome-disjoint oracle law achieved
+Spearman rank correlation **0.738095** across the eight candidates, below the prespecified **0.80**
+threshold; its predicted Top-1 also disagreed with truth, while fit/candidate overlap remained zero.
+The formal preparation therefore stopped by design. The remaining seven clusters, operational canary,
+all 225 participant sessions and all 540 planned participant experiments were not started, and no
+world or unfavorable result was replaced. This result does not estimate a poor participant effect.
+It establishes that the current oracle-law control was not robust enough in fresh formal worlds to
+support the intended causal decomposition.
+
 # 8. A transition map of scientific agency
 
 The experiments replace a scalar notion of scientific success with a transition map. The controlled
@@ -700,10 +732,12 @@ empirically separable transformations.
 
 The map also defines the next experiments without making them part of the current result.
 Context-reset artifact portability is required to test whether a learned representation survives
-outside the source conversation. A no-evidence or pre-exploration ranking control is required to
-estimate the causal value of acquired evidence for unseen-plan selection. Private within-family
-replication and matched cross-system studies would test stability and generality. Each is a distinct
-estimand with its own denominator.
+outside the source conversation. We attempted to add no-evidence, yoked-evidence and artifact-only
+ranking controls for unseen-plan selection, but the oracle-law control did not qualify in a fresh
+formal world. Any future causal action-transfer study therefore requires a new control construction
+that first demonstrates robust fresh-world validity. Private within-family replication and matched
+cross-system studies would test stability and generality. Each is a distinct estimand with its own
+denominator.
 
 # 9. Discussion
 
@@ -755,6 +789,12 @@ ranking baseline, this is not evidence for or against a causal action-transfer e
 about the terminal state reached by the full campaign: some unseen plans are ranked well, but the
 ability is uneven and does not reduce to the submitted law.
 
+The failed five-condition preparation sets a second boundary. A nominally oracle artifact is not a
+valid positive control merely because its fitting procedure is outcome-disjoint or succeeds in
+development worlds; it must preserve the decision-relevant ordering in the fresh worlds where the
+causal comparison is made. Stopping before participant execution prevents a weak control from turning
+an uninterpretable contrast into an apparent action-transfer effect.
+
 ## 9.4 The harness is part of the scientific system
 
 Persistent sessions provide memory, repeated tool choice and belief revision that stateless calls do
@@ -777,6 +817,8 @@ The corrected structural matched-evidence result contains five worlds and is exp
 non-confirmatory. The earlier structural run affected by an evaluator omission is excluded. The
 unseen-plan study has 42 eligible cells, three retained crystallization failures and only 12 complete
 three-arm clusters; arm means are descriptive. Its random-rank line is not an experimental control.
+The separate five-condition follow-up produced no participant data: one of the first eight formal
+oracle controls failed its frozen rank criterion, and the remaining seven clusters were not started.
 Ten prospective cells also contain discard-affected checkpoint timing that cannot be repaired
 retrospectively. Exact software replay preserves execution semantics but does not erase interface
 burden or implementation variability.
@@ -884,6 +926,18 @@ completed without contamination. All 45 scheduled cells remained in the denomina
 are descriptive because three crystallization cells were ineligible and only 12 task--world clusters
 retain all three arms. The three additional interface validations used one world seed per task and
 were evaluated only as interface checks, not as multi-world scientific evidence.
+
+The five-condition causal follow-up paired each autonomous donor with no-evidence, yoked-evidence,
+learned-law-only and oracle-law recipients within task--world--prior strata. Donor failure would have
+retained the donor and marked its yoked and learned-law descendants as not started; donor replacement
+was forbidden. The oracle law used the same typed schema and scientific scope as the learned law, but
+was fitted provider-free on 96 registered queries disjoint from the eight candidates. Formal expansion
+required every task--world oracle to reach candidate-order Spearman correlation at least 0.80. The
+formal stage completed 896 truth executions and exact replays across eight clusters before a
+crystallization oracle obtained 0.738095 and rejected the block. Because no participant session was
+started, none of the prespecified autonomous-minus-no-evidence, yoked-minus-no-evidence,
+autonomous-minus-yoked, learned-law-minus-no-evidence or oracle-minus-learned-law contrasts was
+estimated.
 
 ## 10.7 Optional private confirmation boundary
 
