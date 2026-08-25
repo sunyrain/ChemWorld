@@ -1,0 +1,76 @@
+\documentclass{article}
+
+\usepackage{iclr2027_conference,times}
+\input{math_commands.tex}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{microtype}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{url}
+
+\hypersetup{
+  unicode=true,
+  pdfencoding=auto,
+  pdftitle={$title$},
+  pdfauthor={Anonymous},
+  pdfsubject={$subject$},
+  pdfkeywords={$keywords$}
+}
+
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\setlength{\emergencystretch}{2em}
+
+\title{$title$}
+\author{Anonymous}
+
+% Keep review mode anonymous. Do not enable \iclrfinalcopy here.
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+$abstract$
+\end{abstract}
+
+$body$
+
+\label{iclr-main-text-end}
+\clearpage
+
+\subsection*{AI use statement}
+Generative AI tools assisted software implementation, experiment orchestration, data analysis,
+visualization code, literature discovery, and drafting and editing of the manuscript. The authors
+reviewed the study designs and frozen decision rules, inspected retained failures, verified reported
+denominators and claims against machine-readable records, and tested AI-assisted code before use.
+The authors take responsibility for the final content, including text, claims, code, and artifacts
+produced with generative-AI assistance.
+
+\subsection*{Reproducibility statement}
+The main paper defines the experimental units, interventions, estimands, failure handling, and stop
+boundaries. The appendix provides the execution and evaluation details needed to reconstruct each
+evidence layer. Exact action traces, evaluator-owned truth queries, replay checks, complete failure
+records, and machine-readable summaries will be included in the anonymous supplementary package.
+
+\subsection*{Ethics statement}
+The experiments use simulated chemical environments and no human participants, personal data, or
+live laboratory actuation. The principal risks are over-interpreting simulated results and treating
+an evaluator surrogate as the scientific objective; the claim boundaries and retained negative
+qualification results are reported to mitigate these risks.
+
+\bibliographystyle{iclr2027_conference}
+\bibliography{references}
+
+\clearpage
+\appendix
+\input{appendix.tex}
+
+\end{document}

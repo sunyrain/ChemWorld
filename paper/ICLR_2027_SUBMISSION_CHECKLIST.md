@@ -64,12 +64,18 @@ a participant-effect panel for conditions that were not executed.
 - [ ] Confirm the title, author list, author order and all OpenReview profiles before the abstract
   deadline.
 - [ ] Confirm reciprocal-review eligibility and any author exemptions.
-- [ ] Import the official ICLR 2027 LaTeX style and establish an anonymous nine-page build.
-- [ ] Convert the current Markdown evidence narrative into the ICLR section budget above.
+- [x] Import the official ICLR 2027 LaTeX style and establish an anonymous nine-page build.
+- [x] Convert the current Markdown evidence narrative into the ICLR section budget above.
 - [ ] Build the four main figures and Table 1 from source data, with exact denominators and failures.
 - [ ] Complete related work and citation verification.
-- [ ] Draft limitations, reproducibility, ethics if applicable, and the mandatory AI-use statement.
+- [x] Draft limitations, reproducibility, ethics and the mandatory AI-use statement.
 - [ ] Run claims-to-evidence, anonymity, citation, page-count and rendered-PDF checks.
+
+Current anonymous build: 8 pages of main text and 12 pages total in the official ICLR 2027 style,
+with zero LaTeX errors, undefined citations, overfull boxes or direct identifying-string leaks. The
+remaining figure item is the new combined law/action/evaluator display; existing evidence-bound
+figures and exact-denominator tables are already integrated. Citation-source verification and the
+final claims-to-evidence pass remain open.
 
 The canonical manuscript, story, display plan and evidence map are respectively
 `paper/prior_discovery_manuscript.md`, `paper/prior_discovery_story_zh.md`,
