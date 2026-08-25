@@ -257,19 +257,7 @@ of exploration. Law and action also separated: 30 cells had an inadequate law an
 an inadequate law but correct action, one an adequate law but wrong action, and none an adequate law
 and correct action. Task means ranged from rank 2.00 for reaction safety to 4.58 for crystallization,
 and every pairwise arm contrast changed sign under some leave-one-cluster-out omission. We therefore
-make no pooled arm-level claim (Fig.~\ref{fig:open-action}).
-
-```{=latex}
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{Terminal selection of unseen plans is partial and task dependent.}
-Selected true rank, normalized regret, joint law--action categories, and task-level mean ranks are
-shown for 42 eligible cells. Three retained crystallization failures remain in the 45-cell scheduled
-denominator. The random-rank line is not an experimental control.}
-\label{fig:open-action}
-\end{figure}
-```
+make no pooled arm-level claim (Fig.~\ref{fig:open-action}a,b).
 
 ## The oracle gate does not equal the action estimand
 
@@ -303,7 +291,7 @@ ranks. The retained 96-query failure, $\rho=0.738095$, therefore represents
 $\sum_i d_i^2=22$; the fresh 320-query failure, $\rho=0.714286$, represents 24. The scalar says how
 much the full ordering moved, not where the displacement occurred. The former selected the wrong
 Top-1 while the latter preserved it exactly, making the estimand mismatch concrete rather than merely
-threshold dependent.
+threshold dependent (Fig.~\ref{fig:open-action}c,d; Table~\ref{tab:alignment}).
 
 ```{=latex}
 \begin{table}[t]
@@ -321,6 +309,24 @@ Fresh 320-query & 1 & 0 & 1 & 1 \\
 \bottomrule
 \end{tabular}
 \end{table}
+```
+
+```{=latex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
+\caption{\textbf{Action selection and evaluator validity separate.}
+\textbf{a,} Selected true rank for 42 eligible W2-50 cells; three crystallization failures remain in
+the 45-cell scheduled denominator and the random-rank line is not an experimental control.
+\textbf{b,} Joint law--action categories for the same cells.
+\textbf{c,} W2-51 and W2-52 qualification funnels retain passed, scientifically rejected, and
+unstarted units; exposed construction and fresh qualification are separate, and participant
+execution is zero.
+\textbf{d,} Spearman correlation and normalized regret for all 16 frozen W2-53 unit versions.
+Stars mark Top-1 selection; dashed and dotted lines mark the frozen rank gate and near-optimal
+boundary. The panel adds no execution and does not revise either historical stop decision.}
+\label{fig:open-action}
+\end{figure}
 ```
 
 # Related work

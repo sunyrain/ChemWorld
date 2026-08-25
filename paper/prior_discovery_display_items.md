@@ -79,18 +79,21 @@ uneven and neither thresholded law adequacy nor complete-ranking oracle qualific
 correct action.
 
 - A: selected true rank for every eligible cell;
-- B: normalized regret;
-- C: joint law--action categories: 30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong and
+- B: joint law--action categories: 30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong and
   0 adequate/correct;
-- D: rank-gate/action-correct quadrants for the completed 96- and 320-query oracle units, highlighting
-  six fresh 96-query rank-pass/action-wrong units and the fresh 320-query rank-fail/action-correct unit.
+- C: W2-51/W2-52 qualification funnels, separating 96-grid fresh preparation, 320-grid exposed
+  construction and 320-grid fresh qualification, with passed, rejected, unstarted and zero-participant
+  denominators;
+- D: Spearman--regret scatter for all 16 completed 96- and 320-query unit versions, highlighting six
+  fresh 96-query rank-pass/action-wrong units and the fresh 320-query rank-fail/action-correct unit.
 
 The matrix contains 45 scheduled cells, 42 eligible readouts, 240/240 truth executions and 240/240
 exact replays. The random-rank line is geometric context, not a no-evidence control. Arm means and any
-action-transfer interpretation remain descriptive. W2-51 is not pooled into this figure because its
-provider-free oracle gate failed before participant execution and no condition effect was observed.
+action-transfer interpretation remain descriptive. W2-51/W2-52 are shown as separate qualification
+evidence rather than pooled with W2-50 participant cells; neither contains a participant effect.
 The W2-53 panel adds no participant or truth execution: it reproduces 16/16 completed unit-version
-outcomes and diagnoses mismatch between complete-ranking and decision estimands.
+outcomes and diagnoses mismatch between complete-ranking and decision estimands. W2-50 regret and
+task-mean detail remain in the exact source table and supplementary display.
 
 ## Supplementary qualification and exploratory evidence
 
@@ -99,13 +102,11 @@ the evidence package. Their reader-facing role is to explain why endpoint score,
 prediction, executable law and action had to be separated. They are not pooled with the prospective
 cohort or used for cross-system ranking.
 
-One supplementary qualification panel reports the W2-51 formal negative result without an effect
-plot: 896/896 completed truth and exact replay in the first eight clusters, candidate gates 8/8,
-oracle gates 7/8, failed fresh crystallization rho 0.738095 versus the frozen 0.80 threshold, and zero
-participant/provider calls or participant experiments. A companion panel separates W2-52 exposed
-construction (7/7; 2,352/2,352 truth/replay) from prospective qualification (first new world
-rho 0.714286; Top-1 correct; 14 not started). W2-54 remains development-only and is not plotted as a
-causal contrast.
+The main action/evaluator figure now reports the compact W2-51/W2-52 qualification funnels without an
+effect plot. Supplementary detail retains all eight W2-51 unit values, the 896/896 truth/replay
+denominator, W2-52 exposed construction (7/7; 2,352/2,352 truth/replay), the first fresh prospective
+failure and all 14 unstarted units. W2-54 remains development-only and is not plotted as a causal
+contrast.
 
 ## Core tables
 

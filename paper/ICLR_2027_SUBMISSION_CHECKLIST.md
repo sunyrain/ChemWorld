@@ -56,8 +56,9 @@ five-condition participant cohort remains a limitation.
 4. Law, action and evaluator separation.
 5. Table 1: exact denominators, evidence role and claim boundary.
 
-W2-51/W2-52 qualification funnels belong in the supplement unless page layout leaves room. Never draw
-a participant-effect panel for conditions that were not executed.
+The integrated action/evaluator figure uses the available main-text space for compact W2-51/W2-52
+qualification funnels; per-unit details remain in the supplement. Never draw a participant-effect
+panel for conditions that were not executed.
 
 ## Submission work
 
@@ -66,16 +67,15 @@ a participant-effect panel for conditions that were not executed.
 - [ ] Confirm reciprocal-review eligibility and any author exemptions.
 - [x] Import the official ICLR 2027 LaTeX style and establish an anonymous nine-page build.
 - [x] Convert the current Markdown evidence narrative into the ICLR section budget above.
-- [ ] Build the four main figures and Table 1 from source data, with exact denominators and failures.
+- [x] Build the four main figures and Table 1 from source data, with exact denominators and failures.
 - [ ] Complete related work and citation verification.
 - [x] Draft limitations, reproducibility, ethics and the mandatory AI-use statement.
 - [ ] Run claims-to-evidence, anonymity, citation, page-count and rendered-PDF checks.
 
-Current anonymous build: 8 pages of main text and 12 pages total in the official ICLR 2027 style,
+Current anonymous build: 9 pages of main text and 13 pages total in the official ICLR 2027 style,
 with zero LaTeX errors, undefined citations, overfull boxes or direct identifying-string leaks. The
-remaining figure item is the new combined law/action/evaluator display; existing evidence-bound
-figures and exact-denominator tables are already integrated. Citation-source verification and the
-final claims-to-evidence pass remain open.
+combined law/action/evaluator display is integrated from machine-readable W2-50--W2-53 sources.
+Citation-source verification and the final claims-to-evidence pass remain open.
 
 The canonical manuscript, story, display plan and evidence map are respectively
 `paper/prior_discovery_manuscript.md`, `paper/prior_discovery_story_zh.md`,

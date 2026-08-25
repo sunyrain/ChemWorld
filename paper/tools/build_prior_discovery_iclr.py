@@ -185,8 +185,13 @@ def build() -> dict[str, Any]:
         latex = [pdflatex, "-interaction=nonstopmode", "-halt-on-error", "main.tex"]
         run(latex, cwd=build_dir)
         run([bibtex, "main"], cwd=build_dir)
-        run(latex, cwd=build_dir)
-        run(latex, cwd=build_dir)
+        for _ in range(4):
+            run(latex, cwd=build_dir)
+            pass_log = (build_dir / "main.log").read_text(
+                encoding="utf-8", errors="replace"
+            )
+            if not re.search(r"Rerun to get cross-references right", pass_log):
+                break
 
         log = (build_dir / "main.log").read_text(encoding="utf-8", errors="replace")
         aux = (build_dir / "main.aux").read_text(encoding="utf-8", errors="replace")

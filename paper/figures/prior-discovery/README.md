@@ -55,12 +55,26 @@ editable-text SVG/PDF plus 600 dpi PNG/TIFF previews.
 - **Reviewer risk:** this is post-hoc development evaluation, not the preregistered public matrix or
   private transfer confirmation.
 
+### Figure 6 — Action selection and evaluator validity
+
+- **Core conclusion:** unseen-plan selection, thresholded law adequacy and complete-ranking oracle
+  qualification are distinct readouts; full-rank correlation can pass while Top-1 is wrong or fail
+  while the selected action has zero regret.
+- **Archetype:** evidence-bound four-panel quantitative diagnostic.
+- **Panel map:** W2-50 selected ranks; W2-50 law--action categories; W2-51/W2-52 qualification
+  funnels; W2-53 Spearman--regret unit scatter with Top-1 markers.
+- **Source data:** all 45 scheduled W2-50 cells, the three terminal W2-51/W2-52 qualification
+  dispositions and all 16 frozen W2-53 unit versions are exported without sampling.
+- **Reviewer risk:** W2-51/W2-52 contain no participant sessions, exposed construction is not fresh
+  qualification, and W2-53 is a zero-execution retrospective diagnostic rather than a new causal
+  experiment.
+
 ## Reproduction
 
 From the repository root:
 
 ```powershell
-.\.venv\Scripts\python.exe paper\figures\prior-discovery\render_prior_discovery_figures.py
+uv run --no-sync python paper\figures\prior-discovery\render_prior_discovery_figures.py
 ```
 
 The renderer refuses formal participant inputs for Figure 3 and records source hashes, output hashes,
@@ -69,7 +83,7 @@ row counts and interpretation limits in `figure_manifest.json`.
 Build the current development/design manuscript PDF with:
 
 ```powershell
-.\.venv\Scripts\python.exe paper\tools\build_prior_discovery_draft.py
+uv run --no-sync python paper\tools\build_prior_discovery_draft.py
 ```
 
 The PDF, generated TeX and build manifest are written to

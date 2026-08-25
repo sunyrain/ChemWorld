@@ -520,7 +520,9 @@ def render_figure_2(design: dict[str, Any], preflight: dict[str, Any]) -> list[P
         "liquid partition",
         "kinetics + thermal safety",
     ]
-    for index, (name, mechanism, color) in enumerate(zip(short_names, mechanisms, task_colors)):
+    for index, (name, mechanism, color) in enumerate(
+        zip(short_names, mechanisms, task_colors, strict=True)
+    ):
         x = 0.01 + index * 0.198
         rounded_box(
             ax_a,
@@ -956,7 +958,9 @@ def render_figure_3(
     metric_colors = [COLORS["aligned"], COLORS["misindexed"], COLORS["blue"]]
     x = np.arange(len(providers), dtype=float)
     width = 0.22
-    for metric_index, (metric, color) in enumerate(zip(metrics, metric_colors)):
+    for metric_index, (metric, color) in enumerate(
+        zip(metrics, metric_colors, strict=True)
+    ):
         values = []
         labels = []
         for provider in providers:
@@ -965,7 +969,7 @@ def render_figure_3(
             labels.append(f"{row['numerator']}/{row['denominator']}")
         positions = x + (metric_index - 1) * width
         bars = ax_d.bar(positions, values, width=width * 0.86, color=color, edgecolor="white", linewidth=0.6, label=metric)
-        for bar, label in zip(bars, labels):
+        for bar, label in zip(bars, labels, strict=True):
             ax_d.text(
                 bar.get_x() + bar.get_width() / 2,
                 bar.get_height() + 0.025,
@@ -1046,35 +1050,32 @@ def normalize_open_action_rows(summary: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
-def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, Any]) -> list[Path]:
+def render_figure_6_open_action(
+    rows: list[dict[str, Any]],
+    summary: dict[str, Any],
+    formal_closeout: dict[str, Any],
+    construction_closeout: dict[str, Any],
+    qualification_closeout: dict[str, Any],
+    gate_alignment: dict[str, Any],
+) -> list[Path]:
     eligible = [row for row in rows if row["eligible"]]
     task_order = [
         "electrochemical-conversion",
         "reaction-to-crystallization",
         "reaction-safety-constrained",
     ]
-    task_labels = {
-        "electrochemical-conversion": "Electrochemical",
-        "reaction-to-crystallization": "Crystallization",
-        "reaction-safety-constrained": "Reaction safety",
-    }
-    task_colors = {
-        "electrochemical-conversion": COLORS["blue"],
-        "reaction-to-crystallization": COLORS["violet"],
-        "reaction-safety-constrained": COLORS["red"],
-    }
-    fig = plt.figure(figsize=(7.2, 6.25))
+    fig = plt.figure(figsize=(7.2, 6.6))
     grid = fig.add_gridspec(
         2,
         2,
-        left=0.16,
+        left=0.14,
         right=0.985,
-        bottom=0.13,
+        bottom=0.195,
         top=0.82,
-        wspace=0.28,
-        hspace=0.45,
-        height_ratios=[1.38, 0.95],
-        width_ratios=[1.05, 0.95],
+        wspace=0.32,
+        hspace=0.48,
+        height_ratios=[1.18, 1.0],
+        width_ratios=[1.08, 0.92],
     )
     ax_a = fig.add_subplot(grid[0, 0])
     ax_b = fig.add_subplot(grid[0, 1])
@@ -1166,16 +1167,6 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     ax_a.legend(loc="upper right", fontsize=5.8)
     panel_label(ax_a, "a", x=-0.11)
 
-    plot_cell_metric(
-        ax_b,
-        "normalized_regret",
-        "Normalized regret (lower is better)",
-        "Regret remains large in crystallization",
-        (-0.03, 1.05),
-        show_y_labels=False,
-    )
-    panel_label(ax_b, "b", x=-0.11)
-
     category_order = [
         "inadequate_law__wrong_action",
         "inadequate_law__correct_action",
@@ -1190,39 +1181,279 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
     ]
     category_colors = [COLORS["red"], COLORS["orange_light"], COLORS["misindexed"], COLORS["aligned"]]
     counts = [sum(row["mechanism_action_category"] == category for row in eligible) for category in category_order]
-    bars = ax_c.bar(np.arange(4), counts, color=category_colors, edgecolor="white", linewidth=0.7)
-    for bar, count in zip(bars, counts):
-        ax_c.text(bar.get_x() + bar.get_width() / 2, count + 0.8, str(count), ha="center", va="bottom", fontsize=8, fontweight="bold")
-    ax_c.set_xticks(np.arange(4), category_labels)
-    ax_c.tick_params(axis="x", labelsize=5.6)
-    ax_c.set_ylim(0, max(counts) + 8)
-    ax_c.set_ylabel("Eligible cells (n=42)")
-    ax_c.set_title("A law-adequate counterexample still\nproduced a wrong action", loc="left", fontweight="bold", pad=6)
-    style_quant_axis(ax_c)
-    ax_c.text(0.02, 0.95, "3 crystallization failures retained outside action metrics", transform=ax_c.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
-    panel_label(ax_c, "c", x=-0.11)
+    bars = ax_b.bar(
+        np.arange(4),
+        counts,
+        color=category_colors,
+        edgecolor="white",
+        linewidth=0.7,
+    )
+    for bar, count in zip(bars, counts, strict=True):
+        ax_b.text(
+            bar.get_x() + bar.get_width() / 2,
+            count + 0.8,
+            str(count),
+            ha="center",
+            va="bottom",
+            fontsize=8,
+            fontweight="bold",
+        )
+    ax_b.set_xticks(np.arange(4), category_labels)
+    ax_b.tick_params(axis="x", labelsize=5.5)
+    ax_b.set_ylim(0, max(counts) + 8)
+    ax_b.set_ylabel("Eligible cells (n=42)")
+    ax_b.set_title(
+        "Law adequacy does not determine\nthe selected action",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_b)
+    ax_b.text(
+        0.02,
+        0.95,
+        "3 crystallization failures retained outside action metrics",
+        transform=ax_b.transAxes,
+        ha="left",
+        va="top",
+        fontsize=5.7,
+        color=COLORS["muted"],
+    )
+    panel_label(ax_b, "b", x=-0.12)
 
-    task_means: list[float] = []
-    task_ns: list[int] = []
-    for task in task_order:
-        task_values = [float(row["selected_rank"]) for row in eligible if row["task_id"] == task and row.get("selected_rank") is not None]
-        task_means.append(float(np.mean(task_values)))
-        task_ns.append(len(task_values))
-    x = np.arange(3)
-    ax_d.axhline(4.5, color=COLORS["muted"], linewidth=0.8, linestyle="--")
-    ax_d.scatter(x, task_means, s=74, color=[task_colors[task] for task in task_order], edgecolor="white", linewidth=0.8, zorder=3)
-    for position, mean, n in zip(x, task_means, task_ns):
-        ax_d.text(position, mean + 0.28, f"{mean:.2f}\n(n={n})", ha="center", va="bottom", fontsize=6.3, fontweight="bold")
-    ax_d.set_xticks(x, [task_labels[task] for task in task_order])
-    ax_d.set_ylim(0.5, 8.8)
-    ax_d.set_ylabel("Mean selected true rank")
-    ax_d.set_title("Task means summarize heterogeneity;\nno pooled arm effect", loc="left", fontweight="bold", pad=6)
+    formal_preparation = formal_closeout["formal_preparation"]
+    qualification_rows = [
+        {
+            "label": "W2-51\n96 fresh",
+            "planned": int(formal_closeout["frozen_design"]["planned_cluster_count"]),
+            "passed": int(formal_preparation["qualified_cluster_count"]),
+            "rejected": int(formal_preparation["scientifically_rejected_cluster_count"]),
+            "not_started": int(formal_preparation["not_started_cluster_count"]),
+            "detail": "candidate 8/8; rank 7/8; 0/225 participant sessions",
+        },
+        {
+            "label": "W2-52\n320 exposed",
+            "planned": int(construction_closeout["planned_unit_count"]),
+            "passed": int(construction_closeout["passed_unit_count"]),
+            "rejected": int(construction_closeout["scientifically_rejected_unit_count"]),
+            "not_started": 0,
+            "detail": "7/7 pass; 4 historical failures repaired; construction only",
+        },
+        {
+            "label": "W2-52\n320 fresh",
+            "planned": int(qualification_closeout["planned_cluster_count"]),
+            "passed": int(qualification_closeout["passed_cluster_count"]),
+            "rejected": int(qualification_closeout["scientifically_rejected_cluster_count"]),
+            "not_started": int(qualification_closeout["not_started_cluster_count"]),
+            "detail": r"$\rho$=.714; Top-1 correct; regret=0; 0 participant sessions",
+        },
+    ]
+    y_positions = np.array([2.5, 1.25, 0.0])
+    for y, row in zip(y_positions, qualification_rows, strict=True):
+        left = 0
+        for key, color, hatch in [
+            ("passed", COLORS["green"], None),
+            ("rejected", COLORS["red"], "////"),
+            ("not_started", "#D8DEE1", None),
+        ]:
+            value = int(row[key])
+            if value == 0:
+                continue
+            ax_c.barh(
+                y,
+                value,
+                left=left,
+                height=0.43,
+                color=color,
+                hatch=hatch,
+                edgecolor="white" if hatch is None else COLORS["red"],
+                linewidth=0.7,
+                zorder=2,
+            )
+            ax_c.text(
+                left + value / 2,
+                y,
+                str(value),
+                ha="center",
+                va="center",
+                fontsize=6.2,
+                fontweight="bold",
+                color="white" if key != "not_started" else COLORS["ink"],
+                zorder=3,
+            )
+            left += value
+        ax_c.text(
+            0,
+            y - 0.36,
+            str(row["detail"]),
+            ha="left",
+            va="top",
+            fontsize=5.5,
+            color=COLORS["muted"],
+        )
+    ax_c.set_xlim(0, 15.3)
+    ax_c.set_ylim(-0.67, 3.02)
+    ax_c.set_yticks(y_positions, [str(row["label"]) for row in qualification_rows])
+    ax_c.tick_params(axis="y", labelsize=6.1, length=0)
+    ax_c.set_xticks([0, 5, 10, 15])
+    ax_c.set_xlabel("Planned task-world qualification units")
+    ax_c.set_title(
+        "Construction repair does not erase\nfresh-world stop decisions",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    style_quant_axis(ax_c)
+    ax_c.legend(
+        handles=[
+            mpl.patches.Patch(color=COLORS["green"], label="passed rank gate"),
+            mpl.patches.Patch(
+                facecolor=COLORS["red"],
+                edgecolor=COLORS["red"],
+                hatch="////",
+                label="scientifically rejected",
+            ),
+            mpl.patches.Patch(color="#D8DEE1", label="not started"),
+        ],
+        loc="upper center",
+        bbox_to_anchor=(0.52, -0.22),
+        ncol=3,
+        fontsize=5.1,
+        handlelength=1.2,
+        columnspacing=0.8,
+    )
+    panel_label(ax_c, "c", x=-0.13)
+
+    group_specs = {
+        "w2_51_96_grid_fresh_formal_preparation": (
+            "96 fresh",
+            COLORS["blue"],
+            "o",
+        ),
+        "w2_52_320_grid_exposed_construction": (
+            "320 exposed",
+            COLORS["violet"],
+            "s",
+        ),
+        "w2_52_320_grid_fresh_prospective": (
+            "320 fresh",
+            COLORS["red"],
+            "D",
+        ),
+    }
+    for group_id, (label, color, marker) in group_specs.items():
+        group_rows = [
+            row for row in gate_alignment["unit_rows"] if row["group_id"] == group_id
+        ]
+        ax_d.scatter(
+            [float(row["spearman_rank_correlation"]) for row in group_rows],
+            [float(row["normalized_regret"]) for row in group_rows],
+            s=38,
+            marker=marker,
+            color=color,
+            edgecolor="white",
+            linewidth=0.65,
+            alpha=0.9,
+            label=label,
+            zorder=3,
+        )
+        top1_rows = [row for row in group_rows if int(row["top1"]) == 1]
+        if top1_rows:
+            ax_d.scatter(
+                [float(row["spearman_rank_correlation"]) for row in top1_rows],
+                [float(row["normalized_regret"]) for row in top1_rows],
+                s=22,
+                marker="*",
+                color=COLORS["ink"],
+                linewidth=0,
+                zorder=4,
+            )
+    ax_d.axvline(0.80, color=COLORS["red"], linewidth=0.9, linestyle="--")
+    ax_d.axhline(0.01, color=COLORS["muted"], linewidth=0.8, linestyle=":")
+    ax_d.set_xlim(0.69, 1.015)
+    ax_d.set_ylim(-0.004, 0.082)
+    ax_d.set_xlabel(r"Complete-ranking Spearman $\rho$")
+    ax_d.set_ylabel("Normalized regret")
+    ax_d.set_title(
+        "Full-ranking validity and action\nvalidity disagree in both directions",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
     style_quant_axis(ax_d)
-    ax_d.text(0.02, 0.95, "Dashed line: random expected rank = 4.5", transform=ax_d.transAxes, ha="left", va="top", fontsize=5.9, color=COLORS["muted"])
-    panel_label(ax_d, "d", x=-0.11)
+    ax_d.text(
+        0.835,
+        0.078,
+        "6 fresh 96 units:\nrank pass, Top-1 wrong",
+        ha="left",
+        va="top",
+        fontsize=5.7,
+        color=COLORS["red"],
+        fontweight="bold",
+        bbox={"facecolor": "white", "edgecolor": "none", "alpha": 0.78, "pad": 1.0},
+    )
+    fresh_row = next(
+        row
+        for row in gate_alignment["unit_rows"]
+        if row["group_id"] == "w2_52_320_grid_fresh_prospective"
+    )
+    ax_d.annotate(
+        "fresh 320:\nrank fail, Top-1, regret=0",
+        xy=(
+            float(fresh_row["spearman_rank_correlation"]),
+            float(fresh_row["normalized_regret"]),
+        ),
+        xytext=(0.700, 0.055),
+        fontsize=5.7,
+        color=COLORS["red"],
+        fontweight="bold",
+        arrowprops={"arrowstyle": "-", "color": COLORS["red"], "linewidth": 0.75},
+    )
+    ax_d.text(
+        0.803,
+        0.047,
+        r"frozen rank gate $\rho=.80$",
+        ha="left",
+        va="center",
+        fontsize=5.3,
+        color=COLORS["red"],
+        rotation=90,
+    )
+    ax_d.text(
+        1.012,
+        0.0105,
+        "near-optimal boundary",
+        ha="right",
+        va="bottom",
+        fontsize=5.2,
+        color=COLORS["muted"],
+    )
+    handles, labels = ax_d.get_legend_handles_labels()
+    handles.append(
+        mpl.lines.Line2D(
+            [],
+            [],
+            marker="*",
+            linestyle="",
+            color=COLORS["ink"],
+            label="Top-1 selected",
+        )
+    )
+    labels.append("Top-1 selected")
+    ax_d.legend(
+        handles,
+        labels,
+        loc="upper center",
+        bbox_to_anchor=(0.50, -0.22),
+        ncol=2,
+        fontsize=5.1,
+        handletextpad=0.35,
+        columnspacing=0.8,
+    )
+    panel_label(ax_d, "d", x=-0.13)
 
     fig.suptitle(
-        "Terminal selection of unseen plans is partial and task dependent",
+        "Action selection and evaluator validity separate",
         x=0.09,
         y=0.975,
         ha="left",
@@ -1238,7 +1469,7 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
             mpl.lines.Line2D([], [], marker="*", linestyle="", color=COLORS["ink"], label="Top-1 selected")
         ],
         loc="upper left",
-        bbox_to_anchor=(0.16, 0.905),
+        bbox_to_anchor=(0.14, 0.905),
         ncol=4,
         fontsize=6.4,
         borderaxespad=0,
@@ -1246,11 +1477,11 @@ def render_figure_6_open_action(rows: list[dict[str, Any]], summary: dict[str, A
         columnspacing=1.0,
     )
     fig.text(
-        0.16,
-        0.028,
-        f"45 scheduled cells across 3 tasks × 5 worlds × 3 arms; 42 eligible for action metrics; 3 crystallization failures retained. "
-        f"Truth and exact replay: {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']}. "
-        "Each row is one task-world cluster; arm colors identify nominal alternatives and no ordered trajectory is implied. Stars mark Top-1 selection; × marks a missing terminal action readout. The random-rank line is a geometric reference, not a no-evidence or pre-exploration control; no causal action-transfer or arm-level inferential claim is made.",
+        0.14,
+        0.018,
+        f"W2-50: 45 scheduled, 42 eligible, {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']} truth/replay, and three retained failures. "
+        "W2-51/W2-52: exposed and fresh evidence remain separate; participant sessions = 0. "
+        "W2-53: 16/16 frozen unit versions with no new execution. Stars mark Top-1; full-rank correlation is a secondary diagnostic.",
         ha="left",
         va="bottom",
         fontsize=6.2,
@@ -2081,6 +2312,22 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"
     )
+    evidence_to_action_formal_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-evidence-to-action-formal-closeout-v0.1.json"
+    )
+    large_grid_construction_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-evidence-to-action-large-grid-v1.0-construction-closeout.json"
+    )
+    large_grid_qualification_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-evidence-to-action-large-grid-v1.0-qualification-closeout.json"
+    )
+    gate_alignment_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-evidence-to-action-gate-alignment-v0.1.json"
+    )
     public_source_dir = ROOT / (
         "workstreams/flagship_tasks/reports/figures/"
         "work-ii-deepseek-c2-public/current/source_data"
@@ -2104,6 +2351,10 @@ def main() -> int:
         preflight_path,
         open_action_summary_path,
         open_action_audit_path,
+        evidence_to_action_formal_path,
+        large_grid_construction_path,
+        large_grid_qualification_path,
+        gate_alignment_path,
         checkpoint_summary_path,
         experiment_metrics_path,
         story_analysis_path,
@@ -2116,6 +2367,16 @@ def main() -> int:
     open_action_summary = json.loads(
         open_action_summary_path.read_text(encoding="utf-8")
     )
+    evidence_to_action_formal = json.loads(
+        evidence_to_action_formal_path.read_text(encoding="utf-8")
+    )
+    large_grid_construction = json.loads(
+        large_grid_construction_path.read_text(encoding="utf-8")
+    )
+    large_grid_qualification = json.loads(
+        large_grid_qualification_path.read_text(encoding="utf-8")
+    )
+    gate_alignment = json.loads(gate_alignment_path.read_text(encoding="utf-8"))
     story_analysis = json.loads(story_analysis_path.read_text(encoding="utf-8"))
     matched_evidence = json.loads(
         matched_evidence_path.read_text(encoding="utf-8")
@@ -2133,6 +2394,29 @@ def main() -> int:
         raise ValueError("unexpected W2-50 truth denominator")
     if open_action_summary.get("provider_free_exact_replay_count") != 240:
         raise ValueError("unexpected W2-50 exact-replay denominator")
+    expected_w2_51_counts = {
+        "attempted_cluster_count": 8,
+        "qualified_cluster_count": 7,
+        "scientifically_rejected_cluster_count": 1,
+        "not_started_cluster_count": 7,
+    }
+    formal_preparation = evidence_to_action_formal["formal_preparation"]
+    for field, expected in expected_w2_51_counts.items():
+        if formal_preparation.get(field) != expected:
+            raise ValueError(
+                f"unexpected W2-51 {field}: "
+                f"{formal_preparation.get(field)!r} != {expected}"
+            )
+    if large_grid_construction.get("passed_unit_count") != 7:
+        raise ValueError("unexpected W2-52 exposed construction denominator")
+    if large_grid_qualification.get("complete_cluster_count") != 1:
+        raise ValueError("unexpected W2-52 fresh qualification denominator")
+    if large_grid_qualification.get("not_started_cluster_count") != 14:
+        raise ValueError("unexpected W2-52 unstarted denominator")
+    if gate_alignment.get("completed_unit_version_count") != 16:
+        raise ValueError("unexpected W2-53 unit-version denominator")
+    if gate_alignment.get("new_truth_execution_count") != 0:
+        raise ValueError("W2-53 must remain a zero-execution diagnostic")
 
     checkpoint_rows = read_csv(checkpoint_summary_path)
     experiment_rows = read_csv(experiment_metrics_path)
@@ -2213,6 +2497,69 @@ def main() -> int:
             "selected_minus_random_candidate_mean",
         ],
     )
+    qualification_funnel_rows = [
+        {
+            "block": "w2_51_96_grid_fresh_formal_preparation",
+            "evidence_role": "fresh_formal_preparation",
+            "planned": 15,
+            "passed": 7,
+            "scientifically_rejected": 1,
+            "not_started": 7,
+            "participant_sessions": 0,
+        },
+        {
+            "block": "w2_52_320_grid_exposed_construction",
+            "evidence_role": "exposed_construction_only",
+            "planned": 7,
+            "passed": 7,
+            "scientifically_rejected": 0,
+            "not_started": 0,
+            "participant_sessions": 0,
+        },
+        {
+            "block": "w2_52_320_grid_fresh_prospective",
+            "evidence_role": "fresh_prospective_qualification",
+            "planned": 15,
+            "passed": 0,
+            "scientifically_rejected": 1,
+            "not_started": 14,
+            "participant_sessions": 0,
+        },
+    ]
+    write_csv(
+        SOURCE_DIR / "figure-6-qualification-funnel.csv",
+        qualification_funnel_rows,
+        [
+            "block",
+            "evidence_role",
+            "planned",
+            "passed",
+            "scientifically_rejected",
+            "not_started",
+            "participant_sessions",
+        ],
+    )
+    gate_alignment_fields = [
+        "group_id",
+        "evidence_role",
+        "grid_query_count",
+        "task_id",
+        "world_seed",
+        "spearman_rank_correlation",
+        "normalized_regret",
+        "rank_gate_passed",
+        "top1",
+        "within_0_01_of_best",
+    ]
+    gate_alignment_rows = [
+        {field: row[field] for field in gate_alignment_fields}
+        for row in gate_alignment["unit_rows"]
+    ]
+    write_csv(
+        SOURCE_DIR / "figure-6-gate-alignment-units.csv",
+        gate_alignment_rows,
+        gate_alignment_fields,
+    )
 
     outputs = {
         "figure_1": render_figure_1(),
@@ -2230,7 +2577,14 @@ def main() -> int:
             structural_matched,
             matched_evidence["public_summary_audit"]["A_P_misindexed"],
         ),
-        "figure_6": render_figure_6_open_action(open_action_rows, open_action_summary),
+        "figure_6": render_figure_6_open_action(
+            open_action_rows,
+            open_action_summary,
+            evidence_to_action_formal,
+            large_grid_construction,
+            large_grid_qualification,
+            gate_alignment,
+        ),
     }
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
@@ -2255,6 +2609,8 @@ def main() -> int:
             "matched_structural_recovery_rows": len(matched_qualitative_rows),
             "open_action_rows": len(open_action_rows),
             "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
+            "qualification_funnel_rows": len(qualification_funnel_rows),
+            "gate_alignment_unit_rows": len(gate_alignment_rows),
         },
         "figures": {
             figure_id: [
@@ -2271,8 +2627,10 @@ def main() -> int:
             "Figure 1 states the identification problem; Figure 2 separates executed evidence from future portability studies.",
             "Figure 3 combines the prospective formal locus decisions with retrospective manipulation summaries; first-recipe divergence has no same-arm replicate baseline.",
             "Figure 4 reports a five-world corrected structural matched-evidence study; its prediction contrast is descriptive and non-confirmatory.",
-            "Figure 6 reports terminal unseen-plan selection for 42 eligible cells; three crystallization failures remain in the scheduled denominator.",
+            "Figure 6 combines terminal unseen-plan selection, oracle qualification funnels and the frozen gate-action alignment diagnostic.",
             "The open-action matrix has no no-evidence or pre-exploration action baseline, so it does not identify a causal action-transfer effect.",
+            "W2-51 and W2-52 contain zero participant sessions; exposed construction and fresh qualification remain separate evidence roles.",
+            "W2-53 reproduces 16 frozen unit versions without new truth, provider or physical execution and does not revise historical stop decisions.",
             "No cross-provider capability ranking or context-reset portability claim is supported.",
         ],
     }

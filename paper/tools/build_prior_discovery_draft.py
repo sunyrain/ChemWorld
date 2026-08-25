@@ -306,6 +306,14 @@ def build() -> dict[str, Any]:
                 "crystallization failures. It has no no-evidence or pre-exploration "
                 "ranking control, so causal action-transfer and arm-level effects are not claimed."
             ),
+            (
+                "W2-51 and W2-52 are zero-participant qualification results; exposed "
+                "construction and fresh qualification remain separate evidence roles."
+            ),
+            (
+                "The W2-53 panel reuses 16 frozen unit versions with no new execution "
+                "and changes no historical rank threshold or stop decision."
+            ),
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

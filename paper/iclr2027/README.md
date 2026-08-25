@@ -17,6 +17,6 @@ The build writes the anonymous PDF, generated TeX, and machine-readable audit to
 citations, cross-references, LaTeX errors, horizontal and vertical overflow, and a fixed set of direct
 identity leaks.
 
-Current development status: the main text is within the nine-page initial-submission limit. Figures
-are reused from the evidence-bound publication assets; the planned combined action/evaluator figure
-remains a later visualization task and the current alignment result is reported in a table.
+Current development status: the main text is within the nine-page initial-submission limit. The
+evidence-bound action/evaluator figure integrates W2-50 cell outcomes, W2-51/W2-52 qualification
+funnels and the W2-53 unit-level alignment diagnostic without introducing a participant-effect panel.
