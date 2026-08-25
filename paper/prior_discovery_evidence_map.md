@@ -43,6 +43,10 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
 | Development-qualified oracle laws remain decision-valid in all fresh formal worlds | W2-51 provider-free formal preparation | `WORK_II_EVIDENCE_TO_ACTION_FORMAL_CLOSEOUT_ZH.md` and `work-ii-evidence-to-action-formal-closeout-v0.1.json` | Not supported | The first eight clusters completed 896/896 truth and replay; candidate gates were 8/8 but oracle gates 7/8, with fresh crystallization rho=0.738095 below 0.80 |
 | Exploration, yoked evidence or a learned law causally improves unseen-plan selection | W2-51 five-condition causal decomposition | Same W2-51 closeout evidence | Not estimated | The oracle-control gate rejected the design before the operational canary; 0/225 participant sessions and 0/540 participant experiments started, so none of the five contrasts exists |
 | W2-51 shows that the participant failed causal action transfer | W2-51 provider-free formal preparation | Same W2-51 closeout evidence | Unsupported | The negative result concerns oracle-control qualification, not participant behavior; retain seven passed, one rejected and seven unstarted clusters without substitution |
+| Increasing oracle coverage repairs exposed construction failures | W2-52 320-query construction screen | `WORK_II_EVIDENCE_TO_ACTION_LARGE_GRID_V1_CONSTRUCTION_CLOSEOUT_ZH.md` and its machine closeout | Supported on the exposed construction set | 7/7 units and 2,352/2,352 truth/replay passed; all four historical failures were repaired, but this is construction evidence rather than prospective generalization |
+| The 320-query oracle generalizes complete candidate ordering to fresh worlds | W2-52 prospective qualification | `WORK_II_EVIDENCE_TO_ACTION_LARGE_GRID_V1_QUALIFICATION_CLOSEOUT_ZH.md` and its machine closeout | Not supported | The first new electrochemical world obtained rho=0.714286 below 0.80 after 336/336 truth/replay; 14 worlds were not started |
+| Complete-ranking qualification is an adequate proxy for action validity | W2-53 frozen gate--action alignment | `WORK_II_EVIDENCE_TO_ACTION_GATE_ALIGNMENT_ZH.md` and `work-ii-evidence-to-action-gate-alignment-v0.1.json` | Not supported | In the eight fresh 96-query units, rank gate was 7/8 but Top-1 only 1/8; the fresh 320-query unit was rank-fail/action-correct with zero regret |
+| The W2-54 single-stratum pilot estimates the five-condition causal contrasts | W2-54 development matched extension | Retained development summaries and `WORK_II_TODOLIST.md` | Unsupported | No-evidence and learned-law-only completed one session each; yoked ended after 5/6 turns without a terminal ranking, so the pilot is apparatus/directional evidence only |
 | The complete-plan action assay operates across chemical tasks | Multi-task seed-0 interface qualification | `WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md` and the three task-level summaries | Supported only as interface qualification | Latest uncontaminated electrochemical, crystallization and safety blocks total 9/9 eligible and 108/108 experiments; each task used only seed 0, so this is not multi-world replication |
 | B4 fixed-evidence law-guided decision is current complete evidence | Historical incomplete protocol | Retained B4 summary and experiment note | Not current | 11/15 completed, four participant-schema failures and 0/11 Top-1; preserve as diagnostic and do not combine with W2-48 |
 | Recovered laws transfer to sealed worlds or mechanism families | Private confirmation | Future one-shot private cohort | Not collected | Forbidden until confirmation reaches terminal state |
@@ -110,6 +114,16 @@ This is an internal authoring aid. It is not reader-facing manuscript prose.
   gates 7/8. A fresh crystallization oracle obtained rho=0.738095 below the frozen 0.80 threshold.
   The remaining seven clusters and every participant session were not started; provider calls,
   participant experiments and estimated causal contrasts are all zero.
+- W2-52 expanded oracle coverage from 96 to 320 queries while fixing the fitted model family. The
+  exposed construction set passed 7/7 units with 2,352/2,352 truth executions and exact replays. The
+  first new prospective electrochemical unit completed 336/336 truth/replay but failed the rank gate
+  at rho=0.714286 while selecting Top-1 with zero regret; the remaining 14 units were not started.
+- W2-53 re-read 16/16 completed 96- and 320-query unit versions, reproduced original Spearman and
+  Top-1 outcomes exactly, and added zero truth, provider or physical executions. It is a diagnostic of
+  evaluator alignment, not a participant comparison and not a retrospective change to either stop rule.
+- W2-54 is a single-stratum development pilot. The retained autonomous donor, no-evidence and
+  learned-law-only readouts are complete, while the yoked session is right-censored after five belief
+  turns and has no terminal ranking. Do not include it in the five-condition causal denominator.
 - Multi-task action-interface qualification uses one world (`seed=0`) per task. The latest clean
   electrochemical, crystallization and safety blocks total 9/9 eligible sessions, 108/108 participant
   experiments, 48/48 truth executions and 48/48 exact replays. Never relabel these as three 5-seed

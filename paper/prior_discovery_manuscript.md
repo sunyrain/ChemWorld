@@ -1,9 +1,9 @@
 ---
-title: "A Causal Dissection of Scientific Agency in Executable Chemical Worlds"
-title_line_one: "A Causal Dissection of Scientific Agency"
-title_line_two: "in Executable Chemical Worlds"
-subject: "Controlled dissection of experimental search, predictive correction, executable summaries and unseen action selection in AI agents"
-keywords: "AI scientist; autonomous experimentation; scientific agency; controlled prior intervention; model correction; executable summary; unseen action selection; chemical worlds"
+title: "From Evidence to Action: Diagnosing Scientific Agents Across Experimentation, Law Formation, and Decision Transfer"
+title_line_one: "From Evidence to Action"
+title_line_two: "Diagnosing Scientific Agents Across Experimentation, Law Formation, and Decision Transfer"
+subject: "Controlled diagnosis of evidence acquisition, predictive revision, executable-law formation, unseen action selection and evaluator validity in scientific agents"
+keywords: "AI scientist; autonomous experimentation; scientific agency; model correction; executable law; unseen action selection; evaluator validity; chemical worlds"
 pdf_author: "Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang"
 author:
   - name: "Jiangjie Qiu"
@@ -30,28 +30,22 @@ equal_contribution_note: "Jiangjie Qiu, Yijun Li and Yaotian Yang contributed eq
 date: ""
 bibliography: prior_discovery_references.bib
 abstract: |
-  AI agents increasingly choose and execute experiments, yet are usually judged by their best
-  outcome. The same success can arise from a correct initial model, correction of a wrong model or a
-  favorable search trajectory without scientific understanding. We turn this ambiguity into a
-  controlled intervention problem. In executable chemical worlds, we fixed the external world,
-  operations and resources while varying the entity, parametric or structural initial model supplied
-  to a fixed DeepSeek-V4-Flash experimental-agent configuration. The prospective study comprised 45
-  matched task--world clusters and 135 persistent campaigns. Initial models redirected search but
-  conferred no general performance advantage. Prediction error fell at every intervention layer,
-  while the prespecified criterion for selective wrong-model correction failed at all three. Under
-  matched contradictory evidence, numerical predictions converged without structural identification:
-  none of five misspecified summaries recovered the prespecified 1.75-power relation. Executable
-  summaries were less accurate than final explicit predictions in 84 of 135 campaigns. A separate
-  assay revealed eight unseen, fully specified plans after exploration. Among 42 eligible readouts,
-  11 selected the top-ranked plan and mean rank was 3.31/8, but performance was strongly
-  task-dependent and did not align with thresholded law adequacy. Because this assay lacked a
-  pre-exploration or no-evidence ranking control, it describes terminal selection rather than causal
-  transfer. A prespecified five-condition causal follow-up did not enter participant execution because
-  its oracle-law control failed fresh-world rank qualification. Useful search, predictive learning,
-  model correction, explicit law formation and action selection therefore did not behave as one
-  capability. The framework shifts evaluation from
-  whether an agent finds a good experiment to identifying which scientific transformations its
-  evidence actually supports.
+  Scientific agents are often evaluated by the best outcome reached during an experimental campaign,
+  conflating evidence acquisition, predictive revision, law formation and action selection. We study
+  these transformations separately in ChemWorld, a suite of resource-bounded chemical environments
+  with persistent state, complete executable action plans, held-out prediction queries, typed laws and
+  exact replay. Across 135 public agent sessions spanning entity, parametric and structural
+  initial-model interventions, agents frequently improved outcomes and predictions within a session,
+  yet the value of a correct prior was strongly task dependent and executable-law fidelity remained
+  limited. Controlled matched-evidence studies showed that direct counterevidence could correct
+  numerical predictions without reliably recovering the registered structural law. In fresh
+  multi-task action selection, only 11 of 42 eligible sessions chose the true best unseen plan.
+  Finally, we found that the oracle control itself must match the decision estimand: a 96-query oracle
+  passed a complete-ranking correlation gate in 7 of 8 fresh units but selected the true top action in
+  only 1, whereas a 320-query oracle failed the same gate on its first new world despite selecting the
+  true best action with zero regret. These results establish evidence acquisition, numerical revision,
+  structural identification, action transfer and evaluator validity as distinct requirements for
+  trustworthy scientific agents.
 ---
 
 # 1. Introduction
@@ -99,13 +93,16 @@ task--world clusters and 135 prospective campaigns. Fixed checkpoints bound the 
 to independently evaluated predictions and typed executable summaries. Matched-evidence sessions
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
-assay reveals eight complete, previously unseen ActionPlans only after autonomous exploration and
-measures terminal ranking without hidden workflow defaults. A five-condition follow-up was designed
-to compare no evidence, yoked evidence, autonomous exploration, a transferred learned law and a
-provider-free oracle law, but its oracle control failed the frozen rank gate in a fresh formal world
-before any participant session began. These outcomes distinguish experimental search, predictive
-learning, selective model correction, executable-summary fidelity and unseen action selection rather
-than collapsing them into one score.
+  assay reveals eight complete, previously unseen ActionPlans only after autonomous exploration and
+  measures terminal ranking without hidden workflow defaults. A five-condition follow-up was designed
+  to compare no evidence, yoked evidence, autonomous exploration, a transferred learned law and a
+  provider-free oracle law, but its oracle control failed the frozen rank gate in a fresh formal world
+  before any participant session began. Expanding the oracle fitting grid from 96 to 320 queries
+  repaired exposed construction failures but did not restore prospective complete-ranking validity.
+  A frozen reanalysis then showed that rank-gate success and correct action were not interchangeable.
+  These outcomes distinguish experimental search, predictive learning, selective model correction,
+  executable-summary fidelity, unseen action selection and evaluator validity rather than collapsing
+  them into one score.
 
 The resulting picture is not a single success or failure. Initial models altered search in
 reproducible but task-dependent ways. Experimental evidence generally improved predictions, yet did
@@ -416,6 +413,13 @@ task--world required an outcome-disjoint oracle law to reproduce the eight-candi
 Spearman rank correlation at least 0.80. Failure rejected the control design rather than authorizing
 world replacement or revealing an outcome table.
 
+We subsequently evaluated the control rather than weakening this rule. A denser construction used 64
+global queries and 256 candidate-neighborhood queries while keeping the fitted model family fixed.
+Exposed construction worlds and new prospective worlds remained separate. A final zero-execution
+diagnostic re-read all completed 96- and 320-query unit versions and compared the frozen Spearman gate
+with Top-1 selection, near-optimality and regret. It added no participant, provider or physical
+execution and did not alter any earlier stop decision.
+
 ## 4.5 Hypotheses and estimands
 
 Let $E_{a,k}^{(\ell)}$ denote held-out prediction error for initial-model arm $a$, checkpoint $k$ and
@@ -714,6 +718,38 @@ world or unfavorable result was replaced. This result does not estimate a poor p
 It establishes that the current oracle-law control was not robust enough in fresh formal worlds to
 support the intended causal decomposition.
 
+## 7.5 A denser oracle grid repairs exposed failures but not prospective ranking
+
+We next tested whether the failure arose from sparse coverage rather than typed-law representation.
+The oracle grid was expanded from 96 queries to **320**: 64 global queries plus 256 queries around the
+candidate neighborhood. The fitted ExtraTrees family and the frozen Spearman threshold were unchanged,
+so the intervention isolated coverage. After a platform-defective partial run was retained and the
+evidence-reference limit repaired, the complete construction screen passed **7/7** exposed units with
+**2,352/2,352** truth executions and exact replays. All four historical failures were repaired and the
+minimum construction Spearman correlation was 0.857143.
+
+Construction success did not transfer to the prospective block. Its first new electrochemical world
+completed **336/336** truth executions and exact replays but obtained Spearman correlation **0.714286**,
+below the frozen 0.80 gate. The oracle nevertheless selected the true Top-1 action with zero regret;
+fit/candidate overlap remained zero and candidate outcomes were not used for fitting. The stop rule
+therefore left the remaining 14 prospective clusters unstarted. Increasing coverage repaired known
+worlds but did not establish fresh-world complete-ranking validity.
+
+## 7.6 Complete-ranking validity and action validity are different estimands
+
+A frozen retrospective diagnostic compared the original ranking decision with action endpoints for all
+**16/16** completed oracle unit versions from the 96- and 320-query studies. Original Spearman and Top-1
+values were reproduced exactly without new truth execution. Among the eight fresh 96-query formal
+preparation units, **7/8** passed the rank gate but only **1/8** selected the true Top-1 action and **3/8**
+selected within 0.01 of the optimum; six units were rank-pass/action-wrong. Conversely, the first fresh
+320-query unit was rank-fail/action-correct with normalized regret zero.
+
+The disagreement is bidirectional. Complete-ranking correlation measures global ordering, whereas the
+causal study needs a positive control for the selected action and its decision loss. The original gate
+and stop decisions remain valid for their frozen protocol, but the diagnostic shows that future control
+qualification must prospectively prioritize regret, near-optimal selection and near-tie-aware ordering,
+with full-ranking correlation retained as a secondary diagnostic.
+
 # 8. A transition map of scientific agency
 
 The experiments replace a scalar notion of scientific success with a transition map. The controlled
@@ -723,11 +759,12 @@ whether those predictions can be compressed into an executable relation and whet
 supports selection among unseen plans. A failure at one transition need not erase competence at
 another.
 
-For the evaluated agent system, the map contains four robust boundaries. Initial models redirect
+For the evaluated agent system, the map contains five robust boundaries. Initial models redirect
 search but do not confer a general endpoint advantage. Free experimentation improves predictions but
 does not selectively repair the wrong starting model. Direct matched evidence can produce near-exact
 numerical revision without structural-law recovery. Executable summaries and terminal decisions each
-lose information in different ways. These are not four versions of the same score; they are
+lose information in different ways. Finally, complete-ranking validity does not determine action
+validity. These are not five versions of the same score; they are
 empirically separable transformations.
 
 The map also defines the next experiments without making them part of the current result.
@@ -735,7 +772,8 @@ Context-reset artifact portability is required to test whether a learned represe
 outside the source conversation. We attempted to add no-evidence, yoked-evidence and artifact-only
 ranking controls for unseen-plan selection, but the oracle-law control did not qualify in a fresh
 formal world. Any future causal action-transfer study therefore requires a new control construction
-that first demonstrates robust fresh-world validity. Private within-family replication and matched
+that first demonstrates robust fresh-world decision validity under action-aligned endpoints. Private
+within-family replication and matched
 cross-system studies would test stability and generality. Each is a distinct estimand with its own
 denominator.
 
@@ -795,6 +833,13 @@ development worlds; it must preserve the decision-relevant ordering in the fresh
 causal comparison is made. Stopping before participant execution prevents a weak control from turning
 an uninterpretable contrast into an apparent action-transfer effect.
 
+The 96- versus 320-query diagnostic sharpens this point. Global ordering and decision quality can
+disagree in both directions: most fresh 96-query units passed the correlation gate while selecting the
+wrong action, whereas the first fresh 320-query unit failed the gate while selecting the optimum.
+Evaluator validity is therefore part of scientific-agent validity. A control should be qualified on
+the estimand needed by the causal contrast, not on a convenient surrogate that can succeed or fail for
+decision-irrelevant parts of the ranking.
+
 ## 9.4 The harness is part of the scientific system
 
 Persistent sessions provide memory, repeated tool choice and belief revision that stateless calls do
@@ -819,6 +864,10 @@ unseen-plan study has 42 eligible cells, three retained crystallization failures
 three-arm clusters; arm means are descriptive. Its random-rank line is not an experimental control.
 The separate five-condition follow-up produced no participant data: one of the first eight formal
 oracle controls failed its frozen rank criterion, and the remaining seven clusters were not started.
+The denser oracle construction passed only on seven exposed units and its prospective qualification
+stopped after the first new world; the rank/action alignment result is a retrospective diagnostic over
+16 completed unit versions, not a new causal participant study. The single-stratum matched extension
+pilot is development-only and does not repair the missing five-condition estimate.
 Ten prospective cells also contain discard-affected checkpoint timing that cannot be repaired
 retrospectively. Exact software replay preserves execution semantics but does not erase interface
 burden or implementation variability.
@@ -829,9 +878,9 @@ The question is not whether an AI scientist finds a good experiment, but what th
 in its model of the world. Controlled interventions on the starting model, evaluator-owned
 counterfactuals and matched evidence make those changes separately observable. In the present agent,
 search, prediction, selective correction, structural identification, executable compression and
-terminal decision do not rise and fall together. Scientific agency is not a score; it is a sequence
-of evidence-driven transformations, and controlled interventions reveal where those transformations
-decouple.
+terminal decision do not rise and fall together, and the evaluator's complete-ranking gate does not
+substitute for decision validity. Scientific agency is not a score; it is a sequence of evidence-driven
+transformations whose failures can occur in the agent or in the control used to evaluate it.
 
 # 10. Methods
 
@@ -938,6 +987,16 @@ crystallization oracle obtained 0.738095 and rejected the block. Because no part
 started, none of the prespecified autonomous-minus-no-evidence, yoked-minus-no-evidence,
 autonomous-minus-yoked, learned-law-minus-no-evidence or oracle-minus-learned-law contrasts was
 estimated.
+
+The independent large-grid study increased oracle coverage to 64 global and 256
+candidate-neighborhood queries while holding the fitted ExtraTrees family fixed. Construction used
+seven exposed unit versions; prospective qualification used new worlds and the same frozen Spearman
+threshold. The first new world failed at 0.714286 after 336 truth executions and exact replays, despite
+Top-1 agreement and zero regret, so 14 planned worlds remained unstarted. A separate retrospective
+alignment analysis re-read the 16 completed 96- and 320-query unit versions, reproduced their original
+Spearman and Top-1 outcomes, and added no execution. Top-1, regret, selection within 0.01 of the optimum
+and near-tie-aware pair ordering were treated as action endpoints; no result was used to revise an
+earlier gate or stop rule.
 
 ## 10.7 Optional private confirmation boundary
 

@@ -1,8 +1,8 @@
-# Display plan — causal dissection of scientific agency
+# Display plan — from evidence to action
 
 The six main figures follow one argument: endpoint success is ambiguous; a controlled starting-model
 intervention makes the ambiguity identifiable; free discovery, matched evidence, executable
-compression and unseen-plan selection then locate distinct transition losses. Development matrices
+compression, unseen-plan selection and evaluator alignment then locate distinct transition losses. Development matrices
 remain background evidence and do not occupy main display space.
 
 ## Figure 1 — Endpoint success does not reveal what the agent learned
@@ -27,9 +27,8 @@ scientific semantics and denominators.
   partitions; future portability is greyed;
 - D: executed prospective totals of 45 clusters, 135 sessions and 1,260 planned experiments.
 
-The figure is an architecture map, not outcome evidence. The W2-51 five-condition follow-up belongs in
-the supplementary qualification funnel: 15 planned task--world clusters, eight attempted, seven
-qualified, one oracle rejection, seven not started and zero participant sessions.
+The figure is an architecture map, not outcome evidence. The W2-51 five-condition follow-up and W2-52
+oracle expansion belong in the control-qualification layer, not the participant-effect layer.
 
 ## Figure 3 — Prior uptake and selective-correction failure
 
@@ -73,21 +72,25 @@ compression or an action advantage over an observed incumbent.
 The completed evaluator contains 420/420 truth executions, 675/675 checkpoint scores, 135/135 law
 evaluations and 726/726 launched blind replays without additional participant calls.
 
-## Figure 6 — Terminal unseen-plan selection is partial and task dependent
+## Figure 6 — Action selection and evaluator validity separate
 
-**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but terminal ranking remains
-uneven across tasks and does not align cleanly with thresholded law adequacy.
+**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but terminal selection remains
+uneven and neither thresholded law adequacy nor complete-ranking oracle qualification guarantees the
+correct action.
 
 - A: selected true rank for every eligible cell;
 - B: normalized regret;
 - C: joint law--action categories: 30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong and
   0 adequate/correct;
-- D: task-level mean ranks of 3.60, 4.58 and 2.00.
+- D: rank-gate/action-correct quadrants for the completed 96- and 320-query oracle units, highlighting
+  six fresh 96-query rank-pass/action-wrong units and the fresh 320-query rank-fail/action-correct unit.
 
 The matrix contains 45 scheduled cells, 42 eligible readouts, 240/240 truth executions and 240/240
 exact replays. The random-rank line is geometric context, not a no-evidence control. Arm means and any
 action-transfer interpretation remain descriptive. W2-51 is not pooled into this figure because its
 provider-free oracle gate failed before participant execution and no condition effect was observed.
+The W2-53 panel adds no participant or truth execution: it reproduces 16/16 completed unit-version
+outcomes and diagnoses mismatch between complete-ranking and decision estimands.
 
 ## Supplementary qualification and exploratory evidence
 
@@ -99,7 +102,10 @@ cohort or used for cross-system ranking.
 One supplementary qualification panel reports the W2-51 formal negative result without an effect
 plot: 896/896 completed truth and exact replay in the first eight clusters, candidate gates 8/8,
 oracle gates 7/8, failed fresh crystallization rho 0.738095 versus the frozen 0.80 threshold, and zero
-participant/provider calls or participant experiments.
+participant/provider calls or participant experiments. A companion panel separates W2-52 exposed
+construction (7/7; 2,352/2,352 truth/replay) from prospective qualification (first new world
+rho 0.714286; Top-1 correct; 14 not started). W2-54 remains development-only and is not plotted as a
+causal contrast.
 
 ## Core tables
 
@@ -107,5 +113,5 @@ participant/provider calls or participant experiments.
 2. Claim, estimand, evidence layer and allowed wording.
 3. Prospective session, experiment, resource and failure denominators.
 4. Formal unseen-plan rank, Top-1 and regret by arm.
-5. W2-51 causal-decomposition qualification, terminal gate and unstarted denominators.
+5. W2-51/W2-52 control qualification, terminal gates and unstarted denominators.
 6. Statistical estimands, inference units and missing-outcome rules.

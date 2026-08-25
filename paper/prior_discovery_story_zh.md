@@ -1,6 +1,6 @@
-# Paper 2 大故事：从实验优化到可执行科学智能
+# Work II / ICLR 2027 故事：From Evidence to Action
 
-更新时间：2026-08-17
+更新时间：2026-08-25
 
 本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。
 
@@ -10,9 +10,9 @@
 
 ChemWorld 将这条链拆成彼此不可替代的层级：
 
-> initial world model → evidence acquisition → endpoint adaptation → counterfactual prediction → executable law → unseen action selection → artifact portability
+> initial world model → evidence acquisition → endpoint adaptation → counterfactual prediction → executable law → unseen action selection → evaluator validity → artifact portability
 
-当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。新的五世界开放动作矩阵进一步把这一边界推进到未见行动：15 个 persistent sessions 完成 180 次自主实验后，面对结果未知但执行语义完全公开的候选 ActionPlan，0/15 选择真实 Top-1；其中两个达到 law-adequate 的 readout 仍然选错。换言之，实验适应、数值学习、结构识别、规律压缩和行动迁移不是同一个能力，也不会自动级联。
+当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。W2-50 将这一边界推进到三任务、五世界的未见完整 ActionPlan：42 个可评分 terminal readouts 中仅 11 个选择真实 Top-1。W2-53 进一步证明 evaluator 也可能错位：96-query oracle 在 8 个 fresh units 中 rank gate 通过 7 个，却只有 1 个 Top-1；首个 fresh 320-query unit 则 rank gate 失败但 Top-1 正确且 regret 为 0。实验适应、数值学习、结构识别、规律压缩、行动迁移和 evaluator validity 不是同一个能力，也不会自动级联。
 
 这不是一个低档次的模型失败故事。它建立了一个此前常被总分掩盖的研究对象：**科学智能的转换损失与失效位置**。当前证据已经从 endpoint 一直观测到未见行动选择，形成第一张贯穿取证、预测、规律与行动的失效地图；后续 provider、private world 和 context-reset artifact portability 都可在同一能力链上定位，而不是继续堆叠不可解释的 leaderboard。
 
@@ -156,7 +156,7 @@ crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80
 
 ## 4. 第一阶段的统一结论
 
-当前 cohort、Study B 与 open-action evidence 同时支持以下七句话：
+当前 cohort、Study B、open-action 与 oracle-alignment evidence 同时支持以下八句话：
 
 1. 初始世界模型会因任务和干预位置不同而改变实验起点、搜索组织和 endpoint。
 2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
@@ -165,6 +165,7 @@ crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80
 5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
 6. 即使候选执行语义完整公开，较合格的规律也不保证 agent 能在未见 ActionPlan 中选出正确行动。
 7. 当前还不能把这一 action boundary 解释为探索或 learned law 的因果效应：W2-51 的 fresh formal oracle control 未达冻结正确性门槛，participant cohort 因而没有启动。
+8. 完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
 
@@ -190,8 +191,13 @@ W2-51 随后尝试用五条件设计把这个描述性边界分解为 evidence a
 portability 和 artifact-quality loss。development oracle 在 15/15 worlds 通过，但 fresh formal
 preparation 的第 8 个 cluster 以 `rho=0.738095<0.80` 失败。按冻结规则，`896/896` 已完成 truth/replay
 和失败结果保留，0 participant sessions、0 provider calls、0 participant experiments；不更换 world、
-不补跑，也不报告不存在的因果对比。若未来重新研究 causal action transfer，必须提出明确不同且能在 fresh
-worlds 稳健资格化的新 control construction，作为新实验另行授权。
+不补跑，也不报告不存在的因果对比。
+
+W2-52 将 oracle coverage 从 96 扩为 320 queries，并保持 ExtraTrees 固定。它在 7/7 exposed
+construction units、`2,352/2,352` truth/replay 上修复了四个历史失败，但首个 fresh prospective world
+仍以 `rho=0.714286<0.80` 停止；该 unit 同时 Top-1 正确且 regret=0。W2-53 对全部 16 个已完成
+unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不充分。若未来重新研究 causal action transfer，
+必须提出明确不同、以 regret、近最优选择和 near-tie-aware ordering 为主的 prospective control，作为新实验另行授权。
 
 ### Phase IV — Artifact portability and compositional transfer（Study D，未启动）
 
@@ -220,19 +226,19 @@ worlds 稳健资格化的新 control construction，作为新实验另行授权�
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
 | 自主探索或 learned law 因果性地改善未见计划选择 | 未估计；W2-51 在 participant 前因 fresh crystallization oracle `rho=0.738095<0.80` 科学拒绝，0/225 sessions 启动 |
+| 320-query oracle 已在 fresh worlds 泛化 | 不支持；construction 7/7 通过，但首个 prospective world `rho=0.714286<0.80` 后停止 |
+| 完整排序 gate 可以替代动作有效性 | 不支持；96-query 为 rank gate 7/8、Top-1 1/8，fresh 320-query 为 rank-fail/action-correct |
+| W2-54 已估计四条件或五条件因果效应 | 不支持；仅单 stratum development pilot，yoked 在 5/6 turns 后右删失 |
 | 规律 artifact 可在 context reset 后 portability/transfer | 未测试 |
 
 ## 7. 主文叙事与图表
 
-1. **Figure 1 — Scientific intelligence chain**：定义从实验到 transfer 的层级和转换损失。
-2. **Figure 2 — Intervention programme**：A-E/A-P/A-S、qualification funnel 与 negative candidates。
-3. **Figure 3 — Endpoint archetypes**：持续优势、head-start attenuation、structured scaffold。
-4. **Figure 4 — Agent work**：实验序列表、measurement、recipe diversity 和 search timing。
-5. **Figure 5 — Prediction, law and action dissociation**：45 matched worlds、135 laws、121 blind-evaluable cells 的 current-composite 结果。
-6. **Matched-evidence companion analysis**：A-P 参数纠错、A-S B2 world-level gain 与 0/5 exact law recovery；当前作为 Figure 5 的文字/表格伴随分析。
-7. **Figure 6 — Multi-task open-action transfer**：W2-50 的 rank、regret、law–action joint categories 与任务异质性；完整 ActionPlan binding 由正文说明。
-8. **Supplementary qualification funnel — W2-51**：只展示 15 planned、8 attempted、7 passed、1 oracle rejection、7 not started 与 0 participant calls；不绘制 participant effect panel。
-9. **Figure 7 — Failure anatomy and next experiments**：暂不生成新图，先以表格保留 incumbent retrieval 与工具失败边界。
+1. **Figure 1 — Capability chain and study map**：合并世界干预、persistent loop 与 evidence partitions。
+2. **Figure 2 — Prior-conditioned discovery**：合并 endpoint archetypes、first action 与 prediction correction。
+3. **Figure 3 — Evidence, numerical revision and structural recovery**：matched evidence、law fidelity 与 incumbent replay。
+4. **Figure 4 — Law, action and evaluator separation**：W2-50 rank/regret、law–action categories 与 W2-53 rank-gate/action-correct 四象限。
+5. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
+6. **Supplementary control qualification**：分开呈现 W2-51 96-query stop 与 W2-52 exposed construction/fresh prospective 结果，不绘制不存在的 participant effect。
 
 ## 8. 现在是否可以说“预测任务完成”
 
@@ -244,6 +250,9 @@ cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立�
 同时可以说：**W2-51 已按冻结规则完成正式判定并在 provider 前科学拒绝；它关闭了当前五条件设计，
 但没有测得 action-transfer 因果效应。**
 
+还可以说：**W2-52 已区分 construction repair 与 prospective failure，W2-53 已将 complete-ranking gate
+和 action validity 的不一致确立为 evaluator-design 结果；二者都不回写 W2-51 的门槛或 stop rule。**
+
 不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、
 Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
-科学问题，不再是 current-composite evaluator、Study B、W2-50 或 W2-51 的遗留门禁。
+科学问题，不再是 current-composite evaluator、Study B、W2-50、W2-51 或 W2-52 的遗留门禁。
