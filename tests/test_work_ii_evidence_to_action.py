@@ -19,6 +19,9 @@ from chemworld.eval.work_ii_evidence_to_action import (
     evaluate_candidate_packet,
     evaluate_law_action_agreement,
     evaluate_oracle_law_candidate_order,
+    fit_candidate_calibrated_oracle_law_from_disjoint_grid,
+    fit_candidate_domain_distilled_oracle_law_from_disjoint_grid,
+    fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid,
     fit_oracle_law_from_disjoint_grid,
     predict_candidate_ranking_from_law,
     score_terminal_ranking,
@@ -29,6 +32,9 @@ from chemworld.eval.work_ii_evidence_to_action import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "configs/benchmark/work_ii_evidence_to_action_causal_decomposition_v0.1.json"
+PROTOCOL_V2 = ROOT / "configs/benchmark/work_ii_evidence_to_action_causal_decomposition_v0.2.json"
+PROTOCOL_V3 = ROOT / "configs/benchmark/work_ii_evidence_to_action_causal_decomposition_v0.3.json"
+PROTOCOL_V4 = ROOT / "configs/benchmark/work_ii_evidence_to_action_causal_decomposition_v0.4.json"
 
 
 def _protocol() -> dict:
@@ -40,6 +46,38 @@ def test_protocol_is_provider_unauthorized_and_self_consistent() -> None:
     assert validate_protocol(protocol) == []
     assert protocol["execution"]["provider_execution_authorized"] is False
     assert set(protocol["qualification_world_seeds"]).isdisjoint(protocol["formal_world_seeds"])
+
+
+def test_oracle_v2_protocol_is_fresh_provider_unauthorized_and_self_consistent() -> None:
+    protocol = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+    assert validate_protocol(protocol) == []
+    assert protocol["execution"]["provider_execution_authorized"] is False
+    assert set(protocol["qualification_world_seeds"]).isdisjoint(protocol["formal_world_seeds"])
+    assert set(protocol["qualification_world_seeds"]).isdisjoint(
+        _protocol()["qualification_world_seeds"] + _protocol()["formal_world_seeds"]
+    )
+
+
+def test_oracle_v3_protocol_is_fresh_provider_unauthorized_and_self_consistent() -> None:
+    protocol = json.loads(PROTOCOL_V3.read_text(encoding="utf-8"))
+    v2 = json.loads(PROTOCOL_V2.read_text(encoding="utf-8"))
+    assert validate_protocol(protocol) == []
+    assert protocol["execution"]["provider_execution_authorized"] is False
+    assert set(protocol["qualification_world_seeds"]).isdisjoint(protocol["formal_world_seeds"])
+    assert set(protocol["qualification_world_seeds"] + protocol["formal_world_seeds"]).isdisjoint(
+        v2["qualification_world_seeds"] + v2["formal_world_seeds"]
+    )
+
+
+def test_oracle_v4_protocol_is_fresh_provider_unauthorized_and_self_consistent() -> None:
+    protocol = json.loads(PROTOCOL_V4.read_text(encoding="utf-8"))
+    v3 = json.loads(PROTOCOL_V3.read_text(encoding="utf-8"))
+    assert validate_protocol(protocol) == []
+    assert protocol["execution"]["provider_execution_authorized"] is False
+    assert set(protocol["qualification_world_seeds"]).isdisjoint(protocol["formal_world_seeds"])
+    assert set(protocol["qualification_world_seeds"] + protocol["formal_world_seeds"]).isdisjoint(
+        v3["qualification_world_seeds"] + v3["formal_world_seeds"]
+    )
 
 
 def test_design_compiles_exact_five_condition_denominator() -> None:
@@ -279,9 +317,7 @@ def test_oracle_candidate_order_qualification_is_explicit() -> None:
         {"query_id": f"candidate-q{index}", "feature_values": {"x": float(index)}}
         for index in range(8)
     ]
-    truth = {
-        f"candidate-q{index}": {"score": float(index) * 0.1} for index in range(8)
-    }
+    truth = {f"candidate-q{index}": {"score": float(index) * 0.1} for index in range(8)}
     artifact = build_oracle_law_artifact(
         _linear_oracle_law(),
         fit_query_ids=["fit-q1", "fit-q2"],
@@ -303,12 +339,9 @@ def test_oracle_candidate_order_qualification_is_explicit() -> None:
 
 def test_oracle_fitter_uses_only_disjoint_registered_grid() -> None:
     fit_queries = [
-        {"query_id": f"fit-q{index}", "feature_values": {"x": float(index)}}
-        for index in range(8)
+        {"query_id": f"fit-q{index}", "feature_values": {"x": float(index)}} for index in range(8)
     ]
-    fit_truth = {
-        f"fit-q{index}": {"score": (float(index) / 10.0) ** 2} for index in range(8)
-    }
+    fit_truth = {f"fit-q{index}": {"score": (float(index) / 10.0) ** 2} for index in range(8)}
     artifact = fit_oracle_law_from_disjoint_grid(
         fit_queries,
         fit_truth,
@@ -320,6 +353,207 @@ def test_oracle_fitter_uses_only_disjoint_registered_grid() -> None:
     assert artifact["fit_query_ids"] == [f"fit-q{index}" for index in range(8)]
     assert artifact["fit_used_candidate_outcomes"] is False
     assert artifact["law_summary"]["metric_laws"][0]["metric_id"] == "score"
+
+
+def test_candidate_calibrated_oracle_is_typed_deterministic_and_outcome_blind() -> None:
+    fit_queries = [
+        {
+            "query_id": f"fit-q{index:03d}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 0.25) / 96.0},
+        }
+        for index in range(96)
+    ]
+    fit_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in fit_queries
+    }
+    candidates = [
+        {
+            "query_id": f"candidate-q{index}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 1) / 9.0},
+        }
+        for index in range(8)
+    ]
+    kwargs = {
+        "candidate_queries": candidates,
+        "allowed_feature_ids": ["catalyst", "x"],
+        "allowed_metric_ids": ["score"],
+        "summary_id": "candidate-calibrated-oracle",
+        "neighbor_count": 4,
+        "candidate_calibration_weight": 16.0,
+    }
+    first = fit_candidate_calibrated_oracle_law_from_disjoint_grid(fit_queries, fit_truth, **kwargs)
+    second = fit_candidate_calibrated_oracle_law_from_disjoint_grid(
+        fit_queries, fit_truth, **kwargs
+    )
+    assert first == second
+    assert first["fit_used_candidate_outcomes"] is False
+    assert first["candidate_outcomes_used"] is False
+    assert first["candidate_feature_locations_used"] is True
+    assert first["calibration_contract"]["neighbor_count"] == 4
+    assert all(
+        candidate["query_id"] not in json.dumps(first["law_summary"], sort_keys=True)
+        for candidate in candidates
+    )
+    candidate_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in candidates
+    }
+    qualification = evaluate_oracle_law_candidate_order(
+        first,
+        candidate_queries=candidates,
+        candidate_truth=candidate_truth,
+        allowed_feature_ids=["catalyst", "x"],
+        allowed_metric_ids=["score"],
+        minimum_rank_correlation=0.8,
+    )
+    assert qualification["status"] == "passed"
+
+
+def test_candidate_domain_oracle_exactly_distills_outcome_blind_local_predictions() -> None:
+    fit_queries = [
+        {
+            "query_id": f"fit-q{index:03d}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 0.25) / 96.0},
+        }
+        for index in range(96)
+    ]
+    fit_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in fit_queries
+    }
+    candidates = [
+        {
+            "query_id": f"candidate-q{index}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 1) / 9.0},
+        }
+        for index in range(8)
+    ]
+    kwargs = {
+        "candidate_queries": candidates,
+        "allowed_feature_ids": ["catalyst", "x"],
+        "allowed_metric_ids": ["score"],
+        "summary_id": "candidate-domain-oracle",
+        "neighbor_count": 4,
+        "distillation_tolerance": 1.0e-9,
+    }
+    first = fit_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+        fit_queries, fit_truth, **kwargs
+    )
+    second = fit_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+        fit_queries, fit_truth, **kwargs
+    )
+    assert first == second
+    assert first["fit_used_candidate_outcomes"] is False
+    assert first["candidate_outcomes_used"] is False
+    assert first["candidate_feature_locations_used"] is True
+    assert first["calibration_contract"]["candidate_design_rank"] == 8
+    assert first["calibration_contract"]["maximum_absolute_error"] <= 1.0e-9
+    assert all(
+        candidate["query_id"] not in json.dumps(first["law_summary"], sort_keys=True)
+        for candidate in candidates
+    )
+    candidate_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in candidates
+    }
+    qualification = evaluate_oracle_law_candidate_order(
+        first,
+        candidate_queries=candidates,
+        candidate_truth=candidate_truth,
+        allowed_feature_ids=["catalyst", "x"],
+        allowed_metric_ids=["score"],
+        minimum_rank_correlation=0.8,
+    )
+    assert qualification["status"] == "passed"
+
+
+def test_extra_trees_candidate_domain_oracle_is_deterministic_and_outcome_blind() -> None:
+    fit_queries = [
+        {
+            "query_id": f"fit-q{index:03d}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 0.25) / 320.0},
+        }
+        for index in range(320)
+    ]
+    fit_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in fit_queries
+    }
+    candidates = [
+        {
+            "query_id": f"candidate-q{index}",
+            "feature_values": {"catalyst": index % 2, "x": (index + 1) / 9.0},
+        }
+        for index in range(8)
+    ]
+    kwargs = {
+        "candidate_queries": candidates,
+        "allowed_feature_ids": ["catalyst", "x"],
+        "allowed_metric_ids": ["score"],
+        "summary_id": "extra-trees-candidate-domain-oracle",
+        "tree_count": 64,
+        "min_samples_leaf": 1,
+        "random_seed": 20260824,
+        "distillation_tolerance": 1.0e-9,
+    }
+    first = fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+        fit_queries, fit_truth, **kwargs
+    )
+    second = fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+        fit_queries, fit_truth, **kwargs
+    )
+    assert first == second
+    assert first["fit_used_candidate_outcomes"] is False
+    assert first["candidate_outcomes_used"] is False
+    assert len(first["fit_query_ids"]) == 320
+    assert len(first["law_summary"]["evidence_ids"]) == 128
+    assert set(first["law_summary"]["evidence_ids"]).issubset(first["fit_query_ids"])
+    assert first["calibration_contract"]["tree_count"] == 64
+    assert first["calibration_contract"]["candidate_design_rank"] == 8
+    assert first["calibration_contract"]["maximum_absolute_error"] <= 1.0e-9
+    assert all(
+        candidate["query_id"] not in json.dumps(first["law_summary"], sort_keys=True)
+        for candidate in candidates
+    )
+    candidate_truth = {
+        row["query_id"]: {
+            "score": 0.2
+            + 0.6 * row["feature_values"]["x"]
+            + 0.05 * row["feature_values"]["catalyst"]
+        }
+        for row in candidates
+    }
+    qualification = evaluate_oracle_law_candidate_order(
+        first,
+        candidate_queries=candidates,
+        candidate_truth=candidate_truth,
+        allowed_feature_ids=["catalyst", "x"],
+        allowed_metric_ids=["score"],
+        minimum_rank_correlation=0.8,
+    )
+    assert qualification["evaluated_candidate_count"] == 8
+    assert not any("invalid oracle typed law" in error for error in qualification["errors"])
 
 
 def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -> None:
@@ -347,8 +581,7 @@ def test_dense_oracle_grid_is_truth_blind_deterministic_and_feature_disjoint() -
     assert len(first) == 96
     assert len({row["query_id"] for row in first}) == 96
     candidate_features = {
-        json.dumps(registered[index]["feature_values"], sort_keys=True)
-        for index in range(0, 16, 2)
+        json.dumps(registered[index]["feature_values"], sort_keys=True) for index in range(0, 16, 2)
     }
     assert not candidate_features & {
         json.dumps(row["feature_values"], sort_keys=True) for row in first
@@ -383,8 +616,7 @@ def test_hybrid_oracle_grid_has_fixed_global_and_candidate_neighborhood_coverage
     assert sum(row["grid_component"] == "global" for row in grid) == 32
     assert sum(row["grid_component"] == "candidate_neighborhood" for row in grid) == 64
     candidate_features = {
-        json.dumps(registered[index]["feature_values"], sort_keys=True)
-        for index in range(0, 16, 2)
+        json.dumps(registered[index]["feature_values"], sort_keys=True) for index in range(0, 16, 2)
     }
     assert not candidate_features & {
         json.dumps(row["feature_values"], sort_keys=True) for row in grid
@@ -404,8 +636,7 @@ def test_oracle_fitter_emits_executable_conditional_cubic_terms() -> None:
         row["query_id"]: {
             "score": (
                 row["feature_values"]["x"] ** 3
-                + row["feature_values"]["catalyst"]
-                * row["feature_values"]["x"] ** 2
+                + row["feature_values"]["catalyst"] * row["feature_values"]["x"] ** 2
             )
         }
         for row in fit_queries
@@ -418,10 +649,7 @@ def test_oracle_fitter_emits_executable_conditional_cubic_terms() -> None:
         allowed_metric_ids=["score"],
         summary_id="conditional-cubic-oracle",
     )
-    bases = {
-        term["basis"]
-        for term in artifact["law_summary"]["metric_laws"][0]["terms"]
-    }
+    bases = {term["basis"] for term in artifact["law_summary"]["metric_laws"][0]["terms"]}
     assert "cubic" in bases
     assert "conditional_quadratic" in bases
 
@@ -431,17 +659,13 @@ def test_dense_96_point_oracle_law_remains_executable() -> None:
         {"query_id": f"fit-q{index:03d}", "feature_values": {"x": index / 95.0}}
         for index in range(96)
     ]
-    fit_truth = {
-        row["query_id"]: {"score": row["feature_values"]["x"] ** 2}
-        for row in fit_queries
-    }
+    fit_truth = {row["query_id"]: {"score": row["feature_values"]["x"] ** 2} for row in fit_queries}
     candidates = [
         {"query_id": f"candidate-q{index}", "feature_values": {"x": index / 7.0}}
         for index in range(8)
     ]
     candidate_truth = {
-        row["query_id"]: {"score": row["feature_values"]["x"] ** 2}
-        for row in candidates
+        row["query_id"]: {"score": row["feature_values"]["x"] ** 2} for row in candidates
     }
     artifact = fit_oracle_law_from_disjoint_grid(
         fit_queries,
@@ -487,9 +711,7 @@ def test_missing_terminal_ranking_receives_failure_aware_worst_case() -> None:
 
 def test_terminal_analysis_pairs_priors_and_retains_missing_sessions() -> None:
     manifest = build_design_manifest(_protocol())
-    truth = {
-        f"q{index}": {"score": 1.0 - index * 0.1} for index in range(8)
-    }
+    truth = {f"q{index}": {"score": 1.0 - index * 0.1} for index in range(8)}
     truth_by_cluster = {cluster["cluster_id"]: truth for cluster in manifest["clusters"]}
     results = {}
     for cell in manifest["cells"]:
@@ -511,10 +733,7 @@ def test_terminal_analysis_pairs_priors_and_retains_missing_sessions() -> None:
     assert analysis["received_result_count"] == 224
     assert analysis["missing_or_unranked_session_count"] == 1
     assert len(analysis["paired_rows"]) == 45 * 6
-    assert all(
-        row["independent_cluster_count"] == 15
-        for row in analysis["contrast_summaries"]
-    )
+    assert all(row["independent_cluster_count"] == 15 for row in analysis["contrast_summaries"])
     primary = next(
         row
         for row in analysis["contrast_summaries"]
@@ -525,8 +744,7 @@ def test_terminal_analysis_pairs_priors_and_retains_missing_sessions() -> None:
 
 def test_law_implied_ranking_is_outcome_blind_and_action_agreement_is_separate() -> None:
     candidates = [
-        {"query_id": f"q{index}", "feature_values": {"x": float(index)}}
-        for index in range(8)
+        {"query_id": f"q{index}", "feature_values": {"x": float(index)}} for index in range(8)
     ]
     law = _linear_oracle_law()
     implied = predict_candidate_ranking_from_law(

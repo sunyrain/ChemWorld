@@ -1,0 +1,67 @@
+{
+  "schema_version": "chemworld-work-ii-evidence-to-action-oracle-qualification-closeout-0.1",
+  "study_id": "work-ii-evidence-to-action-causal-decomposition-v0.2",
+  "oracle_version": "v0.2",
+  "status": "scientifically_rejected",
+  "terminal_decision": "do_not_use_for_participant_or_formal_execution",
+  "planned_cluster_count": 15,
+  "complete_cluster_count": 1,
+  "incomplete_cluster_count": 1,
+  "not_started_cluster_count": 13,
+  "provider_call_count": 0,
+  "completed_truth_query_count": 160,
+  "completed_exact_replay_query_count": 160,
+  "platform_failure_count": 0,
+  "scientific_failure_count": 1,
+  "complete_clusters": [
+    {
+      "task_id": "electrochemical-conversion",
+      "world_seed": 762707071,
+      "grid_truth_query_count": 96,
+      "registered_truth_query_count": 16,
+      "exact_replay_query_count": 112,
+      "candidate_status": "passed",
+      "candidate_raw_score_range": 0.7060314416885376,
+      "candidate_raw_regret_at_least_0_05_count": 5,
+      "oracle_status": "failed",
+      "oracle_spearman_rank_correlation": 0.7857142857142857,
+      "minimum_oracle_spearman_rank_correlation": 0.8,
+      "oracle_top1_agreement": false,
+      "fit_candidate_overlap_count": 0,
+      "candidate_outcome_read_by_fitter_count": 0
+    }
+  ],
+  "incomplete_clusters": [
+    {
+      "task_id": "electrochemical-conversion",
+      "world_seed": 712842817,
+      "status": "incomplete_retained_not_reusable",
+      "completed_grid_truth_query_count": 48,
+      "planned_grid_truth_query_count": 96,
+      "completed_exact_replay_query_count": 48,
+      "registered_truth_query_count": 0,
+      "oracle_qualification_performed": false
+    }
+  ],
+  "not_started_world_seeds": [645405595, 416643243, 577005727],
+  "reserved_formal_world_seeds_not_evaluated": [
+    646446568,
+    184379333,
+    376407511,
+    300512245,
+    721425518
+  ],
+  "construction_diagnosis": {
+    "exposed_world_count": 24,
+    "v0.2_knn4_direct_spearman_on_failure_world": 0.9047619047619048,
+    "v0.2_typed_law_spearman_on_failure_world": 0.7857142857142857,
+    "diagnosis": "conditional_cubic_distillation_error_not_local_knn4_error",
+    "candidate_domain_exact_typed_distillation_exposed_pass_count": 24,
+    "candidate_domain_exact_typed_distillation_exposed_minimum_spearman": 0.8571428571428572,
+    "construction_results_are_not_qualification_evidence": true
+  },
+  "outcome_based_replacement_count": 0,
+  "threshold_relaxation": false,
+  "failed_world_removed": false,
+  "run_root": "runs/development/work-ii-evidence-to-action-causal-decomposition-v0.2/oracle-qualification-v0.1"
+}

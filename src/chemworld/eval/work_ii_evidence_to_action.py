@@ -13,6 +13,7 @@ from copy import deepcopy
 from typing import Any
 
 import numpy as np
+from sklearn.ensemble import ExtraTreesRegressor
 
 from chemworld.eval.work_ii_prior_discovery import parse_work_ii_law_summary
 
@@ -66,6 +67,7 @@ PRESPECIFIED_CONTRASTS = (
     ("oracle_law", "no_evidence"),
 )
 _HALTON_PRIMES = (2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41)
+_LAW_SUMMARY_MAX_EVIDENCE_IDS = 128
 
 
 def _string_list(value: Any) -> list[str]:
@@ -192,6 +194,64 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
         word_count = artifact.get("shared_maximum_artifact_word_count")
         if not isinstance(word_count, int) or isinstance(word_count, bool) or word_count <= 0:
             errors.append("shared artifact word limit must be a positive integer")
+        fit_strategy = artifact.get("oracle_fit_strategy", "disjoint_conditional_cubic_ridge")
+        if fit_strategy not in {
+            "disjoint_conditional_cubic_ridge",
+            "disjoint_knn4_candidate_location_calibrated_conditional_cubic_ridge",
+            "disjoint_knn4_candidate_domain_exact_typed_law_distillation",
+            "disjoint_extra_trees_candidate_domain_exact_typed_law_distillation",
+        }:
+            errors.append("oracle fit strategy is unsupported")
+        calibrated_strategies = {
+            "disjoint_knn4_candidate_location_calibrated_conditional_cubic_ridge",
+            "disjoint_knn4_candidate_domain_exact_typed_law_distillation",
+            "disjoint_extra_trees_candidate_domain_exact_typed_law_distillation",
+        }
+        if fit_strategy in calibrated_strategies:
+            if artifact.get("oracle_candidate_feature_locations_used") is not True:
+                errors.append("calibrated oracle must declare candidate feature-location use")
+            if artifact.get("oracle_candidate_outcomes_used") is not False:
+                errors.append("calibrated oracle may not use candidate outcomes")
+            if (
+                fit_strategy.startswith("disjoint_knn4")
+                and artifact.get("oracle_candidate_calibration_neighbor_count") != 4
+            ):
+                errors.append("calibrated oracle must use the frozen four-neighbor contract")
+        if (
+            fit_strategy == ("disjoint_knn4_candidate_location_calibrated_conditional_cubic_ridge")
+            and artifact.get("oracle_candidate_calibration_weight") != 16
+        ):
+            errors.append("calibrated oracle must use the frozen pseudo-observation weight")
+        if fit_strategy == ("disjoint_knn4_candidate_domain_exact_typed_law_distillation"):
+            if artifact.get("oracle_candidate_distillation_method") != (
+                "standardized_minimum_norm_least_squares"
+            ):
+                errors.append("candidate-domain oracle distillation method is invalid")
+            tolerance = artifact.get("oracle_candidate_distillation_tolerance")
+            if (
+                isinstance(tolerance, bool)
+                or not isinstance(tolerance, int | float)
+                or not 0.0 < float(tolerance) <= 1.0e-6
+            ):
+                errors.append("candidate-domain oracle distillation tolerance is invalid")
+        if fit_strategy == ("disjoint_extra_trees_candidate_domain_exact_typed_law_distillation"):
+            if artifact.get("oracle_candidate_predictor_tree_count") != 512:
+                errors.append("ExtraTrees oracle must use the frozen tree denominator")
+            if artifact.get("oracle_candidate_predictor_min_samples_leaf") != 1:
+                errors.append("ExtraTrees oracle must use the frozen leaf size")
+            if artifact.get("oracle_candidate_predictor_random_seed") != 20260824:
+                errors.append("ExtraTrees oracle must use the frozen random seed")
+            if artifact.get("oracle_candidate_distillation_method") != (
+                "standardized_minimum_norm_least_squares"
+            ):
+                errors.append("candidate-domain oracle distillation method is invalid")
+            tolerance = artifact.get("oracle_candidate_distillation_tolerance")
+            if (
+                isinstance(tolerance, bool)
+                or not isinstance(tolerance, int | float)
+                or not 0.0 < float(tolerance) <= 1.0e-6
+            ):
+                errors.append("candidate-domain oracle distillation tolerance is invalid")
 
     oracle_grid = protocol.get("oracle_grid_contract")
     if not isinstance(oracle_grid, Mapping):
@@ -208,11 +268,7 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
         if oracle_grid.get("candidate_feature_rows_excluded") is not True:
             errors.append("oracle grid must exclude terminal candidate feature rows")
         query_count = oracle_grid.get("query_count_per_task")
-        if (
-            not isinstance(query_count, int)
-            or isinstance(query_count, bool)
-            or query_count < 16
-        ):
+        if not isinstance(query_count, int) or isinstance(query_count, bool) or query_count < 16:
             errors.append("oracle grid must contain at least 16 queries per task")
         global_count = oracle_grid.get("global_query_count_per_task")
         neighborhood_count = oracle_grid.get("candidate_neighborhood_query_count_per_task")
@@ -232,11 +288,7 @@ def validate_protocol(protocol: Mapping[str, Any]) -> list[str]:
         ):
             errors.append("oracle candidate-neighborhood span is invalid")
         oversampling = oracle_grid.get("compile_valid_oversampling_factor")
-        if (
-            not isinstance(oversampling, int)
-            or isinstance(oversampling, bool)
-            or oversampling < 1
-        ):
+        if not isinstance(oversampling, int) or isinstance(oversampling, bool) or oversampling < 1:
             errors.append("oracle grid compile-valid oversampling factor is invalid")
 
     execution = protocol.get("execution")
@@ -427,8 +479,7 @@ def build_yoked_evidence_packet(
         }
         event = {
             "evidence_id": (
-                f"donor-experiment-{completed_experiments + 1:02d}-"
-                f"event-{event_index:03d}"
+                f"donor-experiment-{completed_experiments + 1:02d}-event-{event_index:03d}"
             ),
             "event_index": event_index,
             "donor_experiment_number": completed_experiments + 1,
@@ -538,6 +589,19 @@ def build_oracle_law_artifact(
     }
 
 
+def _law_summary_evidence_ids(fit_query_ids: Sequence[str]) -> list[str]:
+    """Select schema-bounded citations while preserving full fit provenance on the artifact."""
+
+    fit_ids = [str(query_id) for query_id in fit_query_ids]
+    if len(fit_ids) <= _LAW_SUMMARY_MAX_EVIDENCE_IDS:
+        return fit_ids
+    denominator = _LAW_SUMMARY_MAX_EVIDENCE_IDS - 1
+    return [
+        fit_ids[index * (len(fit_ids) - 1) // denominator]
+        for index in range(_LAW_SUMMARY_MAX_EVIDENCE_IDS)
+    ]
+
+
 def _radical_inverse(index: int, base: int) -> float:
     value = 0.0
     scale = 1.0 / base
@@ -612,9 +676,7 @@ def build_disjoint_oracle_grid(
                 isinstance(value, int) and not isinstance(value, bool) for value in unique
             )
             if categorical:
-                coordinate = _radical_inverse(
-                    design_index, _HALTON_PRIMES[feature_index]
-                )
+                coordinate = _radical_inverse(design_index, _HALTON_PRIMES[feature_index])
                 position = min(int(coordinate * len(unique)), len(unique) - 1)
                 features[feature_id] = unique[position]
                 continue
@@ -629,9 +691,7 @@ def build_disjoint_oracle_grid(
                 )
             low = min(float(value) for value in unique)
             high = max(float(value) for value in unique)
-            coordinate = _radical_inverse(
-                design_index, _HALTON_PRIMES[feature_index]
-            )
+            coordinate = _radical_inverse(design_index, _HALTON_PRIMES[feature_index])
             features[feature_id] = low + (high - low) * coordinate
         rendered = json.dumps(features, sort_keys=True, separators=(",", ":"))
         design_index += 1
@@ -696,17 +756,12 @@ def build_hybrid_disjoint_oracle_grid(
     )
     candidate_rows = [rows_by_id[query_id] for query_id in candidate_ids]
     feature_columns = {
-        feature_id: [
-            row["feature_values"][feature_id] for row in registered_queries
-        ]
+        feature_id: [row["feature_values"][feature_id] for row in registered_queries]
         for feature_id in allowed_feature_ids
     }
     candidate_features = {
         json.dumps(
-            {
-                feature_id: row["feature_values"][feature_id]
-                for feature_id in allowed_feature_ids
-            },
+            {feature_id: row["feature_values"][feature_id] for feature_id in allowed_feature_ids},
             sort_keys=True,
             separators=(",", ":"),
         )
@@ -853,9 +908,7 @@ def _oracle_basis_specs(
     specs = categorical_specs + specs
     for left_index, left_id in enumerate(numeric):
         for right_id in numeric[left_index + 1 :]:
-            specs.append(
-                {"basis": "interaction", "input_ids": [left_id, right_id]}
-            )
+            specs.append({"basis": "interaction", "input_ids": [left_id, right_id]})
     for categorical in categorical_specs:
         categorical_id = categorical["input_ids"][0]
         for numeric_id in numeric:
@@ -917,6 +970,615 @@ def _ridge_coefficients(
     return intercept, coefficients
 
 
+def _weighted_ridge_coefficients(
+    matrix: np.ndarray,
+    response: np.ndarray,
+    weights: np.ndarray,
+    penalty: float,
+) -> tuple[float, np.ndarray]:
+    """Fit ridge coefficients with deterministic positive observation weights."""
+
+    if matrix.ndim != 2 or response.ndim != 1 or weights.ndim != 1:
+        raise ValueError("weighted ridge inputs have invalid dimensions")
+    if len(matrix) != len(response) or len(response) != len(weights):
+        raise ValueError("weighted ridge inputs have different denominators")
+    if not np.isfinite(weights).all() or np.any(weights <= 0.0):
+        raise ValueError("weighted ridge requires finite positive weights")
+    centers = np.average(matrix, axis=0, weights=weights)
+    scales = np.sqrt(np.average((matrix - centers) ** 2, axis=0, weights=weights))
+    scales = np.where(scales <= 1.0e-12, 1.0, scales)
+    standardized = (matrix - centers) / scales
+    response_mean = float(np.average(response, weights=weights))
+    root_weights = np.sqrt(weights)
+    weighted_matrix = standardized * root_weights[:, None]
+    weighted_response = (response - response_mean) * root_weights
+    gram = weighted_matrix.T @ weighted_matrix + penalty * np.eye(matrix.shape[1])
+    beta_standardized = np.linalg.solve(gram, weighted_matrix.T @ weighted_response)
+    coefficients = beta_standardized / scales
+    intercept = float(response_mean - coefficients @ centers)
+    return intercept, coefficients
+
+
+def _oracle_knn_candidate_predictions(
+    fit_queries: Sequence[Mapping[str, Any]],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    candidate_queries: Sequence[Mapping[str, Any]],
+    *,
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    neighbor_count: int,
+) -> dict[str, dict[str, float]]:
+    """Predict candidates from a disjoint grid without reading candidate outcomes."""
+
+    if neighbor_count < 1 or neighbor_count > len(fit_queries):
+        raise ValueError("oracle neighbor count is outside the fit-grid denominator")
+    specs = _oracle_basis_specs(fit_queries, allowed_feature_ids)
+    categorical_ids = {
+        str(spec["input_ids"][0]) for spec in specs if spec["basis"] == "categorical_level"
+    }
+    numeric_ids = [
+        str(feature_id)
+        for feature_id in allowed_feature_ids
+        if str(feature_id) not in categorical_ids
+    ]
+    scales = {
+        feature_id: max(
+            float(np.std([float(row["feature_values"][feature_id]) for row in fit_queries])),
+            1.0e-12,
+        )
+        for feature_id in numeric_ids
+    }
+
+    predictions: dict[str, dict[str, float]] = {}
+    for candidate in candidate_queries:
+        candidate_id = str(candidate.get("query_id"))
+        features = candidate.get("feature_values")
+        if not isinstance(features, Mapping):
+            raise ValueError(f"{candidate_id}: candidate features are missing")
+        distances: list[tuple[float, int, str]] = []
+        for index, fit_query in enumerate(fit_queries):
+            fit_id = str(fit_query.get("query_id"))
+            fit_features = fit_query.get("feature_values")
+            if not isinstance(fit_features, Mapping):
+                raise ValueError(f"{fit_id}: oracle fit features are missing")
+            squared_distance = sum(
+                (
+                    (float(features[feature_id]) - float(fit_features[feature_id]))
+                    / scales[feature_id]
+                )
+                ** 2
+                for feature_id in numeric_ids
+            )
+            squared_distance += 2.0 * sum(
+                features[feature_id] != fit_features[feature_id] for feature_id in categorical_ids
+            )
+            distances.append((math.sqrt(squared_distance), index, fit_id))
+        nearest = sorted(distances, key=lambda item: (item[0], item[1], item[2]))[:neighbor_count]
+        if nearest[0][0] <= 1.0e-12:
+            weights = np.asarray(
+                [1.0 if distance <= 1.0e-12 else 0.0 for distance, _, _ in nearest],
+                dtype=float,
+            )
+        else:
+            weights = np.asarray([1.0 / distance for distance, _, _ in nearest], dtype=float)
+        predictions[candidate_id] = {}
+        for metric_id in allowed_metric_ids:
+            values = np.asarray(
+                [float(fit_truth[fit_id][metric_id]) for _, _, fit_id in nearest],
+                dtype=float,
+            )
+            predictions[candidate_id][str(metric_id)] = float(np.average(values, weights=weights))
+    return predictions
+
+
+def fit_candidate_calibrated_oracle_law_from_disjoint_grid(
+    fit_queries: Sequence[Mapping[str, Any]],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    *,
+    candidate_queries: Sequence[Mapping[str, Any]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    summary_id: str,
+    neighbor_count: int = 4,
+    candidate_calibration_weight: float = 16.0,
+) -> dict[str, Any]:
+    """Distill outcome-blind local candidate predictions into the shared typed-law schema."""
+
+    if len(candidate_queries) != 8:
+        raise ValueError("candidate-calibrated oracle requires exactly eight candidates")
+    if candidate_calibration_weight <= 0.0 or not math.isfinite(candidate_calibration_weight):
+        raise ValueError("candidate calibration weight must be finite and positive")
+    fit_ids = [str(row.get("query_id")) for row in fit_queries]
+    candidate_ids = [str(row.get("query_id")) for row in candidate_queries]
+    if len(set(candidate_ids)) != len(candidate_ids):
+        raise ValueError("candidate-calibrated oracle requires unique candidate IDs")
+    if set(fit_ids) & set(candidate_ids):
+        raise ValueError("oracle fit grid overlaps the terminal candidate packet")
+    if len(set(fit_ids)) != len(fit_queries) or set(fit_ids) != set(map(str, fit_truth)):
+        raise ValueError("oracle fit query/truth denominator differs")
+    for row in [*fit_queries, *candidate_queries]:
+        features = row.get("feature_values")
+        if not isinstance(features, Mapping) or not set(allowed_feature_ids).issubset(features):
+            raise ValueError("oracle fit or candidate query lacks the declared feature scope")
+
+    specs = _oracle_basis_specs(fit_queries, allowed_feature_ids)
+    if not specs:
+        raise ValueError("oracle fit grid has no varying scientific features")
+    fit_matrix = np.asarray(
+        [
+            [_oracle_basis_value(spec, row["feature_values"]) for spec in specs]
+            for row in fit_queries
+        ],
+        dtype=float,
+    )
+    candidate_matrix = np.asarray(
+        [
+            [_oracle_basis_value(spec, row["feature_values"]) for spec in specs]
+            for row in candidate_queries
+        ],
+        dtype=float,
+    )
+    local_predictions = _oracle_knn_candidate_predictions(
+        fit_queries,
+        fit_truth,
+        candidate_queries,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        neighbor_count=neighbor_count,
+    )
+    combined_matrix = np.vstack([fit_matrix, candidate_matrix])
+    weights = np.concatenate(
+        [
+            np.ones(len(fit_queries), dtype=float),
+            np.full(len(candidate_queries), candidate_calibration_weight, dtype=float),
+        ]
+    )
+    metric_laws: list[dict[str, Any]] = []
+    for metric_id in allowed_metric_ids:
+        response = np.asarray(
+            [float(fit_truth[query_id][metric_id]) for query_id in fit_ids], dtype=float
+        )
+        pseudo_response = np.asarray(
+            [local_predictions[query_id][str(metric_id)] for query_id in candidate_ids],
+            dtype=float,
+        )
+        if not np.isfinite(response).all() or not np.isfinite(pseudo_response).all():
+            raise ValueError(f"oracle fit truth or calibration for {metric_id} is not finite")
+        penalty = _select_oracle_ridge_penalty(fit_matrix, response)
+        intercept, coefficients = _weighted_ridge_coefficients(
+            combined_matrix,
+            np.concatenate([response, pseudo_response]),
+            weights,
+            penalty,
+        )
+        terms = [
+            {
+                "term_id": f"{metric_id}-term-{term_index:02d}",
+                **deepcopy(dict(spec)),
+                "coefficient": float(coefficient),
+            }
+            for term_index, (spec, coefficient) in enumerate(
+                zip(specs, coefficients, strict=True), start=1
+            )
+        ]
+        metric_laws.append(
+            {
+                "metric_id": str(metric_id),
+                "intercept": intercept,
+                "link": "identity",
+                "lower_bound": 0.0,
+                "upper_bound": 1.0,
+                "terms": terms,
+            }
+        )
+    law_summary = {
+        "schema_version": "chemworld-work-ii-law-summary-0.1",
+        "summary_id": summary_id,
+        "feature_ids": list(allowed_feature_ids),
+        "metric_laws": metric_laws,
+        "evidence_ids": _law_summary_evidence_ids(fit_ids),
+        "applicability": "registered complete-ActionPlan candidate domain",
+        "limitations": [
+            "provider-free conditional cubic ridge distilled from a disjoint hybrid grid "
+            "and outcome-blind four-neighbor predictions at public candidate locations"
+        ],
+        "confidence": 1.0,
+    }
+    artifact = build_oracle_law_artifact(
+        law_summary,
+        fit_query_ids=fit_ids,
+        candidate_query_ids=candidate_ids,
+        fitted_from_candidate_outcomes=False,
+    )
+    artifact["candidate_feature_locations_used"] = True
+    artifact["candidate_outcomes_used"] = False
+    artifact["calibration_contract"] = {
+        "predictor": "standardized_onehot_euclidean_knn_inverse_distance",
+        "neighbor_count": neighbor_count,
+        "pseudo_observation_weight": candidate_calibration_weight,
+        "penalty_selection_reads_candidate_outcomes": False,
+    }
+    return artifact
+
+
+def _minimum_norm_candidate_domain_coefficients(
+    matrix: np.ndarray,
+    response: np.ndarray,
+    *,
+    tolerance: float,
+) -> tuple[float, np.ndarray, int, float]:
+    """Exactly project outcome-blind candidate predictions into the typed-law basis."""
+
+    if matrix.ndim != 2 or response.ndim != 1 or len(matrix) != len(response):
+        raise ValueError("candidate-domain distillation inputs have invalid dimensions")
+    if len(response) < 2 or not np.isfinite(matrix).all() or not np.isfinite(response).all():
+        raise ValueError("candidate-domain distillation inputs must be finite")
+    if not math.isfinite(tolerance) or tolerance <= 0.0:
+        raise ValueError("candidate-domain distillation tolerance must be positive")
+    centers = matrix.mean(axis=0)
+    scales = matrix.std(axis=0)
+    scales = np.where(scales <= 1.0e-12, 1.0, scales)
+    standardized = (matrix - centers) / scales
+    design = np.column_stack([np.ones(len(matrix), dtype=float), standardized])
+    rank = int(np.linalg.matrix_rank(design))
+    if rank != len(response):
+        raise ValueError(
+            "candidate-domain typed-law basis cannot independently represent all candidates"
+        )
+    solution, _, _, _ = np.linalg.lstsq(design, response, rcond=None)
+    standardized_intercept = float(solution[0])
+    coefficients = np.asarray(solution[1:] / scales, dtype=float)
+    intercept = float(standardized_intercept - coefficients @ centers)
+    reconstructed = intercept + matrix @ coefficients
+    maximum_error = float(np.max(np.abs(reconstructed - response)))
+    if maximum_error > tolerance:
+        raise ValueError("candidate-domain typed-law distillation exceeds its frozen tolerance")
+    return intercept, coefficients, rank, maximum_error
+
+
+def fit_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+    fit_queries: Sequence[Mapping[str, Any]],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    *,
+    candidate_queries: Sequence[Mapping[str, Any]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    summary_id: str,
+    neighbor_count: int = 4,
+    distillation_tolerance: float = 1.0e-9,
+) -> dict[str, Any]:
+    """Distill outcome-blind KNN predictions exactly at the public decision locations."""
+
+    if len(candidate_queries) != 8:
+        raise ValueError("candidate-domain oracle requires exactly eight candidates")
+    fit_ids = [str(row.get("query_id")) for row in fit_queries]
+    candidate_ids = [str(row.get("query_id")) for row in candidate_queries]
+    if len(set(candidate_ids)) != len(candidate_ids):
+        raise ValueError("candidate-domain oracle requires unique candidate IDs")
+    if set(fit_ids) & set(candidate_ids):
+        raise ValueError("oracle fit grid overlaps the terminal candidate packet")
+    if len(set(fit_ids)) != len(fit_queries) or set(fit_ids) != set(map(str, fit_truth)):
+        raise ValueError("oracle fit query/truth denominator differs")
+    for row in [*fit_queries, *candidate_queries]:
+        features = row.get("feature_values")
+        if not isinstance(features, Mapping) or not set(allowed_feature_ids).issubset(features):
+            raise ValueError("oracle fit or candidate query lacks the declared feature scope")
+
+    specs = _oracle_basis_specs(fit_queries, allowed_feature_ids)
+    if not specs:
+        raise ValueError("oracle fit grid has no varying scientific features")
+    candidate_matrix = np.asarray(
+        [
+            [_oracle_basis_value(spec, row["feature_values"]) for spec in specs]
+            for row in candidate_queries
+        ],
+        dtype=float,
+    )
+    local_predictions = _oracle_knn_candidate_predictions(
+        fit_queries,
+        fit_truth,
+        candidate_queries,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        neighbor_count=neighbor_count,
+    )
+    metric_laws: list[dict[str, Any]] = []
+    maximum_errors: dict[str, float] = {}
+    candidate_design_rank: int | None = None
+    for metric_id in allowed_metric_ids:
+        pseudo_response = np.asarray(
+            [local_predictions[query_id][str(metric_id)] for query_id in candidate_ids],
+            dtype=float,
+        )
+        intercept, coefficients, rank, maximum_error = _minimum_norm_candidate_domain_coefficients(
+            candidate_matrix,
+            pseudo_response,
+            tolerance=distillation_tolerance,
+        )
+        candidate_design_rank = rank
+        maximum_errors[str(metric_id)] = maximum_error
+        terms = [
+            {
+                "term_id": f"{metric_id}-term-{term_index:02d}",
+                **deepcopy(dict(spec)),
+                "coefficient": float(coefficient),
+            }
+            for term_index, (spec, coefficient) in enumerate(
+                zip(specs, coefficients, strict=True), start=1
+            )
+        ]
+        metric_laws.append(
+            {
+                "metric_id": str(metric_id),
+                "intercept": intercept,
+                "link": "identity",
+                "lower_bound": 0.0,
+                "upper_bound": 1.0,
+                "terms": terms,
+            }
+        )
+    law_summary = {
+        "schema_version": "chemworld-work-ii-law-summary-0.1",
+        "summary_id": summary_id,
+        "feature_ids": list(allowed_feature_ids),
+        "metric_laws": metric_laws,
+        "evidence_ids": _law_summary_evidence_ids(fit_ids),
+        "applicability": "registered complete-ActionPlan candidate domain",
+        "limitations": [
+            "provider-free conditional-cubic typed law exactly distilled at public "
+            "candidate locations from disjoint-grid outcome-blind four-neighbor predictions"
+        ],
+        "confidence": 1.0,
+    }
+    artifact = build_oracle_law_artifact(
+        law_summary,
+        fit_query_ids=fit_ids,
+        candidate_query_ids=candidate_ids,
+        fitted_from_candidate_outcomes=False,
+    )
+    artifact["candidate_feature_locations_used"] = True
+    artifact["candidate_outcomes_used"] = False
+    artifact["calibration_contract"] = {
+        "predictor": "standardized_onehot_euclidean_knn_inverse_distance",
+        "neighbor_count": neighbor_count,
+        "distillation_method": "standardized_minimum_norm_least_squares",
+        "distillation_tolerance": distillation_tolerance,
+        "candidate_design_rank": candidate_design_rank,
+        "metric_maximum_absolute_errors": maximum_errors,
+        "maximum_absolute_error": max(maximum_errors.values(), default=0.0),
+        "candidate_outcomes_used": False,
+    }
+    return artifact
+
+
+def _oracle_extra_trees_candidate_predictions(
+    fit_queries: Sequence[Mapping[str, Any]],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    candidate_queries: Sequence[Mapping[str, Any]],
+    *,
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    tree_count: int,
+    min_samples_leaf: int,
+    random_seed: int,
+) -> dict[str, dict[str, float]]:
+    """Predict public candidate locations with one fixed disjoint-grid tree ensemble."""
+
+    if tree_count < 1 or min_samples_leaf < 1:
+        raise ValueError("ExtraTrees oracle hyperparameters must be positive")
+    specs = _oracle_basis_specs(fit_queries, allowed_feature_ids)
+    categorical_ids = [
+        str(feature_id)
+        for feature_id in allowed_feature_ids
+        if any(
+            spec["basis"] == "categorical_level" and str(spec["input_ids"][0]) == str(feature_id)
+            for spec in specs
+        )
+    ]
+    numeric_ids = [
+        str(feature_id)
+        for feature_id in allowed_feature_ids
+        if str(feature_id) not in set(categorical_ids)
+        and len({row["feature_values"][feature_id] for row in fit_queries}) > 1
+    ]
+    levels = {
+        feature_id: sorted(
+            {row["feature_values"][feature_id] for row in fit_queries},
+            key=lambda value: (str(type(value)), str(value)),
+        )
+        for feature_id in categorical_ids
+    }
+    means = {
+        feature_id: float(
+            np.mean([float(row["feature_values"][feature_id]) for row in fit_queries])
+        )
+        for feature_id in numeric_ids
+    }
+    scales = {
+        feature_id: max(
+            float(np.std([float(row["feature_values"][feature_id]) for row in fit_queries])),
+            1.0e-12,
+        )
+        for feature_id in numeric_ids
+    }
+
+    def encode(rows: Sequence[Mapping[str, Any]]) -> np.ndarray:
+        encoded: list[list[float]] = []
+        for row in rows:
+            features = row.get("feature_values")
+            if not isinstance(features, Mapping):
+                raise ValueError("ExtraTrees oracle features are missing")
+            values: list[float] = []
+            for feature_id in categorical_ids:
+                if features[feature_id] not in levels[feature_id]:
+                    raise ValueError("ExtraTrees oracle encountered an unknown category")
+                values.extend(
+                    math.sqrt(2.0) * float(features[feature_id] == level)
+                    for level in levels[feature_id]
+                )
+            values.extend(
+                (float(features[feature_id]) - means[feature_id]) / scales[feature_id]
+                for feature_id in numeric_ids
+            )
+            encoded.append(values)
+        return np.asarray(encoded, dtype=float)
+
+    fit_ids = [str(row.get("query_id")) for row in fit_queries]
+    fit_matrix = encode(fit_queries)
+    candidate_matrix = encode(candidate_queries)
+    response = np.asarray(
+        [
+            [float(fit_truth[query_id][metric_id]) for metric_id in allowed_metric_ids]
+            for query_id in fit_ids
+        ],
+        dtype=float,
+    )
+    if not np.isfinite(response).all():
+        raise ValueError("ExtraTrees oracle truth is not finite")
+    predicted = np.empty((len(candidate_queries), len(allowed_metric_ids)), dtype=float)
+    for metric_index in range(len(allowed_metric_ids)):
+        model = ExtraTreesRegressor(
+            n_estimators=tree_count,
+            min_samples_leaf=min_samples_leaf,
+            max_features=1.0,
+            bootstrap=False,
+            random_state=random_seed,
+            n_jobs=1,
+        )
+        model.fit(fit_matrix, response[:, metric_index])
+        predicted[:, metric_index] = model.predict(candidate_matrix)
+    return {
+        str(candidate["query_id"]): {
+            str(metric_id): float(predicted[candidate_index, metric_index])
+            for metric_index, metric_id in enumerate(allowed_metric_ids)
+        }
+        for candidate_index, candidate in enumerate(candidate_queries)
+    }
+
+
+def fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+    fit_queries: Sequence[Mapping[str, Any]],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    *,
+    candidate_queries: Sequence[Mapping[str, Any]],
+    allowed_feature_ids: Sequence[str],
+    allowed_metric_ids: Sequence[str],
+    summary_id: str,
+    tree_count: int = 512,
+    min_samples_leaf: int = 1,
+    random_seed: int = 20260824,
+    distillation_tolerance: float = 1.0e-9,
+) -> dict[str, Any]:
+    """Distill fixed ExtraTrees predictions exactly into the shared typed-law schema."""
+
+    if len(candidate_queries) != 8:
+        raise ValueError("candidate-domain oracle requires exactly eight candidates")
+    fit_ids = [str(row.get("query_id")) for row in fit_queries]
+    candidate_ids = [str(row.get("query_id")) for row in candidate_queries]
+    if len(set(candidate_ids)) != len(candidate_ids):
+        raise ValueError("candidate-domain oracle requires unique candidate IDs")
+    if set(fit_ids) & set(candidate_ids):
+        raise ValueError("oracle fit grid overlaps the terminal candidate packet")
+    if len(set(fit_ids)) != len(fit_queries) or set(fit_ids) != set(map(str, fit_truth)):
+        raise ValueError("oracle fit query/truth denominator differs")
+    for row in [*fit_queries, *candidate_queries]:
+        features = row.get("feature_values")
+        if not isinstance(features, Mapping) or not set(allowed_feature_ids).issubset(features):
+            raise ValueError("oracle fit or candidate query lacks the declared feature scope")
+
+    specs = _oracle_basis_specs(fit_queries, allowed_feature_ids)
+    if not specs:
+        raise ValueError("oracle fit grid has no varying scientific features")
+    candidate_matrix = np.asarray(
+        [
+            [_oracle_basis_value(spec, row["feature_values"]) for spec in specs]
+            for row in candidate_queries
+        ],
+        dtype=float,
+    )
+    local_predictions = _oracle_extra_trees_candidate_predictions(
+        fit_queries,
+        fit_truth,
+        candidate_queries,
+        allowed_feature_ids=allowed_feature_ids,
+        allowed_metric_ids=allowed_metric_ids,
+        tree_count=tree_count,
+        min_samples_leaf=min_samples_leaf,
+        random_seed=random_seed,
+    )
+    metric_laws: list[dict[str, Any]] = []
+    maximum_errors: dict[str, float] = {}
+    candidate_design_rank: int | None = None
+    for metric_id in allowed_metric_ids:
+        pseudo_response = np.asarray(
+            [local_predictions[query_id][str(metric_id)] for query_id in candidate_ids],
+            dtype=float,
+        )
+        intercept, coefficients, rank, maximum_error = _minimum_norm_candidate_domain_coefficients(
+            candidate_matrix,
+            pseudo_response,
+            tolerance=distillation_tolerance,
+        )
+        candidate_design_rank = rank
+        maximum_errors[str(metric_id)] = maximum_error
+        terms = [
+            {
+                "term_id": f"{metric_id}-term-{term_index:02d}",
+                **deepcopy(dict(spec)),
+                "coefficient": float(coefficient),
+            }
+            for term_index, (spec, coefficient) in enumerate(
+                zip(specs, coefficients, strict=True), start=1
+            )
+        ]
+        metric_laws.append(
+            {
+                "metric_id": str(metric_id),
+                "intercept": intercept,
+                "link": "identity",
+                "lower_bound": 0.0,
+                "upper_bound": 1.0,
+                "terms": terms,
+            }
+        )
+    law_summary = {
+        "schema_version": "chemworld-work-ii-law-summary-0.1",
+        "summary_id": summary_id,
+        "feature_ids": list(allowed_feature_ids),
+        "metric_laws": metric_laws,
+        "evidence_ids": _law_summary_evidence_ids(fit_ids),
+        "applicability": "registered complete-ActionPlan candidate domain",
+        "limitations": [
+            "provider-free conditional-cubic typed law exactly distilled at public "
+            "candidate locations from a fixed disjoint-grid ExtraTrees predictor"
+        ],
+        "confidence": 1.0,
+    }
+    artifact = build_oracle_law_artifact(
+        law_summary,
+        fit_query_ids=fit_ids,
+        candidate_query_ids=candidate_ids,
+        fitted_from_candidate_outcomes=False,
+    )
+    artifact["candidate_feature_locations_used"] = True
+    artifact["candidate_outcomes_used"] = False
+    artifact["calibration_contract"] = {
+        "predictor": "standardized_onehot_extra_trees_regressor",
+        "tree_count": tree_count,
+        "min_samples_leaf": min_samples_leaf,
+        "max_features": 1.0,
+        "bootstrap": False,
+        "random_seed": random_seed,
+        "distillation_method": "standardized_minimum_norm_least_squares",
+        "distillation_tolerance": distillation_tolerance,
+        "candidate_design_rank": candidate_design_rank,
+        "metric_maximum_absolute_errors": maximum_errors,
+        "maximum_absolute_error": max(maximum_errors.values(), default=0.0),
+        "candidate_outcomes_used": False,
+    }
+    return artifact
+
+
 def _select_oracle_ridge_penalty(matrix: np.ndarray, response: np.ndarray) -> float:
     penalties = (1.0e-4, 1.0e-3, 1.0e-2, 1.0e-1, 1.0, 10.0)
     candidates: list[tuple[float, float]] = []
@@ -924,12 +1586,8 @@ def _select_oracle_ridge_penalty(matrix: np.ndarray, response: np.ndarray) -> fl
     for penalty in penalties:
         errors: list[float] = []
         for fold in range(fold_count):
-            held_out = [
-                index for index in range(len(response)) if index % fold_count == fold
-            ]
-            retained = [
-                index for index in range(len(response)) if index % fold_count != fold
-            ]
+            held_out = [index for index in range(len(response)) if index % fold_count == fold]
+            retained = [index for index in range(len(response)) if index % fold_count != fold]
             intercept, coefficients = _ridge_coefficients(
                 matrix[retained], response[retained], penalty
             )
@@ -1009,7 +1667,7 @@ def fit_oracle_law_from_disjoint_grid(
         "summary_id": summary_id,
         "feature_ids": list(allowed_feature_ids),
         "metric_laws": metric_laws,
-        "evidence_ids": fit_ids,
+        "evidence_ids": _law_summary_evidence_ids(fit_ids),
         "applicability": "registered complete-ActionPlan candidate domain",
         "limitations": [
             "provider-free conditional cubic ridge surrogate fitted only on the disjoint "
@@ -1121,9 +1779,10 @@ def evaluate_oracle_law_candidate_order(
     top1_agreement = False
     if len(evaluated_ids) == len(candidate_queries) and len(evaluated_ids) >= 2:
         correlation = _pearson_correlation(_average_ranks(predictions), _average_ranks(truths))
-        top1_agreement = evaluated_ids[predictions.index(max(predictions))] == evaluated_ids[
-            truths.index(max(truths))
-        ]
+        top1_agreement = (
+            evaluated_ids[predictions.index(max(predictions))]
+            == evaluated_ids[truths.index(max(truths))]
+        )
         if correlation < minimum_rank_correlation:
             errors.append(
                 f"oracle candidate rank correlation {correlation:.6f} is below "
@@ -1369,8 +2028,7 @@ def analyze_terminal_results(
                         float(treatment_row["failure_aware_normalized_regret"])
                         - float(control_row["failure_aware_normalized_regret"])
                     ),
-                    "top1_difference": int(treatment_row["top1"])
-                    - int(control_row["top1"]),
+                    "top1_difference": int(treatment_row["top1"]) - int(control_row["top1"]),
                 }
             )
 
@@ -1448,9 +2106,7 @@ def build_design_manifest(protocol: Mapping[str, Any]) -> dict[str, Any]:
             cluster_id = f"E2A--{task_id}--seed{world_seed}"
             cluster_cells: list[str] = []
             cluster_strata: list[str] = []
-            packet_seed = (
-                int(protocol["candidate_packet_seed_base"]) + task_index * 100
-            )
+            packet_seed = int(protocol["candidate_packet_seed_base"]) + task_index * 100
             for prior_arm in PRIOR_ARMS:
                 stratum_id = f"{cluster_id}--{prior_arm}"
                 donor_cell_id = _cell_id(stratum_id, DONOR_CONDITION)
@@ -1474,9 +2130,9 @@ def build_design_manifest(protocol: Mapping[str, Any]) -> dict[str, Any]:
                         "checkpoint_stages": deepcopy(
                             list(conditions[condition]["checkpoint_stages"])
                         ),
-                        "candidate_reveal_gate": protocol["candidate_contract"][
-                            "reveal_gates"
-                        ][condition],
+                        "candidate_reveal_gate": protocol["candidate_contract"]["reveal_gates"][
+                            condition
+                        ],
                         "candidate_outcomes_hidden": True,
                         "dependency_cell_ids": [donor_cell_id] if derived else [],
                         "missing_dependency_status": (
@@ -1565,6 +2221,9 @@ __all__ = [
     "evaluate_candidate_packet",
     "evaluate_law_action_agreement",
     "evaluate_oracle_law_candidate_order",
+    "fit_candidate_calibrated_oracle_law_from_disjoint_grid",
+    "fit_candidate_domain_distilled_oracle_law_from_disjoint_grid",
+    "fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid",
     "fit_oracle_law_from_disjoint_grid",
     "predict_candidate_ranking_from_law",
     "score_terminal_ranking",

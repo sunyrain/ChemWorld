@@ -15,6 +15,7 @@ from typing import Any
 WORK_II_LAW_SUMMARY_SCHEMA_VERSION = "chemworld-work-ii-law-summary-0.1"
 WORK_II_SNAPSHOT_SCHEMA_VERSION = "chemworld-work-ii-belief-snapshot-0.1"
 WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION = "chemworld-work-ii-held-out-query-0.1"
+WORK_II_EVIDENCE_ID_MAX_ITEMS = 128
 WORK_II_SNAPSHOT_STAGES = (
     "pre_evidence",
     "after_experiment_1",
@@ -383,7 +384,7 @@ def parse_work_ii_law_summary(
         value["evidence_ids"],
         "law_summary.evidence_ids",
         allow_empty=True,
-        maximum_items=128,
+        maximum_items=WORK_II_EVIDENCE_ID_MAX_ITEMS,
     )
     if not set(evidence_ids).issubset(set(evidence_catalog)):
         raise ValueError("law_summary cites an unknown evidence ID")
@@ -549,7 +550,10 @@ def parse_work_ii_belief_snapshot_header(
     if not set(suspected).issubset(set(allowed_prior_fields)):
         raise ValueError("prior assessment contains an unknown dossier field")
     evidence_ids = _string_tuple(
-        value["evidence_ids"], "belief_snapshot.evidence_ids", allow_empty=True
+        value["evidence_ids"],
+        "belief_snapshot.evidence_ids",
+        allow_empty=True,
+        maximum_items=WORK_II_EVIDENCE_ID_MAX_ITEMS,
     )
     if not set(evidence_ids).issubset(set(evidence_catalog)):
         raise ValueError("belief_snapshot cites an unknown evidence ID")
@@ -576,7 +580,10 @@ def parse_work_ii_belief_snapshot_header(
     if not set(feature_ids).issubset(set(allowed_feature_ids)):
         raise ValueError("law_summary contains an unknown feature ID")
     law_evidence_ids = _string_tuple(
-        law["evidence_ids"], "law_summary.evidence_ids", allow_empty=True
+        law["evidence_ids"],
+        "law_summary.evidence_ids",
+        allow_empty=True,
+        maximum_items=WORK_II_EVIDENCE_ID_MAX_ITEMS,
     )
     if not set(law_evidence_ids).issubset(set(evidence_catalog)):
         raise ValueError("law_summary cites an unknown evidence ID")
@@ -781,7 +788,10 @@ def parse_work_ii_belief_snapshot(
     if not set(suspected).issubset(set(allowed_prior_fields)):
         raise ValueError("prior assessment contains an unknown dossier field")
     evidence_ids = _string_tuple(
-        value["evidence_ids"], "belief_snapshot.evidence_ids", allow_empty=True
+        value["evidence_ids"],
+        "belief_snapshot.evidence_ids",
+        allow_empty=True,
+        maximum_items=WORK_II_EVIDENCE_ID_MAX_ITEMS,
     )
     if not set(evidence_ids).issubset(set(evidence_catalog)):
         raise ValueError("belief_snapshot cites an unknown evidence ID")
@@ -997,6 +1007,7 @@ def score_work_ii_snapshot_predictions(
 
 
 __all__ = [
+    "WORK_II_EVIDENCE_ID_MAX_ITEMS",
     "WORK_II_HELD_OUT_QUERY_SCHEMA_VERSION",
     "WORK_II_LAW_BASES",
     "WORK_II_LAW_LINKS",

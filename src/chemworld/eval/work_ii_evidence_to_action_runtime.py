@@ -17,6 +17,7 @@ from chemworld.eval.work_ii_evidence_to_action import (
     build_yoked_evidence_packet,
 )
 from chemworld.eval.work_ii_prior_discovery import (
+    WORK_II_EVIDENCE_ID_MAX_ITEMS,
     WORK_II_LAW_BASES,
     WORK_II_LAW_LINKS,
     WORK_II_LAW_SUMMARY_SCHEMA_VERSION,
@@ -246,82 +247,53 @@ def yoked_snapshot_output_schema(
         },
         "coefficient": {"type": "number"},
     }
-    conditional_bases = {
-        "categorical_level",
-        "conditional_linear",
-        "conditional_quadratic",
-        "conditional_cubic",
-    }
     law_term = {
-        "oneOf": [
-            {
-                "type": "object",
-                "additionalProperties": False,
-                "required": ["term_id", "basis", "input_ids", "coefficient"],
-                "properties": {
-                    **common_term_properties,
-                    "basis": {
-                        "type": "string",
-                        "enum": sorted(WORK_II_LAW_BASES - conditional_bases),
-                    },
-                },
-            },
-            {
-                "type": "object",
-                "additionalProperties": False,
-                "required": [
-                    "term_id",
-                    "basis",
-                    "input_ids",
-                    "coefficient",
-                    "category_value",
-                ],
-                "properties": {
-                    **common_term_properties,
-                    "basis": {"type": "string", "enum": sorted(conditional_bases)},
-                    "category_value": {"type": ["string", "number"]},
-                },
-            },
-        ]
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["term_id", "basis", "input_ids", "coefficient", "category_value"],
+        "properties": {
+            **common_term_properties,
+            "basis": {"type": "string", "enum": sorted(WORK_II_LAW_BASES)},
+            "category_value": {"type": ["string", "number", "null"]},
+        },
     }
-    prediction_variants: list[dict[str, Any]] = []
-    for query_id, raw_metrics in query_metric_contract.items():
+    prediction_metric_counts: list[int] = []
+    for raw_metrics in query_metric_contract.values():
         required_metrics = [str(metric_id) for metric_id in raw_metrics]
         if not required_metrics or not set(required_metrics).issubset(set(metric_ids)):
             raise ValueError("yoked snapshot query metric scope is invalid")
-        prediction_variants.append(
-            {
-                "type": "object",
-                "additionalProperties": False,
-                "required": ["query_id", "metrics"],
-                "properties": {
-                    "query_id": {"type": "string", "const": str(query_id)},
-                    "metrics": {
-                        "type": "array",
-                        "minItems": len(required_metrics),
-                        "maxItems": len(required_metrics),
-                        "items": {
-                            "type": "object",
-                            "additionalProperties": False,
-                            "required": [
-                                "metric_id",
-                                "mean",
-                                "interval_lower",
-                                "interval_upper",
-                                "confidence",
-                            ],
-                            "properties": {
-                                "metric_id": {"type": "string", "enum": required_metrics},
-                                "mean": {"type": "number"},
-                                "interval_lower": {"type": "number"},
-                                "interval_upper": {"type": "number"},
-                                "confidence": probability,
-                            },
-                        },
+        prediction_metric_counts.append(len(required_metrics))
+    prediction_item = {
+        "type": "object",
+        "additionalProperties": False,
+        "required": ["query_id", "metrics"],
+        "properties": {
+            "query_id": {"type": "string", "enum": query_ids},
+            "metrics": {
+                "type": "array",
+                "minItems": min(prediction_metric_counts),
+                "maxItems": max(prediction_metric_counts),
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "required": [
+                        "metric_id",
+                        "mean",
+                        "interval_lower",
+                        "interval_upper",
+                        "confidence",
+                    ],
+                    "properties": {
+                        "metric_id": {"type": "string", "enum": metric_ids},
+                        "mean": {"type": "number"},
+                        "interval_lower": {"type": "number"},
+                        "interval_upper": {"type": "number"},
+                        "confidence": probability,
                     },
                 },
-            }
-        )
+            },
+        },
+    }
     metric_law = {
         "type": "object",
         "additionalProperties": False,
@@ -379,6 +351,7 @@ def yoked_snapshot_output_schema(
                     ),
                     "suspected_misindexed_fields": {
                         "type": "array",
+                        "maxItems": len(prior_fields) if nominal_information_available else 0,
                         "uniqueItems": True,
                         "items": {"type": "string", "enum": prior_fields},
                     },
@@ -389,7 +362,7 @@ def yoked_snapshot_output_schema(
                 "type": "array",
                 "minItems": len(query_ids),
                 "maxItems": len(query_ids),
-                "items": {"oneOf": prediction_variants},
+                "items": prediction_item,
             },
             "law_summary": {
                 "type": "object",
@@ -424,6 +397,7 @@ def yoked_snapshot_output_schema(
                     },
                     "evidence_ids": {
                         "type": "array",
+                        "maxItems": WORK_II_EVIDENCE_ID_MAX_ITEMS,
                         "uniqueItems": True,
                         "items": {"type": "string", "enum": evidence_ids},
                     },
@@ -439,6 +413,7 @@ def yoked_snapshot_output_schema(
             },
             "evidence_ids": {
                 "type": "array",
+                "maxItems": WORK_II_EVIDENCE_ID_MAX_ITEMS,
                 "uniqueItems": True,
                 "items": {"type": "string", "enum": evidence_ids},
             },
@@ -680,8 +655,32 @@ def validate_yoked_snapshot_submission(
 ) -> dict[str, Any]:
     """Apply the existing typed belief schema to a yoked recipient checkpoint."""
 
+    normalized = deepcopy(dict(payload))
+    law = normalized.get("law_summary")
+    law = law if isinstance(law, Mapping) else {}
+    metric_laws = law.get("metric_laws")
+    metric_laws = metric_laws if isinstance(metric_laws, list) else []
+    unconditional_bases = WORK_II_LAW_BASES - {
+        "categorical_level",
+        "conditional_linear",
+        "conditional_quadratic",
+        "conditional_cubic",
+    }
+    for metric_law in metric_laws:
+        if not isinstance(metric_law, Mapping):
+            continue
+        terms = metric_law.get("terms")
+        if not isinstance(terms, list):
+            continue
+        for term in terms:
+            if (
+                isinstance(term, dict)
+                and term.get("basis") in unconditional_bases
+                and term.get("category_value") is None
+            ):
+                term.pop("category_value")
     parsed = parse_work_ii_belief_snapshot(
-        payload,
+        normalized,
         expected_stage=stage,
         query_metric_contract=query_metric_contract,
         allowed_feature_ids=allowed_feature_ids,

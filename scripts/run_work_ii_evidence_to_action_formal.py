@@ -42,6 +42,9 @@ from chemworld.eval.work_ii_evidence_to_action import (
     evaluate_candidate_packet,
     evaluate_law_action_agreement,
     evaluate_oracle_law_candidate_order,
+    fit_candidate_calibrated_oracle_law_from_disjoint_grid,
+    fit_candidate_domain_distilled_oracle_law_from_disjoint_grid,
+    fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid,
     fit_oracle_law_from_disjoint_grid,
     predict_candidate_ranking_from_law,
     split_registered_query_pool_maximin,
@@ -747,9 +750,7 @@ def _retained_oracle_task_bundle(
         protocol,
         task_index=task_index,
     )
-    retained_grid = _load(
-        output_root / "prepared" / "tasks" / task_id / "oracle-grid.json"
-    )
+    retained_grid = _load(output_root / "prepared" / "tasks" / task_id / "oracle-grid.json")
     if (
         retained_grid.get("query_count") != len(grid)
         or retained_grid.get("queries") != grid
@@ -763,6 +764,78 @@ def _retained_oracle_task_bundle(
         "feature_ids": feature_ids,
         "metric_ids": metric_ids,
     }
+
+
+def _fit_oracle_artifact(
+    *,
+    protocol: Mapping[str, Any],
+    task_bundle: Mapping[str, Any],
+    fit_truth: Mapping[str, Mapping[str, Any]],
+    task_id: str,
+    world_seed: int,
+) -> dict[str, Any]:
+    candidate_queries = task_bundle["candidate_feature_queries"]
+    candidate_ids = [str(row["query_id"]) for row in candidate_queries]
+    fit_strategy = str(
+        protocol["artifact_contract"].get("oracle_fit_strategy", "disjoint_conditional_cubic_ridge")
+    )
+    if fit_strategy == ("disjoint_knn4_candidate_location_calibrated_conditional_cubic_ridge"):
+        return fit_candidate_calibrated_oracle_law_from_disjoint_grid(
+            task_bundle["grid"],
+            fit_truth,
+            candidate_queries=candidate_queries,
+            allowed_feature_ids=task_bundle["feature_ids"],
+            allowed_metric_ids=task_bundle["metric_ids"],
+            summary_id=f"oracle-v0.2--{task_id}--seed{world_seed}",
+            neighbor_count=int(
+                protocol["artifact_contract"]["oracle_candidate_calibration_neighbor_count"]
+            ),
+            candidate_calibration_weight=float(
+                protocol["artifact_contract"]["oracle_candidate_calibration_weight"]
+            ),
+        )
+    if fit_strategy == ("disjoint_knn4_candidate_domain_exact_typed_law_distillation"):
+        return fit_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+            task_bundle["grid"],
+            fit_truth,
+            candidate_queries=candidate_queries,
+            allowed_feature_ids=task_bundle["feature_ids"],
+            allowed_metric_ids=task_bundle["metric_ids"],
+            summary_id=f"oracle-v0.3--{task_id}--seed{world_seed}",
+            neighbor_count=int(
+                protocol["artifact_contract"]["oracle_candidate_calibration_neighbor_count"]
+            ),
+            distillation_tolerance=float(
+                protocol["artifact_contract"]["oracle_candidate_distillation_tolerance"]
+            ),
+        )
+    if fit_strategy == ("disjoint_extra_trees_candidate_domain_exact_typed_law_distillation"):
+        return fit_extra_trees_candidate_domain_distilled_oracle_law_from_disjoint_grid(
+            task_bundle["grid"],
+            fit_truth,
+            candidate_queries=candidate_queries,
+            allowed_feature_ids=task_bundle["feature_ids"],
+            allowed_metric_ids=task_bundle["metric_ids"],
+            summary_id=f"oracle-v0.4--{task_id}--seed{world_seed}",
+            tree_count=int(protocol["artifact_contract"]["oracle_candidate_predictor_tree_count"]),
+            min_samples_leaf=int(
+                protocol["artifact_contract"]["oracle_candidate_predictor_min_samples_leaf"]
+            ),
+            random_seed=int(
+                protocol["artifact_contract"]["oracle_candidate_predictor_random_seed"]
+            ),
+            distillation_tolerance=float(
+                protocol["artifact_contract"]["oracle_candidate_distillation_tolerance"]
+            ),
+        )
+    return fit_oracle_law_from_disjoint_grid(
+        task_bundle["grid"],
+        fit_truth,
+        candidate_query_ids=candidate_ids,
+        allowed_feature_ids=task_bundle["feature_ids"],
+        allowed_metric_ids=task_bundle["metric_ids"],
+        summary_id=f"oracle--{task_id}--seed{world_seed}",
+    )
 
 
 def _write_rejected_preparation_report_zh(
@@ -784,14 +857,10 @@ def _write_rejected_preparation_report_zh(
     oracle_rho = oracle.get("spearman_rank_correlation") if isinstance(oracle, Mapping) else None
     oracle_rho_text = f"{oracle_rho:.6f}" if isinstance(oracle_rho, (int, float)) else "n/a"
     top1_text = (
-        str(bool(oracle.get("top1_agreement"))).lower()
-        if isinstance(oracle, Mapping)
-        else "n/a"
+        str(bool(oracle.get("top1_agreement"))).lower() if isinstance(oracle, Mapping) else "n/a"
     )
     overlap_text = (
-        str(oracle.get("fit_candidate_overlap_count"))
-        if isinstance(oracle, Mapping)
-        else "n/a"
+        str(oracle.get("fit_candidate_overlap_count")) if isinstance(oracle, Mapping) else "n/a"
     )
     lines = [
         "# W2-51 evidence-to-action 正式 provider-free 收口",
@@ -855,9 +924,7 @@ def finalize_rejected_preparation(
 
     if (output_root / "input_manifest.json").exists():
         raise RuntimeError("a passed formal preparation cannot be finalized as rejected")
-    if (output_root / "execution-authorization.json").exists() or (
-        output_root / "formal"
-    ).exists():
+    if (output_root / "execution-authorization.json").exists() or (output_root / "formal").exists():
         raise RuntimeError("provider execution exists; provider-free rejection is not applicable")
 
     errors = validate_protocol(protocol)
@@ -877,21 +944,14 @@ def finalize_rejected_preparation(
     candidate_count = int(protocol["candidate_contract"]["candidate_count"])
     checkpoint_count = candidate_count
     oracle_count = int(protocol["oracle_grid_contract"]["query_count_per_task"])
-    minimum_rho = float(
-        protocol["artifact_contract"]["minimum_oracle_candidate_rank_correlation"]
-    )
+    minimum_rho = float(protocol["artifact_contract"]["minimum_oracle_candidate_rank_correlation"])
 
     for cluster in design["clusters"]:
         cluster_id = str(cluster["cluster_id"])
         task_id = str(cluster["task_id"])
         world_seed = int(cluster["world_seed"])
         cluster_root = (
-            output_root
-            / "prepared"
-            / "clusters"
-            / task_id
-            / f"seed-{world_seed}"
-            / task_id
+            output_root / "prepared" / "clusters" / task_id / f"seed-{world_seed}" / task_id
         )
         candidate_report_path = cluster_root / "candidate-truth" / "report.json"
         checkpoint_report_path = cluster_root / "checkpoint-truth" / "report.json"
@@ -965,11 +1025,9 @@ def finalize_rejected_preparation(
 
         if not oracle_report_path.is_file():
             raise RuntimeError(f"{cluster_id}: retained oracle truth is incomplete")
-        oracle_report, oracle_replay, oracle_binding, oracle_commit = (
-            _verify_retained_truth_report(
-                oracle_report_path,
-                expected_query_count=oracle_count,
-            )
+        oracle_report, oracle_replay, oracle_binding, oracle_commit = _verify_retained_truth_report(
+            oracle_report_path,
+            expected_query_count=oracle_count,
         )
         if oracle_binding:
             binding_sha256s.add(oracle_binding)
@@ -988,22 +1046,19 @@ def finalize_rejected_preparation(
         bundle = task_bundles[task_id]
         candidate_packet = _load(cluster_root / "public_candidate_packet.json")
         packet_ids = [str(item["query_id"]) for item in candidate_packet["candidates"]]
-        candidate_ids = [
-            str(item["query_id"]) for item in bundle["candidate_feature_queries"]
-        ]
+        candidate_ids = [str(item["query_id"]) for item in bundle["candidate_feature_queries"]]
         if (
             candidate_packet.get("candidate_outcomes_included") is not False
             or packet_ids != candidate_ids
         ):
             raise RuntimeError(f"{cluster_id}: retained public candidate packet differs")
 
-        artifact = fit_oracle_law_from_disjoint_grid(
-            bundle["grid"],
-            oracle_report["truth"],
-            candidate_query_ids=candidate_ids,
-            allowed_feature_ids=bundle["feature_ids"],
-            allowed_metric_ids=bundle["metric_ids"],
-            summary_id=f"oracle--{task_id}--seed{world_seed}",
+        artifact = _fit_oracle_artifact(
+            protocol=protocol,
+            task_bundle=bundle,
+            fit_truth=oracle_report["truth"],
+            task_id=task_id,
+            world_seed=world_seed,
         )
         oracle_qualification = evaluate_oracle_law_candidate_order(
             artifact,
@@ -1019,9 +1074,7 @@ def finalize_rejected_preparation(
                 "provider_free_truth_query_count": candidate_count
                 + checkpoint_count
                 + oracle_count,
-                "exact_replay_query_count": candidate_replay
-                + checkpoint_replay
-                + oracle_replay,
+                "exact_replay_query_count": candidate_replay + checkpoint_replay + oracle_replay,
             }
         )
         qualification_rows.append(row)
@@ -1075,8 +1128,7 @@ def finalize_rejected_preparation(
         "scientifically_rejected_cluster_count": 1,
         "not_started_cluster_count": len(unstarted_clusters),
         "candidate_gate_pass_count": sum(
-            row["candidate_qualification"]["status"] == "passed"
-            for row in qualification_rows
+            row["candidate_qualification"]["status"] == "passed" for row in qualification_rows
         ),
         "oracle_gate_pass_count": sum(
             isinstance(row["oracle_qualification"], Mapping)
@@ -1246,14 +1298,12 @@ def prepare_formal(
             binding_sha256=str(binding["binding_sha256"]),
             progress=progress,
         )
-        candidate_ids = [str(row["query_id"]) for row in task_bundle["candidate_feature_queries"]]
-        artifact = fit_oracle_law_from_disjoint_grid(
-            task_bundle["grid"],
-            oracle_report["truth"],
-            candidate_query_ids=candidate_ids,
-            allowed_feature_ids=task_bundle["feature_ids"],
-            allowed_metric_ids=task_bundle["metric_ids"],
-            summary_id=f"oracle--{task_id}--seed{world_seed}",
+        artifact = _fit_oracle_artifact(
+            protocol=protocol,
+            task_bundle=task_bundle,
+            fit_truth=oracle_report["truth"],
+            task_id=task_id,
+            world_seed=world_seed,
         )
         oracle_qualification = evaluate_oracle_law_candidate_order(
             artifact,
