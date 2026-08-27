@@ -45,6 +45,22 @@ consistency with explicit final predictions are retained separately. This assay 
 executability and in-domain compression only. Reusability would require new coordinates or transfer
 to a context-reset process.
 
+## Typed-law capacity and distillation controls
+
+To distinguish participant compression failure from an underpowered output schema, we refitted each
+of the 135 complete final prediction vectors with legal identity-link laws over the registered
+feature coordinates and allowed basis functions. A full-basis fit used up to 64 terms per metric. A
+term-matched fit used exactly the participant's submitted term budget for each metric. A
+leave-one-query-out fit withheld each registered query in turn and predicted it from all remaining
+queries. Every fitted law was parsed and executed by the production law evaluator; independently
+computed design-matrix predictions had to agree with executor output within $10^{-10}$.
+
+The participant laws differed from their own final predictions by mean MAE 0.1539. Full-basis fits
+reproduced 135/135 final prediction states with mean MAE $4.25\times10^{-13}$; term-matched fits
+reduced the error to 0.0114 and leave-one-query-out fits reached 0.0788. The control uses the same
+registered coordinate domain and therefore tests representation capacity and distillation, not
+global mechanistic identification or transfer.
+
 ## Failure-aware inference
 
 The unit of prospective inference is the independently selected task--world cluster, not a checkpoint,
@@ -76,6 +92,15 @@ cells were scheduled across three tasks, five worlds, and three initial-model ar
 eligible. The two agent-induced resource/process failures and one provider interruption are retained
 as failures in the scheduled denominator and are not replaced. An independent repair is reported only
 as sensitivity evidence because it follows a new trajectory.
+
+The continuous law--action analysis used only those same 42 originally eligible cells; the three
+failures stayed in the 45-cell scheduled denominator and were not imputed. Pearson and Spearman
+associations were computed pooled and by task. Uncertainty resampled the 15 frozen task--world
+clusters, retaining all eligible arms within a sampled cluster, with 10,000 bootstrap replicates and
+seed 20260827. The pooled Spearman coefficients were $-0.073$ for law MAE versus selected rank and
+$-0.133$ for law MAE versus normalized regret, with cluster-bootstrap 95% intervals
+$[-0.380,0.256]$ and $[-0.452,0.217]$. A prespecified sensitivity table swept law-MAE thresholds
+0.05, 0.075, 0.10, 0.15, 0.20, 0.25, and 0.30 without selecting a cutoff from action outcomes.
 
 ## Oracle-control qualification
 

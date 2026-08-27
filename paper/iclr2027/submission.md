@@ -1,34 +1,34 @@
 ---
-title: "From Evidence to Action: Diagnosing Scientific Agents Across Experimentation, Law Formation, and Decision Transfer"
-subject: "Controlled diagnosis of evidence acquisition, predictive revision, executable-law formation, unseen action selection, and evaluator validity"
-keywords: "scientific agents; autonomous experimentation; executable laws; action selection; evaluator validity"
+title: "Causal Dissection of Scientific Agents: Breaks from Evidence to Action"
+subject: "Controlled causal analysis of how experimental evidence becomes predictions, executable laws, unseen actions, and evaluator decisions"
+keywords: "scientific agents; autonomous experimentation; causal intervention; structural identification; executable laws; decision transfer; evaluator validity"
 abstract: |
-  Scientific agents are often evaluated by the best outcome reached during an experimental campaign,
-  conflating evidence acquisition, predictive revision, law formation, and action selection. We study
-  these transformations separately in ChemWorld, a suite of resource-bounded chemical environments
-  with persistent state, complete executable action plans, held-out prediction queries, typed laws,
-  and exact replay. Across 135 public agent sessions spanning entity, parametric, and structural
-  initial-model interventions, agents frequently improved outcomes and predictions within a session,
-  yet the value of a correct prior was task dependent and executable-law fidelity remained limited.
-  Controlled matched-evidence studies showed that direct counterevidence could correct numerical
-  predictions without reliably recovering the registered structural law. In fresh multi-task action
-  selection, only 11 of 42 eligible sessions chose the true best unseen plan. Finally, the oracle
-  control itself failed to align with the decision estimand: a 96-query oracle passed a complete-rank
-  correlation gate in 7 of 8 fresh units but selected the true top action in only 1, whereas a
-  320-query oracle failed the same gate on its first new world despite selecting the true best action
-  with zero regret. Evidence acquisition, numerical revision, structural identification, action
-  transfer, and evaluator validity are therefore distinct requirements for trustworthy scientific
-  agents.
+  Experimental success does not reveal whether a scientific agent learned the right model. The same
+  endpoint can follow from an inherited prior, productive search, phenomenological interpolation, or
+  evidence-driven revision. We use ChemWorld as a controlled causal probe: the executable world,
+  interface, resources, and stochastic identity remain fixed while the agent's initial model is made
+  opaque, aligned, or misspecified at entity, parametric, or structural loci. Across 135 public agent
+  sessions, these interventions redirected search and prediction errors fell in every arm and locus,
+  yet the prespecified selective-correction criterion failed at all three loci. Under matched
+  structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
+  0.0060-0.0074, but 0/5 misspecified summaries recovered the registered 1.75 power law. All
+  135 typed laws executed, yet 84 preserved less predictive information than the agents' final
+  explicit predictions. In fresh multi-task action selection, only 11/42 eligible readouts selected
+  the best unseen plan, and thresholded law adequacy did not determine a correct action. Finally, a
+  complete-ranking control passed 7/8 fresh 96-query units while selecting Top-1 in only 1/8, whereas
+  a fresh 320-query unit failed the same gate but selected Top-1 with zero regret. Experimental
+  optimization, numerical revision, structural identification, executable compression, decision
+  transfer, and evaluator validity are therefore distinct transitions rather than one score.
 ---
 
 # Introduction
 
-An experimental agent can succeed without learning the right science. It may inherit a correct model,
-stumble into a productive region, or patch its actions while retaining a false explanation of the
-world. An endpoint benchmark assigns the same success to all three cases. For a scientific agent,
-however, they represent different capabilities: prior knowledge, local optimization, and
-evidence-driven correction. The relevant question is not only whether an agent finds a good
-experiment, but what that experiment changes in its model of the world.
+Autonomous experimental agents are increasingly judged by whether they discover high-performing
+molecules or reactions. Yet an endpoint benchmark cannot distinguish whether an agent inherited a
+fortunate prior, navigated a productive search corridor, adopted a phenomenological interpolation, or
+genuinely revised its scientific understanding from evidence. We call this ambiguity endpoint
+underdetermination. The relevant question is not only whether an agent finds a good experiment, but
+what that experiment changes in its model of the world.
 
 This distinction matters as language-model agents plan syntheses, call chemistry tools, operate
 instruments, and enter self-driving laboratory workflows [@boiko2023autonomous; @bran2024augmenting;
@@ -40,22 +40,23 @@ experiment selection, endpoint optimization, and verbal explanation are usually 
 Consequently, a high score need not identify which transformation succeeded, and a low score need not
 identify which transformation failed.
 
-We make those transformations observable by intervening on the agent's initial world model while
-holding the executable world fixed. The same hidden world is presented with an opaque, aligned, or
-misspecified model at a declared entity, parametric, or structural locus. Persistent agents then
-interact through a transactional laboratory interface. Evaluator-owned counterfactual queries,
-matched contradictory evidence, executable-law assays, and unseen complete ActionPlans separately
-measure search, prediction, structural identification, compression, and decision transfer.
+We make those transformations observable by using ChemWorld as a controlled causal probe. The same
+executable world, interface, resources, and stochastic identity are held fixed while its initial model
+is made opaque, aligned, or misspecified at a declared entity, parametric, or structural locus.
+Persistent agents then interact through a transactional laboratory interface. Evaluator-owned
+counterfactual queries, matched contradictory evidence, executable-law assays, and unseen complete
+ActionPlans separately measure search, prediction, structural identification, compression, and
+decision transfer.
 
-Our contribution is an evidence-to-action diagnostic rather than another scalar leaderboard.
-First, a 135-session prospective programme shows that priors redirect trajectories and that all arms
-learn predictively, while the registered selective-correction criterion fails at every locus. Second,
-matched evidence localizes the structural bottleneck: numerical predictions converge near truth, yet
-the registered power law is recovered in 0/5 misspecified worlds. Third, a 45-cell multi-task assay
-shows only 11/42 eligible terminal selections at true Top-1. Finally, qualification of a planned
-causal action-transfer control reveals evaluator misalignment: complete-ranking correlation and
-decision quality disagree in both directions. The result is a capability chain with empirically
-distinct failure locations, including failure in the evaluator itself.
+Our contribution is a causal map of the evidence-to-action chain rather than another scalar
+leaderboard. We identify four breaks. Priors redirect trajectories, but the registered
+selective-correction criterion fails at every locus. Matched counterevidence drives numerical
+predictions near truth, yet 0/5 misspecified summaries recover the registered power law. Executable
+laws run successfully but are less faithful than final explicit predictions in 84/135 sessions. The
+fourth break has two levels: agent-level law adequacy does not determine unseen Top-1 selection, and
+evaluator-level complete-ranking qualification does not determine action validity. The resulting map
+locates losses in revision, structural identification, compression, decision transfer, and the
+evaluator itself without treating every failure as low overall capability.
 
 ```{=latex}
 \begin{figure}[t]
@@ -71,7 +72,7 @@ the transitions from evidence to predictions, executable laws, and unseen action
 
 # Environment and evaluation
 
-## Fixed world, programmable initial model
+## ChemWorld as a controlled causal probe
 
 ChemWorld separates three objects. The executable world contains hidden state, transition and
 measurement laws, resources, and terminal assays. The public task exposes typed operations,
@@ -165,7 +166,7 @@ Gate alignment & 16 unit versions & 0 new execution & Rank validity versus actio
 
 # Results: from priors to laws
 
-## Priors redirect search but do not guarantee selective correction
+## Priors scaffold search without selective correction
 
 All 135 scheduled sessions produced final records. Participants completed 1,243/1,260 planned
 experiments; 121 sessions met operational eligibility. The denominator retains 26 discarded
@@ -205,7 +206,7 @@ on average, but no locus passes the selective-correction criterion.}
 \end{figure}
 ```
 
-## Matched evidence separates numerical revision from structural identification
+## Matched counterevidence supports interpolation without structural recovery
 
 Free discovery cannot distinguish failure to seek diagnostic evidence from failure to use it. In the
 parametric matched-evidence block, all five misspecified summaries rejected the supplied
@@ -218,14 +219,14 @@ direct phase-process evidence, mean normalized errors fell from 0.2255, 0.2736, 
 contrast was positive in only 3/5 worlds (exact one-sided sign-flip $p=0.125$), so this is numerical
 convergence rather than a confirmatory arm effect. Yet 0/5 misspecified public summaries recovered
 the registered 1.75 power law, 1/5 explicitly rejected the supplied linear form, and 5/5 adopted a
-saturation or endpoint model. Direct evidence supported accurate local prediction without structural
-identification (Fig.~\ref{fig:matched-evidence}).
+saturation or endpoint model. Direct evidence supported accurate local phenomenological interpolation
+without structural identification (Fig.~\ref{fig:matched-evidence}).
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Matched evidence restores numerical predictions without structural recovery.}
+\caption{\textbf{Matched counterevidence drives numerical convergence but not structural-law recovery.}
 All 15 corrected structural cells receive identical evidence and converge near truth. Across the five
 misspecified worlds, exact recovery of the registered power law is absent despite low post-evidence
 error.}
@@ -237,13 +238,19 @@ All 135 final typed laws executed on their prespecified coordinates, but executa
 preserve the information in conditional predictions. Mean law error was 0.237; relative to effective
 final predictions, laws were better in 50 cells, equal in one, and worse in 84, with mean
 law-minus-prediction error +0.069. Typed syntax solved execution coverage, not faithful scientific
-compression. Paired blind replay likewise tested only incumbent retrieval: 726/726 executions
+compression. A same-domain capacity oracle then fitted legal typed laws directly to each complete
+final prediction vector. The full registered basis reproduced 135/135 prediction states (mean MAE
+$4.25\times10^{-13}$), compared with 0.1539 MAE for participant laws; participant-term-matched and
+leave-one-query-out fits reached 0.0114 and 0.0788 MAE. All fitted laws passed the production
+parser/executor. This localizes most loss to agent distillation rather than interface capacity, while
+remaining an in-domain capacity control rather than global mechanism recovery. Paired blind replay
+likewise tested only incumbent retrieval: 726/726 executions
 completed for 121 evaluable cells, with recommendations better/equivalent/worse in 1/119/1 cells.
 Selection beyond the observed campaign required a separate assay.
 
-# Results: laws to actions
+# Results: law, action, and evaluation
 
-## Selection among unseen complete plans is partial
+## Agent-level law adequacy does not determine unseen action selection
 
 The longitudinal matrix produced records for 45/45 scheduled cells. Truth evaluation and exact replay
 both completed 240/240 plan executions. Forty-two cells were uncontaminated and eligible for action
@@ -259,7 +266,15 @@ and correct action. Task means ranged from rank 2.00 for reaction safety to 4.58
 and every pairwise arm contrast changed sign under some leave-one-cluster-out omission. We therefore
 make no pooled arm-level claim (Fig.~\ref{fig:open-action}a,b).
 
-## The oracle gate does not equal the action estimand
+This separation survives continuous and threshold-sensitive analysis. Pooled law MAE correlated
+weakly with selected rank (Spearman $\rho=-0.073$, cluster-bootstrap 95% interval
+$[-0.380,0.256]$) and normalized regret ($\rho=-0.133$, $[-0.452,0.217]$), while task-specific rank
+associations reversed sign ($+0.524$, $-0.592$, and $-0.007$). Across law-MAE thresholds from 0.05
+to 0.30, the adequate subset expanded from 1 to 34 cells but contained only 0 to 9 correct actions.
+The four-way table is therefore not a single-cutoff artifact: law error has no stable monotonic map
+to unseen-action quality across tasks.
+
+## Evaluator-level ranking and decision quality are different estimands
 
 A planned five-condition causal follow-up required a provider-free oracle law to rank the eight
 candidates with Spearman $\rho\geq0.80$ before any participant was called. The first eight of 15 fresh
@@ -315,16 +330,12 @@ Fresh 320-query & 1 & 0 & 1 & 1 \\
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{Action selection and evaluator validity separate.}
-\textbf{a,} Selected true rank for 42 eligible W2-50 cells; three crystallization failures remain in
-the 45-cell scheduled denominator and the random-rank line is not an experimental control.
-\textbf{b,} Joint law--action categories for the same cells.
-\textbf{c,} W2-51 and W2-52 qualification funnels retain passed, scientifically rejected, and
-unstarted units; exposed construction and fresh qualification are separate, and participant
-execution is zero.
-\textbf{d,} Spearman correlation and normalized regret for all 16 frozen W2-53 unit versions.
-Stars mark Top-1 selection; dashed and dotted lines mark the frozen rank gate and near-optimal
-boundary. The panel adds no execution and does not revise either historical stop decision.}
+\caption{\textbf{Agent law-action decoupling and evaluator rank-action misalignment.}
+\textbf{a,} True rank for 42 eligible W2-50 cells; all 45 scheduled cells remain in the denominator.
+\textbf{b,} Continuous law error versus regret, with Top-1 stars and a seven-cutoff inset.
+\textbf{c,} Frozen W2-51/W2-52 qualification dispositions separate exposed construction from fresh
+qualification; participant execution is zero. \textbf{d,} Spearman correlation versus regret for all
+16 frozen W2-53 unit versions. No panel revises a historical stop decision.}
 \label{fig:open-action}
 \end{figure}
 ```
@@ -347,55 +358,43 @@ prediction learning, law recovery, and action quality are not interchangeable re
 The evaluated system frequently searches productively and learns numerically, but its transformations
 lose information at different locations. Correct priors alter trajectories without a general endpoint
 advantage. Free evidence reduces prediction error without selectively repairing wrong priors. Direct
-matched evidence can yield near-exact numerical revision while structural recovery fails. Typed laws
-can execute yet compress predictions poorly, and a thresholded law does not guarantee the correct
-unseen action. These are not multiple scores for one latent ability; they are distinct capabilities
-with different interventions and denominators.
+matched evidence can yield near-exact numerical revision while all five misspecified summaries remain
+phenomenological saturation or endpoint models instead of recovering the registered power law. Typed
+laws can execute yet compress predictions poorly. At the agent level, law adequacy does not determine
+the correct unseen action; at the evaluator level, complete-ranking qualification does not determine
+action validity. These are distinct capabilities with different interventions and denominators.
 
-The oracle study extends this diagnosis to the harness. A metric can be reproducible and still be
-misaligned with the intended decision. Spearman correlation rewards ordering across all candidates,
-whereas the causal follow-up needs a positive control for selected action and decision loss. Stopping
-before participant execution prevented a weak control from producing an uninterpretable effect. More
-generally, evaluator validity is part of scientific-agent validity, not a post-hoc implementation
-detail.
+The oracle study extends the second level of this diagnosis to the harness. A metric can be
+reproducible and still be misaligned with the intended decision. Spearman correlation rewards ordering
+across all candidates, whereas the causal follow-up needs a positive control for selected action and
+decision loss. Stopping before participant execution prevented a weak control from producing an
+uninterpretable effect. Evaluator validity is part of scientific-agent validity, not a post-hoc
+implementation detail.
 
-## Implications for scientific-agent benchmarks
+## A transition map for scientific-agent evaluation
 
-The capability chain suggests three design requirements. First, benchmarks should separate the
-intervention from the readout. Manipulating prior information, supplying matched evidence, or hiding
-candidate outcomes answers different questions and therefore requires different independent units.
-Checkpoint predictions, law execution, and action regret should remain distinct even when a composite
-score would be convenient. This makes it possible to tell whether a failure arose in acquisition,
-revision, representation, or transfer.
+The capability chain suggests three design requirements. First, intervention and readout need separate
+units: manipulating priors, supplying matched evidence, and hiding candidate outcomes answer different
+questions. Prediction, law execution, and action regret should remain separate so failures can be
+localized to acquisition, revision, representation, or transfer.
 
-Second, positive controls should qualify on the endpoint used by the intended contrast. A law can be
-outcome-disjoint, exactly replayable, and strongly correlated with a full ranking while still choosing
-the wrong action. Conversely, a decision can be optimal despite moderate errors elsewhere in the
-ordering. For selection problems, regret and near-optimality should be primary, with full-rank metrics
-used to diagnose how much additional structure was preserved. Near ties should be declared before
-execution so that metric choice cannot respond to an unfavorable world.
+Second, controls should qualify on the intended endpoint. An outcome-disjoint, exactly replayable law
+can rank globally well yet choose the wrong action; an optimal decision can coexist with moderate
+ranking error. Selection studies should register regret, near-optimality, and near-tie handling as
+primary, leaving full-rank metrics diagnostic.
 
-Third, the evidence record must preserve failed and unstarted units. The 96-query failure is evidence
-about a control; the 320-query exposed pass is evidence about construction; the first prospective
-320-query failure is evidence about generalization. Pooling them would erase the distinction between
-repairing known cases and succeeding on fresh cases. Likewise, treating stopped participant sessions
-as zero-valued effects would invent data. Explicit scheduled, eligible, attempted, completed, and
-unstarted denominators make negative results usable without turning them into claims they cannot
-support.
+Third, evidence roles and denominators must remain separate. The 96-query failure tests a control; the
+320-query exposed pass tests construction; the fresh 320-query failure tests generalization. Pooling
+them or treating stopped sessions as zero effects would invent evidence; scheduled, eligible,
+completed, and unstarted counts prevent this error.
 
 ## Limitations and conclusion
 
-The evidence is deliberately bounded. It concerns one complete agent--tool configuration in simulated
-chemical worlds, not a cross-model ranking or a claim about laboratory fidelity. Some contrasts have
-only five independent worlds. The open-action matrix has no no-evidence or pre-exploration action
-baseline and therefore supports no causal action-transfer effect. The planned five-condition cohort
-has zero participant data because its control failed before execution. A single-stratum development
-pilot of reduced conditions ended with the yoked session right-censored after five of six turns and is
-not used for causal or arm-level inference. Context-reset artifact portability, private-world
+Evidence concerns one agent--tool system in simulation, not cross-model ranking or laboratory
+fidelity; some contrasts use five worlds. The open-action matrix lacks no-evidence and pre-exploration
+baselines, and the five-condition cohort has no participant data. Artifact portability, private
 replication, and cross-provider generalization remain untested.
 
-The practical implication is to evaluate a scientific agent as a sequence of transformations. Each
-claim should name its intervention, unit, readout, failure rule, and transfer boundary. On this basis,
-scientific agency is not an endpoint score: it is evidence acquisition, numerical revision,
-structural identification, executable compression, and decision transfer, qualified by an evaluator
-that measures the action actually at stake.
+Scientific-agent claims should name interventions, units, failure rules, and transfer boundaries.
+Agency is a chain from evidence to revision, identification, compression, and decision, breakable in
+the agent or its evaluator.

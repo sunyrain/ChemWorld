@@ -1,6 +1,6 @@
-# Work II / ICLR 2027 故事：From Evidence to Action
+# Work II / ICLR 2027 故事：Causal Dissection from Evidence to Action
 
-更新时间：2026-08-25
+更新时间：2026-08-26
 
 本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。
 
@@ -12,7 +12,7 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 
 > initial world model → evidence acquisition → endpoint adaptation → counterfactual prediction → executable law → unseen action selection → evaluator validity → artifact portability
 
-当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。W2-50 将这一边界推进到三任务、五世界的未见完整 ActionPlan：42 个可评分 terminal readouts 中仅 11 个选择真实 Top-1。W2-53 进一步证明 evaluator 也可能错位：96-query oracle 在 8 个 fresh units 中 rank gate 通过 7 个，却只有 1 个 Top-1；首个 fresh 320-query unit 则 rank gate 失败但 Top-1 正确且 regret 为 0。实验适应、数值学习、结构识别、规律压缩、行动迁移和 evaluator validity 不是同一个能力，也不会自动级联。
+当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。W2-50 将这一边界推进到三任务、五世界的未见完整 ActionPlan：42 个可评分 terminal readouts 中仅 11 个选择真实 Top-1。第四断裂具有两个层次：Agent 层面的 law-action decoupling 表现为坏律也可能选对、合格律也可能选错；evaluator 层面的 rank-action misalignment 表现为 96-query oracle 在 8 个 fresh units 中 rank gate 通过 7 个却只有 1 个 Top-1，而首个 fresh 320-query unit rank gate 失败却 Top-1 正确且 regret 为 0。实验适应、数值学习、结构识别、规律压缩、行动迁移和 evaluator validity 不是同一个能力，也不会自动级联。
 
 这不是一个低档次的模型失败故事。它建立了一个此前常被总分掩盖的研究对象：**科学智能的转换损失与失效位置**。当前证据已经从 endpoint 一直观测到未见行动选择，形成第一张贯穿取证、预测、规律与行动的失效地图；后续 provider、private world 和 context-reset artifact portability 都可在同一能力链上定位，而不是继续堆叠不可解释的 leaderboard。
 
@@ -84,6 +84,13 @@ ChemWorld 将这条链拆成彼此不可替代的层级：
 
 与 final explicit prediction 相比，law 更好/相等/更差为 50/1/84。A-S 的 pre→law 改善最强，说明结构干预确实最接近规律恢复；但即使在 A-S，规律通常仍比 agent 对具体 query 的最终预测更差。当前瓶颈因此不是 schema 或执行器，而是将局部、条件化 belief 压缩成一个保持预测质量的可复用关系。
 
+新增的 135-cell schema-capacity control 进一步定位了损失来源：直接对每个 agent 的完整 final prediction
+vector 拟合合法 full-schema typed law，可在 `135/135` cells 中经 production parser/executor 近乎精确复现，
+平均 MAE 为 `4.25e-13`；participant law 对同一 prediction state 的 MAE 为 `0.1539`。固定 participant
+term set 后 MAE 降至 `0.0114`（`58/135` 近乎精确），leave-one-query-out 为 `0.0788`。因此当前主要损失是
+agent 将预测状态蒸馏为稀疏 law 时的信息丢失，而不是 typed schema 容量不足；full-schema 拟合属于同域容量
+control，不能写成全局机制恢复。
+
 ### 3.3 Blind action：可复现，但几乎没有新行动价值
 
 121 个可评价 cells 的 726 次 blind replay 全部完成。推荐相对 incumbent 的 better/equivalent/worse 为 1/119/1，recovered 平均 gain 约为 -0.0010。A-E 仅 1 个极小正增益，A-S crystallization 有 1 个明显负例；其余全部等价。
@@ -109,11 +116,13 @@ exact one-sided sign-flip `p=0.125`。这说明 law-level evidence 到达后存�
 acquisition component，但方向不稳定。
 
 更关键的是，misindexed 0/5 恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向
-经验饱和/endpoint 模型。模型显然进行了 numerical revision，却没有形成注册结构规律。因此最终机制不再是
-“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与 structural law
-identification 三层分离**。
+经验饱和/endpoint 模型。模型显然进行了 numerical revision，却没有形成注册结构规律。这是
+**phenomenological interpolation 与 structural identification 的分离**：局部数值可以贴合，生成该证据的
+注册关系却没有被表达。Discussion 中可将其类比为“托勒密式拟合”，但类比不能替代 0/5 的小样本事实。
+因此最终机制不再是“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与
+structural law identification 三层分离**。
 
-### 3.5 Open action：规律形成仍不保证未见行动正确
+### 3.5 Open action 与 evaluator：第四断裂包含两个层次
 
 C2 的 blind replay 主要比较 final recommendation 与 participant 已经观察过的 incumbent，因此它能证明
 推荐是否可重放，却不能充分检验 agent 能否把实验知识迁移到一个新的行动集合。W2-48 为此引入纵向
@@ -144,7 +153,14 @@ reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很�
 4/15，平均 selected rank 分别为 3.60、4.58 和 2.00。这里支持的是跨任务运行和 law-to-action
 边界，不支持 pooled prior-arm 泛化；三条结晶失败仍作为结果的一部分保留。
 
-W2-50 仍没有 no-evidence 或 pre-exploration ranking control，因此不能回答“探索证据本身是否因果性地
+连续与阈值敏感性分析排除了“0.10 cutoff 人为制造解耦”的解释。42 个 eligible cells 中 law MAE 与
+selected rank 的 pooled Spearman 为 `-0.073`（task-world cluster bootstrap 95% interval
+`[-0.380, 0.256]`），与 normalized regret 为 `-0.133`（`[-0.452, 0.217]`）；分任务 rank 相关却为
+electrochemical `+0.524`、reaction safety `-0.592`、crystallization `-0.007`，方向不稳定。law-MAE
+阈值从 `0.05` 扫到 `0.30` 时，adequate subset 从 1 个增至 34 个，但其中 correct action 只从 0 个增至
+9 个。四象限因此只是连续、task-dependent 非单调关系的一个可读切片，而不是结论本身。
+
+Agent 层面的结论是 law-action decoupling：W2-50 仍没有 no-evidence 或 pre-exploration ranking control，因此不能回答“探索证据本身是否因果性地
 改善未见计划选择”。W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
 learned-law-only 与 oracle-law 五条件设计，计划 15 个 task-world clusters、225 个 fresh sessions 和
 540 次 participant experiments。正式 provider-free preparation 在前 8 个 clusters 完成 `896/896`
@@ -152,7 +168,8 @@ truth 与 exact replay，candidate gates 为 8/8，但 oracle gates 仅 7/8：�
 crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80`。因此全部 provider sessions
 在 operational canary 前被拒绝，剩余 7 个 clusters 未启动，五个 participant contrasts 均未估计。
 这不是 W2-50 的阴性 participant effect，而是 causal control 本身未能跨 fresh world 资格化；它进一步
-限制了我们把终端排序升级为 action-transfer 因果主张。
+限制了我们把终端排序升级为 action-transfer 因果主张。Evaluator 层面的结论是 rank-action
+misalignment：完整排序相关性和真实动作损失是不同 estimand，不能用前者替代后者。
 
 ## 4. 第一阶段的统一结论
 
@@ -163,9 +180,9 @@ crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80
 3. 这种学习没有自动形成选择性的错误先验纠正，也没有可靠压缩成高保真 executable law。
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
 5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
-6. 即使候选执行语义完整公开，较合格的规律也不保证 agent 能在未见 ActionPlan 中选出正确行动。
+6. 即使候选执行语义完整公开，规律充分性与未见行动选择仍是非单调映射：坏律可以选对，合格律也可以选错。
 7. 当前还不能把这一 action boundary 解释为探索或 learned law 的因果效应：W2-51 的 fresh formal oracle control 未达冻结正确性门槛，participant cohort 因而没有启动。
-8. 完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
+8. Evaluator 的完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
 
@@ -235,8 +252,8 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 1. **Figure 1 — Capability chain and study map**：合并世界干预、persistent loop 与 evidence partitions。
 2. **Figure 2 — Prior-conditioned discovery**：合并 endpoint archetypes、first action 与 prediction correction。
-3. **Figure 3 — Evidence, numerical revision and structural recovery**：matched evidence、law fidelity 与 incumbent replay。
-4. **Figure 4 — Law, action and evaluator separation**：W2-50 rank/regret、law–action categories 与 W2-53 rank-gate/action-correct 四象限。
+3. **Figure 3 — Phenomenological interpolation versus structural recovery**：matched evidence、15/15 低 post-evidence error 与 0/5 exact 1.75-law recovery。
+4. **Figure 4 — Agent law-action decoupling and evaluator rank-action misalignment**：W2-50 rank/regret、law–action categories 与 W2-53 rank-gate/action-correct 四象限。
 5. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
 6. **Supplementary control qualification**：分开呈现 W2-51 96-query stop 与 W2-52 exposed construction/fresh prospective 结果，不绘制不存在的 participant effect。
 

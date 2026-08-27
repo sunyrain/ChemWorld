@@ -1057,6 +1057,7 @@ def render_figure_6_open_action(
     construction_closeout: dict[str, Any],
     qualification_closeout: dict[str, Any],
     gate_alignment: dict[str, Any],
+    reviewer_controls: dict[str, Any],
 ) -> list[Path]:
     eligible = [row for row in rows if row["eligible"]]
     task_order = [
@@ -1167,56 +1168,116 @@ def render_figure_6_open_action(
     ax_a.legend(loc="upper right", fontsize=5.8)
     panel_label(ax_a, "a", x=-0.11)
 
-    category_order = [
-        "inadequate_law__wrong_action",
-        "inadequate_law__correct_action",
-        "adequate_law__wrong_action",
-        "adequate_law__correct_action",
-    ]
-    category_labels = [
-        "Bad law\nWrong action",
-        "Bad law\nCorrect action",
-        "Adequate law\nWrong action",
-        "Adequate law\nCorrect action",
-    ]
-    category_colors = [COLORS["red"], COLORS["orange_light"], COLORS["misindexed"], COLORS["aligned"]]
-    counts = [sum(row["mechanism_action_category"] == category for row in eligible) for category in category_order]
-    bars = ax_b.bar(
-        np.arange(4),
-        counts,
-        color=category_colors,
-        edgecolor="white",
-        linewidth=0.7,
+    continuous = reviewer_controls["w2_50_continuous_action"]
+    continuous_rows = continuous["cell_rows"]
+    for task_id in task_order:
+        task_rows = [row for row in continuous_rows if row["task_id"] == task_id]
+        for row in task_rows:
+            marker = "*" if row["top1_selected"] else "o"
+            ax_b.scatter(
+                float(row["law_normalized_mae"]),
+                float(row["normalized_regret"]),
+                s=34 if marker == "*" else 24,
+                marker=marker,
+                color=FULL_TASK_COLOR[task_id],
+                edgecolor="white",
+                linewidth=0.55,
+                alpha=0.88,
+                zorder=3,
+            )
+    ax_b.axvline(0.10, color=COLORS["muted"], linewidth=0.8, linestyle="--")
+    ax_b.text(
+        0.10,
+        1.015,
+        "original cutoff",
+        ha="center",
+        va="bottom",
+        fontsize=5.0,
+        color=COLORS["muted"],
     )
-    for bar, count in zip(bars, counts, strict=True):
-        ax_b.text(
-            bar.get_x() + bar.get_width() / 2,
-            count + 0.8,
-            str(count),
-            ha="center",
-            va="bottom",
-            fontsize=8,
-            fontweight="bold",
-        )
-    ax_b.set_xticks(np.arange(4), category_labels)
-    ax_b.tick_params(axis="x", labelsize=5.5)
-    ax_b.set_ylim(0, max(counts) + 8)
-    ax_b.set_ylabel("Eligible cells (n=42)")
+    ax_b.set_xlim(-0.015, 0.48)
+    ax_b.set_ylim(-0.05, 1.08)
+    ax_b.set_xlabel("Final-law normalized MAE")
+    ax_b.set_ylabel("Normalized action regret")
     ax_b.set_title(
-        "Law adequacy does not determine\nthe selected action",
+        "Law error has no stable monotonic\nmap to unseen-action quality",
         loc="left",
         fontweight="bold",
         pad=6,
     )
     style_quant_axis(ax_b)
+    pooled = continuous["overall"]
     ax_b.text(
-        0.02,
+        0.98,
         0.95,
-        "3 crystallization failures retained outside action metrics",
+        rf"pooled $\rho_s$={float(pooled['normalized_regret']['spearman']['coefficient']):+.2f}",
         transform=ax_b.transAxes,
-        ha="left",
+        ha="right",
         va="top",
-        fontsize=5.7,
+        fontsize=5.6,
+        color=COLORS["muted"],
+    )
+    ax_b.legend(
+        handles=[
+            mpl.lines.Line2D(
+                [],
+                [],
+                marker="o",
+                linestyle="",
+                color=FULL_TASK_COLOR[task_id],
+                label=ROW_TASK_LABEL[task_id],
+            )
+            for task_id in task_order
+        ],
+        loc="upper left",
+        fontsize=4.9,
+        ncol=1,
+        handletextpad=0.25,
+        borderaxespad=0.35,
+    )
+    threshold_rows = continuous["threshold_sensitivity"]
+    inset = ax_b.inset_axes([0.49, 0.08, 0.48, 0.38])
+    thresholds = np.array([float(row["law_mae_threshold"]) for row in threshold_rows])
+    correct_counts = np.array(
+        [int(row["adequate_law_correct_action"]) for row in threshold_rows]
+    )
+    wrong_counts = np.array(
+        [int(row["adequate_law_wrong_action"]) for row in threshold_rows]
+    )
+    inset.bar(
+        thresholds,
+        correct_counts,
+        width=0.024,
+        color=COLORS["green"],
+        linewidth=0,
+        label="correct",
+    )
+    inset.bar(
+        thresholds,
+        wrong_counts,
+        bottom=correct_counts,
+        width=0.024,
+        color=COLORS["red_light"],
+        linewidth=0,
+        label="wrong",
+    )
+    inset.set_xlim(0.025, 0.325)
+    inset.set_ylim(0, 37)
+    inset.set_xticks([0.05, 0.15, 0.25])
+    inset.set_yticks([0, 15, 30])
+    inset.tick_params(axis="both", labelsize=4.5, length=2)
+    inset.set_title("Adequate subset across cutoffs", fontsize=5.1, loc="left", pad=2)
+    inset.set_xlabel("Law-MAE cutoff", fontsize=4.7, labelpad=1)
+    inset.set_ylabel("Cells", fontsize=4.7, labelpad=1)
+    inset.spines["top"].set_visible(False)
+    inset.spines["right"].set_visible(False)
+    inset.text(
+        0.30,
+        35.0,
+        "9 correct / 34",
+        ha="right",
+        va="bottom",
+        fontsize=4.5,
         color=COLORS["muted"],
     )
     panel_label(ax_b, "b", x=-0.12)
@@ -1453,7 +1514,7 @@ def render_figure_6_open_action(
     panel_label(ax_d, "d", x=-0.13)
 
     fig.suptitle(
-        "Action selection and evaluator validity separate",
+        "Law-action decoupling and rank-action misalignment",
         x=0.09,
         y=0.975,
         ha="left",
@@ -2100,7 +2161,7 @@ def render_figure_4_matched(
         left=0.105,
         right=0.985,
         bottom=0.13,
-        top=0.82,
+        top=0.76,
         wspace=0.34,
         hspace=0.50,
         width_ratios=[1.05, 0.95],
@@ -2266,13 +2327,35 @@ def render_figure_4_matched(
     panel_label(ax_d, "d", x=-0.13)
 
     fig.suptitle(
-        "Matched evidence restores numerical predictions without structural identification",
+        "Matched counterevidence drives numerical convergence but not structural-law recovery",
         x=0.105,
         y=0.975,
         ha="left",
-        fontsize=12.0,
+        fontsize=11.4,
         fontweight="bold",
         color=COLORS["ink"],
+    )
+    fig.text(
+        0.105,
+        0.912,
+        "15/15 low post-evidence error",
+        ha="left",
+        va="center",
+        fontsize=7.0,
+        fontweight="bold",
+        color=COLORS["green"],
+        bbox={"facecolor": "#EAF5EE", "edgecolor": "none", "pad": 2.0},
+    )
+    fig.text(
+        0.475,
+        0.912,
+        "0/5 exact 1.75-law recovery",
+        ha="left",
+        va="center",
+        fontsize=7.0,
+        fontweight="bold",
+        color=COLORS["red"],
+        bbox={"facecolor": "#FBEDEE", "edgecolor": "none", "pad": 2.0},
     )
     fig.legend(
         handles=[
@@ -2280,7 +2363,7 @@ def render_figure_4_matched(
             for arm in ARM_ORDER
         ],
         loc="upper left",
-        bbox_to_anchor=(0.105, 0.905),
+        bbox_to_anchor=(0.105, 0.872),
         ncol=3,
         fontsize=6.4,
         borderaxespad=0,
@@ -2328,6 +2411,10 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "work-ii-evidence-to-action-gate-alignment-v0.1.json"
     )
+    reviewer_controls_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-reviewer-control-analyses-v0.1.json"
+    )
     public_source_dir = ROOT / (
         "workstreams/flagship_tasks/reports/figures/"
         "work-ii-deepseek-c2-public/current/source_data"
@@ -2355,6 +2442,7 @@ def main() -> int:
         large_grid_construction_path,
         large_grid_qualification_path,
         gate_alignment_path,
+        reviewer_controls_path,
         checkpoint_summary_path,
         experiment_metrics_path,
         story_analysis_path,
@@ -2377,6 +2465,9 @@ def main() -> int:
         large_grid_qualification_path.read_text(encoding="utf-8")
     )
     gate_alignment = json.loads(gate_alignment_path.read_text(encoding="utf-8"))
+    reviewer_controls = json.loads(
+        reviewer_controls_path.read_text(encoding="utf-8")
+    )
     story_analysis = json.loads(story_analysis_path.read_text(encoding="utf-8"))
     matched_evidence = json.loads(
         matched_evidence_path.read_text(encoding="utf-8")
@@ -2417,6 +2508,10 @@ def main() -> int:
         raise ValueError("unexpected W2-53 unit-version denominator")
     if gate_alignment.get("new_truth_execution_count") != 0:
         raise ValueError("W2-53 must remain a zero-execution diagnostic")
+    if reviewer_controls["w2_50_continuous_action"].get("eligible_cell_count") != 42:
+        raise ValueError("unexpected reviewer-control W2-50 denominator")
+    if reviewer_controls["typed_law_schema_capacity"].get("completed_cell_count") != 135:
+        raise ValueError("unexpected reviewer-control schema-capacity denominator")
 
     checkpoint_rows = read_csv(checkpoint_summary_path)
     experiment_rows = read_csv(experiment_metrics_path)
@@ -2560,6 +2655,44 @@ def main() -> int:
         gate_alignment_rows,
         gate_alignment_fields,
     )
+    continuous_fields = [
+        "cell_id",
+        "cluster_id",
+        "task_id",
+        "world_seed",
+        "arm",
+        "law_normalized_mae",
+        "selected_rank",
+        "normalized_regret",
+        "top1_selected",
+    ]
+    continuous_rows = [
+        {field: row[field] for field in continuous_fields}
+        for row in reviewer_controls["w2_50_continuous_action"]["cell_rows"]
+    ]
+    write_csv(
+        SOURCE_DIR / "figure-6-law-action-continuous.csv",
+        continuous_rows,
+        continuous_fields,
+    )
+    threshold_fields = [
+        "law_mae_threshold",
+        "adequate_law_correct_action",
+        "adequate_law_wrong_action",
+        "inadequate_law_correct_action",
+        "inadequate_law_wrong_action",
+    ]
+    threshold_rows = [
+        {field: row[field] for field in threshold_fields}
+        for row in reviewer_controls["w2_50_continuous_action"][
+            "threshold_sensitivity"
+        ]
+    ]
+    write_csv(
+        SOURCE_DIR / "figure-6-law-threshold-sensitivity.csv",
+        threshold_rows,
+        threshold_fields,
+    )
 
     outputs = {
         "figure_1": render_figure_1(),
@@ -2584,6 +2717,7 @@ def main() -> int:
             large_grid_construction,
             large_grid_qualification,
             gate_alignment,
+            reviewer_controls,
         ),
     }
     manifest: dict[str, Any] = {
@@ -2611,6 +2745,8 @@ def main() -> int:
             "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
             "qualification_funnel_rows": len(qualification_funnel_rows),
             "gate_alignment_unit_rows": len(gate_alignment_rows),
+            "law_action_continuous_rows": len(continuous_rows),
+            "law_threshold_rows": len(threshold_rows),
         },
         "figures": {
             figure_id: [
@@ -2627,7 +2763,7 @@ def main() -> int:
             "Figure 1 states the identification problem; Figure 2 separates executed evidence from future portability studies.",
             "Figure 3 combines the prospective formal locus decisions with retrospective manipulation summaries; first-recipe divergence has no same-arm replicate baseline.",
             "Figure 4 reports a five-world corrected structural matched-evidence study; its prediction contrast is descriptive and non-confirmatory.",
-            "Figure 6 combines terminal unseen-plan selection, oracle qualification funnels and the frozen gate-action alignment diagnostic.",
+            "Figure 6 combines terminal unseen-plan selection, continuous and threshold-sensitive law-action analysis, oracle qualification funnels and the frozen gate-action alignment diagnostic.",
             "The open-action matrix has no no-evidence or pre-exploration action baseline, so it does not identify a causal action-transfer effect.",
             "W2-51 and W2-52 contain zero participant sessions; exposed construction and fresh qualification remain separate evidence roles.",
             "W2-53 reproduces 16 frozen unit versions without new truth, provider or physical execution and does not revise historical stop decisions.",

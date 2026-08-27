@@ -1,6 +1,6 @@
 # ICLR 2027 submission checklist
 
-Updated: 2026-08-25. Recheck the official
+Updated: 2026-08-27. Recheck the official
 [Call for Papers](https://iclr.cc/Conferences/2027/CallForPapers),
 [Author Guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines),
 [Dates](https://iclr.cc/Conferences/2027/Dates) and
@@ -30,6 +30,8 @@ Updated: 2026-08-25. Recheck the official
 | W2-52 320-query control | Construction pass; prospective rejection | Separate exposed repair from fresh generalization |
 | W2-53 gate--action alignment | Complete diagnostic | Complete ranking and action validity are different estimands |
 | W2-54 matched extension | Development-only, yoked right-censored | Do not use as a causal or arm-level result |
+| W2-55 reviewer controls | Complete, zero provider calls | Schema capacity plus continuous and threshold-sensitive law--action analysis |
+| W2-56 replicated B3 | DeepSeek canary rejected; GPT preparation ready | No participant scientific result or cross-provider comparison |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation.
@@ -52,8 +54,8 @@ five-condition participant cohort remains a limitation.
 
 1. Capability chain and study map.
 2. Prior-conditioned discovery.
-3. Evidence, numerical revision and structural recovery.
-4. Law, action and evaluator separation.
+3. Phenomenological interpolation versus structural recovery.
+4. Agent law--action decoupling and evaluator rank--action misalignment.
 5. Table 1: exact denominators, evidence role and claim boundary.
 
 The integrated action/evaluator figure uses the available main-text space for compact W2-51/W2-52
@@ -70,12 +72,14 @@ panel for conditions that were not executed.
 - [x] Build the four main figures and Table 1 from source data, with exact denominators and failures.
 - [ ] Complete related work and citation verification.
 - [x] Draft limitations, reproducibility, ethics and the mandatory AI-use statement.
-- [ ] Run claims-to-evidence, anonymity, citation, page-count and rendered-PDF checks.
+- [x] Run claims-to-evidence, anonymity, page-count and rendered-PDF checks.
+- [ ] Complete citation-source verification.
 
-Current anonymous build: 9 pages of main text and 13 pages total in the official ICLR 2027 style,
+Current anonymous build: 8 pages of main text and 13 pages total in the official ICLR 2027 style,
 with zero LaTeX errors, undefined citations, overfull boxes or direct identifying-string leaks. The
-combined law/action/evaluator display is integrated from machine-readable W2-50--W2-53 sources.
-Citation-source verification and the final claims-to-evidence pass remain open.
+combined law/action/evaluator display is integrated from machine-readable W2-50--W2-55 sources. The
+claims-to-evidence, anonymity, page-count and rendered-PDF passes are complete; citation-source
+verification remains open.
 
 The canonical manuscript, story, display plan and evidence map are respectively
 `paper/prior_discovery_manuscript.md`, `paper/prior_discovery_story_zh.md`,

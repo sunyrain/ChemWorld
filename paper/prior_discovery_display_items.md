@@ -1,4 +1,4 @@
-# Display plan — from evidence to action
+# Display plan — causal dissection from evidence to action
 
 The six main figures follow one argument: endpoint success is ambiguous; a controlled starting-model
 intervention makes the ambiguity identifiable; free discovery, matched evidence, executable
@@ -44,13 +44,13 @@ occurs, but the wrong model is not selectively repaired.
 
 Panel B is a retrospective manipulation check without a repeated same-arm baseline.
 
-## Figure 4 — Matched evidence localizes the structural bottleneck
+## Figure 4 — Matched counterevidence drives numerical convergence but not structural recovery
 
 **Claim:** identical diagnostic evidence can restore numerical predictions without recovering the
 governing structural law.
 
 - A: pre-to-post structural error for all 15 corrected matched-evidence cells;
-- B: post-evidence means of 0.0074, 0.0060 and 0.0071;
+- B: 15/15 cells at low post-evidence error, with arm means of 0.0074, 0.0060 and 0.0071;
 - C: five world-level misspecified-minus-aligned update-gain contrasts, mean +0.0645, 3/5 positive,
   exact one-sided sign-flip p=0.125;
 - D: misspecified summaries show 5/5 numerical convergence, 5/5 saturation/endpoint models, 1/5
@@ -59,7 +59,7 @@ governing structural law.
 The earlier structural run affected by an evaluator omission is excluded. The corrected five-world
 analysis is descriptive and non-confirmatory.
 
-## Figure 5 — Prediction, law compression and incumbent replay dissociate
+## Figure 5 — Executable compression and incumbent replay expose distinct losses
 
 **Claim:** general prediction learning does not imply selective correction, faithful executable
 compression or an action advantage over an observed incumbent.
@@ -72,15 +72,16 @@ compression or an action advantage over an observed incumbent.
 The completed evaluator contains 420/420 truth executions, 675/675 checkpoint scores, 135/135 law
 evaluations and 726/726 launched blind replays without additional participant calls.
 
-## Figure 6 — Action selection and evaluator validity separate
+## Figure 6 — Agent law-action decoupling and evaluator rank-action misalignment
 
-**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but terminal selection remains
-uneven and neither thresholded law adequacy nor complete-ranking oracle qualification guarantees the
-correct action.
+**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but the final break has two
+levels: agent understanding maps non-monotonically to action, and evaluator rank qualification does not
+certify the decision endpoint.
 
 - A: selected true rank for every eligible cell;
-- B: joint law--action categories: 30 inadequate/wrong, 11 inadequate/correct, 1 adequate/wrong and
-  0 adequate/correct;
+- B: continuous final-law MAE versus normalized regret for all 42 eligible cells, with task identity
+  and Top-1 selections; inset shows correct/wrong actions inside the adequate subset at seven
+  thresholds from 0.05 to 0.30;
 - C: W2-51/W2-52 qualification funnels, separating 96-grid fresh preparation, 320-grid exposed
   construction and 320-grid fresh qualification, with passed, rejected, unstarted and zero-participant
   denominators;
