@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-08-25
+更新日期：2026-08-28
 
 本文件是 Paper 2 当前唯一的结果导航入口。它不替代 raw run、机器 summary、实验 note 或冻结 analysis plan；历史报告只描述各自执行时点，不再作为当前状态入口。
 
@@ -15,12 +15,13 @@
 | Registered current-composite evaluator v0.2 recovery | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
 | 删失与资源敏感性分析 | 已完成当前 public 主分析 | 7 failed、7 right-censored 与 84 个未启动 blind 分母全部保留；另报 observed-point sensitivity |
 | Matched evidence（A-P Study B + A-S B2） | 当前有效 30 sessions 终态 | A-P 支持 evidence-seeking component；B2 给出 mixed predictive contrast，但 misindexed 0/5 恢复 1.75 law，结构识别仍是独立瓶颈 |
+| W2-56 identifiable-law/action control | GPT formal 30/30；DeepSeek canary rejection 单列 | GPT 三臂 joint family+exponent recovery 为 0/10、5/10、0/10，eligible gain≥0.02 为 0/18；支持 provider-specific 结构保留/修正与行动桥接诊断，不作跨 provider leaderboard |
 | W2-50 fresh multi-task open action | 正式描述性终态 | `45/45` cell records、`42/45` eligible、`240/240` truth 与 exact replay；11/42 Top-1，三项 crystallization failures 保留，不作 causal action-transfer claim |
 | W2-51 evidence-to-action 五条件分解 | 工作包 DONE；原 provider 前科学拒绝保留 | 前 8 个 clusters 完成 `896/896` truth 与 exact replay；candidate 8/8、oracle 7/8，fresh crystallization world 的 `rho=0.738095<0.80`；0 participant/provider calls、0 participant experiments，不产生五个因果对比；不再是 ICLR 写稿阻断项 |
 | W2-52 320-grid oracle | 工作包 DONE；construction pass 与 prospective rank rejection 均保留 | 7/7 exposed construction 单元通过并修复四个历史失败，但首个 fresh prospective world 为 `rho=0.714286<0.80`；Top-1 正确、regret=0，余下 14 clusters 未启动；不再是 ICLR 写稿阻断项 |
 | W2-53 oracle gate-action alignment | 回顾诊断终态 | 固定 `16/16` unit-version 全部复现；W2-51 为 rank gate 7/8 但 Top-1 1/8，首个 fresh 320-grid world 则 rank 失败但 Top-1 正确，证明完整排序与动作充分性分离 |
 | A-E private | 延期 | public evaluator 后仅在需要 held-out confirmation 时重新授权 |
-| 跨 provider replication | 未启动 | WellAU/Qwen/Kimi 仅在保留跨 provider 泛化主张时需要 |
+| 跨 provider replication | 匹配 science surface 已建立，但 paired formal comparison 不可用 | GPT formal 30/30；DeepSeek 停在 canary、formal 0/30，因此只有 GPT provider-specific result，不支持跨 provider effect |
 | Manuscript story | ICLR 主线已冻结，正文待写 | `paper/prior_discovery_story_zh.md`；不再等待 oracle v0.5，以五层能力分解和 evaluator validity 组织当前证据 |
 
 ## 2. 当前可以支持的中心论点
@@ -39,6 +40,8 @@
 12. W2-51/W2-52 暴露了 oracle-control 泛化边界：exposed construction 上的成功不能保证 fresh-world 完整排序。
 13. 完整排序与动作充分性不能互相替代：W2-51 的 96-grid fresh 单元中 rank gate 7/8、Top-1 1/8；首个 fresh 320-grid 单元则 `rho=0.714286` 但 Top-1 正确、regret=0。原 stop rule 仍合法执行，但论文不再把单一 rank gate 当作动作质量代理。
 14. W2-51/52 均已按终态结果完成并移出当前 ICLR 阻断项；这不回溯授权原 225-session cohort，也不把未估计的五条件因果对比写成完成。
+15. W2-56 的 participant-identifiable control 中，aligned joint family+1.75±0.10 recovery 为 `5/10`，opaque 与 misindexed 均为 `0/10`；misindexed 虽 `8/10` 选择 power family，却 `0/10` 恢复正确 exponent。
+16. 同一控制只有 `2/30` Top-1，且均来自 action-opportunity 不成立的 world；预先冻结的 eligible 分母中 gain≥0.02 为 `0/18`，结构保留没有自动转化为有用新动作。
 
 当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；自由探索或 learned law 因果性地改善未见 ActionPlan 选择；结果可跨 provider 泛化；private replication 已完成。
 
@@ -64,6 +67,7 @@
 | Study B A-P matched evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、0 participant experiments | 5/5 misindexed sessions 明确推翻错误电位方向；当前保留 |
 | 原 Study B A-S branch | 5 clusters、15/15 sessions | truth source 未实际应用冻结的 world intervention；保留为历史平台缺陷证据，不进入当前 claim |
 | A-S Study B2 phase-process evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | prediction primary contrast +0.0645（3/5，exact p=0.125）；misindexed 0/5 exact law recovery |
+| W2-56 GPT identifiable-law/action control | 5 worlds × 3 arms × 2 sessions；canary 3/3，formal 30/30，60/60 formal turns，0 failures、0 tools、0 physical experiments | post MAE 0.0367/0.0215/0.0378；joint family+exponent 0/10、5/10、0/10；Top-1 2/30，eligible gain≥0.02 为 0/18 |
 | A-S open-action five-world development | 5 worlds、15/15 sessions、180/180 experiments、13/15 eligible、120/120 truth + replay | 完整 ActionPlan 下 `0/15` Top-1；机制 adequacy 与 action correctness 分离，不作 arm-level formal claim |
 | Multi-task open-action qualification | 三个额外任务各自仅 `seed=0`；最新未污染 blocks 合计 9/9 eligible、108/108 experiments、48/48 truth + replay | 证明同一 longitudinal/ranking-only harness 可跨电化学、结晶和反应安全运行；不是 5-seed 结果，不作 prior-arm 推断 |
 | W2-50 fresh multi-task open action | 3 tasks × 5 worlds × 3 arms；45/45 records、42/45 eligible、240/240 truth 与 exact replay | 完整计划终端选择为有界描述性结果：11/42 Top-1，mean rank 3.31/8，normalized regret 0.297；无 no-evidence/pre-exploration control |
@@ -144,6 +148,8 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 
 结构表述却没有闭合：misindexed 0/5 明确恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向局部饱和/endpoint 模型。B2 因此拒绝纯二分解释：模型不是“完全不更新”，因为 post error 下降约 98%；也不能说“问题只在没找到证据”，因为 law-level evidence 到达后仍未恢复注册结构。当前机制收束是 **acquisition、numerical revision 与 structural identification 三层分离**。
 
+W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identifiable。GPT-5.6-sol medium 在 3/3 canary 后完成 30/30 formal cells；opaque/aligned/misindexed post MAE 为 `0.0367/0.0215/0.0378`，joint family+exponent recovery 为 `0/10`、`5/10`、`0/10`。aligned 的 world-mean exponent error 对两个对照均在 5/5 worlds 更低，但错误先验没有发生选择性结构修正。行动侧 Top-1 为 2/30，eligible gain≥0.02 为 0/18。该 block 强化结构识别与行动迁移分离，但因 DeepSeek formal 0/30，不构成跨 provider 排名。
+
 ## 7. 负结果与不扩展决定
 
 以下结果是论文边界证据，不是待“修好”的失败：
@@ -167,6 +173,7 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 - W2-51 机器收口：`reports/work-ii-evidence-to-action-formal-closeout-v0.1.json`
 - W2-52 large-grid construction/qualification：`reports/WORK_II_EVIDENCE_TO_ACTION_LARGE_GRID_V1_CONSTRUCTION_CLOSEOUT_ZH.md`、`reports/WORK_II_EVIDENCE_TO_ACTION_LARGE_GRID_V1_QUALIFICATION_CLOSEOUT_ZH.md`
 - W2-53 gate-action alignment：`reports/WORK_II_EVIDENCE_TO_ACTION_GATE_ALIGNMENT_ZH.md`、`reports/work-ii-evidence-to-action-gate-alignment-v0.1.json`
+- W2-56 GPT formal：`reports/WORK_II_AS_STUDY_B3_GPT56_SOL_MEDIUM_FORMAL_CLOSEOUT_ZH.md`、`reports/work-ii-as-study-b3-gpt56-sol-medium-formal-closeout-v0.1.json`
 - W2-50 正式审计：`reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md`
 - Open-action development 收束：`reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`
 - 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
@@ -191,7 +198,7 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束。W2-50 随后完成多任务未见 ActionPlan 终端排序，但因缺少 no-evidence/pre-exploration control 仍是描述性结果。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。当前投稿不再等待 oracle v0.5，下一步选择是：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束。W2-50 随后完成多任务未见 ActionPlan 终端排序，但因缺少 no-evidence/pre-exploration control 仍是描述性结果。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。W2-56 GPT formal 30/30 又提供 participant-identifiable 的结构保留/修正与行动桥接控制，但不作跨 provider leaderboard。当前投稿不再等待 oracle v0.5，下一步选择是：
 
 1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
 2. **Cross-provider replication。** 只有需要检验失效位置的模型普适性时，再把 Qwen、Kimi 或 WellAU 接入同一 frozen harness。

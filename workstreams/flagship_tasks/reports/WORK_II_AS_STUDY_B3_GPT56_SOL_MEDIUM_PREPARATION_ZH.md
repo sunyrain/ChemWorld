@@ -1,4 +1,8 @@
-# Work II A-S Study B3 GPT-5.6-sol medium provider-free 准备收束
+# Work II A-S Study B3 GPT-5.6-sol medium provider-free 准备收束（历史快照）
+
+> 本文记录 participant execution 授权前的准备状态。用户随后于 2026-08-28 授权执行；
+> canary 与 30-cell formal block 的终态结果见
+> `WORK_II_AS_STUDY_B3_GPT56_SOL_MEDIUM_FORMAL_CLOSEOUT_ZH.md`。
 
 状态：`provider_free_ready_participant_execution_blocked`。GPT participant calls 为 `0`，physical experiments 为 `0`；canary 与 formal session 均未启动。
 
