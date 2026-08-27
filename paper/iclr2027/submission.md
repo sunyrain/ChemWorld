@@ -11,9 +11,11 @@ abstract: |
   sessions, these interventions redirected search and prediction errors fell in every arm and locus,
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
-  0.0060-0.0074, but 0/5 misspecified summaries recovered the registered 1.75 power law. All
-  135 typed laws executed, yet 84 preserved less predictive information than the agents' final
-  explicit predictions. In fresh multi-task action selection, only 11/42 eligible readouts selected
+  0.0060-0.0074, but 0/5 misspecified summaries recovered the registered 1.75 power law. An
+  independent 30-session control made the exponent identifiable: joint family--exponent recovery
+  was 5/10 in the aligned arm and 0/10 in both controls, while 0/18 action-eligible choices reached
+  the registered gain. All 135 typed laws executed, yet 84 preserved less predictive information
+  than the agents' final explicit predictions. In fresh multi-task action selection, only 11/42 eligible readouts selected
   the best unseen plan, and thresholded law adequacy did not determine a correct action. Finally, a
   complete-ranking control passed 7/8 fresh 96-query units while selecting Top-1 in only 1/8, whereas
   a fresh 320-query unit failed the same gate but selected Top-1 with zero regret. Experimental
@@ -155,6 +157,7 @@ Layer & Units & Execution & Supported role \\
 \midrule
 Prospective priors & 135 sessions & 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
 Matched evidence & 30 sessions & fixed evidence packets & Numerical update versus structural recovery \\
+Identifiable-law control & 30 sessions & 5 worlds $\times$ 3 arms $\times$ 2 replicates & Structural retention and action bridge \\
 Open action & 45 cells & 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
 96-query control & 15 planned & 8 attempted; 896/896 truth/replay & Retained pre-participant rejection \\
 320-query control & 7 exposed + 15 fresh & 7 exposed pass; 1 fresh attempted & Construction repair versus prospective rejection \\
@@ -206,6 +209,10 @@ on average, but no locus passes the selective-correction criterion.}
 \end{figure}
 ```
 
+```{=latex}
+\FloatBarrier
+```
+
 ## Matched counterevidence supports interpolation without structural recovery
 
 Free discovery cannot distinguish failure to seek diagnostic evidence from failure to use it. In the
@@ -221,6 +228,17 @@ convergence rather than a confirmatory arm effect. Yet 0/5 misspecified public s
 the registered 1.75 power law, 1/5 explicitly rejected the supplied linear form, and 5/5 adopted a
 saturation or endpoint model. Direct evidence supported accurate local phenomenological interpolation
 without structural identification (Fig.~\ref{fig:matched-evidence}).
+
+We then froze an independent control whose disclosed reference coefficients made the 1.75 exponent
+identifiable on a disjoint eight-query scoring roster. After a 3/3 canary, all 30 GPT-5.6-sol medium
+sessions completed (five worlds, three arms, two fresh sessions per arm and world). Mean post errors
+were 0.0367/0.0215/0.0378 for opaque/aligned/misspecified. Joint family--exponent recovery was
+0/10, 5/10, and 0/10; aligned world-mean exponent error was lower than both comparators in 5/5 worlds.
+The misspecified arm chose the power family in 8/10 sessions but recovered the exponent in 0/10,
+so the family label alone did not establish structural identification. Only 2/30 choices were Top-1,
+both where no candidate cleared the registered improvement margin; among 18 action-eligible cells,
+0/18 reached the 0.02 gain. Identifiable evidence partly preserved a correct prior but neither
+selectively repaired the wrong prior nor guaranteed useful action.
 
 ```{=latex}
 \begin{figure}[t]
@@ -390,10 +408,13 @@ completed, and unstarted counts prevent this error.
 
 ## Limitations and conclusion
 
-Evidence concerns one agent--tool system in simulation, not cross-model ranking or laboratory
-fidelity; some contrasts use five worlds. The open-action matrix lacks no-evidence and pre-exploration
-baselines, and the five-condition cohort has no participant data. Artifact portability, private
-replication, and cross-provider generalization remain untested.
+The primary cohort and the independent identifiable-law control each concern one fixed agent--tool
+configuration in simulation, not cross-model ranking or laboratory fidelity; some contrasts use five
+worlds. The matched DeepSeek B3 block stopped at canary and has no formal denominator, so the GPT
+formal result is provider-specific rather than a cross-provider effect. The open-action matrix lacks
+no-evidence and pre-exploration baselines, and the five-condition cohort has no participant data.
+Artifact portability, private replication, and a completed matched cross-provider comparison remain
+untested.
 
 Scientific-agent claims should name interventions, units, failure rules, and transfer boundaries.
 Agency is a chain from evidence to revision, identification, compression, and decision, breakable in

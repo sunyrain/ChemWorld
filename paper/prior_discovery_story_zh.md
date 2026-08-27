@@ -122,6 +122,17 @@ acquisition component，但方向不稳定。
 因此最终机制不再是“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与
 structural law identification 三层分离**。
 
+W2-56 又用一套独立冻结控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
+world 两个 fresh sessions 上完成 `30/30` GPT-5.6-sol medium formal cells。opaque/aligned/misindexed 的
+post MAE 为 `0.0367/0.0215/0.0378`，但 family+exponent recovery 为 `0/10`、`5/10`、`0/10`；aligned 的
+world-mean exponent error 相对两个对照均在 `5/5` worlds 更低。misindexed 虽有 `8/10` 选择 power family，
+正确 exponent 仍为 `0/10`。这将原结论从“小样本没有恢复”加强为：可识别证据能部分保留正确先验，但没有
+选择性修正错误先验，family 标签也不能替代结构参数恢复。
+
+同一控制的行动结果是 `2/30` Top-1，且两次都位于没有 0.02 改进机会的同一 world；三个位于
+action-opportunity denominator 的 worlds 共 `18` cells，gain≥0.02 为 `0/18`。即使 joint structural
+recovery 且 action-eligible 的两个 cells 也为 `0/2`。因此“结构理解→有用新动作”仍是独立断裂。
+
 ### 3.5 Open action 与 evaluator：第四断裂包含两个层次
 
 C2 的 blind replay 主要比较 final recommendation 与 participant 已经观察过的 incumbent，因此它能证明

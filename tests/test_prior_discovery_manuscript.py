@@ -22,6 +22,11 @@ B2_ANALYSIS = (
     / "workstreams/flagship_tasks/reports/"
     "work-ii-as-study-b2-phase-process-results-v0.1.json"
 )
+B3_GPT_CLOSEOUT = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-as-study-b3-gpt56-sol-medium-formal-closeout-v0.1.json"
+)
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
 CLOSEOUT = (
@@ -69,7 +74,10 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
     assert "Prior uptake and selective-correction failure" in display_items
-    assert "Matched evidence localizes the structural bottleneck" in display_items
+    assert (
+        "Matched counterevidence drives numerical convergence but not structural recovery"
+        in display_items
+    )
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "no same-arm replicate baseline" in limits
@@ -130,8 +138,35 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert b2["public_summary_audit"]["by_arm"]["misindexed_nominal"][
         "exact_1_75_power_law_recovery_count"
     ] == 0
-    assert "Prediction learning does not become selective wrong-model repair" in manuscript
+    assert (
+        "Predictive learning does not selectively repair a wrong starting model"
+        in manuscript
+    )
     assert "1/119/1" in manuscript
-    assert "Matched evidence localizes the structural bottleneck" in manuscript
+    assert (
+        "Matched counterevidence drives numerical convergence but not structural-law recovery"
+        in manuscript
+    )
     assert "mean +0.0645" in display_items
     assert "completed evaluator contains" in display_items
+
+
+def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
+    closeout = json.loads(B3_GPT_CLOSEOUT.read_text(encoding="utf-8"))
+
+    assert closeout["status"] == "formal_completed"
+    assert closeout["integrity"]["completed_formal_cell_count"] == 30
+    assert closeout["integrity"]["failed_formal_cell_count"] == 0
+    by_arm = closeout["science"]["by_arm"]
+    assert by_arm["opaque"]["joint_family_and_exponent_recovery_count"] == 0
+    assert by_arm["aligned_nominal"]["joint_family_and_exponent_recovery_count"] == 5
+    assert by_arm["misindexed_nominal"]["joint_family_and_exponent_recovery_count"] == 0
+    action = closeout["science"]["action_bridge"]
+    assert action["action_opportunity_eligible_cell_denominator"] == 18
+    assert action["gain_at_least_0_02_count"] == 0
+    combined = manuscript + evidence_map
+    assert "0/18" in combined
+    assert "provider-specific" in combined
+    assert "cross-provider leaderboard" in evidence_map

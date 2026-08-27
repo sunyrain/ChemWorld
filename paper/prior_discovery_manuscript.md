@@ -39,7 +39,10 @@ abstract: |
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors converged from 0.2255/0.2736/0.3392 to
   0.0074/0.0060/0.0071, but 0/5 misspecified summaries recovered the registered 1.75 power law and all
-  five adopted saturation or endpoint models. All 135 typed laws executed, yet 84 preserved less
+  five adopted saturation or endpoint models. An independent frozen 30-session control made the
+  exponent participant-identifiable: joint family--exponent recovery was 5/10 in the aligned arm but
+  0/10 in both opaque and misspecified arms, and 0/18 action-eligible choices reached the registered
+  gain. All 135 typed laws executed, yet 84 preserved less
   predictive information than the agents' final explicit predictions. In fresh multi-task action
   selection, only 11/42 eligible readouts selected the best unseen plan, and thresholded law adequacy
   did not determine a correct action. Finally, a complete-ranking control passed 7/8 fresh 96-query
@@ -91,8 +94,10 @@ prediction, explicit model revision and terminal action. The ChemWorld foundatio
 the executable substrate and its replay properties; those platform qualifications are not reused here
 as evidence of agent capability.
 
-We applied this design to a fixed DeepSeek-V4-Flash experimental-agent configuration across 45 matched
-task--world clusters and 135 prospective campaigns. Fixed checkpoints bound the participant's beliefs
+We applied the primary design to a fixed DeepSeek-V4-Flash experimental-agent configuration across 45 matched
+task--world clusters and 135 prospective campaigns. A separate, frozen GPT-5.6-sol medium control
+used the same three prior arms in five structural worlds with two independent sessions per arm and
+world. Fixed checkpoints bound the primary participant's beliefs
 to independently evaluated predictions and typed executable summaries. Matched-evidence sessions
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
@@ -579,6 +584,23 @@ numerical belief revision and structural-law identification are therefore separa
 intervention is causal at the starting prior; this downstream localization is a diagnostic
 dissociation, not a causal mediation analysis.
 
+An independent frozen control then made the 1.75 exponent participant-identifiable by disclosing
+reference coefficients across four nominal pairs and scored a disjoint eight-query roster. After a
+3/3 canary, all **30/30** GPT-5.6-sol medium sessions completed (five worlds, three arms, two fresh
+sessions per arm and world). Mean post-evidence errors were 0.0367, 0.0215 and 0.0378 for opaque,
+aligned and misspecified cells. Joint family--exponent recovery was **0/10**, **5/10** and **0/10**;
+the aligned arm had lower world-mean exponent error than each comparator in **5/5** worlds. The
+misspecified arm selected the power family in 8/10 sessions but recovered the 1.75 exponent in 0/10,
+showing that a family label alone is not structural identification. Thus participant-identifiable
+evidence partly preserved a correct prior but still did not selectively correct a wrong one.
+
+The same control also tested the evidence-to-action bridge without participant experiments. Only
+**2/30** choices were Top-1, both in the same world where no candidate could improve on the visible
+evidence incumbent by the registered 0.02 margin. Across the **18** cells in the three worlds where
+such an improvement was available, **0/18** selected an action reaching that margin; this included
+0/2 eligible cells with joint structural recovery. Structural retention and useful novel action did
+not become a monotonic pair.
+
 ```{=latex}
 \begin{figure*}[!t]
 \centering
@@ -881,10 +903,14 @@ those components rather than attributing the result to model weights alone.
 ## 9.5 Scope and limitations
 
 ChemWorld provides bounded executable causal worlds, not universal chemical fidelity or direct
-wet-laboratory validation. One fixed DeepSeek-V4-Flash agent configuration supports conclusions about
-that system, not language models in general. The prospective programme spans nine task--locus
-combinations but only five independent worlds per task. Observation-model interventions, private
-confirmation, cross-system replication and context-reset artifact portability were not executed.
+wet-laboratory validation. The primary prospective cohort concerns one fixed DeepSeek-V4-Flash agent
+configuration; the independent structural control concerns one fixed GPT-5.6-sol medium
+configuration. Together they do not support a model leaderboard or language models in general. The
+prospective programme spans nine task--locus combinations but only five independent worlds per task.
+Observation-model interventions, private confirmation and context-reset artifact portability were
+not executed. The GPT and DeepSeek B3 science surfaces match, but the DeepSeek block stopped at its
+canary and has no formal denominator, so the GPT formal result is provider-specific rather than a
+cross-provider effect estimate.
 
 The corrected structural matched-evidence result contains five worlds and is explicitly
 non-confirmatory. The earlier structural run affected by an evaluator omission is excluded. The
@@ -990,6 +1016,14 @@ $(E_{mis,pre}-E_{mis,post})-(E_{aligned,pre}-E_{aligned,post})$. The structural 
 $2^5$ sign flips are enumerated for the exact one-sided directional check and a Student-$t$ interval
 is reported descriptively. Protocol-validation sessions are excluded. Structural-recovery counts use only
 the submitted model summary and evidence assessment, never private reasoning text.
+
+The independent identifiable-law control fixes five public structural worlds, the same three prior
+arms and two independent fresh sessions per arm and world. Its eight evidence rows and disjoint
+eight-query scoring roster are selected provider-free on development worlds. All five public worlds
+enter family, exponent, prediction, Top-1, rank and regret denominators; action gain enters only for
+the three worlds whose best candidate exceeds the evidence incumbent by at least 0.02. Replicates are
+nested within worlds. Joint structural recovery requires the registered power family and exponent
+error at most 0.10; canary sessions remain outside the 30-cell scientific denominator.
 
 ## 10.6 Open-action plan construction and analysis
 

@@ -31,7 +31,7 @@ Updated: 2026-08-27. Recheck the official
 | W2-53 gate--action alignment | Complete diagnostic | Complete ranking and action validity are different estimands |
 | W2-54 matched extension | Development-only, yoked right-censored | Do not use as a causal or arm-level result |
 | W2-55 reviewer controls | Complete, zero provider calls | Schema capacity plus continuous and threshold-sensitive law--action analysis |
-| W2-56 replicated B3 | DeepSeek canary rejected; GPT preparation ready | No participant scientific result or cross-provider comparison |
+| W2-56 replicated B3 | DeepSeek canary rejected; GPT formal 30/30 complete | Provider-specific structural/action control; no cross-provider leaderboard |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation.

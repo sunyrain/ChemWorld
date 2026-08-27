@@ -291,6 +291,7 @@ def build() -> dict[str, Any]:
                 "stop decision."
             ),
             "The reduced-condition pilot is development-only and supports no arm-level conclusion.",
+            "The GPT B3 result is provider-specific because DeepSeek has no formal comparator.",
         ],
     }
     BUILD_MANIFEST.write_text(

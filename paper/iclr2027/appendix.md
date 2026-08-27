@@ -77,6 +77,36 @@ not to establish a population-level arm effect. Recipe divergence is likewise a 
 without repeated same-arm sessions, provider stochasticity cannot be separated from intervention
 sensitivity at exact-recipe resolution.
 
+## Participant-identifiable law and action control
+
+The independent B3 control used five frozen public structural-partition worlds, the same opaque,
+aligned, and misspecified prior arms, and two independent fresh GPT-5.6-sol medium sessions per arm
+and world. Provider-free development qualification selected eight evidence rows spanning four
+nominal pairs and a disjoint eight-query scoring/action roster. Public truth was executed before any
+participant call. All five worlds entered family, exponent, prediction, Top-1, rank, and regret
+denominators; action gain was scored only in the three worlds whose best candidate exceeded the
+visible evidence incumbent by at least 0.02. The evidence and scoring rosters, five worlds, three
+arms, two replicates, 0.10 exponent tolerance, and 0.02 opportunity threshold were frozen before
+participant execution.
+
+A three-session canary tested only two-turn schema validity, packet identity, same-thread continuity,
+typed law fields, the exact scoring denominator, and selection of an unexecuted candidate. It passed
+3/3 and did not enter the formal scientific denominator. The full 30-cell block then completed
+30/30 with no failed cells or replacement. All sessions preserved same-thread continuity and returned
+60/60 completed formal turn receipts. The canary and formal blocks together used 33 provider session
+attempts, 66/66 completed turn receipts, zero retries, zero tool events, and zero participant physical
+experiments. One formal post turn recorded a transient provider error event before returning a
+completed receipt; the event remains in the resource ledger and the cell remains completed.
+
+Joint structural recovery required both the registered power family and exponent error at most 0.10.
+Counts for opaque, aligned, and misspecified arms were 0/10, 5/10, and 0/10. The corresponding mean
+post-evidence errors were 0.0367, 0.0215, and 0.0378. The aligned world-mean exponent error was lower
+than each comparator in all five worlds. Top-1 counts were 0/10, 2/10, and 0/10; both Top-1 choices
+came from one action-ineligible world. None of the 18 action-eligible cells reached gain 0.02,
+including neither of the two action-eligible cells with joint structural recovery. A matched DeepSeek
+B3 preparation used the same science surface but stopped at a failed canary and has no formal
+denominator; the GPT block is therefore a provider-specific result, not a cross-provider effect.
+
 ## Complete-plan action assay
 
 In each open-action cell, a persistent agent performs twelve autonomous experiments and commits
@@ -131,7 +161,8 @@ historical result, threshold, or stop decision.
 
 ## Additional scope boundaries
 
-The study evaluates simulated chemistry and one complete agent--tool system. It does not establish
+The study evaluates simulated chemistry and two fixed agent--tool configurations in separately
+reported evidence blocks. It does not establish
 physical laboratory fidelity, universal chemical coverage, cross-provider ordering, or artifact
 portability. The public cohort is not a private-world confirmation. The 45-cell action matrix lacks a
 same-agent no-evidence baseline. The five-condition causal cohort is unexecuted. A later reduced
