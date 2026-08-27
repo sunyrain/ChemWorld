@@ -35,9 +35,9 @@ from chemworld.world.phase_kernel import (
 )
 
 B3_PROTOCOL_VERSION = "chemworld-work-ii-as-study-b3-protocol-0.1"
-B3_MANIFEST_VERSION = "chemworld-work-ii-as-study-b3-input-manifest-0.1"
-B3_CELL_VERSION = "chemworld-work-ii-as-study-b3-cell-result-0.1"
-B3_SUMMARY_VERSION = "chemworld-work-ii-as-study-b3-summary-0.1"
+B3_MANIFEST_VERSION = "chemworld-work-ii-as-study-b3-input-manifest-0.2"
+B3_CELL_VERSION = "chemworld-work-ii-as-study-b3-cell-result-0.2"
+B3_SUMMARY_VERSION = "chemworld-work-ii-as-study-b3-summary-0.2"
 B3_QUALIFICATION_VERSION = "chemworld-work-ii-as-study-b3-qualification-0.1"
 B3_PUBLIC_TRUTH_VERSION = "chemworld-work-ii-as-study-b3-public-truth-0.1"
 
@@ -939,10 +939,17 @@ def prepare_b3(
                 },
             }
         )
+    require_action_opportunity = bool(
+        protocol["qualification"].get("require_action_opportunity_preflight", True)
+    )
     public_truth: dict[str, Any] = {
         "schema_version": B3_PUBLIC_TRUTH_VERSION,
         "study_id": protocol["study_id"],
-        "status": "preflight_passed" if not failed_public_worlds else "preflight_rejected",
+        "status": (
+            "preflight_passed"
+            if not require_action_opportunity or not failed_public_worlds
+            else "preflight_rejected"
+        ),
         "public_world_count": 5,
         "selected_query_count_per_law_per_world": 16,
         "linear_and_power_truth_execution_count": 160,
@@ -952,6 +959,9 @@ def prepare_b3(
         "roster_sha256": roster["roster_sha256"],
         "failed_public_world_count": len(failed_public_worlds),
         "failed_public_worlds": failed_public_worlds,
+        "action_opportunity_preflight_required": require_action_opportunity,
+        "action_opportunity_eligible_world_count": len(public_seeds)
+        - len(failed_public_worlds),
         "public_law_decodability": {
             "distinct_reference_coefficient_count": roster["evidence_pair_count"],
             "exact_fixed_pair_exponent_coefficient_alias_present": False,
@@ -965,7 +975,7 @@ def prepare_b3(
     }
     public_truth["public_truth_sha256"] = canonical_json_sha256(public_truth)
     write_json_atomic(target / "public_truth_manifest.json", public_truth)
-    if failed_public_worlds:
+    if failed_public_worlds and require_action_opportunity:
         raise ValueError(
             "A-S Study B3 public preflight was retained as rejected before participant calls"
         )
@@ -1059,6 +1069,19 @@ def build_b3_manifest(
         raise ValueError("A-S Study B3 public truth preflight is not complete")
     if len(roster.get("evidence_queries", [])) != 8 or len(roster.get("scoring_queries", [])) != 8:
         raise ValueError("A-S Study B3 frozen roster denominator drifted")
+    execution = protocol.get("execution")
+    if not isinstance(execution, Mapping):
+        raise ValueError("A-S Study B3 execution contract is unavailable")
+    replicates_per_arm = int(execution.get("replicates_per_arm", 1))
+    if not 1 <= replicates_per_arm <= 10:
+        raise ValueError("A-S Study B3 replicates_per_arm must be between 1 and 10")
+    expected_formal_sessions = (
+        len(protocol["public_world_seeds"]) * len(B3_ARMS) * replicates_per_arm
+    )
+    if int(execution.get("formal_sessions", -1)) != expected_formal_sessions:
+        raise ValueError("A-S Study B3 formal session denominator drifted")
+    if int(execution.get("canary_sessions", -1)) != len(B3_ARMS):
+        raise ValueError("A-S Study B3 canary session denominator drifted")
     worlds = {int(item["world_seed"]): item for item in public_truth["worlds"]}
     cells: list[dict[str, Any]] = []
     cluster_packets: list[dict[str, Any]] = []
@@ -1082,6 +1105,21 @@ def build_b3_manifest(
             str(query["query_id"]): deepcopy(world["power_truth"][str(query["query_id"])])
             for query in roster["scoring_queries"]
         }
+        ordered_action_ids = sorted(
+            scoring_truth,
+            key=lambda query_id: (-float(scoring_truth[query_id]["score"]), query_id),
+        )
+        hidden_action_ranks = {
+            query_id: rank for rank, query_id in enumerate(ordered_action_ids, start=1)
+        }
+        best_action_query_id = ordered_action_ids[0]
+        best_action_score = float(scoring_truth[best_action_query_id]["score"])
+        worst_action_score = min(float(row["score"]) for row in scoring_truth.values())
+        maximum_available_action_gain = best_action_score - float(
+            world["evidence_incumbent_score"]
+        )
+        action_opportunity_eligible = bool(world["preflight_passed"])
+        action_opportunity_threshold = float(protocol["qualification"]["minimum_action_gain"])
         public_packet = {
             "schema_version": "chemworld-work-ii-as-study-b3-public-packet-0.1",
             "cluster_id": f"A_S_B3--partition-discovery--seed{seed}",
@@ -1102,37 +1140,58 @@ def build_b3_manifest(
                 "scoring_action_query_count": 8,
                 "scoring_term_count": 32,
                 "evidence_incumbent_score": world["evidence_incumbent_score"],
-                "maximum_available_action_gain": max(world["scoring_action_gains"].values()),
+                "maximum_available_action_gain": maximum_available_action_gain,
+                "action_opportunity_eligible": action_opportunity_eligible,
+                "action_opportunity_threshold": action_opportunity_threshold,
             }
         )
         rotated = [B3_ARMS[(world_index + offset) % 3] for offset in range(3)]
-        for arm in rotated:
-            cells.append(
-                {
-                    "cell_index": len(cells) + 1,
-                    "study_id": protocol["study_id"],
-                    "cell_id": f"{cluster_id}--{arm}",
-                    "cluster_id": cluster_id,
-                    "locus": "A_S_B3",
-                    "task_id": "partition-discovery",
-                    "world_seed": seed,
-                    "arm": arm,
-                    "initial_world_model": _initial_model(arm),
-                    "public_packet": deepcopy(public_packet),
-                    "public_packet_sha256": packet_hash,
-                    "scoring_truth": scoring_truth,
-                    "evidence_incumbent_score": float(world["evidence_incumbent_score"]),
-                }
-            )
+        for replicate_index in range(1, replicates_per_arm + 1):
+            replicate_block_id = f"{cluster_id}--replicate-{replicate_index:02d}"
+            for arm in rotated:
+                cell_id = (
+                    f"{cluster_id}--{arm}"
+                    if replicates_per_arm == 1
+                    else f"{replicate_block_id}--{arm}"
+                )
+                cells.append(
+                    {
+                        "cell_index": len(cells) + 1,
+                        "study_id": protocol["study_id"],
+                        "cell_id": cell_id,
+                        "cluster_id": cluster_id,
+                        "replicate_block_id": replicate_block_id,
+                        "replicate_index": replicate_index,
+                        "locus": "A_S_B3",
+                        "task_id": "partition-discovery",
+                        "world_seed": seed,
+                        "arm": arm,
+                        "initial_world_model": _initial_model(arm),
+                        "public_packet": deepcopy(public_packet),
+                        "public_packet_sha256": packet_hash,
+                        "scoring_truth": scoring_truth,
+                        "hidden_action_ranks": hidden_action_ranks,
+                        "best_action_query_id": best_action_query_id,
+                        "best_action_score": best_action_score,
+                        "worst_action_score": worst_action_score,
+                        "evidence_incumbent_score": float(world["evidence_incumbent_score"]),
+                        "maximum_available_action_gain": maximum_available_action_gain,
+                        "action_opportunity_eligible": action_opportunity_eligible,
+                        "action_opportunity_threshold": action_opportunity_threshold,
+                    }
+                )
     manifest: dict[str, Any] = {
         "schema_version": B3_MANIFEST_VERSION,
         "study_id": protocol["study_id"],
         "protocol_path": protocol_file.relative_to(root).as_posix(),
+        "protocol_status": protocol.get("status"),
         "provider": deepcopy(protocol["provider"]),
-        "execution": deepcopy(protocol["execution"]),
+        "execution": deepcopy(execution),
         "arms": list(B3_ARMS),
-        "cell_count": 15,
+        "cell_count": expected_formal_sessions,
         "cluster_count": 5,
+        "replicate_block_count": len(protocol["public_world_seeds"]) * replicates_per_arm,
+        "replicates_per_arm": replicates_per_arm,
         "scoring_term_count": 32,
         "participant_physical_experiment_count": 0,
         "qualification_sha256": qualification["qualification_sha256"],
@@ -1301,6 +1360,165 @@ def validate_b3_payload(
     return errors
 
 
+def evaluate_b3_selected_action(
+    cell: Mapping[str, Any], selected_query_id: str
+) -> dict[str, Any]:
+    """Score one B3 candidate choice against the complete hidden scoring roster."""
+
+    truth = cell["scoring_truth"]
+    if selected_query_id not in truth:
+        raise ValueError("B3 selected action query ID is absent from hidden truth")
+    candidate_scores = {
+        str(query_id): float(metrics["score"]) for query_id, metrics in truth.items()
+    }
+    if not candidate_scores or not all(math.isfinite(score) for score in candidate_scores.values()):
+        raise ValueError("B3 action truth scores are empty or non-finite")
+    ordered_ids = sorted(
+        candidate_scores,
+        key=lambda query_id: (-candidate_scores[query_id], query_id),
+    )
+    ranks = {query_id: rank for rank, query_id in enumerate(ordered_ids, start=1)}
+    best_query_id = ordered_ids[0]
+    best_score = candidate_scores[best_query_id]
+    worst_score = min(candidate_scores.values())
+    selected_score = candidate_scores[selected_query_id]
+    raw_regret = best_score - selected_score
+    score_range = best_score - worst_score
+    normalized_regret = 0.0 if score_range <= 1.0e-12 else raw_regret / score_range
+    incumbent = float(cell["evidence_incumbent_score"])
+    maximum_available_gain = best_score - incumbent
+    threshold = float(cell.get("action_opportunity_threshold", 0.02))
+    eligible = bool(
+        cell.get("action_opportunity_eligible", maximum_available_gain >= threshold)
+    )
+    return {
+        "query_id": selected_query_id,
+        "true_score": selected_score,
+        "selected_true_rank": int(ranks[selected_query_id]),
+        "top1_selected": selected_query_id == best_query_id,
+        "best_action_query_id": best_query_id,
+        "best_action_score": best_score,
+        "worst_action_score": worst_score,
+        "raw_regret": raw_regret,
+        "normalized_regret": normalized_regret,
+        "evidence_incumbent_score": incumbent,
+        "gain_over_evidence_incumbent": selected_score - incumbent,
+        "maximum_available_action_gain": maximum_available_gain,
+        "action_opportunity_threshold": threshold,
+        "action_opportunity_eligible": eligible,
+        "participant_executed_before_selection": False,
+    }
+
+
+def summarize_b3_canary_closeout(
+    manifest: Mapping[str, Any],
+    results: Sequence[Mapping[str, Any]],
+    canary_summary: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Build a failure-aware terminal summary for the three-session B3 canary."""
+
+    first_cluster = str(manifest["cells"][0]["cluster_id"])
+    expected_cells = [
+        cell
+        for cell in manifest["cells"]
+        if str(cell["cluster_id"]) == first_cluster
+        and int(cell.get("replicate_index", 1)) == 1
+    ]
+    expected_ids = {str(cell["cell_id"]) for cell in expected_cells}
+    observed_ids = {str(result.get("cell_id")) for result in results}
+    if expected_ids != observed_ids:
+        raise ValueError("B3 canary result denominator differs from the manifest")
+    rows: list[dict[str, Any]] = []
+    for result in results:
+        receipts = result.get("provider_receipts")
+        receipts = receipts if isinstance(receipts, list) else []
+        failure = result.get("failure")
+        failure = failure if isinstance(failure, Mapping) else {}
+        selected = result.get("selected_action")
+        selected = selected if isinstance(selected, Mapping) else {}
+        post = result.get("post_submission")
+        post = post if isinstance(post, Mapping) else {}
+        post_scores = result.get("scores", {}).get("post", {})
+        post_scores = post_scores if isinstance(post_scores, Mapping) else {}
+        rows.append(
+            {
+                "cell_id": result["cell_id"],
+                "arm": result["arm"],
+                "status": result["status"],
+                "elapsed_s": result.get("elapsed_s"),
+                "provider_attempt_count": int(result.get("provider_attempt_count", 0)),
+                "provider_turn_count": len(receipts),
+                "completed_provider_turn_count": sum(
+                    receipt.get("status") == "completed"
+                    for receipt in receipts
+                    if isinstance(receipt, Mapping)
+                ),
+                "tool_event_count": sum(
+                    int(receipt.get("tool_event_count", 0) or 0)
+                    for receipt in receipts
+                    if isinstance(receipt, Mapping)
+                ),
+                "failure_classification": failure.get("classification"),
+                "failure_type": failure.get("type"),
+                "failure_message": failure.get("message"),
+                "same_thread": result.get("same_thread"),
+                "post_family": post.get("mechanism_family"),
+                "post_exponent": post.get("estimated_reference_exponent"),
+                "post_prediction_mae": post_scores.get(
+                    "mean_normalized_absolute_error"
+                ),
+                "selected_true_rank": selected.get("selected_true_rank"),
+                "top1_selected": selected.get("top1_selected"),
+                "normalized_regret": selected.get("normalized_regret"),
+                "action_opportunity_eligible": selected.get(
+                    "action_opportunity_eligible"
+                ),
+            }
+        )
+    completed = [row for row in rows if row["status"] == "completed"]
+    failures = [row for row in rows if row["status"] != "completed"]
+    result: dict[str, Any] = {
+        "schema_version": "chemworld-work-ii-as-study-b3-canary-closeout-0.1",
+        "study_id": manifest["study_id"],
+        "status": (
+            "terminal_canary_rejected_before_formal"
+            if canary_summary.get("qualified") is False
+            else "canary_qualified"
+        ),
+        "canary_qualified": canary_summary.get("qualified") is True,
+        "scheduled_canary_session_count": len(expected_ids),
+        "observed_canary_session_count": len(rows),
+        "completed_canary_session_count": len(completed),
+        "failed_canary_session_count": len(failures),
+        "participant_schema_failure_count": sum(
+            row["failure_classification"] == "participant_schema" for row in failures
+        ),
+        "infrastructure_failure_count": sum(
+            row["failure_classification"]
+            in {"provider_infrastructure", "runner_infrastructure"}
+            for row in failures
+        ),
+        "provider_session_attempt_count": sum(
+            row["provider_attempt_count"] for row in rows
+        ),
+        "provider_turn_count": sum(row["provider_turn_count"] for row in rows),
+        "completed_provider_turn_count": sum(
+            row["completed_provider_turn_count"] for row in rows
+        ),
+        "tool_event_count": sum(row["tool_event_count"] for row in rows),
+        "participant_physical_experiment_count": 0,
+        "scheduled_formal_session_count": int(manifest["cell_count"]),
+        "launched_formal_session_count": 0,
+        "unstarted_formal_session_count": int(manifest["cell_count"]),
+        "scientific_outcomes_used_for_design": False,
+        "outcome_replacement_count": 0,
+        "cell_rows": sorted(rows, key=lambda row: row["cell_id"]),
+        "canary_errors": list(canary_summary.get("errors", [])),
+    }
+    result["summary_sha256"] = canonical_json_sha256(result)
+    return result
+
+
 def summarize_b3_results(
     manifest: Mapping[str, Any], results: Sequence[Mapping[str, Any]]
 ) -> dict[str, Any]:
@@ -1308,19 +1526,25 @@ def summarize_b3_results(
     observed_ids = {str(item.get("cell_id")) for item in results}
     completed = [item for item in results if item.get("status") == "completed"]
     failures = [item for item in results if item.get("status") != "completed"]
+    manifest_cells = {str(item["cell_id"]): item for item in manifest["cells"]}
     cell_rows: list[dict[str, Any]] = []
-    cluster_arms: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    replicate_arms: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
     for result in completed:
         pre = result["pre_submission"]
         post = result["post_submission"]
         pre_error = float(result["scores"]["pre"]["mean_normalized_absolute_error"])
         post_error = float(result["scores"]["post"]["mean_normalized_absolute_error"])
         selected = str(post["selected_action_query_id"])
-        selected_score = float(result["selected_action"]["true_score"])
-        incumbent = float(result["selected_action"]["evidence_incumbent_score"])
+        action = evaluate_b3_selected_action(manifest_cells[str(result["cell_id"])], selected)
+        selected_score = float(action["true_score"])
+        incumbent = float(action["evidence_incumbent_score"])
         row = {
             "cell_id": result["cell_id"],
             "cluster_id": result["cluster_id"],
+            "replicate_block_id": result.get(
+                "replicate_block_id", f"{result['cluster_id']}--replicate-01"
+            ),
+            "replicate_index": int(result.get("replicate_index", 1)),
             "world_seed": result["world_seed"],
             "arm": result["arm"],
             "pre_error": pre_error,
@@ -1335,18 +1559,29 @@ def summarize_b3_results(
             ),
             "selected_action_query_id": selected,
             "selected_action_true_score": selected_score,
+            "selected_true_rank": int(action["selected_true_rank"]),
+            "top1_selected": bool(action["top1_selected"]),
+            "best_action_query_id": action["best_action_query_id"],
+            "best_action_score": float(action["best_action_score"]),
+            "raw_regret": float(action["raw_regret"]),
+            "normalized_regret": float(action["normalized_regret"]),
             "evidence_incumbent_score": incumbent,
             "selected_action_gain": selected_score - incumbent,
+            "maximum_available_action_gain": float(action["maximum_available_action_gain"]),
+            "action_opportunity_eligible": bool(action["action_opportunity_eligible"]),
+            "action_opportunity_threshold": float(action["action_opportunity_threshold"]),
         }
         cell_rows.append(row)
-        cluster_arms[str(row["cluster_id"])][str(row["arm"])] = row
-    cluster_rows: list[dict[str, Any]] = []
-    for cluster_id, arms in sorted(cluster_arms.items()):
+        replicate_arms[str(row["replicate_block_id"])][str(row["arm"])] = row
+    replicate_rows: list[dict[str, Any]] = []
+    for replicate_block_id, arms in sorted(replicate_arms.items()):
         if set(arms) != set(B3_ARMS):
             continue
-        cluster_rows.append(
+        replicate_rows.append(
             {
-                "cluster_id": cluster_id,
+                "replicate_block_id": replicate_block_id,
+                "replicate_index": arms["opaque"]["replicate_index"],
+                "cluster_id": arms["opaque"]["cluster_id"],
                 "world_seed": arms["opaque"]["world_seed"],
                 "post_error_by_arm": {arm: arms[arm]["post_error"] for arm in B3_ARMS},
                 "post_family_by_arm": {arm: arms[arm]["post_family"] for arm in B3_ARMS},
@@ -1356,13 +1591,71 @@ def summarize_b3_results(
                 "action_gain_by_arm": {
                     arm: arms[arm]["selected_action_gain"] for arm in B3_ARMS
                 },
+                "selected_true_rank_by_arm": {
+                    arm: arms[arm]["selected_true_rank"] for arm in B3_ARMS
+                },
+                "top1_selected_by_arm": {
+                    arm: arms[arm]["top1_selected"] for arm in B3_ARMS
+                },
+                "normalized_regret_by_arm": {
+                    arm: arms[arm]["normalized_regret"] for arm in B3_ARMS
+                },
+                "action_opportunity_eligible": arms["opaque"][
+                    "action_opportunity_eligible"
+                ],
+                "maximum_available_action_gain": arms["opaque"][
+                    "maximum_available_action_gain"
+                ],
             }
         )
+    expected_replicates = int(manifest.get("replicates_per_arm", 1))
+    by_cluster: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    for row in replicate_rows:
+        by_cluster[str(row["cluster_id"])].append(row)
+    cluster_rows = [
+        {
+            "cluster_id": cluster_id,
+            "world_seed": rows[0]["world_seed"],
+            "complete_replicate_count": len(rows),
+            "expected_replicate_count": expected_replicates,
+            "mean_post_error_by_arm": {
+                arm: mean(row["post_error_by_arm"][arm] for row in rows) for arm in B3_ARMS
+            },
+            "mean_exponent_error_by_arm": {
+                arm: mean(row["post_exponent_error_by_arm"][arm] for row in rows)
+                for arm in B3_ARMS
+            },
+            "mean_action_gain_by_arm": {
+                arm: mean(row["action_gain_by_arm"][arm] for row in rows) for arm in B3_ARMS
+            }
+            if rows[0]["action_opportunity_eligible"]
+            else None,
+            "mean_selected_true_rank_by_arm": {
+                arm: mean(row["selected_true_rank_by_arm"][arm] for row in rows)
+                for arm in B3_ARMS
+            },
+            "top1_rate_by_arm": {
+                arm: mean(float(row["top1_selected_by_arm"][arm]) for row in rows)
+                for arm in B3_ARMS
+            },
+            "mean_normalized_regret_by_arm": {
+                arm: mean(row["normalized_regret_by_arm"][arm] for row in rows)
+                for arm in B3_ARMS
+            },
+            "action_opportunity_eligible": rows[0]["action_opportunity_eligible"],
+            "maximum_available_action_gain": rows[0]["maximum_available_action_gain"],
+        }
+        for cluster_id, rows in sorted(by_cluster.items())
+        if len(rows) == expected_replicates
+    ]
     by_arm: dict[str, Any] = {}
     for arm in B3_ARMS:
         rows = [row for row in cell_rows if row["arm"] == arm]
+        gain_rows = [row for row in rows if row["action_opportunity_eligible"]]
         by_arm[arm] = {
             "completed_cell_count": len(rows),
+            "all_world_rank_regret_denominator": len(rows),
+            "action_opportunity_eligible_gain_denominator": len(gain_rows),
             "mean_pre_error": mean(row["pre_error"] for row in rows) if rows else None,
             "mean_post_error": mean(row["post_error"] for row in rows) if rows else None,
             "mean_update_gain": mean(row["update_gain"] for row in rows) if rows else None,
@@ -1372,14 +1665,29 @@ def summarize_b3_results(
             "exponent_within_0_10_count": sum(
                 row["post_exponent_absolute_error"] <= 0.10 for row in rows
             ),
-            "positive_action_gain_count": sum(row["selected_action_gain"] > 0.0 for row in rows),
+            "top1_selected_count": sum(row["top1_selected"] for row in rows),
+            "mean_selected_true_rank": (
+                mean(row["selected_true_rank"] for row in rows) if rows else None
+            ),
+            "mean_normalized_regret": (
+                mean(row["normalized_regret"] for row in rows) if rows else None
+            ),
+            "positive_action_gain_count": sum(
+                row["selected_action_gain"] > 0.0 for row in gain_rows
+            ),
             "action_gain_at_least_0_02_count": sum(
-                row["selected_action_gain"] >= 0.02 for row in rows
+                row["selected_action_gain"] >= row["action_opportunity_threshold"]
+                for row in gain_rows
             ),
             "mean_action_gain": (
-                mean(row["selected_action_gain"] for row in rows) if rows else None
+                mean(row["selected_action_gain"] for row in gain_rows) if gain_rows else None
             ),
         }
+    eligible_cluster_ids = {
+        str(item["cluster_id"])
+        for item in manifest.get("cluster_packets", [])
+        if item.get("action_opportunity_eligible") is True
+    }
     return {
         "schema_version": B3_SUMMARY_VERSION,
         "study_id": manifest["study_id"],
@@ -1393,6 +1701,16 @@ def summarize_b3_results(
         "completed_cell_count": len(completed),
         "failed_cell_count": len(failures),
         "complete_cluster_count": len(cluster_rows),
+        "complete_replicate_block_count": len(replicate_rows),
+        "replicates_per_arm": expected_replicates,
+        "all_world_rank_regret_cell_denominator": len(cell_rows),
+        "action_opportunity_eligible_gain_cell_denominator": sum(
+            row["action_opportunity_eligible"] for row in cell_rows
+        ),
+        "scheduled_action_opportunity_eligible_world_count": len(eligible_cluster_ids),
+        "complete_action_opportunity_eligible_world_count": sum(
+            row["cluster_id"] in eligible_cluster_ids for row in cluster_rows
+        ),
         "missing_cell_ids": sorted(expected_ids - observed_ids),
         "unexpected_cell_ids": sorted(observed_ids - expected_ids),
         "participant_physical_experiment_count": 0,
@@ -1400,6 +1718,7 @@ def summarize_b3_results(
         "by_arm": by_arm,
         "cell_rows": sorted(cell_rows, key=lambda row: row["cell_id"]),
         "cluster_rows": cluster_rows,
+        "replicate_rows": replicate_rows,
         "failures": [
             {"cell_id": item.get("cell_id"), "failure": item.get("failure")}
             for item in failures
@@ -1420,8 +1739,10 @@ __all__ = [
     "b3_output_schema",
     "build_b3_candidate_queries",
     "build_b3_manifest",
+    "evaluate_b3_selected_action",
     "prepare_b3",
     "select_b3_rosters",
+    "summarize_b3_canary_closeout",
     "summarize_b3_results",
     "validate_b3_payload",
 ]

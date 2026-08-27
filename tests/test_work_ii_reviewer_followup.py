@@ -11,7 +11,10 @@ from chemworld.eval.work_ii_reviewer_followup import (
     _apply_shared_truth_noise,
     b3_output_schema,
     build_b3_candidate_queries,
+    build_b3_manifest,
+    evaluate_b3_selected_action,
     select_b3_rosters,
+    summarize_b3_canary_closeout,
     summarize_b3_results,
     validate_b3_payload,
 )
@@ -157,12 +160,25 @@ def test_b3_summary_scores_structural_recovery_and_novel_action() -> None:
     cells = []
     results = []
     scoring_truth = {
-        query["query_id"]: dict.fromkeys(B3_METRIC_IDS, 0.5) for query in queries
+        query["query_id"]: {
+            **dict.fromkeys(B3_METRIC_IDS, 0.5),
+            "score": 0.8 - 0.05 * query_index,
+        }
+        for query_index, query in enumerate(queries)
     }
     for world_seed in range(5):
         for arm in B3_ARMS:
             cell_id = f"world-{world_seed}--{arm}"
-            cells.append({"cell_id": cell_id})
+            cells.append(
+                {
+                    "cell_id": cell_id,
+                    "cluster_id": f"world-{world_seed}",
+                    "scoring_truth": scoring_truth,
+                    "evidence_incumbent_score": 0.7,
+                    "action_opportunity_eligible": True,
+                    "action_opportunity_threshold": 0.02,
+                }
+            )
             pre = _payload(queries, "pre")
             post = _payload(queries, "post")
             results.append(
@@ -179,16 +195,160 @@ def test_b3_summary_scores_structural_recovery_and_novel_action() -> None:
                         "post": {"mean_normalized_absolute_error": 0.02},
                     },
                     "selected_action": {
-                        "true_score": scoring_truth[queries[0]["query_id"]]["score"] + 0.03,
-                        "evidence_incumbent_score": scoring_truth[queries[0]["query_id"]]["score"],
+                        "true_score": scoring_truth[queries[0]["query_id"]]["score"],
+                        "evidence_incumbent_score": 0.7,
                     },
                 }
             )
     summary = summarize_b3_results(
-        {"study_id": "fixture", "cells": cells, "scoring_term_count": 32},
+        {
+            "study_id": "fixture",
+            "cells": cells,
+            "cluster_packets": [
+                {
+                    "cluster_id": f"world-{world_seed}",
+                    "action_opportunity_eligible": True,
+                }
+                for world_seed in range(5)
+            ],
+            "scoring_term_count": 32,
+        },
         results,
     )
     assert summary["status"] == "completed"
     assert summary["complete_cluster_count"] == 5
     assert summary["by_arm"]["misindexed_nominal"]["exact_family_recovery_count"] == 5
     assert summary["by_arm"]["opaque"]["action_gain_at_least_0_02_count"] == 5
+    assert summary["by_arm"]["opaque"]["top1_selected_count"] == 5
+    assert summary["by_arm"]["opaque"]["mean_normalized_regret"] == 0.0
+    assert summary["all_world_rank_regret_cell_denominator"] == 15
+    assert summary["action_opportunity_eligible_gain_cell_denominator"] == 15
+
+
+def test_b3_action_scoring_reports_rank_regret_and_opportunity_separately() -> None:
+    cell = {
+        "scoring_truth": {
+            "a": {"score": 0.9},
+            "b": {"score": 0.7},
+            "c": {"score": 0.5},
+        },
+        "evidence_incumbent_score": 0.89,
+        "action_opportunity_eligible": False,
+        "action_opportunity_threshold": 0.02,
+    }
+    scored = evaluate_b3_selected_action(cell, "b")
+    assert scored["selected_true_rank"] == 2
+    assert scored["top1_selected"] is False
+    assert abs(scored["raw_regret"] - 0.2) < 1.0e-12
+    assert abs(scored["normalized_regret"] - 0.5) < 1.0e-12
+    assert abs(scored["maximum_available_action_gain"] - 0.01) < 1.0e-12
+    assert scored["action_opportunity_eligible"] is False
+
+
+def test_b3_manifest_supports_nested_provider_replicates(tmp_path: Path) -> None:
+    protocol = _protocol()
+    protocol["study_id"] = "replicated-fixture"
+    protocol["execution"] = {
+        "replicates_per_arm": 2,
+        "formal_sessions": 30,
+        "canary_sessions": 3,
+    }
+    protocol_path = tmp_path / "protocol.json"
+    protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
+    output = tmp_path / "prepared"
+    output.mkdir()
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "runs/formal/work-ii-as-study-b3-identifiable-law-action-v0.1-20260815"
+    )
+    for name in ("frozen_roster.json", "qualification_summary.json", "public_truth_manifest.json"):
+        (output / name).write_bytes((source / name).read_bytes())
+    public_truth_path = output / "public_truth_manifest.json"
+    public_truth = json.loads(public_truth_path.read_text(encoding="utf-8"))
+    public_truth["status"] = "preflight_passed"
+    public_truth_path.write_text(json.dumps(public_truth), encoding="utf-8")
+    manifest = build_b3_manifest(
+        protocol_path,
+        repository_root=tmp_path,
+        output_root=output,
+    )
+    assert manifest["cell_count"] == 30
+    assert manifest["replicate_block_count"] == 10
+    assert {cell["replicate_index"] for cell in manifest["cells"]} == {1, 2}
+    assert len({cell["cell_id"] for cell in manifest["cells"]}) == 30
+    assert all(len(cell["hidden_action_ranks"]) == 8 for cell in manifest["cells"])
+    assert all("action_opportunity_eligible" in cell for cell in manifest["cells"])
+
+
+def test_b3_canary_closeout_retains_terminal_schema_failures() -> None:
+    manifest = {
+        "study_id": "replicated-fixture",
+        "cell_count": 30,
+        "cells": [
+            {
+                "cell_id": f"world-0--replicate-01--{arm}",
+                "cluster_id": "world-0",
+                "replicate_index": 1,
+            }
+            for arm in B3_ARMS
+        ],
+    }
+    results = []
+    for arm in B3_ARMS:
+        failed = arm != "opaque"
+        results.append(
+            {
+                "cell_id": f"world-0--replicate-01--{arm}",
+                "arm": arm,
+                "status": "failed" if failed else "completed",
+                "provider_attempt_count": 1,
+                "provider_receipts": [
+                    {"status": "completed", "tool_event_count": 0},
+                    {"status": "completed", "tool_event_count": 0},
+                ],
+                "failure": {
+                    "classification": "participant_schema",
+                    "type": "ParticipantSchemaError",
+                    "message": "post selected action query ID is invalid",
+                }
+                if failed
+                else None,
+                "same_thread": True,
+                "post_submission": {
+                    "mechanism_family": "FAMILY_B_POWER",
+                    "estimated_reference_exponent": 1.75,
+                }
+                if not failed
+                else None,
+                "scores": {
+                    "post": {"mean_normalized_absolute_error": 0.01}
+                }
+                if not failed
+                else {},
+                "selected_action": {
+                    "selected_true_rank": 6,
+                    "top1_selected": False,
+                    "normalized_regret": 0.4,
+                    "action_opportunity_eligible": True,
+                }
+                if not failed
+                else None,
+            }
+        )
+
+    summary = summarize_b3_canary_closeout(
+        manifest,
+        results,
+        {"qualified": False, "errors": ["two canary cells failed"]},
+    )
+
+    assert summary["status"] == "terminal_canary_rejected_before_formal"
+    assert summary["scheduled_canary_session_count"] == 3
+    assert summary["completed_canary_session_count"] == 1
+    assert summary["participant_schema_failure_count"] == 2
+    assert summary["provider_session_attempt_count"] == 3
+    assert summary["provider_turn_count"] == 6
+    assert summary["completed_provider_turn_count"] == 6
+    assert summary["launched_formal_session_count"] == 0
+    assert summary["unstarted_formal_session_count"] == 30
+    assert summary["outcome_replacement_count"] == 0

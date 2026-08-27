@@ -6,6 +6,9 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
+import shutil
+import subprocess
 import tempfile
 import time
 from collections.abc import Callable, Mapping, Sequence
@@ -30,6 +33,7 @@ from chemworld.eval.work_ii_reviewer_followup import (
     B3_ARMS,
     B3_CELL_VERSION,
     b3_output_schema,
+    evaluate_b3_selected_action,
     prepare_b3,
     summarize_b3_results,
     validate_b3_payload,
@@ -105,6 +109,10 @@ def _run_b3_cell_attempt(
         "phase": phase,
         "cell_id": cell_id,
         "cluster_id": cell["cluster_id"],
+        "replicate_block_id": cell.get(
+            "replicate_block_id", f"{cell['cluster_id']}--replicate-01"
+        ),
+        "replicate_index": int(cell.get("replicate_index", 1)),
         "locus": cell["locus"],
         "task_id": cell["task_id"],
         "world_seed": cell["world_seed"],
@@ -118,13 +126,13 @@ def _run_b3_cell_attempt(
             temp_root = Path(temporary)
             workspace = temp_root / "workspace"
             workspace.mkdir()
-            environment = _prepare_codex_home(temp_root, provider)
+            environment = _prepare_b3_environment(temp_root, provider)
             pre_schema = temp_root / "pre.schema.json"
             post_schema = temp_root / "post.schema.json"
             queries = cell["public_packet"]["scoring_action_queries"]
             _atomic_json(pre_schema, b3_output_schema(queries, stage="pre"))
             _atomic_json(post_schema, b3_output_schema(queries, stage="post"))
-            initial = _initial_command(provider, pre_schema, workspace)
+            initial = _b3_initial_command(provider, pre_schema, workspace)
 
             def liveness(turn: str) -> Callable[[dict[str, Any]], None]:
                 return lambda payload: progress.emit(
@@ -182,7 +190,7 @@ def _run_b3_cell_attempt(
             assert isinstance(pre_payload, Mapping)
             assert isinstance(post_payload, Mapping)
             selected_query_id = str(post_payload["selected_action_query_id"])
-            selected_truth = cell["scoring_truth"][selected_query_id]
+            selected_action = evaluate_b3_selected_action(cell, selected_query_id)
             result.update(
                 {
                     "status": "completed",
@@ -193,14 +201,7 @@ def _run_b3_cell_attempt(
                         "pre": score_prediction_payload(pre_payload, cell["scoring_truth"]),
                         "post": score_prediction_payload(post_payload, cell["scoring_truth"]),
                     },
-                    "selected_action": {
-                        "query_id": selected_query_id,
-                        "true_score": float(selected_truth["score"]),
-                        "evidence_incumbent_score": float(cell["evidence_incumbent_score"]),
-                        "gain_over_evidence_incumbent": float(selected_truth["score"])
-                        - float(cell["evidence_incumbent_score"]),
-                        "participant_executed_before_selection": False,
-                    },
+                    "selected_action": selected_action,
                     "provider_receipts": receipts,
                 }
             )
@@ -376,6 +377,102 @@ def _b3_canary_qualified(results: Sequence[Mapping[str, Any]]) -> tuple[bool, li
     return not errors, errors
 
 
+def _prepare_b3_environment(
+    temp_root: Path, provider: Mapping[str, Any]
+) -> dict[str, str]:
+    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+        return os.environ.copy()
+    return _prepare_codex_home(temp_root, provider)
+
+
+def _b3_initial_command(
+    provider: Mapping[str, Any], schema_path: Path, workspace: Path
+) -> list[str]:
+    command = _initial_command(provider, schema_path, workspace)
+    disable_index = command.index("--sandbox")
+    command[disable_index:disable_index] = ["--disable", "shell_tool"]
+    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+        command.insert(2, "--ignore-user-config")
+        model_index = command.index("-m")
+        provider_id = str(provider["id"])
+        command[model_index:model_index] = [
+            "-c",
+            (
+                f"model_providers.{provider_id}="
+                '{name="OpenAI",wire_api="responses",requires_openai_auth=true,'
+                "supports_websockets=false}"
+            ),
+        ]
+    return command
+
+
+def _static_provider_check(
+    provider: Mapping[str, Any], *, output_root: Path
+) -> dict[str, Any]:
+    executable = shutil.which("codex")
+    auth_mode = str(provider.get("auth_mode"))
+    errors: list[str] = []
+    login_verified = None
+    cli_version = None
+    if executable is None:
+        errors.append("Codex CLI is unavailable on PATH")
+    else:
+        version = subprocess.run(
+            [executable, "--version"], capture_output=True, text=True, timeout=30, check=False
+        )
+        cli_version = (version.stdout or version.stderr).strip() or None
+        if version.returncode != 0:
+            errors.append("Codex CLI version query failed")
+        if auth_mode == "chatgpt_subscription_cached_login":
+            login = subprocess.run(
+                [executable, "login", "status"],
+                capture_output=True,
+                text=True,
+                timeout=30,
+                check=False,
+            )
+            status = f"{login.stdout}\n{login.stderr}".lower()
+            login_verified = login.returncode == 0 and "logged in using chatgpt" in status
+            if not login_verified:
+                errors.append("Codex CLI cached ChatGPT subscription login is unavailable")
+    with tempfile.TemporaryDirectory(prefix="chemworld-b3-static-") as temporary:
+        root = Path(temporary)
+        schema = root / "schema.json"
+        workspace = root / "workspace"
+        workspace.mkdir()
+        _atomic_json(schema, {"type": "object", "additionalProperties": False})
+        command = _b3_initial_command(provider, schema, workspace) if executable else []
+    rendered = " ".join(command)
+    command_ready = bool(
+        command
+        and str(provider.get("model")) in command
+        and f'model_reasoning_effort="{provider.get("reasoning_effort")}"' in rendered
+        and "--disable shell_tool" in rendered
+        and "--disable apps" in rendered
+        and "--disable multi_agent" in rendered
+        and "--disable plugins" in rendered
+    )
+    if not command_ready:
+        errors.append("B3 participant command contract is incomplete")
+    result = {
+        "schema_version": "chemworld-work-ii-b3-provider-static-check-0.1",
+        "provider_id": provider.get("id"),
+        "model": provider.get("model"),
+        "reasoning_effort": provider.get("reasoning_effort"),
+        "wire_api": provider.get("wire_api"),
+        "auth_mode": auth_mode,
+        "codex_cli_available": executable is not None,
+        "codex_cli_version": cli_version,
+        "cached_chatgpt_login_verified": login_verified,
+        "command_contract_ready": command_ready,
+        "provider_calls": 0,
+        "ready": not errors,
+        "errors": errors,
+    }
+    _atomic_json(output_root / "provider_static_check.json", result)
+    return result
+
+
 def _write_b3_report(summary: Mapping[str, Any], path: Path) -> None:
     lines = [
         "# Work II A-S Study B3 结构律识别与新动作结果",
@@ -387,19 +484,27 @@ def _write_b3_report(summary: Mapping[str, Any], path: Path) -> None:
         " `selected_action_query_id` 分开计分。动作只来自 participant 从未执行的 evaluator-owned"
         " scoring roster。",
         "",
-        "| arm | 完成 | family=power | exponent ±0.10 | 平均 post error | 动作 gain>0 | "
-        "动作 gain≥0.02 | 平均动作 gain |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|",
+        f"rank/Top-1/regret 使用全部 {summary['all_world_rank_regret_cell_denominator']} 个完成"
+        " cell; gain 仅使用冻结 action-opportunity 合格世界中的 "
+        f"{summary['action_opportunity_eligible_gain_cell_denominator']} 个完成 cell。",
+        "",
+        "| arm | 完成 | family=power | exponent ±0.10 | post error | Top-1 | 平均 rank | "
+        "平均 regret | gain 分母 | gain>0 | gain≥阈值 | 平均 gain |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ]
     for arm in B3_ARMS:
         row = summary["by_arm"][arm]
         post_error = row["mean_post_error"]
         action_gain = row["mean_action_gain"]
+        action_gain_text = "—" if action_gain is None else f"{action_gain:.4f}"
         lines.append(
             f"| {arm} | {row['completed_cell_count']} | "
             f"{row['exact_family_recovery_count']} | {row['exponent_within_0_10_count']} | "
-            f"{post_error:.4f} | {row['positive_action_gain_count']} | "
-            f"{row['action_gain_at_least_0_02_count']} | {action_gain:.4f} |"
+            f"{post_error:.4f} | {row['top1_selected_count']} | "
+            f"{row['mean_selected_true_rank']:.3f} | {row['mean_normalized_regret']:.4f} | "
+            f"{row['action_opportunity_eligible_gain_denominator']} | "
+            f"{row['positive_action_gain_count']} | "
+            f"{row['action_gain_at_least_0_02_count']} | {action_gain_text} |"
         )
     if summary["failures"]:
         lines.extend(["", "## 保留失败", ""])
@@ -418,11 +523,17 @@ def main() -> int:
     parser.add_argument("--canary", action="store_true")
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--analyze", action="store_true")
+    parser.add_argument("--static-provider-check", action="store_true")
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--workers", type=int, default=3)
     args = parser.parse_args()
-    if not any((args.prepare, args.canary, args.execute, args.analyze)):
-        parser.error("select at least one of --prepare, --canary, --execute, or --analyze")
+    if not any(
+        (args.prepare, args.canary, args.execute, args.analyze, args.static_provider_check)
+    ):
+        parser.error(
+            "select at least one of --prepare, --canary, --execute, --analyze, or "
+            "--static-provider-check"
+        )
     if not 1 <= args.workers <= 3:
         parser.error("--workers must be between 1 and 3")
     output_root = args.output_root.resolve()
@@ -447,16 +558,26 @@ def main() -> int:
             "clusters": manifest["cluster_count"],
         }
     )
-    if args.prepare and not any((args.canary, args.execute, args.analyze)):
+    if args.static_provider_check:
+        static = _static_provider_check(manifest["provider"], output_root=output_root)
+        if not static["ready"]:
+            return 3
+    if args.prepare and not any(
+        (args.canary, args.execute, args.analyze, args.static_provider_check)
+    ):
         return 0
     provider = deepcopy(manifest["provider"])
     provider["infrastructure_retry_limit"] = int(
         manifest["execution"]["infrastructure_retry_limit"]
     )
     if args.canary:
+        if "participant_execution_blocked" in str(manifest.get("protocol_status")):
+            raise RuntimeError("A-S Study B3 participant execution is blocked by protocol status")
         first_cluster = manifest["cells"][0]["cluster_id"]
         canary_cells = [
-            cell for cell in manifest["cells"] if cell["cluster_id"] == first_cluster
+            cell
+            for cell in manifest["cells"]
+            if cell["cluster_id"] == first_cluster and int(cell.get("replicate_index", 1)) == 1
         ]
         canary_results = _execute_b3_cells(
             canary_cells,
@@ -481,6 +602,8 @@ def main() -> int:
             return 2
         progress.emit({"stage": "b3_canary_qualified", "completed_cells": 3, "total_cells": 3})
     if args.execute:
+        if "participant_execution_blocked" in str(manifest.get("protocol_status")):
+            raise RuntimeError("A-S Study B3 participant execution is blocked by protocol status")
         canary_path = output_root / "canary_summary.json"
         canary_ok = (
             canary_path.is_file()
