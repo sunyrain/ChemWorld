@@ -1,6 +1,6 @@
 # ICLR 2027 submission checklist
 
-Updated: 2026-08-27. Recheck the official
+Updated: 2026-08-31. Recheck the official
 [Call for Papers](https://iclr.cc/Conferences/2027/CallForPapers),
 [Author Guidelines](https://iclr.cc/Conferences/2027/AuthorGuidelines),
 [Dates](https://iclr.cc/Conferences/2027/Dates) and
@@ -32,9 +32,15 @@ Updated: 2026-08-27. Recheck the official
 | W2-54 matched extension | Development-only, yoked right-censored | Do not use as a causal or arm-level result |
 | W2-55 reviewer controls | Complete, zero provider calls | Schema capacity plus continuous and threshold-sensitive law--action analysis |
 | W2-56 replicated B3 | DeepSeek canary rejected; GPT formal 30/30 complete | Provider-specific structural/action control; no cross-provider leaderboard |
+| W2-57 shared-index B3 | Terminal DeepSeek canary 2/3; GPT unstarted | Retained interface failure, not a scientific or cross-model denominator |
+| W2-58 runner-derived-status B3 | Canary-ready; provider calls 0 | Prospective matched DeepSeek/GPT replication; exclude until formal results exist |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
-five-condition participant cohort remains a limitation.
+five-condition participant cohort remains a limitation. The paper contains DeepSeek and GPT-5.6-sol
+evidence at programme level, but no evidence block has complete matched formal denominators for both;
+the GPT B3 result remains provider-specific.
+W2-58 is an authorized-next experiment candidate, not current paper evidence: its canaries and both
+formal blocks remain unstarted, so it must not appear in figures, effect estimates or conclusions.
 
 ## Nine-page integration target
 
@@ -75,7 +81,7 @@ panel for conditions that were not executed.
 - [x] Run claims-to-evidence, anonymity, page-count and rendered-PDF checks.
 - [ ] Complete citation-source verification.
 
-Current anonymous build: 8 pages of main text and 13 pages total in the official ICLR 2027 style,
+Current anonymous build: 9 pages of main text and 14 pages total in the official ICLR 2027 style,
 with zero LaTeX errors, undefined citations, overfull boxes or direct identifying-string leaks. The
 combined law/action/evaluator display is integrated from machine-readable W2-50--W2-55 sources. The
 claims-to-evidence, anonymity, page-count and rendered-PDF passes are complete; citation-source

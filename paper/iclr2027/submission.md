@@ -12,7 +12,7 @@ abstract: |
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
   0.0060-0.0074, but 0/5 misspecified summaries recovered the registered 1.75 power law. An
-  independent 30-session control made the exponent identifiable: joint family--exponent recovery
+  independent 30-session GPT-5.6-sol medium control made the exponent identifiable: joint family--exponent recovery
   was 5/10 in the aligned arm and 0/10 in both controls, while 0/18 action-eligible choices reached
   the registered gain. All 135 typed laws executed, yet 84 preserved less predictive information
   than the agents' final explicit predictions. In fresh multi-task action selection, only 11/42 eligible readouts selected
@@ -144,6 +144,10 @@ action matrix separately contains three tasks, five worlds, and three arms (45 s
 readouts, while complete-rank correlation and law adequacy are diagnostics. Table~\ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
+Participant provenance is block-specific: the prospective, matched-evidence, and open-action blocks
+use the fixed DeepSeek configuration; the identifiable-law control uses GPT-5.6-sol medium; and the
+three control-qualification rows are provider-free. No row pools results across models.
+
 ```{=latex}
 \begin{table}[t]
 \caption{\textbf{Executed evidence layers and claim boundaries.} A completed work package may contain
@@ -155,13 +159,13 @@ a retained scientific rejection; unstarted units are not silently removed.}
 \toprule
 Layer & Units & Execution & Supported role \\
 \midrule
-Prospective priors & 135 sessions & 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
-Matched evidence & 30 sessions & fixed evidence packets & Numerical update versus structural recovery \\
-Identifiable-law control & 30 sessions & 5 worlds $\times$ 3 arms $\times$ 2 replicates & Structural retention and action bridge \\
-Open action & 45 cells & 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
-96-query control & 15 planned & 8 attempted; 896/896 truth/replay & Retained pre-participant rejection \\
-320-query control & 7 exposed + 15 fresh & 7 exposed pass; 1 fresh attempted & Construction repair versus prospective rejection \\
-Gate alignment & 16 unit versions & 0 new execution & Rank validity versus action validity \\
+Prospective priors & 135 sessions & DeepSeek; 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
+Matched evidence & 30 sessions & DeepSeek; fixed evidence packets & Numerical update versus structural recovery \\
+Identifiable-law control & 30 sessions & GPT; 5 worlds $\times$ 3 arms $\times$ 2 & Structural retention and action bridge \\
+Open action & 45 cells & DeepSeek; 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
+96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
+320-query control & 7 exposed + 15 fresh & Provider-free; 7 pass + 1 fresh & Construction repair versus prospective rejection \\
+Gate alignment & 16 unit versions & Provider-free; 0 new execution & Rank validity versus action validity \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -220,7 +224,7 @@ parametric matched-evidence block, all five misspecified summaries rejected the 
 high-potential direction and recovered the peak-and-collapse response once the decisive profile was
 provided. Part of the free-discovery loss therefore lay in evidence acquisition.
 
-The corrected structural assay showed a different bottleneck. After every arm received the same
+The corrected structural DeepSeek assay showed a different bottleneck. After every arm received the same
 direct phase-process evidence, mean normalized errors fell from 0.2255, 0.2736, and 0.3392 to 0.0074,
 0.0060, and 0.0071 for opaque, aligned, and misspecified cells. The misspecified-minus-aligned update
 contrast was positive in only 3/5 worlds (exact one-sided sign-flip $p=0.125$), so this is numerical
@@ -270,7 +274,7 @@ Selection beyond the observed campaign required a separate assay.
 
 ## Agent-level law adequacy does not determine unseen action selection
 
-The longitudinal matrix produced records for 45/45 scheduled cells. Truth evaluation and exact replay
+The longitudinal DeepSeek matrix produced records for 45/45 scheduled cells. Truth evaluation and exact replay
 both completed 240/240 plan executions. Forty-two cells were uncontaminated and eligible for action
 metrics; two agent-induced resource/process failures and one session interruption in crystallization
 remain in the scheduled denominator.
@@ -409,7 +413,8 @@ completed, and unstarted counts prevent this error.
 ## Limitations and conclusion
 
 The primary cohort and the independent identifiable-law control each concern one fixed agent--tool
-configuration in simulation, not cross-model ranking or laboratory fidelity; some contrasts use five
+configuration in simulation, not cross-model ranking or laboratory fidelity; no block has complete
+matched formal denominators for both systems, and some contrasts use five
 worlds. The matched DeepSeek B3 block stopped at canary and has no formal denominator, so the GPT
 formal result is provider-specific rather than a cross-provider effect. The open-action matrix lacks
 no-evidence and pre-exploration baselines, and the five-condition cohort has no participant data.

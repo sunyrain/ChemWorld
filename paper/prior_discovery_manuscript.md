@@ -39,7 +39,7 @@ abstract: |
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors converged from 0.2255/0.2736/0.3392 to
   0.0074/0.0060/0.0071, but 0/5 misspecified summaries recovered the registered 1.75 power law and all
-  five adopted saturation or endpoint models. An independent frozen 30-session control made the
+  five adopted saturation or endpoint models. An independent frozen 30-session GPT-5.6-sol medium control made the
   exponent participant-identifiable: joint family--exponent recovery was 5/10 in the aligned arm but
   0/10 in both opaque and misspecified arms, and 0/18 action-eligible choices reached the registered
   gain. All 135 typed laws executed, yet 84 preserved less
@@ -97,7 +97,9 @@ as evidence of agent capability.
 We applied the primary design to a fixed DeepSeek-V4-Flash experimental-agent configuration across 45 matched
 task--world clusters and 135 prospective campaigns. A separate, frozen GPT-5.6-sol medium control
 used the same three prior arms in five structural worlds with two independent sessions per arm and
-world. Fixed checkpoints bound the primary participant's beliefs
+world. These are complementary block-specific results, not a completed two-model replication: the
+matched DeepSeek version of the structural control stopped at canary and contributed no formal
+denominator. Fixed checkpoints bound the primary participant's beliefs
 to independently evaluated predictions and typed executable summaries. Matched-evidence sessions
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
@@ -336,6 +338,13 @@ identifiability criterion and retains its own denominator:
    combination. This future study is not part of the present evidence, and within-family replication
    remains separate from compositional transfer.
 
+Participant provenance is block-specific. The prospective three-locus cohort, the retained
+matched-evidence assays and the 45-cell open-action matrix use the fixed DeepSeek configuration. The
+independent identifiable-law control uses GPT-5.6-sol medium. Oracle qualification, truth execution,
+exact replay, law-capacity fitting and gate-alignment diagnostics are provider-free. Results are never
+pooled across these participant configurations, and no evidence layer has complete matched formal
+denominators for both models.
+
 Observation/measurement interventions are reserved as a separate boundary probe. They require
 two-task identifiability and an exploratory three-arm study and are not included in the present
 denominator. Scope/compositional assumptions are tested only in the future portability study. This preserves a complete
@@ -406,7 +415,7 @@ initial-state assumptions, measurement positions, terminal assay and omitted-ope
 candidate outcomes, evaluator ranks and other-arm evidence remain hidden. The evaluator executes
 exactly the public plan and verifies identity among the disclosed, truth-evaluated and executed plans.
 
-The formal multi-task matrix contains three task families, five worlds per task and three initial-model
+The formal DeepSeek multi-task matrix contains three task families, five worlds per task and three initial-model
 arms, giving 45 scheduled cells. Each cell contains 12 autonomous experiments and five checkpoints;
 42 cells were eligible for action metrics and three crystallization failures remained in the scheduled
 denominator. The primary action endpoint is within-world regret of the selected plan; selected rank,
@@ -569,7 +578,7 @@ block, all five misspecified summaries rejected the supplied high-potential dire
 the peak-and-collapse response. The free-discovery loss therefore contains an evidence-acquisition
 component: when the decisive response profile was supplied, the agent could recognize it.
 
-The corrected structural assay produced a sharper dissociation. After all three arms received the
+The corrected structural DeepSeek assay produced a sharper dissociation. After all three arms received the
 same direct phase-process evidence, mean normalized errors fell from 0.2255, 0.2736 and 0.3392 to
 **0.0074, 0.0060 and 0.0071** for opaque, aligned and misspecified cells. The misspecified-minus-aligned
 update-gain contrast was +0.0645, but only 3/5 worlds were positive (exact one-sided sign-flip
@@ -905,7 +914,8 @@ those components rather than attributing the result to model weights alone.
 ChemWorld provides bounded executable causal worlds, not universal chemical fidelity or direct
 wet-laboratory validation. The primary prospective cohort concerns one fixed DeepSeek-V4-Flash agent
 configuration; the independent structural control concerns one fixed GPT-5.6-sol medium
-configuration. Together they do not support a model leaderboard or language models in general. The
+configuration. No evidence block has complete matched formal denominators for both systems. Together
+they therefore do not support a model leaderboard or language models in general. The
 prospective programme spans nine task--locus combinations but only five independent worlds per task.
 Observation-model interventions, private confirmation and context-reset artifact portability were
 not executed. The GPT and DeepSeek B3 science surfaces match, but the DeepSeek block stopped at its

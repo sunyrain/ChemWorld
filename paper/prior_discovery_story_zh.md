@@ -1,8 +1,8 @@
 # Work II / ICLR 2027 故事：Causal Dissection from Evidence to Action
 
-更新时间：2026-08-26
+更新时间：2026-08-31
 
-本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。
+本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。论文在 programme 层面包含 DeepSeek 与 GPT-5.6-sol，但各证据块的 participant provenance 不同；当前没有任何 block 同时具有两个模型的完整 matched formal 分母。
 
 ## 1. 研究对象与中心命题
 
@@ -122,11 +122,11 @@ acquisition component，但方向不稳定。
 因此最终机制不再是“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与
 structural law identification 三层分离**。
 
-W2-56 又用一套独立冻结控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
+W2-56 又用一套独立冻结的 GPT-5.6-sol medium 控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
 world 两个 fresh sessions 上完成 `30/30` GPT-5.6-sol medium formal cells。opaque/aligned/misindexed 的
 post MAE 为 `0.0367/0.0215/0.0378`，但 family+exponent recovery 为 `0/10`、`5/10`、`0/10`；aligned 的
 world-mean exponent error 相对两个对照均在 `5/5` worlds 更低。misindexed 虽有 `8/10` 选择 power family，
-正确 exponent 仍为 `0/10`。这将原结论从“小样本没有恢复”加强为：可识别证据能部分保留正确先验，但没有
+正确 exponent 仍为 `0/10`。这在 GPT block 内将原结论从“小样本没有恢复”加强为：可识别证据能部分保留正确先验，但没有
 选择性修正错误先验，family 标签也不能替代结构参数恢复。
 
 同一控制的行动结果是 `2/30` Top-1，且两次都位于没有 0.02 改进机会的同一 world；三个位于
@@ -231,10 +231,10 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 将 agent 生成的 artifact 在 context reset 后交给新 session，测试它能否改善 target prediction、law 和 action。当前 law fidelity 结果意味着 D 不能默认成功；未来可以比较原始 typed law、结构化 evidence bundle 和更高保真 artifact。
 
-### Phase V — Generality（需用户另行授权）
+### Phase V — Generality（matched formal comparison 仍需另行授权）
 
 - A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
-- Cross-provider：Qwen、Kimi、WellAU 等进入同一 frozen harness，检验失效位置是 agent-system 特异还是跨模型稳定。
+- Cross-provider：B3 已建立匹配 science surface，但 DeepSeek 在 canary 后 formal 为 0/30，GPT 为 30/30，因此尚未形成 matched effect；未来只能在新的独立冻结 block 中让 DeepSeek、Qwen、Kimi 或 WellAU 等完成同一 formal 分母，检验失效位置是 agent-system 特异还是跨模型稳定。
 - 开放式任务：在统一的最大实验预算与主动 stop/final-plan 接口下，研究何时继续探索、何时停止和如何推荐下一组实验。
 
 这些是大故事的扩展轴，不应在当前结果之后机械地全部跑满。每一阶段都应有独立问题、experiment note、分母和授权。
@@ -250,7 +250,7 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 | Final typed laws 可以执行 | supported，135/135 |
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
-| 结论跨 provider 泛化 | 未测试 |
+| 结论跨 provider 泛化 | 未建立；GPT B3 为 30/30，matched DeepSeek B3 为 formal 0/30，不能估计跨 provider effect |
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
 | 自主探索或 learned law 因果性地改善未见计划选择 | 未估计；W2-51 在 participant 前因 fresh crystallization oracle `rho=0.738095<0.80` 科学拒绝，0/225 sessions 启动 |
@@ -281,6 +281,6 @@ cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立�
 还可以说：**W2-52 已区分 construction repair 与 prospective failure，W2-53 已将 complete-ranking gate
 和 action validity 的不一致确立为 evaluator-design 结果；二者都不回写 W2-51 的门槛或 stop rule。**
 
-不能说整个 Paper 2 programme 已完成。尚未完成的是：跨 provider 泛化、A-E private confirmation、
+不能说整个 Paper 2 programme 已完成。尚未完成的是：匹配的跨 provider formal comparison、A-E private confirmation、
 Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
 科学问题，不再是 current-composite evaluator、Study B、W2-50、W2-51 或 W2-52 的遗留门禁。
