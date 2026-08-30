@@ -42,6 +42,8 @@ B3_QUALIFICATION_VERSION = "chemworld-work-ii-as-study-b3-qualification-0.1"
 B3_PUBLIC_TRUTH_VERSION = "chemworld-work-ii-as-study-b3-public-truth-0.1"
 
 B3_ARMS = ("opaque", "aligned_nominal", "misindexed_nominal")
+B3_ACTION_SELECTION_ENCODINGS = ("query_id", "zero_based_index")
+B3_STAGE_STATUS_ENCODINGS = ("explicit_const", "runner_derived")
 B3_METRIC_IDS = (
     "product_in_organic",
     "product_in_aqueous",
@@ -1063,6 +1065,12 @@ def build_b3_manifest(
     roster = _load_object(target / "frozen_roster.json")
     qualification = _load_object(target / "qualification_summary.json")
     public_truth = _load_object(target / "public_truth_manifest.json")
+    provider_free_source_study_id = qualification.get("study_id")
+    if (
+        not isinstance(provider_free_source_study_id, str)
+        or public_truth.get("study_id") != provider_free_source_study_id
+    ):
+        raise ValueError("A-S Study B3 provider-free source study identity drifted")
     if qualification.get("status") != "qualified":
         raise ValueError("A-S Study B3 provider-free qualification is not complete")
     if public_truth.get("status") != "preflight_passed":
@@ -1082,6 +1090,16 @@ def build_b3_manifest(
         raise ValueError("A-S Study B3 formal session denominator drifted")
     if int(execution.get("canary_sessions", -1)) != len(B3_ARMS):
         raise ValueError("A-S Study B3 canary session denominator drifted")
+    action_selection_encoding = str(
+        protocol.get("action_selection_encoding", "query_id")
+    )
+    if action_selection_encoding not in B3_ACTION_SELECTION_ENCODINGS:
+        raise ValueError("A-S Study B3 action selection encoding is unsupported")
+    stage_status_encoding = str(
+        protocol.get("stage_status_encoding", "explicit_const")
+    )
+    if stage_status_encoding not in B3_STAGE_STATUS_ENCODINGS:
+        raise ValueError("A-S Study B3 stage status encoding is unsupported")
     worlds = {int(item["world_seed"]): item for item in public_truth["worlds"]}
     cells: list[dict[str, Any]] = []
     cluster_packets: list[dict[str, Any]] = []
@@ -1100,7 +1118,12 @@ def build_b3_manifest(
                     "target_observations": deepcopy(world["power_truth"][query_id]),
                 }
             )
-        scoring_queries = [_public_query(item) for item in roster["scoring_queries"]]
+        scoring_queries = []
+        for action_index, item in enumerate(roster["scoring_queries"]):
+            public_query = _public_query(item)
+            if action_selection_encoding == "zero_based_index":
+                public_query["action_index"] = action_index
+            scoring_queries.append(public_query)
         scoring_truth = {
             str(query["query_id"]): deepcopy(world["power_truth"][str(query["query_id"])])
             for query in roster["scoring_queries"]
@@ -1121,7 +1144,11 @@ def build_b3_manifest(
         action_opportunity_eligible = bool(world["preflight_passed"])
         action_opportunity_threshold = float(protocol["qualification"]["minimum_action_gain"])
         public_packet = {
-            "schema_version": "chemworld-work-ii-as-study-b3-public-packet-0.1",
+            "schema_version": (
+                "chemworld-work-ii-as-study-b3-public-packet-0.2"
+                if action_selection_encoding == "zero_based_index"
+                else "chemworld-work-ii-as-study-b3-public-packet-0.1"
+            ),
             "cluster_id": f"A_S_B3--partition-discovery--seed{seed}",
             "task_id": "partition-discovery",
             "metric_range": [0.0, 1.0],
@@ -1166,6 +1193,8 @@ def build_b3_manifest(
                         "task_id": "partition-discovery",
                         "world_seed": seed,
                         "arm": arm,
+                        "action_selection_encoding": action_selection_encoding,
+                        "stage_status_encoding": stage_status_encoding,
                         "initial_world_model": _initial_model(arm),
                         "public_packet": deepcopy(public_packet),
                         "public_packet_sha256": packet_hash,
@@ -1185,8 +1214,18 @@ def build_b3_manifest(
         "study_id": protocol["study_id"],
         "protocol_path": protocol_file.relative_to(root).as_posix(),
         "protocol_status": protocol.get("status"),
+        "provider_free_artifact_root": (
+            target.relative_to(root).as_posix()
+            if target.is_relative_to(root)
+            else str(target)
+        ),
+        "provider_free_source_study_id": provider_free_source_study_id,
+        "provider_free_truth_reused": provider_free_source_study_id
+        != protocol["study_id"],
         "provider": deepcopy(protocol["provider"]),
         "execution": deepcopy(execution),
+        "action_selection_encoding": action_selection_encoding,
+        "stage_status_encoding": stage_status_encoding,
         "arms": list(B3_ARMS),
         "cell_count": expected_formal_sessions,
         "cluster_count": 5,
@@ -1205,17 +1244,24 @@ def build_b3_manifest(
 
 
 def b3_output_schema(
-    scoring_queries: Sequence[Mapping[str, Any]], *, stage: str
+    scoring_queries: Sequence[Mapping[str, Any]],
+    *,
+    stage: str,
+    action_selection_encoding: str = "query_id",
+    stage_status_encoding: str = "explicit_const",
 ) -> dict[str, Any]:
     if stage not in {"pre", "post"}:
         raise ValueError("A-S Study B3 stage must be pre or post")
+    if action_selection_encoding not in B3_ACTION_SELECTION_ENCODINGS:
+        raise ValueError("A-S Study B3 action selection encoding is unsupported")
+    if stage_status_encoding not in B3_STAGE_STATUS_ENCODINGS:
+        raise ValueError("A-S Study B3 stage status encoding is unsupported")
     query_ids = [str(item["query_id"]) for item in scoring_queries]
     metric_properties = {
         metric_id: {"type": "number", "minimum": 0.0, "maximum": 1.0}
         for metric_id in B3_METRIC_IDS
     }
     properties: dict[str, Any] = {
-        "status": {"type": "string", "const": f"{stage}_submission_complete"},
         "mechanism_family": {"type": "string", "enum": list(B3_FAMILIES)},
         "estimated_reference_exponent": {
             "type": "number",
@@ -1262,7 +1308,6 @@ def b3_output_schema(
         "model_summary": {"type": "string", "maxLength": 1200},
     }
     required = [
-        "status",
         "mechanism_family",
         "estimated_reference_exponent",
         "confidence",
@@ -1270,10 +1315,27 @@ def b3_output_schema(
         "predictions",
         "model_summary",
     ]
+    if stage_status_encoding == "explicit_const":
+        properties["status"] = {
+            "type": "string",
+            "const": f"{stage}_submission_complete",
+        }
+        required.insert(0, "status")
     if stage == "post":
-        properties["selected_action_query_id"] = {"type": "string", "enum": query_ids}
+        if action_selection_encoding == "query_id":
+            properties["selected_action_query_id"] = {
+                "type": "string",
+                "enum": query_ids,
+            }
+            required.append("selected_action_query_id")
+        else:
+            properties["selected_action_index"] = {
+                "type": "integer",
+                "enum": list(range(len(query_ids))),
+            }
+            required.append("selected_action_index")
         properties["evidence_assessment"] = {"type": "string", "maxLength": 1200}
-        required.extend(["selected_action_query_id", "evidence_assessment"])
+        required.append("evidence_assessment")
     return {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -1288,9 +1350,16 @@ def validate_b3_payload(
     scoring_queries: Sequence[Mapping[str, Any]],
     *,
     stage: str,
+    action_selection_encoding: str = "query_id",
+    stage_status_encoding: str = "explicit_const",
 ) -> list[str]:
     errors: list[str] = []
-    if payload.get("status") != f"{stage}_submission_complete":
+    if stage_status_encoding not in B3_STAGE_STATUS_ENCODINGS:
+        raise ValueError("A-S Study B3 stage status encoding is unsupported")
+    if (
+        stage_status_encoding == "explicit_const"
+        and payload.get("status") != f"{stage}_submission_complete"
+    ):
         errors.append(f"{stage} status is invalid")
     family = payload.get("mechanism_family")
     if family not in B3_FAMILIES:
@@ -1355,9 +1424,42 @@ def validate_b3_payload(
                 errors.append(f"{stage} prediction {query_id}.{metric_id} is invalid")
     if observed != expected:
         errors.append(f"{stage} prediction denominator differs from the contract")
-    if stage == "post" and payload.get("selected_action_query_id") not in expected:
-        errors.append("post selected action query ID is invalid")
+    if stage == "post":
+        try:
+            resolve_b3_selected_action_query_id(
+                payload,
+                scoring_queries,
+                action_selection_encoding=action_selection_encoding,
+            )
+        except ValueError as error:
+            errors.append(str(error))
     return errors
+
+
+def resolve_b3_selected_action_query_id(
+    payload: Mapping[str, Any],
+    scoring_queries: Sequence[Mapping[str, Any]],
+    *,
+    action_selection_encoding: str = "query_id",
+) -> str:
+    """Resolve a participant action choice to the canonical scoring-query ID."""
+
+    query_ids = [str(item["query_id"]) for item in scoring_queries]
+    if action_selection_encoding == "query_id":
+        selected = payload.get("selected_action_query_id")
+        if selected not in query_ids:
+            raise ValueError("post selected action query ID is invalid")
+        return str(selected)
+    if action_selection_encoding == "zero_based_index":
+        selected = payload.get("selected_action_index")
+        if (
+            isinstance(selected, bool)
+            or not isinstance(selected, int)
+            or not 0 <= selected < len(query_ids)
+        ):
+            raise ValueError("post selected action index is invalid")
+        return query_ids[selected]
+    raise ValueError("A-S Study B3 action selection encoding is unsupported")
 
 
 def evaluate_b3_selected_action(
@@ -1534,8 +1636,28 @@ def summarize_b3_results(
         post = result["post_submission"]
         pre_error = float(result["scores"]["pre"]["mean_normalized_absolute_error"])
         post_error = float(result["scores"]["post"]["mean_normalized_absolute_error"])
-        selected = str(post["selected_action_query_id"])
-        action = evaluate_b3_selected_action(manifest_cells[str(result["cell_id"])], selected)
+        cell = manifest_cells[str(result["cell_id"])]
+        public_packet = cell.get("public_packet")
+        scoring_queries = (
+            public_packet.get("scoring_action_queries")
+            if isinstance(public_packet, Mapping)
+            else None
+        )
+        if not isinstance(scoring_queries, list):
+            scoring_queries = [
+                {"query_id": query_id} for query_id in cell["scoring_truth"]
+            ]
+        selected = resolve_b3_selected_action_query_id(
+            post,
+            scoring_queries,
+            action_selection_encoding=str(
+                cell.get(
+                    "action_selection_encoding",
+                    manifest.get("action_selection_encoding", "query_id"),
+                )
+            ),
+        )
+        action = evaluate_b3_selected_action(cell, selected)
         selected_score = float(action["true_score"])
         incumbent = float(action["evidence_incumbent_score"])
         row = {
@@ -1727,6 +1849,7 @@ def summarize_b3_results(
 
 
 __all__ = [
+    "B3_ACTION_SELECTION_ENCODINGS",
     "B3_ARMS",
     "B3_CELL_VERSION",
     "B3_FAMILIES",
@@ -1735,12 +1858,14 @@ __all__ = [
     "B3_PROTOCOL_VERSION",
     "B3_PUBLIC_TRUTH_VERSION",
     "B3_QUALIFICATION_VERSION",
+    "B3_STAGE_STATUS_ENCODINGS",
     "B3_SUMMARY_VERSION",
     "b3_output_schema",
     "build_b3_candidate_queries",
     "build_b3_manifest",
     "evaluate_b3_selected_action",
     "prepare_b3",
+    "resolve_b3_selected_action_query_id",
     "select_b3_rosters",
     "summarize_b3_canary_closeout",
     "summarize_b3_results",

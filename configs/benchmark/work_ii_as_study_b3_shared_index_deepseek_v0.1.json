@@ -1,0 +1,64 @@
+{
+  "schema_version": "chemworld-work-ii-as-study-b3-protocol-0.1",
+  "study_id": "work-ii-as-study-b3-shared-index-deepseek-v0.1",
+  "status": "terminal_canary_rejected_before_formal",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_AS_STUDY_B3_SHARED_INDEX_CROSS_MODEL_EXPERIMENT_NOTE.md",
+  "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_s--partition-discovery--r12.json",
+  "development_world_seeds": [0, 1, 2, 3, 4],
+  "public_world_seeds": [527268922, 946166808, 650846081, 110564668, 241120479],
+  "arms": ["opaque", "aligned_nominal", "misindexed_nominal"],
+  "metric_ids": ["product_in_organic", "product_in_aqueous", "phase_ratio", "score"],
+  "action_selection_encoding": "zero_based_index",
+  "stage_status_encoding": "explicit_const",
+  "candidate_grid": {
+    "volume_configs": [
+      {"aqueous_phase_volume_L": 0.012, "extractant_volume_L": 0.018},
+      {"aqueous_phase_volume_L": 0.020, "extractant_volume_L": 0.020},
+      {"aqueous_phase_volume_L": 0.028, "extractant_volume_L": 0.014},
+      {"aqueous_phase_volume_L": 0.016, "extractant_volume_L": 0.030}
+    ],
+    "mixing_configs": [
+      {"mix_duration_s": 180.0, "settle_duration_s": 600.0, "stirring_speed_rpm": 450.0},
+      {"mix_duration_s": 480.0, "settle_duration_s": 1500.0, "stirring_speed_rpm": 950.0}
+    ]
+  },
+  "qualification": {
+    "minimum_distinct_pairs_per_roster": 4,
+    "evidence_pair_count": 4,
+    "evidence_queries_per_pair": 2,
+    "roster_selection_rule": "lexicographically_first_passing_four_pairs_two_low-incumbent_rows_each",
+    "minimum_action_gain": 0.02,
+    "require_action_opportunity_preflight": false,
+    "minimum_nonimproving_actions": 2,
+    "maximum_exponent_error": 0.10,
+    "exponent_grid": [1.05, 1.15, 1.25, 1.35, 1.45, 1.55, 1.65, 1.75, 1.85, 1.95, 2.05, 2.15, 2.25]
+  },
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "high",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "progress_interval_s": 30.0
+  },
+  "execution": {
+    "session_turns": 2,
+    "replicates_per_arm": 2,
+    "participant_physical_experiments": 0,
+    "canary_sessions": 3,
+    "formal_sessions": 30,
+    "max_concurrent_sessions": 3,
+    "progress_interval_seconds": 30,
+    "infrastructure_retry_limit": 2,
+    "canary_execution_authorized": false,
+    "formal_execution_authorized": false,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  }
+}

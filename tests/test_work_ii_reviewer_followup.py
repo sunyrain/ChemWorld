@@ -13,6 +13,7 @@ from chemworld.eval.work_ii_reviewer_followup import (
     build_b3_candidate_queries,
     build_b3_manifest,
     evaluate_b3_selected_action,
+    resolve_b3_selected_action_query_id,
     select_b3_rosters,
     summarize_b3_canary_closeout,
     summarize_b3_results,
@@ -155,6 +156,67 @@ def test_b3_schema_keeps_family_exponent_typed_law_prediction_and_action_separat
     )
 
 
+def test_b3_shared_index_schema_resolves_only_visible_zero_based_actions() -> None:
+    queries = build_b3_candidate_queries(_protocol())[:8]
+    schema = b3_output_schema(
+        queries,
+        stage="post",
+        action_selection_encoding="zero_based_index",
+    )
+    assert "selected_action_index" in schema["required"]
+    assert "selected_action_query_id" not in schema["properties"]
+    assert schema["properties"]["selected_action_index"]["enum"] == list(range(8))
+
+    payload = _payload(queries, "post")
+    payload.pop("selected_action_query_id")
+    payload["selected_action_index"] = 3
+    assert (
+        validate_b3_payload(
+            payload,
+            queries,
+            stage="post",
+            action_selection_encoding="zero_based_index",
+        )
+        == []
+    )
+    assert resolve_b3_selected_action_query_id(
+        payload,
+        queries,
+        action_selection_encoding="zero_based_index",
+    ) == str(queries[3]["query_id"])
+
+    payload["selected_action_index"] = True
+    assert "post selected action index is invalid" in validate_b3_payload(
+        payload,
+        queries,
+        stage="post",
+        action_selection_encoding="zero_based_index",
+    )
+
+
+def test_b3_runner_derived_stage_ignores_redundant_participant_status() -> None:
+    queries = build_b3_candidate_queries(_protocol())[:8]
+    schema = b3_output_schema(
+        queries,
+        stage="post",
+        stage_status_encoding="runner_derived",
+    )
+    assert "status" not in schema["properties"]
+    assert "status" not in schema["required"]
+
+    payload = _payload(queries, "post")
+    payload["status"] = "pre_submission_complete"
+    assert (
+        validate_b3_payload(
+            payload,
+            queries,
+            stage="post",
+            stage_status_encoding="runner_derived",
+        )
+        == []
+    )
+
+
 def test_b3_summary_scores_structural_recovery_and_novel_action() -> None:
     queries = build_b3_candidate_queries(_protocol())[:8]
     cells = []
@@ -278,6 +340,49 @@ def test_b3_manifest_supports_nested_provider_replicates(tmp_path: Path) -> None
     assert len({cell["cell_id"] for cell in manifest["cells"]}) == 30
     assert all(len(cell["hidden_action_ranks"]) == 8 for cell in manifest["cells"])
     assert all("action_opportunity_eligible" in cell for cell in manifest["cells"])
+
+
+def test_b3_manifest_materializes_shared_action_indices_without_truth_drift(
+    tmp_path: Path,
+) -> None:
+    protocol = _protocol()
+    protocol["study_id"] = "shared-index-fixture"
+    protocol["action_selection_encoding"] = "zero_based_index"
+    protocol["execution"] = {
+        "replicates_per_arm": 2,
+        "formal_sessions": 30,
+        "canary_sessions": 3,
+    }
+    protocol_path = tmp_path / "protocol.json"
+    protocol_path.write_text(json.dumps(protocol), encoding="utf-8")
+    output = tmp_path / "prepared"
+    output.mkdir()
+    source = (
+        Path(__file__).resolve().parents[1]
+        / "runs/formal/work-ii-as-study-b3-identifiable-law-action-v0.1-20260815"
+    )
+    for name in ("frozen_roster.json", "qualification_summary.json", "public_truth_manifest.json"):
+        (output / name).write_bytes((source / name).read_bytes())
+    public_truth_path = output / "public_truth_manifest.json"
+    public_truth = json.loads(public_truth_path.read_text(encoding="utf-8"))
+    public_truth["status"] = "preflight_passed"
+    public_truth_path.write_text(json.dumps(public_truth), encoding="utf-8")
+
+    manifest = build_b3_manifest(
+        protocol_path,
+        repository_root=tmp_path,
+        output_root=output,
+    )
+    first_queries = manifest["cells"][0]["public_packet"]["scoring_action_queries"]
+    assert manifest["action_selection_encoding"] == "zero_based_index"
+    assert [query["action_index"] for query in first_queries] == list(range(8))
+    assert set(manifest["cells"][0]["scoring_truth"]) == {
+        query["query_id"] for query in first_queries
+    }
+    assert all(
+        cell["action_selection_encoding"] == "zero_based_index"
+        for cell in manifest["cells"]
+    )
 
 
 def test_b3_canary_closeout_retains_terminal_schema_failures() -> None:

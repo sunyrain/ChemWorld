@@ -33,8 +33,11 @@ from chemworld.eval.work_ii_reviewer_followup import (
     B3_ARMS,
     B3_CELL_VERSION,
     b3_output_schema,
+    build_b3_manifest,
     evaluate_b3_selected_action,
     prepare_b3,
+    resolve_b3_selected_action_query_id,
+    summarize_b3_canary_closeout,
     summarize_b3_results,
     validate_b3_payload,
 )
@@ -47,6 +50,86 @@ DEFAULT_B3_PROTOCOL = (
 DEFAULT_B3_OUTPUT = (
     ROOT / "runs/formal/work-ii-as-study-b3-identifiable-law-action-v0.1-20260815"
 )
+
+
+def _b3_provider_free_contract(protocol: Mapping[str, Any]) -> dict[str, Any]:
+    provider_or_participant_fields = {
+        "study_id",
+        "status",
+        "experiment_note",
+        "provider",
+        "execution",
+        "action_selection_encoding",
+        "stage_status_encoding",
+    }
+    return {
+        key: deepcopy(value)
+        for key, value in protocol.items()
+        if key not in provider_or_participant_fields
+    }
+
+
+def _b3_execution_authorized(
+    manifest: Mapping[str, Any], *, phase: str
+) -> bool:
+    if phase not in {"canary", "formal"}:
+        raise ValueError("B3 execution phase must be canary or formal")
+    execution = manifest.get("execution")
+    execution = execution if isinstance(execution, Mapping) else {}
+    field = f"{phase}_execution_authorized"
+    if field in execution:
+        return execution.get(field) is True
+    return "participant_execution_blocked" not in str(manifest.get("protocol_status"))
+
+
+def _prepare_b3_from_provider_free_source(
+    protocol_path: Path,
+    *,
+    source_root: Path,
+    output_root: Path,
+    progress: _Progress,
+) -> dict[str, Any]:
+    source_root = source_root.resolve()
+    output_root = output_root.resolve()
+    if source_root == output_root:
+        raise ValueError("B3 provider-free reuse source and output roots must differ")
+    source_manifest_path = source_root / "input_manifest.json"
+    if not source_manifest_path.is_file():
+        raise ValueError("B3 provider-free reuse source manifest is unavailable")
+    source_manifest = json.loads(source_manifest_path.read_text(encoding="utf-8"))
+    source_digest = source_manifest.get("manifest_sha256")
+    observed_digest = hashlib.sha256(
+        _canonical(
+            {key: value for key, value in source_manifest.items() if key != "manifest_sha256"}
+        ).encode("utf-8")
+    ).hexdigest()
+    if source_digest != observed_digest:
+        raise ValueError("B3 provider-free reuse source manifest digest is invalid")
+    source_protocol_path = ROOT / str(source_manifest["protocol_path"])
+    source_protocol = json.loads(source_protocol_path.read_text(encoding="utf-8"))
+    target_protocol = json.loads(protocol_path.read_text(encoding="utf-8"))
+    if _b3_provider_free_contract(source_protocol) != _b3_provider_free_contract(
+        target_protocol
+    ):
+        raise ValueError("B3 provider-free reuse science contract differs from the target")
+    manifest = build_b3_manifest(
+        protocol_path,
+        repository_root=ROOT,
+        output_root=source_root,
+    )
+    _atomic_json(output_root / "input_manifest.json", manifest)
+    progress.emit(
+        {
+            "stage": "b3_provider_free_truth_reused",
+            "source_root": str(source_root),
+            "qualification_sha256": manifest["qualification_sha256"],
+            "public_truth_sha256": manifest["public_truth_sha256"],
+            "completed_cells": 0,
+            "total_cells": manifest["cell_count"],
+            "provider_calls": 0,
+        }
+    )
+    return manifest
 
 
 def _b3_initial_prompt(cell: Mapping[str, Any]) -> str:
@@ -79,13 +162,22 @@ def _b3_evidence_prompt(cell: Mapping[str, Any]) -> str:
         "evidence": packet["evidence"],
         "scoring_action_queries": packet["scoring_action_queries"],
     }
+    action_selection_encoding = str(cell.get("action_selection_encoding", "query_id"))
+    selection_instruction = (
+        "select exactly one scoring/action query ID as the novel action you would execute"
+        if action_selection_encoding == "query_id"
+        else (
+            "select exactly one visible zero-based action_index (0 through 7) as the novel "
+            "action you would execute and return it as selected_action_index"
+        )
+    )
     return (
         "The evaluator now reveals the fixed evidence packet. Each evidence recipe reports both "
         "the public linear-reference calibration and the measured target-world observation under "
         "the same controls. The scoring/action queries are disjoint and have never been executed "
         "for you. Treat the evidence as authoritative. Update the mechanism family, exponent, "
-        "typed law, and all predictions, then select exactly one scoring/action query ID as the "
-        "novel action you would execute. Do not invent a free-text recipe. Return only "
+        f"typed law, and all predictions, then {selection_instruction}. Do not invent a "
+        "free-text recipe. Return only "
         "schema-conforming "
         "JSON; summaries must be public scientific statements, not private chain-of-thought.\n\n"
         "EVIDENCE_INPUT:\n"
@@ -117,10 +209,16 @@ def _run_b3_cell_attempt(
         "task_id": cell["task_id"],
         "world_seed": cell["world_seed"],
         "arm": cell["arm"],
+        "action_selection_encoding": cell.get(
+            "action_selection_encoding", "query_id"
+        ),
+        "stage_status_encoding": cell.get("stage_status_encoding", "explicit_const"),
         "public_packet_sha256": cell["public_packet_sha256"],
         "participant_physical_experiment_count": 0,
     }
     receipts: list[dict[str, Any]] = []
+    pre_payload: Mapping[str, Any] | None = None
+    post_payload: Mapping[str, Any] | None = None
     try:
         with tempfile.TemporaryDirectory(prefix="chemworld-study-b3-") as temporary:
             temp_root = Path(temporary)
@@ -130,8 +228,30 @@ def _run_b3_cell_attempt(
             pre_schema = temp_root / "pre.schema.json"
             post_schema = temp_root / "post.schema.json"
             queries = cell["public_packet"]["scoring_action_queries"]
-            _atomic_json(pre_schema, b3_output_schema(queries, stage="pre"))
-            _atomic_json(post_schema, b3_output_schema(queries, stage="post"))
+            action_selection_encoding = str(
+                cell.get("action_selection_encoding", "query_id")
+            )
+            stage_status_encoding = str(
+                cell.get("stage_status_encoding", "explicit_const")
+            )
+            _atomic_json(
+                pre_schema,
+                b3_output_schema(
+                    queries,
+                    stage="pre",
+                    action_selection_encoding=action_selection_encoding,
+                    stage_status_encoding=stage_status_encoding,
+                ),
+            )
+            _atomic_json(
+                post_schema,
+                b3_output_schema(
+                    queries,
+                    stage="post",
+                    action_selection_encoding=action_selection_encoding,
+                    stage_status_encoding=stage_status_encoding,
+                ),
+            )
             initial = _b3_initial_command(provider, pre_schema, workspace)
 
             def liveness(turn: str) -> Callable[[dict[str, Any]], None]:
@@ -155,7 +275,13 @@ def _run_b3_cell_attempt(
             receipts.append({key: value for key, value in pre.items() if key != "final_payload"})
             pre_payload = pre.get("final_payload")
             pre_errors = (
-                validate_b3_payload(pre_payload, queries, stage="pre")
+                validate_b3_payload(
+                    pre_payload,
+                    queries,
+                    stage="pre",
+                    action_selection_encoding=action_selection_encoding,
+                    stage_status_encoding=stage_status_encoding,
+                )
                 if isinstance(pre_payload, Mapping)
                 else ["pre final payload is unavailable"]
             )
@@ -177,7 +303,13 @@ def _run_b3_cell_attempt(
             receipts.append({key: value for key, value in post.items() if key != "final_payload"})
             post_payload = post.get("final_payload")
             post_errors = (
-                validate_b3_payload(post_payload, queries, stage="post")
+                validate_b3_payload(
+                    post_payload,
+                    queries,
+                    stage="post",
+                    action_selection_encoding=action_selection_encoding,
+                    stage_status_encoding=stage_status_encoding,
+                )
                 if isinstance(post_payload, Mapping)
                 else ["post final payload is unavailable"]
             )
@@ -189,7 +321,11 @@ def _run_b3_cell_attempt(
                 raise _ParticipantSchemaError("; ".join(post_errors))
             assert isinstance(pre_payload, Mapping)
             assert isinstance(post_payload, Mapping)
-            selected_query_id = str(post_payload["selected_action_query_id"])
+            selected_query_id = resolve_b3_selected_action_query_id(
+                post_payload,
+                queries,
+                action_selection_encoding=action_selection_encoding,
+            )
             selected_action = evaluate_b3_selected_action(cell, selected_query_id)
             result.update(
                 {
@@ -223,6 +359,10 @@ def _run_b3_cell_attempt(
                 "provider_receipts": receipts,
             }
         )
+        if isinstance(pre_payload, Mapping):
+            result["pre_submission"] = deepcopy(dict(pre_payload))
+        if isinstance(post_payload, Mapping):
+            result["post_submission"] = deepcopy(dict(post_payload))
     result["elapsed_s"] = round(time.perf_counter() - started, 3)
     result["result_sha256"] = hashlib.sha256(_canonical(result).encode("utf-8")).hexdigest()
     progress.emit(
@@ -301,7 +441,15 @@ def _execute_b3_cells(
         path = output_dir / f"{cell['cell_id']}.json"
         if resume and path.is_file():
             existing = json.loads(path.read_text(encoding="utf-8"))
-            if existing.get("schema_version") == B3_CELL_VERSION:
+            if (
+                existing.get("schema_version") == B3_CELL_VERSION
+                and existing.get("study_id") == cell.get("study_id")
+                and existing.get("cell_id") == cell.get("cell_id")
+                and existing.get("action_selection_encoding", "query_id")
+                == cell.get("action_selection_encoding", "query_id")
+                and existing.get("stage_status_encoding", "explicit_const")
+                == cell.get("stage_status_encoding", "explicit_const")
+            ):
                 results.append(existing)
                 continue
         pending.append(cell)
@@ -524,6 +672,7 @@ def main() -> int:
     parser.add_argument("--execute", action="store_true")
     parser.add_argument("--analyze", action="store_true")
     parser.add_argument("--static-provider-check", action="store_true")
+    parser.add_argument("--reuse-provider-free-root", type=Path)
     parser.add_argument("--resume", action="store_true")
     parser.add_argument("--workers", type=int, default=3)
     args = parser.parse_args()
@@ -542,12 +691,25 @@ def main() -> int:
     protocol_path = args.protocol if args.protocol.is_absolute() else ROOT / args.protocol
     manifest_path = output_root / "input_manifest.json"
     if args.prepare or not manifest_path.is_file():
-        manifest = prepare_b3(
-            protocol_path,
-            repository_root=ROOT,
-            output_root=output_root,
-            progress=progress.emit,
-        )
+        if args.reuse_provider_free_root is not None:
+            source_root = (
+                args.reuse_provider_free_root
+                if args.reuse_provider_free_root.is_absolute()
+                else ROOT / args.reuse_provider_free_root
+            )
+            manifest = _prepare_b3_from_provider_free_source(
+                protocol_path,
+                source_root=source_root,
+                output_root=output_root,
+                progress=progress,
+            )
+        else:
+            manifest = prepare_b3(
+                protocol_path,
+                repository_root=ROOT,
+                output_root=output_root,
+                progress=progress.emit,
+            )
     else:
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     progress.emit(
@@ -571,8 +733,13 @@ def main() -> int:
         manifest["execution"]["infrastructure_retry_limit"]
     )
     if args.canary:
-        if "participant_execution_blocked" in str(manifest.get("protocol_status")):
-            raise RuntimeError("A-S Study B3 participant execution is blocked by protocol status")
+        if not _b3_execution_authorized(manifest, phase="canary"):
+            raise RuntimeError("A-S Study B3 canary execution is not authorized")
+        canary_path = output_root / "canary_summary.json"
+        if canary_path.is_file() and not args.resume:
+            raise RuntimeError(
+                "A-S Study B3 canary is already terminal; use --resume only to revalidate"
+            )
         first_cluster = manifest["cells"][0]["cluster_id"]
         canary_cells = [
             cell
@@ -597,13 +764,17 @@ def main() -> int:
             "scientific_outcomes_used_for_design": False,
         }
         _atomic_json(output_root / "canary_summary.json", canary_summary)
+        _atomic_json(
+            output_root / "canary_closeout.json",
+            summarize_b3_canary_closeout(manifest, canary_results, canary_summary),
+        )
         if not qualified:
             progress.emit({"stage": "b3_canary_failed", "errors": errors})
             return 2
         progress.emit({"stage": "b3_canary_qualified", "completed_cells": 3, "total_cells": 3})
     if args.execute:
-        if "participant_execution_blocked" in str(manifest.get("protocol_status")):
-            raise RuntimeError("A-S Study B3 participant execution is blocked by protocol status")
+        if not _b3_execution_authorized(manifest, phase="formal"):
+            raise RuntimeError("A-S Study B3 formal execution is not authorized")
         canary_path = output_root / "canary_summary.json"
         canary_ok = (
             canary_path.is_file()
