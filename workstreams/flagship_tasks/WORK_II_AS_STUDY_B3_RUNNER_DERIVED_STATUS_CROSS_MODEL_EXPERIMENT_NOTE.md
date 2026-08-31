@@ -1,8 +1,9 @@
 # Work II A-S Study B3 runner-derived-status cross-model replication
 
-Status: independent successor to terminal W2-57; provider-free preparation and both static checks
-are complete. The user authorized the ordered DeepSeek-then-GPT canary block on 2026-08-31;
-formal execution remains blocked pending a separate explicit authorization.
+Status: terminal canary rejection before formal. The user authorized the ordered
+DeepSeek-then-GPT canary block on 2026-08-31. DeepSeek completed all six provider turns but failed
+all three canary sessions on the frozen post-action schema; the stop rule left GPT unstarted.
+Formal execution was never authorized or launched.
 
 ## Question and coverage
 
@@ -36,3 +37,16 @@ schema, runner-semantic, coverage, threshold, or denominator change is permitted
 Two independent prepared manifests referencing the frozen provider-free truth, static harness
 checks, exact three-session canary records and closeouts, and, only after both canaries qualify and
 formal is separately authorized, two immutable 30-session formal blocks plus a cross-model table.
+
+## Terminal outcome
+
+DeepSeek observed all three scheduled canary sessions. Each session produced two completed,
+same-thread provider receipts with return code zero, no provider errors, no tools, one attempt, and
+no infrastructure predecessor. All three post submissions retained typed laws and eight predictions
+but omitted a valid `selected_action_index`; they also omitted `evidence_assessment`. The production
+validator therefore recorded `3/3` participant-schema failures and `0/3` completed sessions. Result,
+manifest, and closeout hashes verify; outcome replacement remains zero.
+
+Under the frozen ordered stop rule, GPT canary remains `0/3` and DeepSeek/GPT formal remain `0/30`
+each. The canary outputs do not enter structural, prediction, action, or cross-model scientific
+denominators. The terminal machine summary and Chinese closeout are stored under `reports/`.

@@ -33,14 +33,15 @@ Updated: 2026-08-31. Recheck the official
 | W2-55 reviewer controls | Complete, zero provider calls | Schema capacity plus continuous and threshold-sensitive law--action analysis |
 | W2-56 replicated B3 | DeepSeek canary rejected; GPT formal 30/30 complete | Provider-specific structural/action control; no cross-provider leaderboard |
 | W2-57 shared-index B3 | Terminal DeepSeek canary 2/3; GPT unstarted | Retained interface failure, not a scientific or cross-model denominator |
-| W2-58 runner-derived-status B3 | Canary-ready; provider calls 0 | Prospective matched DeepSeek/GPT replication; exclude until formal results exist |
+| W2-58 runner-derived-status B3 | Terminal DeepSeek canary 0/3; GPT unstarted | Retained participant-schema rejection; no scientific or cross-model denominator |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation. The paper contains DeepSeek and GPT-5.6-sol
 evidence at programme level, but no evidence block has complete matched formal denominators for both;
 the GPT B3 result remains provider-specific.
-W2-58 is an authorized-next experiment candidate, not current paper evidence: its canaries and both
-formal blocks remain unstarted, so it must not appear in figures, effect estimates or conclusions.
+W2-58 is terminal rather than pending paper evidence: DeepSeek produced six completed provider turns,
+but all three sessions failed the frozen post-action schema; GPT and both formal blocks remained
+unstarted. It must not appear in figures, effect estimates or model comparisons.
 
 ## Nine-page integration target
 
