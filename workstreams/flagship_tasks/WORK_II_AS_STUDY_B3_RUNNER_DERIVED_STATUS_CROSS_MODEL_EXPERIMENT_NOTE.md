@@ -1,8 +1,8 @@
 # Work II A-S Study B3 runner-derived-status cross-model replication
 
 Status: independent successor to terminal W2-57; provider-free preparation and both static checks
-are complete. Participant canaries and formal execution remain blocked pending explicit user
-authorization.
+are complete. The user authorized the ordered DeepSeek-then-GPT canary block on 2026-08-31;
+formal execution remains blocked pending a separate explicit authorization.
 
 ## Question and coverage
 
