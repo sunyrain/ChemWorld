@@ -285,7 +285,7 @@ def _prospective_cohort_context(
     world_seed: int,
     arms: list[str],
 ) -> dict[str, Any] | None:
-    """Bind one cell to the lightweight DeepSeek C2 prospective plan.
+    """Bind one cell to a fixed-provider C2 prospective plan.
 
     This is intentionally a single-plan execution check, not another release or
     readiness chain.  It protects the fixed task/world/arm denominator while
@@ -316,7 +316,10 @@ def _prospective_cohort_context(
     plan = _load(plan_path)
     if (
         plan.get("schema_version")
-        != "chemworld-work-ii-deepseek-c2-prospective-0.1"
+        not in {
+            "chemworld-work-ii-deepseek-c2-prospective-0.1",
+            "chemworld-work-ii-c2-cross-model-replication-0.1",
+        }
         or plan.get("status") != "public_execution_authorized"
     ):
         raise RuntimeError("prospective cohort plan is not execution-authorized")
@@ -325,13 +328,14 @@ def _prospective_cohort_context(
     config_provider = config.get("provider")
     config_provider = config_provider if isinstance(config_provider, Mapping) else {}
     if (
-        provider.get("id") != "deepseek"
-        or provider.get("model") != "deepseek-v4-flash"
+        not isinstance(provider.get("id"), str)
+        or not isinstance(provider.get("model"), str)
         or provider.get("resource_limits") != "report_only"
         or config_provider.get("id") != provider.get("id")
         or config_provider.get("model") != provider.get("model")
+        or config_provider.get("reasoning_effort") != provider.get("reasoning_effort")
     ):
-        raise RuntimeError("prospective cohort provider differs from the DeepSeek plan")
+        raise RuntimeError("prospective cohort provider differs from the registered plan")
     matches: list[dict[str, Any]] = []
     for block in plan.get("public_blocks", []):
         if not isinstance(block, Mapping):
@@ -1477,7 +1481,11 @@ def _run_cell(
             reasoning_effort=str(provider["reasoning_effort"]),
             model_provider=str(provider["id"]),
             model_provider_name=str(provider["name"]),
-            model_provider_base_url=str(provider["base_url"]),
+            model_provider_base_url=(
+                str(provider["base_url"])
+                if provider.get("base_url") is not None
+                else None
+            ),
             model_provider_env_key=(
                 str(provider["env_key"]) if provider.get("env_key") is not None else None
             ),

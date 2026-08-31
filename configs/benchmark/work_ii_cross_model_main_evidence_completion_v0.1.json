@@ -1,0 +1,65 @@
+{
+  "schema_version": "chemworld-work-ii-cross-model-main-evidence-completion-0.1",
+  "study_id": "work-ii-w2-59-cross-model-main-evidence-completion-v0.1",
+  "status": "participant_execution_authorized",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_EXPERIMENT_NOTE.md",
+  "providers": {
+    "openai": {
+      "id": "chemworld_openai_https",
+      "name": "OpenAI",
+      "wire_api": "responses",
+      "auth_mode": "chatgpt_subscription_cached_login",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "request_timeout_s": 1200.0,
+      "finalization_timeout_s": 600.0,
+      "resource_limits": "report_only",
+      "progress_interval_s": 30.0
+    }
+  },
+  "blocks": {
+    "public_c2_openai": {
+      "source_plan": "configs/benchmark/work_ii_deepseek_c2_prospective_v0.2.json",
+      "target_plan": "configs/benchmark/work_ii_c2_gpt56_sol_medium_replication_v0.1.json",
+      "target_runtime_root": "configs/benchmark/work_ii_c2_gpt56_sol_medium_runtime_v0.1",
+      "formal_sessions": 135,
+      "participant_physical_experiments": 1260,
+      "canary_sessions_in_formal_denominator": 3
+    },
+    "matched_ap_openai": {
+      "source_protocol": "configs/benchmark/work_ii_study_b_matched_evidence_v0.1.json",
+      "target_protocol": "configs/benchmark/work_ii_study_b_ap_gpt56_sol_medium_replication_v0.1.json",
+      "formal_sessions": 15,
+      "excluded_canary_sessions": 3
+    },
+    "matched_as_b2_openai": {
+      "source_protocol": "configs/benchmark/work_ii_as_study_b2_phase_process_v0.1.json",
+      "target_protocol": "configs/benchmark/work_ii_as_study_b2_gpt56_sol_medium_replication_v0.1.json",
+      "formal_sessions": 15,
+      "excluded_canary_sessions": 3
+    },
+    "w2_50_openai": {
+      "source_runtime_root": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1",
+      "target_runtime_root": "configs/benchmark/work_ii_c2_gpt56_sol_medium_runtime_v0.1",
+      "formal_sessions": 45,
+      "participant_physical_experiments": 540,
+      "canary_sessions_in_formal_denominator": 3
+    },
+    "b3_paired_successor": {
+      "source_deepseek_protocol": "configs/benchmark/work_ii_as_study_b3_runner_derived_status_deepseek_v0.1.json",
+      "source_openai_protocol": "configs/benchmark/work_ii_as_study_b3_runner_derived_status_gpt56_sol_medium_v0.1.json",
+      "target_deepseek_protocol": "configs/benchmark/work_ii_as_study_b3_main_evidence_successor_deepseek_v0.1.json",
+      "target_openai_protocol": "configs/benchmark/work_ii_as_study_b3_main_evidence_successor_gpt56_sol_medium_v0.1.json",
+      "provider_free_source_root": "runs/formal/work-ii-as-study-b3-shared-index-deepseek-v0.1-20260831-restart1",
+      "formal_sessions_per_provider": 30,
+      "excluded_canary_sessions_per_provider": 3
+    }
+  },
+  "execution": {
+    "formal_sessions_total": 270,
+    "excluded_canary_sessions_total": 12,
+    "outcome_based_replacement_forbidden": true,
+    "scientific_or_schema_failure_retained": true,
+    "progress_interval_seconds": 30
+  }
+}

@@ -265,6 +265,19 @@ def _launch_turn(
 
 
 def _prepare_codex_home(temp_root: Path, provider: Mapping[str, Any]) -> dict[str, str]:
+    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+        codex_home = temp_root / "codex-home"
+        codex_home.mkdir(parents=True, exist_ok=False)
+        source_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
+        source_auth = source_home / "auth.json"
+        if not source_auth.is_file():
+            raise RuntimeError("OpenAI Codex cached login is unavailable")
+        shutil.copyfile(source_auth, codex_home / "auth.json")
+        environment = os.environ.copy()
+        environment["CODEX_HOME"] = str(codex_home)
+        return environment
+    if provider.get("auth_mode") != "experimental_bearer_token":
+        raise RuntimeError("unsupported Study B provider authentication mode")
     api_key_path = Path(str(provider["api_key_file"]))
     if not api_key_path.is_absolute():
         api_key_path = ROOT / api_key_path
@@ -303,7 +316,7 @@ def _initial_command(provider: Mapping[str, Any], schema_path: Path, workspace: 
     executable = shutil.which("codex")
     if executable is None:
         raise RuntimeError("Codex CLI is unavailable on PATH")
-    return [
+    command = [
         executable,
         "exec",
         "--json",
@@ -332,6 +345,19 @@ def _initial_command(provider: Mapping[str, Any], schema_path: Path, workspace: 
         "-C",
         str(workspace),
     ]
+    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+        command.insert(2, "--ignore-user-config")
+        model_index = command.index("-m")
+        provider_id = str(provider["id"])
+        command[model_index:model_index] = [
+            "-c",
+            (
+                f"model_providers.{provider_id}="
+                '{name="OpenAI",wire_api="responses",requires_openai_auth=true,'
+                "supports_websockets=false}"
+            ),
+        ]
+    return command
 
 
 def _resume_command(initial: Sequence[str], *, thread_id: str, schema_path: Path) -> list[str]:

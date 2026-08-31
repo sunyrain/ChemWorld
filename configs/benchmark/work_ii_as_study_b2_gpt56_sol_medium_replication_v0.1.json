@@ -1,0 +1,119 @@
+{
+  "analysis": {
+    "cell_update_gain": "pre_error_minus_post_error",
+    "cluster_unit": "public_world_seed",
+    "metric_scale": 1.0,
+    "opaque_arm_role": "descriptive_reference",
+    "primary_contrast": "misindexed_update_gain_minus_aligned_update_gain",
+    "structural_recovery_target": "partition_power_response_exponent_1.75"
+  },
+  "arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "execution": {
+    "canary_sessions": 3,
+    "formal_sessions": 15,
+    "infrastructure_retry_limit": 2,
+    "max_concurrent_sessions": 3,
+    "outcome_based_replacement_forbidden": true,
+    "participant_physical_experiments": 0,
+    "progress_interval_seconds": 30,
+    "provider_free_truth_executions": 80,
+    "scientific_or_schema_failure_retained": true,
+    "session_turns": 2
+  },
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_EXPERIMENT_NOTE.md",
+  "provider": {
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "finalization_timeout_s": 600.0,
+    "id": "chemworld_openai_https",
+    "model": "gpt-5.6-sol",
+    "name": "OpenAI",
+    "progress_interval_s": 30.0,
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "wire_api": "responses"
+  },
+  "public_world_seeds": [
+    527268922,
+    946166808,
+    650846081,
+    110564668,
+    241120479
+  ],
+  "qualification_world_indices": [
+    0,
+    1,
+    2,
+    3,
+    4
+  ],
+  "query_selection": {
+    "candidate_laws": [
+      "linear_response",
+      "power_response"
+    ],
+    "evidence_positions": [
+      0,
+      8,
+      16,
+      24,
+      32,
+      40,
+      48,
+      56
+    ],
+    "expected_evidence_query_ids": [
+      "c385",
+      "c401",
+      "c417",
+      "c433",
+      "c449",
+      "c465",
+      "c481",
+      "c497"
+    ],
+    "expected_scoring_query_ids": [
+      "c393",
+      "c409",
+      "c425",
+      "c441",
+      "c457",
+      "c473",
+      "c489",
+      "c505"
+    ],
+    "intervention_family": "phase_process",
+    "metric_ids": [
+      "product_in_organic",
+      "product_in_aqueous",
+      "phase_ratio"
+    ],
+    "paired_law_effect_gates": {
+      "phase_ratio": 0.072,
+      "product_in_aqueous": 0.06,
+      "product_in_organic": 0.06
+    },
+    "phase": "q2_heldout",
+    "required_passing_metric_count_per_query": 2,
+    "scoring_positions": [
+      4,
+      12,
+      20,
+      28,
+      36,
+      44,
+      52,
+      60
+    ],
+    "truth_law_id": "power_response"
+  },
+  "runtime_config": "configs/benchmark/work_ii_c2_gpt56_sol_medium_runtime_v0.1/a_s--partition-discovery--r12.json",
+  "schema_version": "chemworld-work-ii-as-study-b2-phase-process-protocol-0.1",
+  "source_qualification_root": "runs/development/work-ii-as-paired-law-q1-q2-restart4-20260813/partition_power_response",
+  "status": "provider_execution_authorized",
+  "study_id": "work-ii-as-study-b2-gpt56-sol-medium-replication-v0.1"
+}

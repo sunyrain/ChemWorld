@@ -18,6 +18,9 @@ from typing import Any
 from chemworld.eval.provenance import canonical_json_sha256
 
 STUDY_B_PROTOCOL_VERSION = "chemworld-work-ii-study-b-matched-evidence-protocol-0.1"
+STUDY_B_REPLICATION_PROTOCOL_VERSION = (
+    "chemworld-work-ii-study-b-matched-evidence-replication-protocol-0.1"
+)
 STUDY_B_MANIFEST_VERSION = "chemworld-work-ii-study-b-input-manifest-0.1"
 STUDY_B_CELL_VERSION = "chemworld-work-ii-study-b-cell-result-0.1"
 STUDY_B_SUMMARY_VERSION = "chemworld-work-ii-study-b-summary-0.1"
@@ -73,21 +76,33 @@ def build_study_b_manifest(
     *,
     repository_root: str | Path,
 ) -> dict[str, Any]:
-    """Build and validate the exact 30-cell matched-evidence schedule."""
+    """Build and validate a frozen matched-evidence schedule."""
 
     root = Path(repository_root).resolve()
     protocol_file = Path(protocol_path)
     if not protocol_file.is_absolute():
         protocol_file = root / protocol_file
     protocol = _load_object(protocol_file)
-    if protocol.get("schema_version") != STUDY_B_PROTOCOL_VERSION:
+    protocol_version = protocol.get("schema_version")
+    if protocol_version not in {
+        STUDY_B_PROTOCOL_VERSION,
+        STUDY_B_REPLICATION_PROTOCOL_VERSION,
+    }:
         raise ValueError("unsupported Study B protocol version")
     arms = protocol.get("arms")
     if arms != ["opaque", "aligned_nominal", "misindexed_nominal"]:
         raise ValueError("Study B arm order is not frozen")
     loci = protocol.get("loci")
-    if not isinstance(loci, list) or len(loci) != 2:
-        raise ValueError("Study B requires exactly two registered loci")
+    expected_locus_count = 2 if protocol_version == STUDY_B_PROTOCOL_VERSION else 1
+    if not isinstance(loci, list) or len(loci) != expected_locus_count:
+        raise ValueError(
+            f"Study B protocol requires exactly {expected_locus_count} registered loci"
+        )
+    if (
+        protocol_version == STUDY_B_REPLICATION_PROTOCOL_VERSION
+        and loci[0].get("locus") != "A_P"
+    ):
+        raise ValueError("Study B single-locus replication must retain the registered A-P locus")
     truth_root = _resolve(root, protocol.get("source_truth_root"), field="source_truth_root")
     cells: list[dict[str, Any]] = []
     cluster_packets: list[dict[str, Any]] = []
@@ -202,8 +217,16 @@ def build_study_b_manifest(
                         "scoring_truth": deepcopy(scoring_truth),
                     }
                 )
-    if len(cells) != 30 or len(cluster_packets) != 10:
-        raise ValueError("Study B manifest denominator differs from 30 cells / 10 clusters")
+    expected_clusters = expected_locus_count * 5
+    expected_cells = expected_clusters * 3
+    if len(cells) != expected_cells or len(cluster_packets) != expected_clusters:
+        raise ValueError(
+            "Study B manifest denominator differs from the registered locus coverage"
+        )
+    execution = protocol.get("execution")
+    execution = execution if isinstance(execution, Mapping) else {}
+    if execution.get("formal_sessions") != expected_cells:
+        raise ValueError("Study B formal session denominator differs from the schedule")
     manifest = {
         "schema_version": STUDY_B_MANIFEST_VERSION,
         "study_id": protocol["study_id"],
@@ -447,6 +470,7 @@ __all__ = [
     "STUDY_B_CELL_VERSION",
     "STUDY_B_MANIFEST_VERSION",
     "STUDY_B_PROTOCOL_VERSION",
+    "STUDY_B_REPLICATION_PROTOCOL_VERSION",
     "STUDY_B_SUMMARY_VERSION",
     "build_study_b_manifest",
     "prediction_output_schema",

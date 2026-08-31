@@ -1,0 +1,78 @@
+{
+  "analysis": {
+    "cell_update_gain": "pre_error_minus_post_error",
+    "cluster_unit": "task_x_world_seed",
+    "cross_locus_pooling": false,
+    "metric_scale": 1.0,
+    "opaque_arm_role": "descriptive_reference",
+    "primary_locus_contrast": "misindexed_update_gain_minus_aligned_update_gain"
+  },
+  "arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "execution": {
+    "canary_sessions": 3,
+    "formal_sessions": 15,
+    "infrastructure_retry_limit": 2,
+    "max_concurrent_sessions": 3,
+    "outcome_based_replacement_forbidden": true,
+    "participant_physical_experiments": 0,
+    "progress_interval_seconds": 30,
+    "scientific_or_schema_failure_retained": true,
+    "session_turns": 2
+  },
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_EXPERIMENT_NOTE.md",
+  "loci": [
+    {
+      "evidence_query_indices": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "locus": "A_P",
+      "runtime_config": "configs/benchmark/work_ii_c2_gpt56_sol_medium_runtime_v0.1/a_p--electrochemical-conversion--r10.json",
+      "scoring_query_indices": [
+        0,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15
+      ],
+      "task_id": "electrochemical-conversion",
+      "world_seeds": [
+        973419928,
+        205061234,
+        141388883,
+        594927609,
+        869796364
+      ]
+    }
+  ],
+  "provider": {
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "finalization_timeout_s": 600.0,
+    "id": "chemworld_openai_https",
+    "model": "gpt-5.6-sol",
+    "name": "OpenAI",
+    "progress_interval_s": 30.0,
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "wire_api": "responses"
+  },
+  "schema_version": "chemworld-work-ii-study-b-matched-evidence-replication-protocol-0.1",
+  "source_cohort": "configs/benchmark/work_ii_c2_gpt56_sol_medium_replication_v0.1.json",
+  "source_truth_root": "runs/formal/work-ii-deepseek-c2-current-composite-evaluator-v0.1-20260815/truth",
+  "status": "provider_execution_authorized",
+  "study_id": "work-ii-study-b-ap-gpt56-sol-medium-replication-v0.1"
+}

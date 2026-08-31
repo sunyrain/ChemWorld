@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
+import pytest
 import scripts.run_work_ii_deepseek_c2 as runner
 
 
@@ -150,6 +152,73 @@ def test_select_triplets_preserves_exact_predeclared_task_scope() -> None:
     )
 
     assert [row["world_seed"] for row in selected] == [2, 3, 4, 5, 6]
+
+
+def test_select_triplets_can_freeze_one_in_denominator_canary_world() -> None:
+    triplets = [
+        {
+            "block": "A_E_public",
+            "task_id": "electrochemical-conversion",
+            "world_seed": seed,
+        }
+        for seed in (11, 12, 13)
+    ]
+
+    selected = runner._select_triplets(
+        triplets,
+        block="A_E_public",
+        task_id="electrochemical-conversion",
+        world_seed=11,
+    )
+
+    assert selected == [triplets[0]]
+
+
+def test_openai_replication_plan_retains_exact_public_c2_denominator() -> None:
+    plan = (
+        Path(__file__).resolve().parents[1]
+        / "configs/benchmark/work_ii_c2_gpt56_sol_medium_replication_v0.1.json"
+    )
+
+    payload, triplets = runner.validate_and_expand(plan)
+
+    assert payload["provider"] == {
+        "id": "chemworld_openai_https",
+        "name": "OpenAI",
+        "wire_api": "responses",
+        "auth_mode": "chatgpt_subscription_cached_login",
+        "model": "gpt-5.6-sol",
+        "reasoning_effort": "medium",
+        "request_timeout_s": 1200.0,
+        "finalization_timeout_s": 600.0,
+        "resource_limits": "report_only",
+        "progress_interval_s": 30.0,
+    }
+    assert len(triplets) == 45
+    assert payload["private_block"] is None
+
+
+def test_openai_replication_full_check_reports_public_totals_only(
+    capsys: pytest.CaptureFixture[str], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    plan = (
+        Path(__file__).resolve().parents[1]
+        / "configs/benchmark/work_ii_c2_gpt56_sol_medium_replication_v0.1.json"
+    )
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["run_work_ii_deepseek_c2.py", "--plan", str(plan), "--check"],
+    )
+
+    assert runner.main() == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["task_world_clusters"] == 45
+    assert payload["sessions"] == 135
+    assert payload["public_complete_experiments"] == 1260
+    assert "private_sessions_after_public" not in payload
+    assert "complete_sessions" not in payload
+    assert "complete_experiments" not in payload
 
 
 def test_selected_summary_has_scoped_denominator_and_terminal_status(

@@ -15,6 +15,10 @@ from chemworld.eval.work_ii_study_b import (
 
 ROOT = Path(__file__).resolve().parents[1]
 PROTOCOL = ROOT / "configs/benchmark/work_ii_study_b_matched_evidence_v0.1.json"
+OPENAI_AP_PROTOCOL = (
+    ROOT
+    / "configs/benchmark/work_ii_study_b_ap_gpt56_sol_medium_replication_v0.1.json"
+)
 
 
 @pytest.fixture(scope="module")
@@ -58,6 +62,16 @@ def test_manifest_freezes_exact_matched_evidence_denominators(manifest: dict) ->
             item["query_id"] for item in members[0]["public_packet"]["scoring_queries"]
         }
         assert evidence_ids.isdisjoint(scoring_ids)
+
+
+def test_openai_ap_replication_freezes_single_locus_denominator() -> None:
+    replication = build_study_b_manifest(OPENAI_AP_PROTOCOL, repository_root=ROOT)
+
+    assert replication["cell_count"] == 15
+    assert replication["cluster_count"] == 5
+    assert {cell["locus"] for cell in replication["cells"]} == {"A_P"}
+    assert replication["provider"]["id"] == "chemworld_openai_https"
+    assert replication["provider"]["model"] == "gpt-5.6-sol"
 
 
 def test_prediction_schema_and_validation_are_exact(manifest: dict) -> None:

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Validate or execute the lightweight DeepSeek Work II public C2 cohort."""
+"""Validate or execute a fixed-provider Work II public C2 cohort."""
 
 from __future__ import annotations
 
@@ -26,6 +26,8 @@ EXPECTED_BLOCKS = {
     "A_P": {"tasks": 2, "rounds": 10, "sessions": 30, "experiments": 300},
     "A_S": {"tasks": 2, "rounds": 12, "sessions": 30, "experiments": 360},
 }
+DEEPSEEK_PLAN_VERSION = "chemworld-work-ii-deepseek-c2-prospective-0.1"
+CROSS_MODEL_PLAN_VERSION = "chemworld-work-ii-c2-cross-model-replication-0.1"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -45,18 +47,25 @@ def validate_and_expand(plan_path: Path) -> tuple[dict[str, Any], list[dict[str,
     plan_path = plan_path.resolve()
     plan = _load(plan_path)
     errors: list[str] = []
-    if plan.get("schema_version") != "chemworld-work-ii-deepseek-c2-prospective-0.1":
+    plan_version = plan.get("schema_version")
+    if plan_version not in {DEEPSEEK_PLAN_VERSION, CROSS_MODEL_PLAN_VERSION}:
         errors.append("unexpected plan schema")
     if plan.get("status") != "public_execution_authorized":
         errors.append("public cohort is not execution-authorized")
     provider = plan.get("provider")
     provider = provider if isinstance(provider, Mapping) else {}
+    expected_provider = (
+        ("deepseek", "deepseek-v4-flash", "high")
+        if plan_version == DEEPSEEK_PLAN_VERSION
+        else ("chemworld_openai_https", "gpt-5.6-sol", "medium")
+    )
     if (
-        provider.get("id") != "deepseek"
-        or provider.get("model") != "deepseek-v4-flash"
+        provider.get("id") != expected_provider[0]
+        or provider.get("model") != expected_provider[1]
+        or provider.get("reasoning_effort") != expected_provider[2]
         or provider.get("resource_limits") != "report_only"
     ):
-        errors.append("plan does not select unlimited/report-only DeepSeek execution")
+        errors.append("plan does not select the registered report-only provider")
     if tuple(plan.get("prior_arms", ())) != ARMS:
         errors.append("plan does not contain the exact three prior arms")
     note = (ROOT / str(plan.get("experiment_note", ""))).resolve()
@@ -116,8 +125,10 @@ def validate_and_expand(plan_path: Path) -> tuple[dict[str, Any], list[dict[str,
             identity = identity if isinstance(identity, Mapping) else {}
             if (
                 config.get("task_id") != task_id
-                or config_provider.get("id") != "deepseek"
-                or config_provider.get("model") != "deepseek-v4-flash"
+                or config_provider.get("id") != provider.get("id")
+                or config_provider.get("model") != provider.get("model")
+                or config_provider.get("reasoning_effort")
+                != provider.get("reasoning_effort")
                 or set(config.get("prior_arms", {})) != set(ARMS)
                 or campaign.get("complete_experiments") != rounds
                 or identity.get("locus") != locus
@@ -172,23 +183,29 @@ def validate_and_expand(plan_path: Path) -> tuple[dict[str, Any], list[dict[str,
         "complete_experiments": 1260,
     }:
         errors.append("public C2 totals are not exactly 45/135/1260")
-    private = plan.get("private_block")
-    private = private if isinstance(private, Mapping) else {}
-    seal = (ROOT / str(private.get("seal", ""))).resolve()
-    if (
-        private.get("sessions") != 75
-        or private.get("complete_experiments") != 600
-        or private.get("start_condition")
-        != "all_public_cells_terminal_and_public_analysis_frozen"
-        or not seal.is_file()
-        or not seal.is_relative_to((ROOT / "runs/private").resolve())
+    if plan_version == DEEPSEEK_PLAN_VERSION:
+        private = plan.get("private_block")
+        private = private if isinstance(private, Mapping) else {}
+        seal = (ROOT / str(private.get("seal", ""))).resolve()
+        if (
+            private.get("sessions") != 75
+            or private.get("complete_experiments") != 600
+            or private.get("start_condition")
+            != "all_public_cells_terminal_and_public_analysis_frozen"
+            or not seal.is_file()
+            or not seal.is_relative_to((ROOT / "runs/private").resolve())
+        ):
+            errors.append("sealed A-E private follow-up is not fixed at 75/600")
+        if plan.get("expected_complete_totals") != {
+            "sessions": 210,
+            "complete_experiments": 1860,
+        }:
+            errors.append("complete C2 totals are not exactly 210/1860")
+    elif (
+        plan.get("private_block") is not None
+        or plan.get("expected_complete_totals") != actual_totals
     ):
-        errors.append("sealed A-E private follow-up is not fixed at 75/600")
-    if plan.get("expected_complete_totals") != {
-        "sessions": 210,
-        "complete_experiments": 1860,
-    }:
-        errors.append("complete C2 totals are not exactly 210/1860")
+        errors.append("cross-model C2 successor must remain public-only at 135/1260")
     if errors:
         raise ValueError("; ".join(errors))
     return plan, triplets
@@ -199,16 +216,20 @@ def _select_triplets(
     *,
     block: str | None,
     task_id: str | None,
+    world_seed: int | None = None,
 ) -> list[dict[str, Any]]:
     """Select a predeclared task block without changing its frozen cells."""
 
     if task_id is not None and block is None:
         raise ValueError("--only-task requires --only-block")
+    if world_seed is not None and (block is None or task_id is None):
+        raise ValueError("--only-world-seed requires --only-block and --only-task")
     selected = [
         triplet
         for triplet in triplets
         if (block is None or triplet["block"] == block)
         and (task_id is None or triplet["task_id"] == task_id)
+        and (world_seed is None or triplet["world_seed"] == world_seed)
     ]
     if not selected:
         raise ValueError("execution scope does not match any frozen triplet")
@@ -572,6 +593,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--max-concurrent-triplets", type=int)
     parser.add_argument("--only-block", choices=tuple(EXPECTED_BLOCKS))
     parser.add_argument("--only-task")
+    parser.add_argument("--only-world-seed", type=int)
     return parser.parse_args()
 
 
@@ -583,12 +605,14 @@ def main() -> int:
         all_triplets,
         block=args.only_block,
         task_id=args.only_task,
+        world_seed=args.only_world_seed,
     )
     execution_scope = (
         {
             "scope": "predeclared_task_subset",
             "block": args.only_block,
             "task_id": args.only_task,
+            "world_seed": args.only_world_seed,
             "triplets": len(triplets),
             "sessions": len(triplets) * len(ARMS),
             "complete_experiments": sum(row["rounds"] * len(ARMS) for row in triplets),
@@ -606,7 +630,7 @@ def main() -> int:
                 row["rounds"] * len(ARMS) for row in triplets
             ),
         }
-        if execution_scope is None:
+        if execution_scope is None and plan["schema_version"] == DEEPSEEK_PLAN_VERSION:
             check_report.update(
                 {
                     "private_sessions_after_public": 75,

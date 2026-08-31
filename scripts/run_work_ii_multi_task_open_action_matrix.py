@@ -24,6 +24,7 @@ DEFAULT_OUTPUT = (
     ROOT
     / "runs/formal/work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817"
 )
+GPT_RUNTIME_ROOT = ROOT / "configs/benchmark/work_ii_c2_gpt56_sol_medium_runtime_v0.1"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -33,12 +34,26 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
-def _configure_formal_runtime(preflight_sha256: str, tested_commit: str) -> None:
+def _configure_formal_runtime(
+    preflight_sha256: str, tested_commit: str, *, participant: str
+) -> None:
     if len(preflight_sha256) != 64:
         raise ValueError("formal preflight binding must contain 64 hexadecimal characters")
     int(preflight_sha256, 16)
+    if participant not in {"deepseek", "openai"}:
+        raise ValueError("unsupported open-action participant")
     task_runner.RESOURCE_PROFILE = "resource_recovery_v2"
-    task_runner.STUDY_ID = STUDY_ID
+    task_runner.RUNTIME_ROOT = (
+        task_runner.ROOT
+        / "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1"
+        if participant == "deepseek"
+        else GPT_RUNTIME_ROOT
+    )
+    task_runner.STUDY_ID = (
+        STUDY_ID
+        if participant == "deepseek"
+        else "work-ii-gpt56-sol-medium-multi-task-open-action-five-world-v0.1"
+    )
     task_runner.FORMAL_RESULT = True
     task_runner.FORMAL_PREFLIGHT_SHA256 = preflight_sha256
     task_runner.TESTED_COMMIT = tested_commit
@@ -49,9 +64,12 @@ def prepare_matrix(
     *,
     preflight_sha256: str,
     tested_commit: str,
+    participant: str,
     progress: Progress,
 ) -> dict[str, Any]:
-    _configure_formal_runtime(preflight_sha256, tested_commit)
+    _configure_formal_runtime(
+        preflight_sha256, tested_commit, participant=participant
+    )
     cells: list[dict[str, Any]] = []
     clusters: list[dict[str, Any]] = []
     cluster_index = 0
@@ -98,7 +116,8 @@ def prepare_matrix(
             )
     manifest = {
         "schema_version": "chemworld-work-ii-multi-task-open-action-formal-matrix-0.1",
-        "study_id": STUDY_ID,
+        "study_id": task_runner.STUDY_ID,
+        "participant": participant,
         "formal_result": True,
         "formal_denominator": True,
         "formal_preflight_sha256": preflight_sha256,
@@ -212,12 +231,15 @@ def main() -> int:
     parser.add_argument("--workers", type=int, default=6)
     parser.add_argument("--formal-preflight-sha256", required=True)
     parser.add_argument("--tested-commit", required=True)
+    parser.add_argument("--participant", choices=("deepseek", "openai"), default="deepseek")
     args = parser.parse_args()
     if not (args.prepare or args.execute_canary or args.execute_remaining):
         parser.error("select --prepare, --execute-canary, or --execute-remaining")
     if not 1 <= args.workers <= 6:
         parser.error("--workers must be between 1 and 6")
-    output = (args.output_root if args.output_root.is_absolute() else ROOT / args.output_root).resolve()
+    output = (
+        args.output_root if args.output_root.is_absolute() else ROOT / args.output_root
+    ).resolve()
     output.mkdir(parents=True, exist_ok=True)
     progress = Progress(output / "progress.jsonl")
     manifest_path = output / "input_manifest.json"
@@ -228,6 +250,7 @@ def main() -> int:
             output,
             preflight_sha256=args.formal_preflight_sha256,
             tested_commit=args.tested_commit,
+            participant=args.participant,
             progress=progress,
         )
         progress.emit(
@@ -247,6 +270,7 @@ def main() -> int:
         manifest.get("formal_preflight_sha256") != args.formal_preflight_sha256
         or manifest.get("tested_commit") != args.tested_commit
         or manifest.get("cell_count") != CELL_COUNT
+        or manifest.get("participant", "deepseek") != args.participant
     ):
         raise RuntimeError("formal matrix binding or denominator differs from the launch request")
     if args.execute_canary or args.execute_remaining:
@@ -266,7 +290,11 @@ def main() -> int:
                 progress=progress,
             )
             results = completed + new_results
-            status = "canary_passed_hold_for_sampling" if _canary_passed(new_results) else "canary_failed_hold"
+            status = (
+                "canary_passed_hold_for_sampling"
+                if _canary_passed(new_results)
+                else "canary_failed_hold"
+            )
             _write_summary(
                 output,
                 manifest,
@@ -274,7 +302,13 @@ def main() -> int:
                 worker_count=min(3, args.workers),
                 execution_status=status,
             )
-            progress.emit({"stage": status, "completed_cells": len(results), "total_cells": CELL_COUNT})
+            progress.emit(
+                {
+                    "stage": status,
+                    "completed_cells": len(results),
+                    "total_cells": CELL_COUNT,
+                }
+            )
             return 0 if status == "canary_passed_hold_for_sampling" else 2
         canary_results = [result for result in completed if result.get("cell_id") in canary_ids]
         if not _canary_passed(canary_results):
@@ -296,7 +330,13 @@ def main() -> int:
             worker_count=args.workers,
             execution_status=status,
         )
-        progress.emit({"stage": f"formal_matrix_{status}", "completed_cells": len(results), "total_cells": CELL_COUNT})
+        progress.emit(
+            {
+                "stage": f"formal_matrix_{status}",
+                "completed_cells": len(results),
+                "total_cells": CELL_COUNT,
+            }
+        )
     return 0
 
 
