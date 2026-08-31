@@ -1,0 +1,56 @@
+{
+  "schema_version": "chemworld-work-ii-study-b-matched-evidence-replication-protocol-0.1",
+  "study_id": "work-ii-study-b-ap-deepseek-v4-flash-low-replication-v0.1",
+  "status": "provider_execution_authorized",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_DEEPSEEK_LOW_REASONING_MATCHED_EVIDENCE_EXPERIMENT_NOTE.md",
+  "source_cohort": "configs/benchmark/work_ii_deepseek_c2_prospective_v0.2.json",
+  "source_truth_root": "runs/formal/work-ii-deepseek-c2-current-composite-evaluator-v0.1-20260815/truth",
+  "provider": {
+    "id": "deepseek",
+    "name": "DeepSeek",
+    "base_url": "https://api.deepseek.com/",
+    "wire_api": "responses",
+    "auth_mode": "experimental_bearer_token",
+    "api_key_file": "api.md",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "model": "deepseek-v4-flash",
+    "reasoning_effort": "low",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "progress_interval_s": 30.0
+  },
+  "arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "loci": [
+    {
+      "locus": "A_P",
+      "task_id": "electrochemical-conversion",
+      "runtime_config": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_p--electrochemical-conversion--r10.json",
+      "world_seeds": [973419928, 205061234, 141388883, 594927609, 869796364],
+      "evidence_query_indices": [1, 2, 3, 4, 5, 6, 7, 8],
+      "scoring_query_indices": [0, 9, 10, 11, 12, 13, 14, 15]
+    }
+  ],
+  "execution": {
+    "session_turns": 2,
+    "participant_physical_experiments": 0,
+    "canary_sessions": 3,
+    "formal_sessions": 15,
+    "max_concurrent_sessions": 3,
+    "progress_interval_seconds": 30,
+    "infrastructure_retry_limit": 2,
+    "scientific_or_schema_failure_retained": true,
+    "outcome_based_replacement_forbidden": true
+  },
+  "analysis": {
+    "metric_scale": 1.0,
+    "cell_update_gain": "pre_error_minus_post_error",
+    "primary_locus_contrast": "misindexed_update_gain_minus_aligned_update_gain",
+    "cluster_unit": "task_x_world_seed",
+    "opaque_arm_role": "descriptive_reference",
+    "cross_locus_pooling": false
+  }
+}

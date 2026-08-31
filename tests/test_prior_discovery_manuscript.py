@@ -22,6 +22,11 @@ B2_ANALYSIS = (
     / "workstreams/flagship_tasks/reports/"
     "work-ii-as-study-b2-phase-process-results-v0.1.json"
 )
+LOW_B2_ANALYSIS = (
+    ROOT
+    / "workstreams/flagship_tasks/reports/"
+    "work-ii-as-study-b2-deepseek-v4-flash-low-results-v0.1.json"
+)
 B3_GPT_CLOSEOUT = (
     ROOT
     / "workstreams/flagship_tasks/reports/"
@@ -73,15 +78,15 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
 
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
-    assert "Prior uptake and selective-correction failure" in display_items
+    assert "Prior uptake without established selective correction" in display_items
     assert (
-        "Matched counterevidence drives numerical convergence but not structural recovery"
+        "Matched evidence replicates numerical convergence without structural recovery"
         in display_items
     )
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "no same-arm replicate baseline" in limits
-    assert "five-world corrected structural matched-evidence study" in limits
+    assert "complete DeepSeek-low A-S B2 ablation" in limits
 
 
 def test_draft_manifest_preserves_development_formal_private_boundaries() -> None:
@@ -139,7 +144,7 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
         "exact_1_75_power_law_recovery_count"
     ] == 0
     assert (
-        "Predictive learning does not selectively repair a wrong starting model"
+        "Predictive learning does not establish selective repair of a wrong starting model"
         in manuscript
     )
     assert "1/119/1" in manuscript
@@ -147,8 +152,25 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
         "Matched counterevidence drives numerical convergence but not structural-law recovery"
         in manuscript
     )
-    assert "mean +0.0645" in display_items
+    assert "+0.0645/+0.0915/-0.0405" in display_items
     assert "completed evaluator contains" in display_items
+
+
+def test_deepseek_low_b2_ablation_is_bound_without_thinking_off_overclaim() -> None:
+    manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
+    analysis = json.loads(LOW_B2_ANALYSIS.read_text(encoding="utf-8"))
+
+    assert analysis["integrity"]["completed_sessions"] == 15
+    assert analysis["integrity"]["failed_sessions"] == 0
+    assert round(analysis["primary_contrast"]["mean"], 4) == -0.0405
+    assert analysis["primary_contrast"]["positive_world_count"] == 2
+    audit = analysis["public_summary_audit"]["by_arm"]["misindexed_nominal"]
+    assert audit["exact_1_75_power_law_recovery_count"] == 0
+    combined = manuscript + evidence_map
+    assert "20.9%" in combined
+    assert "thinking-off experiment" in manuscript
+    assert "reasoning-superiority" in manuscript
 
 
 def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:

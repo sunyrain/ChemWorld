@@ -35,6 +35,7 @@ Updated: 2026-08-31. Recheck the official
 | W2-57 shared-index B3 | Terminal DeepSeek canary 2/3; GPT unstarted | Retained interface failure, not a scientific or cross-model denominator |
 | W2-58 runner-derived-status B3 | Terminal DeepSeek interface canary 0/3; GPT unstarted | Three rc=0 post payloads reused the pre shape despite the required post schema; no scientific or cross-model denominator |
 | W2-59 main-evidence completion | Terminal block-specific coverage | A-P/B2 complete matched DeepSeek + GPT formal; GPT C2 and W2-50 stop after in-denominator triplets; B3 formal 0/30 per provider |
+| W2-60 DeepSeek low reasoning | B2 formal 15/15; A-P platform-defective partial | Same-harness B2 robustness: all 15 low error, misindexed exact law 0/5, contrast -0.0405; low is not reasoning-off |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation. The paper contains DeepSeek and GPT-5.6-sol
@@ -43,6 +44,8 @@ W2-50, and B3 do not, and the GPT B3 result remains provider-specific.
 W2-58 is terminal rather than pending paper evidence: DeepSeek produced six completed provider turns,
 but all three sessions failed the frozen post-action schema; GPT and both formal blocks remained
 unstarted. It must not appear in figures, effect estimates or model comparisons.
+W2-60 adds one complete structural matched-evidence denominator, bringing valid matched formal
+sessions to 75. Its A-P low block remains 0/15 formal and is reported only as a platform boundary.
 
 ## Nine-page integration target
 
@@ -62,7 +65,7 @@ unstarted. It must not appear in figures, effect estimates or model comparisons.
 
 1. Capability chain and study map.
 2. Prior-conditioned discovery.
-3. Phenomenological interpolation versus structural recovery.
+3. Phenomenological interpolation versus structural recovery across matched model/reasoning configurations.
 4. Agent law--action decoupling and evaluator rank--action misalignment.
 5. Table 1: exact denominators, evidence role and claim boundary.
 
@@ -83,7 +86,7 @@ panel for conditions that were not executed.
 - [x] Run claims-to-evidence, anonymity, page-count and rendered-PDF checks.
 - [ ] Complete citation-source verification.
 
-Current anonymous build: 9 pages of main text and 14 pages total in the official ICLR 2027 style,
+Current anonymous build: 9 pages of main text and 15 pages total in the official ICLR 2027 style,
 with zero LaTeX errors, undefined citations, overfull boxes or direct identifying-string leaks. The
 combined law/action/evaluator display is integrated from machine-readable W2-50--W2-55 sources. The
 claims-to-evidence, anonymity, page-count and rendered-PDF passes are complete; citation-source

@@ -84,6 +84,23 @@ cells; canaries were excluded. A-P misspecified-minus-aligned update contrasts w
 positive worlds; misspecified exact 1.75-law recovery was 0/5 in both models. Configurations are
 reported separately, and no model-superiority test is performed.
 
+The reasoning-budget ablation kept the DeepSeek model, Codex harness, prompts, schemas, public
+packets, worlds, and evaluator fixed while changing only `reasoning_effort` from high to low. It is
+not provider-level thinking-off, which would require a different direct-controller harness. The B2
+interface canary passed 3/3 and the formal block completed 15/15 sessions, 30/30 turns, 15/15
+same-thread continuations, and 360/360 pre plus 360/360 post scoring terms, with no failed session or
+infrastructure predecessor. Mean post errors were 0.0067/0.0069/0.0069 for
+opaque/aligned/misspecified. The registered contrast was -0.0405, with 2/5 positive worlds, exact
+one-sided $p=0.8125$, and descriptive interval [-0.1559, 0.0749]. Misspecified exact 1.75-law
+recovery remained 0/5; all five misspecified post errors were at most 0.02.
+
+Provider-reported DeepSeek reasoning output was 506,637 tokens at high effort and 400,639 at low
+effort on the matched B2 block, a 20.9\% reduction. These resource fields are descriptive within the
+DeepSeek provider and are not compared with GPT accounting. The separate low-effort A-P canary was
+platform-defective: progress events existed, but terminal cell receipts and a canary summary did not.
+It is retained as an unscored partial; A-P low formal execution remained 0/15 and supplies no effect
+estimate.
+
 ## Participant-identifiable law and action control
 
 The independent B3 control used five frozen public structural-partition worlds, the same opaque,
@@ -184,8 +201,9 @@ historical result, threshold, or stop decision.
 
 ## Additional scope boundaries
 
-The study evaluates simulated chemistry and two fixed agent--tool configurations. Matched evidence
-has complete separately reported denominators for both; other participant blocks are provider-specific
+The study evaluates simulated chemistry with two models and three fixed agent--tool configurations.
+Matched evidence has complete separately reported A-P/B2 denominators for DeepSeek high and GPT
+medium, plus a complete B2-only DeepSeek-low ablation; other participant blocks are provider-specific
 or stopped partials. The study does not establish physical laboratory fidelity, universal chemical
 coverage, cross-provider ordering, or artifact portability. The public cohort is not a private-world confirmation. The 45-cell action matrix lacks a
 same-agent no-evidence baseline. The five-condition causal cohort is unexecuted. A later reduced

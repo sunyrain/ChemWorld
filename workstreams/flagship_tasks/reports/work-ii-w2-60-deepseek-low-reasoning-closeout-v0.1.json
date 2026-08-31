@@ -1,0 +1,133 @@
+{
+  "schema_version": "chemworld-work-ii-w2-60-closeout-0.1",
+  "study_id": "work-ii-w2-60-deepseek-low-reasoning-matched-evidence",
+  "status": "terminal_mixed_block_outcome",
+  "formal_result": true,
+  "configuration": {
+    "provider": "DeepSeek",
+    "model": "deepseek-v4-flash",
+    "codex_reasoning_effort": "low",
+    "provider_thinking_off": false,
+    "same_harness_as_deepseek_high": true
+  },
+  "a_p": {
+    "status": "platform_defective_partial",
+    "scheduled_canary_sessions": 3,
+    "terminal_progress_events": 3,
+    "terminal_cell_receipts": 0,
+    "canary_summary_available": false,
+    "formal_completed_sessions": 0,
+    "formal_scheduled_sessions": 15,
+    "scientific_estimate_available": false,
+    "disposition": "retained_without_restart_or_pooling"
+  },
+  "a_s_b2": {
+    "status": "formal_completed",
+    "canary_completed_sessions": 3,
+    "canary_qualified": true,
+    "formal_completed_sessions": 15,
+    "formal_scheduled_sessions": 15,
+    "failed_formal_sessions": 0,
+    "same_thread_formal_sessions": 15,
+    "formal_provider_turns": 30,
+    "provider_free_truth_executions": 80,
+    "participant_physical_experiments": 0,
+    "pre_scoring_terms": 360,
+    "post_scoring_terms": 360,
+    "tool_events": 1,
+    "turn_failed_events": 0,
+    "arm_summary": {
+      "opaque": {
+        "mean_pre_error": 0.24734443916899077,
+        "mean_post_error": 0.006726677334615181,
+        "mean_update_gain": 0.24061776183437558
+      },
+      "aligned_nominal": {
+        "mean_pre_error": 0.28552577231031767,
+        "mean_post_error": 0.006862327314971477,
+        "mean_update_gain": 0.2786634449953462
+      },
+      "misindexed_nominal": {
+        "mean_pre_error": 0.24509985606136034,
+        "mean_post_error": 0.006911324950614165,
+        "mean_update_gain": 0.23818853111074617
+      }
+    },
+    "primary_contrast": {
+      "mean": -0.040474913884600006,
+      "positive_world_count": 2,
+      "world_count": 5,
+      "exact_one_sided_sign_flip_p": 0.8125,
+      "descriptive_confidence_interval_95": [
+        -0.15588319087064806,
+        0.07493336310144805
+      ]
+    },
+    "structural_summary": {
+      "all_cell_post_error_at_most_0_02_count": 15,
+      "all_cell_denominator": 15,
+      "misindexed_exact_1_75_law_recovery_count": 0,
+      "misindexed_world_denominator": 5,
+      "misindexed_saturation_or_endpoint_model_count": 4
+    },
+    "provider_reported_usage": {
+      "input_tokens": 559505,
+      "cached_input_tokens": 292480,
+      "output_tokens": 427023,
+      "reasoning_output_tokens": 400639
+    }
+  },
+  "matched_b2_configuration_comparison": [
+    {
+      "configuration": "DeepSeek high",
+      "formal_sessions": 15,
+      "mean_primary_contrast": 0.0645335142183304,
+      "positive_world_count": 3,
+      "misspecified_low_error_count": 5,
+      "misspecified_exact_law_recovery_count": 0,
+      "reasoning_output_tokens": 506637
+    },
+    {
+      "configuration": "GPT medium",
+      "formal_sessions": 15,
+      "mean_primary_contrast": 0.09146227348486284,
+      "positive_world_count": 4,
+      "misspecified_low_error_count": 5,
+      "misspecified_exact_law_recovery_count": 0,
+      "reasoning_output_tokens": 40550
+    },
+    {
+      "configuration": "DeepSeek low",
+      "formal_sessions": 15,
+      "mean_primary_contrast": -0.040474913884600006,
+      "positive_world_count": 2,
+      "misspecified_low_error_count": 5,
+      "misspecified_exact_law_recovery_count": 0,
+      "reasoning_output_tokens": 400639
+    }
+  ],
+  "within_deepseek_resource_comparison": {
+    "reasoning_output_token_change": -105998,
+    "reasoning_output_token_change_fraction": -0.2092188292603975,
+    "output_token_change_fraction": -0.19834383377512786,
+    "formal_wall_time_change_fraction": -0.15032893685183932,
+    "interpretation": "descriptive_within_provider_only"
+  },
+  "figure_sources": [
+    "paper/figures/prior-discovery/source_data/figure-4-cross-configuration-contrasts.csv",
+    "paper/figures/prior-discovery/source_data/figure-4-structural-identification-control.csv"
+  ],
+  "source_artifacts": [
+    "workstreams/flagship_tasks/WORK_II_DEEPSEEK_LOW_REASONING_MATCHED_EVIDENCE_EXPERIMENT_NOTE.md",
+    "configs/benchmark/work_ii_as_study_b2_deepseek_v4_flash_low_replication_v0.1.json",
+    "configs/benchmark/work_ii_study_b_ap_deepseek_v4_flash_low_replication_v0.1.json",
+    "workstreams/flagship_tasks/reports/work-ii-as-study-b2-deepseek-v4-flash-low-results-v0.1.json"
+  ],
+  "claim_boundaries": [
+    "DeepSeek low is a Codex reasoning-budget setting, not provider thinking-off.",
+    "The B2 numerical-convergence versus structural-recovery break is robust across the three reported configurations.",
+    "The sign and magnitude of the selective numerical-update contrast are configuration-sensitive.",
+    "No reasoning- or model-superiority test is performed.",
+    "The A-P low partial supplies no scientific estimate and is not pooled with B2."
+  ]
+}

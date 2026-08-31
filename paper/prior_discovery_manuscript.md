@@ -41,7 +41,9 @@ abstract: |
   0.0074/0.0060/0.0071, but 0/5 misspecified summaries recovered the registered 1.75 power law and all
   five adopted saturation or endpoint models. A matched GPT-5.6-sol medium replication again obtained
   0/5 structural recovery despite a +0.0915 numerical-update contrast (4/5 worlds); the corresponding
-  DeepSeek contrast was +0.0645 (3/5 worlds). An independent frozen 30-session GPT control made the
+  DeepSeek-high contrast was +0.0645 (3/5 worlds). A same-harness DeepSeek low-reasoning ablation kept
+  all 15 structural errors below 0.02 and exact recovery at 0/5, while the update contrast reversed to
+  -0.0405 (2/5 worlds). An independent frozen 30-session GPT control made the
   exponent participant-identifiable: joint family--exponent recovery was 5/10 in the aligned arm but
   0/10 in both opaque and misspecified arms, and 0/18 action-eligible choices reached the registered
   gain. All 135 typed laws executed, yet 84 preserved less
@@ -103,7 +105,10 @@ A-P and A-S B2 each completed 15/15 formal sessions for both configurations. A s
 control used two independent sessions per arm and structural world to make the target exponent
 participant-identifiable. These are block-specific cross-model results rather than full-chain
 replication: the GPT C2 and open-action blocks stopped after their in-denominator canary triplets,
-and the paired B3 successor contributed no formal denominator. Fixed checkpoints bound the primary participant's beliefs
+and the paired B3 successor contributed no formal denominator. We additionally changed only the
+DeepSeek Codex reasoning effort from high to low in a same-harness ablation. Its structural B2 block
+completed 15/15, whereas its parametric canary lacked terminal receipts and contributed no estimate;
+`low` is therefore a reasoning-budget setting, not provider-level thinking-off. Fixed checkpoints bound the primary participant's beliefs
 to independently evaluated predictions and typed executable summaries. Matched-evidence sessions
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
@@ -546,7 +551,7 @@ little from one another, consistent with shared search scaffolding rather than c
 The remaining task--locus groups were heterogeneous. A correct initial model was therefore neither a
 universal advantage nor a stable endpoint ordering.
 
-## 6.3 Predictive learning does not selectively repair a wrong starting model
+## 6.3 Predictive learning does not establish selective repair of a wrong starting model
 
 All three intervention loci showed mean pre-to-final prediction-error reductions in every arm. For
 the entity locus, reductions were 0.111, 0.097 and 0.097 for opaque, aligned and misspecified cells;
@@ -566,7 +571,7 @@ transitions.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-3-prior-uptake-and-correction.pdf}
-\caption{\textbf{Initial models redirect search, but evidence does not selectively repair the wrong model.}
+\caption{\textbf{Initial models redirect search, but the evidence does not establish selective repair of the wrong model.}
 \textbf{a,} Mean pre-evidence normalized prediction error by locus and initial-model arm; correctness does not impose a uniform starting-error ordering.
 \textbf{b,} Fraction of 45 matched task--world clusters in which the first complete experimental recipe differs between each pair of arms. This retrospective manipulation check has no repeated same-arm baseline.
 \textbf{c,} Mean pre-to-final prediction-error reduction. Every arm improves at every locus.
@@ -606,6 +611,16 @@ Thus the strongest cross-configuration result is not an aggregate performance ra
 transition failure: direct evidence supported numerical interpolation without inducing the registered
 structure. We report the two configurations separately and perform no model-superiority test.
 
+A same-harness DeepSeek low-reasoning ablation strengthened the boundary. Its structural canary
+passed 3/3 and formal execution completed **15/15** with no failed sessions. Mean post errors were
+0.0067, 0.0069 and 0.0069 for opaque, aligned and misspecified cells; all 15 were below 0.02. The
+registered update contrast reversed to **-0.0405** (2/5 positive worlds; exact one-sided
+$p=0.8125$; descriptive interval $[-0.1559,0.0749]$), but misspecified exact-law recovery remained
+**0/5**. Provider-reported reasoning output fell from 506,637 to 400,639 tokens (20.9%) relative to
+DeepSeek high on the same block. Thus low reasoning preserved the numerical--structural break while
+showing that selective numerical updating is configuration-sensitive. This is a robustness ablation,
+not a reasoning-superiority test or a thinking-off experiment.
+
 An independent frozen control then made the 1.75 exponent participant-identifiable by disclosing
 reference coefficients across four nominal pairs and scored a disjoint eight-query roster. After a
 3/3 canary, all **30/30** GPT-5.6-sol medium sessions completed (five worlds, three arms, two fresh
@@ -627,11 +642,10 @@ not become a monotonic pair.
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Matched counterevidence drives numerical convergence but not structural-law recovery.}
-\textbf{a,} Pre-to-post structural prediction errors for all 15 corrected matched-evidence cells; every arm receives identical direct phase-process evidence.
-\textbf{b,} Post-evidence errors converge near zero in opaque, aligned and misspecified cells.
-\textbf{c,} Misspecified-minus-aligned update-gain contrasts across five independent worlds; the dashed line is the mean and the five-world result is non-confirmatory.
-\textbf{d,} Public-summary recovery among the five misspecified cells. Numerical convergence and saturation-style empirical models are universal, whereas explicit rejection of the linear prior is rare and exact 1.75-law recovery is absent.}
+\caption{\textbf{Matched evidence replicates numerical convergence without structural-law recovery.}
+\textbf{a,b,} Detailed DeepSeek-high structural results: identical direct phase-process evidence drives all 15 cells to low post-evidence error.
+\textbf{c,} Mean misspecified-minus-aligned update-gain contrasts for matched A-P DeepSeek-high/GPT-medium blocks and A-S B2 DeepSeek-high/GPT-medium/DeepSeek-low blocks. Every point represents five worlds; exact tests and intervals are reported in text.
+\textbf{d,} The registered power-versus-linear packet qualifies in 5/5 worlds. All three B2 configurations place the five misspecified cells below 0.02 error, yet exact 1.75-law recovery is 0/5 in each. The low-reasoning A-P block has no qualified denominator and is not shown.}
 \label{fig:matched-evidence-localization}
 \end{figure*}
 ```
@@ -927,7 +941,8 @@ those components rather than attributing the result to model weights alone.
 ChemWorld provides bounded executable causal worlds, not universal chemical fidelity or direct
 wet-laboratory validation. The primary prospective cohort concerns one fixed DeepSeek-V4-Flash agent
 configuration; the independent structural control concerns one fixed GPT-5.6-sol medium
-configuration. A-P and A-S B2 have complete matched formal denominators for both systems, but each
+configuration. A-P and A-S B2 have complete matched formal denominators for DeepSeek high and GPT
+medium, and A-S B2 additionally has a complete DeepSeek-low denominator, but each
 contains only five worlds. These blocks support cross-configuration replication of their specific
 transition failures, not a model leaderboard or language models in general. The prospective programme
 spans nine task--locus combinations but only five independent worlds per task.
@@ -937,6 +952,13 @@ not executed. GPT replication of C2 and W2-50 stopped after three in-denominator
 excluded canary sessions; although GPT passed 3/3 after repair of a zero-call platform defect, the
 joint gate left both formal blocks at 0/30. C2, unseen-action selection and B3 therefore remain
 provider-specific or unestimated rather than cross-provider effect estimates.
+
+The low-reasoning setting is not reasoning-off: true provider-level thinking-off would require a
+different direct-controller harness and confound reasoning mode with the agent interface. The
+DeepSeek-low A-P canary ended as a platform-defective partial without terminal cell receipts or a
+canary summary, so its formal denominator is 0/15 and no parametric low-reasoning effect is reported.
+The complete B2 low block is analysed separately from high and GPT, and provider token accounting is
+used only as a within-DeepSeek resource description.
 
 The corrected structural matched-evidence result contains five worlds and is explicitly
 non-confirmatory. The earlier structural run affected by an evaluator omission is excluded. The
@@ -1043,11 +1065,13 @@ $2^5$ sign flips are enumerated for the exact one-sided directional check and a 
 is reported descriptively. Protocol-validation sessions are excluded. Structural-recovery counts use only
 the submitted model summary and evidence assessment, never private reasoning text.
 
-The DeepSeek and GPT matched-evidence blocks use identical world, arm, query and packet coordinates.
-Each configuration is analysed separately with the same world-level estimand and exact sign-flip
-procedure. GPT-minus-DeepSeek differences are paired descriptively by world; no model-superiority
-test, pooled provider effect or extrapolation to the prospective cohort and open-action blocks is
-performed.
+The DeepSeek-high and GPT-medium matched-evidence blocks use identical world, arm, query and packet
+coordinates. The DeepSeek-low structural ablation changes only the Codex reasoning-effort setting;
+its public coordinates and evaluator are identical to DeepSeek high. Each configuration is analysed
+separately with the same world-level estimand and exact sign-flip procedure. Cross-configuration
+differences are descriptive; no model- or reasoning-superiority test, pooled provider effect or
+extrapolation to the prospective cohort and open-action blocks is performed. The low parametric block
+has no qualified denominator and is excluded.
 
 The independent identifiable-law control fixes five public structural worlds, the same three prior
 arms and two independent fresh sessions per arm and world. Its eight evidence rows and disjoint

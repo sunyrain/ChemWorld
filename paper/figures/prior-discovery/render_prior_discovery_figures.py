@@ -2067,7 +2067,7 @@ def render_figure_3_prospective(
     panel_label(ax_d, "d", x=-0.12)
 
     fig.suptitle(
-        "Initial models redirect search, but evidence does not selectively repair the wrong model",
+        "Initial models redirect search, but evidence does not establish selective repair",
         x=0.09,
         y=0.975,
         ha="left",
@@ -2147,23 +2147,105 @@ def build_matched_story_rows(
     return cell_rows, contrast_rows, qualitative_rows
 
 
+def build_cross_configuration_matched_rows(
+    cross_model: dict[str, Any],
+    structural_deepseek: dict[str, Any],
+    structural_gpt: dict[str, Any],
+    structural_deepseek_low: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    contrast_rows: list[dict[str, Any]] = []
+    for block_key, block_label in (
+        ("matched_a_p", "A-P"),
+        ("matched_a_s_b2", "A-S B2"),
+    ):
+        block = cross_model["blocks"][block_key]
+        for provider_key, configuration_label in (
+            ("deepseek", "DeepSeek high"),
+            ("gpt", "GPT medium"),
+        ):
+            result = block[provider_key]
+            primary = result["primary_contrast"]
+            contrast_rows.append(
+                {
+                    "block": block_label,
+                    "configuration": configuration_label,
+                    "mean_primary_contrast": float(primary["mean"]),
+                    "positive_world_count": int(primary["positive_world_count"]),
+                    "world_count": int(result["world_count"]),
+                    "exact_one_sided_p": float(
+                        primary["exact_sign_flip_p_one_sided_greater"]
+                    ),
+                }
+            )
+
+    low_primary = structural_deepseek_low["primary_contrast"]
+    contrast_rows.append(
+        {
+            "block": "A-S B2",
+            "configuration": "DeepSeek low",
+            "mean_primary_contrast": float(low_primary["mean"]),
+            "positive_world_count": int(low_primary["positive_world_count"]),
+            "world_count": int(low_primary["n"]),
+            "exact_one_sided_p": float(
+                low_primary["exact_sign_flip_p_one_sided_greater"]
+            ),
+        }
+    )
+
+    def low_post_count(payload: dict[str, Any]) -> int:
+        return sum(
+            float(row["errors"]["misindexed_nominal"]["post"]) <= 0.02
+            for row in payload["world_rows"]
+        )
+
+    structural_rows = [
+        {
+            "configuration": "Provider-free control",
+            "measure": "Power-v-linear packet qualified",
+            "count": 5,
+            "denominator": 5,
+        }
+    ]
+    for configuration, payload in (
+        ("DeepSeek high", structural_deepseek),
+        ("GPT medium", structural_gpt),
+        ("DeepSeek low", structural_deepseek_low),
+    ):
+        audit = payload["public_summary_audit"]["by_arm"]["misindexed_nominal"]
+        structural_rows.extend(
+            [
+                {
+                    "configuration": configuration,
+                    "measure": "Post error <= 0.02",
+                    "count": low_post_count(payload),
+                    "denominator": int(audit["world_count"]),
+                },
+                {
+                    "configuration": configuration,
+                    "measure": "Recovered exact 1.75 law",
+                    "count": int(audit["exact_1_75_power_law_recovery_count"]),
+                    "denominator": int(audit["world_count"]),
+                },
+            ]
+        )
+    return contrast_rows, structural_rows
+
+
 def render_figure_4_matched(
     cell_rows: list[dict[str, Any]],
-    contrast_rows: list[dict[str, Any]],
-    qualitative_rows: list[dict[str, Any]],
-    matched: dict[str, Any],
-    parametric_audit: dict[str, Any],
+    cross_configuration_rows: list[dict[str, Any]],
+    structural_control_rows: list[dict[str, Any]],
 ) -> list[Path]:
-    fig = plt.figure(figsize=(7.2, 5.45))
+    fig = plt.figure(figsize=(7.2, 5.70))
     grid = fig.add_gridspec(
         2,
         2,
         left=0.105,
         right=0.985,
-        bottom=0.13,
+        bottom=0.18,
         top=0.76,
         wspace=0.34,
-        hspace=0.50,
+        hspace=0.58,
         width_ratios=[1.05, 0.95],
     )
     ax_a, ax_b, ax_c, ax_d = [
@@ -2197,7 +2279,7 @@ def render_figure_4_matched(
     ax_a.set_ylim(0, 0.49)
     ax_a.set_ylabel("Normalized prediction error")
     ax_a.set_title(
-        "Identical phase-process evidence drives\nall arms toward accurate predictions",
+        "DeepSeek high: identical evidence drives\nall arms toward accurate predictions",
         loc="left",
         fontweight="bold",
         pad=6,
@@ -2246,7 +2328,7 @@ def render_figure_4_matched(
     ax_b.set_ylim(0, 0.0142)
     ax_b.set_ylabel("Post-evidence normalized error")
     ax_b.set_title(
-        "Numerical predictions converge\nacross initial-model conditions",
+        "DeepSeek high: post-evidence predictions\nconverge across initial-model conditions",
         loc="left",
         fontweight="bold",
         pad=6,
@@ -2254,54 +2336,85 @@ def render_figure_4_matched(
     style_quant_axis(ax_b)
     panel_label(ax_b, "b", x=-0.13)
 
-    values = [row["primary_contrast"] for row in contrast_rows]
+    configuration_colors = {
+        "DeepSeek high": COLORS["blue"],
+        "GPT medium": COLORS["violet"],
+        "DeepSeek low": COLORS["misindexed"],
+    }
+    configuration_markers = {
+        "DeepSeek high": "o",
+        "GPT medium": "D",
+        "DeepSeek low": "^",
+    }
+    y_positions = np.arange(len(cross_configuration_rows))
     ax_c.axvline(0, color="#89989F", linewidth=1.0)
-    ax_c.scatter(
-        values,
-        np.arange(5),
-        s=43,
-        color=COLORS["misindexed"],
-        edgecolor="white",
-        linewidth=0.7,
-        zorder=3,
+    for y_value, row in zip(y_positions, cross_configuration_rows, strict=True):
+        value = row["mean_primary_contrast"]
+        ax_c.scatter(
+            value,
+            y_value,
+            s=48,
+            marker=configuration_markers[row["configuration"]],
+            color=configuration_colors[row["configuration"]],
+            edgecolor="white",
+            linewidth=0.7,
+            zorder=3,
+        )
+        label_on_left = value > 0.08
+        ax_c.text(
+            value - 0.004 if label_on_left else value + 0.004,
+            y_value,
+            f"{value:+.4f} ({row['positive_world_count']}/{row['world_count']} +)",
+            ha="right" if label_on_left else "left",
+            va="center",
+            fontsize=6.1,
+            color=COLORS["muted"],
+        )
+    ax_c.axhline(1.5, color=COLORS["grid"], linewidth=0.8)
+    ax_c.set_yticks(
+        y_positions,
+        [f"{row['block']} · {row['configuration']}" for row in cross_configuration_rows],
     )
-    mean_value = float(matched["primary_contrast"]["mean"])
-    ax_c.axvline(mean_value, color=COLORS["ink"], linewidth=1.6, linestyle="--")
-    ax_c.set_yticks(np.arange(5), [f"World {index + 1}" for index in range(5)])
-    ax_c.set_xlim(-0.075, 0.225)
+    ax_c.set_xlim(-0.06, 0.13)
     ax_c.invert_yaxis()
-    ax_c.set_xlabel("Misspecified - aligned update gain")
+    ax_c.set_xlabel("Mean misspecified - aligned update gain")
     ax_c.set_title(
-        "The selective-update signal is mixed\nacross five independent worlds",
+        "Matched numerical-update contrasts\nacross replicated configurations",
         loc="left",
         fontweight="bold",
         pad=6,
     )
-    ax_c.text(
-        0.05,
-        0.08,
-        f"mean {mean_value:+.4f}\n3/5 positive · p=0.125",
-        transform=ax_c.transAxes,
-        ha="left",
-        va="bottom",
-        fontsize=6.4,
-        color=COLORS["muted"],
-    )
     style_row_axis(ax_c)
     panel_label(ax_c, "c", x=-0.13)
 
-    qualitative_labels = [row["transition"] for row in qualitative_rows]
-    qualitative_values = [row["count"] / row["denominator"] for row in qualitative_rows]
-    q_colors = [COLORS["blue"], COLORS["violet"], COLORS["misindexed"], COLORS["red"]]
+    qualitative_labels = [
+        "Packet qualified: power vs linear"
+        if row["configuration"] == "Provider-free control"
+        else f"{row['configuration']}: error <= 0.02"
+        if row["measure"] == "Post error <= 0.02"
+        else f"{row['configuration']}: exact law"
+        for row in structural_control_rows
+    ]
+    qualitative_values = [
+        row["count"] / row["denominator"] for row in structural_control_rows
+    ]
+    q_colors = [
+        COLORS["green"]
+        if row["configuration"] == "Provider-free control"
+        else COLORS["red"]
+        if row["measure"] == "Recovered exact 1.75 law"
+        else configuration_colors[row["configuration"]]
+        for row in structural_control_rows
+    ]
     bars = ax_d.barh(
-        np.arange(4),
+        np.arange(len(structural_control_rows)),
         qualitative_values,
-        height=0.56,
+        height=0.52,
         color=q_colors,
         edgecolor="white",
         linewidth=0.7,
     )
-    for bar, row in zip(bars, qualitative_rows, strict=True):
+    for bar, row in zip(bars, structural_control_rows, strict=True):
         x_text = 0.97 if row["count"] else 0.03
         ax_d.text(
             x_text,
@@ -2313,12 +2426,12 @@ def render_figure_4_matched(
             color="white" if row["count"] else COLORS["ink"],
             fontweight="bold",
         )
-    ax_d.set_yticks(np.arange(4), qualitative_labels)
+    ax_d.set_yticks(np.arange(len(structural_control_rows)), qualitative_labels)
     ax_d.set_xlim(0, 1.02)
     ax_d.invert_yaxis()
-    ax_d.set_xlabel("Misspecified summaries meeting criterion")
+    ax_d.set_xlabel("World fraction meeting criterion")
     ax_d.set_title(
-        "Numerical revision stops short of\nstructural-law identification",
+        "The packet is diagnostically qualified,\nbut no configuration repairs the wrong law",
         loc="left",
         fontweight="bold",
         pad=6,
@@ -2326,8 +2439,13 @@ def render_figure_4_matched(
     style_row_axis(ax_d)
     panel_label(ax_d, "d", x=-0.13)
 
+    configuration_count = sum(
+        row["measure"] == "Post error <= 0.02" for row in structural_control_rows
+    )
+    structural_session_count = 15 * configuration_count
+
     fig.suptitle(
-        "Matched counterevidence drives numerical convergence but not structural-law recovery",
+        "Matched evidence replicates numerical convergence without structural-law recovery",
         x=0.105,
         y=0.975,
         ha="left",
@@ -2338,7 +2456,8 @@ def render_figure_4_matched(
     fig.text(
         0.105,
         0.912,
-        "15/15 low post-evidence error",
+        f"{structural_session_count}/{structural_session_count} structural sessions "
+        f"across {configuration_count} configurations",
         ha="left",
         va="center",
         fontsize=7.0,
@@ -2347,9 +2466,9 @@ def render_figure_4_matched(
         bbox={"facecolor": "#EAF5EE", "edgecolor": "none", "pad": 2.0},
     )
     fig.text(
-        0.475,
+        0.535,
         0.912,
-        "0/5 exact 1.75-law recovery",
+        "0/5 misspecified exact-law recovery per configuration",
         ha="left",
         va="center",
         fontsize=7.0,
@@ -2372,8 +2491,15 @@ def render_figure_4_matched(
     )
     fig.text(
         0.105,
-        0.027,
-        f"Corrected structural matched-evidence study: 5 worlds × 3 initial-model arms. All arms received the same direct phase-process evidence; the five-world contrast is descriptive and non-confirmatory. Parametric matched evidence separately yielded {parametric_audit['explicit_direction_rejection_count']}/5 wrong-direction rejections and {parametric_audit['peak_and_collapse_response_count']}/5 peak-and-collapse summaries.",
+        0.020,
+        "Panels a-b show the corrected DeepSeek-high structural assay; panels c-d add "
+        "the fully matched GPT-medium and DeepSeek-low structural results. Each "
+        "configuration used 5 worlds x 3 arms with identical packets and scoring. The "
+        "low-reasoning parametric block has no qualified denominator and is not shown. "
+        "Provider-free qualification establishes registered power-v-linear "
+        "discrimination, not uniqueness against every phenomenological alternative. "
+        "Five-world contrasts are descriptive; no configuration-superiority test is "
+        "performed.",
         ha="left",
         va="bottom",
         fontsize=6.25,
@@ -2433,6 +2559,18 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "work-ii-as-study-b2-phase-process-results-v0.1.json"
     )
+    structural_matched_gpt_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-as-study-b2-gpt56-sol-medium-results-v0.1.json"
+    )
+    structural_matched_deepseek_low_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-as-study-b2-deepseek-v4-flash-low-results-v0.1.json"
+    )
+    cross_model_closeout_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-59-cross-model-main-evidence-closeout-v0.1.json"
+    )
     source_paths = [
         design_path,
         preflight_path,
@@ -2448,6 +2586,9 @@ def main() -> int:
         story_analysis_path,
         matched_evidence_path,
         structural_matched_path,
+        structural_matched_gpt_path,
+        structural_matched_deepseek_low_path,
+        cross_model_closeout_path,
     ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
@@ -2469,11 +2610,17 @@ def main() -> int:
         reviewer_controls_path.read_text(encoding="utf-8")
     )
     story_analysis = json.loads(story_analysis_path.read_text(encoding="utf-8"))
-    matched_evidence = json.loads(
-        matched_evidence_path.read_text(encoding="utf-8")
-    )
     structural_matched = json.loads(
         structural_matched_path.read_text(encoding="utf-8")
+    )
+    structural_matched_gpt = json.loads(
+        structural_matched_gpt_path.read_text(encoding="utf-8")
+    )
+    structural_matched_deepseek_low = json.loads(
+        structural_matched_deepseek_low_path.read_text(encoding="utf-8")
+    )
+    cross_model_closeout = json.loads(
+        cross_model_closeout_path.read_text(encoding="utf-8")
     )
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
@@ -2557,6 +2704,14 @@ def main() -> int:
     matched_cell_rows, matched_contrast_rows, matched_qualitative_rows = (
         build_matched_story_rows(structural_matched)
     )
+    cross_configuration_rows, structural_control_rows = (
+        build_cross_configuration_matched_rows(
+            cross_model_closeout,
+            structural_matched,
+            structural_matched_gpt,
+            structural_matched_deepseek_low,
+        )
+    )
     write_csv(
         SOURCE_DIR / "figure-4-matched-structural-cells.csv",
         matched_cell_rows,
@@ -2571,6 +2726,23 @@ def main() -> int:
         SOURCE_DIR / "figure-4-matched-structural-recovery.csv",
         matched_qualitative_rows,
         ["transition", "count", "denominator"],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-cross-configuration-contrasts.csv",
+        cross_configuration_rows,
+        [
+            "block",
+            "configuration",
+            "mean_primary_contrast",
+            "positive_world_count",
+            "world_count",
+            "exact_one_sided_p",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-structural-identification-control.csv",
+        structural_control_rows,
+        ["configuration", "measure", "count", "denominator"],
     )
     open_action_rows = normalize_open_action_rows(open_action_summary)
     write_csv(
@@ -2705,10 +2877,8 @@ def main() -> int:
         ),
         "figure_4": render_figure_4_matched(
             matched_cell_rows,
-            matched_contrast_rows,
-            matched_qualitative_rows,
-            structural_matched,
-            matched_evidence["public_summary_audit"]["A_P_misindexed"],
+            cross_configuration_rows,
+            structural_control_rows,
         ),
         "figure_6": render_figure_6_open_action(
             open_action_rows,
@@ -2741,6 +2911,8 @@ def main() -> int:
             "matched_structural_cell_rows": len(matched_cell_rows),
             "matched_structural_contrast_rows": len(matched_contrast_rows),
             "matched_structural_recovery_rows": len(matched_qualitative_rows),
+            "matched_cross_configuration_rows": len(cross_configuration_rows),
+            "matched_structural_control_rows": len(structural_control_rows),
             "open_action_rows": len(open_action_rows),
             "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
             "qualification_funnel_rows": len(qualification_funnel_rows),
@@ -2762,7 +2934,10 @@ def main() -> int:
         "interpretation_limits": [
             "Figure 1 states the identification problem; Figure 2 separates executed evidence from future portability studies.",
             "Figure 3 combines the prospective formal locus decisions with retrospective manipulation summaries; first-recipe divergence has no same-arm replicate baseline.",
-            "Figure 4 reports a five-world corrected structural matched-evidence study; its prediction contrast is descriptive and non-confirmatory.",
+            "Figure 4 combines the corrected DeepSeek-high structural assay with complete "
+            "matched DeepSeek/GPT A-P and A-S B2 replications plus the complete DeepSeek-low "
+            "A-S B2 ablation; five-world contrasts are descriptive and no "
+            "configuration-superiority test is performed.",
             "Figure 6 combines terminal unseen-plan selection, continuous and threshold-sensitive law-action analysis, oracle qualification funnels and the frozen gate-action alignment diagnostic.",
             "The open-action matrix has no no-evidence or pre-exploration action baseline, so it does not identify a causal action-transfer effect.",
             "W2-51 and W2-52 contain zero participant sessions; exposed construction and fresh qualification remain separate evidence roles.",

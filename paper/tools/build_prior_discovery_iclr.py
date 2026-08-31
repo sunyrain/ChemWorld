@@ -292,6 +292,15 @@ def build() -> dict[str, Any]:
             ),
             "The reduced-condition pilot is development-only and supports no arm-level conclusion.",
             "The GPT B3 result is provider-specific because DeepSeek has no formal comparator.",
+            (
+                "DeepSeek low is a same-harness reasoning-budget ablation, not provider-level "
+                "thinking-off or a configuration-superiority result."
+            ),
+            (
+                "The DeepSeek-low A-P canary produced no qualified terminal denominator; "
+                "formal execution remained 0/15 and no parametric low-reasoning effect "
+                "is estimated."
+            ),
         ],
     }
     BUILD_MANIFEST.write_text(

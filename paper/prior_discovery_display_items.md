@@ -30,7 +30,7 @@ scientific semantics and denominators.
 The figure is an architecture map, not outcome evidence. The W2-51 five-condition follow-up and W2-52
 oracle expansion belong in the control-qualification layer, not the participant-effect layer.
 
-## Figure 3 — Prior uptake and selective-correction failure
+## Figure 3 — Prior uptake without established selective correction
 
 **Claim:** the starting-model intervention reaches the trajectory and general prediction learning
 occurs, but the wrong model is not selectively repaired.
@@ -44,20 +44,21 @@ occurs, but the wrong model is not selectively repaired.
 
 Panel B is a retrospective manipulation check without a repeated same-arm baseline.
 
-## Figure 4 — Matched counterevidence drives numerical convergence but not structural recovery
+## Figure 4 — Matched evidence replicates numerical convergence without structural recovery
 
 **Claim:** identical diagnostic evidence can restore numerical predictions without recovering the
 governing structural law.
 
-- A: pre-to-post structural error for all 15 corrected matched-evidence cells;
-- B: 15/15 cells at low post-evidence error, with arm means of 0.0074, 0.0060 and 0.0071;
-- C: five world-level misspecified-minus-aligned update-gain contrasts, mean +0.0645, 3/5 positive,
-  exact one-sided sign-flip p=0.125;
-- D: misspecified summaries show 5/5 numerical convergence, 5/5 saturation/endpoint models, 1/5
-  explicit linear-prior rejection and 0/5 exact 1.75-law recovery.
+- A: DeepSeek-high pre-to-post structural error for all 15 corrected matched-evidence cells;
+- B: DeepSeek-high 15/15 cells at low post-evidence error, with arm means of 0.0074, 0.0060 and 0.0071;
+- C: mean world-level misspecified-minus-aligned update-gain contrasts for A-P DeepSeek-high/GPT-medium
+  and A-S B2 DeepSeek-high/GPT-medium/DeepSeek-low. The B2 values are +0.0645/+0.0915/-0.0405;
+- D: the power-versus-linear packet qualifies in 5/5 worlds; each of three B2 configurations has 5/5
+  low-error misspecified cells and 0/5 exact 1.75-law recovery.
 
-The earlier structural run affected by an evaluator omission is excluded. The corrected five-world
-analysis is descriptive and non-confirmatory.
+The earlier structural run affected by an evaluator omission is excluded. Every five-world analysis
+is descriptive and non-confirmatory. DeepSeek low is a same-harness reasoning-budget setting, not
+reasoning-off; its A-P block has no qualified denominator and is not plotted.
 
 ## Figure 5 — Executable compression and incumbent replay expose distinct losses
 

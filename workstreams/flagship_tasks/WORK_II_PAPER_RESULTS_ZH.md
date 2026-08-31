@@ -101,6 +101,7 @@
 | W2-52 large-grid oracle | exposed construction 7/7、2,352/2,352 truth/replay；fresh prospective 1/15、336/336 truth/replay | 320-grid 修复已知失败却在首个新 world 科学拒绝；Top-1 正确但完整排序 `rho=0.714286`，其余 14 clusters 未启动 |
 | W2-53 gate-action alignment | 固定 16/16 unit-version，原 Spearman/Top-1 16/16 复现；0 新 truth/provider/物理实验 | rank gate 与 action endpoint 双向不充分：96-grid 有 6 个 rank-pass/Top-1-wrong，fresh 320-grid 为 rank-fail/Top-1-correct；作为 evaluator-design 结果进入正文 |
 | W2-59 remaining main-evidence blocks | GPT C2 `3/135` terminal、GPT W2-50 `3/45` terminal、B3 DeepSeek/GPT canary `2/3` 与 `3/3` 后 formal 均 `0/30` | 精确限定 cross-model coverage；保留 2 个分母内失败与 234 个未启动 formal sessions，不补跑、不拼接 |
+| W2-60 DeepSeek low reasoning budget | B2 canary `3/3`、formal `15/15`、30/30 turns、0 failures；A-P low 仅 platform-defective partial、formal `0/15` | B2 all-cell low error 与 misindexed exact-law `0/5` 保持，但 primary contrast 反向为 `-0.0405`；这是同 harness robustness，不是 reasoning-off 或配置排名 |
 
 ## 4. DeepSeek C2 public 当前终态
 
@@ -153,7 +154,7 @@
 
 ## 6. Matched-evidence 机制定位：A-P Study B 与 A-S B2
 
-每个 matched-evidence block 都让 opaque、aligned、misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对 8 个不重叠 queries 提交 post-evidence prediction。W2-59 使 DeepSeek 与 GPT-5.6-sol medium 都在完全匹配的 worlds、arms、packets 和评分语义上完成 A-P `15/15` 与 A-S B2 `15/15`。两模型合计 `60/60` formal sessions、`120/120` turns、0 failures、0 participant physical experiments；各自 canary 均不进入分析。
+每个 matched-evidence block 都让 opaque、aligned、misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对 8 个不重叠 queries 提交 post-evidence prediction。W2-59 使 DeepSeek 与 GPT-5.6-sol medium 都在完全匹配的 worlds、arms、packets 和评分语义上完成 A-P `15/15` 与 A-S B2 `15/15`。两模型合计 `60/60` formal sessions、`120/120` turns、0 failures、0 participant physical experiments；W2-60 又增加 DeepSeek-low B2 `15/15`，使当前有效 matched formal 总数为 `75` sessions。各自 canary 均不进入分析。
 
 ### A-P：固定反证使错误参数方向可纠正
 
@@ -179,6 +180,8 @@ opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074
 
 GPT B2 replication 的 opaque/aligned/misindexed mean update gain 为 `0.2138/0.2017/0.2931`，注册 primary contrast `+0.0915`，`4/5` worlds 为正，exact one-sided `p=0.0625`；misindexed exact 1.75-law recovery 同样为 `0/5`。两个匹配模型配置都表现出强数值收敛而没有错误先验下的结构恢复，使“phenomenological interpolation 不等于 mechanistic identification”成为当前最稳健的跨配置结果。
 
+W2-60 在同一 DeepSeek Codex harness 中只把 reasoning effort 从 `high` 改为 `low`。B2 canary `3/3` 通过，formal `15/15`、30/30 turns、same-thread `15/15`、0 failures；opaque/aligned/misindexed mean post error 为 `0.0067/0.0069/0.0069`，全部 15 cells 低于 0.02，misindexed exact 1.75-law recovery 仍为 `0/5`。primary contrast 则反向为 `-0.0405`，`2/5` worlds 为正，exact one-sided `p=0.8125`，描述区间 `[-0.1559,0.0749]`。provider-reported reasoning output 从 high 的 `506,637` 降至 low 的 `400,639`（-20.9%）。所以 numerical--structural break 对该 reasoning budget 改变稳健，但 selective-update contrast 的方向并不稳健。`low` 不是 provider thinking-off，也不作配置优劣检验。A-P low canary 因外层监督缺陷只留下进度事件，没有 terminal cell receipts/canary summary，按 platform-defective partial 保留；formal `0/15`，不作 A-P low 估计。
+
 W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identifiable。GPT-5.6-sol medium 在 3/3 canary 后完成 30/30 formal cells；opaque/aligned/misindexed post MAE 为 `0.0367/0.0215/0.0378`，joint family+exponent recovery 为 `0/10`、`5/10`、`0/10`。aligned 的 world-mean exponent error 对两个对照均在 5/5 worlds 更低，但错误先验没有发生选择性结构修正。行动侧 Top-1 为 2/30，eligible gain≥0.02 为 0/18。该 block 强化结构识别与行动迁移分离，但因 DeepSeek formal 0/30，不构成跨 provider 排名。
 
 ## 7. 负结果与不扩展决定
@@ -194,6 +197,7 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 - W2-51 与 W2-52 都已按固定规则形成终态：fresh-world 冻结排序门槛的科学拒绝保留，原 provider cohort 不执行，也不把 W2-50 事后升级为 causal action-transfer evidence；两项工作包本身已完成，不再列为投稿阻断；
 - W2-53 证明该排序门槛与动作目标不等价，但这只改变论文解释，不回溯改变任何 stop rule 或终态。
 - W2-59 的 GPT C2 aligned cell、GPT W2-50 misindexed cell 与 DeepSeek B3 canary failure 均按冻结规则保留；它们分别留下 `132`、`42` 与双方各 `30` 个未启动 formal sessions，不以结果替换、阈值调整或跨模型拼接恢复分母。
+- W2-60 的 A-P low canary 缺 terminal receipts 与 summary，不能以 B2 的成功替代；A-P formal `0/15`。B2 low 的完整 15-session 分母独立保留。
 
 这些结果防止论文把 task-specific success 扩大成普遍机制恢复主张。
 
@@ -210,6 +214,7 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 - W2-58 runner-derived-status 终态：`WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_CROSS_MODEL_EXPERIMENT_NOTE.md`、`reports/work-ii-as-study-b3-runner-derived-status-deepseek-canary-closeout-v0.1.json` 与 `reports/WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_DEEPSEEK_CANARY_CLOSEOUT_ZH.md`；跨模型 formal 汇总器未运行，也未生成空结果
 - W2-59 双模型主证据收束：`reports/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_CLOSEOUT_ZH.md`、`reports/work-ii-w2-59-cross-model-main-evidence-closeout-v0.1.json`
 - W2-59 GPT B2 机器分析：`reports/WORK_II_AS_STUDY_B2_GPT56_SOL_MEDIUM_RESULTS_ZH.md`、`reports/work-ii-as-study-b2-gpt56-sol-medium-results-v0.1.json`
+- W2-60 DeepSeek-low B2：`reports/WORK_II_AS_STUDY_B2_DEEPSEEK_V4_FLASH_LOW_RESULTS_ZH.md`、`reports/work-ii-as-study-b2-deepseek-v4-flash-low-results-v0.1.json`
 - W2-50 正式审计：`reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md`
 - Open-action development 收束：`reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`
 - 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
@@ -234,7 +239,7 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action 与 failure-aware sensitivity 已闭环。W2-59 又使 A-P/B2 matched-evidence mechanism follow-up 在 DeepSeek 与 GPT 上各自完整闭环：两个模型配置都支持 acquisition、numerical revision 与 structural identification 三层分离。W2-50 仍是 DeepSeek 的描述性多任务未见 ActionPlan 结果；其 GPT replication 在 in-denominator canary 后终止。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。W2-56 GPT formal 30/30 提供 participant-identifiable 的结构保留/修正与行动桥接控制，但不作跨 provider leaderboard。当前投稿不再等待 oracle v0.5 或任何 W2-59 补跑，下一步选择是：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action 与 failure-aware sensitivity 已闭环。W2-59 又使 A-P/B2 matched-evidence mechanism follow-up 在 DeepSeek 与 GPT 上各自完整闭环；W2-60 进一步在 B2 建立 DeepSeek-low 完整分母。三种 B2 配置都支持 numerical revision 与 structural identification 分离，但 update contrast 的方向对配置敏感。W2-50 仍是 DeepSeek 的描述性多任务未见 ActionPlan 结果；其 GPT replication 在 in-denominator canary 后终止。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。W2-56 GPT formal 30/30 提供 participant-identifiable 的结构保留/修正与行动桥接控制，但不作跨 provider leaderboard。当前投稿不再等待 oracle v0.5、W2-59 补跑或真正 thinking-off，下一步选择是：
 
 1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
 2. **Cross-provider extension。** A-P/B2 已完成双模型 matched replication；若还要扩展 C2、W2-50、B3 或接入 Qwen、Kimi、WellAU，须另行冻结独立后继块，不能续跑 W2-59 的未启动分母。

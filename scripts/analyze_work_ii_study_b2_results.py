@@ -372,7 +372,11 @@ def analyze(run_root: Path) -> dict[str, Any]:
         "public_summary_audit": public_audit,
         "mechanism_disposition": {
             "registered_rule": "positive supports evidence seeking; small or negative despite diagnostic evidence supports belief-updating bottleneck; mixed or weak remains unresolved",
-            "classification": "mixed_predictive_acquisition_signal_with_unrecovered_structural_law",
+            "classification": (
+                "mixed_predictive_acquisition_signal_with_unrecovered_structural_law"
+                if primary["mean"] > 0.0
+                else "numerical_convergence_without_selective_update_or_structural_recovery"
+            ),
             "predictive_acquisition_component": primary["mean"] > 0.0,
             "structural_law_recovery_supported": (
                 misindexed_audit["exact_1_75_power_law_recovery_count"] == 5
@@ -380,10 +384,15 @@ def analyze(run_root: Path) -> dict[str, Any]:
             "pure_evidence_seeking_bottleneck_supported": False,
             "pure_belief_updating_failure_supported": False,
             "interpretation": (
-                "Direct phase-process evidence increased misindexed predictive update gain on average, "
-                "but the five-world direction was mixed and no misindexed public summary recovered "
-                "the registered 1.75 law. Evidence acquisition and numerical belief revision therefore "
-                "improved, while structural law identification remained a separate bottleneck."
+                "Direct phase-process evidence drove all arms to low post-evidence error. "
+                + (
+                    "Misindexed predictive update gain was higher on average than aligned, "
+                    if primary["mean"] > 0.0
+                    else "Misindexed predictive update gain was not higher on average than aligned, "
+                )
+                + "the five-world direction was mixed, and no misindexed public summary recovered "
+                "the registered 1.75 law. Numerical revision and structural law identification "
+                "therefore remain separate transitions."
             ),
         },
         "historical_disposition": {
@@ -416,24 +425,33 @@ def write_report(analysis: Mapping[str, Any], path: Path) -> None:
     primary = analysis["primary_contrast"]
     audit = analysis["public_summary_audit"]["by_arm"]
     metrics = {row["metric_id"]: row for row in analysis["metric_rows"]}
+    primary_direction_zh = (
+        "高于"
+        if primary["mean"] > 0
+        else "低于"
+        if primary["mean"] < 0
+        else "等于"
+    )
+    misindexed_audit = audit["misindexed_nominal"]
     lines = [
         "# Work II A-S Study B2：phase-process matched evidence 结果",
         "",
         "## 结论先行",
         "",
-        "B2 完成了 15/15 fresh two-turn sessions、30/30 provider turns、5/5 matched worlds，0 failures、0 participant 物理实验。直接给出预先验证可区分 linear 与 1.75-power response 的 phase-process evidence 后，misindexed 的平均 prediction update gain 高于 aligned，但世界方向混合；同时 misindexed 仍未在公开 summary 中恢复注册的 1.75 law。",
+        f"B2 完成了 15/15 fresh two-turn sessions、30/30 provider turns、5/5 matched worlds，0 failures、0 participant 物理实验。直接给出预先验证可区分 linear 与 1.75-power response 的 phase-process evidence 后，misindexed 的平均 prediction update gain {primary_direction_zh} aligned，但世界方向混合；同时 misindexed 仍未在公开 summary 中恢复注册的 1.75 law。",
         "",
         f"- opaque/aligned/misindexed 的平均 gain 为 **{_f(arms['opaque']['update_gain']['mean'])}/{_f(arms['aligned_nominal']['update_gain']['mean'])}/{_f(arms['misindexed_nominal']['update_gain']['mean'])}**。",
         f"- 注册主对比为 **{_f(primary['mean'])}**，{primary['positive_world_count']}/5 worlds 为正，exact one-sided sign-flip **p={primary['exact_sign_flip_p_one_sided_greater']:.3f}**，95% 描述区间 [{_f(primary['confidence_interval_95'][0])}, {_f(primary['confidence_interval_95'][1])}]。",
-        f"- misindexed 的 exact 1.75-law recovery 为 **{audit['misindexed_nominal']['exact_1_75_power_law_recovery_count']}/5**；明确拒绝 supplied linear partition form 为 **{audit['misindexed_nominal']['explicit_supplied_linear_partition_rejection_count']}/5**；5/5 转向经验饱和/endpoint 模型。",
+        f"- misindexed 的 exact 1.75-law recovery 为 **{misindexed_audit['exact_1_75_power_law_recovery_count']}/5**；明确拒绝 supplied linear partition form 为 **{misindexed_audit['explicit_supplied_linear_partition_rejection_count']}/5**；经验饱和/endpoint 模型为 **{misindexed_audit['empirical_saturation_or_endpoint_model_count']}/5**。",
         "",
-        "因此 B2 没有支持一个单一的 seeking/updating 二分答案。更精确的收束是：**取得 law-level phase-process evidence 后，misindexed 数值预测确实能比 aligned 多更新一些，但这种优势不稳定，也没有转化为正确结构规律。** 纯 evidence-seeking bottleneck 与纯 stubborn belief updating 都过强；当前证据支持 acquisition、numerical revision 与 structural identification 三层分离。",
+        f"因此 B2 没有支持一个单一的 seeking/updating 二分答案。更精确的收束是：**取得 law-level phase-process evidence 后，三个 arms 的数值预测都强烈收敛；misindexed 的平均更新幅度{primary_direction_zh} aligned，但这个差异没有转化为正确结构规律。** 纯 evidence-seeking bottleneck 与纯 stubborn belief updating 都过强；当前证据支持 acquisition、numerical revision 与 structural identification 三层分离。",
         "",
         "## 1. 完整性与资源",
         "",
         f"- sessions：{integrity['completed_sessions']}/{integrity['scheduled_sessions']}；same thread：{integrity['same_thread_sessions']}/15；provider turns：{integrity['provider_turns']}/30。",
         f"- pre/post scoring terms：{integrity['pre_scoring_term_count']}/{integrity['post_scoring_term_count']}，即每阶段 15×24；全部一次完成，无 infrastructure predecessor、无 turn.failed。",
         f"- provider-free truth：80/80；participant 物理实验：0；正式 wall time：{integrity['formal_wall_time_seconds'] / 60.0:.1f} min。",
+        f"- receipt tool events：{integrity['tool_event_count']}；turn.failed：{integrity['turn_failed_event_count']}；所有 session 均在隔离的只读临时 workspace 中完成。",
         f"- provider reported usage：input {integrity['provider_reported_usage']['input_tokens']:,}，cached input {integrity['provider_reported_usage']['cached_input_tokens']:,}，output {integrity['provider_reported_usage']['output_tokens']:,}，reasoning output {integrity['provider_reported_usage']['reasoning_output_tokens']:,} tokens。",
         "",
         "## 2. 三臂 prediction 更新",
@@ -449,7 +467,7 @@ def write_report(analysis: Mapping[str, Any], path: Path) -> None:
     lines.extend(
         [
             "",
-            "三个 arms 的 post error 都降到约 0.005–0.010，说明 phase-process packet 足以驱动强烈的 endpoint calibration。主对比的正均值来自 misindexed 更大的可改善空间与三个位点的额外 gain，但两个 worlds 为负，不能升级为稳定选择性纠错。",
+            f"三个 arms 的 post error 都降到约 0.005–0.010，说明 phase-process packet 足以驱动强烈的 endpoint calibration。主对比为 {_f(primary['mean'])}，{primary['positive_world_count']}/5 worlds 为正、{primary['negative_world_count']}/5 为负，不能升级为稳定选择性纠错。",
             "",
             "| World seed | opaque gain | aligned gain | misindexed gain | primary contrast |",
             "|---:|---:|---:|---:|---:|",

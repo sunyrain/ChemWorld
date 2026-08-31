@@ -102,7 +102,8 @@ control，不能写成全局机制恢复。
 当前有效 matched-evidence 证据由 A-P Study B 和 A-S B2 各 5 个 worlds 组成。每个 fresh session 先提交
 pre-evidence prediction，再在同一 thread 中读取 8 条证据，最后预测 8 个不重叠 queries。DeepSeek 与
 GPT-5.6-sol medium 都完成 A-P `15/15` 与 B2 `15/15`，两模型合计 `60/60` formal sessions、`120/120`
-turns、0 failures、0 participant physical experiments。原 Study B A-S branch 的 truth source 没有实际
+turns、0 failures、0 participant physical experiments；后续 DeepSeek-low B2 再增加 15/15，使当前有效
+matched formal 总数为 75 sessions。原 Study B A-S branch 的 truth source 没有实际
 应用冻结的 structural intervention，该 15-session 结果保留为历史平台缺陷证据，不进入当前 claim。
 
 A-P 给出了清晰的 acquisition 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
@@ -132,6 +133,16 @@ GPT 的匹配 B2 replication 得到 opaque/aligned/misindexed mean update gain
 `0.2138/0.2017/0.2931`，primary contrast `+0.0915`、`4/5` worlds 为正（exact one-sided
 `p=0.0625`），misindexed exact 1.75-law recovery 仍为 `0/5`。这与 DeepSeek 的 `+0.0645`、`3/5`、
 `0/5` 形成一致的机制剖面：高精度现象学插值没有自动产生结构识别。
+
+W2-60 又在同一 DeepSeek Codex harness 中只把 reasoning effort 从 high 改为 low。B2 canary `3/3`
+通过，formal `15/15`、30/30 turns、0 failures；opaque/aligned/misindexed post error 为
+`0.0067/0.0069/0.0069`，全部 15 cells 均低于 0.02，misindexed exact 1.75-law recovery 仍为
+`0/5`。但 primary contrast 反向为 `-0.0405`，仅 `2/5` worlds 为正（exact one-sided
+`p=0.8125`）。provider-reported reasoning output 相对 high 从 `506,637` 降到 `400,639`
+（-20.9%）。因此最稳健的是 numerical--structural break，而不是选择性 update contrast 的方向。
+`low` 不是 reasoning-off；真正 provider thinking-off 需要换 direct controller，会混入 harness 差异。
+独立 A-P low canary 没有形成 terminal cell receipts/canary summary，按 platform-defective partial 保留，
+formal `0/15`，不产生 A-P low 科学估计。
 
 W2-56 又用一套独立冻结的 GPT-5.6-sol medium 控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
 world 两个 fresh sessions 上完成 `30/30` GPT-5.6-sol medium formal cells。opaque/aligned/misindexed 的
@@ -245,7 +256,7 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 ### Phase V — Generality（matched evidence 已复现，full-chain comparison 仍开放）
 
 - A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
-- Cross-provider：W2-59 已在 A-P/B2 建立 DeepSeek + GPT 完整 matched formal；C2、W2-50 与 B3 未建立 matched effect。若要扩展这些层或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑 W2-59 的未启动分母。
+- Cross-provider 与 reasoning budget：W2-59 已在 A-P/B2 建立 DeepSeek + GPT 完整 matched formal；W2-60 又在 B2 建立 DeepSeek-low 完整分母，但 A-P low 无合格分母。C2、W2-50 与 B3 未建立 matched effect。若要扩展这些层、做真正 thinking-off 或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑既有未启动分母。
 - 开放式任务：在统一的最大实验预算与主动 stop/final-plan 接口下，研究何时继续探索、何时停止和如何推荐下一组实验。
 
 这些是大故事的扩展轴，不应在当前结果之后机械地全部跑满。每一阶段都应有独立问题、experiment note、分母和授权。

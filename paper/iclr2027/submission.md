@@ -12,7 +12,9 @@ abstract: |
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
   0.0060-0.0074. A matched GPT replication yielded a +0.0915 numerical-update contrast, yet both
-  models recovered the registered 1.75 power law in 0/5 misspecified worlds. An
+  models recovered the registered 1.75 power law in 0/5 misspecified worlds. A same-harness
+  DeepSeek-low ablation retained 0/5 recovery and low error in all 15 cells while reversing the
+  update contrast to -0.0405. An
   independent 30-session GPT-5.6-sol medium control made the exponent identifiable: joint family--exponent recovery
   was 5/10 in the aligned arm and 0/10 in both controls, while 0/18 action-eligible choices reached
   the registered gain. All 135 typed laws executed, yet 84 preserved less predictive information
@@ -147,9 +149,10 @@ readouts, while complete-rank correlation and law adequacy are diagnostics. Tabl
 keeps these layers and their claim boundaries explicit.
 
 Participant provenance is block-specific: the prospective and open-action blocks use the fixed
-DeepSeek configuration; matched evidence has separate complete DeepSeek and GPT-5.6-sol medium
-denominators; the identifiable-law control uses GPT; and the three control-qualification rows are
-provider-free. No row pools results across models.
+DeepSeek-high configuration; matched evidence has separate complete DeepSeek-high and GPT-5.6-sol
+medium denominators, plus a complete DeepSeek-low structural ablation; the identifiable-law control
+uses GPT; and the three control-qualification rows are provider-free. No row pools results across
+configurations.
 
 ```{=latex}
 \begin{table}[t]
@@ -163,7 +166,7 @@ a retained scientific rejection; unstarted units are not silently removed.}
 Layer & Units & Execution & Supported role \\
 \midrule
 Prospective priors & 135 sessions & DeepSeek; 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
-Matched evidence & 60 sessions & DeepSeek + GPT; matched packets & Replicated numerical--structural break \\
+Matched evidence & 75 sessions & DeepSeek high + GPT (60); B2 low (15) & Replicated numerical--structural break \\
 Identifiable-law control & 30 sessions & GPT; 5 worlds $\times$ 3 arms $\times$ 2 & Structural retention and action bridge \\
 Open action & 45 cells & DeepSeek; 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
 96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
@@ -208,16 +211,12 @@ become preferential correction of a wrong starting model (Fig.~\ref{fig:prior-co
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-3-prior-uptake-and-correction.pdf}
-\caption{\textbf{Initial models redirect search, but evidence does not selectively repair the wrong
-model.} Pre-evidence errors, first-recipe divergence, pre-to-final error reductions, and frozen
+\caption{\textbf{Initial models redirect search, but the evidence does not establish selective repair
+of the wrong model.} Pre-evidence errors, first-recipe divergence, pre-to-final error reductions, and frozen
 failure-aware selective-correction contrasts are reported by intervention locus. Every arm improves
 on average, but no locus passes the selective-correction criterion.}
 \label{fig:prior-correction}
 \end{figure}
-```
-
-```{=latex}
-\FloatBarrier
 ```
 
 ## Matched counterevidence supports interpolation without structural recovery
@@ -241,6 +240,14 @@ were +0.0309 for DeepSeek and +0.0602 for GPT; structural B2 contrasts were +0.0
 while misspecified exact-law recovery remained 0/5 in each model. This is a block-specific
 cross-model replication, not a model-superiority test.
 
+Changing only the DeepSeek Codex reasoning effort from high to low preserved the structural break.
+The B2 canary passed 3/3 and formal execution completed 15/15 with no failures. All 15 post errors
+were below 0.02, while the registered contrast reversed to -0.0405 (2/5 positive worlds; exact
+one-sided $p=0.8125$) and misspecified exact-law recovery remained 0/5. Provider-reported reasoning
+output was 20.9\% lower than DeepSeek high on the same block. The low A-P canary lacked terminal
+receipts and contributes no estimate. This is a same-harness reasoning-budget robustness result, not
+reasoning-off or a configuration ranking.
+
 We then froze an independent control whose disclosed reference coefficients made the 1.75 exponent
 identifiable on a disjoint eight-query scoring roster. After a 3/3 canary, all 30 GPT-5.6-sol medium
 sessions completed (five worlds, three arms, two fresh sessions per arm and world). Mean post errors
@@ -256,10 +263,10 @@ selectively repaired the wrong prior nor guaranteed useful action.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Matched counterevidence drives numerical convergence but not structural-law recovery.}
-All 15 corrected structural cells receive identical evidence and converge near truth. Across the five
-misspecified worlds, exact recovery of the registered power law is absent despite low post-evidence
-error.}
+\caption{\textbf{Matched evidence replicates numerical convergence without structural-law recovery.}
+Panels a--b detail DeepSeek high. Panel c compares matched A-P DeepSeek/GPT and structural B2
+DeepSeek-high/GPT-medium/DeepSeek-low contrasts. Panel d shows that the packet qualifies in 5/5 worlds
+and every B2 configuration reaches low misspecified error, yet exact 1.75-law recovery remains 0/5.}
 \label{fig:matched-evidence}
 \end{figure}
 ```
@@ -420,9 +427,11 @@ completed, and unstarted counts prevent this error.
 
 ## Limitations and conclusion
 
-The study concerns two fixed agent--tool configurations in simulation, not cross-model ranking or
-laboratory fidelity. A-P and structural B2 have complete matched DeepSeek/GPT denominators but only
-five worlds; their transition failure, not the full chain, is replicated. GPT C2 and open-action
+The study concerns two models and three fixed agent--tool configurations in simulation, not
+cross-model ranking or laboratory fidelity. A-P and structural B2 have complete matched
+DeepSeek-high/GPT denominators, and B2 has a complete DeepSeek-low ablation, but each has only five
+worlds; their transition failure, not the full chain, is replicated. DeepSeek low is not
+reasoning-off, and its A-P block has no qualified denominator. GPT C2 and open-action
 replications stopped after three in-denominator sessions, and paired B3 formal execution remained
 0/30 for both providers. The action matrix lacks no-evidence and pre-exploration baselines, and the
 five-condition cohort has no participant data. Artifact portability and private replication remain
