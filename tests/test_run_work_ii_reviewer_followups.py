@@ -180,6 +180,47 @@ def test_b3_post_prompt_explicitly_requires_fields_added_after_pre() -> None:
         assert "evidence_assessment" in prompt
 
 
+def test_b3_openai_command_has_one_cached_login_and_provider_override(
+    tmp_path: Path,
+) -> None:
+    provider = json.loads(
+        (
+            ROOT
+            / "configs/benchmark/"
+            "work_ii_as_study_b3_main_evidence_successor_gpt56_sol_medium_v0.1.json"
+        ).read_text(encoding="utf-8")
+    )["provider"]
+    schema = tmp_path / "schema.json"
+    schema.write_text("{}\n", encoding="utf-8")
+    workspace = tmp_path / "workspace"
+    workspace.mkdir()
+
+    command = runner._b3_initial_command(provider, schema, workspace)
+    rendered = " ".join(command)
+
+    assert command.count("--ignore-user-config") == 1
+    assert rendered.count("model_providers.chemworld_openai_https=") == 1
+    assert "--disable shell_tool" in rendered
+
+
+def test_b3_openai_environment_reuses_isolated_cached_login_setup(
+    monkeypatch,
+    tmp_path: Path,
+) -> None:
+    expected = {"CODEX_HOME": "isolated"}
+    observed: list[tuple[Path, dict]] = []
+
+    def prepare(temp_root: Path, provider: dict) -> dict[str, str]:
+        observed.append((temp_root, provider))
+        return expected
+
+    monkeypatch.setattr(runner, "_prepare_codex_home", prepare)
+    provider = {"auth_mode": "chatgpt_subscription_cached_login"}
+
+    assert runner._prepare_b3_environment(tmp_path, provider) == expected
+    assert observed == [(tmp_path, provider)]
+
+
 def test_b3_runner_derived_status_removes_status_schema_and_ignores_status_text(
     monkeypatch,
 ) -> None:

@@ -6,7 +6,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
-import os
 import shutil
 import subprocess
 import tempfile
@@ -534,8 +533,6 @@ def _b3_canary_qualified(results: Sequence[Mapping[str, Any]]) -> tuple[bool, li
 def _prepare_b3_environment(
     temp_root: Path, provider: Mapping[str, Any]
 ) -> dict[str, str]:
-    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
-        return os.environ.copy()
     return _prepare_codex_home(temp_root, provider)
 
 
@@ -545,18 +542,6 @@ def _b3_initial_command(
     command = _initial_command(provider, schema_path, workspace)
     disable_index = command.index("--sandbox")
     command[disable_index:disable_index] = ["--disable", "shell_tool"]
-    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
-        command.insert(2, "--ignore-user-config")
-        model_index = command.index("-m")
-        provider_id = str(provider["id"])
-        command[model_index:model_index] = [
-            "-c",
-            (
-                f"model_providers.{provider_id}="
-                '{name="OpenAI",wire_api="responses",requires_openai_auth=true,'
-                "supports_websockets=false}"
-            ),
-        ]
     return command
 
 
