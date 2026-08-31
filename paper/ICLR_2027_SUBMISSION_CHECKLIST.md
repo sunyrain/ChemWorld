@@ -33,7 +33,7 @@ Updated: 2026-08-31. Recheck the official
 | W2-55 reviewer controls | Complete, zero provider calls | Schema capacity plus continuous and threshold-sensitive law--action analysis |
 | W2-56 replicated B3 | DeepSeek canary rejected; GPT formal 30/30 complete | Provider-specific structural/action control; no cross-provider leaderboard |
 | W2-57 shared-index B3 | Terminal DeepSeek canary 2/3; GPT unstarted | Retained interface failure, not a scientific or cross-model denominator |
-| W2-58 runner-derived-status B3 | Terminal DeepSeek canary 0/3; GPT unstarted | Retained participant-schema rejection; no scientific or cross-model denominator |
+| W2-58 runner-derived-status B3 | Terminal DeepSeek interface canary 0/3; GPT unstarted | Three rc=0 post payloads reused the pre shape despite the required post schema; no scientific or cross-model denominator |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation. The paper contains DeepSeek and GPT-5.6-sol

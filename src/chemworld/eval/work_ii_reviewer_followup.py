@@ -1378,6 +1378,9 @@ def validate_b3_payload(
         or not 0.0 <= float(confidence) <= 1.0
     ):
         errors.append(f"{stage} confidence is invalid")
+    model_summary = payload.get("model_summary")
+    if not isinstance(model_summary, str) or len(model_summary) > 1200:
+        errors.append(f"{stage} model summary is invalid")
     typed = payload.get("typed_law")
     if not isinstance(typed, Mapping):
         errors.append(f"{stage} typed law is unavailable")
@@ -1425,6 +1428,9 @@ def validate_b3_payload(
     if observed != expected:
         errors.append(f"{stage} prediction denominator differs from the contract")
     if stage == "post":
+        evidence_assessment = payload.get("evidence_assessment")
+        if not isinstance(evidence_assessment, str) or len(evidence_assessment) > 1200:
+            errors.append("post evidence assessment is invalid")
         try:
             resolve_b3_selected_action_query_id(
                 payload,

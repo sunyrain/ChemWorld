@@ -163,21 +163,27 @@ def _b3_evidence_prompt(cell: Mapping[str, Any]) -> str:
         "scoring_action_queries": packet["scoring_action_queries"],
     }
     action_selection_encoding = str(cell.get("action_selection_encoding", "query_id"))
-    selection_instruction = (
-        "select exactly one scoring/action query ID as the novel action you would execute"
-        if action_selection_encoding == "query_id"
-        else (
+    if action_selection_encoding == "query_id":
+        selection_field = "selected_action_query_id"
+        selection_instruction = (
+            "select exactly one scoring/action query ID as the novel action you would execute "
+            "and return it as selected_action_query_id"
+        )
+    else:
+        selection_field = "selected_action_index"
+        selection_instruction = (
             "select exactly one visible zero-based action_index (0 through 7) as the novel "
             "action you would execute and return it as selected_action_index"
         )
-    )
     return (
         "The evaluator now reveals the fixed evidence packet. Each evidence recipe reports both "
         "the public linear-reference calibration and the measured target-world observation under "
         "the same controls. The scoring/action queries are disjoint and have never been executed "
         "for you. Treat the evidence as authoritative. Update the mechanism family, exponent, "
-        f"typed law, and all predictions, then {selection_instruction}. Do not invent a "
-        "free-text recipe. Return only "
+        f"typed law, and all predictions, then {selection_instruction}. The first-turn JSON shape "
+        "is not sufficient for this turn. In addition to the updated model fields, the post JSON "
+        f"must include both {selection_field} and evidence_assessment. Do not invent a free-text "
+        "recipe. Return only "
         "schema-conforming "
         "JSON; summaries must be public scientific statements, not private chain-of-thought.\n\n"
         "EVIDENCE_INPUT:\n"

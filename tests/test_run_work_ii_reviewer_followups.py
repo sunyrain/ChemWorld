@@ -158,6 +158,28 @@ def test_b3_runner_retains_invalid_shared_index_payload_without_retry(
     assert len(result["provider_receipts"]) == 2
 
 
+def test_b3_post_prompt_explicitly_requires_fields_added_after_pre() -> None:
+    packet = {
+        "candidate_mechanism_families": [],
+        "evidence": [],
+        "scoring_action_queries": [],
+    }
+    for encoding, selection_field in (
+        ("query_id", "selected_action_query_id"),
+        ("zero_based_index", "selected_action_index"),
+    ):
+        prompt = runner._b3_evidence_prompt(
+            {
+                "task_id": "partition-discovery",
+                "action_selection_encoding": encoding,
+                "public_packet": packet,
+            }
+        )
+        assert "first-turn JSON shape is not sufficient" in prompt
+        assert selection_field in prompt
+        assert "evidence_assessment" in prompt
+
+
 def test_b3_runner_derived_status_removes_status_schema_and_ignores_status_text(
     monkeypatch,
 ) -> None:

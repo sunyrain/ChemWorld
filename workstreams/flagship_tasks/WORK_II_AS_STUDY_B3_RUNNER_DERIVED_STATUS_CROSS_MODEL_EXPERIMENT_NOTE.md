@@ -50,3 +50,19 @@ manifest, and closeout hashes verify; outcome replacement remains zero.
 Under the frozen ordered stop rule, GPT canary remains `0/3` and DeepSeek/GPT formal remain `0/30`
 each. The canary outputs do not enter structural, prediction, action, or cross-model scientific
 denominators. The terminal machine summary and Chinese closeout are stored under `reports/`.
+
+## Post-closeout interface diagnosis
+
+The W2-57 and W2-58 pre/post prompt hashes match arm by arm. Reconstruction from the frozen W2-58
+manifest confirms that the post schema required both `selected_action_index` and
+`evidence_assessment`, and the production resume command received that post schema. Nevertheless,
+all three return-code-zero DeepSeek responses reused the six-field pre shape. Independent JSON
+Schema validation flags both missing required properties in every payload. This localizes the stop
+to the participant/provider-adapter schema-enforcement boundary, not to a pre/post schema routing
+error or a transient provider outage. The immutable direct result classification remains
+`participant_schema`; no scientific denominator can be recovered from the canary.
+
+Prospectively, the shared runner now names both post-only fields explicitly in the evidence prompt
+and validates the evidence assessment and model summary independently of Codex CLI enforcement.
+Both W2-58 canary authorizations are disabled after terminal closeout; formal authorization remains
+false. These development repairs do not authorize or define a successor experiment.

@@ -185,6 +185,24 @@ def test_b3_shared_index_schema_resolves_only_visible_zero_based_actions() -> No
         action_selection_encoding="zero_based_index",
     ) == str(queries[3]["query_id"])
 
+    missing_assessment = deepcopy(payload)
+    missing_assessment.pop("evidence_assessment")
+    assert "post evidence assessment is invalid" in validate_b3_payload(
+        missing_assessment,
+        queries,
+        stage="post",
+        action_selection_encoding="zero_based_index",
+    )
+
+    invalid_summary = deepcopy(payload)
+    invalid_summary["model_summary"] = 3
+    assert "post model summary is invalid" in validate_b3_payload(
+        invalid_summary,
+        queries,
+        stage="post",
+        action_selection_encoding="zero_based_index",
+    )
+
     payload["selected_action_index"] = True
     assert "post selected action index is invalid" in validate_b3_payload(
         payload,
