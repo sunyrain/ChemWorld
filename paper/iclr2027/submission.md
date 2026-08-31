@@ -11,7 +11,8 @@ abstract: |
   sessions, these interventions redirected search and prediction errors fell in every arm and locus,
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
-  0.0060-0.0074, but 0/5 misspecified summaries recovered the registered 1.75 power law. An
+  0.0060-0.0074. A matched GPT replication yielded a +0.0915 numerical-update contrast, yet both
+  models recovered the registered 1.75 power law in 0/5 misspecified worlds. An
   independent 30-session GPT-5.6-sol medium control made the exponent identifiable: joint family--exponent recovery
   was 5/10 in the aligned arm and 0/10 in both controls, while 0/18 action-eligible choices reached
   the registered gain. All 135 typed laws executed, yet 84 preserved less predictive information
@@ -53,7 +54,8 @@ decision transfer.
 Our contribution is a causal map of the evidence-to-action chain rather than another scalar
 leaderboard. We identify four breaks. Priors redirect trajectories, but the registered
 selective-correction criterion fails at every locus. Matched counterevidence drives numerical
-predictions near truth, yet 0/5 misspecified summaries recover the registered power law. Executable
+predictions near truth, yet DeepSeek and matched GPT replications each recover the registered power
+law in 0/5 misspecified worlds. Executable
 laws run successfully but are less faithful than final explicit predictions in 84/135 sessions. The
 fourth break has two levels: agent-level law adequacy does not determine unseen Top-1 selection, and
 evaluator-level complete-ranking qualification does not determine action validity. The resulting map
@@ -144,9 +146,10 @@ action matrix separately contains three tasks, five worlds, and three arms (45 s
 readouts, while complete-rank correlation and law adequacy are diagnostics. Table~\ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
-Participant provenance is block-specific: the prospective, matched-evidence, and open-action blocks
-use the fixed DeepSeek configuration; the identifiable-law control uses GPT-5.6-sol medium; and the
-three control-qualification rows are provider-free. No row pools results across models.
+Participant provenance is block-specific: the prospective and open-action blocks use the fixed
+DeepSeek configuration; matched evidence has separate complete DeepSeek and GPT-5.6-sol medium
+denominators; the identifiable-law control uses GPT; and the three control-qualification rows are
+provider-free. No row pools results across models.
 
 ```{=latex}
 \begin{table}[t]
@@ -160,7 +163,7 @@ a retained scientific rejection; unstarted units are not silently removed.}
 Layer & Units & Execution & Supported role \\
 \midrule
 Prospective priors & 135 sessions & DeepSeek; 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
-Matched evidence & 30 sessions & DeepSeek; fixed evidence packets & Numerical update versus structural recovery \\
+Matched evidence & 60 sessions & DeepSeek + GPT; matched packets & Replicated numerical--structural break \\
 Identifiable-law control & 30 sessions & GPT; 5 worlds $\times$ 3 arms $\times$ 2 & Structural retention and action bridge \\
 Open action & 45 cells & DeepSeek; 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
 96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
@@ -232,6 +235,11 @@ convergence rather than a confirmatory arm effect. Yet 0/5 misspecified public s
 the registered 1.75 power law, 1/5 explicitly rejected the supplied linear form, and 5/5 adopted a
 saturation or endpoint model. Direct evidence supported accurate local phenomenological interpolation
 without structural identification (Fig.~\ref{fig:matched-evidence}).
+
+The matched GPT replication preserved this break. A-P misspecified-minus-aligned update contrasts
+were +0.0309 for DeepSeek and +0.0602 for GPT; structural B2 contrasts were +0.0645 and +0.0915,
+while misspecified exact-law recovery remained 0/5 in each model. This is a block-specific
+cross-model replication, not a model-superiority test.
 
 We then froze an independent control whose disclosed reference coefficients made the 1.75 exponent
 identifiable on a disjoint eight-query scoring roster. After a 3/3 canary, all 30 GPT-5.6-sol medium
@@ -412,13 +420,12 @@ completed, and unstarted counts prevent this error.
 
 ## Limitations and conclusion
 
-The primary cohort and the independent identifiable-law control each concern one fixed agent--tool
-configuration in simulation, not cross-model ranking or laboratory fidelity; no block has complete
-matched formal denominators for both systems, and some contrasts use five
-worlds. The matched DeepSeek B3 block stopped at canary and has no formal denominator, so the GPT
-formal result is provider-specific rather than a cross-provider effect. The open-action matrix lacks
-no-evidence and pre-exploration baselines, and the five-condition cohort has no participant data.
-Artifact portability, private replication, and a completed matched cross-provider comparison remain
+The study concerns two fixed agent--tool configurations in simulation, not cross-model ranking or
+laboratory fidelity. A-P and structural B2 have complete matched DeepSeek/GPT denominators but only
+five worlds; their transition failure, not the full chain, is replicated. GPT C2 and open-action
+replications stopped after three in-denominator sessions, and paired B3 formal execution remained
+0/30 for both providers. The action matrix lacks no-evidence and pre-exploration baselines, and the
+five-condition cohort has no participant data. Artifact portability and private replication remain
 untested.
 
 Scientific-agent claims should name interventions, units, failure rules, and transfer boundaries.

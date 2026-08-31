@@ -14,37 +14,39 @@
 | Participant prediction checkpoints | 已完成采集 | 675/675 snapshots，6,300 registered query predictions，24,300 query–metric values |
 | Registered current-composite evaluator v0.2 recovery | 已完成 | 420/420 truth、675/675 checkpoints、135/135 laws、726/726 launched blind replays；0 provider calls |
 | 删失与资源敏感性分析 | 已完成当前 public 主分析 | 7 failed、7 right-censored 与 84 个未启动 blind 分母全部保留；另报 observed-point sensitivity |
-| Matched evidence（A-P Study B + A-S B2） | 当前有效 30 sessions 终态 | A-P 支持 evidence-seeking component；B2 给出 mixed predictive contrast，但 misindexed 0/5 恢复 1.75 law，结构识别仍是独立瓶颈 |
+| Matched evidence（A-P Study B + A-S B2） | DeepSeek + GPT matched formal 终态 | 两模型各完成 A-P `15/15` 与 B2 `15/15`、均 0 failures；A-P primary contrast 为 `0.0309/0.0602`，B2 为 `0.0645/0.0915`，且两模型 misindexed 均 `0/5` 恢复 exact 1.75 law |
 | W2-56 identifiable-law/action control | GPT formal 30/30；DeepSeek canary rejection 单列 | GPT 三臂 joint family+exponent recovery 为 0/10、5/10、0/10，eligible gain≥0.02 为 0/18；支持 provider-specific 结构保留/修正与行动桥接诊断，不作跨 provider leaderboard |
 | W2-57 shared-index cross-model control | 终态 canary rejection | DeepSeek canary `2/3`，但 `6/6` provider turns 均完成；opaque post 的合法 action index 被冗余 stage-status 文本拒绝。该失败完整保留、不补跑，GPT 未启动，formal 双方均 `0/30` |
 | W2-58 runner-derived-status successor | 终态 canary rejection | DeepSeek 三臂均完成两轮 provider turn，但三条 post 均缺少合法 action index，终态 `0/3` participant-schema failures；GPT 未启动，formal 双方均 `0/30` |
+| W2-59 cross-model main-evidence completion | block-specific 终态 | 计划 `270` formal sessions，终态 `36`、合格/可评分 `34`、保留失败 `2`、未启动 `234`；A-P/B2 获得完整双模型 matched formal，GPT C2 与 W2-50 在分母内 canary 停止，B3 因 DeepSeek 排除式 canary `2/3` 而双方 formal `0/30` |
 | W2-50 fresh multi-task open action | 正式描述性终态 | `45/45` cell records、`42/45` eligible、`240/240` truth 与 exact replay；11/42 Top-1，三项 crystallization failures 保留，不作 causal action-transfer claim |
 | W2-51 evidence-to-action 五条件分解 | 工作包 DONE；原 provider 前科学拒绝保留 | 前 8 个 clusters 完成 `896/896` truth 与 exact replay；candidate 8/8、oracle 7/8，fresh crystallization world 的 `rho=0.738095<0.80`；0 participant/provider calls、0 participant experiments，不产生五个因果对比；不再是 ICLR 写稿阻断项 |
 | W2-52 320-grid oracle | 工作包 DONE；construction pass 与 prospective rank rejection 均保留 | 7/7 exposed construction 单元通过并修复四个历史失败，但首个 fresh prospective world 为 `rho=0.714286<0.80`；Top-1 正确、regret=0，余下 14 clusters 未启动；不再是 ICLR 写稿阻断项 |
 | W2-53 oracle gate-action alignment | 回顾诊断终态 | 固定 `16/16` unit-version 全部复现；W2-51 为 rank gate 7/8 但 Top-1 1/8，首个 fresh 320-grid world 则 rank 失败但 Top-1 正确，证明完整排序与动作充分性分离 |
 | A-E private | 延期 | public evaluator 后仅在需要 held-out confirmation 时重新授权 |
-| 跨 provider replication | W2-58 已终态停止，paired formal comparison 尚不可用 | W2-56 只有 GPT formal；W2-57 与 W2-58 均在 DeepSeek canary 终止，GPT 未启动；当前仍无 matched cross-model formal denominator |
+| 跨 provider replication | A-P/B2 已有 matched formal；其余块无 | W2-59 使两个 matched-evidence blocks 首次具备 DeepSeek + GPT 完整匹配分母；C2、W2-50、B3 仍不能估计跨模型 effect，也不作 model leaderboard |
 | Manuscript story | 内部稿与 ICLR 匿名稿已整合 | `paper/prior_discovery_story_zh.md`；不再等待 oracle v0.5，以五层能力分解和 evaluator validity 组织当前证据，并明确模型覆盖边界 |
 
 ### 1.1 模型与执行主体覆盖
 
-结论先行：**当前 programme 出现了 DeepSeek 与 GPT-5.6-sol 两类 participant，但没有任何一个科学证据块同时拥有两者完整、匹配的 formal 分母。** 因此可以说论文包含两个模型配置的互补证据，不能说“所有实验都由两个模型完成”或“结论已经跨模型复现”。
+结论先行：**当前 programme 出现了 DeepSeek 与 GPT-5.6-sol 两类 participant；A-P 与 A-S B2 两个 matched-evidence blocks 已同时拥有两者完整、匹配的 formal 分母。** 因此可以说 evidence acquisition、numerical revision 与 structural identification 的关键断裂在两个模型配置上复现；仍不能说“所有实验都由两个模型完成”、C2/W2-50/B3 已完成跨模型比较，或某个模型总体优于另一个模型。
 
 这里还必须区分模型与运行框架：报告中的“DeepSeek--Codex participant”指 DeepSeek 模型运行在 Codex session/harness 中，不表示 DeepSeek 与 GPT 组成双模型 ensemble；只有明确标为 `GPT-5.6-sol` 的 block 才是 OpenAI 模型 participant。
 
 | 当前证据块 | DeepSeek participant | GPT-5.6-sol participant | Provider-free 部分 | 可作跨模型比较？ |
 |---|---|---|---|---|
 | 前置三臂材料信息基线 | 无匹配 DeepSeek block | 60/60 cells，2,280 experiments | exact replay | 否；GPT 单模型前置证据 |
-| 三 locus public prospective cohort | 135/135 sessions，1,243/1,260 experiments | 无 | 420 truth、675 scoring、135 law evaluations、726 blind replays | 否；DeepSeek 主队列 |
-| A-P Study B + A-S B2 matched evidence | 30/30 sessions，60/60 turns | 无 | B2 80/80 truth | 否；DeepSeek 机制定位 |
-| Typed-law capacity 与 incumbent replay | 复用 DeepSeek 的 135 个 final states | 无 | capacity fit 与 replay evaluator | 否；同一模型输出的零-provider 分析 |
-| W2-50 fresh multi-task open action | 45/45 records，42/45 eligible | 无 | 240/240 truth + replay | 否；DeepSeek 描述性动作结果 |
+| 三 locus public prospective cohort | 135/135 sessions，1,243/1,260 experiments | 3/135 terminal，2 qualified、1 retained failure、132 未启动 | DeepSeek 420 truth、675 scoring、135 law evaluations、726 blind replays | 否；GPT 被 in-denominator canary stop |
+| A-P Study B + A-S B2 matched evidence | A-P 15/15 + B2 15/15 | A-P 15/15 + B2 15/15 | 两边 B2 各 80/80 truth | 是；同一 worlds/arms/packets 的 block-specific matched replication |
+| Typed-law capacity 与 incumbent replay | 复用 DeepSeek 的 135 个 final states | C2 仅 3 个 terminal cells，不可估计 135-cell capacity | capacity fit 与 replay evaluator | 否；不跨分母拼接 |
+| W2-50 fresh multi-task open action | 45/45 records，42/45 eligible | 3/45 terminal，2 eligible、1 retained interruption、42 未启动 | 两边各完成 240/240 truth + replay preparation | 否；GPT 被 in-denominator canary stop |
 | W2-51/W2-52/W2-53 oracle controls | 无 participant | 无 participant | 全部为 truth、oracle 与冻结回顾 | 不适用；它们检验 evaluator/control，不检验 LLM |
 | W2-56 identifiable-law/action B3 | canary 1/3 completed、formal 0/30 | canary 3/3、formal 30/30 | science surface 与 truth roster 匹配 | 否；只有 GPT 形成 formal 科学分母 |
 | W2-57 shared-index B3 | canary 2/3、formal 0/30 | 未启动 | shared-index science surface 与 truth roster 匹配 | 否；终态 canary rejection，不补跑 |
 | W2-58 runner-derived-status B3 | canary 0/3 completed、3/3 participant-schema failures；formal 0/30 | canary 0/3、formal 0/30，按 stop rule 未启动 | qualification/public truth/roster/public-packet hashes 完全一致 | 否；W2-58 终态不形成 matched formal denominator |
+| W2-59 B3 successor | canary 2/3、formal 0/30 | 首次零 provider 平台缺陷修复后 canary 3/3、formal 0/30 | qualification/public truth/roster bindings 一致 | 否；共同门要求双方 canary 均通过 |
 
-最准确的总体表述是：**programme-level multi-model，block-level single-model，matched cross-model formal comparison 未完成。** 现有证据足以支持 DeepSeek 主队列与 GPT B3 控制各自的 provider-specific 结论，但不能把两者拼成模型优劣排序，也不能将 GPT 的 30/30 结果写成对 DeepSeek 全部结果的复现。
+最准确的总体表述是：**programme-level multi-model；A-P/B2 block-level matched cross-model formal；C2、W2-50 与 B3 block-level single-model/partial。** 现有证据支持两个匹配模型配置共同复现 matched-evidence 断裂，也支持 DeepSeek C2/W2-50 与 GPT W2-56 各自的 provider-specific 结论；不能把不同块拼成模型优劣排序，也不能将 A-P/B2 的复现外推为对全部能力链的跨模型验证。
 
 ## 2. 当前可以支持的中心论点
 
@@ -64,8 +66,10 @@
 14. W2-51/52 均已按终态结果完成并移出当前 ICLR 阻断项；这不回溯授权原 225-session cohort，也不把未估计的五条件因果对比写成完成。
 15. W2-56 的 participant-identifiable control 中，aligned joint family+1.75±0.10 recovery 为 `5/10`，opaque 与 misindexed 均为 `0/10`；misindexed 虽 `8/10` 选择 power family，却 `0/10` 恢复正确 exponent。
 16. 同一控制只有 `2/30` Top-1，且均来自 action-opportunity 不成立的 world；预先冻结的 eligible 分母中 gain≥0.02 为 `0/18`，结构保留没有自动转化为有用新动作。
+17. W2-59 的 matched replication 在 A-P 上得到 DeepSeek/GPT primary contrast `+0.0309/+0.0602`，在 A-S B2 上得到 `+0.0645/+0.0915`；后者两个模型的 misindexed exact 1.75-law recovery 都是 `0/5`。因此数值纠错与结构识别的断裂不再只来自单一模型配置。
+18. 这种复现严格限于 A-P/B2。GPT C2 与 W2-50 分别在 `3/135` 与 `3/45` 的分母内 canary 停止，B3 两边 formal 均为 `0/30`；这些终态不支持全链条跨模型泛化或模型排行榜。
 
-当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；自由探索或 learned law 因果性地改善未见 ActionPlan 选择；结果可跨 provider 泛化；private replication 已完成。
+当前不能支持的强结论包括：aligned prior 在所有任务上稳定获胜；agent 已普遍恢复正确物理定律；自由探索或 learned law 因果性地改善未见 ActionPlan 选择；全部能力链结果可跨 provider 泛化；private replication 已完成。
 
 ## 3. 证据程序全景
 
@@ -86,9 +90,9 @@
 | Distillation rollback Q0 | 18/18 | 物理路径成立但效应不足，科学拒绝 |
 | A-S crystallization/partition Q1-Q2 | 10,240/10,240 primary + replay | 两候选均 5/5 worlds 通过，支持进入 public C2 |
 | DeepSeek C2 public current | 135/135 sessions，1,243/1,260 experiments；420 truth、675 checkpoints、135 laws、726 blind executions | 当前 public participant 与 evaluator 已闭环；不等于 private、transfer 或跨 provider 已完成 |
-| Study B A-P matched evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、0 participant experiments | 5/5 misindexed sessions 明确推翻错误电位方向；当前保留 |
+| Study B A-P matched evidence | DeepSeek 与 GPT 各 5 clusters、15/15 fresh sessions、30/30 provider turns、0 failures | primary contrast `+0.0309/+0.0602`；固定反证后的数值纠错形成 matched cross-model replication |
 | 原 Study B A-S branch | 5 clusters、15/15 sessions | truth source 未实际应用冻结的 world intervention；保留为历史平台缺陷证据，不进入当前 claim |
-| A-S Study B2 phase-process evidence | 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | prediction primary contrast +0.0645（3/5，exact p=0.125）；misindexed 0/5 exact law recovery |
+| A-S Study B2 phase-process evidence | DeepSeek 与 GPT 各 5 clusters、15/15 fresh sessions、30/30 provider turns、80/80 provider-free truth、0 failures | primary contrast `+0.0645/+0.0915`；两模型 misindexed 均 `0/5` exact law recovery，支持数值修正与结构识别分离 |
 | W2-56 GPT identifiable-law/action control | 5 worlds × 3 arms × 2 sessions；canary 3/3，formal 30/30，60/60 formal turns，0 failures、0 tools、0 physical experiments | post MAE 0.0367/0.0215/0.0378；joint family+exponent 0/10、5/10、0/10；Top-1 2/30，eligible gain≥0.02 为 0/18 |
 | A-S open-action five-world development | 5 worlds、15/15 sessions、180/180 experiments、13/15 eligible、120/120 truth + replay | 完整 ActionPlan 下 `0/15` Top-1；机制 adequacy 与 action correctness 分离，不作 arm-level formal claim |
 | Multi-task open-action qualification | 三个额外任务各自仅 `seed=0`；最新未污染 blocks 合计 9/9 eligible、108/108 experiments、48/48 truth + replay | 证明同一 longitudinal/ranking-only harness 可跨电化学、结晶和反应安全运行；不是 5-seed 结果，不作 prior-arm 推断 |
@@ -96,6 +100,7 @@
 | W2-51 五条件 causal decomposition | 计划 15 clusters、225 sessions、540 participant experiments；正式完成前 8 clusters 的 896/896 truth/replay，candidate 8/8、oracle 7/8 | fresh crystallization oracle `rho=0.738095<0.80`，正式 provider 前科学拒绝；余下 7 clusters 与全部 participant 分母未启动，五个因果对比均未估计 |
 | W2-52 large-grid oracle | exposed construction 7/7、2,352/2,352 truth/replay；fresh prospective 1/15、336/336 truth/replay | 320-grid 修复已知失败却在首个新 world 科学拒绝；Top-1 正确但完整排序 `rho=0.714286`，其余 14 clusters 未启动 |
 | W2-53 gate-action alignment | 固定 16/16 unit-version，原 Spearman/Top-1 16/16 复现；0 新 truth/provider/物理实验 | rank gate 与 action endpoint 双向不充分：96-grid 有 6 个 rank-pass/Top-1-wrong，fresh 320-grid 为 rank-fail/Top-1-correct；作为 evaluator-design 结果进入正文 |
+| W2-59 remaining main-evidence blocks | GPT C2 `3/135` terminal、GPT W2-50 `3/45` terminal、B3 DeepSeek/GPT canary `2/3` 与 `3/3` 后 formal 均 `0/30` | 精确限定 cross-model coverage；保留 2 个分母内失败与 234 个未启动 formal sessions，不补跑、不拼接 |
 
 ## 4. DeepSeek C2 public 当前终态
 
@@ -148,7 +153,7 @@
 
 ## 6. Matched-evidence 机制定位：A-P Study B 与 A-S B2
 
-每个 matched-evidence block 都让 opaque、aligned、misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对 8 个不重叠 queries 提交 post-evidence prediction。当前有效证据由 A-P Study B 的 15 sessions 与 A-S B2 的 15 sessions 组成，合计 30/30 sessions、60/60 turns、0 failures、0 participant physical experiments；各自 canary 均不进入分析。
+每个 matched-evidence block 都让 opaque、aligned、misindexed 三臂在同一 Codex thread 中先提交 pre-evidence prediction，再读取逐字相同的 8-row packet，最后对 8 个不重叠 queries 提交 post-evidence prediction。W2-59 使 DeepSeek 与 GPT-5.6-sol medium 都在完全匹配的 worlds、arms、packets 和评分语义上完成 A-P `15/15` 与 A-S B2 `15/15`。两模型合计 `60/60` formal sessions、`120/120` turns、0 failures、0 participant physical experiments；各自 canary 均不进入分析。
 
 ### A-P：固定反证使错误参数方向可纠正
 
@@ -157,6 +162,8 @@ opaque/aligned/misindexed 的平均误差分别从 `0.3037/0.2822/0.3105` 降到
 `+0.0309`，3/5 worlds 为正，exact one-sided sign-flip `p=0.125`；小样本不支持单靠 p 值升级普遍主张，
 但 5/5 misindexed public summaries 都明确否定“高电位更可靠”，并恢复约 1.1 V 最优、1.3 V 以上坍塌。
 结合 Study A 的 A-P suggestive signal，这支持自由探索损失至少部分来自未取得有效反证。
+
+GPT replication 的 opaque/aligned/misindexed mean update gain 为 `0.2551/0.2054/0.2657`，注册 primary contrast `+0.0602`，`5/5` worlds 为正，exact one-sided `p=0.03125`。DeepSeek 与 GPT 的绝对数值不同，但同一固定反证在两个配置上都使三臂 post error 收敛并纠正错误方向；因此该断裂可以升级为 block-specific cross-model replication，而不是一般 LLM 结论。
 
 ### 原 A-S Study B：退出当前证据
 
@@ -169,6 +176,8 @@ B2 在五个 public worlds 中重新执行 80/80 power-law truth queries，证�
 opaque/aligned/misindexed 平均 error 从 `0.2255/0.2736/0.3392` 降至 `0.0074/0.0060/0.0071`，对应 gain `0.2181/0.2676/0.3321`。注册主对比为 `+0.0645`，3/5 worlds 为正，exact one-sided sign-flip `p=0.125`，95% 描述区间 `[-0.0557, 0.1848]`。该方向说明 direct diagnostic evidence 带来一个 descriptive acquisition component，但不稳定。
 
 结构表述却没有闭合：misindexed 0/5 明确恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向局部饱和/endpoint 模型。B2 因此拒绝纯二分解释：模型不是“完全不更新”，因为 post error 下降约 98%；也不能说“问题只在没找到证据”，因为 law-level evidence 到达后仍未恢复注册结构。当前机制收束是 **acquisition、numerical revision 与 structural identification 三层分离**。
+
+GPT B2 replication 的 opaque/aligned/misindexed mean update gain 为 `0.2138/0.2017/0.2931`，注册 primary contrast `+0.0915`，`4/5` worlds 为正，exact one-sided `p=0.0625`；misindexed exact 1.75-law recovery 同样为 `0/5`。两个匹配模型配置都表现出强数值收敛而没有错误先验下的结构恢复，使“phenomenological interpolation 不等于 mechanistic identification”成为当前最稳健的跨配置结果。
 
 W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identifiable。GPT-5.6-sol medium 在 3/3 canary 后完成 30/30 formal cells；opaque/aligned/misindexed post MAE 为 `0.0367/0.0215/0.0378`，joint family+exponent recovery 为 `0/10`、`5/10`、`0/10`。aligned 的 world-mean exponent error 对两个对照均在 5/5 worlds 更低，但错误先验没有发生选择性结构修正。行动侧 Top-1 为 2/30，eligible gain≥0.02 为 0/18。该 block 强化结构识别与行动迁移分离，但因 DeepSeek formal 0/30，不构成跨 provider 排名。
 
@@ -184,6 +193,7 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 - A-P 尚未表现稳定 parametric-prior 优势；
 - W2-51 与 W2-52 都已按固定规则形成终态：fresh-world 冻结排序门槛的科学拒绝保留，原 provider cohort 不执行，也不把 W2-50 事后升级为 causal action-transfer evidence；两项工作包本身已完成，不再列为投稿阻断；
 - W2-53 证明该排序门槛与动作目标不等价，但这只改变论文解释，不回溯改变任何 stop rule 或终态。
+- W2-59 的 GPT C2 aligned cell、GPT W2-50 misindexed cell 与 DeepSeek B3 canary failure 均按冻结规则保留；它们分别留下 `132`、`42` 与双方各 `30` 个未启动 formal sessions，不以结果替换、阈值调整或跨模型拼接恢复分母。
 
 这些结果防止论文把 task-specific success 扩大成普遍机制恢复主张。
 
@@ -198,6 +208,8 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 - W2-56 GPT formal：`reports/WORK_II_AS_STUDY_B3_GPT56_SOL_MEDIUM_FORMAL_CLOSEOUT_ZH.md`、`reports/work-ii-as-study-b3-gpt56-sol-medium-formal-closeout-v0.1.json`
 - W2-57 shared-index 终态 canary：`WORK_II_AS_STUDY_B3_SHARED_INDEX_CROSS_MODEL_EXPERIMENT_NOTE.md`、`reports/WORK_II_AS_STUDY_B3_SHARED_INDEX_DEEPSEEK_CANARY_CLOSEOUT_ZH.md`、`reports/work-ii-as-study-b3-shared-index-deepseek-canary-closeout-v0.1.json`
 - W2-58 runner-derived-status 终态：`WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_CROSS_MODEL_EXPERIMENT_NOTE.md`、`reports/work-ii-as-study-b3-runner-derived-status-deepseek-canary-closeout-v0.1.json` 与 `reports/WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_DEEPSEEK_CANARY_CLOSEOUT_ZH.md`；跨模型 formal 汇总器未运行，也未生成空结果
+- W2-59 双模型主证据收束：`reports/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_CLOSEOUT_ZH.md`、`reports/work-ii-w2-59-cross-model-main-evidence-closeout-v0.1.json`
+- W2-59 GPT B2 机器分析：`reports/WORK_II_AS_STUDY_B2_GPT56_SOL_MEDIUM_RESULTS_ZH.md`、`reports/work-ii-as-study-b2-gpt56-sol-medium-results-v0.1.json`
 - W2-50 正式审计：`reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md`
 - Open-action development 收束：`reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md`
 - 原 Study B 机制分析（A-P 保留、A-S 历史）：`reports/WORK_II_STUDY_B_MATCHED_EVIDENCE_RESULTS_ZH.md`
@@ -222,10 +234,10 @@ W2-56 的独立冻结控制进一步把 1.75 exponent 做成 participant-identif
 
 ## 9. 当前闭环与下一阶段研究决策
 
-当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action、failure-aware sensitivity 与 matched-evidence mechanism follow-up 已闭环。A-S B2 已完成，二元 C3 强主张没有得到支持；当前结果以三层机制分离收束。W2-50 随后完成多任务未见 ActionPlan 终端排序，但因缺少 no-evidence/pre-exploration control 仍是描述性结果。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。W2-56 GPT formal 30/30 又提供 participant-identifiable 的结构保留/修正与行动桥接控制，但不作跨 provider leaderboard。W2-57 与 W2-58 的 DeepSeek canary 终态失败均完整保留，GPT 未启动；当前 matched cross-model formal denominator 仍不存在。当前投稿不再等待 oracle v0.5，下一步选择是：
+当前 DeepSeek public 的 participant、prediction truth/scoring、law evaluation、blind action 与 failure-aware sensitivity 已闭环。W2-59 又使 A-P/B2 matched-evidence mechanism follow-up 在 DeepSeek 与 GPT 上各自完整闭环：两个模型配置都支持 acquisition、numerical revision 与 structural identification 三层分离。W2-50 仍是 DeepSeek 的描述性多任务未见 ActionPlan 结果；其 GPT replication 在 in-denominator canary 后终止。W2-51/W2-52 已按原规则形成终态负/诊断结果并移出当前 ICLR 阻断项；W2-53 进一步确认完整排序与动作充分性分离。W2-56 GPT formal 30/30 提供 participant-identifiable 的结构保留/修正与行动桥接控制，但不作跨 provider leaderboard。当前投稿不再等待 oracle v0.5 或任何 W2-59 补跑，下一步选择是：
 
 1. **Study D：artifact transfer。** 在 context reset 后分别测试 typed law、evidence bundle 和更高保真 artifact 对 prediction/law/action 的增益。
-2. **Cross-provider replication。** W2-58 已终态，不再补跑；若仍需匹配双模型证据，须另行设计并授权独立后继块，再决定是否有必要把 Qwen、Kimi 或 WellAU 接入同一 harness。
+2. **Cross-provider extension。** A-P/B2 已完成双模型 matched replication；若还要扩展 C2、W2-50、B3 或接入 Qwen、Kimi、WellAU，须另行冻结独立后继块，不能续跑 W2-59 的未启动分母。
 3. **A-E private。** 只承担 held-out within-family confirmation；继续延期，除非用户明确把该 claim 纳入下一阶段。
 4. **开放式停止与推荐设计。** 未来可统一最大实验预算，允许 agent 提前结束并提交 final plan；这是一项新实验，不事后改写当前 8/10/12 次设计。
 5. **新的 action-aligned causal study。** 仅在另行冻结同时报告 complete ranking、near-tie-aware ordering 与 regret 的 control 后再授权；不得把它称为 W2-51 补跑，也不得用 W2-53 回溯放宽原门槛。

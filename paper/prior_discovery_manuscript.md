@@ -39,7 +39,9 @@ abstract: |
   yet the prespecified selective-correction criterion failed at all three loci. Under matched
   structural counterevidence, mean normalized errors converged from 0.2255/0.2736/0.3392 to
   0.0074/0.0060/0.0071, but 0/5 misspecified summaries recovered the registered 1.75 power law and all
-  five adopted saturation or endpoint models. An independent frozen 30-session GPT-5.6-sol medium control made the
+  five adopted saturation or endpoint models. A matched GPT-5.6-sol medium replication again obtained
+  0/5 structural recovery despite a +0.0915 numerical-update contrast (4/5 worlds); the corresponding
+  DeepSeek contrast was +0.0645 (3/5 worlds). An independent frozen 30-session GPT control made the
   exponent participant-identifiable: joint family--exponent recovery was 5/10 in the aligned arm but
   0/10 in both opaque and misspecified arms, and 0/18 action-eligible choices reached the registered
   gain. All 135 typed laws executed, yet 84 preserved less
@@ -95,11 +97,13 @@ the executable substrate and its replay properties; those platform qualification
 as evidence of agent capability.
 
 We applied the primary design to a fixed DeepSeek-V4-Flash experimental-agent configuration across 45 matched
-task--world clusters and 135 prospective campaigns. A separate, frozen GPT-5.6-sol medium control
-used the same three prior arms in five structural worlds with two independent sessions per arm and
-world. These are complementary block-specific results, not a completed two-model replication: the
-matched DeepSeek version of the structural control stopped at canary and contributed no formal
-denominator. Fixed checkpoints bound the primary participant's beliefs
+task--world clusters and 135 prospective campaigns. We then replicated the two matched-evidence
+blocks with GPT-5.6-sol medium on the same worlds, arms, evidence packets and evaluator semantics:
+A-P and A-S B2 each completed 15/15 formal sessions for both configurations. A separate frozen GPT
+control used two independent sessions per arm and structural world to make the target exponent
+participant-identifiable. These are block-specific cross-model results rather than full-chain
+replication: the GPT C2 and open-action blocks stopped after their in-denominator canary triplets,
+and the paired B3 successor contributed no formal denominator. Fixed checkpoints bound the primary participant's beliefs
 to independently evaluated predictions and typed executable summaries. Matched-evidence sessions
 separate failure to acquire diagnostic evidence from failure to revise a model after seeing it. Blind
 incumbent replay tests reproducibility of a committed observed action, while a separate multi-task
@@ -338,12 +342,13 @@ identifiability criterion and retains its own denominator:
    combination. This future study is not part of the present evidence, and within-family replication
    remains separate from compositional transfer.
 
-Participant provenance is block-specific. The prospective three-locus cohort, the retained
-matched-evidence assays and the 45-cell open-action matrix use the fixed DeepSeek configuration. The
+Participant provenance is block-specific. The prospective three-locus cohort and the 45-cell
+open-action matrix use the fixed DeepSeek configuration. The A-P and A-S B2 matched-evidence assays
+have complete, separately reported DeepSeek and GPT-5.6-sol medium formal denominators; the
 independent identifiable-law control uses GPT-5.6-sol medium. Oracle qualification, truth execution,
 exact replay, law-capacity fitting and gate-alignment diagnostics are provider-free. Results are never
-pooled across these participant configurations, and no evidence layer has complete matched formal
-denominators for both models.
+pooled across participant configurations. Cross-model statements are restricted to the two matched
+evidence blocks rather than extrapolated to the full capability chain.
 
 Observation/measurement interventions are reserved as a separate boundary probe. They require
 two-task identifiability and an exploratory three-arm study and are not included in the present
@@ -592,6 +597,14 @@ phenomenological interpolation but not for identifying the governing relation. E
 numerical belief revision and structural-law identification are therefore separate transitions. The
 intervention is causal at the starting prior; this downstream localization is a diagnostic
 dissociation, not a causal mediation analysis.
+
+The matched replication preserved the dissociation in GPT-5.6-sol medium. In A-P, the registered
+misspecified-minus-aligned update-gain contrast was +0.0309 for DeepSeek (3/5 worlds) and +0.0602 for
+GPT (5/5; exact one-sided $p=0.03125$). In A-S B2 it was +0.0645 for DeepSeek (3/5) and +0.0915 for
+GPT (4/5; $p=0.0625$), while misspecified exact 1.75-law recovery remained **0/5 in each model**.
+Thus the strongest cross-configuration result is not an aggregate performance ranking but the same
+transition failure: direct evidence supported numerical interpolation without inducing the registered
+structure. We report the two configurations separately and perform no model-superiority test.
 
 An independent frozen control then made the 1.75 exponent participant-identifiable by disclosing
 reference coefficients across four nominal pairs and scored a disjoint eight-query roster. After a
@@ -914,13 +927,16 @@ those components rather than attributing the result to model weights alone.
 ChemWorld provides bounded executable causal worlds, not universal chemical fidelity or direct
 wet-laboratory validation. The primary prospective cohort concerns one fixed DeepSeek-V4-Flash agent
 configuration; the independent structural control concerns one fixed GPT-5.6-sol medium
-configuration. No evidence block has complete matched formal denominators for both systems. Together
-they therefore do not support a model leaderboard or language models in general. The
-prospective programme spans nine task--locus combinations but only five independent worlds per task.
+configuration. A-P and A-S B2 have complete matched formal denominators for both systems, but each
+contains only five worlds. These blocks support cross-configuration replication of their specific
+transition failures, not a model leaderboard or language models in general. The prospective programme
+spans nine task--locus combinations but only five independent worlds per task.
 Observation-model interventions, private confirmation and context-reset artifact portability were
-not executed. The GPT and DeepSeek B3 science surfaces match, but the DeepSeek block stopped at its
-canary and has no formal denominator, so the GPT formal result is provider-specific rather than a
-cross-provider effect estimate.
+not executed. GPT replication of C2 and W2-50 stopped after three in-denominator sessions, leaving
+132 and 42 sessions unstarted, respectively. In the paired B3 successor, DeepSeek passed only 2/3
+excluded canary sessions; although GPT passed 3/3 after repair of a zero-call platform defect, the
+joint gate left both formal blocks at 0/30. C2, unseen-action selection and B3 therefore remain
+provider-specific or unestimated rather than cross-provider effect estimates.
 
 The corrected structural matched-evidence result contains five worlds and is explicitly
 non-confirmatory. The earlier structural run affected by an evaluator omission is excluded. The
@@ -1027,6 +1043,12 @@ $2^5$ sign flips are enumerated for the exact one-sided directional check and a 
 is reported descriptively. Protocol-validation sessions are excluded. Structural-recovery counts use only
 the submitted model summary and evidence assessment, never private reasoning text.
 
+The DeepSeek and GPT matched-evidence blocks use identical world, arm, query and packet coordinates.
+Each configuration is analysed separately with the same world-level estimand and exact sign-flip
+procedure. GPT-minus-DeepSeek differences are paired descriptively by world; no model-superiority
+test, pooled provider effect or extrapolation to the prospective cohort and open-action blocks is
+performed.
+
 The independent identifiable-law control fixes five public structural worlds, the same three prior
 arms and two independent fresh sessions per arm and world. Its eight evidence rows and disjoint
 eight-query scoring roster are selected provider-free on development worlds. All five public worlds
@@ -1102,6 +1124,14 @@ through stable record identifiers. Every completed participant trajectory must p
 campaign-resource replay and hidden-boundary verification. Process attempts, sessions, tool calls,
 operation attempts, committed operations, complete experiments, cells and evaluator executions are
 reported with distinct denominators.
+
+Cross-model completion used block-specific canaries and retained their stop boundaries. GPT C2 and
+open-action execution each launched one in-denominator three-arm triplet; one C2 session failed
+qualification after completing 8/8 experiments, and one open-action session was interrupted after
+5/12 experiments. The remaining 132 and 42 sessions were not started. In the B3 successor, DeepSeek
+completed 2/3 excluded canary sessions while GPT completed 3/3 after a zero-provider platform defect
+was repaired from the first canary unit; the joint rule left both formal denominators at 0/30. None of
+these partial blocks is combined with the complete DeepSeek denominator or treated as a model effect.
 
 # 11. Data and code availability
 

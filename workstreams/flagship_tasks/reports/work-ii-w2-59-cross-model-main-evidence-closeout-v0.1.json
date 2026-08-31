@@ -1,0 +1,937 @@
+{
+  "analysis_provider_call_count": 0,
+  "blocks": {
+    "b3_successor": {
+      "deepseek": {
+        "canary_qualified": false,
+        "completed_canary_session_count": 2,
+        "completed_provider_turn_count": 6,
+        "failed_canary_session_count": 1,
+        "failures": [
+          {
+            "cell_id": "A_S_B3--partition-discovery--seed527268922--replicate-01--misindexed_nominal",
+            "failure_classification": "participant_schema",
+            "failure_message": "post final payload is unavailable",
+            "failure_type": "_ParticipantSchemaError"
+          }
+        ],
+        "infrastructure_failure_count": 0,
+        "launched_formal_session_count": 0,
+        "observed_canary_session_count": 3,
+        "outcome_replacement_count": 0,
+        "participant_schema_failure_count": 1,
+        "provider_turn_count": 6,
+        "scheduled_canary_session_count": 3,
+        "scheduled_formal_session_count": 30,
+        "status": "terminal_canary_rejected_before_formal",
+        "unstarted_formal_session_count": 30
+      },
+      "formal_completed_by_provider": {
+        "deepseek": 0,
+        "gpt": 0
+      },
+      "gpt_initial_platform_defect": {
+        "canary_qualified": false,
+        "completed_canary_session_count": 0,
+        "completed_provider_turn_count": 0,
+        "failed_canary_session_count": 3,
+        "failures": [
+          {
+            "cell_id": "A_S_B3--partition-discovery--seed527268922--replicate-01--aligned_nominal",
+            "failure_classification": "runner_infrastructure",
+            "failure_message": "[Errno 22] Invalid argument",
+            "failure_type": "OSError"
+          },
+          {
+            "cell_id": "A_S_B3--partition-discovery--seed527268922--replicate-01--misindexed_nominal",
+            "failure_classification": "runner_infrastructure",
+            "failure_message": "[Errno 22] Invalid argument",
+            "failure_type": "OSError"
+          },
+          {
+            "cell_id": "A_S_B3--partition-discovery--seed527268922--replicate-01--opaque",
+            "failure_classification": "runner_infrastructure",
+            "failure_message": "[Errno 22] Invalid argument",
+            "failure_type": "OSError"
+          }
+        ],
+        "infrastructure_failure_count": 3,
+        "launched_formal_session_count": 0,
+        "observed_canary_session_count": 3,
+        "outcome_replacement_count": 0,
+        "participant_schema_failure_count": 0,
+        "provider_turn_count": 0,
+        "scheduled_canary_session_count": 3,
+        "scheduled_formal_session_count": 30,
+        "status": "terminal_canary_rejected_before_formal",
+        "unstarted_formal_session_count": 30
+      },
+      "gpt_qualified_restart": {
+        "canary_qualified": true,
+        "completed_canary_session_count": 3,
+        "completed_provider_turn_count": 6,
+        "failed_canary_session_count": 0,
+        "failures": [],
+        "infrastructure_failure_count": 0,
+        "launched_formal_session_count": 0,
+        "observed_canary_session_count": 3,
+        "outcome_replacement_count": 0,
+        "participant_schema_failure_count": 0,
+        "provider_turn_count": 6,
+        "scheduled_canary_session_count": 3,
+        "scheduled_formal_session_count": 30,
+        "status": "canary_qualified",
+        "unstarted_formal_session_count": 30
+      },
+      "matched_cross_model_effect_estimable": false,
+      "status": "deepseek_excluded_canary_rejected_formal_unstarted"
+    },
+    "matched_a_p": {
+      "deepseek": {
+        "arm_summary": {
+          "aligned_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.0804327961378304,
+            "mean_pre_error": 0.28219856671478677,
+            "mean_update_gain": 0.20176577057695638
+          },
+          "misindexed_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.07782704503466763,
+            "mean_pre_error": 0.31051059548046517,
+            "mean_update_gain": 0.23268355044579753
+          },
+          "opaque": {
+            "cell_count": 5,
+            "mean_post_error": 0.08163470147281962,
+            "mean_pre_error": 0.3036924277343981,
+            "mean_update_gain": 0.2220577262615785
+          }
+        },
+        "completed_sessions": 15,
+        "failed_sessions": 0,
+        "primary_contrast": {
+          "confidence_interval_95": [
+            -0.03164142361141771,
+            0.09347698334910003
+          ],
+          "exact_sign_flip_p_one_sided_greater": 0.125,
+          "exact_sign_flip_p_two_sided": 0.25,
+          "inference_unit": "task_x_world_seed",
+          "mean": 0.03091777986884116,
+          "n": 5,
+          "negative_world_count": 2,
+          "positive_world_count": 3,
+          "standard_error": 0.02253212331233978,
+          "values": [
+            0.043636504908402735,
+            -0.03503177309036254,
+            -0.005307097534338612,
+            0.08847954788804052,
+            0.0628117171724637
+          ],
+          "zero_world_count": 0
+        },
+        "public_summary_audit": {
+          "explicit_direction_rejection_count": 5,
+          "peak_and_collapse_response_count": 5
+        },
+        "scheduled_sessions": 15,
+        "status": "matched_cross_model_formal_complete",
+        "world_count": 5,
+        "world_rows": [
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.08013456145016243,
+                "pre": 0.30171176817045003
+              },
+              "misindexed_nominal": {
+                "post": 0.08159289478349577,
+                "pre": 0.34680660641218614
+              },
+              "opaque": {
+                "post": 0.08413738369035612,
+                "pre": 0.3644176404776711
+              }
+            },
+            "primary_contrast": 0.043636504908402735,
+            "update_gains": {
+              "aligned_nominal": 0.2215772067202876,
+              "misindexed_nominal": 0.26521371162869034,
+              "opaque": 0.280280256787315
+            },
+            "world_seed": 141388883
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.08070463185342185,
+                "pre": 0.3328514448834661
+              },
+              "misindexed_nominal": {
+                "post": 0.07477613567145697,
+                "pre": 0.29189117561113864
+              },
+              "opaque": {
+                "post": 0.0761321924610141,
+                "pre": 0.2786332240733706
+              }
+            },
+            "primary_contrast": -0.03503177309036254,
+            "update_gains": {
+              "aligned_nominal": 0.2521468130300442,
+              "misindexed_nominal": 0.21711503993968168,
+              "opaque": 0.2025010316123565
+            },
+            "world_seed": 205061234
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.08380179608240723,
+                "pre": 0.2899945318388442
+              },
+              "misindexed_nominal": {
+                "post": 0.0857839550015827,
+                "pre": 0.2866695932236811
+              },
+              "opaque": {
+                "post": 0.08925134563818574,
+                "pre": 0.3501244986740251
+              }
+            },
+            "primary_contrast": -0.005307097534338612,
+            "update_gains": {
+              "aligned_nominal": 0.20619273575643698,
+              "misindexed_nominal": 0.20088563822209837,
+              "opaque": 0.26087315303583936
+            },
+            "world_seed": 594927609
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.06268047324098491,
+                "pre": 0.2542654242294763
+              },
+              "misindexed_nominal": {
+                "post": 0.04961154185014311,
+                "pre": 0.329676040726675
+              },
+              "opaque": {
+                "post": 0.05029663385726356,
+                "pre": 0.23647275856909497
+              }
+            },
+            "primary_contrast": 0.08847954788804052,
+            "update_gains": {
+              "aligned_nominal": 0.19158495098849138,
+              "misindexed_nominal": 0.2800644988765319,
+              "opaque": 0.18617612471183143
+            },
+            "world_seed": 869796364
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.09484251806217556,
+                "pre": 0.23216966445169723
+              },
+              "misindexed_nominal": {
+                "post": 0.09737069786665961,
+                "pre": 0.297509561428645
+              },
+              "opaque": {
+                "post": 0.10835595171727862,
+                "pre": 0.28881401687782876
+              }
+            },
+            "primary_contrast": 0.0628117171724637,
+            "update_gains": {
+              "aligned_nominal": 0.13732714638952168,
+              "misindexed_nominal": 0.20013886356198538,
+              "opaque": 0.18045806516055013
+            },
+            "world_seed": 973419928
+          }
+        ]
+      },
+      "gpt": {
+        "arm_summary": {
+          "aligned_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.0751283750194751,
+            "mean_pre_error": 0.28057173218713527,
+            "mean_update_gain": 0.20544335716766018
+          },
+          "misindexed_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.0752802300391637,
+            "mean_pre_error": 0.34094613578902017,
+            "mean_update_gain": 0.26566590574985643
+          },
+          "opaque": {
+            "cell_count": 5,
+            "mean_post_error": 0.07981079174032686,
+            "mean_pre_error": 0.3349322471617294,
+            "mean_update_gain": 0.2551214554214026
+          }
+        },
+        "completed_sessions": 15,
+        "failed_sessions": 0,
+        "primary_contrast": {
+          "exact_sign_flip_p_one_sided_greater": 0.03125,
+          "mean": 0.06022254858219625,
+          "negative_world_count": 0,
+          "positive_world_count": 5,
+          "values": [
+            0.09041458333333341,
+            0.06449352397815383,
+            0.014593959313869476,
+            0.06850037975311285,
+            0.06311029653251168
+          ],
+          "zero_world_count": 0
+        },
+        "public_summary_audit": {
+          "explicit_direction_rejection_count": 0,
+          "peak_and_collapse_response_count": 0,
+          "world_rows": [
+            {
+              "explicit_direction_rejection": false,
+              "peak_and_collapse_response": false,
+              "world_seed": 141388883
+            },
+            {
+              "explicit_direction_rejection": false,
+              "peak_and_collapse_response": false,
+              "world_seed": 205061234
+            },
+            {
+              "explicit_direction_rejection": false,
+              "peak_and_collapse_response": false,
+              "world_seed": 594927609
+            },
+            {
+              "explicit_direction_rejection": false,
+              "peak_and_collapse_response": false,
+              "world_seed": 869796364
+            },
+            {
+              "explicit_direction_rejection": false,
+              "peak_and_collapse_response": false,
+              "world_seed": 973419928
+            }
+          ]
+        },
+        "scheduled_sessions": 15,
+        "status": "matched_cross_model_formal_complete",
+        "world_count": 5,
+        "world_rows": [
+          {
+            "primary_contrast": 0.09041458333333341,
+            "update_gains": {
+              "aligned_nominal": 0.18872583259878056,
+              "misindexed_nominal": 0.27914041593211397,
+              "opaque": 0.261937056293264
+            },
+            "world_seed": 141388883
+          },
+          {
+            "primary_contrast": 0.06449352397815383,
+            "update_gains": {
+              "aligned_nominal": 0.18693036782344186,
+              "misindexed_nominal": 0.2514238918015957,
+              "opaque": 0.2875962810796102
+            },
+            "world_seed": 205061234
+          },
+          {
+            "primary_contrast": 0.014593959313869476,
+            "update_gains": {
+              "aligned_nominal": 0.25141727608517805,
+              "misindexed_nominal": 0.26601123539904753,
+              "opaque": 0.26229583285152913
+            },
+            "world_seed": 594927609
+          },
+          {
+            "primary_contrast": 0.06850037975311285,
+            "update_gains": {
+              "aligned_nominal": 0.1835160541375478,
+              "misindexed_nominal": 0.25201643389066064,
+              "opaque": 0.22112316928307219
+            },
+            "world_seed": 869796364
+          },
+          {
+            "primary_contrast": 0.06311029653251168,
+            "update_gains": {
+              "aligned_nominal": 0.2166272551933527,
+              "misindexed_nominal": 0.2797375517258644,
+              "opaque": 0.24265493759953727
+            },
+            "world_seed": 973419928
+          }
+        ]
+      },
+      "paired_descriptive_difference": {
+        "inferential_model_superiority_test": false,
+        "orientation": "gpt_minus_deepseek",
+        "paired_world_count": 5,
+        "primary_contrast_difference": {
+          "exact_sign_flip_p_one_sided_greater": 0.125,
+          "mean": 0.02930476871335509,
+          "negative_world_count": 1,
+          "positive_world_count": 4,
+          "values": [
+            0.046778078424930675,
+            0.09952529706851637,
+            0.019901056848208087,
+            -0.019979168134927672,
+            0.0002985793600479847
+          ],
+          "zero_world_count": 0
+        }
+      },
+      "status": "matched_cross_model_formal_complete"
+    },
+    "matched_a_s_b2": {
+      "deepseek": {
+        "arm_summary": {
+          "aligned_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.006014780364703232,
+            "mean_pre_error": 0.2736037580627413,
+            "mean_update_gain": 0.267588977698038
+          },
+          "misindexed_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.007100687803299318,
+            "mean_pre_error": 0.3392231797196677,
+            "mean_update_gain": 0.33212249191636845
+          },
+          "opaque": {
+            "cell_count": 5,
+            "mean_post_error": 0.007443769791407973,
+            "mean_pre_error": 0.2255005298386227,
+            "mean_update_gain": 0.21805676004721472
+          }
+        },
+        "completed_sessions": 15,
+        "failed_sessions": 0,
+        "misindexed_exact_1_75_law_recovery_count": 0,
+        "primary_contrast": {
+          "confidence_interval_95": [
+            -0.055718973171721475,
+            0.18478600160838227
+          ],
+          "exact_sign_flip_p_one_sided_greater": 0.125,
+          "exact_sign_flip_p_two_sided": 0.25,
+          "inference_unit": "public_world_seed",
+          "mean": 0.0645335142183304,
+          "n": 5,
+          "negative_world_count": 2,
+          "positive_world_count": 3,
+          "standard_error": 0.043311674761704,
+          "values": [
+            -0.0023749936580657605,
+            0.10311325677235922,
+            -0.04478369733492532,
+            0.06218973290125529,
+            0.20452327241102855
+          ],
+          "zero_world_count": 0
+        },
+        "scheduled_sessions": 15,
+        "status": "matched_cross_model_formal_complete",
+        "world_count": 5,
+        "world_rows": [
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.007778945892583581,
+                "pre": 0.35479632868173844
+              },
+              "misindexed_nominal": {
+                "post": 0.010403891175519675,
+                "pre": 0.35504628030660873
+              },
+              "opaque": {
+                "post": 0.007847693878381207,
+                "pre": 0.18343862509134537
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0026249452829360947,
+            "primary_contrast": -0.0023749936580657605,
+            "update_gains": {
+              "aligned_nominal": 0.34701738278915484,
+              "misindexed_nominal": 0.3446423891310891,
+              "opaque": 0.17559093121296415
+            },
+            "world_seed": 110564668
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.006786367545370012,
+                "pre": 0.20738782839958245
+              },
+              "misindexed_nominal": {
+                "post": 0.008545267432772867,
+                "pre": 0.3122599850593445
+              },
+              "opaque": {
+                "post": 0.010722859036953499,
+                "pre": 0.32438498505934454
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0017588998874028547,
+            "primary_contrast": 0.10311325677235922,
+            "update_gains": {
+              "aligned_nominal": 0.20060146085421243,
+              "misindexed_nominal": 0.30371471762657165,
+              "opaque": 0.313662126022391
+            },
+            "world_seed": 241120479
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.004385844042357834,
+                "pre": 0.34053466703279023
+              },
+              "misindexed_nominal": {
+                "post": 0.005252874710616486,
+                "pre": 0.29661800036612357
+              },
+              "opaque": {
+                "post": 0.007016390778454162,
+                "pre": 0.24495133369945687
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0008670306682586519,
+            "primary_contrast": -0.04478369733492532,
+            "update_gains": {
+              "aligned_nominal": 0.3361488229904324,
+              "misindexed_nominal": 0.2913651256555071,
+              "opaque": 0.2379349429210027
+            },
+            "world_seed": 527268922
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.00568565634855379,
+                "pre": 0.2142208107712989
+              },
+              "misindexed_nominal": {
+                "post": 0.006300090113965169,
+                "pre": 0.27702497743796556
+              },
+              "opaque": {
+                "post": 0.006305589679628604,
+                "pre": 0.17924164410463223
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0006144337654113794,
+            "primary_contrast": 0.06218973290125529,
+            "update_gains": {
+              "aligned_nominal": 0.20853515442274512,
+              "misindexed_nominal": 0.2707248873240004,
+              "opaque": 0.17293605442500362
+            },
+            "world_seed": 650846081
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.0054370879946509425,
+                "pre": 0.2510791554282963
+              },
+              "misindexed_nominal": {
+                "post": 0.005001315583622393,
+                "pre": 0.45516665542829626
+              },
+              "opaque": {
+                "post": 0.005326315583622393,
+                "pre": 0.1954860612383345
+              }
+            },
+            "post_misindexed_minus_aligned": -0.0004357724110285498,
+            "primary_contrast": 0.20452327241102855,
+            "update_gains": {
+              "aligned_nominal": 0.24564206743364533,
+              "misindexed_nominal": 0.4501653398446739,
+              "opaque": 0.1901597456547121
+            },
+            "world_seed": 946166808
+          }
+        ]
+      },
+      "gpt": {
+        "arm_summary": {
+          "aligned_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.008558371132173729,
+            "mean_pre_error": 0.2102400590113293,
+            "mean_update_gain": 0.20168168787915558
+          },
+          "misindexed_nominal": {
+            "cell_count": 5,
+            "mean_post_error": 0.008139218355649309,
+            "mean_pre_error": 0.3012831797196677,
+            "mean_update_gain": 0.29314396136401843
+          },
+          "opaque": {
+            "cell_count": 5,
+            "mean_post_error": 0.008598541939501493,
+            "mean_pre_error": 0.2223567361158342,
+            "mean_update_gain": 0.2137581941763327
+          }
+        },
+        "completed_sessions": 15,
+        "failed_sessions": 0,
+        "misindexed_exact_1_75_law_recovery_count": 0,
+        "primary_contrast": {
+          "confidence_interval_95": [
+            0.00763185726696379,
+            0.1752926897027619
+          ],
+          "exact_sign_flip_p_one_sided_greater": 0.0625,
+          "exact_sign_flip_p_two_sided": 0.125,
+          "inference_unit": "public_world_seed",
+          "mean": 0.09146227348486284,
+          "n": 5,
+          "negative_world_count": 1,
+          "positive_world_count": 4,
+          "standard_error": 0.030193435505337315,
+          "values": [
+            0.11528975872929889,
+            0.10112215665976204,
+            0.1563843716548135,
+            0.10750598142941792,
+            -0.022990901048978163
+          ],
+          "zero_world_count": 0
+        },
+        "scheduled_sessions": 15,
+        "status": "matched_cross_model_formal_complete",
+        "world_count": 5,
+        "world_rows": [
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.009222693878381205,
+                "pre": 0.20301116675801203
+              },
+              "misindexed_nominal": {
+                "post": 0.010076382031012333,
+                "pre": 0.3191546136399421
+              },
+              "opaque": {
+                "post": 0.008715616669226437,
+                "pre": 0.19678489562077447
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0008536881526311282,
+            "primary_contrast": 0.11528975872929889,
+            "update_gains": {
+              "aligned_nominal": 0.19378847287963083,
+              "misindexed_nominal": 0.3090782316089297,
+              "opaque": 0.18806927895154804
+            },
+            "world_seed": 110564668
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.013074473867658525,
+                "pre": 0.1777211617329158
+              },
+              "misindexed_nominal": {
+                "post": 0.010491140534325193,
+                "pre": 0.2762599850593445
+              },
+              "opaque": {
+                "post": 0.014860874861323585,
+                "pre": 0.2282391517260112
+              }
+            },
+            "post_misindexed_minus_aligned": -0.0025833333333333316,
+            "primary_contrast": 0.10112215665976204,
+            "update_gains": {
+              "aligned_nominal": 0.16464668786525727,
+              "misindexed_nominal": 0.2657688445250193,
+              "opaque": 0.2133782768646876
+            },
+            "world_seed": 241120479
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.006368890780664501,
+                "pre": 0.19926383369945688
+              },
+              "misindexed_nominal": {
+                "post": 0.007405352459184359,
+                "pre": 0.3566846670327902
+              },
+              "opaque": {
+                "post": 0.005510566298054362,
+                "pre": 0.2303513336994569
+              }
+            },
+            "post_misindexed_minus_aligned": 0.0010364616785198582,
+            "primary_contrast": 0.1563843716548135,
+            "update_gains": {
+              "aligned_nominal": 0.1928949429187924,
+              "misindexed_nominal": 0.3492793145736059,
+              "opaque": 0.22484076740140255
+            },
+            "world_seed": 527268922
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.0074667567806318376,
+                "pre": 0.21771664410463223
+              },
+              "misindexed_nominal": {
+                "post": 0.006714942017880579,
+                "pre": 0.3244708107712989
+              },
+              "opaque": {
+                "post": 0.007717091440844041,
+                "pre": 0.23899164410463222
+              }
+            },
+            "post_misindexed_minus_aligned": -0.0007518147627512588,
+            "primary_contrast": 0.10750598142941792,
+            "update_gains": {
+              "aligned_nominal": 0.2102498873240004,
+              "misindexed_nominal": 0.3177558687534183,
+              "opaque": 0.23127455266378819
+            },
+            "world_seed": 650846081
+          },
+          {
+            "errors": {
+              "aligned_nominal": {
+                "post": 0.006659040353532574,
+                "pre": 0.2534874887616296
+              },
+              "misindexed_nominal": {
+                "post": 0.0060082747358440785,
+                "pre": 0.22984582209496293
+              },
+              "opaque": {
+                "post": 0.006188560428059041,
+                "pre": 0.21741665542829625
+              }
+            },
+            "post_misindexed_minus_aligned": -0.0006507656176884952,
+            "primary_contrast": -0.022990901048978163,
+            "update_gains": {
+              "aligned_nominal": 0.246828448408097,
+              "misindexed_nominal": 0.22383754735911884,
+              "opaque": 0.2112280950002372
+            },
+            "world_seed": 946166808
+          }
+        ]
+      },
+      "paired_descriptive_difference": {
+        "inferential_model_superiority_test": false,
+        "orientation": "gpt_minus_deepseek",
+        "paired_world_count": 5,
+        "primary_contrast_difference": {
+          "exact_sign_flip_p_one_sided_greater": 0.375,
+          "mean": 0.026928759266532442,
+          "negative_world_count": 2,
+          "positive_world_count": 3,
+          "values": [
+            0.11766475238736465,
+            -0.0019911001125971772,
+            0.20116806898973882,
+            0.04531624852816263,
+            -0.2275141734600067
+          ],
+          "zero_world_count": 0
+        }
+      },
+      "status": "matched_cross_model_formal_complete"
+    },
+    "public_c2": {
+      "deepseek": {
+        "blind_completed_executions": 726,
+        "completed_sessions": 121,
+        "failed_sessions": 7,
+        "law_evaluations": 135,
+        "right_censored_sessions": 7,
+        "scheduled_sessions": 135,
+        "truth_executions": 420
+      },
+      "gpt": {
+        "disposition": "terminal_retained_stop_rule",
+        "failed_cell_id": "A_E_public--electrochemical-conversion--seed934334899--aligned_nominal",
+        "failed_checks": [
+          "one_campaign_session",
+          "provider_session_completed",
+          "final_recommendation_committed",
+          "tool_integrity",
+          "provider_operational_limits_reconciled"
+        ],
+        "observed_complete_physical_experiments": 24,
+        "provider_error_event_count": 2,
+        "qualified_complete_physical_experiments": 16,
+        "qualified_sessions": 2,
+        "recoverable_zero_action_infrastructure_failure": false,
+        "retained_failure_complete_physical_experiments": 8,
+        "retained_failure_sessions": 1,
+        "scheduled_complete_physical_experiments": 1260,
+        "scheduled_sessions": 135,
+        "status": "in_denominator_canary_rejected_before_scale",
+        "terminal_sessions": 3,
+        "unstarted_sessions": 132
+      },
+      "matched_cross_model_effect_estimable": false,
+      "status": "deepseek_complete_gpt_canary_rejected"
+    },
+    "w2_50_open_action": {
+      "deepseek": {
+        "eligible_sessions": 42,
+        "retained_failure_sessions": 3,
+        "scheduled_sessions": 45,
+        "top1_count": 11
+      },
+      "gpt": {
+        "disposition": "terminal_retained_stop_rule",
+        "eligible_complete_physical_experiments": 24,
+        "eligible_sessions": 2,
+        "failed_cell_id": "A_S_MULTI_TASK_OAD--electrochemical-conversion--seed0--misindexed_nominal",
+        "failure_message": "Codex failed before the next executable operation; no fallback action was emitted",
+        "failure_type": "InteractiveCodexExperimentError",
+        "observed_complete_physical_experiments_including_partial": 29,
+        "provider_free_exact_replay_count": 240,
+        "provider_free_truth_query_count": 240,
+        "recoverable_zero_action_infrastructure_failure": false,
+        "retained_failure_sessions": 1,
+        "scheduled_complete_physical_experiments": 540,
+        "scheduled_sessions": 45,
+        "status": "canary_failed_hold",
+        "terminal_sessions": 3,
+        "unstarted_sessions": 42
+      },
+      "matched_cross_model_effect_estimable": false,
+      "status": "deepseek_complete_gpt_canary_rejected"
+    }
+  },
+  "claim_boundaries": {
+    "all_scheduled_main_evidence_attempted_under_frozen_stop_rules": true,
+    "all_scheduled_main_evidence_completed_for_both_models": false,
+    "general_llm_claim_supported": false,
+    "matched_a_p_cross_model_replication_supported": true,
+    "matched_a_s_b2_cross_model_replication_supported": true,
+    "matched_b3_cross_model_effect_supported": false,
+    "matched_c2_cross_model_effect_supported": false,
+    "matched_w2_50_cross_model_effect_supported": false,
+    "model_superiority_leaderboard_supported": false
+  },
+  "formal_result": false,
+  "incidents": [
+    {
+      "action": "stop remaining 132 sessions; preserve all raw evidence",
+      "block": "GPT C2 aligned in-denominator canary cell",
+      "decision": "terminal_scientific_or_participant_outcome",
+      "evidence": "8/8 experiments complete; qualification failed with retained provider/session errors",
+      "impact_class": "S"
+    },
+    {
+      "action": "stop remaining 42 sessions; do not replace partial trajectory",
+      "block": "GPT W2-50 misindexed in-denominator canary cell",
+      "decision": "terminal_operational_outcome",
+      "evidence": "5/12 experiments complete before provider/session interruption",
+      "impact_class": "B_with_frozen_retention_rule"
+    },
+    {
+      "action": "leave both providers at 0/30 formal",
+      "block": "DeepSeek B3 excluded canary",
+      "decision": "terminal_canary_rejected_before_formal",
+      "evidence": "6/6 provider turns completed; one post payload unavailable under participant schema",
+      "impact_class": "S"
+    },
+    {
+      "action": "preserve first root; restart from first canary unit after platform repair",
+      "block": "GPT B3 first canary root",
+      "decision": "full_canary_restart",
+      "evidence": "0 provider turns; duplicated provider configuration caused three immediate OSError failures",
+      "impact_class": "A_zero_action_platform_defect"
+    }
+  ],
+  "observed_denominators": {
+    "excluded_canary_completed_sessions": 11,
+    "excluded_canary_observed_sessions": 12,
+    "excluded_canary_retained_failure_sessions": 1,
+    "formal_qualified_or_eligible_sessions": 34,
+    "formal_retained_failure_sessions": 2,
+    "formal_terminal_sessions": 36,
+    "formal_unstarted_sessions": 234,
+    "observed_complete_physical_experiments_including_partial": 53,
+    "qualified_or_eligible_complete_physical_experiments": 40,
+    "retained_failure_complete_physical_experiments": 13
+  },
+  "planned_denominators": {
+    "excluded_canary_sessions": 12,
+    "formal_sessions": 270,
+    "participant_complete_physical_experiments": 1800
+  },
+  "provider_free_controls": {
+    "reason": "model-independent truth, replay, oracle qualification and gate-action diagnostics",
+    "w2_51_w2_52_w2_53_duplicated": false
+  },
+  "providers": {
+    "deepseek": {
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "high"
+    },
+    "gpt": {
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium"
+    }
+  },
+  "reviewer_control_recomputation": {
+    "cross_provider_w2_55_pooling_performed": false,
+    "deepseek_w2_55_remains_complete": true,
+    "gpt_c2_typed_law_capacity": {
+      "required_complete_frozen_denominator": "135 participant cells with current-composite dataset",
+      "status": "not_estimable_after_frozen_canary_stop",
+      "terminal_sessions": 3
+    },
+    "gpt_w2_50_continuous_law_action": {
+      "eligible_sessions": 2,
+      "required_complete_frozen_denominator": "45 scheduled / 42 eligible / 3 retained failures",
+      "status": "not_estimable_after_frozen_canary_stop"
+    },
+    "provider_call_count": 0
+  },
+  "schema_version": "chemworld-work-ii-w2-59-cross-model-closeout-0.1",
+  "source_artifacts": {
+    "b3_deepseek_root": "runs/formal/work-ii-w2-59-b3-main-evidence-successor-deepseek-v0.1-20260831",
+    "b3_gpt_root": "runs/formal/work-ii-w2-59-b3-main-evidence-successor-gpt56-sol-medium-v0.1-20260831-restart1",
+    "deepseek_a_p": "workstreams/flagship_tasks/reports/work-ii-study-b-matched-evidence-results-v0.1.json",
+    "deepseek_b2": "workstreams/flagship_tasks/reports/work-ii-as-study-b2-phase-process-results-v0.1.json",
+    "deepseek_c2": "workstreams/flagship_tasks/reports/work-ii-deepseek-c2-current-composite-evaluation-v0.2.json",
+    "deepseek_w2_50": "workstreams/flagship_tasks/reports/work-ii-reviewer-control-analyses-v0.1.json",
+    "gpt_a_p_root": "runs/formal/work-ii-w2-59-study-b-ap-gpt56-sol-medium-v0.1-20260831",
+    "gpt_b2": "workstreams/flagship_tasks/reports/work-ii-as-study-b2-gpt56-sol-medium-results-v0.1.json",
+    "gpt_b2_root": "runs/formal/work-ii-w2-59-study-b2-gpt56-sol-medium-v0.1-20260831",
+    "gpt_c2_root": "runs/formal/work-ii-w2-59-c2-gpt56-sol-medium-replication-v0.1-20260831",
+    "gpt_w2_50_root": "runs/formal/work-ii-w2-59-gpt56-sol-medium-multi-task-open-action-five-world-v0.1-20260831-restart1",
+    "plan": "configs/benchmark/work_ii_cross_model_main_evidence_completion_v0.1.json"
+  },
+  "status": "terminal_with_block_specific_cross_model_coverage",
+  "study_id": "work-ii-w2-59-cross-model-main-evidence-completion-v0.1",
+  "summary_sha256": "1f8ec61c3e7ab41c134a6c62cda5a5de1e45b592f0a6ce21aecf5fece5610764"
+}

@@ -34,11 +34,12 @@ Updated: 2026-08-31. Recheck the official
 | W2-56 replicated B3 | DeepSeek canary rejected; GPT formal 30/30 complete | Provider-specific structural/action control; no cross-provider leaderboard |
 | W2-57 shared-index B3 | Terminal DeepSeek canary 2/3; GPT unstarted | Retained interface failure, not a scientific or cross-model denominator |
 | W2-58 runner-derived-status B3 | Terminal DeepSeek interface canary 0/3; GPT unstarted | Three rc=0 post payloads reused the pre shape despite the required post schema; no scientific or cross-model denominator |
+| W2-59 main-evidence completion | Terminal block-specific coverage | A-P/B2 complete matched DeepSeek + GPT formal; GPT C2 and W2-50 stop after in-denominator triplets; B3 formal 0/30 per provider |
 
 W2-51 and W2-52 are terminal results, not unfinished submission blockers. The unexecuted
 five-condition participant cohort remains a limitation. The paper contains DeepSeek and GPT-5.6-sol
-evidence at programme level, but no evidence block has complete matched formal denominators for both;
-the GPT B3 result remains provider-specific.
+evidence at programme level. A-P and A-S B2 have complete matched formal denominators for both; C2,
+W2-50, and B3 do not, and the GPT B3 result remains provider-specific.
 W2-58 is terminal rather than pending paper evidence: DeepSeek produced six completed provider turns,
 but all three sessions failed the frozen post-action schema; GPT and both formal blocks remained
 unstarted. It must not appear in figures, effect estimates or model comparisons.
@@ -55,7 +56,7 @@ unstarted. It must not appear in figures, effect estimates or model comparisons.
 | Laws to actions | 1.0 | W2-50 selection and law--action separation |
 | Evaluator alignment | 0.8 | W2-51/W2-52 qualification and W2-53 diagnostic |
 | Related work | 0.6 | Scientific agents, active experimentation and evaluation |
-| Limitations and conclusion | 0.6 | Single system, simulated chemistry, no five-condition estimate |
+| Limitations and conclusion | 0.6 | Two fixed systems, partial matched coverage, simulated chemistry, no five-condition estimate |
 
 ## Main display budget
 

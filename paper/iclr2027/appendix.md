@@ -77,6 +77,13 @@ not to establish a population-level arm effect. Recipe divergence is likewise a 
 without repeated same-arm sessions, provider stochasticity cannot be separated from intervention
 sensitivity at exact-recipe resolution.
 
+DeepSeek and GPT-5.6-sol medium used identical matched-evidence worlds, arms, evidence packets,
+queries, and scoring rules. Each completed 15/15 A-P and 15/15 A-S B2 formal sessions with no failed
+cells; canaries were excluded. A-P misspecified-minus-aligned update contrasts were 0.0309 and
+0.0602, with 3/5 and 5/5 positive worlds. A-S B2 contrasts were 0.0645 and 0.0915, with 3/5 and 4/5
+positive worlds; misspecified exact 1.75-law recovery was 0/5 in both models. Configurations are
+reported separately, and no model-superiority test is performed.
+
 ## Participant-identifiable law and action control
 
 The independent B3 control used five frozen public structural-partition worlds, the same opaque,
@@ -106,6 +113,22 @@ came from one action-ineligible world. None of the 18 action-eligible cells reac
 including neither of the two action-eligible cells with joint structural recovery. A matched DeepSeek
 B3 preparation used the same science surface but stopped at a failed canary and has no formal
 denominator; the GPT block is therefore a provider-specific result, not a cross-provider effect.
+
+## Cross-model completion and stop boundaries
+
+The broader completion protocol scheduled 270 formal sessions plus twelve excluded canary sessions.
+Thirty-six formal sessions reached terminal records: 34 were qualified or eligible, two were retained
+failures, and 234 were not started. All twelve excluded canaries were observed; eleven completed and
+one DeepSeek B3 session failed the participant schema.
+
+GPT C2 launched one in-denominator triplet. All three cells completed 8/8 physical experiments, but
+the aligned cell failed session qualification after retained provider errors, leaving 132/135
+sessions unstarted. GPT open-action likewise launched one triplet: opaque and aligned completed
+12/12 experiments, while misspecified execution was interrupted after 5/12; 42/45 sessions remained
+unstarted. The B3 successor produced a 2/3 DeepSeek canary and, after restarting a zero-provider GPT
+platform defect from the first canary unit, a 3/3 GPT canary. Because both canaries had to qualify,
+formal execution remained 0/30 for each model. Partial blocks are retained but are neither completed
+by replacement nor pooled with DeepSeek results.
 
 ## Complete-plan action assay
 
@@ -161,10 +184,10 @@ historical result, threshold, or stop decision.
 
 ## Additional scope boundaries
 
-The study evaluates simulated chemistry and two fixed agent--tool configurations in separately
-reported evidence blocks. It does not establish
-physical laboratory fidelity, universal chemical coverage, cross-provider ordering, or artifact
-portability. The public cohort is not a private-world confirmation. The 45-cell action matrix lacks a
+The study evaluates simulated chemistry and two fixed agent--tool configurations. Matched evidence
+has complete separately reported denominators for both; other participant blocks are provider-specific
+or stopped partials. The study does not establish physical laboratory fidelity, universal chemical
+coverage, cross-provider ordering, or artifact portability. The public cohort is not a private-world confirmation. The 45-cell action matrix lacks a
 same-agent no-evidence baseline. The five-condition causal cohort is unexecuted. A later reduced
 development pilot completed no-evidence and learned-law sessions in one electrochemical stratum, but
 its yoked session was right-censored after five of six provider turns; it is excluded from all main

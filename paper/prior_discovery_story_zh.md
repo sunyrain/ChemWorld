@@ -2,7 +2,7 @@
 
 更新时间：2026-08-31
 
-本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。论文在 programme 层面包含 DeepSeek 与 GPT-5.6-sol，但各证据块的 participant provenance 不同；当前没有任何 block 同时具有两个模型的完整 matched formal 分母。
+本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。论文在 programme 层面包含 DeepSeek 与 GPT-5.6-sol；A-P 与 A-S B2 已具有两个模型完整匹配的 formal 分母，C2、W2-50 与 B3 则因冻结 canary stop 仍是单模型或部分覆盖。
 
 ## 1. 研究对象与中心命题
 
@@ -100,14 +100,20 @@ control，不能写成全局机制恢复。
 ### 3.4 Matched evidence：从二分定位转向三层机制
 
 当前有效 matched-evidence 证据由 A-P Study B 和 A-S B2 各 5 个 worlds 组成。每个 fresh session 先提交
-pre-evidence prediction，再在同一 thread 中读取 8 条证据，最后预测 8 个不重叠 queries；合计 30/30 sessions、
-60/60 turns、0 failures、0 participant physical experiments。原 Study B A-S branch 的 truth source 没有实际
+pre-evidence prediction，再在同一 thread 中读取 8 条证据，最后预测 8 个不重叠 queries。DeepSeek 与
+GPT-5.6-sol medium 都完成 A-P `15/15` 与 B2 `15/15`，两模型合计 `60/60` formal sessions、`120/120`
+turns、0 failures、0 participant physical experiments。原 Study B A-S branch 的 truth source 没有实际
 应用冻结的 structural intervention，该 15-session 结果保留为历史平台缺陷证据，不进入当前 claim。
 
 A-P 给出了清晰的 acquisition 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
 `0.0816/0.0804/0.0778`；5/5 misindexed sessions 都明确推翻“高电位更可靠”，并恢复约 1.1 V 最优、
 1.3 V 以上坍塌的响应。错误参数方向在固定反证到达后不再持续，说明 Study A 中的 A-P 损失至少部分发生在
 如何取得高信息量证据。
+
+GPT 的匹配 A-P replication 得到 opaque/aligned/misindexed mean update gain
+`0.2551/0.2054/0.2657`，primary contrast `+0.0602`，`5/5` worlds 为正（exact one-sided
+`p=0.03125`）；DeepSeek 对应为 `+0.0309`、`3/5` worlds。两个配置都在相同反证到达后发生数值纠错，
+使 evidence-acquisition component 获得 block-specific cross-model replication。
 
 A-S B2 则直接提供预先验证可区分 linear 与 1.75-power response 的 phase-process evidence，并用另一组
 phase-process queries 评分。opaque/aligned/misindexed error 从 `0.2255/0.2736/0.3392` 降至
@@ -121,6 +127,11 @@ acquisition component，但方向不稳定。
 注册关系却没有被表达。Discussion 中可将其类比为“托勒密式拟合”，但类比不能替代 0/5 的小样本事实。
 因此最终机制不再是“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与
 structural law identification 三层分离**。
+
+GPT 的匹配 B2 replication 得到 opaque/aligned/misindexed mean update gain
+`0.2138/0.2017/0.2931`，primary contrast `+0.0915`、`4/5` worlds 为正（exact one-sided
+`p=0.0625`），misindexed exact 1.75-law recovery 仍为 `0/5`。这与 DeepSeek 的 `+0.0645`、`3/5`、
+`0/5` 形成一致的机制剖面：高精度现象学插值没有自动产生结构识别。
 
 W2-56 又用一套独立冻结的 GPT-5.6-sol medium 控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
 world 两个 fresh sessions 上完成 `30/30` GPT-5.6-sol medium formal cells。opaque/aligned/misindexed 的
@@ -231,10 +242,10 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 将 agent 生成的 artifact 在 context reset 后交给新 session，测试它能否改善 target prediction、law 和 action。当前 law fidelity 结果意味着 D 不能默认成功；未来可以比较原始 typed law、结构化 evidence bundle 和更高保真 artifact。
 
-### Phase V — Generality（matched formal comparison 仍需另行授权）
+### Phase V — Generality（matched evidence 已复现，full-chain comparison 仍开放）
 
 - A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
-- Cross-provider：B3 已建立匹配 science surface，但 DeepSeek 在 canary 后 formal 为 0/30，GPT 为 30/30，因此尚未形成 matched effect；未来只能在新的独立冻结 block 中让 DeepSeek、Qwen、Kimi 或 WellAU 等完成同一 formal 分母，检验失效位置是 agent-system 特异还是跨模型稳定。
+- Cross-provider：W2-59 已在 A-P/B2 建立 DeepSeek + GPT 完整 matched formal；C2、W2-50 与 B3 未建立 matched effect。若要扩展这些层或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑 W2-59 的未启动分母。
 - 开放式任务：在统一的最大实验预算与主动 stop/final-plan 接口下，研究何时继续探索、何时停止和如何推荐下一组实验。
 
 这些是大故事的扩展轴，不应在当前结果之后机械地全部跑满。每一阶段都应有独立问题、experiment note、分母和授权。
@@ -250,7 +261,7 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 | Final typed laws 可以执行 | supported，135/135 |
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
-| 结论跨 provider 泛化 | 未建立；GPT B3 为 30/30，matched DeepSeek B3 为 formal 0/30，不能估计跨 provider effect |
+| 结论跨 provider 泛化 | A-P/B2 的关键机制断裂已在 DeepSeek + GPT 匹配分母上复现；C2、W2-50、B3 与完整能力链仍未建立跨模型 effect |
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
 | 自主探索或 learned law 因果性地改善未见计划选择 | 未估计；W2-51 在 participant 前因 fresh crystallization oracle `rho=0.738095<0.80` 科学拒绝，0/225 sessions 启动 |
@@ -281,6 +292,6 @@ cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立�
 还可以说：**W2-52 已区分 construction repair 与 prospective failure，W2-53 已将 complete-ranking gate
 和 action validity 的不一致确立为 evaluator-design 结果；二者都不回写 W2-51 的门槛或 stop rule。**
 
-不能说整个 Paper 2 programme 已完成。尚未完成的是：匹配的跨 provider formal comparison、A-E private confirmation、
+不能说整个 Paper 2 programme 已完成。尚未完成的是：C2/W2-50/B3 的 full-chain cross-provider extension、A-E private confirmation、
 Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
 科学问题，不再是 current-composite evaluator、Study B、W2-50、W2-51 或 W2-52 的遗留门禁。
