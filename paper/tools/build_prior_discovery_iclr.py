@@ -10,6 +10,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import zipfile
 from pathlib import Path
 from typing import Any
 
@@ -41,8 +42,31 @@ FIGURES = (
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.tex"
+SUPPLEMENT_ZIP = EXPORT_DIR / "prior-discovery-iclr2027-supplement.zip"
 BUILD_MANIFEST = EXPORT_DIR / "build-manifest.json"
 SOURCE_DATE_EPOCH = 1_787_616_000  # 2026-08-25 00:00:00 UTC
+
+FORBIDDEN_IDENTITY_STRINGS = (
+    "Jiangjie Qiu",
+    "Yijun Li",
+    "Yaotian Yang",
+    "Honghao Chen",
+    "Wentao Li",
+    "Xiaonan Wang",
+    "wangxiaonan@tsinghua.edu.cn",
+    "Beijing Key Laboratory of Artificial Intelligence",
+    "State Key Laboratory of Chemical Engineering",
+    "Department of Chemical Engineering, Tsinghua University",
+)
+FORBIDDEN_ANONYMOUS_PATTERNS = {
+    "absolute_windows_path": re.compile(r"(?i)(?:^|[\s\"'])(?:[A-Z]:[\\/])"),
+    "absolute_unix_user_path": re.compile(r"(?i)(?:/home/|/Users/|/root/)[^\s\"']*"),
+    "local_run_root": re.compile(r"(?i)(?:^|[\s\"'/])runs[\\/]"),
+    "credential_file": re.compile(r"(?i)(?:api\.md|key2\.md|\.env(?:\W|$))"),
+    "secret_field": re.compile(r"(?i)(?:api[_-]?key|access[_-]?token|bearer[_-]?token)"),
+    "provider_identity": re.compile(r"(?i)(?:thread[_-]?id|request[_-]?id|session[_-]?id)"),
+    "email_address": re.compile(r"(?i)\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b"),
+}
 
 
 def sha256_file(path: Path) -> str:
@@ -113,8 +137,45 @@ def parse_main_text_page(aux: str) -> int:
     return int(match.group(1))
 
 
+def anonymous_text_hits(text: str) -> list[str]:
+    lower = text.lower()
+    hits = [
+        f"identity:{value}"
+        for value in FORBIDDEN_IDENTITY_STRINGS
+        if value.lower() in lower
+    ]
+    hits.extend(
+        f"pattern:{name}"
+        for name, pattern in FORBIDDEN_ANONYMOUS_PATTERNS.items()
+        if pattern.search(text)
+    )
+    return hits
+
+
+def assert_anonymous_supplement() -> None:
+    if not SUPPLEMENT_ZIP.is_file():
+        raise FileNotFoundError(
+            "anonymous supplement is missing; run build_prior_discovery_supplement.py"
+        )
+    with zipfile.ZipFile(SUPPLEMENT_ZIP) as archive:
+        names = archive.namelist()
+        if "manifest.json" not in names or "verify_supplement.py" not in names:
+            raise RuntimeError("anonymous supplement lacks its manifest or verifier")
+        leaks: dict[str, list[str]] = {}
+        for name in names:
+            payload = archive.read(name)
+            if b"\x00" in payload:
+                continue
+            hits = anonymous_text_hits(payload.decode("utf-8"))
+            if hits:
+                leaks[name] = hits
+        if leaks:
+            raise RuntimeError(f"anonymous supplement contains identifying data: {leaks}")
+
+
 def build() -> dict[str, Any]:
     assert_official_assets()
+    assert_anonymous_supplement()
     pandoc = required_tool("pandoc", Path.home() / "AppData/Local/Pandoc/pandoc.exe")
     miktex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
     pdflatex = required_tool("pdflatex", miktex / "pdflatex.exe")
@@ -202,13 +263,8 @@ def build() -> dict[str, Any]:
         shutil.copy2(build_dir / "main.pdf", OUTPUT_PDF)
         shutil.copy2(main_tex, OUTPUT_TEX)
 
-    forbidden_strings = (
-        "wangxiaonan@tsinghua.edu.cn",
-        "Beijing Key Laboratory of Artificial Intelligence",
-        "Department of Chemical Engineering, Tsinghua University",
-    )
     tex_text = OUTPUT_TEX.read_text(encoding="utf-8", errors="replace")
-    leaks = [value for value in forbidden_strings if value.lower() in tex_text.lower()]
+    leaks = anonymous_text_hits(tex_text)
     if leaks:
         raise RuntimeError(f"anonymous TeX contains identifying strings: {leaks}")
 
@@ -263,11 +319,16 @@ def build() -> dict[str, Any]:
                 "bytes": OUTPUT_TEX.stat().st_size,
                 "sha256": sha256_file(OUTPUT_TEX),
             },
+            {
+                "path": SUPPLEMENT_ZIP.relative_to(ROOT).as_posix(),
+                "bytes": SUPPLEMENT_ZIP.stat().st_size,
+                "sha256": sha256_file(SUPPLEMENT_ZIP),
+            },
         ],
         "claim_boundaries": [
             (
-                "The W2-50 open-action matrix remains descriptive; the independent W2-61 "
-                "successor supplies the four-condition action baselines."
+                "The longitudinal open-action matrix remains descriptive; the independent "
+                "four-condition successor supplies the action baselines."
             ),
             (
                 "The five-condition participant cohort was not executed after oracle "
@@ -287,7 +348,7 @@ def build() -> dict[str, Any]:
                 "failure patterns make their contrasts descriptive rather than capability rankings."
             ),
             (
-                "W2-61 retains unequal donor eligibility and substantial yoked-recipient "
+                "The four-condition successor retains unequal donor eligibility and substantial "
                 "failure, so autonomous-minus-yoked is not a pure experiment-selection effect."
             ),
             (

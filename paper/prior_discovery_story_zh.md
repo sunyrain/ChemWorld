@@ -2,7 +2,7 @@
 
 更新时间：2026-09-03
 
-本文档是 Work II 的作者侧论证入口。它不是投稿定稿；原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。所有 participant-bearing 主证据现在都有 DeepSeek 与 GPT-5.6-sol/Codex 的 scheduled surface：A-P 与 A-S B2 是完整 matched formal，C2 各有 135 cells，B3 各有 30 cells，W2-50 的四条件 successor 各有 180 slots。所有失败保留，因此“双模型补全”不等于全 cell completed，也不授权模型排行榜。
+本文档是 Work II 的作者侧论证入口。它不是投稿定稿；原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。A-P/B2、C2、B3 与四条件 successor 已有 DeepSeek-v4-flash 和 GPT-5.6-sol 的 scheduled surface；原 W2-50 纵向队列及 W2-64 decision-aligned diagnostic 仍为 DeepSeek-only。Codex 是两者共用的 session harness，不是第三个 participant 模型。A-P 与 A-S B2 是完整 matched formal，C2 各有 135 cells，B3 各有 30 cells，四条件 successor 各有 180 slots。所有失败保留，因此“双模型补全”不等于全 cell completed，也不授权模型排行榜。
 
 ## 1. 研究对象与中心命题
 
@@ -105,41 +105,44 @@ GPT-5.6-sol medium 都完成 A-P `15/15` 与 B2 `15/15`，两模型合计 `60/60
 turns、0 failures、0 participant physical experiments；后续 DeepSeek-low B2 再增加 15/15，使当前有效
 matched formal 总数为 75 sessions。原 Study B A-S branch 的 truth source 没有实际
 应用冻结的 structural intervention，该 15-session 结果保留为历史平台缺陷证据，不进入当前 claim。
+该设计固定了 packet 内容，但同时增加 packet 与一个 response turn；因为没有 turn-matched no-packet
+control，它估计 conditional post-packet response，而不是纯 evidence-packet 因果效应。
 
 A-P 给出了清晰的 acquisition 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
 `0.0816/0.0804/0.0778`；5/5 misindexed sessions 都明确推翻“高电位更可靠”，并恢复约 1.1 V 最优、
-1.3 V 以上坍塌的响应。错误参数方向在固定反证到达后不再持续，说明 Study A 中的 A-P 损失至少部分发生在
-如何取得高信息量证据。
+1.3 V 以上坍塌的响应。错误参数方向在固定反证到达后不再持续，把 Study A 中的 A-P 损失定位在取得反证
+之前或 packet 后响应之外的上游环节；额外 response turn 未单独控制，因此不写成纯证据包效应。
 
 GPT 的匹配 A-P replication 得到 opaque/aligned/misindexed mean update gain
 `0.2551/0.2054/0.2657`，primary contrast `+0.0602`，`5/5` worlds 为正（exact one-sided
 `p=0.03125`）；DeepSeek 对应为 `+0.0309`、`3/5` worlds。两个配置都在相同反证到达后发生数值纠错，
-使 evidence-acquisition component 获得 block-specific cross-model replication。
+使 conditional post-packet numerical correction 获得 block-specific cross-model replication。
 
-A-S B2 则直接提供预先验证可区分 linear 与 1.75-power response 的 phase-process evidence，并用另一组
-phase-process queries 评分。opaque/aligned/misindexed error 从 `0.2255/0.2736/0.3392` 降至
+A-S B2 提供固定的 phase-process packet，并用另一组 phase-process queries 评分。opaque/aligned/misindexed error 从 `0.2255/0.2736/0.3392` 降至
 `0.0074/0.0060/0.0071`；misindexed-minus-aligned update-gain contrast 为 `+0.0645`，3/5 worlds 为正，
-exact one-sided sign-flip `p=0.125`。这说明 law-level evidence 到达后存在 descriptive prediction-level
-acquisition component，但方向不稳定。
+exact one-sided sign-flip `p=0.125`。这支持 law-level packet 后的 descriptive conditional response，
+但不能把 packet 与额外 response turn 分解为纯 acquisition effect，且方向并不稳定。
 
-更关键的是，misindexed 0/5 恢复 exact 1.75 law，仅 1/5 明确拒绝 supplied linear partition form，5/5 转向
-经验饱和/endpoint 模型。模型显然进行了 numerical revision，却没有形成注册结构规律。这是
-**phenomenological interpolation 与 structural identification 的分离**：局部数值可以贴合，生成该证据的
-注册关系却没有被表达。Discussion 中可将其类比为“托勒密式拟合”，但类比不能替代 0/5 的小样本事实。
-因此最终机制不再是“seeking 或 updating”单标签，而是 **evidence acquisition、numerical belief revision 与
-structural law identification 三层分离**。
+事后 public-summary coding 显示，misindexed 0/5 表达 exact 1.75 law，仅 1/5 明确拒绝 supplied linear
+partition form，5/5 转向经验饱和/endpoint 模型。但 participant-visible audit 发现：B2 的 evidence 与
+scoring 只覆盖一个 nominal pair，未提供 base partition coefficient，也没有 typed family/exponent 字段；
+free-coefficient linear law 与 1.75-power law 在该表面存在精确 alias（系数倍数 `3.13588`）。常数 endpoint
+baseline 的 mean MAE 已达 `0.00649`，aligned DeepSeek-high exact-law positive control 也只有 `1/5`，未通过
+readout criterion。因此 B2 的稳健结论是 **underidentifying free-text surface 上的 post-packet
+numerical--exact-law-expression dissociation**，不能把 0/5 定位为 agent 内部 structural-identification failure。
+真正 participant-identifiable 的结构检验由后续 B3 承担。
 
 GPT 的匹配 B2 replication 得到 opaque/aligned/misindexed mean update gain
 `0.2138/0.2017/0.2931`，primary contrast `+0.0915`、`4/5` worlds 为正（exact one-sided
-`p=0.0625`），misindexed exact 1.75-law recovery 仍为 `0/5`。这与 DeepSeek 的 `+0.0645`、`3/5`、
-`0/5` 形成一致的机制剖面：高精度现象学插值没有自动产生结构识别。
+`p=0.0625`），misindexed exact 1.75-law expression 仍为 `0/5`。这与 DeepSeek 的 `+0.0645`、`3/5`、
+`0/5` 形成一致的条件性数值—表达剖面，不是结构识别的跨模型检验。
 
 W2-60 又在同一 DeepSeek Codex harness 中只把 reasoning effort 从 high 改为 low。B2 canary `3/3`
 通过，formal `15/15`、30/30 turns、0 failures；opaque/aligned/misindexed post error 为
-`0.0067/0.0069/0.0069`，全部 15 cells 均低于 0.02，misindexed exact 1.75-law recovery 仍为
+`0.0067/0.0069/0.0069`，全部 15 cells 均低于 0.02，misindexed exact 1.75-law expression 仍为
 `0/5`。但 primary contrast 反向为 `-0.0405`，仅 `2/5` worlds 为正（exact one-sided
 `p=0.8125`）。provider-reported reasoning output 相对 high 从 `506,637` 降到 `400,639`
-（-20.9%）。因此最稳健的是 numerical--structural break，而不是选择性 update contrast 的方向。
+（-20.9%）。因此最稳健的是 post-packet numerical--expression dissociation，而不是选择性 update contrast 的方向。
 `low` 不是 reasoning-off；真正 provider thinking-off 需要换 direct controller，会混入 harness 差异。
 独立 A-P low canary 没有形成 terminal cell receipts/canary summary，按 platform-defective partial 保留，
 formal `0/15`，不产生 A-P low 科学估计。
@@ -157,13 +160,13 @@ recovery 且 action-eligible 的两个 cells 也为 `0/2`。因此“结构理�
 
 W2-63 在完全相同的 B3 science surface 上从第一 cell 新建 DeepSeek-high successor，终态为 `17/30`
 completed 与 `13/30` participant-schema failures。failure-aware joint recovery、Top-1、regret、post MAE
-分别为 `0/30`、`0/30`、`0.9579`、`0.0928`；Codex 对应为 `5/30`、`2/30`、`0.7594`、`0.0320`。
+分别为 `0/30`、`0/30`、`0.9579`、`0.0928`；GPT-5.6-sol 对应为 `5/30`、`2/30`、`0.7594`、`0.0320`。
 两模型 eligible gain≥0.02 均为 0。这个结果补齐 B3 双模型分母，同时以 differential schema failure
 明确限制 capability ranking。
 
-W2-62 也为 Codex 补齐完整 135-cell C2：`126 completed + 3 failed + 6 right-censored`，1,253/1,260
+W2-62 也为 GPT-5.6-sol 补齐完整 135-cell C2：`126 completed + 3 failed + 6 right-censored`，1,253/1,260
 participant experiments；420/420 truth、669/675 checkpoints、129/135 laws、756/810 scheduled blind
-executions。Codex 相对 DeepSeek 的 law MAE 从 `0.2371` 降至 `0.1753`、compression loss 从 `0.0686`
+executions。GPT-5.6-sol 相对 DeepSeek-v4-flash 的 law MAE 从 `0.2371` 降至 `0.1753`、compression loss 从 `0.0686`
 降至 `0.0142`，但 blind gain 仍为 `-0.0001` 对 `-0.0010`。这使“更好的规律表示仍不保证行动增益”
 成为完整 C2 双模型结果。
 
@@ -205,11 +208,20 @@ electrochemical `+0.524`、reaction safety `-0.592`、crystallization `-0.007`�
 阈值从 `0.05` 扫到 `0.30` 时，adequate subset 从 1 个增至 34 个，但其中 correct action 只从 0 个增至
 9 个。四象限因此只是连续、task-dependent 非单调关系的一个可读切片，而不是结论本身。
 
+W2-64 又对 DeepSeek W2-50 的 45 个冻结 cell 逐一执行最后一条可用 executable law；三条没有
+terminal action ranking 的失败 cell 仍保留更早的可执行 law。law-implied Top-1 为 `0/45`，participant
+failure-aware Top-1 为 `11/45`；42 条有效 participant rankings 中只有 `12/42` 跟随 law-implied Top-1，
+平均 law-implied/participant regret 为 `0.438/0.344`。该分解只属于 DeepSeek 纵向 cohort，且 law
+quality 与 law use 均未随机化，因此是 decision-aligned 描述性诊断，不是双模型因果效应。
+
 Agent 层面的结论是 law-action decoupling。W2-61 随后在 W2-50 scientific surface 上移除 oracle，
 为每个模型安排 45 strata × 4 conditions = 180 slots：no evidence、yoked evidence、learned-law-only、
-autonomous exploration。DeepSeek/Codex donor-eligible 为 `42/26`，共同可配对 `26` strata。
-donor-eligible autonomous-minus-no-evidence regret 差为 `-0.1214/-0.1379`，但区间均跨零；
-learned-law-minus-no-evidence 为 `-0.0267/+0.0970`，也没有稳定收益。yoked 只完成 `10/42` 与 `24/26`，
+autonomous exploration。primary 是保留全部 45 strata 的 all-scheduled failure-aware strategy
+estimand：DeepSeek/GPT autonomy-minus-no-evidence 为 `-0.0913/+0.1102`，95% cluster intervals
+分别为 `[-0.2124,0.0388]` 与 `[-0.0533,0.2794]`，方向相反且均跨零。按任务分解也异质：DeepSeek
+三任务为 `-0.2398/-0.4060/+0.3720`，GPT 为 `+0.0891/-0.2191/+0.4605`。learned-law-minus-none
+为 `-0.0028/+0.2459`，没有一致的 artifact benefit。donor-eligible `42/26` 及其
+`-0.1214/-0.1379` 只作 post-treatment availability sensitivity；yoked 只完成 `10/42` 与 `24/26`，
 所以 autonomous-minus-yoked 的 failure-aware 优势不能解释成纯 experiment-selection effect。
 
 历史 W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
@@ -230,24 +242,25 @@ misalignment：完整排序相关性和真实动作损失是不同 estimand，�
 2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
 3. 这种学习没有自动形成选择性的错误先验纠正，也没有可靠压缩成高保真 executable law。
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
-5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
+5. Matched evidence 的 conditional post-packet response 能消除 A-P 错误参数方向；在 A-S B2，packet 后出现 mixed prediction gain，但欠识别表面上未稳定表达 exact law，不能据此判断结构恢复；participant-identifiable 结构检验由 B3 承担，且 packet 与额外 response turn 未被拆开。
 6. 即使候选执行语义完整公开，规律充分性与未见行动选择仍是非单调映射：坏律可以选对，合格律也可以选错。
-7. 四条件 successor 中 autonomy 相对 no evidence 方向有利但区间跨零，learned law 无稳定收益；yoked failures 又阻止纯 experiment-selection 解释。
+7. 四条件 successor 的 all-scheduled autonomy 效应跨模型方向不一致且区间跨零，learned law 没有一致收益；yoked failures 又阻止纯 experiment-selection 解释。
 8. Evaluator 的完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
 
 ## 5. 更大的论文计划
 
-### Phase I — Controlled capability map（当前已完成 public DeepSeek）
+### Phase I — Controlled capability map（当前已完成双模型 scheduled surface）
 
 在 A-E、A-P、A-S 三类世界模型干预下，测量 endpoint、prediction、law 和 action 的转换损失。当前 135-session public cohort 与 current-composite evaluator 已闭环。
 
 ### Phase II — Evidence acquisition versus belief revision（A-P Study B + A-S B2 已终态）
 
-当前有效 block 已完成 10 clusters、30 fresh sessions。A-P 支持 evidence-acquisition component；A-S B2 得到
-mixed positive prediction contrast 与 0/5 exact law recovery。二元 C3 强主张不支持，Phase II 以三层机制图谱
-终态收束，不再追加同类 B2 追求单一标签。
+当前有效 block 已完成 10 clusters、30 fresh sessions。A-P 支持 conditional post-packet response；A-S B2 得到
+mixed prediction contrast 与 0/5 exact-law expression，但该 free-text one-pair surface 不具备结构可识别性。
+Phase II 因而收束为 acquisition 与 conditional numerical response 的定位，并把结构识别交给独立 B3，
+不再追加同类 B2 追求单一标签。
 
 ### Phase III — From recovered law to unseen action（描述性终态；causal follow-up 已关闭）
 
@@ -286,14 +299,14 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 | 初始世界模型改变实验搜索 | supported，限当前 DeepSeek agent system |
 | 正确先验普遍提高 endpoint | rejected；只有 task-specific effects |
 | Agent 普遍降低 held-out prediction error | supported descriptively |
-| Agent 选择性纠正错误先验 | Study A overall not supported；A-P matched evidence 支持 acquisition component；A-S B2 prediction contrast mixed、exact law recovery 不支持 |
-| Final typed laws 可以执行 | supported，135/135 |
+| Agent 选择性纠正错误先验 | Study A overall not supported；A-P matched evidence 支持 conditional response；A-S B2 prediction contrast mixed，exact-law-expression coding 为诊断性且表面不具结构可识别性；B3 提供独立结构检验 |
+| Final typed laws 可以执行 | DeepSeek supported，135/135；GPT 为 129/135 available laws，6 个缺失保留 |
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
-| 结论跨 provider 泛化 | 所有 participant-bearing 主证据均有双模型 scheduled surface；A-P/B2 是完整 matched formal，C2/B3/W2-61 是 failure-aware matched descriptive，不等于 provider causal effect |
+| 结论跨 provider 泛化 | A-P/B2、C2、B3 与 W2-61 有双模型 scheduled surface，但 W2-50/W2-64 decision-aligned 诊断是 DeepSeek-only；所有跨模型结果均为 block-specific descriptive，不等于 provider causal effect |
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
-| 自主探索或 learned law 改善未见计划选择 | W2-61 autonomy-minus-none 在两模型方向有利但区间跨零；learned-law-minus-none 无稳定收益；yoked failures 限制机制解释。原 W2-51 五条件效应仍未估计 |
+| 自主探索或 learned law 改善未见计划选择 | W2-61 all-scheduled autonomy-minus-none 为 DeepSeek `-0.0913`、GPT `+0.1102`，方向不一致且区间跨零；learned-law-minus-none 无一致收益；yoked failures 限制机制解释。原 W2-51 五条件效应仍未估计 |
 | 320-query oracle 已在 fresh worlds 泛化 | 不支持；construction 7/7 通过，但首个 prospective world `rho=0.714286<0.80` 后停止 |
 | 完整排序 gate 可以替代动作有效性 | 不支持；96-query 为 rank gate 7/8、Top-1 1/8，fresh 320-query 为 rank-fail/action-correct |
 | W2-54 已估计四条件或五条件因果效应 | 不支持；仅单 stratum development pilot，yoked 在 5/6 turns 后右删失 |
@@ -303,7 +316,7 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 1. **Figure 1 — Capability chain and study map**：合并世界干预、persistent loop 与 evidence partitions。
 2. **Figure 2 — Prior-conditioned discovery**：合并 endpoint archetypes、first action 与 prediction correction。
-3. **Figure 3/4 — Phenomenological interpolation versus structural recovery**：matched evidence、15/15 低 post-evidence error、B2 的 0/5 exact-law recovery，以及双模型 B3 的 law-to-action bridge。
+3. **Figure 3/4 — Numerical expression versus identifiable structure**：matched evidence、B2 的 15/15 低 post-evidence error 与事后 exact-law-expression coding，以及双模型 B3 的可识别 law-to-action bridge。
 4. **Figure 5 — Better law, same action**：双模型 135-cell C2 selective correction、prediction improvement、law compression 与 blind action。
 5. **Figure 6 — Four-condition action and evaluator validity**：W2-61 四条件 regret/contrasts、W2-50 连续 law-action 关系与 W2-53 rank-action 错位。
 6. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
@@ -311,7 +324,7 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 ## 8. 现在是否可以说“预测任务完成”
 
-可以精确地说：**DeepSeek 与 Codex 的 C2 scheduled surfaces 均已终态；前者 675 checkpoints、135 laws、726 blind executions，后者 669 checkpoints、129 laws、756 blind executions。**
+可以精确地说：**DeepSeek-v4-flash 与 GPT-5.6-sol 的 C2 scheduled surfaces 均已终态；前者 675 checkpoints、135 laws、726 blind executions，后者 669 checkpoints、129 laws、756 blind executions。Codex 是共同运行 harness。**
 
 还可以进一步说：**当前 W2-50 多任务五世界 open-action 已完成 45/45 cell records、42/45 可评分
 cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立为独立失效层。**

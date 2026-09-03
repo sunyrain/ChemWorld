@@ -5,38 +5,32 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 MANUSCRIPT = ROOT / "paper/prior_discovery_manuscript.md"
+ICLR_SUBMISSION = ROOT / "paper/iclr2027/submission.md"
+ICLR_APPENDIX = ROOT / "paper/iclr2027/appendix.md"
 EVIDENCE_MAP = ROOT / "paper/prior_discovery_evidence_map.md"
 DISPLAY_ITEMS = ROOT / "paper/prior_discovery_display_items.md"
 PAPER_STORY_ANALYSIS = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
 )
 CURRENT_COMPOSITE_EVALUATION = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
 )
 B2_ANALYSIS = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "work-ii-as-study-b2-phase-process-results-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-as-study-b2-phase-process-results-v0.1.json"
 )
 LOW_B2_ANALYSIS = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-as-study-b2-deepseek-v4-flash-low-results-v0.1.json"
 )
 B3_GPT_CLOSEOUT = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-as-study-b3-gpt56-sol-medium-formal-closeout-v0.1.json"
 )
 FIGURE_MANIFEST = ROOT / "paper/figures/prior-discovery/figure_manifest.json"
 BUILD_MANIFEST = ROOT / "paper/exports/prior-discovery-draft/build-manifest.json"
 CLOSEOUT = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-deepseek-five-task-development-complete-20260810.json"
 )
 
@@ -67,7 +61,7 @@ def test_deepseek_five_task_closeout_denominators_are_bound_without_overclaim() 
     assert "97.05%" not in manuscript
     assert "repeated model output" not in manuscript
     assert "Web search is disabled" not in manuscript
-    assert "fixed DeepSeek-V4-Flash experimental-agent configuration" in manuscript
+    assert "fixed DeepSeek-v4-flash experimental-agent configuration" in manuscript
     assert "complete agent--tool configuration" in manuscript
 
 
@@ -79,10 +73,7 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
     assert "Prior uptake without established selective correction" in display_items
-    assert (
-        "Matched evidence replicates numerical convergence without structural recovery"
-        in display_items
-    )
+    assert "B2 separates numerical fit from expression; B3 identifies structure" in display_items
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "no same-arm replicate baseline" in limits
@@ -111,6 +102,8 @@ def test_draft_manifest_preserves_development_formal_private_boundaries() -> Non
 
 def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> None:
     manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    submission = ICLR_SUBMISSION.read_text(encoding="utf-8")
+    appendix = ICLR_APPENDIX.read_text(encoding="utf-8")
     display_items = DISPLAY_ITEMS.read_text(encoding="utf-8")
     analysis = json.loads(PAPER_STORY_ANALYSIS.read_text(encoding="utf-8"))
     evaluation = json.loads(CURRENT_COMPOSITE_EVALUATION.read_text(encoding="utf-8"))
@@ -140,18 +133,21 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert law["law_worse_than_final_prediction_count"] == 84
     assert round(b2["primary_contrast"]["mean"], 4) == 0.0645
     assert b2["primary_contrast"]["positive_world_count"] == 3
-    assert b2["public_summary_audit"]["by_arm"]["misindexed_nominal"][
-        "exact_1_75_power_law_recovery_count"
-    ] == 0
     assert (
-        "Predictive learning does not establish selective repair of a wrong starting model"
-        in manuscript
+        b2["public_summary_audit"]["by_arm"]["misindexed_nominal"][
+            "exact_1_75_power_law_recovery_count"
+        ]
+        == 0
     )
+    assert "does not establish selective repair" in manuscript
+    assert "Priors scaffold search without selective correction" in submission
     assert "1/119/1" in manuscript
-    assert (
-        "Matched counterevidence drives numerical convergence but not structural-law recovery"
-        in manuscript
-    )
+    assert "Matched packets expose numerical--expression dissociation" in submission
+    assert "underidentifying surface" in submission
+    assert "135 separate sessions nested within 45 independent task--world clusters" in submission
+    assert "135 independent persistent sessions" not in submission
+    assert "confirmatory bounds use the adverse interval $[-1,+1]$" in appendix
+    assert "observed-point sensitivities only" in appendix
     assert "+0.0645/+0.0915/-0.0405" in display_items
     assert "completed evaluator contains" in display_items
 
@@ -175,6 +171,8 @@ def test_deepseek_low_b2_ablation_is_bound_without_thinking_off_overclaim() -> N
 
 def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:
     manuscript = MANUSCRIPT.read_text(encoding="utf-8")
+    submission = ICLR_SUBMISSION.read_text(encoding="utf-8")
+    appendix = ICLR_APPENDIX.read_text(encoding="utf-8")
     evidence_map = EVIDENCE_MAP.read_text(encoding="utf-8")
     closeout = json.loads(B3_GPT_CLOSEOUT.read_text(encoding="utf-8"))
 
@@ -188,7 +186,10 @@ def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:
     action = closeout["science"]["action_bridge"]
     assert action["action_opportunity_eligible_cell_denominator"] == 18
     assert action["gain_at_least_0_02_count"] == 0
-    combined = manuscript + evidence_map
-    assert "0/18" in combined
+    combined = manuscript + submission + appendix + evidence_map
+    assert "0/18 for both" in submission
+    assert "0/13 versus 0/18" in appendix
+    assert "0/18 for both models on the" in appendix
+    assert "fixed scheduled-opportunity denominator" in appendix
     assert "provider-specific" in combined
     assert "cross-provider leaderboard" in evidence_map

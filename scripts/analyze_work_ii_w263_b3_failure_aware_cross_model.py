@@ -396,6 +396,10 @@ def build_summary(deepseek_root: Path, codex_root: Path) -> dict[str, Any]:
         "formal_result": False,
         "scheduled_cells_by_model": {"deepseek": 30, "codex": 30},
         "shared_science": shared,
+        "cell_rows_by_model": {
+            "deepseek": deepseek_rows,
+            "codex": codex_rows,
+        },
         "models": {
             "deepseek": {
                 "provider": deepseek["manifest"]["provider"],

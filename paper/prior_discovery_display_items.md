@@ -44,12 +44,14 @@ occurs, but the wrong model is not selectively repaired.
 
 Panel B is a retrospective manipulation check without a repeated same-arm baseline.
 
-## Figure 4 — Matched evidence replicates numerical convergence without structural recovery
+## Figure 4 — B2 separates numerical fit from expression; B3 identifies structure
 
-**Claim:** identical diagnostic evidence can restore numerical predictions without recovering the
-governing structural law.
+**Claim:** identical packets yield low post-packet error without stable exact-law expression on B2's
+underidentifying free-text surface; a separate participant-identifiable B3 control finds sparse
+structural recovery and no useful action gain. B2 is a conditional post-packet response: evidence and
+one added response turn are bundled, so it is not a pure evidence-packet effect.
 
-- A: DeepSeek-high pre-to-post structural error for all 15 corrected matched-evidence cells;
+- A: DeepSeek-high B2 pre-to-post prediction error for all 15 corrected matched-evidence cells;
 - B: DeepSeek-high 15/15 cells at low post-evidence error, with arm means of 0.0074, 0.0060 and 0.0071;
 - C: mean world-level misspecified-minus-aligned update-gain contrasts for A-P DeepSeek-high/GPT-medium
   and A-S B2 DeepSeek-high/GPT-medium/DeepSeek-low. The B2 values are +0.0645/+0.0915/-0.0405;
@@ -59,12 +61,15 @@ governing structural law.
 
 The earlier structural run affected by an evaluator omission is excluded. Every five-world analysis
 is descriptive and non-confirmatory. DeepSeek low is a same-harness reasoning-budget setting, not
-reasoning-off; its A-P block has no qualified denominator and is not plotted.
+reasoning-off; its A-P block has no qualified denominator and is not plotted. B2 exact-law counts are
+retrospective public-summary expression coding, not structural-recovery estimates; the one-pair
+surface admits an exact linear/power alias, a constant endpoint baseline reaches mean MAE 0.00649,
+and the aligned DeepSeek-high positive control is only 1/5.
 
 ## Figure 5 — Better executable laws still do not produce better actions
 
 **Claim:** both complete C2 scheduled surfaces show general prediction learning without selective
-correction or an action advantage; Codex reduces executable-law compression loss without improving
+correction or an action advantage; GPT-5.6-sol reduces executable-law compression loss without improving
 blind action.
 
 - A: registered failure-aware correction estimates and lower bounds for A-E, A-P and A-S in both
@@ -74,31 +79,32 @@ blind action.
 - D: blind better/equivalent/worse/not-evaluable outcomes over every scheduled cell per model.
 
 The completed evaluator contains 420/420 truth executions per model. DeepSeek contributes 675/675
-checkpoint scores, 135/135 law evaluations and 726 launched blind replays; Codex contributes 669/675
+checkpoint scores, 135/135 law evaluations and 726 launched blind replays; GPT-5.6-sol contributes 669/675
 checkpoint scores, 129/135 law evaluations and 756/810 scheduled blind executions. Cross-model
 contrasts are matched descriptive, not provider causal effects or a leaderboard.
 
 ## Figure 6 — Evidence, learned laws and evaluator rankings diverge from action
 
-**Claim:** the four-condition successor does not establish a stable portable-law benefit, continuous
+**Claim:** the four-condition successor does not establish a consistent portable-law benefit, continuous
 law quality maps non-monotonically to action, and complete-ranking qualification does not certify the
 decision endpoint.
 
-- A: failure-aware normalized regret under no evidence, yoked evidence, learned-law-only and
-  autonomous exploration in each model-specific donor-eligible population;
-- B: continuous final-law MAE versus normalized regret for all 42 W2-50 eligible cells, with task identity
-  and Top-1 selections; inset shows correct/wrong actions inside the adequate subset at seven
-  thresholds from 0.05 to 0.30;
+- A: all-scheduled failure-aware normalized regret under no evidence, yoked evidence, learned-law-only
+  and autonomous exploration, retaining all 45 strata per model;
+- B: last-available-law-implied versus participant regret for all 45 frozen DeepSeek W2-50 cells;
+  three cells without terminal action rankings retain earlier executable laws, and stars mark
+  participant Top-1 selections;
 - C: registered W2-61 regret contrasts with task--world cluster-bootstrap intervals for DeepSeek and
-  Codex, retaining yoked-recipient failures;
+  GPT-5.6-sol, retaining donor and yoked-recipient failures;
 - D: Spearman--regret scatter for all 16 completed 96- and 320-query unit versions, highlighting six
   fresh 96-query rank-pass/action-wrong units and the fresh 320-query rank-fail/action-correct unit.
 
-W2-61 schedules 180 condition slots per model on the 45 W2-50 strata, with donor eligibility of 42
-for DeepSeek and 26 for Codex. Its model-specific autonomous-minus-no-evidence estimates are
-directionally favourable but both intervals cross zero; learned-law-only transfer is unstable, and
-yoked completion of 10/42 and 24/26 prevents a pure experiment-selection interpretation. W2-50 arm
-means remain descriptive. The W2-53 panel adds no participant or truth execution: it reproduces
+W2-61 schedules 180 condition slots per model on the 45 W2-50 strata. Its primary all-scheduled
+autonomous-minus-no-evidence estimates are -0.0913 for DeepSeek and +0.1102 for GPT-5.6-sol; both
+intervals cross zero and task-specific signs differ. Donor eligibility of 42/26 and estimates of
+-0.1214/-0.1379 are post-treatment sensitivities only. Learned-law-only transfer is inconsistent,
+and yoked completion of 10/42 and 24/26 prevents a pure experiment-selection interpretation. The
+decision-aligned W2-50 panel is DeepSeek-only and descriptive. The W2-53 panel adds no participant or truth execution: it reproduces
 16/16 completed unit-version outcomes and diagnoses mismatch between complete-ranking and decision
 estimands.
 

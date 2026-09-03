@@ -17,6 +17,18 @@ The build writes the anonymous PDF, generated TeX, and machine-readable audit to
 citations, cross-references, LaTeX errors, horizontal and vertical overflow, and a fixed set of direct
 identity leaks.
 
-Current development status: the main text is within the nine-page initial-submission limit. The
-evidence-bound action/evaluator figure integrates W2-50 cell outcomes, W2-51/W2-52 qualification
-funnels and the W2-53 unit-level alignment diagnostic without introducing a participant-effect panel.
+The venue-neutral figure bundle contains six assets; the compact ICLR main text selects five of them
+(assets 1 and 3--6) and renumbers that selection consecutively. Its final action/evaluator figure
+combines all-scheduled four-condition outcomes, a decision-aligned executable-law-versus-participant
+regret panel and the frozen unit-level ranking diagnostic. The W2-51/W2-52 qualification details stay
+in the appendix and anonymous supplement rather than appearing as a
+participant-effect panel.
+
+The current verified build is anonymous, uses all nine allowed main-text pages and has 19 pages in
+total. Contact-sheet and detailed figure-page review found no clipping, overlap, blank pages or float
+collisions. The anonymous supplementary archive contains 45 ZIP members; its standalone verifier
+checks 44 packaged files, recomputes the four-condition contrasts and C2/B3 failure-aware
+denominators from cell records, and independently reruns B2 expression coding from 45 public
+summaries. All bibliography records have been
+resolved against source metadata. Author order, OpenReview profiles and reciprocal-review eligibility
+remain manual pre-submission checks.

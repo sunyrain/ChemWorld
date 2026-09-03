@@ -6,16 +6,20 @@ abstract: |
   Experimental success does not reveal whether a scientific agent learned the right model. We use
   ChemWorld as a controlled causal probe: physics, interface, resources, and stochastic identity stay
   fixed while the initial model is opaque, aligned, or misspecified at entity, parametric, or
-  structural loci. Across 135 public sessions, search changed and prediction error fell in every arm
-  and locus, yet all three selective-correction criteria failed. Matched structural evidence reduced
-  mean error from 0.2255--0.3392 to 0.0060--0.0074, but DeepSeek and GPT recovered the registered 1.75
-  power law in 0/5 misspecified worlds; the same break survived a lower-reasoning ablation. On matched
-  30-cell identifiable-law surfaces, joint recovery was 0/30 for DeepSeek and 5/30 for Codex, with no
-  registered action gain in either model. A 135-cell Codex replication lowered executable-law MAE
-  from 0.237 to 0.175, yet blind gain remained approximately zero in both models. An oracle-free
-  four-condition successor found no stable learned-law benefit; autonomy was directionally favourable
-  but intervals crossed zero and yoked failures were substantial. Only 11/42 fresh action readouts
-  selected Top-1. Finally, a ranking control passed 7/8 fresh units while selecting Top-1 in 1/8,
+  structural loci. Across 135 sessions nested within 45 independent task--world clusters, search
+  patterns differed across arms and prediction error fell in every arm and locus, yet all three selective-correction
+  criteria failed. After matched one-pair partition packets, mean error fell from 0.2255--0.3392 to
+  0.0060--0.0074 and exact 1.75-law expression was 0/5 in both models, but this one-pair free-text
+  surface admits an exact linear/power alias. On separate matched 30-cell reference-fitter-identifiable
+  surfaces, failure-aware joint recovery was 0/30 for DeepSeek-v4-flash (17 completed, 13 schema
+  failures) and 5/30 for GPT-5.6-sol, with no useful-gain success among 18 scheduled opportunities per model. On
+  fully scheduled 135-cell surfaces, the 129/135 available GPT-5.6-sol laws had lower MAE than the
+  135/135 DeepSeek laws (0.175 versus 0.237), yet blind gain remained approximately zero in both. In an oracle-free four-condition
+  development successor, the all-scheduled autonomy-minus-no-evidence estimate was -0.091 for
+  DeepSeek-v4-flash and +0.110 for GPT-5.6-sol; both intervals crossed zero. In the DeepSeek
+  longitudinal cohort, re-executing the last-available laws from all 45 cells over the frozen candidate
+  packets yielded 0/45 law-implied versus 11/45 participant Top-1 choices. Finally, a ranking control passed 7/8
+  fresh units while selecting Top-1 in 1/8,
   whereas another failed the rank gate but selected Top-1 with zero regret. Numerical revision,
   structural identification, executable compression, decision transfer, and evaluator validity are
   distinct transitions rather than one score.
@@ -40,7 +44,8 @@ experiment selection, endpoint optimization, and verbal explanation are usually 
 Consequently, a high score need not identify which transformation succeeded, and a low score need not
 identify which transformation failed.
 
-We make those transformations observable by using ChemWorld as a controlled causal probe. The same
+We make those transformations observable by using ChemWorld [@qiu2026chemworld] as a controlled
+causal probe. The same
 executable world, interface, resources, and stochastic identity are held fixed while its initial model
 is made opaque, aligned, or misspecified at a declared entity, parametric, or structural locus.
 Persistent agents then interact through a transactional laboratory interface. Evaluator-owned
@@ -48,11 +53,14 @@ counterfactual queries, matched contradictory evidence, executable-law assays, a
 ActionPlans separately measure search, prediction, structural identification, compression, and
 decision transfer.
 
-Our contribution is a causal map rather than a scalar leaderboard. Four breaks emerge: priors redirect
-search without selective repair; matched evidence yields numerical convergence without reliable
-structural recovery; executable laws can lose information present in explicit predictions; and both
-agent-level law adequacy and evaluator-level rank qualification decouple from action validity. This
-locates losses in revision, identification, compression, transfer, and evaluation.
+Our contribution is a transition map rather than a scalar leaderboard. Its causal scope is explicit:
+initial-model assignment manipulates the participant-facing starting model, while matched counterevidence
+probes conditional post-packet response. Law--action analyses are descriptive associations, the four-condition
+successor estimates development-stage information strategies with system failures retained, and the
+oracle studies diagnose evaluator controls. Across these layers, four breaks emerge: search patterns
+  differ across initial-model arms without establishing selective repair; post-packet numerical convergence does not certify
+  structure, and recovery remains sparse on an identifiable control; executable laws can lose information present in explicit predictions;
+and neither law error nor rank qualification is a sufficient proxy for action validity.
 
 ```{=latex}
 \begin{figure}[t]
@@ -76,8 +84,8 @@ instruments, observations, and an initial model. The evaluator owns held-out tru
 scoring. For world $w$ and initial-model arm $a$, the hidden transition process remains fixed while
 the supplied model $M_{0,a}$ changes. The aligned model is correct at one declared locus, the
 misspecified model is explicit but wrong at that locus, and the opaque arm withholds the corresponding
-structure. Because operations and measurements remain identical, differences can be attributed to
-information supplied to the complete agent--tool system rather than to different physics.
+structure. The design changes participant-facing information while holding world physics and the
+available operation and measurement semantics fixed.
 
 Actions are transactions, not free-form prose. The host validates a typed request, checks resources
 and preconditions, commits the state transition, and returns a public observation or a structured
@@ -99,8 +107,10 @@ at the next.
 
 At five checkpoints per session, the participant reports initial-model reliability, predictions,
 uncertainty, evidence references, an executable law, and the next experimental intent. The evaluator
-executes prespecified counterfactual query sets independently of the participant. It scores 675/675
-checkpoints from 420/420 truth executions and later runs each final typed law on the same coordinates.
+executes prespecified counterfactual query sets independently of the participant. The DeepSeek-v4-flash
+surface scores 675/675 checkpoints from 420/420 truth executions; the GPT-5.6-sol surface scores
+669/675 checkpoints from its own 420/420 truth executions. The evaluator later runs each available
+final typed law on the same coordinates.
 Paired blind replay evaluates the final recommendation against the observed incumbent, while a
 separate longitudinal assay reveals eight outcome-hidden complete ActionPlans only after autonomous
 exploration has ended.
@@ -110,9 +120,12 @@ exploration has ended.
 The prospective programme is layer-stratified. Entity interventions cover five task families and five
 independently selected public worlds per task. Parametric and structural blocks each cover two
 validated task families and five worlds. Every task--world cluster contains opaque, aligned, and
-misspecified arms, yielding 45 clusters and 135 independent persistent sessions. Campaign length is
+misspecified arms, yielding 135 separate sessions nested within 45 independent task--world clusters.
+Campaign length is
 locus-specific: eight, ten, or twelve complete experiments, with five checkpoints in every session.
 Exploratory, validation, prospective, matched-evidence, and open-action worlds remain separated.
+We abbreviate the prospective cohort as C2, the matched partition-packet diagnostic as B2, its
+typed-law/action control as B3, and the entity/parametric/structural loci as A-E/A-P/A-S.
 
 The primary contrast tests selective evidence-driven correction. If
 $E_{a,k}^{(\ell)}$ is held-out error for arm $a$, checkpoint $k$, and locus $\ell$, then
@@ -126,22 +139,23 @@ C_{\ell}=\left(E^{(\ell)}_{\mathrm{mis},0}-E^{(\ell)}_{\mathrm{mis},K}\right)
 
 Success requires greater correction in the misspecified arm, improvement of that arm, and no
 material deterioration of the aligned arm. Loci are decided separately; unlike intervention
-semantics are not pooled. Failed scientific cells stay in their scheduled denominator, with the last
-valid checkpoint carried forward for right-censoring and zero primary improvement assigned when the
-final prediction is missing. Only a pure infrastructure failure without a persisted trajectory can
-resume under a fixed attempt cap.
+semantics are not pooled. Failed cells stay in the scheduled denominator; confirmatory correction
+gates use adverse bounds, while last-observation and zero-improvement imputations are sensitivities.
+Only infrastructure failures without a persisted trajectory can resume under a fixed attempt cap.
 
-Matched-evidence sessions use cloned worlds and provide the same decisive counterevidence to every
-arm, separating failure to seek evidence from failure to update after seeing it. The longitudinal
+Matched-evidence sessions use cloned worlds and give every arm the same counterevidence after a
+pre-response. They reveal conditional post-packet updating but, without a turn-matched no-packet
+control, do not identify a pure evidence-packet effect. The longitudinal
 action matrix separately contains three tasks, five worlds, and three arms (45 scheduled cells). After
 12 autonomous experiments, each agent ranks eight new plans; regret and Top-1 are primary action
 readouts, while complete-rank correlation and law adequacy are diagnostics. Table~\ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
-Provenance is block-specific: C2 and B3 have matched scheduled DeepSeek-high/Codex-medium surfaces;
-matched evidence adds complete denominators and a DeepSeek-low structural ablation; the four-condition
-successor retains model-specific donor eligibility. Provider-free controls and model configurations
-are never pooled.
+Provenance is block-specific: C2 and B3 have matched scheduled DeepSeek-v4-flash-high and
+GPT-5.6-sol-medium surfaces;
+matched evidence adds complete denominators and a DeepSeek-low B2 reasoning-budget ablation; the
+four-condition successor retains model-specific donor eligibility. Provider-free controls and model
+configurations are never pooled.
 
 ```{=latex}
 \begin{table}[t]
@@ -154,10 +168,10 @@ a retained scientific rejection; unstarted units are not silently removed.}
 \toprule
 Layer & Units & Execution & Supported role \\
 \midrule
-Prospective C2 & 270 scheduled & DeepSeek 121 complete; Codex 126 complete & Search, prediction, law, incumbent replay \\
-Matched evidence & 75 sessions & DeepSeek high + GPT (60); B2 low (15) & Replicated numerical--structural break \\
-Identifiable-law B3 & 60 scheduled & DeepSeek 17+13 failures; Codex 30 & Structural recovery and action bridge \\
-Action assays & 45 cells + 360 slots & W2-50 + four conditions per model & Descriptive and failure-aware action transfer \\
+Prospective C2 & 270 scheduled & DeepSeek 121 complete; GPT 126 complete & Search, prediction, law, incumbent replay \\
+Matched evidence & 75 sessions & DeepSeek high + GPT medium (60); DeepSeek low (15) & Conditional numerical--exact-law-expression dissociation \\
+Identifiable-law B3 & 60 scheduled & DeepSeek 17+13 failures; GPT 30 & Structural recovery and action bridge \\
+Action assays & 45 cells + 360 slots & Open action + four conditions/model & Descriptive and failure-aware action transfer \\
 96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
 320-query control & 7 exposed + 15 fresh & Provider-free; 7 pass + 1 fresh & Construction repair versus prospective rejection \\
 Gate alignment & 16 unit versions & Provider-free; 0 new execution & Rank validity versus action validity \\
@@ -175,19 +189,19 @@ experiments; 121 sessions met operational eligibility. The denominator retains 2
 lifecycles, 13 resource-ledger rejections, and all right-censored cells. Every session submitted five
 checkpoints, providing 6,300 counterfactual predictions and 24,300 query--metric values.
 
-The intervention reached behavior. The first complete recipe differed between aligned and
+Arm assignment was reflected in behavior. The first complete recipe differed between aligned and
 misspecified cells in 45/45 matched clusters, between opaque and aligned in 45/45, and between opaque
 and misspecified in 44/45. This is a manipulation check rather than a causal effect estimate because
 there are no repeated same-arm sessions. Search continued after the first proposal: 91.2% of completed
 experiments used a unique recipe, 84.4% of session optima appeared after the midpoint, and 32.6%
 appeared in the last completed experiment.
 
-Correct-prior utility was task dependent. In entity-level partition, aligned information produced a
+Correct-prior utility was task dependent. In entity-level partition, the aligned arm showed a
 +0.200 best-endpoint advantage over the misspecified arm in 5/5 worlds. In structural
 crystallization, a +0.141 first-experiment head start narrowed to +0.055 as the disadvantaged arm
 explored. In structural partition, aligned and misspecified descriptions both helped relative to
-opaque identifiers while differing little from one another. A correct model therefore altered the
-search landscape without imposing one endpoint ordering.
+opaque identifiers while differing little from one another. The supplied-model arms therefore occupied
+different search landscapes, without identifying a stochastic participant effect or imposing one endpoint ordering.
 
 Prediction error nevertheless fell on average in every arm at every locus. Reductions for opaque,
 aligned, and misspecified cells were 0.111/0.097/0.097 at the entity locus,
@@ -200,58 +214,48 @@ become preferential correction of a wrong starting model (Fig.~\ref{fig:prior-co
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-3-prior-uptake-and-correction.pdf}
-\caption{\textbf{Initial models redirect search, but the evidence does not establish selective repair
-of the wrong model.} Pre-evidence errors, first-recipe divergence, pre-to-final error reductions, and frozen
+\caption{\textbf{Search patterns differ across initial-model arms, but the evidence does not establish
+selective repair of the wrong model.} Pre-evidence errors, first-recipe divergence, pre-to-final error reductions, and frozen
 failure-aware selective-correction contrasts are reported by intervention locus. Every arm improves
 on average, but no locus passes the selective-correction criterion.}
 \label{fig:prior-correction}
 \end{figure}
 ```
 
-## Matched counterevidence supports interpolation without structural recovery
+## Matched packets expose numerical--expression dissociation; B3 tests structure
 
-Free discovery cannot distinguish failure to seek diagnostic evidence from failure to use it. In the
-parametric matched-evidence block, all five misspecified summaries rejected the supplied
-high-potential direction and recovered the peak-and-collapse response once the decisive profile was
-provided. Part of the free-discovery loss therefore lay in evidence acquisition.
+Free discovery cannot distinguish failure to seek diagnostic evidence from failure to use it. After a
+decisive parametric packet, all five misspecified summaries rejected the supplied high-potential
+direction and recovered peak-and-collapse. This packet-plus-turn response does not isolate the packet.
 
-The corrected structural DeepSeek assay showed a different bottleneck. After every arm received the same
-direct phase-process evidence, mean normalized errors fell from 0.2255, 0.2736, and 0.3392 to 0.0074,
-0.0060, and 0.0071 for opaque, aligned, and misspecified cells. The misspecified-minus-aligned update
-contrast was positive in only 3/5 worlds (exact one-sided sign-flip $p=0.125$), so this is numerical
-convergence rather than a confirmatory arm effect. Yet 0/5 misspecified public summaries recovered
-the registered 1.75 power law, 1/5 explicitly rejected the supplied linear form, and 5/5 adopted a
-saturation or endpoint model. Direct evidence supported accurate local phenomenological interpolation
-without structural identification (Fig.~\ref{fig:matched-evidence}).
+After the same B2 phase-process packet, opaque/aligned/misspecified mean errors fell from
+0.2255/0.2736/0.3392 to 0.0074/0.0060/0.0071. The update contrast was positive in 3/5 worlds (exact
+one-sided $p=0.125$), and retrospective coding found 0/5 misspecified summaries expressing the exact
+law. Yet B2 exposed one nominal pair, no base coefficient or typed family/exponent, and an exact
+free-coefficient linear/power alias; a constant endpoint baseline reached MAE 0.00649 and the aligned
+positive control was only 1/5. B2 thus shows low error without stable exact-law expression on an
+underidentifying surface, not internal structural-identification failure (Fig.~\ref{fig:matched-evidence}).
 
-The matched GPT replication preserved this break. A-P misspecified-minus-aligned update contrasts
-were +0.0309 for DeepSeek and +0.0602 for GPT; structural B2 contrasts were +0.0645 and +0.0915,
-while misspecified exact-law recovery remained 0/5 in each model. This is a block-specific
-cross-model replication, not a model-superiority test.
+Matched DeepSeek/GPT contrasts were +0.0309/+0.0602 in A-P and +0.0645/+0.0915 in B2, with
+misspecified exact-law expression 0/5 in each model: a block-specific replication, not model ranking.
 
-Changing only the DeepSeek Codex reasoning effort from high to low preserved the structural break.
-The B2 canary passed 3/3 and formal execution completed 15/15 with no failures. All 15 post errors
-were below 0.02, while the registered contrast reversed to -0.0405 (2/5 positive worlds; exact
-one-sided $p=0.8125$) and misspecified exact-law recovery remained 0/5. Provider-reported reasoning
-output was 20.9\% lower than DeepSeek high on the same block. The low A-P canary lacked terminal
-receipts and contributes no estimate. This is a same-harness reasoning-budget robustness result, not
-reasoning-off or a configuration ranking.
+Changing only DeepSeek's reasoning effort within the Codex harness from high to low preserved all 15
+post errors below 0.02 and misspecified expression at 0/5, while the contrast reversed to -0.0405
+(2/5; $p=0.8125$). This is same-harness robustness, not reasoning-off or configuration ranking.
 
-An independent control made the 1.75 exponent identifiable on a disjoint scoring roster. Codex
-completed 30/30 sessions; joint family--exponent recovery was 0/10, 5/10, and 0/10 for
-opaque/aligned/misspecified, and 0/18 action-eligible cells achieved gain at least 0.02. The matched
-DeepSeek successor retained 17 completed cells and 13 schema failures; failure-aware joint recovery
-and Top-1 were 0/30, versus 5/30 and 2/30 for Codex. Neither model achieved the registered useful
-action gain. Differential failures preclude model ranking, while the shared negative action bridge
-strengthens the transition-level result.
+Frozen B3 used reference-fitter-qualified multi-pair evidence and a disjoint roster. GPT completed
+30/30 sessions with opaque/aligned/misspecified joint recovery 0/10, 5/10, and 0/10. DeepSeek retained
+17 completions and 13 schema failures; failure-aware recovery and Top-1 were 0/30 and 0/30 versus
+5/30 and 2/30 for GPT. Scheduled useful gain was 0/18 for both. Differential failures preclude ranking.
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Matched evidence yields numerical convergence without reliable law-to-action recovery.}
-Panels a--b detail DeepSeek high. Panel c compares matched A-P DeepSeek/GPT and structural B2
-DeepSeek-high/GPT-medium/DeepSeek-low contrasts. Panel d reports failure-aware completion, joint-law
+\caption{\textbf{B2 shows post-packet numerical--expression dissociation; identifiable B3 shows sparse structural recovery and no useful action gain.}
+Panels a--b detail DeepSeek-v4-flash-high conditional B2 results; the one-pair B2 surface underidentifies
+structural family. Panel c compares matched A-P DeepSeek-v4-flash/GPT-5.6-sol
+and B2 high/medium/low-reasoning contrasts. Panel d reports failure-aware completion, joint-law
 recovery, Top-1, and useful action gain on matched 30-cell B3 surfaces.}
 \label{fig:matched-evidence}
 \end{figure}
@@ -263,26 +267,30 @@ states at mean MAE $4.25\times10^{-13}$, localizing the gap to participant disti
 typed-interface capacity. Blind incumbent replay completed 726 executions for 121 cells, with
 recommendations better/equivalent/worse in 1/119/1.
 
-The matched Codex surface retained 126 completed, 3 failed, and 6 right-censored cells. All locus
-gates again failed. Codex versus DeepSeek law MAE was 0.1753 versus 0.2371 and compression loss 0.0142
-versus 0.0686, but blind gain was -0.0001 versus -0.0010. Better compression still did not improve
-action (Fig.~\ref{fig:c2-cross-model}); model differences are descriptive.
+The matched GPT-5.6-sol surface retained 126 completed, 3 failed, and 6 right-censored cells. All
+locus gates again failed. GPT-5.6-sol versus DeepSeek-v4-flash law MAE was 0.1753 (129 laws) versus
+0.2371 (135 laws), and compression loss was 0.0142 versus 0.0686; blind gain was -0.0001 (126 cells)
+versus -0.0010 (121 cells). Lower observed
+compression error therefore coexisted with near-zero blind gain (Fig.~\ref{fig:c2-cross-model}); this
+matched cross-configuration comparison is descriptive, not a causal law-quality intervention.
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-5-capability-chain.pdf}
-\caption{\textbf{Better executable laws still do not produce better actions.}
-\textbf{a,} Registered correction estimates and lower bounds for both 135-cell C2 cohorts.
+\caption{\textbf{Lower executable-law error does not coincide with better blind action.}
+\textbf{a,} Registered correction estimates and adverse lower bounds for both fully scheduled
+135-cell C2 surfaces.
 \textbf{b,} Numerical learning by locus and model. \textbf{c,} Final-prediction versus executable-law
-MAE. \textbf{d,} Blind outcomes over every scheduled cell; model contrasts are descriptive.}
+MAE over 135 DeepSeek and 129 GPT laws. \textbf{d,} Blind outcomes over 121/126 evaluable cells while
+all 135/model remain scheduled; model contrasts are descriptive.}
 \label{fig:c2-cross-model}
 \end{figure}
 ```
 
 # Results: law, action, and evaluation
 
-## Agent-level law adequacy does not determine unseen action selection
+## Executable-law error is not a sufficient proxy for unseen action selection
 
 The longitudinal DeepSeek matrix produced records for 45/45 scheduled cells. Truth evaluation and exact replay
 both completed 240/240 plan executions. Forty-two cells were uncontaminated and eligible for action
@@ -303,20 +311,35 @@ weakly with selected rank (Spearman $\rho=-0.073$, cluster-bootstrap 95% interva
 $[-0.380,0.256]$) and normalized regret ($\rho=-0.133$, $[-0.452,0.217]$), while task-specific rank
 associations reversed sign ($+0.524$, $-0.592$, and $-0.007$). Across law-MAE thresholds from 0.05
 to 0.30, the adequate subset expanded from 1 to 34 cells but contained only 0 to 9 correct actions.
-The four-way table is therefore not a single-cutoff artifact: law error has no stable monotonic map
-to unseen-action quality across tasks.
+The four-way table is therefore not a single-cutoff artifact: law error does not stably predict
+unseen-action quality across tasks. A decision-aligned reanalysis of this DeepSeek-v4-flash cohort
+then executed the last-available law from every frozen cell on
+the same eight frozen candidate plans. All 45 laws were evaluable, but their implied choices reached
+the true Top-1 in 0/45 cells, versus 11/45 when failures were retained for participant action. Among
+42 cells with an action ranking, participants followed the law-implied Top-1 in only 12. Three cells
+without a terminal action ranking still retained an earlier executable law. Participant
+regret was lower than law-implied regret on average (0.344 versus 0.438), although the direction
+reversed in crystallization. Because neither law quality nor law following was randomized, this
+decomposes truth-law error from action-module utilization descriptively rather than estimating a
+causal law-to-action effect.
 
-## Four conditions separate autonomy from artifact portability
+## Four-condition strategies expose autonomy and learned-law-only limits
 
-An independent development successor scheduled no evidence, yoked evidence, learned-law-only, and
-autonomous-exploration action readouts for all 45 strata per model: 180 slots each and 360 total.
-DeepSeek and Codex had 42 and 26 donor-eligible strata, with 26 coordinates shared. Within those
-model-specific populations, autonomous-minus-no-evidence regret was -0.1214 (95% cluster interval
-$[-0.2607,0.0225]$) and -0.1379 ($[-0.3452,0.1103]$); both favour autonomy but cross zero.
-Learned-law-minus-no-evidence was -0.0267 and +0.0970, also with intervals crossing zero. Yoked
-completion was only 10/42 and 24/26, so its failure-aware disadvantage cannot be interpreted as a
-pure experiment-selection effect. The bounded result is directional total value for autonomy without
-reliable transfer of the compressed law (Fig.~\ref{fig:open-action}a,c).
+An independent successor scheduled four conditions over all 45 strata per model (360 slots). The
+all-scheduled failure-aware estimand retains donor, blocked-descendant and recipient failures.
+Autonomous-minus-no-evidence regret was -0.0913 for DeepSeek-v4-flash (95%
+task--world-cluster interval $[-0.2124,0.0388]$) and +0.1102 for GPT-5.6-sol
+($[-0.0533,0.2794]$): directions differed and both intervals crossed zero. GPT's yoked- and
+learned-law-minus-none estimates were +0.2165 and +0.2459; these include missing donors and system
+failures, not pure evidence or artifact effects.
+
+Autonomy also changed sign by task: DeepSeek -0.240/-0.406/+0.372 and GPT
++0.089/-0.219/+0.460 for electrochemistry/safety/crystallization. Four registered contrasts are
+descriptive and unadjusted for multiplicity.
+
+Donor-eligible autonomy contrasts (-0.1214/-0.1379; 42/26 strata) are post-treatment sensitivities;
+equal-task values are -0.0879/-0.0259. Yoked completion was 10/42 and 24/26. The block established no
+consistent autonomy or learned-law-only advantage (Fig.~\ref{fig:open-action}a,c).
 
 ## Evaluator-level ranking and decision quality are different estimands
 
@@ -334,11 +357,10 @@ historical stops remain valid, while future controls should prioritize regret an
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{Evidence, learned laws, and evaluator rankings diverge from action.}
-\textbf{a,} Failure-aware regret across four W2-61 action conditions in model-specific donor-eligible
-populations. \textbf{b,} W2-50 law error versus regret, with Top-1 stars and a cutoff inset.
-\textbf{c,} Registered W2-61 contrasts with clustered intervals; yoked failures are retained.
-\textbf{d,} Spearman correlation versus regret for all 16 frozen W2-53 unit versions.}
+\caption{\textbf{Evidence, executable laws, and evaluator rankings are imperfect action proxies.}
+\textbf{a,c,} All-scheduled outcomes and clustered contrasts retain every donor and recipient failure.
+\textbf{b,} Last-available-law-implied versus participant regret for 45 frozen DeepSeek-v4-flash cells. \textbf{d,} Rank correlation
+versus regret for 16 frozen oracle unit-version records.}
 \label{fig:open-action}
 \end{figure}
 ```
@@ -351,19 +373,28 @@ laboratories and process-control environments provide scalable interaction and s
 [@beeler2024chemgymrl; @bloor2024pcgym; @malik2026made; @chen2025physgym]. Scientific-discovery
 benchmarks increasingly test iterative experimentation, causal inference, and transferable knowledge
 [@jansen2024discoveryworld; @gandhi2025boxinggym; @duan2025scigym; @yang2026causalab;
-@batzoglou2026replayscm]. ChemWorld complements these directions by making the initial model an
-experimental variable and by evaluating each transformation from evidence to action with
-evaluator-owned truth and exact replay. The central distinction is diagnostic: endpoint success,
-prediction learning, law recovery, and action quality are not interchangeable readouts.
+@batzoglou2026replayscm]. The published ChemWorld platform contributes programmable chemical worlds,
+transaction semantics and replay [@qiu2026chemworld]; this work contributes the intervention and
+measurement programme for scientific-agent epistemics.
+
+Model-discovery systems increasingly combine language models with Bayesian design, symbolic fitting
+or probabilistic programme search [@murphy2026mda; @wahl2026probabilistic; @zheng2026newtonbench]. We
+instead ask whether evidence changes the right representation and whether that representation is
+usable for action. This follows the broader distinction between outcome and process validity
+[@riosgarcia2026scientifically] and the warning that predictive success can coexist with
+underspecified or shortcut solutions [@damour2022underspecification; @geirhos2020shortcut]. Causal
+mediation analysis would require identified interventions on intermediate representations
+[@imai2010mediation]; we do not infer such mediation from associated law and action readouts. The
+central contribution is therefore a tiered diagnostic design: controlled initial-model manipulations,
+conditional packet responses, failure-aware strategy estimates, descriptive law/action decomposition, and separate
+evaluator qualification.
 
 # Discussion and limitations
 
-The systems search productively and learn numerically, yet lose information at distinct transitions.
-Priors redirect search without selective repair; matched evidence supports near-exact interpolation
-without reliable structural recovery; executable laws can compress predictions poorly; and neither
-law adequacy nor complete-ranking qualification determines action validity. The oracle stop prevented
-a reproducible but decision-misaligned control from producing an uninterpretable participant effect.
-Evaluator validity is therefore part of scientific-agent validity.
+The systems search and learn numerically, yet lose information at distinct transitions: priors do not
+establish selective repair; underidentifying B2 accuracy does not certify structure; identifiable B3
+recovery is sparse; and neither law error nor rank qualification suffices for action validity. The
+oracle stop prevented a decision-misaligned control from producing an uninterpretable participant effect.
 
 ## A transition map for scientific-agent evaluation
 
@@ -376,16 +407,9 @@ prevent these roles from being pooled into invented evidence.
 
 ## Limitations and conclusion
 
-The study concerns two models and fixed agent--tool configurations in simulation, not cross-model
-ranking or laboratory fidelity. C2 now has two complete 135-cell scheduled surfaces, but different
-failure/censoring patterns and no randomized provider assignment. A-P/B2 each contain only five
-worlds; DeepSeek low is not reasoning-off and its A-P block has no qualified denominator. B3 retains
-13 DeepSeek schema failures, while the four-condition successor has unequal donor eligibility and
-substantial yoked-recipient failure. These failures remain part of the system-level estimand and
-preclude capability ranking or pure mediation claims. The original five-condition oracle cohort has
-no participant data; W2-61 has no oracle arm. Higher-fidelity artifact portability and private
-replication remain untested.
-
-Scientific-agent claims should name interventions, units, failure rules, and transfer boundaries.
-Agency is a chain from evidence to revision, identification, compression, and decision, breakable in
-the agent or its evaluator.
+This study covers two fixed simulated model--tool configurations, not provider ranking or laboratory
+fidelity. A-P/B2 have five worlds; B2 has an exact participant-visible alias and retrospective coding;
+DeepSeek low is not reasoning-off; and B3 retains 13 schema failures. Four-condition donor eligibility
+is sensitivity-only. Fixed execution order and earlier DeepSeek donors confound order with provider/time
+drift. These limits preclude ranking or mediation; context-reset portability and private replication
+remain untested. Scientific-agent claims must name interventions, units, failure rules and transfer boundaries.

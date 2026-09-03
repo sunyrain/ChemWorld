@@ -226,8 +226,8 @@ def build() -> dict[str, Any]:
         ),
         ROOT
         / (
-            "runs/formal/"
-            "work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/summary.json"
+            "workstreams/flagship_tasks/reports/"
+            "work-ii-w2-64-publication-reanalysis-v0.1.json"
         ),
         ROOT
         / (
@@ -283,7 +283,7 @@ def build() -> dict[str, Any]:
                 "descriptive and non-confirmatory, and no configuration ranking is performed."
             ),
             (
-                "Figure 5 compares matched 135-cell DeepSeek and Codex C2 scheduled "
+                "Figure 5 compares matched 135-cell DeepSeek-v4-flash and GPT-5.6-sol scheduled "
                 "surfaces; differences are descriptive rather than provider causal effects."
             ),
             (
