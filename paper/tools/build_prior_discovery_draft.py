@@ -19,17 +19,19 @@ BIBLIOGRAPHY = ROOT / "paper/prior_discovery_references.bib"
 TEMPLATE = ROOT / "paper/prior_discovery/template.tex"
 FIGURE_DIR = ROOT / "paper/figures/prior-discovery"
 FIGURE_MANIFEST = FIGURE_DIR / "figure_manifest.json"
-PUBLIC_C2_FIGURE = ROOT / (
-    "workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/"
-    "current/deepseek_c2_prediction_law_action.pdf"
-)
-PUBLIC_C2_FIGURE_BUILD_NAME = "figure-5-capability-chain.pdf"
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-draft"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-draft.pdf"
 OUTPUT_TEX = EXPORT_DIR / "prior-discovery-draft.tex"
 BUILD_MANIFEST = EXPORT_DIR / "build-manifest.json"
 SOURCE_DATE_EPOCH = 1_786_406_400  # 2026-08-11 00:00:00 UTC
-EXPECTED_FIGURE_IDS = ("figure_1", "figure_2", "figure_3", "figure_4", "figure_6")
+EXPECTED_FIGURE_IDS = (
+    "figure_1",
+    "figure_2",
+    "figure_3",
+    "figure_4",
+    "figure_5",
+    "figure_6",
+)
 
 
 def sha256_file(path: Path) -> str:
@@ -96,7 +98,7 @@ def load_figure_pdfs() -> list[Path]:
         raise RuntimeError("figure manifest self-hash mismatch")
     figures = manifest.get("figures")
     if not isinstance(figures, dict) or set(figures) != set(EXPECTED_FIGURE_IDS):
-        raise RuntimeError("draft requires exactly generated Figures 1--4 and 6")
+        raise RuntimeError("draft requires exactly generated Figures 1--6")
     pdfs: list[Path] = []
     for figure_id in EXPECTED_FIGURE_IDS:
         outputs = figures[figure_id]
@@ -131,12 +133,6 @@ def build() -> dict[str, Any]:
         shutil.copy2(BIBLIOGRAPHY, build_dir / "references.bib")
         for source in figure_pdfs:
             shutil.copy2(source, figure_build_dir / source.name)
-        if not PUBLIC_C2_FIGURE.is_file():
-            raise RuntimeError("current public C2 evaluator figure is unavailable")
-        shutil.copy2(
-            PUBLIC_C2_FIGURE,
-            figure_build_dir / PUBLIC_C2_FIGURE_BUILD_NAME,
-        )
         main_tex = build_dir / "main.tex"
         run(
             [
@@ -238,7 +234,6 @@ def build() -> dict[str, Any]:
             "configs/benchmark/"
             "work_ii_deepseek_five_task_development_complete_analysis_sources_20260810.json"
         ),
-        PUBLIC_C2_FIGURE,
         *figure_pdfs,
     ]
     manifest: dict[str, Any] = {
@@ -283,13 +278,13 @@ def build() -> dict[str, Any]:
                 "divergence has no repeated same-arm baseline."
             ),
             (
-                "Figure 4 uses only the corrected five-world structural matched-evidence "
-                "study; its selective-update contrast and structural recovery rates are "
-                "descriptive and non-confirmatory."
+                "Figure 4 combines corrected and replicated matched-evidence blocks with "
+                "the failure-aware dual-model B3 control; five-world contrasts are "
+                "descriptive and non-confirmatory, and no configuration ranking is performed."
             ),
             (
-                "Figure 5 reports completed prospective prediction, executable-law and "
-                "blind-incumbent evaluation without additional participant calls."
+                "Figure 5 compares matched 135-cell DeepSeek and Codex C2 scheduled "
+                "surfaces; differences are descriptive rather than provider causal effects."
             ),
             (
                 "Development matrices motivate the prospective design but remain separate "
@@ -305,6 +300,11 @@ def build() -> dict[str, Any]:
                 "45 scheduled cells, 42 eligible action readouts and three retained "
                 "crystallization failures. It has no no-evidence or pre-exploration "
                 "ranking control, so causal action-transfer and arm-level effects are not claimed."
+            ),
+            (
+                "W2-61 supplies a separate oracle-free four-condition action successor; "
+                "unequal donor eligibility and yoked-recipient failures prevent a pure "
+                "experiment-selection or portable-law claim."
             ),
             (
                 "W2-51 and W2-52 are zero-participant qualification results; exposed "

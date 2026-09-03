@@ -1050,6 +1050,314 @@ def normalize_open_action_rows(summary: dict[str, Any]) -> list[dict[str, Any]]:
     return rows
 
 
+def render_figure_5_cross_model_c2(
+    model_rows: list[dict[str, Any]],
+    locus_rows: list[dict[str, Any]],
+    gate_rows: list[dict[str, Any]],
+) -> list[Path]:
+    model_order = ["deepseek", "codex"]
+    model_labels = {"deepseek": "DeepSeek high", "codex": "Codex medium"}
+    model_colors = {"deepseek": COLORS["blue"], "codex": COLORS["violet"]}
+    model_markers = {"deepseek": "o", "codex": "D"}
+    locus_order = ["A_E", "A_P", "A_S"]
+    locus_labels = {"A_E": "Entity", "A_P": "Parametric", "A_S": "Structural"}
+
+    fig = plt.figure(figsize=(7.2, 5.7))
+    grid = fig.add_gridspec(
+        2,
+        2,
+        left=0.115,
+        right=0.985,
+        bottom=0.18,
+        top=0.80,
+        wspace=0.34,
+        hspace=0.52,
+        width_ratios=[1.05, 0.95],
+    )
+    ax_a, ax_b, ax_c, ax_d = [
+        fig.add_subplot(grid[row, column])
+        for row in range(2)
+        for column in range(2)
+    ]
+
+    centers = np.arange(len(locus_order), dtype=float)
+    offsets = {"deepseek": -0.13, "codex": 0.13}
+    for model in model_order:
+        rows = {row["locus"]: row for row in gate_rows if row["model"] == model}
+        for index, locus in enumerate(locus_order):
+            row = rows[locus]
+            y = centers[index] + offsets[model]
+            ax_a.plot(
+                [row["lower_bound"], row["estimate"]],
+                [y, y],
+                color=model_colors[model],
+                linewidth=1.3,
+                alpha=0.7,
+            )
+            ax_a.scatter(
+                row["estimate"],
+                y,
+                s=36,
+                marker=model_markers[model],
+                color=model_colors[model],
+                edgecolor="white",
+                linewidth=0.6,
+                zorder=3,
+            )
+            ax_a.scatter(
+                row["lower_bound"],
+                y,
+                s=34,
+                marker="|",
+                color=model_colors[model],
+                linewidth=1.2,
+                zorder=3,
+            )
+            ax_a.text(
+                row["estimate"] + 0.018,
+                y,
+                f"p={row['p_value']:.3f}",
+                ha="left",
+                va="center",
+                fontsize=5.2,
+                color=COLORS["muted"],
+            )
+    ax_a.axvline(0, color=COLORS["ink"], linestyle="--", linewidth=0.8)
+    ax_a.set_yticks(centers, [locus_labels[locus] for locus in locus_order])
+    ax_a.set_ylim(len(locus_order) - 0.55, -0.55)
+    gate_values = [float(row[key]) for row in gate_rows for key in ("lower_bound", "estimate")]
+    ax_a.set_xlim(min(gate_values) - 0.06, max(0.16, max(gate_values) + 0.16))
+    ax_a.set_xlabel("Selective-correction contrast")
+    ax_a.set_title(
+        "Both complete cohorts fail the\nselective-correction gate",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_a.legend(
+        handles=[
+            mpl.lines.Line2D(
+                [],
+                [],
+                marker=model_markers[model],
+                linestyle="",
+                color=model_colors[model],
+                label=model_labels[model],
+            )
+            for model in model_order
+        ],
+        loc="lower right",
+        fontsize=5.5,
+    )
+    style_quant_axis(ax_a)
+    panel_label(ax_a, "a", x=-0.13)
+
+    width = 0.34
+    for model_index, model in enumerate(model_order):
+        rows = {row["locus"]: row for row in locus_rows if row["model"] == model}
+        x = centers + (model_index - 0.5) * width
+        values = [float(rows[locus]["mean_prediction_improvement"]) for locus in locus_order]
+        bars = ax_b.bar(
+            x,
+            values,
+            width=width * 0.92,
+            color=model_colors[model],
+            edgecolor="white",
+            linewidth=0.6,
+            label=model_labels[model],
+        )
+        for bar, value in zip(bars, values, strict=True):
+            ax_b.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + 0.006,
+                f"{value:.3f}",
+                ha="center",
+                va="bottom",
+                fontsize=5.2,
+                rotation=90,
+                color=COLORS["ink"],
+            )
+    ax_b.set_xticks(centers, [locus_labels[locus] for locus in locus_order])
+    ax_b.set_ylim(0, 0.275)
+    ax_b.set_ylabel("Mean prediction-error reduction")
+    ax_b.set_title(
+        "General numerical learning occurs\nin every locus and model",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_b.legend(loc="upper left", fontsize=5.5)
+    style_quant_axis(ax_b)
+    panel_label(ax_b, "b", x=-0.13)
+
+    row_positions: list[float] = []
+    row_labels: list[str] = []
+    for locus_index, locus in enumerate(locus_order):
+        for model_index, model in enumerate(model_order):
+            y = locus_index * 2.35 + model_index * 0.72
+            row_positions.append(y)
+            row_labels.append(f"{locus_labels[locus]} · {model_labels[model]}")
+            row = next(
+                item
+                for item in locus_rows
+                if item["locus"] == locus and item["model"] == model
+            )
+            final_error = float(row["mean_effective_final_error"])
+            law_error = float(row["mean_law_mae"])
+            ax_c.plot(
+                [final_error, law_error],
+                [y, y],
+                color=model_colors[model],
+                linewidth=1.4,
+                alpha=0.65,
+            )
+            ax_c.scatter(
+                final_error,
+                y,
+                s=32,
+                facecolor="white",
+                edgecolor=model_colors[model],
+                linewidth=1.0,
+                zorder=3,
+            )
+            ax_c.scatter(
+                law_error,
+                y,
+                s=32,
+                color=model_colors[model],
+                edgecolor="white",
+                linewidth=0.5,
+                zorder=3,
+            )
+    ax_c.set_yticks(row_positions, row_labels)
+    ax_c.set_ylim(max(row_positions) + 0.55, -0.55)
+    ax_c.set_xlim(0.11, 0.30)
+    ax_c.set_xlabel("Normalized MAE")
+    ax_c.set_title(
+        "Codex compresses more faithfully,\nbut the representation gap persists",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_c.legend(
+        handles=[
+            mpl.lines.Line2D(
+                [], [], marker="o", markerfacecolor="white", markeredgecolor=COLORS["ink"],
+                linestyle="", label="Final predictions"
+            ),
+            mpl.lines.Line2D(
+                [], [], marker="o", color=COLORS["ink"], linestyle="", label="Executable law"
+            ),
+        ],
+        loc="lower right",
+        fontsize=5.3,
+    )
+    style_row_axis(ax_c)
+    panel_label(ax_c, "c", x=-0.13)
+
+    outcome_specs = [
+        ("blind_better_count", "Better", COLORS["green"]),
+        ("blind_equivalent_count", "Equivalent", "#B9C0C4"),
+        ("blind_worse_count", "Worse", COLORS["red"]),
+    ]
+    y = np.arange(len(model_order), dtype=float)
+    left = np.zeros(len(model_order), dtype=float)
+    model_lookup = {row["model"]: row for row in model_rows}
+    for field, label, color in outcome_specs:
+        values = np.array([float(model_lookup[model][field]) for model in model_order])
+        percentages = values / 135.0 * 100.0
+        bars = ax_d.barh(y, percentages, left=left, height=0.52, color=color, label=label)
+        for index, (bar, count) in enumerate(zip(bars, values, strict=True)):
+            if count > 0 and bar.get_width() > 2.2:
+                ax_d.text(
+                    left[index] + bar.get_width() / 2,
+                    bar.get_y() + bar.get_height() / 2,
+                    str(int(count)),
+                    ha="center",
+                    va="center",
+                    fontsize=5.8,
+                    color=COLORS["ink"],
+                )
+        left += percentages
+    not_evaluable = np.array(
+        [135 - int(model_lookup[model]["blind_gain_evaluable_count"]) for model in model_order],
+        dtype=float,
+    )
+    not_evaluable_pct = not_evaluable / 135.0 * 100.0
+    bars = ax_d.barh(
+        y,
+        not_evaluable_pct,
+        left=left,
+        height=0.52,
+        color="#E4E8EA",
+        label="Not evaluable",
+    )
+    for index, (bar, count) in enumerate(zip(bars, not_evaluable, strict=True)):
+        ax_d.text(
+            left[index] + bar.get_width() / 2,
+            bar.get_y() + bar.get_height() / 2,
+            str(int(count)),
+            ha="center",
+            va="center",
+            fontsize=5.8,
+            color=COLORS["ink"],
+        )
+    ax_d.set_yticks(y, [model_labels[model] for model in model_order])
+    ax_d.set_xlim(0, 100)
+    ax_d.set_xlabel("Share of 135 scheduled cells (%)")
+    ax_d.set_title(
+        "Better law compression produces\nno blind-action advantage",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_d.legend(
+        loc="upper center",
+        bbox_to_anchor=(0.5, -0.25),
+        ncol=2,
+        fontsize=5.2,
+        columnspacing=0.8,
+    )
+    style_quant_axis(ax_d)
+    panel_label(ax_d, "d", x=-0.13)
+
+    fig.suptitle(
+        "Better executable laws still do not produce better actions",
+        x=0.115,
+        y=0.975,
+        ha="left",
+        fontsize=12.0,
+        fontweight="bold",
+        color=COLORS["ink"],
+    )
+    fig.text(
+        0.115,
+        0.905,
+        "Matched 135-cell C2 cohorts: law MAE 0.237 → 0.175; blind gain −0.0010 → −0.0001",
+        ha="left",
+        va="center",
+        fontsize=7.0,
+        fontweight="bold",
+        color=COLORS["blue"],
+        bbox={"facecolor": COLORS["blue_light"], "edgecolor": "none", "pad": 2.0},
+    )
+    fig.text(
+        0.115,
+        0.020,
+        "DeepSeek and Codex use the same 45 task-world clusters, nine tasks and three prior arms. "
+        "Panels a-b retain the registered failure-aware correction decisions; panel c is matched "
+        "descriptive and separates final explicit predictions from submitted executable laws. "
+        "Panel d keeps every scheduled cell: DeepSeek better/equivalent/worse/not-evaluable is "
+        "1/119/1/14 and Codex is 0/125/1/9. Model differences are not provider causal effects or a leaderboard.",
+        ha="left",
+        va="bottom",
+        fontsize=6.15,
+        color=COLORS["muted"],
+        wrap=True,
+    )
+    return export_figure(fig, "figure-5-capability-chain")
+
+
 def render_figure_6_open_action(
     rows: list[dict[str, Any]],
     summary: dict[str, Any],
@@ -1058,6 +1366,7 @@ def render_figure_6_open_action(
     qualification_closeout: dict[str, Any],
     gate_alignment: dict[str, Any],
     reviewer_controls: dict[str, Any],
+    causal_extension: dict[str, Any],
 ) -> list[Path]:
     eligible = [row for row in rows if row["eligible"]]
     task_order = [
@@ -1168,6 +1477,76 @@ def render_figure_6_open_action(
     ax_a.legend(loc="upper right", fontsize=5.8)
     panel_label(ax_a, "a", x=-0.11)
 
+    # Replace the descriptive rank panel with the prospectively frozen four-condition
+    # action extension. The original W2-50 rows remain in the source table and panel b.
+    ax_a.clear()
+    condition_rows, contrast_rows = build_action_extension_rows(causal_extension)
+    condition_order = [
+        "no_evidence",
+        "yoked_evidence",
+        "learned_law_only",
+        "autonomous_exploration",
+    ]
+    condition_labels = {
+        "no_evidence": "No evidence",
+        "yoked_evidence": "Yoked evidence",
+        "learned_law_only": "Learned law",
+        "autonomous_exploration": "Autonomous",
+    }
+    model_colors = {"deepseek": COLORS["blue"], "codex": COLORS["violet"]}
+    model_labels = {"deepseek": "DeepSeek high", "codex": "Codex medium"}
+    centers = np.arange(len(condition_order), dtype=float)
+    width = 0.34
+    for model_index, model in enumerate(("deepseek", "codex")):
+        lookup = {
+            row["condition"]: row for row in condition_rows if row["model"] == model
+        }
+        x = centers + (model_index - 0.5) * width
+        values = [
+            float(lookup[condition]["mean_failure_aware_normalized_regret"])
+            for condition in condition_order
+        ]
+        bars = ax_a.bar(
+            x,
+            values,
+            width=width * 0.92,
+            color=model_colors[model],
+            edgecolor="white",
+            linewidth=0.6,
+            label=model_labels[model],
+        )
+        for bar, condition, value in zip(
+            bars, condition_order, values, strict=True
+        ):
+            row = lookup[condition]
+            ax_a.text(
+                bar.get_x() + bar.get_width() / 2,
+                value + 0.025,
+                f"{row['completed_count']}/{row['row_count']}",
+                ha="center",
+                va="bottom",
+                fontsize=5.2,
+                rotation=90,
+                color=COLORS["ink"],
+            )
+    ax_a.set_xticks(
+        centers,
+        [condition_labels[condition] for condition in condition_order],
+        rotation=18,
+        ha="right",
+    )
+    ax_a.set_ylim(0, 1.02)
+    ax_a.set_ylabel("Failure-aware normalized regret\n(lower is better)")
+    ax_a.set_title(
+        "Four action conditions expose\nmodel-specific portability failures",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_a.legend(loc="upper left", fontsize=5.5)
+    style_quant_axis(ax_a)
+    panel_label(ax_a, "a", x=-0.11)
+
     continuous = reviewer_controls["w2_50_continuous_action"]
     continuous_rows = continuous["cell_rows"]
     for task_id in task_order:
@@ -1187,11 +1566,12 @@ def render_figure_6_open_action(
             )
     ax_b.axvline(0.10, color=COLORS["muted"], linewidth=0.8, linestyle="--")
     ax_b.text(
-        0.10,
-        1.015,
+        0.105,
+        0.58,
         "original cutoff",
-        ha="center",
-        va="bottom",
+        ha="left",
+        va="center",
+        rotation=90,
         fontsize=5.0,
         color=COLORS["muted"],
     )
@@ -1385,6 +1765,72 @@ def render_figure_6_open_action(
     )
     panel_label(ax_c, "c", x=-0.13)
 
+    # The detailed W2-51/W2-52 funnel remains in the exported source table. The
+    # main panel now shows the four preregistered action contrasts; panel d retains
+    # all 16 oracle/gate-alignment units.
+    ax_c.clear()
+    contrast_order = [
+        "autonomous_exploration_minus_no_evidence",
+        "yoked_evidence_minus_no_evidence",
+        "learned_law_only_minus_no_evidence",
+        "autonomous_exploration_minus_yoked_evidence",
+    ]
+    contrast_labels = {
+        "autonomous_exploration_minus_no_evidence": "Autonomous − none",
+        "yoked_evidence_minus_no_evidence": "Yoked − none",
+        "learned_law_only_minus_no_evidence": "Learned law − none",
+        "autonomous_exploration_minus_yoked_evidence": "Autonomous − yoked",
+    }
+    centers = np.arange(len(contrast_order), dtype=float)
+    offsets = {"deepseek": -0.13, "codex": 0.13}
+    for model in ("deepseek", "codex"):
+        lookup = {
+            row["contrast"]: row for row in contrast_rows if row["model"] == model
+        }
+        for index, contrast in enumerate(contrast_order):
+            row = lookup[contrast]
+            y = centers[index] + offsets[model]
+            ax_c.plot(
+                [row["interval_low"], row["interval_high"]],
+                [y, y],
+                color=model_colors[model],
+                linewidth=1.4,
+                alpha=0.75,
+            )
+            ax_c.scatter(
+                row["mean_regret_difference"],
+                y,
+                s=38,
+                marker="o" if model == "deepseek" else "D",
+                color=model_colors[model],
+                edgecolor="white",
+                linewidth=0.6,
+                zorder=3,
+            )
+    ax_c.axvline(0, color=COLORS["ink"], linestyle="--", linewidth=0.8)
+    ax_c.set_yticks(centers, [contrast_labels[value] for value in contrast_order])
+    ax_c.set_ylim(len(contrast_order) - 0.55, -0.55)
+    ax_c.set_xlim(-0.72, 0.56)
+    ax_c.set_xlabel("Mean regret difference (negative favors first condition)")
+    ax_c.set_title(
+        "Autonomous exploration has directional\nvalue; learned laws do not transfer reliably",
+        loc="left",
+        fontweight="bold",
+        pad=6,
+    )
+    ax_c.text(
+        0.98,
+        0.04,
+        "donor-eligible n=42 / 26",
+        transform=ax_c.transAxes,
+        ha="right",
+        va="bottom",
+        fontsize=5.3,
+        color=COLORS["muted"],
+    )
+    style_quant_axis(ax_c)
+    panel_label(ax_c, "c", x=-0.13)
+
     group_specs = {
         "w2_51_96_grid_fresh_formal_preparation": (
             "96 fresh",
@@ -1514,7 +1960,7 @@ def render_figure_6_open_action(
     panel_label(ax_d, "d", x=-0.13)
 
     fig.suptitle(
-        "Law-action decoupling and rank-action misalignment",
+        "Evidence, learned laws and evaluator rankings diverge from action",
         x=0.09,
         y=0.975,
         ha="left",
@@ -1524,14 +1970,13 @@ def render_figure_6_open_action(
     )
     fig.legend(
         handles=[
-            mpl.lines.Line2D([], [], marker="o", linestyle="", color=ARM_COLOR[arm], label=ARM_LABEL[arm])
-            for arm in ARM_ORDER
-        ] + [
-            mpl.lines.Line2D([], [], marker="*", linestyle="", color=COLORS["ink"], label="Top-1 selected")
+            mpl.lines.Line2D([], [], marker="o", linestyle="", color=COLORS["blue"], label="DeepSeek high"),
+            mpl.lines.Line2D([], [], marker="D", linestyle="", color=COLORS["violet"], label="Codex medium"),
+            mpl.lines.Line2D([], [], marker="*", linestyle="", color=COLORS["ink"], label="Top-1 selected"),
         ],
         loc="upper left",
         bbox_to_anchor=(0.14, 0.905),
-        ncol=4,
+        ncol=3,
         fontsize=6.4,
         borderaxespad=0,
         handletextpad=0.35,
@@ -1540,9 +1985,9 @@ def render_figure_6_open_action(
     fig.text(
         0.14,
         0.018,
-        f"W2-50: 45 scheduled, 42 eligible, {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']} truth/replay, and three retained failures. "
-        "W2-51/W2-52: exposed and fresh evidence remain separate; participant sessions = 0. "
-        "W2-53: 16/16 frozen unit versions with no new execution. Stars mark Top-1; full-rank correlation is a secondary diagnostic.",
+        f"W2-61: 360 scheduled condition slots; donor-eligible DeepSeek/Codex strata = 42/26 and all recipient failures remain in the failure-aware estimates. "
+        f"W2-50: 45 scheduled, 42 eligible and {summary['provider_free_truth_query_count']}/{summary['provider_free_exact_replay_count']} truth/replay. "
+        "W2-51/W2-52 contain zero participant sessions; W2-53 reproduces 16/16 frozen unit versions. Full-ranking correlation is a secondary diagnostic, and model differences are not provider causal effects.",
         ha="left",
         va="bottom",
         fontsize=6.2,
@@ -2231,10 +2676,173 @@ def build_cross_configuration_matched_rows(
     return contrast_rows, structural_rows
 
 
+def build_b3_cross_model_rows(
+    report: dict[str, Any],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for model, label in (("deepseek", "DeepSeek high"), ("codex", "Codex medium")):
+        summary = report["models"][model]["overall"]
+        measures = (
+            (
+                "Completed",
+                int(summary["completed_cell_count"]),
+                int(summary["scheduled_cell_count"]),
+            ),
+            (
+                "Joint law recovery",
+                int(summary["failure_aware_joint_recovery_count"]),
+                int(summary["scheduled_cell_count"]),
+            ),
+            (
+                "Top-1 action",
+                int(summary["failure_aware_top1_count"]),
+                int(summary["scheduled_cell_count"]),
+            ),
+            (
+                "Useful action gain",
+                int(summary["eligible_gain_at_least_0_02_count"]),
+                int(summary["eligible_gain_denominator"]),
+            ),
+        )
+        for measure, count, denominator in measures:
+            rows.append(
+                {
+                    "model": model,
+                    "model_label": label,
+                    "measure": measure,
+                    "count": count,
+                    "denominator": denominator,
+                    "rate": count / denominator,
+                }
+            )
+    return rows
+
+
+def _c2_gate_summary(locus: str, report: dict[str, Any]) -> dict[str, Any]:
+    gate = report["prediction_correction"]["locus_results"][locus]["gate"]
+    inference = (
+        gate["components"]["H3_primary_contrast"]
+        if locus == "A_E"
+        else gate["inference"]
+    )
+    return {
+        "estimate": float(inference["estimate"]),
+        "lower_bound": float(inference["one_sided_95pct_lower_bound"]),
+        "p_value": float(
+            gate.get(
+                "intersection_union_p_value",
+                gate.get("effective_intersection_union_p_value"),
+            )
+        ),
+        "passed": bool(gate["passed"]),
+    }
+
+
+def build_c2_cross_model_rows(
+    cross_model: dict[str, Any],
+    deepseek_report: dict[str, Any],
+    codex_report: dict[str, Any],
+) -> tuple[
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+    list[dict[str, Any]],
+]:
+    model_rows: list[dict[str, Any]] = []
+    locus_rows: list[dict[str, Any]] = []
+    gate_rows: list[dict[str, Any]] = []
+    detailed = {"deepseek": deepseek_report, "codex": codex_report}
+    labels = {"deepseek": "DeepSeek high", "codex": "Codex medium"}
+    summary_fields = (
+        "scheduled_cell_count",
+        "terminal_completion_rate",
+        "prediction_scored_count",
+        "mean_prediction_improvement",
+        "mean_effective_final_error",
+        "law_evaluated_count",
+        "mean_law_mae",
+        "mean_law_compression_loss",
+        "blind_gain_evaluable_count",
+        "mean_blind_gain",
+        "blind_better_count",
+        "blind_equivalent_count",
+        "blind_worse_count",
+    )
+    for model in ("deepseek", "codex"):
+        overall = cross_model["models"][model]["overall"]
+        model_rows.append(
+            {
+                "model": model,
+                "model_label": labels[model],
+                **{key: overall[key] for key in summary_fields},
+            }
+        )
+        for locus in ("A_E", "A_P", "A_S"):
+            locus_summary = cross_model["models"][model]["by_locus"][locus]
+            locus_rows.append(
+                {
+                    "model": model,
+                    "model_label": labels[model],
+                    "locus": locus,
+                    **{key: locus_summary[key] for key in summary_fields},
+                }
+            )
+            gate_rows.append(
+                {
+                    "model": model,
+                    "model_label": labels[model],
+                    "locus": locus,
+                    **_c2_gate_summary(locus, detailed[model]),
+                }
+            )
+    return model_rows, locus_rows, gate_rows
+
+
+def build_action_extension_rows(
+    report: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    condition_rows: list[dict[str, Any]] = []
+    contrast_rows: list[dict[str, Any]] = []
+    labels = {"deepseek": "DeepSeek high", "codex": "Codex medium"}
+    for model in ("deepseek", "codex"):
+        donor_eligible = report["per_model"][model]["donor_eligible"]
+        for condition, summary in donor_eligible["condition_summaries"].items():
+            condition_rows.append(
+                {
+                    "model": model,
+                    "model_label": labels[model],
+                    "condition": condition,
+                    "row_count": int(summary["row_count"]),
+                    "completed_count": int(summary["completed_count"]),
+                    "mean_failure_aware_normalized_regret": float(
+                        summary["mean_failure_aware_normalized_regret"]
+                    ),
+                    "top1_rate": float(summary["top1_rate"]),
+                    "within_0_01_rate": float(summary["within_0_01_rate"]),
+                }
+            )
+        for row in donor_eligible["contrasts"]:
+            interval = row["task_stratified_task_world_cluster_bootstrap_95_interval"]
+            contrast_rows.append(
+                {
+                    "model": model,
+                    "model_label": labels[model],
+                    "contrast": row["contrast"],
+                    "paired_stratum_count": int(row["paired_stratum_count"]),
+                    "mean_regret_difference": float(
+                        row["mean_failure_aware_normalized_regret_difference"]
+                    ),
+                    "interval_low": float(interval[0]),
+                    "interval_high": float(interval[1]),
+                    "mean_top1_difference": float(row["mean_top1_difference"]),
+                }
+            )
+    return condition_rows, contrast_rows
+
+
 def render_figure_4_matched(
     cell_rows: list[dict[str, Any]],
     cross_configuration_rows: list[dict[str, Any]],
-    structural_control_rows: list[dict[str, Any]],
+    b3_rows: list[dict[str, Any]],
 ) -> list[Path]:
     fig = plt.figure(figsize=(7.2, 5.70))
     grid = fig.add_gridspec(
@@ -2387,65 +2995,64 @@ def render_figure_4_matched(
     style_row_axis(ax_c)
     panel_label(ax_c, "c", x=-0.13)
 
-    qualitative_labels = [
-        "Packet qualified: power vs linear"
-        if row["configuration"] == "Provider-free control"
-        else f"{row['configuration']}: error <= 0.02"
-        if row["measure"] == "Post error <= 0.02"
-        else f"{row['configuration']}: exact law"
-        for row in structural_control_rows
+    measure_order = [
+        "Completed",
+        "Joint law recovery",
+        "Top-1 action",
+        "Useful action gain",
     ]
-    qualitative_values = [
-        row["count"] / row["denominator"] for row in structural_control_rows
-    ]
-    q_colors = [
-        COLORS["green"]
-        if row["configuration"] == "Provider-free control"
-        else COLORS["red"]
-        if row["measure"] == "Recovered exact 1.75 law"
-        else configuration_colors[row["configuration"]]
-        for row in structural_control_rows
-    ]
-    bars = ax_d.barh(
-        np.arange(len(structural_control_rows)),
-        qualitative_values,
-        height=0.52,
-        color=q_colors,
-        edgecolor="white",
-        linewidth=0.7,
-    )
-    for bar, row in zip(bars, structural_control_rows, strict=True):
-        x_text = 0.97 if row["count"] else 0.03
-        ax_d.text(
-            x_text,
-            bar.get_y() + bar.get_height() / 2,
-            f"{row['count']}/{row['denominator']}",
-            ha="right" if row["count"] else "left",
-            va="center",
-            fontsize=6.8,
-            color="white" if row["count"] else COLORS["ink"],
-            fontweight="bold",
+    model_order = ["deepseek", "codex"]
+    model_colors = {"deepseek": COLORS["blue"], "codex": COLORS["violet"]}
+    centers = np.arange(len(measure_order), dtype=float)
+    width = 0.34
+    for model_index, model in enumerate(model_order):
+        model_rows = {row["measure"]: row for row in b3_rows if row["model"] == model}
+        x = centers + (model_index - 0.5) * width
+        values = [float(model_rows[measure]["rate"]) for measure in measure_order]
+        bars = ax_d.bar(
+            x,
+            values,
+            width=width * 0.92,
+            color=model_colors[model],
+            edgecolor="white",
+            linewidth=0.6,
+            label=model_rows[measure_order[0]]["model_label"],
         )
-    ax_d.set_yticks(np.arange(len(structural_control_rows)), qualitative_labels)
-    ax_d.set_xlim(0, 1.02)
-    ax_d.invert_yaxis()
-    ax_d.set_xlabel("World fraction meeting criterion")
+        for bar, measure in zip(bars, measure_order, strict=True):
+            row = model_rows[measure]
+            y = max(float(row["rate"]), 0.015) + 0.025
+            ax_d.text(
+                bar.get_x() + bar.get_width() / 2,
+                y,
+                f"{row['count']}/{row['denominator']}",
+                ha="center",
+                va="bottom",
+                fontsize=5.7,
+                color=COLORS["ink"],
+                rotation=90 if measure == "Completed" else 0,
+            )
+    ax_d.set_xticks(
+        centers,
+        ["Completed", "Correct\nfamily + 1.75", "Top-1", "Gain\n$\\geq .02$"],
+    )
+    ax_d.set_ylim(0, 1.16)
+    ax_d.set_yticks(np.linspace(0, 1, 6), [f"{int(v * 100)}%" for v in np.linspace(0, 1, 6)])
+    ax_d.set_ylabel("Failure-aware rate")
     ax_d.set_title(
-        "The packet is diagnostically qualified,\nbut no configuration repairs the wrong law",
+        "Identifiable-law recovery still\ndoes not bridge to useful action",
         loc="left",
         fontweight="bold",
         pad=6,
     )
-    style_row_axis(ax_d)
+    style_quant_axis(ax_d)
+    ax_d.legend(loc="upper right", fontsize=5.6)
     panel_label(ax_d, "d", x=-0.13)
 
-    configuration_count = sum(
-        row["measure"] == "Post error <= 0.02" for row in structural_control_rows
-    )
+    configuration_count = 3
     structural_session_count = 15 * configuration_count
 
     fig.suptitle(
-        "Matched evidence replicates numerical convergence without structural-law recovery",
+        "Matched evidence yields numerical convergence without reliable law-to-action recovery",
         x=0.105,
         y=0.975,
         ha="left",
@@ -2468,7 +3075,7 @@ def render_figure_4_matched(
     fig.text(
         0.535,
         0.912,
-        "0/5 misspecified exact-law recovery per configuration",
+        "B3: 5/60 correct laws; 0 useful action gains",
         ha="left",
         va="center",
         fontsize=7.0,
@@ -2492,14 +3099,13 @@ def render_figure_4_matched(
     fig.text(
         0.105,
         0.020,
-        "Panels a-b show the corrected DeepSeek-high structural assay; panels c-d add "
-        "the fully matched GPT-medium and DeepSeek-low structural results. Each "
-        "configuration used 5 worlds x 3 arms with identical packets and scoring. The "
-        "low-reasoning parametric block has no qualified denominator and is not shown. "
-        "Provider-free qualification establishes registered power-v-linear "
-        "discrimination, not uniqueness against every phenomenological alternative. "
-        "Five-world contrasts are descriptive; no configuration-superiority test is "
-        "performed.",
+        "Panels a-b show the corrected DeepSeek-high B2 structural assay; panel c adds "
+        "matched GPT-medium and DeepSeek-low evidence. All three B2 configurations put "
+        "misspecified cells near the observed outcomes yet recover the exact 1.75 law "
+        "in 0/5 worlds. Panel d reports the separate participant-identifiable B3 surface: "
+        "DeepSeek has 13 retained schema failures, Codex recovers 5/30 joint laws, and "
+        "neither model realizes a registered useful action gain. Five-world and model "
+        "comparisons are descriptive; no capability-ranking test is performed.",
         ha="left",
         va="bottom",
         fontsize=6.25,
@@ -2571,6 +3177,26 @@ def main() -> int:
         "workstreams/flagship_tasks/reports/"
         "work-ii-w2-59-cross-model-main-evidence-closeout-v0.1.json"
     )
+    action_extension_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-61-cross-model-action-aligned-causal-extension-v0.1.json"
+    )
+    deepseek_c2_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
+    )
+    codex_c2_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-62-codex-c2-current-composite-evaluation-v0.1.json"
+    )
+    cross_model_c2_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-62-c2-cross-model-current-composite-v0.1.json"
+    )
+    b3_cross_model_path = ROOT / (
+        "workstreams/flagship_tasks/reports/"
+        "work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json"
+    )
     source_paths = [
         design_path,
         preflight_path,
@@ -2589,6 +3215,11 @@ def main() -> int:
         structural_matched_gpt_path,
         structural_matched_deepseek_low_path,
         cross_model_closeout_path,
+        action_extension_path,
+        deepseek_c2_path,
+        codex_c2_path,
+        cross_model_c2_path,
+        b3_cross_model_path,
     ]
 
     design = json.loads(design_path.read_text(encoding="utf-8"))
@@ -2621,6 +3252,17 @@ def main() -> int:
     )
     cross_model_closeout = json.loads(
         cross_model_closeout_path.read_text(encoding="utf-8")
+    )
+    action_extension = json.loads(
+        action_extension_path.read_text(encoding="utf-8")
+    )
+    deepseek_c2 = json.loads(deepseek_c2_path.read_text(encoding="utf-8"))
+    codex_c2 = json.loads(codex_c2_path.read_text(encoding="utf-8"))
+    cross_model_c2 = json.loads(
+        cross_model_c2_path.read_text(encoding="utf-8")
+    )
+    b3_cross_model = json.loads(
+        b3_cross_model_path.read_text(encoding="utf-8")
     )
     if preflight.get("formal_execution_allowed") is not False:
         raise ValueError("expected an outcome-blind execution-blocked formal preflight")
@@ -2659,6 +3301,17 @@ def main() -> int:
         raise ValueError("unexpected reviewer-control W2-50 denominator")
     if reviewer_controls["typed_law_schema_capacity"].get("completed_cell_count") != 135:
         raise ValueError("unexpected reviewer-control schema-capacity denominator")
+    if action_extension["denominators"].get("scheduled_condition_slots_total") != 360:
+        raise ValueError("unexpected W2-61 four-condition denominator")
+    if deepseek_c2["denominators"].get("cell_count") != 135:
+        raise ValueError("unexpected DeepSeek C2 denominator")
+    if codex_c2["denominators"].get("cell_count") != 135:
+        raise ValueError("unexpected Codex C2 denominator")
+    if b3_cross_model.get("scheduled_cells_by_model") != {
+        "codex": 30,
+        "deepseek": 30,
+    }:
+        raise ValueError("unexpected W2-63 B3 denominators")
 
     checkpoint_rows = read_csv(checkpoint_summary_path)
     experiment_rows = read_csv(experiment_metrics_path)
@@ -2712,6 +3365,15 @@ def main() -> int:
             structural_matched_deepseek_low,
         )
     )
+    b3_rows = build_b3_cross_model_rows(b3_cross_model)
+    c2_model_rows, c2_locus_rows, c2_gate_rows = build_c2_cross_model_rows(
+        cross_model_c2,
+        deepseek_c2,
+        codex_c2,
+    )
+    action_condition_rows, action_contrast_rows = build_action_extension_rows(
+        action_extension
+    )
     write_csv(
         SOURCE_DIR / "figure-4-matched-structural-cells.csv",
         matched_cell_rows,
@@ -2743,6 +3405,95 @@ def main() -> int:
         SOURCE_DIR / "figure-4-structural-identification-control.csv",
         structural_control_rows,
         ["configuration", "measure", "count", "denominator"],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-4-b3-cross-model.csv",
+        b3_rows,
+        ["model", "model_label", "measure", "count", "denominator", "rate"],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-5-c2-model-summary.csv",
+        c2_model_rows,
+        [
+            "model",
+            "model_label",
+            "scheduled_cell_count",
+            "terminal_completion_rate",
+            "prediction_scored_count",
+            "mean_prediction_improvement",
+            "mean_effective_final_error",
+            "law_evaluated_count",
+            "mean_law_mae",
+            "mean_law_compression_loss",
+            "blind_gain_evaluable_count",
+            "mean_blind_gain",
+            "blind_better_count",
+            "blind_equivalent_count",
+            "blind_worse_count",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-5-c2-locus-summary.csv",
+        c2_locus_rows,
+        [
+            "model",
+            "model_label",
+            "locus",
+            "scheduled_cell_count",
+            "terminal_completion_rate",
+            "prediction_scored_count",
+            "mean_prediction_improvement",
+            "mean_effective_final_error",
+            "law_evaluated_count",
+            "mean_law_mae",
+            "mean_law_compression_loss",
+            "blind_gain_evaluable_count",
+            "mean_blind_gain",
+            "blind_better_count",
+            "blind_equivalent_count",
+            "blind_worse_count",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-5-c2-selective-correction.csv",
+        c2_gate_rows,
+        [
+            "model",
+            "model_label",
+            "locus",
+            "estimate",
+            "lower_bound",
+            "p_value",
+            "passed",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-6-four-condition-summary.csv",
+        action_condition_rows,
+        [
+            "model",
+            "model_label",
+            "condition",
+            "row_count",
+            "completed_count",
+            "mean_failure_aware_normalized_regret",
+            "top1_rate",
+            "within_0_01_rate",
+        ],
+    )
+    write_csv(
+        SOURCE_DIR / "figure-6-four-condition-contrasts.csv",
+        action_contrast_rows,
+        [
+            "model",
+            "model_label",
+            "contrast",
+            "paired_stratum_count",
+            "mean_regret_difference",
+            "interval_low",
+            "interval_high",
+            "mean_top1_difference",
+        ],
     )
     open_action_rows = normalize_open_action_rows(open_action_summary)
     write_csv(
@@ -2878,7 +3629,12 @@ def main() -> int:
         "figure_4": render_figure_4_matched(
             matched_cell_rows,
             cross_configuration_rows,
-            structural_control_rows,
+            b3_rows,
+        ),
+        "figure_5": render_figure_5_cross_model_c2(
+            c2_model_rows,
+            c2_locus_rows,
+            c2_gate_rows,
         ),
         "figure_6": render_figure_6_open_action(
             open_action_rows,
@@ -2888,6 +3644,7 @@ def main() -> int:
             large_grid_qualification,
             gate_alignment,
             reviewer_controls,
+            action_extension,
         ),
     }
     manifest: dict[str, Any] = {
@@ -2913,6 +3670,12 @@ def main() -> int:
             "matched_structural_recovery_rows": len(matched_qualitative_rows),
             "matched_cross_configuration_rows": len(cross_configuration_rows),
             "matched_structural_control_rows": len(structural_control_rows),
+            "b3_cross_model_rows": len(b3_rows),
+            "c2_model_rows": len(c2_model_rows),
+            "c2_locus_rows": len(c2_locus_rows),
+            "c2_gate_rows": len(c2_gate_rows),
+            "action_condition_rows": len(action_condition_rows),
+            "action_contrast_rows": len(action_contrast_rows),
             "open_action_rows": len(open_action_rows),
             "open_action_eligible_rows": sum(row["eligible"] for row in open_action_rows),
             "qualification_funnel_rows": len(qualification_funnel_rows),
@@ -2934,12 +3697,15 @@ def main() -> int:
         "interpretation_limits": [
             "Figure 1 states the identification problem; Figure 2 separates executed evidence from future portability studies.",
             "Figure 3 combines the prospective formal locus decisions with retrospective manipulation summaries; first-recipe divergence has no same-arm replicate baseline.",
-            "Figure 4 combines the corrected DeepSeek-high structural assay with complete "
-            "matched DeepSeek/GPT A-P and A-S B2 replications plus the complete DeepSeek-low "
-            "A-S B2 ablation; five-world contrasts are descriptive and no "
-            "configuration-superiority test is performed.",
-            "Figure 6 combines terminal unseen-plan selection, continuous and threshold-sensitive law-action analysis, oracle qualification funnels and the frozen gate-action alignment diagnostic.",
-            "The open-action matrix has no no-evidence or pre-exploration action baseline, so it does not identify a causal action-transfer effect.",
+            "Figure 4 combines the corrected DeepSeek-high B2 assay, complete matched "
+            "DeepSeek/GPT B2 replications, the complete DeepSeek-low A-S B2 ablation and the "
+            "failure-aware two-model B3 control; no configuration-superiority test is performed.",
+            "Figure 5 compares complete 135-cell DeepSeek and Codex C2 surfaces; model "
+            "differences are matched descriptive and not provider causal effects.",
+            "Figure 6 combines the W2-61 four-condition action successor, W2-50 "
+            "continuous law-action analysis and the frozen W2-53 gate-action diagnostic.",
+            "W2-61 is development successor evidence; yoked recipient failures remain "
+            "in the failure-aware denominator and prevent a pure experiment-selection interpretation.",
             "W2-51 and W2-52 contain zero participant sessions; exposed construction and fresh qualification remain separate evidence roles.",
             "W2-53 reproduces 16 frozen unit versions without new truth, provider or physical execution and does not revise historical stop decisions.",
             "No cross-provider capability ranking or context-reset portability claim is supported.",

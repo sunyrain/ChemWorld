@@ -3,27 +3,22 @@ title: "Causal Dissection of Scientific Agents: Breaks from Evidence to Action"
 subject: "Controlled causal analysis of how experimental evidence becomes predictions, executable laws, unseen actions, and evaluator decisions"
 keywords: "scientific agents; autonomous experimentation; causal intervention; structural identification; executable laws; decision transfer; evaluator validity"
 abstract: |
-  Experimental success does not reveal whether a scientific agent learned the right model. The same
-  endpoint can follow from an inherited prior, productive search, phenomenological interpolation, or
-  evidence-driven revision. We use ChemWorld as a controlled causal probe: the executable world,
-  interface, resources, and stochastic identity remain fixed while the agent's initial model is made
-  opaque, aligned, or misspecified at entity, parametric, or structural loci. Across 135 public agent
-  sessions, these interventions redirected search and prediction errors fell in every arm and locus,
-  yet the prespecified selective-correction criterion failed at all three loci. Under matched
-  structural counterevidence, mean normalized errors in all three arms fell from 0.2255-0.3392 to
-  0.0060-0.0074. A matched GPT replication yielded a +0.0915 numerical-update contrast, yet both
-  models recovered the registered 1.75 power law in 0/5 misspecified worlds. A same-harness
-  DeepSeek-low ablation retained 0/5 recovery and low error in all 15 cells while reversing the
-  update contrast to -0.0405. An
-  independent 30-session GPT-5.6-sol medium control made the exponent identifiable: joint family--exponent recovery
-  was 5/10 in the aligned arm and 0/10 in both controls, while 0/18 action-eligible choices reached
-  the registered gain. All 135 typed laws executed, yet 84 preserved less predictive information
-  than the agents' final explicit predictions. In fresh multi-task action selection, only 11/42 eligible readouts selected
-  the best unseen plan, and thresholded law adequacy did not determine a correct action. Finally, a
-  complete-ranking control passed 7/8 fresh 96-query units while selecting Top-1 in only 1/8, whereas
-  a fresh 320-query unit failed the same gate but selected Top-1 with zero regret. Experimental
-  optimization, numerical revision, structural identification, executable compression, decision
-  transfer, and evaluator validity are therefore distinct transitions rather than one score.
+  Experimental success does not reveal whether a scientific agent learned the right model. We use
+  ChemWorld as a controlled causal probe: physics, interface, resources, and stochastic identity stay
+  fixed while the initial model is opaque, aligned, or misspecified at entity, parametric, or
+  structural loci. Across 135 public sessions, search changed and prediction error fell in every arm
+  and locus, yet all three selective-correction criteria failed. Matched structural evidence reduced
+  mean error from 0.2255--0.3392 to 0.0060--0.0074, but DeepSeek and GPT recovered the registered 1.75
+  power law in 0/5 misspecified worlds; the same break survived a lower-reasoning ablation. On matched
+  30-cell identifiable-law surfaces, joint recovery was 0/30 for DeepSeek and 5/30 for Codex, with no
+  registered action gain in either model. A 135-cell Codex replication lowered executable-law MAE
+  from 0.237 to 0.175, yet blind gain remained approximately zero in both models. An oracle-free
+  four-condition successor found no stable learned-law benefit; autonomy was directionally favourable
+  but intervals crossed zero and yoked failures were substantial. Only 11/42 fresh action readouts
+  selected Top-1. Finally, a ranking control passed 7/8 fresh units while selecting Top-1 in 1/8,
+  whereas another failed the rank gate but selected Top-1 with zero regret. Numerical revision,
+  structural identification, executable compression, decision transfer, and evaluator validity are
+  distinct transitions rather than one score.
 ---
 
 # Introduction
@@ -53,16 +48,11 @@ counterfactual queries, matched contradictory evidence, executable-law assays, a
 ActionPlans separately measure search, prediction, structural identification, compression, and
 decision transfer.
 
-Our contribution is a causal map of the evidence-to-action chain rather than another scalar
-leaderboard. We identify four breaks. Priors redirect trajectories, but the registered
-selective-correction criterion fails at every locus. Matched counterevidence drives numerical
-predictions near truth, yet DeepSeek and matched GPT replications each recover the registered power
-law in 0/5 misspecified worlds. Executable
-laws run successfully but are less faithful than final explicit predictions in 84/135 sessions. The
-fourth break has two levels: agent-level law adequacy does not determine unseen Top-1 selection, and
-evaluator-level complete-ranking qualification does not determine action validity. The resulting map
-locates losses in revision, structural identification, compression, decision transfer, and the
-evaluator itself without treating every failure as low overall capability.
+Our contribution is a causal map rather than a scalar leaderboard. Four breaks emerge: priors redirect
+search without selective repair; matched evidence yields numerical convergence without reliable
+structural recovery; executable laws can lose information present in explicit predictions; and both
+agent-level law adequacy and evaluator-level rank qualification decouple from action validity. This
+locates losses in revision, identification, compression, transfer, and evaluation.
 
 ```{=latex}
 \begin{figure}[t]
@@ -148,11 +138,10 @@ action matrix separately contains three tasks, five worlds, and three arms (45 s
 readouts, while complete-rank correlation and law adequacy are diagnostics. Table~\ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
-Participant provenance is block-specific: the prospective and open-action blocks use the fixed
-DeepSeek-high configuration; matched evidence has separate complete DeepSeek-high and GPT-5.6-sol
-medium denominators, plus a complete DeepSeek-low structural ablation; the identifiable-law control
-uses GPT; and the three control-qualification rows are provider-free. No row pools results across
-configurations.
+Provenance is block-specific: C2 and B3 have matched scheduled DeepSeek-high/Codex-medium surfaces;
+matched evidence adds complete denominators and a DeepSeek-low structural ablation; the four-condition
+successor retains model-specific donor eligibility. Provider-free controls and model configurations
+are never pooled.
 
 ```{=latex}
 \begin{table}[t]
@@ -165,10 +154,10 @@ a retained scientific rejection; unstarted units are not silently removed.}
 \toprule
 Layer & Units & Execution & Supported role \\
 \midrule
-Prospective priors & 135 sessions & DeepSeek; 1,243/1,260 experiments & Search, prediction, law, incumbent replay \\
+Prospective C2 & 270 scheduled & DeepSeek 121 complete; Codex 126 complete & Search, prediction, law, incumbent replay \\
 Matched evidence & 75 sessions & DeepSeek high + GPT (60); B2 low (15) & Replicated numerical--structural break \\
-Identifiable-law control & 30 sessions & GPT; 5 worlds $\times$ 3 arms $\times$ 2 & Structural retention and action bridge \\
-Open action & 45 cells & DeepSeek; 42 eligible; 240/240 truth/replay & Descriptive unseen-plan selection \\
+Identifiable-law B3 & 60 scheduled & DeepSeek 17+13 failures; Codex 30 & Structural recovery and action bridge \\
+Action assays & 45 cells + 360 slots & W2-50 + four conditions per model & Descriptive and failure-aware action transfer \\
 96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
 320-query control & 7 exposed + 15 fresh & Provider-free; 7 pass + 1 fresh & Construction repair versus prospective rejection \\
 Gate alignment & 16 unit versions & Provider-free; 0 new execution & Rank validity versus action validity \\
@@ -248,42 +237,48 @@ output was 20.9\% lower than DeepSeek high on the same block. The low A-P canary
 receipts and contributes no estimate. This is a same-harness reasoning-budget robustness result, not
 reasoning-off or a configuration ranking.
 
-We then froze an independent control whose disclosed reference coefficients made the 1.75 exponent
-identifiable on a disjoint eight-query scoring roster. After a 3/3 canary, all 30 GPT-5.6-sol medium
-sessions completed (five worlds, three arms, two fresh sessions per arm and world). Mean post errors
-were 0.0367/0.0215/0.0378 for opaque/aligned/misspecified. Joint family--exponent recovery was
-0/10, 5/10, and 0/10; aligned world-mean exponent error was lower than both comparators in 5/5 worlds.
-The misspecified arm chose the power family in 8/10 sessions but recovered the exponent in 0/10,
-so the family label alone did not establish structural identification. Only 2/30 choices were Top-1,
-both where no candidate cleared the registered improvement margin; among 18 action-eligible cells,
-0/18 reached the 0.02 gain. Identifiable evidence partly preserved a correct prior but neither
-selectively repaired the wrong prior nor guaranteed useful action.
+An independent control made the 1.75 exponent identifiable on a disjoint scoring roster. Codex
+completed 30/30 sessions; joint family--exponent recovery was 0/10, 5/10, and 0/10 for
+opaque/aligned/misspecified, and 0/18 action-eligible cells achieved gain at least 0.02. The matched
+DeepSeek successor retained 17 completed cells and 13 schema failures; failure-aware joint recovery
+and Top-1 were 0/30, versus 5/30 and 2/30 for Codex. Neither model achieved the registered useful
+action gain. Differential failures preclude model ranking, while the shared negative action bridge
+strengthens the transition-level result.
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Matched evidence replicates numerical convergence without structural-law recovery.}
+\caption{\textbf{Matched evidence yields numerical convergence without reliable law-to-action recovery.}
 Panels a--b detail DeepSeek high. Panel c compares matched A-P DeepSeek/GPT and structural B2
-DeepSeek-high/GPT-medium/DeepSeek-low contrasts. Panel d shows that the packet qualifies in 5/5 worlds
-and every B2 configuration reaches low misspecified error, yet exact 1.75-law recovery remains 0/5.}
+DeepSeek-high/GPT-medium/DeepSeek-low contrasts. Panel d reports failure-aware completion, joint-law
+recovery, Top-1, and useful action gain on matched 30-cell B3 surfaces.}
 \label{fig:matched-evidence}
 \end{figure}
 ```
 
-All 135 final typed laws executed on their prespecified coordinates, but executability did not
-preserve the information in conditional predictions. Mean law error was 0.237; relative to effective
-final predictions, laws were better in 50 cells, equal in one, and worse in 84, with mean
-law-minus-prediction error +0.069. Typed syntax solved execution coverage, not faithful scientific
-compression. A same-domain capacity oracle then fitted legal typed laws directly to each complete
-final prediction vector. The full registered basis reproduced 135/135 prediction states (mean MAE
-$4.25\times10^{-13}$), compared with 0.1539 MAE for participant laws; participant-term-matched and
-leave-one-query-out fits reached 0.0114 and 0.0788 MAE. All fitted laws passed the production
-parser/executor. This localizes most loss to agent distillation rather than interface capacity, while
-remaining an in-domain capacity control rather than global mechanism recovery. Paired blind replay
-likewise tested only incumbent retrieval: 726/726 executions
-completed for 121 evaluable cells, with recommendations better/equivalent/worse in 1/119/1 cells.
-Selection beyond the observed campaign required a separate assay.
+All 135 DeepSeek laws executed, but 84 lost information relative to final explicit predictions; mean
+law MAE was 0.237 and compression loss 0.069. Legal full-basis controls reproduced 135/135 prediction
+states at mean MAE $4.25\times10^{-13}$, localizing the gap to participant distillation rather than
+typed-interface capacity. Blind incumbent replay completed 726 executions for 121 cells, with
+recommendations better/equivalent/worse in 1/119/1.
+
+The matched Codex surface retained 126 completed, 3 failed, and 6 right-censored cells. All locus
+gates again failed. Codex versus DeepSeek law MAE was 0.1753 versus 0.2371 and compression loss 0.0142
+versus 0.0686, but blind gain was -0.0001 versus -0.0010. Better compression still did not improve
+action (Fig.~\ref{fig:c2-cross-model}); model differences are descriptive.
+
+```{=latex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-5-capability-chain.pdf}
+\caption{\textbf{Better executable laws still do not produce better actions.}
+\textbf{a,} Registered correction estimates and lower bounds for both 135-cell C2 cohorts.
+\textbf{b,} Numerical learning by locus and model. \textbf{c,} Final-prediction versus executable-law
+MAE. \textbf{d,} Blind outcomes over every scheduled cell; model contrasts are descriptive.}
+\label{fig:c2-cross-model}
+\end{figure}
+```
 
 # Results: law, action, and evaluation
 
@@ -311,68 +306,39 @@ to 0.30, the adequate subset expanded from 1 to 34 cells but contained only 0 to
 The four-way table is therefore not a single-cutoff artifact: law error has no stable monotonic map
 to unseen-action quality across tasks.
 
+## Four conditions separate autonomy from artifact portability
+
+An independent development successor scheduled no evidence, yoked evidence, learned-law-only, and
+autonomous-exploration action readouts for all 45 strata per model: 180 slots each and 360 total.
+DeepSeek and Codex had 42 and 26 donor-eligible strata, with 26 coordinates shared. Within those
+model-specific populations, autonomous-minus-no-evidence regret was -0.1214 (95% cluster interval
+$[-0.2607,0.0225]$) and -0.1379 ($[-0.3452,0.1103]$); both favour autonomy but cross zero.
+Learned-law-minus-no-evidence was -0.0267 and +0.0970, also with intervals crossing zero. Yoked
+completion was only 10/42 and 24/26, so its failure-aware disadvantage cannot be interpreted as a
+pure experiment-selection effect. The bounded result is directional total value for autonomy without
+reliable transfer of the compressed law (Fig.~\ref{fig:open-action}a,c).
+
 ## Evaluator-level ranking and decision quality are different estimands
 
-A planned five-condition causal follow-up required a provider-free oracle law to rank the eight
-candidates with Spearman $\rho\geq0.80$ before any participant was called. The first eight of 15 fresh
-clusters completed 896/896 truth executions and exact replays. Candidate-opportunity gates passed
-8/8, but the eighth oracle obtained $\rho=0.738095$ and disagreed on Top-1. The frozen stop rule left
-seven clusters, the operational canary, all 225 participant sessions, and 540 planned participant
-experiments unstarted. This is a rejection of the control construction, not an estimated participant
-effect.
-
-We then isolated grid coverage while retaining the fitted ExtraTrees family and the correlation
-threshold. Expanding from 96 queries to 64 global plus 256 candidate-neighborhood queries repaired all
-four historical failures: 7/7 exposed construction units passed with 2,352/2,352 truth executions and
-exact replays, and minimum $\rho$ was 0.857143. Prospective validity did not follow. The first new
-electrochemical world completed 336/336 truth executions and replays but obtained $\rho=0.714286$,
-triggering the same stop boundary and leaving 14 fresh clusters unstarted. Nevertheless, this oracle
-selected the true Top-1 action with normalized regret zero.
-
-A frozen zero-execution diagnostic reproduced the original rank and Top-1 outcomes for all 16
-completed 96- and 320-query unit versions. Among the eight fresh 96-query units, the rank gate passed
-7/8 but Top-1 was correct in only 1/8 and within 0.01 of optimum in 3/8; six were
-rank-pass/action-wrong. The fresh 320-query unit was rank-fail/action-correct. Thus global-order
-correlation and decision validity disagree bidirectionally. The historical gates and stops remain
-valid for their protocols, but future controls must prospectively prioritize regret, near-optimal
-selection, and near-tie-aware ordering, retaining full-ranking correlation as a secondary diagnostic.
-
-For eight candidates without ties, Spearman correlation is
-$\rho=1-\sum_i d_i^2/84$, where $d_i$ is the displacement of candidate $i$ between predicted and true
-ranks. The retained 96-query failure, $\rho=0.738095$, therefore represents
-$\sum_i d_i^2=22$; the fresh 320-query failure, $\rho=0.714286$, represents 24. The scalar says how
-much the full ordering moved, not where the displacement occurred. The former selected the wrong
-Top-1 while the latter preserved it exactly, making the estimand mismatch concrete rather than merely
-threshold dependent (Fig.~\ref{fig:open-action}c,d; Table~\ref{tab:alignment}).
-
-```{=latex}
-\begin{table}[t]
-\caption{\textbf{Complete-ranking gates and action endpoints are different estimands.}}
-\label{tab:alignment}
-\centering
-\scriptsize
-\begin{tabular}{@{}lrrrr@{}}
-\toprule
-Frozen block & $n$ & Rank pass & Top-1 & $\leq0.01$ regret \\
-\midrule
-Fresh 96-query & 8 & 7 & 1 & 3 \\
-Exposed 320-query & 7 & 7 & 4 & 6 \\
-Fresh 320-query & 1 & 0 & 1 & 1 \\
-\bottomrule
-\end{tabular}
-\end{table}
-```
+A planned five-condition follow-up required an outcome-disjoint oracle law to rank eight candidates
+with Spearman $\rho\geq0.80$. The first eight fresh clusters completed 896/896 truth/replays, but the
+eighth obtained $\rho=0.738095$ and the wrong Top-1; the frozen stop left all 225 participant sessions
+unstarted. Expanding 96 queries to a 320-query grid repaired 7/7 exposed units, yet the first fresh
+world failed at $\rho=0.714286$ while selecting Top-1 with zero regret. A zero-execution diagnostic
+then reproduced all 16 unit versions: fresh 96-query rank gates passed 7/8 but Top-1 only 1/8, whereas
+the fresh 320-query unit was rank-fail/action-correct. Full-order correlation and decision validity
+therefore disagree in both directions (Fig.~\ref{fig:open-action}c,d; Table~\ref{tab:alignment}); the
+historical stops remain valid, while future controls should prioritize regret and near-optimality.
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{Agent law-action decoupling and evaluator rank-action misalignment.}
-\textbf{a,} True rank for 42 eligible W2-50 cells; all 45 scheduled cells remain in the denominator.
-\textbf{b,} Continuous law error versus regret, with Top-1 stars and a seven-cutoff inset.
-\textbf{c,} Frozen W2-51/W2-52 qualification dispositions separate exposed construction from fresh
-qualification; participant execution is zero. \textbf{d,} Spearman correlation versus regret for all
-16 frozen W2-53 unit versions. No panel revises a historical stop decision.}
+\caption{\textbf{Evidence, learned laws, and evaluator rankings diverge from action.}
+\textbf{a,} Failure-aware regret across four W2-61 action conditions in model-specific donor-eligible
+populations. \textbf{b,} W2-50 law error versus regret, with Top-1 stars and a cutoff inset.
+\textbf{c,} Registered W2-61 contrasts with clustered intervals; yoked failures are retained.
+\textbf{d,} Spearman correlation versus regret for all 16 frozen W2-53 unit versions.}
 \label{fig:open-action}
 \end{figure}
 ```
@@ -392,50 +358,33 @@ prediction learning, law recovery, and action quality are not interchangeable re
 
 # Discussion and limitations
 
-The evaluated system frequently searches productively and learns numerically, but its transformations
-lose information at different locations. Correct priors alter trajectories without a general endpoint
-advantage. Free evidence reduces prediction error without selectively repairing wrong priors. Direct
-matched evidence can yield near-exact numerical revision while all five misspecified summaries remain
-phenomenological saturation or endpoint models instead of recovering the registered power law. Typed
-laws can execute yet compress predictions poorly. At the agent level, law adequacy does not determine
-the correct unseen action; at the evaluator level, complete-ranking qualification does not determine
-action validity. These are distinct capabilities with different interventions and denominators.
-
-The oracle study extends the second level of this diagnosis to the harness. A metric can be
-reproducible and still be misaligned with the intended decision. Spearman correlation rewards ordering
-across all candidates, whereas the causal follow-up needs a positive control for selected action and
-decision loss. Stopping before participant execution prevented a weak control from producing an
-uninterpretable effect. Evaluator validity is part of scientific-agent validity, not a post-hoc
-implementation detail.
+The systems search productively and learn numerically, yet lose information at distinct transitions.
+Priors redirect search without selective repair; matched evidence supports near-exact interpolation
+without reliable structural recovery; executable laws can compress predictions poorly; and neither
+law adequacy nor complete-ranking qualification determines action validity. The oracle stop prevented
+a reproducible but decision-misaligned control from producing an uninterpretable participant effect.
+Evaluator validity is therefore part of scientific-agent validity.
 
 ## A transition map for scientific-agent evaluation
 
-The capability chain suggests three design requirements. First, intervention and readout need separate
-units: manipulating priors, supplying matched evidence, and hiding candidate outcomes answer different
-questions. Prediction, law execution, and action regret should remain separate so failures can be
-localized to acquisition, revision, representation, or transfer.
-
-Second, controls should qualify on the intended endpoint. An outcome-disjoint, exactly replayable law
-can rank globally well yet choose the wrong action; an optimal decision can coexist with moderate
-ranking error. Selection studies should register regret, near-optimality, and near-tie handling as
-primary, leaving full-rank metrics diagnostic.
-
-Third, evidence roles and denominators must remain separate. The 96-query failure tests a control; the
-320-query exposed pass tests construction; the fresh 320-query failure tests generalization. Pooling
-them or treating stopped sessions as zero effects would invent evidence; scheduled, eligible,
-completed, and unstarted counts prevent this error.
+Evaluation should therefore separate interventions from readouts, score prediction, law and action on
+their own units, and qualify controls on the intended endpoint. Regret, near-optimality and near-tie
+handling should be primary for selection, with full-rank metrics diagnostic. Evidence roles must also
+remain separate: the 96-query failure tests a control, the exposed 320-query pass tests construction,
+and the fresh failure tests generalization. Exact scheduled, eligible, completed and unstarted counts
+prevent these roles from being pooled into invented evidence.
 
 ## Limitations and conclusion
 
-The study concerns two models and three fixed agent--tool configurations in simulation, not
-cross-model ranking or laboratory fidelity. A-P and structural B2 have complete matched
-DeepSeek-high/GPT denominators, and B2 has a complete DeepSeek-low ablation, but each has only five
-worlds; their transition failure, not the full chain, is replicated. DeepSeek low is not
-reasoning-off, and its A-P block has no qualified denominator. GPT C2 and open-action
-replications stopped after three in-denominator sessions, and paired B3 formal execution remained
-0/30 for both providers. The action matrix lacks no-evidence and pre-exploration baselines, and the
-five-condition cohort has no participant data. Artifact portability and private replication remain
-untested.
+The study concerns two models and fixed agent--tool configurations in simulation, not cross-model
+ranking or laboratory fidelity. C2 now has two complete 135-cell scheduled surfaces, but different
+failure/censoring patterns and no randomized provider assignment. A-P/B2 each contain only five
+worlds; DeepSeek low is not reasoning-off and its A-P block has no qualified denominator. B3 retains
+13 DeepSeek schema failures, while the four-condition successor has unequal donor eligibility and
+substantial yoked-recipient failure. These failures remain part of the system-level estimand and
+preclude capability ranking or pure mediation claims. The original five-condition oracle cohort has
+no participant data; W2-61 has no oracle arm. Higher-fidelity artifact portability and private
+replication remain untested.
 
 Scientific-agent claims should name interventions, units, failure rules, and transfer boundaries.
 Agency is a chain from evidence to revision, identification, compression, and decision, breakable in

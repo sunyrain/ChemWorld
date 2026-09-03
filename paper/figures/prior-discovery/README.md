@@ -24,50 +24,55 @@ editable-text SVG/PDF plus 600 dpi PNG/TIFF previews.
 - **Reviewer risk:** planned denominators must never be shown as completed outcomes, and within-family
   private replication must not be relabelled compositional transfer.
 
-### Figure 3 — Development evidence
+### Figure 3 — Prior uptake and selective correction
 
-- **Core conclusion:** explicit priors reshape development behavior and endpoints, but final verbal
-  warnings do not selectively identify misindexed information.
-- **Archetype:** quantitative grid with provider-separated paired contrasts.
-- **Statistics:** paired seed points and descriptive means only; no confidence intervals, formal
-  tests or cross-provider capability comparison.
-- **Source data:** all retained endpoint pairs, warning denominators and execution denominators are
-  written under `source_data/`; no rows are sampled or excluded for plotting. The completed DeepSeek
-  five-task matrix is additionally bound as the operational denominator source. Its two continuation
-  task patterns remain outside the common three-task paired endpoint panels because their source
-  figure contract is provider/harness-specific, not because those experiments were omitted.
-- **Reviewer risk:** WellAU and DeepSeek differ in provider, sampling and recovery contracts and must
-  remain separate facets rather than a model leaderboard.
+- **Core conclusion:** the initial-model intervention reaches the trajectory and prediction improves,
+  but the registered DeepSeek C2 locus tests do not establish selective wrong-model repair.
+- **Archetype:** evidence-bound four-panel quantitative result.
+- **Panel map:** initial prediction error; first-recipe divergence; prediction improvement; registered
+  A-E/A-P/A-S correction estimates and lower bounds.
+- **Source data:** all 135 scheduled public C2 cells, including failures and censoring, plus the
+  retrospective first-recipe manipulation check.
+- **Reviewer risk:** first-recipe divergence has no repeated same-arm baseline and cannot isolate
+  provider stochasticity; general learning must not be relabelled selective correction.
 
-### Figure 4 — Held-out development confirmation
+### Figure 4 — Matched evidence and identifiable-law action control
 
-- **Core conclusion:** DeepSeek development trajectories often improve held-out predictions, but
-  wrong-prior correction does not exceed aligned-prior improvement; compressed law summaries and
-  committed recommendations add little or negative value beyond the final typed predictions and
-  observed incumbent.
-- **Archetype:** quantitative grid with the H3 paired-improvement plane as the hero panel.
-- **Panel map:** aligned-versus-misindexed prediction improvement; task-wise H3 contrasts; executable
-  law-summary compression error; paired blind recommendation outcomes.
-- **Statistics:** all 25 task×seed clusters, all 71 executable law summaries and all 69 qualified
-  blind-evaluated cells; descriptive values only, with no confidence intervals or formal tests.
-- **Source data:** 25 cluster rows, 71 law-summary rows and 69 blind-recommendation rows are exported
-  without sampling. Frozen missing-outcome rules remain in the H3 denominator.
-- **Reviewer risk:** this is post-hoc development evaluation, not the preregistered public matrix or
-  private transfer confirmation.
+- **Core conclusion:** matched counterevidence drives numerical convergence but not reliable
+  structural-law recovery or useful action.
+- **Archetype:** cross-configuration four-panel quantitative result.
+- **Panel map:** corrected DeepSeek-high B2 pre/post error; low-error versus exact-law recovery;
+  DeepSeek-high/GPT-medium/DeepSeek-low matched contrasts; dual-model B3 completion, joint recovery,
+  Top-1 and eligible action gain.
+- **Source data:** all valid A-P/B2 matched formal denominators and all 30 scheduled B3 cells per
+  model. Historical evaluator-defective structural evidence is excluded from the current claim.
+- **Reviewer risk:** each matched block contains five independent worlds; DeepSeek-low is not
+  reasoning-off, and B3 has differential schema failure. No configuration ranking is supported.
+
+### Figure 5 — Dual-model C2 capability chain
+
+- **Core conclusion:** better executable-law compression does not produce selective correction or
+  blind action gain.
+- **Archetype:** matched two-model four-panel quantitative result.
+- **Panel map:** registered locus gates; prediction improvement; final-prediction versus law MAE;
+  blind better/equivalent/worse/not-evaluable outcomes over all scheduled cells.
+- **Source data:** matched 135-cell DeepSeek and Codex C2 scheduled surfaces, with all failures and
+  censoring retained.
+- **Reviewer risk:** model differences are matched descriptive rather than randomized provider
+  effects; scheduled coverage is not all-cell completion or a leaderboard.
 
 ### Figure 6 — Action selection and evaluator validity
 
-- **Core conclusion:** unseen-plan selection, thresholded law adequacy and complete-ranking oracle
-  qualification are distinct readouts; full-rank correlation can pass while Top-1 is wrong or fail
-  while the selected action has zero regret.
+- **Core conclusion:** four-condition evidence and learned-law transfer do not establish a stable
+  portable-law benefit; law quality and evaluator ranking remain misaligned with action.
 - **Archetype:** evidence-bound four-panel quantitative diagnostic.
-- **Panel map:** W2-50 selected ranks; W2-50 law--action categories; W2-51/W2-52 qualification
-  funnels; W2-53 Spearman--regret unit scatter with Top-1 markers.
-- **Source data:** all 45 scheduled W2-50 cells, the three terminal W2-51/W2-52 qualification
-  dispositions and all 16 frozen W2-53 unit versions are exported without sampling.
-- **Reviewer risk:** W2-51/W2-52 contain no participant sessions, exposed construction is not fresh
-  qualification, and W2-53 is a zero-execution retrospective diagnostic rather than a new causal
-  experiment.
+- **Panel map:** W2-61 four-condition failure-aware regret; W2-50 continuous law error versus regret;
+  registered W2-61 contrasts and intervals; W2-53 Spearman--regret unit scatter with Top-1 markers.
+- **Source data:** 180 scheduled W2-61 condition slots per model, all 45 scheduled W2-50 cells and all
+  16 frozen W2-53 unit versions.
+- **Reviewer risk:** W2-61 is a development successor with unequal donor eligibility and substantial
+  yoked failure, so autonomous-minus-yoked is not a pure experiment-selection effect. W2-53 is a
+  zero-execution retrospective diagnostic and does not revise W2-51/W2-52 stop decisions.
 
 ## Reproduction
 
@@ -77,8 +82,8 @@ From the repository root:
 uv run --no-sync python paper\figures\prior-discovery\render_prior_discovery_figures.py
 ```
 
-The renderer refuses formal participant inputs for Figure 3 and records source hashes, output hashes,
-row counts and interpretation limits in `figure_manifest.json`.
+The renderer records source hashes, output hashes, exact row counts and interpretation limits in
+`figure_manifest.json`.
 
 Build the current development/design manuscript PDF with:
 

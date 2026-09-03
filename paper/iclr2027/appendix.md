@@ -45,6 +45,13 @@ consistency with explicit final predictions are retained separately. This assay 
 executability and in-domain compression only. Reusability would require new coordinates or transfer
 to a context-reset process.
 
+The matched Codex evaluator uses the identical 45-cluster, nine-task, three-arm C2 surface. DeepSeek
+and Codex have 121/135 and 126/135 completed cells. Overall mean prediction improvement is
+0.1198/0.1329, final prediction error is 0.1685/0.1614, law MAE is 0.2371/0.1753, law compression
+loss is 0.0686/0.0142, and blind gain is -0.0010/-0.0001. Codex-minus-DeepSeek paired descriptive
+differences are +0.0131 for prediction improvement, -0.0071 for final error, -0.0648 for law MAE,
+and -0.0579 for compression loss. Both models fail all three registered selective-correction gates.
+
 ## Typed-law capacity and distillation controls
 
 To distinguish participant compression failure from an underpowered output schema, we refitted each
@@ -128,24 +135,38 @@ post-evidence errors were 0.0367, 0.0215, and 0.0378. The aligned world-mean exp
 than each comparator in all five worlds. Top-1 counts were 0/10, 2/10, and 0/10; both Top-1 choices
 came from one action-ineligible world. None of the 18 action-eligible cells reached gain 0.02,
 including neither of the two action-eligible cells with joint structural recovery. A matched DeepSeek
-B3 preparation used the same science surface but stopped at a failed canary and has no formal
-denominator; the GPT block is therefore a provider-specific result, not a cross-provider effect.
+B3 successor then started from its first cell on the same scientific surface and retained every
+scheduled outcome. It completed 17/30 cells; 13/30 were participant-schema failures. Failure-aware
+joint recovery was 0/30, Top-1 was 0/30, and mean regret was 0.9579; completed-cell post MAE was
+0.0928. The corresponding Codex values were 5/30, 2/30, 0.7594, and 0.0320. Neither model achieved
+eligible gain at least 0.02. The matched comparison is descriptive because provider and schema
+failure are not randomized.
 
-## Cross-model completion and stop boundaries
+## Cross-model successor denominators
 
-The broader completion protocol scheduled 270 formal sessions plus twelve excluded canary sessions.
-Thirty-six formal sessions reached terminal records: 34 were qualified or eligible, two were retained
-failures, and 234 were not started. All twelve excluded canaries were observed; eleven completed and
-one DeepSeek B3 session failed the participant schema.
+Historical W2-59 partials and stop boundaries remain immutable. They are not continued, pooled, or
+converted into successful cells. Each completion experiment instead starts at its first unit in a
+new root with a complete scheduled failure-aware denominator.
 
-GPT C2 launched one in-denominator triplet. All three cells completed 8/8 physical experiments, but
-the aligned cell failed session qualification after retained provider errors, leaving 132/135
-sessions unstarted. GPT open-action likewise launched one triplet: opaque and aligned completed
-12/12 experiments, while misspecified execution was interrupted after 5/12; 42/45 sessions remained
-unstarted. The B3 successor produced a 2/3 DeepSeek canary and, after restarting a zero-provider GPT
-platform defect from the first canary unit, a 3/3 GPT canary. Because both canaries had to qualify,
-formal execution remained 0/30 for each model. Partial blocks are retained but are neither completed
-by replacement nor pooled with DeepSeek results.
+The Codex C2 successor scheduled all 135 task--world--prior cells and terminated with 126 completed,
+3 failed, and 6 right-censored sessions, completing 1,253/1,260 participant experiments. Its
+provider-free evaluator completed 420/420 truth executions, scored 669/675 checkpoints and 129/135
+laws, and launched 756/810 scheduled blind executions; 54 remained unstarted. The matched 135-cell
+DeepSeek/Codex analysis uses task--world cluster bootstrap intervals and never interprets model
+differences as provider effects.
+
+The DeepSeek B3 successor similarly schedules 30 cells and retains 17 completed plus 13
+participant-schema failures. Its historical canary is excluded rather than spliced into the new
+denominator. The Codex B3 cohort remains the independent completed 30-cell block described above.
+
+The four-condition action successor schedules 45 strata by four conditions for each model: 180 slots
+per model and 360 total. DeepSeek reuses 45 immutable W2-50 autonomous donors, of which 42 are
+eligible; Codex creates 45 independent donors, of which 26 are eligible. No-evidence is scheduled for
+all strata, while yoked and learned-law recipients require the corresponding donor. Missing-donor
+descendants remain `not_started_due_to_missing_donor`. The primary analysis is model-specific and
+failure-aware; the cross-model common population contains 26 strata from 13 task--world clusters.
+Yoked completion is 10/42 for DeepSeek and 24/26 for Codex, so autonomous--yoked contrasts mix
+scientific action quality with recipient-system failure and are not pure experiment-selection effects.
 
 ## Complete-plan action assay
 
@@ -199,14 +220,34 @@ reproduced their original Spearman and Top-1 values. Its action endpoints were T
 regret, selection within 0.01 of optimum, and near-tie-aware pair ordering. It did not alter any
 historical result, threshold, or stop decision.
 
+For eight candidates without ties, $\rho=1-\sum_i d_i^2/84$. Thus the retained 96-query failure at
+$\rho=0.738095$ has $\sum_i d_i^2=22$, whereas the fresh 320-query failure at $\rho=0.714286$ has 24.
+The scalar measures total displacement, not whether the best action moved.
+
+```{=latex}
+\begin{table}[h]
+\caption{\textbf{Complete-ranking gates and action endpoints are different estimands.}}
+\label{tab:alignment}
+\centering
+\small
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Frozen block & $n$ & Rank pass & Top-1 & $\leq0.01$ regret \\
+\midrule
+Fresh 96-query & 8 & 7 & 1 & 3 \\
+Exposed 320-query & 7 & 7 & 4 & 6 \\
+Fresh 320-query & 1 & 0 & 1 & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
 ## Additional scope boundaries
 
-The study evaluates simulated chemistry with two models and three fixed agent--tool configurations.
-Matched evidence has complete separately reported A-P/B2 denominators for DeepSeek high and GPT
-medium, plus a complete B2-only DeepSeek-low ablation; other participant blocks are provider-specific
-or stopped partials. The study does not establish physical laboratory fidelity, universal chemical
-coverage, cross-provider ordering, or artifact portability. The public cohort is not a private-world confirmation. The 45-cell action matrix lacks a
-same-agent no-evidence baseline. The five-condition causal cohort is unexecuted. A later reduced
-development pilot completed no-evidence and learned-law sessions in one electrochemical stratum, but
-its yoked session was right-censored after five of six provider turns; it is excluded from all main
-causal and arm-level conclusions.
+The study covers simulated chemistry and two fixed agent--tool configurations, not laboratory fidelity
+or universal chemical coverage. C2 and B3 have matched scheduled surfaces; A-P/B2 have complete
+separate denominators plus a B2-only DeepSeek-low ablation. Differential failures and non-random
+provider assignment prohibit model ordering. The public cohort is not private confirmation, and
+high-fidelity artifact portability remains untested. W2-50 lacks a same-agent no-evidence baseline;
+W2-61 adds four oracle-free conditions, but donor/recipient failures limit mediation claims. The
+original five-condition oracle cohort remains unexecuted.

@@ -20,10 +20,6 @@ APPENDIX = ICLR_DIR / "appendix.md"
 TEMPLATE = ICLR_DIR / "template.tex"
 BIBLIOGRAPHY = ROOT / "paper/prior_discovery_references.bib"
 FIGURE_DIR = ROOT / "paper/figures/prior-discovery"
-PUBLIC_C2_FIGURE = ROOT / (
-    "workstreams/flagship_tasks/reports/figures/work-ii-deepseek-c2-public/"
-    "current/deepseek_c2_prediction_law_action.pdf"
-)
 STYLE_HASHES = {
     "iclr2027_conference.sty": (
         "797deef41724e93761426ac0cbcca46279a91cc650dd1f0ce76a4f08d2098ea6"
@@ -39,6 +35,7 @@ FIGURES = (
     "figure-1-prior-to-law.pdf",
     "figure-3-prior-uptake-and-correction.pdf",
     "figure-4-matched-evidence-localization.pdf",
+    "figure-5-capability-chain.pdf",
     "figure-6-open-action-formal.pdf",
 )
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
@@ -134,12 +131,6 @@ def build() -> dict[str, Any]:
         shutil.copy2(BIBLIOGRAPHY, build_dir / "references.bib")
         for name in FIGURES:
             shutil.copy2(FIGURE_DIR / name, build_figure_dir / name)
-        if PUBLIC_C2_FIGURE.is_file():
-            shutil.copy2(
-                PUBLIC_C2_FIGURE,
-                build_figure_dir / "figure-5-capability-chain.pdf",
-            )
-
         appendix_tex = build_dir / "appendix.tex"
         run(
             [
@@ -275,8 +266,8 @@ def build() -> dict[str, Any]:
         ],
         "claim_boundaries": [
             (
-                "The open-action matrix is descriptive and contains no causal "
-                "action-transfer baseline."
+                "The W2-50 open-action matrix remains descriptive; the independent W2-61 "
+                "successor supplies the four-condition action baselines."
             ),
             (
                 "The five-condition participant cohort was not executed after oracle "
@@ -291,7 +282,14 @@ def build() -> dict[str, Any]:
                 "stop decision."
             ),
             "The reduced-condition pilot is development-only and supports no arm-level conclusion.",
-            "The GPT B3 result is provider-specific because DeepSeek has no formal comparator.",
+            (
+                "C2 and B3 have matched scheduled surfaces for both models, but differential "
+                "failure patterns make their contrasts descriptive rather than capability rankings."
+            ),
+            (
+                "W2-61 retains unequal donor eligibility and substantial yoked-recipient "
+                "failure, so autonomous-minus-yoked is not a pure experiment-selection effect."
+            ),
             (
                 "DeepSeek low is a same-harness reasoning-budget ablation, not provider-level "
                 "thinking-off or a configuration-superiority result."

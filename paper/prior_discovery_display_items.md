@@ -53,49 +53,54 @@ governing structural law.
 - B: DeepSeek-high 15/15 cells at low post-evidence error, with arm means of 0.0074, 0.0060 and 0.0071;
 - C: mean world-level misspecified-minus-aligned update-gain contrasts for A-P DeepSeek-high/GPT-medium
   and A-S B2 DeepSeek-high/GPT-medium/DeepSeek-low. The B2 values are +0.0645/+0.0915/-0.0405;
-- D: the power-versus-linear packet qualifies in 5/5 worlds; each of three B2 configurations has 5/5
-  low-error misspecified cells and 0/5 exact 1.75-law recovery.
+- D: failure-aware dual-model B3 completion, joint family--exponent recovery, Top-1 selection and
+  useful action gain across 30 scheduled cells per model. DeepSeek retains 13 participant-schema
+  failures; neither model realizes an eligible gain of at least 0.02.
 
 The earlier structural run affected by an evaluator omission is excluded. Every five-world analysis
 is descriptive and non-confirmatory. DeepSeek low is a same-harness reasoning-budget setting, not
 reasoning-off; its A-P block has no qualified denominator and is not plotted.
 
-## Figure 5 — Executable compression and incumbent replay expose distinct losses
+## Figure 5 — Better executable laws still do not produce better actions
 
-**Claim:** general prediction learning does not imply selective correction, faithful executable
-compression or an action advantage over an observed incumbent.
+**Claim:** both complete C2 scheduled surfaces show general prediction learning without selective
+correction or an action advantage; Codex reduces executable-law compression loss without improving
+blind action.
 
-- A: failure-aware correction contrasts for all 45 matched worlds;
-- B: mean prediction improvement by arm and locus;
-- C: executable-law error minus final explicit-prediction error; better/equal/worse is 50/1/84;
-- D: blind incumbent replay for 121 evaluable cells; better/equivalent/worse is 1/119/1.
+- A: registered failure-aware correction estimates and lower bounds for A-E, A-P and A-S in both
+  135-cell cohorts;
+- B: mean pre-to-final prediction-error reduction by locus and model;
+- C: final explicit-prediction MAE versus executable-law MAE by locus and model;
+- D: blind better/equivalent/worse/not-evaluable outcomes over every scheduled cell per model.
 
-The completed evaluator contains 420/420 truth executions, 675/675 checkpoint scores, 135/135 law
-evaluations and 726/726 launched blind replays without additional participant calls.
+The completed evaluator contains 420/420 truth executions per model. DeepSeek contributes 675/675
+checkpoint scores, 135/135 law evaluations and 726 launched blind replays; Codex contributes 669/675
+checkpoint scores, 129/135 law evaluations and 756/810 scheduled blind executions. Cross-model
+contrasts are matched descriptive, not provider causal effects or a leaderboard.
 
-## Figure 6 — Agent law-action decoupling and evaluator rank-action misalignment
+## Figure 6 — Evidence, learned laws and evaluator rankings diverge from action
 
-**Claim:** complete public ActionPlans remove hidden-workflow ambiguity, but the final break has two
-levels: agent understanding maps non-monotonically to action, and evaluator rank qualification does not
-certify the decision endpoint.
+**Claim:** the four-condition successor does not establish a stable portable-law benefit, continuous
+law quality maps non-monotonically to action, and complete-ranking qualification does not certify the
+decision endpoint.
 
-- A: selected true rank for every eligible cell;
-- B: continuous final-law MAE versus normalized regret for all 42 eligible cells, with task identity
+- A: failure-aware normalized regret under no evidence, yoked evidence, learned-law-only and
+  autonomous exploration in each model-specific donor-eligible population;
+- B: continuous final-law MAE versus normalized regret for all 42 W2-50 eligible cells, with task identity
   and Top-1 selections; inset shows correct/wrong actions inside the adequate subset at seven
   thresholds from 0.05 to 0.30;
-- C: W2-51/W2-52 qualification funnels, separating 96-grid fresh preparation, 320-grid exposed
-  construction and 320-grid fresh qualification, with passed, rejected, unstarted and zero-participant
-  denominators;
+- C: registered W2-61 regret contrasts with task--world cluster-bootstrap intervals for DeepSeek and
+  Codex, retaining yoked-recipient failures;
 - D: Spearman--regret scatter for all 16 completed 96- and 320-query unit versions, highlighting six
   fresh 96-query rank-pass/action-wrong units and the fresh 320-query rank-fail/action-correct unit.
 
-The matrix contains 45 scheduled cells, 42 eligible readouts, 240/240 truth executions and 240/240
-exact replays. The random-rank line is geometric context, not a no-evidence control. Arm means and any
-action-transfer interpretation remain descriptive. W2-51/W2-52 are shown as separate qualification
-evidence rather than pooled with W2-50 participant cells; neither contains a participant effect.
-The W2-53 panel adds no participant or truth execution: it reproduces 16/16 completed unit-version
-outcomes and diagnoses mismatch between complete-ranking and decision estimands. W2-50 regret and
-task-mean detail remain in the exact source table and supplementary display.
+W2-61 schedules 180 condition slots per model on the 45 W2-50 strata, with donor eligibility of 42
+for DeepSeek and 26 for Codex. Its model-specific autonomous-minus-no-evidence estimates are
+directionally favourable but both intervals cross zero; learned-law-only transfer is unstable, and
+yoked completion of 10/42 and 24/26 prevents a pure experiment-selection interpretation. W2-50 arm
+means remain descriptive. The W2-53 panel adds no participant or truth execution: it reproduces
+16/16 completed unit-version outcomes and diagnoses mismatch between complete-ranking and decision
+estimands.
 
 ## Supplementary qualification and exploratory evidence
 
@@ -104,11 +109,10 @@ the evidence package. Their reader-facing role is to explain why endpoint score,
 prediction, executable law and action had to be separated. They are not pooled with the prospective
 cohort or used for cross-system ranking.
 
-The main action/evaluator figure now reports the compact W2-51/W2-52 qualification funnels without an
-effect plot. Supplementary detail retains all eight W2-51 unit values, the 896/896 truth/replay
-denominator, W2-52 exposed construction (7/7; 2,352/2,352 truth/replay), the first fresh prospective
-failure and all 14 unstarted units. W2-54 remains development-only and is not plotted as a causal
-contrast.
+W2-51/W2-52 move to supplementary qualification detail: all eight W2-51 unit values, the 896/896
+truth/replay denominator, W2-52 exposed construction (7/7; 2,352/2,352 truth/replay), the first fresh
+prospective failure and all 14 unstarted units remain explicit. W2-54 remains development-only and is
+not plotted as a causal contrast; W2-61 is the separate participant-bearing successor.
 
 ## Core tables
 
@@ -116,5 +120,6 @@ contrast.
 2. Claim, estimand, evidence layer and allowed wording.
 3. Prospective session, experiment, resource and failure denominators.
 4. Formal unseen-plan rank, Top-1 and regret by arm.
-5. W2-51/W2-52 control qualification, terminal gates and unstarted denominators.
-6. Statistical estimands, inference units and missing-outcome rules.
+5. W2-61 four-condition completion, registered contrasts and failure-aware denominators.
+6. W2-51/W2-52 control qualification, terminal gates and unstarted denominators.
+7. Statistical estimands, inference units and missing-outcome rules.

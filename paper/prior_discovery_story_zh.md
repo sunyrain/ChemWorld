@@ -1,8 +1,8 @@
 # Work II / ICLR 2027 故事：Causal Dissection from Evidence to Action
 
-更新时间：2026-08-31
+更新时间：2026-09-03
 
-本文档是 Work II 的作者侧论证入口。它不是投稿定稿，也不把当前 DeepSeek cohort 当作研究终点；当前结果是更大研究计划的第一个完整、可干预、可逐层判定的能力剖面。原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。论文在 programme 层面包含 DeepSeek 与 GPT-5.6-sol；A-P 与 A-S B2 已具有两个模型完整匹配的 formal 分母，C2、W2-50 与 B3 则因冻结 canary stop 仍是单模型或部分覆盖。
+本文档是 Work II 的作者侧论证入口。它不是投稿定稿；原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。所有 participant-bearing 主证据现在都有 DeepSeek 与 GPT-5.6-sol/Codex 的 scheduled surface：A-P 与 A-S B2 是完整 matched formal，C2 各有 135 cells，B3 各有 30 cells，W2-50 的四条件 successor 各有 180 slots。所有失败保留，因此“双模型补全”不等于全 cell completed，也不授权模型排行榜。
 
 ## 1. 研究对象与中心命题
 
@@ -155,6 +155,18 @@ world-mean exponent error 相对两个对照均在 `5/5` worlds 更低。misinde
 action-opportunity denominator 的 worlds 共 `18` cells，gain≥0.02 为 `0/18`。即使 joint structural
 recovery 且 action-eligible 的两个 cells 也为 `0/2`。因此“结构理解→有用新动作”仍是独立断裂。
 
+W2-63 在完全相同的 B3 science surface 上从第一 cell 新建 DeepSeek-high successor，终态为 `17/30`
+completed 与 `13/30` participant-schema failures。failure-aware joint recovery、Top-1、regret、post MAE
+分别为 `0/30`、`0/30`、`0.9579`、`0.0928`；Codex 对应为 `5/30`、`2/30`、`0.7594`、`0.0320`。
+两模型 eligible gain≥0.02 均为 0。这个结果补齐 B3 双模型分母，同时以 differential schema failure
+明确限制 capability ranking。
+
+W2-62 也为 Codex 补齐完整 135-cell C2：`126 completed + 3 failed + 6 right-censored`，1,253/1,260
+participant experiments；420/420 truth、669/675 checkpoints、129/135 laws、756/810 scheduled blind
+executions。Codex 相对 DeepSeek 的 law MAE 从 `0.2371` 降至 `0.1753`、compression loss 从 `0.0686`
+降至 `0.0142`，但 blind gain 仍为 `-0.0001` 对 `-0.0010`。这使“更好的规律表示仍不保证行动增益”
+成为完整 C2 双模型结果。
+
 ### 3.5 Open action 与 evaluator：第四断裂包含两个层次
 
 C2 的 blind replay 主要比较 final recommendation 与 participant 已经观察过的 incumbent，因此它能证明
@@ -193,8 +205,14 @@ electrochemical `+0.524`、reaction safety `-0.592`、crystallization `-0.007`�
 阈值从 `0.05` 扫到 `0.30` 时，adequate subset 从 1 个增至 34 个，但其中 correct action 只从 0 个增至
 9 个。四象限因此只是连续、task-dependent 非单调关系的一个可读切片，而不是结论本身。
 
-Agent 层面的结论是 law-action decoupling：W2-50 仍没有 no-evidence 或 pre-exploration ranking control，因此不能回答“探索证据本身是否因果性地
-改善未见计划选择”。W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
+Agent 层面的结论是 law-action decoupling。W2-61 随后在 W2-50 scientific surface 上移除 oracle，
+为每个模型安排 45 strata × 4 conditions = 180 slots：no evidence、yoked evidence、learned-law-only、
+autonomous exploration。DeepSeek/Codex donor-eligible 为 `42/26`，共同可配对 `26` strata。
+donor-eligible autonomous-minus-no-evidence regret 差为 `-0.1214/-0.1379`，但区间均跨零；
+learned-law-minus-no-evidence 为 `-0.0267/+0.0970`，也没有稳定收益。yoked 只完成 `10/42` 与 `24/26`，
+所以 autonomous-minus-yoked 的 failure-aware 优势不能解释成纯 experiment-selection effect。
+
+历史 W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
 learned-law-only 与 oracle-law 五条件设计，计划 15 个 task-world clusters、225 个 fresh sessions 和
 540 次 participant experiments。正式 provider-free preparation 在前 8 个 clusters 完成 `896/896`
 truth 与 exact replay，candidate gates 为 8/8，但 oracle gates 仅 7/8：第三个 fresh
@@ -214,7 +232,7 @@ misalignment：完整排序相关性和真实动作损失是不同 estimand，�
 4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
 5. Matched evidence 能消除 A-P 错误参数方向；在 A-S，直接结构证据带来 mixed prediction gain，却仍不能保证 exact power-law recovery。
 6. 即使候选执行语义完整公开，规律充分性与未见行动选择仍是非单调映射：坏律可以选对，合格律也可以选错。
-7. 当前还不能把这一 action boundary 解释为探索或 learned law 的因果效应：W2-51 的 fresh formal oracle control 未达冻结正确性门槛，participant cohort 因而没有启动。
+7. 四条件 successor 中 autonomy 相对 no evidence 方向有利但区间跨零，learned law 无稳定收益；yoked failures 又阻止纯 experiment-selection 解释。
 8. Evaluator 的完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
 
 最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
@@ -253,10 +271,10 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 将 agent 生成的 artifact 在 context reset 后交给新 session，测试它能否改善 target prediction、law 和 action。当前 law fidelity 结果意味着 D 不能默认成功；未来可以比较原始 typed law、结构化 evidence bundle 和更高保真 artifact。
 
-### Phase V — Generality（matched evidence 已复现，full-chain comparison 仍开放）
+### Phase V — Generality（双模型主证据已补齐，更多模型仍开放）
 
 - A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
-- Cross-provider 与 reasoning budget：W2-59 已在 A-P/B2 建立 DeepSeek + GPT 完整 matched formal；W2-60 又在 B2 建立 DeepSeek-low 完整分母，但 A-P low 无合格分母。C2、W2-50 与 B3 未建立 matched effect。若要扩展这些层、做真正 thinking-off 或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑既有未启动分母。
+- Cross-provider 与 reasoning budget：A-P/B2 已有 DeepSeek + GPT 完整 matched formal，C2/B3/W2-61 也已形成双模型 failure-aware scheduled surfaces；W2-60 在 B2 建立 DeepSeek-low 完整分母，但 A-P low 无合格分母。若要做真正 thinking-off 或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑既有未启动分母。
 - 开放式任务：在统一的最大实验预算与主动 stop/final-plan 接口下，研究何时继续探索、何时停止和如何推荐下一组实验。
 
 这些是大故事的扩展轴，不应在当前结果之后机械地全部跑满。每一阶段都应有独立问题、experiment note、分母和授权。
@@ -272,10 +290,10 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 | Final typed laws 可以执行 | supported，135/135 |
 | Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
 | Final recommendation 超越 incumbent | not supported，1/119/1 |
-| 结论跨 provider 泛化 | A-P/B2 的关键机制断裂已在 DeepSeek + GPT 匹配分母上复现；C2、W2-50、B3 与完整能力链仍未建立跨模型 effect |
+| 结论跨 provider 泛化 | 所有 participant-bearing 主证据均有双模型 scheduled surface；A-P/B2 是完整 matched formal，C2/B3/W2-61 是 failure-aware matched descriptive，不等于 provider causal effect |
 | Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
 | Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
-| 自主探索或 learned law 因果性地改善未见计划选择 | 未估计；W2-51 在 participant 前因 fresh crystallization oracle `rho=0.738095<0.80` 科学拒绝，0/225 sessions 启动 |
+| 自主探索或 learned law 改善未见计划选择 | W2-61 autonomy-minus-none 在两模型方向有利但区间跨零；learned-law-minus-none 无稳定收益；yoked failures 限制机制解释。原 W2-51 五条件效应仍未估计 |
 | 320-query oracle 已在 fresh worlds 泛化 | 不支持；construction 7/7 通过，但首个 prospective world `rho=0.714286<0.80` 后停止 |
 | 完整排序 gate 可以替代动作有效性 | 不支持；96-query 为 rank gate 7/8、Top-1 1/8，fresh 320-query 为 rank-fail/action-correct |
 | W2-54 已估计四条件或五条件因果效应 | 不支持；仅单 stratum development pilot，yoked 在 5/6 turns 后右删失 |
@@ -285,14 +303,15 @@ unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不
 
 1. **Figure 1 — Capability chain and study map**：合并世界干预、persistent loop 与 evidence partitions。
 2. **Figure 2 — Prior-conditioned discovery**：合并 endpoint archetypes、first action 与 prediction correction。
-3. **Figure 3 — Phenomenological interpolation versus structural recovery**：matched evidence、15/15 低 post-evidence error 与 0/5 exact 1.75-law recovery。
-4. **Figure 4 — Agent law-action decoupling and evaluator rank-action misalignment**：W2-50 rank/regret、law–action categories 与 W2-53 rank-gate/action-correct 四象限。
-5. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
-6. **Supplementary control qualification**：分开呈现 W2-51 96-query stop 与 W2-52 exposed construction/fresh prospective 结果，不绘制不存在的 participant effect。
+3. **Figure 3/4 — Phenomenological interpolation versus structural recovery**：matched evidence、15/15 低 post-evidence error、B2 的 0/5 exact-law recovery，以及双模型 B3 的 law-to-action bridge。
+4. **Figure 5 — Better law, same action**：双模型 135-cell C2 selective correction、prediction improvement、law compression 与 blind action。
+5. **Figure 6 — Four-condition action and evaluator validity**：W2-61 四条件 regret/contrasts、W2-50 连续 law-action 关系与 W2-53 rank-action 错位。
+6. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
+7. **Supplementary control qualification**：分开呈现 W2-51 96-query stop 与 W2-52 exposed construction/fresh prospective 结果，不绘制不存在的 oracle-arm participant effect。
 
 ## 8. 现在是否可以说“预测任务完成”
 
-可以精确地说：**当前 DeepSeek public cohort 的 prediction 数据采集、provider-free truth、675 个 checkpoint scoring、注册 selective-correction decision、135 个 law evaluation 和 726 次 blind replay 已全部完成。**
+可以精确地说：**DeepSeek 与 Codex 的 C2 scheduled surfaces 均已终态；前者 675 checkpoints、135 laws、726 blind executions，后者 669 checkpoints、129 laws、756 blind executions。**
 
 还可以进一步说：**当前 W2-50 多任务五世界 open-action 已完成 45/45 cell records、42/45 可评分
 cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立为独立失效层。**
@@ -303,6 +322,6 @@ cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立�
 还可以说：**W2-52 已区分 construction repair 与 prospective failure，W2-53 已将 complete-ranking gate
 和 action validity 的不一致确立为 evaluator-design 结果；二者都不回写 W2-51 的门槛或 stop rule。**
 
-不能说整个 Paper 2 programme 已完成。尚未完成的是：C2/W2-50/B3 的 full-chain cross-provider extension、A-E private confirmation、
-Study D 的 context-reset artifact portability，以及最终是否采用这些扩展轴的研究决策。它们是下一阶段
+不能说整个 Paper 2 programme 的未来扩展全部完成。当前未执行的是 A-E private confirmation、
+Study D 的 context-reset artifact portability、更多模型与 confirmatory action replication。它们是下一阶段
 科学问题，不再是 current-composite evaluator、Study B、W2-50、W2-51 或 W2-52 的遗留门禁。
