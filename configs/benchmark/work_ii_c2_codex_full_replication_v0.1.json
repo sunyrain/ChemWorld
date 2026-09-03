@@ -1,0 +1,171 @@
+{
+  "cohort_id": "work-ii-c2-codex-full-replication-v0.1",
+  "execution": {
+    "max_concurrent_triplets": 3,
+    "missing_infrastructure_only_resume": true,
+    "outcome_based_replacement_forbidden": true,
+    "parallelization_unit": "same_task_world_three_arm_triplet",
+    "progress_interval_seconds": 30,
+    "scientific_or_method_failure_retained": true
+  },
+  "expected_complete_totals": {
+    "complete_experiments": 1260,
+    "sessions": 135,
+    "task_world_clusters": 45
+  },
+  "expected_public_totals": {
+    "complete_experiments": 1260,
+    "sessions": 135,
+    "task_world_clusters": 45
+  },
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_W262_CODEX_C2_FULL_REPLICATION_EXPERIMENT_NOTE.md",
+  "full_cohort_successor": {
+    "fresh_sessions": 135,
+    "historical_w2_59_canary_reused": false,
+    "planned_complete_experiments": 1260,
+    "source_deepseek_plan": "configs/benchmark/work_ii_deepseek_c2_prospective_v0.2.json",
+    "study_id": "work-ii-w2-62-codex-c2-full-replication-v0.1"
+  },
+  "prior_arms": [
+    "opaque",
+    "aligned_nominal",
+    "misindexed_nominal"
+  ],
+  "private_block": null,
+  "provider": {
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "finalization_timeout_s": 600.0,
+    "id": "chemworld_openai_https",
+    "model": "gpt-5.6-sol",
+    "name": "OpenAI",
+    "progress_interval_s": 30.0,
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "wire_api": "responses"
+  },
+  "public_blocks": [
+    {
+      "block": "A_E_public",
+      "locus": "A_E",
+      "rounds_per_session": 8,
+      "tasks": [
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_e--electrochemical-conversion--r8.json",
+          "task_id": "electrochemical-conversion",
+          "world_seeds": [
+            934334899,
+            222130288,
+            187256385,
+            779398037,
+            533253734
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_e--reaction-to-crystallization--r8.json",
+          "task_id": "reaction-to-crystallization",
+          "world_seeds": [
+            981471142,
+            371545319,
+            680821974,
+            854364962,
+            297088702
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_e--reaction-to-distillation--r8.json",
+          "task_id": "reaction-to-distillation",
+          "world_seeds": [
+            439344905,
+            353545270,
+            305419816,
+            301573033,
+            510396964
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_e--partition-discovery--r8.json",
+          "task_id": "partition-discovery",
+          "world_seeds": [
+            595257646,
+            913561854,
+            392161417,
+            114255949,
+            308641243
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_e--reaction-safety-constrained--r8.json",
+          "task_id": "reaction-safety-constrained",
+          "world_seeds": [
+            581283898,
+            413319517,
+            311564803,
+            267586659,
+            854968543
+          ]
+        }
+      ]
+    },
+    {
+      "block": "A_P",
+      "locus": "A_P",
+      "rounds_per_session": 10,
+      "tasks": [
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_p--electrochemical-conversion--r10.json",
+          "task_id": "electrochemical-conversion",
+          "world_seeds": [
+            973419928,
+            205061234,
+            141388883,
+            594927609,
+            869796364
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_p--reaction-safety-constrained--r10.json",
+          "task_id": "reaction-safety-constrained",
+          "world_seeds": [
+            829726730,
+            145076830,
+            624715740,
+            210420473,
+            958385461
+          ]
+        }
+      ]
+    },
+    {
+      "block": "A_S",
+      "locus": "A_S",
+      "rounds_per_session": 12,
+      "tasks": [
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_s--partition-discovery--r12.json",
+          "task_id": "partition-discovery",
+          "world_seeds": [
+            527268922,
+            946166808,
+            650846081,
+            110564668,
+            241120479
+          ]
+        },
+        {
+          "config": "configs/benchmark/work_ii_c2_codex_full_replication_runtime_v0.1/a_s--reaction-to-crystallization--r12.json",
+          "task_id": "reaction-to-crystallization",
+          "world_seeds": [
+            620418208,
+            698311423,
+            642292453,
+            433478377,
+            918459813
+          ]
+        }
+      ]
+    }
+  ],
+  "schema_version": "chemworld-work-ii-c2-cross-model-replication-0.1",
+  "status": "public_execution_authorized"
+}

@@ -1,0 +1,259 @@
+{
+  "analysis": {
+    "final_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "constraint_violations",
+      "score"
+    ]
+  },
+  "belief_checkpoint": {
+    "allowed_feature_ids": [
+      "catalyst",
+      "solvent",
+      "reagent_amount_mol",
+      "catalyst_amount_mol",
+      "reaction_temperature_K",
+      "reaction_duration_s"
+    ],
+    "allowed_metric_ids": [
+      "yield",
+      "selectivity",
+      "safety_risk",
+      "score"
+    ],
+    "allowed_prior_fields": [
+      "catalyst",
+      "solvent"
+    ],
+    "held_out_queries": [
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 360.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "q-c0-s0"
+      },
+      {
+        "feature_values": {
+          "catalyst": 3,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 360.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 0
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "q-c3-s0"
+      },
+      {
+        "feature_values": {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 360.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 3
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "q-c0-s3"
+      },
+      {
+        "feature_values": {
+          "catalyst": 3,
+          "catalyst_amount_mol": 0.0003,
+          "reaction_duration_s": 1800.0,
+          "reaction_temperature_K": 360.0,
+          "reagent_amount_mol": 0.01,
+          "solvent": 3
+        },
+        "metric_ids": [
+          "yield",
+          "selectivity",
+          "safety_risk",
+          "score"
+        ],
+        "query_id": "q-c3-s3"
+      }
+    ]
+  },
+  "campaign": {
+    "card_id": "work-ii-reaction-safety-k8-six-unique-two-repeat-planning",
+    "checkpoint_complete_experiments": [
+      0,
+      2,
+      4,
+      6,
+      8
+    ],
+    "closeout_policy": {
+      "allowed_operation_classes": [
+        "discard_batch",
+        "final_assay",
+        "quench",
+        "terminate",
+        "transfer"
+      ],
+      "automatic_action_repair": false,
+      "automatic_closeout": false,
+      "discard_path_operations_per_batch": 1,
+      "discard_path_total_operation_reserve": 8,
+      "final_assay_path_operations_per_batch": 2,
+      "final_assay_path_total_operation_reserve": 16,
+      "planned_batches": 8,
+      "policy": "protected_closeout_reserve_enforced",
+      "resource_status": "w2_26_runtime_envelope"
+    },
+    "complete_experiments": 8,
+    "final_assay_limit": 8,
+    "implicit_operation_time_s": {
+      "quench": 120.0
+    },
+    "nonfinal_instrument_use_limit": 8,
+    "operation_attempt_limit": 80,
+    "operation_repeat_limits": {
+      "heat": 8,
+      "quench": 8
+    },
+    "process_time_limit_s": 68064.0,
+    "process_time_policy": {
+      "formula": "6 unique heat-plus-quench stages + 2 exact-repeat heat-plus-quench stages + 15% protected time reserve",
+      "implicit_stage_reserve_s": 720.0,
+      "pattern_id": "reaction-safety-k8-six-unique-two-repeat-planning",
+      "protected_reserve_fraction": 0.15,
+      "protected_reserve_s": 8784.0,
+      "repeat_allowance_s": 14640.0,
+      "required_stage_max_s": 43920.0,
+      "resource_status": "w2_26_runtime_envelope"
+    },
+    "stock_limits": {
+      "catalyst_mol": 0.00506,
+      "reagent_mol": 0.276,
+      "solvent_L": 0.23
+    },
+    "vessel_start_limit": 8
+  },
+  "cross_model_replication": {
+    "cohort_id": "work-ii-c2-codex-full-replication-v0.1",
+    "historical_w2_59_canary_reused": false,
+    "model": "gpt-5.6-sol",
+    "participant_provider": "openai",
+    "reasoning_effort": "medium",
+    "source_runtime": "workstreams/flagship_tasks/reports/work-ii-w2-26-deepseek-runtime-configs-v0.1/a_e--reaction-safety-constrained--r8.json",
+    "study_id": "work-ii-w2-62-codex-c2-full-replication-v0.1"
+  },
+  "episode_mode": "campaign",
+  "execution": {
+    "failure_semantics": "finish the in-flight seed triplet, then stop before the next world seed",
+    "max_concurrency": 3,
+    "parallelization_unit": "same_seed_prior_arm_triplet",
+    "within_cell_concurrency": 1
+  },
+  "formal_result": false,
+  "method_resources": {
+    "checkpoint_complete_experiments": [
+      2,
+      4,
+      6,
+      8
+    ],
+    "complete_experiment_limit": 8,
+    "input_token_limit": 28800000,
+    "model_call_limit": 2,
+    "operation_limit": 80,
+    "output_token_limit": 128000,
+    "training_environment_step_limit": 0,
+    "uncached_input_token_limit": 480000,
+    "wall_time_limit_s": 7200.0
+  },
+  "objective": "safe",
+  "observation_noise_mode": "keyed",
+  "observation_noise_namespace": "work-ii-reaction-safety-prior-campaign",
+  "pilot_id": "work-ii-reaction-safety-prior-campaign",
+  "prior_arms": {
+    "aligned_nominal": {
+      "mode": "anonymous_nominal_properties"
+    },
+    "misindexed_nominal": {
+      "descriptor_permutation": [
+        0,
+        2,
+        1,
+        3
+      ],
+      "mode": "anonymous_misindexed_properties",
+      "target_field": "catalyst"
+    },
+    "opaque": {
+      "mode": "opaque_codes"
+    }
+  },
+  "provider": {
+    "accepted_turn_continuation_limit": 1,
+    "auth_mode": "none",
+    "base_url": null,
+    "env_key": null,
+    "finalization_timeout_s": 600.0,
+    "id": "chemworld_openai_https",
+    "max_consecutive_mcp_tool_failures": 1,
+    "max_provider_error_events": 1,
+    "max_recovered_mcp_tool_failures": 3,
+    "model": "gpt-5.6-sol",
+    "name": "OpenAI",
+    "pre_action_restart_limit": 1,
+    "progress_interval_s": 30.0,
+    "provider_process_attempt_limit": 3,
+    "reasoning_effort": "medium",
+    "request_timeout_s": 1200.0,
+    "resource_limits": "report_only",
+    "wire_api": "responses"
+  },
+  "qualification": {
+    "execution_authorized": false,
+    "formal_r5_authorized": false,
+    "maximum_exact_repeats": 2,
+    "minimum_unique_recipes": 6,
+    "required_operation_counts": {},
+    "resource_calibration_status": "w2_26_runtime_envelope"
+  },
+  "schema_version": "chemworld-work-ii-campaign-pilot-0.2",
+  "snapshot_stages": [
+    "pre_evidence",
+    "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_6",
+    "final"
+  ],
+  "task_id": "reaction-safety-constrained",
+  "w2_26_runtime_identity": {
+    "agent_invalid_enforcement": "measure_only",
+    "locus": "A_E",
+    "protected_closeout_reserve_fraction": 0.15,
+    "provider_error_enforcement": "measure_only",
+    "rounds": 8,
+    "task_id": "reaction-safety-constrained"
+  },
+  "world_seed": 0,
+  "world_split": "public-test"
+}

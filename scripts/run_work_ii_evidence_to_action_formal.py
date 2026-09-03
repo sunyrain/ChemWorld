@@ -304,6 +304,7 @@ class CodexRecipientSessionClient:
             if isinstance(output_schema, Mapping)
             else self._schema_for_snapshot(context)
         )
+        schema = codex_harness._provider_compatible_output_schema(self.provider, schema)
         schema_path = self._temp_root / f"schema-{condition}-{turn_index}.json"
         codex_harness._atomic_json(schema_path, schema)
         initial = codex_harness._initial_command(self.provider, schema_path, self._workspace)

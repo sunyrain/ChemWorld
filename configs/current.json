@@ -1,6 +1,6 @@
 {
   "schema_version": "chemworld-current-surface-registry-0.4",
-  "updated_at": "2026-08-09",
+  "updated_at": "2026-09-03",
   "project": {
     "distribution": "chemworld-bench",
     "version": "0.2.0",
@@ -27,6 +27,74 @@
     "environment_certificate_results_present": true,
     "environment_benchmark_readiness_claim_allowed": true,
     "interpretation": "Legacy fixed-world static-S0 participant results were withdrawn. Replacement electrochemical and reaction-crystallization campaigns completed ten independent worlds, twenty exploration experiments per world, full classic baselines, and exact replay. Results are descriptive: electrochemical is positive against the best information-matched baseline but not stable against the best privileged calibration baseline; crystallization underperforms LHS. A separate five-task, five-world development comparison is complete and remains explicitly non-formal. RC28 Gate A remains a historical environment certificate with stale current-source binding; Participant Gates B-E remain unexecuted."
+  },
+  "work_ii": {
+    "w2_50_open_action": {
+      "root": "runs/formal/work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2",
+      "input_manifest": "runs/formal/work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/input_manifest.json",
+      "summary": "runs/formal/work-ii-deepseek-multi-task-open-action-five-world-v0.1-20260817-formal2/summary.json",
+      "input_manifest_sha256": "8a0d14a05975294a366d657302b17ab571673ed4a8e8e2d4560d12b460239420",
+      "summary_sha256": "87af6006f2210d36f4f05ace404f0169e45753946d2e6d77bb98373f54e9ca94",
+      "scheduled_cells": 45,
+      "eligible_cells": 42,
+      "retained_failures": 3,
+      "status": "terminal_read_only_donor"
+    },
+    "w2_61_codex_open_action_preparation": {
+      "root": "runs/formal/work-ii-w2-59-gpt56-sol-medium-multi-task-open-action-five-world-v0.1-20260831-restart1",
+      "input_manifest": "runs/formal/work-ii-w2-59-gpt56-sol-medium-multi-task-open-action-five-world-v0.1-20260831-restart1/input_manifest.json",
+      "input_manifest_sha256": "d65e76a510b9ce4e70798ed650ca3b2cbfb44e69a32d9383b279ad131e6ff554",
+      "scheduled_cells": 45,
+      "participant": "openai",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "status": "provider_free_preparation_only_for_independent_successor"
+    },
+    "w2_61_codex_open_action_donor": {
+      "root": "runs/development/work-ii-w2-61-codex-open-action-donors-v0.1-20260902",
+      "input_manifest": "runs/development/work-ii-w2-61-codex-open-action-donors-v0.1-20260902/input_manifest.json",
+      "summary": "runs/development/work-ii-w2-61-codex-open-action-donors-v0.1-20260902/summary.json",
+      "input_manifest_sha256": "1bf7dbbf05c662a9b4e3f6e644a2338a5b427869b84f7cb680b88eb4a102538f",
+      "summary_sha256": "89710f8787d8998acd8346fc0393572116561344b94641ca9630cf23b9b3ff64",
+      "scheduled_cells": 45,
+      "eligible_cells": 26,
+      "retained_failures": 19,
+      "participant": "openai",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "status": "terminal_read_only_donor"
+    },
+    "w2_61_cross_model_action_extension": {
+      "report": "workstreams/flagship_tasks/reports/work-ii-w2-61-cross-model-action-aligned-causal-extension-v0.1.json",
+      "report_sha256": "ed44502b33887f75620ed0d95bd6de7e2196b9024be16d951024840ff2e16b01",
+      "scheduled_condition_slots": 360,
+      "conditions_per_model": 4,
+      "deepseek_donor_eligible_strata": 42,
+      "codex_donor_eligible_strata": 26,
+      "common_eligible_strata": 26,
+      "status": "terminal_failure_aware_development_evidence"
+    },
+    "w2_62_codex_c2_current_composite": {
+      "evaluation_report": "workstreams/flagship_tasks/reports/work-ii-w2-62-codex-c2-current-composite-evaluation-v0.1.json",
+      "evaluation_report_sha256": "59ae9e2865f71e0baf1d502f1884f9c8c85f2b1aeb2a821e502b480d077087e0",
+      "cross_model_report": "workstreams/flagship_tasks/reports/work-ii-w2-62-c2-cross-model-current-composite-v0.1.json",
+      "cross_model_report_sha256": "d14c462c20a0d46ca441abb6b1426aa5ba36a1e4e0cf51306e6acd55a187dfac",
+      "scheduled_cells_per_model": 135,
+      "matched_task_world_prior_rows": 135,
+      "codex_completed_cells": 126,
+      "deepseek_completed_cells": 121,
+      "status": "terminal_matched_descriptive_cross_model"
+    },
+    "w2_63_b3_cross_model": {
+      "report": "workstreams/flagship_tasks/reports/work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json",
+      "report_sha256": "49db6935761e9559e4888fb1d4adb86f3c75737cc8c6807146f0bbbd68e41f8d",
+      "scheduled_cells_per_model": 30,
+      "deepseek_completed_cells": 17,
+      "deepseek_retained_failures": 13,
+      "codex_completed_cells": 30,
+      "codex_retained_failures": 0,
+      "status": "terminal_failure_aware_matched_descriptive_cross_model"
+    }
   },
   "static_scientific_optimization": {
     "summary": "workstreams/flagship_tasks/reports/static-s0-v1.0-formal-campaign-summary.json",

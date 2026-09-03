@@ -3,14 +3,23 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
 from scripts.run_work_ii_current_composite_evaluator import _render_markdown
 
 from chemworld.eval.work_ii_current_composite import (
     _compact_checkpoint,
     _terminal_state,
+    _validate_checkpoint_schedule,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
+SNAPSHOT_STAGES = (
+    "pre_evidence",
+    "after_experiment_2",
+    "after_experiment_4",
+    "after_experiment_6",
+    "final",
+)
 
 
 def test_terminal_state_preserves_failure_and_censoring_denominators() -> None:
@@ -39,6 +48,50 @@ def test_terminal_state_preserves_failure_and_censoring_denominators() -> None:
         "qualification_contract_failed_after_planned_experiments:"
         "final_recommendation_present",
     )
+
+
+def test_right_censored_checkpoint_schedule_accepts_only_an_ordered_prefix() -> None:
+    _validate_checkpoint_schedule(
+        cell_id="right-censored-cell",
+        observed_stages=SNAPSHOT_STAGES[:-1],
+        snapshot_stages=SNAPSHOT_STAGES,
+        terminal_state="right_censored",
+    )
+
+    for observed in (
+        (
+            "pre_evidence",
+            "after_experiment_4",
+        ),
+        (
+            "pre_evidence",
+            "after_experiment_4",
+            "after_experiment_2",
+        ),
+        (
+            "pre_evidence",
+            "after_experiment_2",
+            "after_experiment_2",
+        ),
+    ):
+        with pytest.raises(ValueError, match="checkpoint schedule differs from config"):
+            _validate_checkpoint_schedule(
+                cell_id="right-censored-cell",
+                observed_stages=observed,
+                snapshot_stages=SNAPSHOT_STAGES,
+                terminal_state="right_censored",
+            )
+
+
+def test_non_censored_checkpoint_schedule_requires_the_frozen_final_stage() -> None:
+    for terminal_state in ("completed", "failed"):
+        with pytest.raises(ValueError, match="checkpoint schedule differs from config"):
+            _validate_checkpoint_schedule(
+                cell_id=f"{terminal_state}-cell",
+                observed_stages=SNAPSHOT_STAGES[:-1],
+                snapshot_stages=SNAPSHOT_STAGES,
+                terminal_state=terminal_state,
+            )
 
 
 def test_compact_checkpoint_keeps_estimands_but_drops_per_query_terms() -> None:

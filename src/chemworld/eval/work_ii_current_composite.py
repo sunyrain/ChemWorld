@@ -153,6 +153,28 @@ def _terminal_state(
     return "failed", "qualification_contract_failed_after_planned_experiments" + suffix
 
 
+def _validate_checkpoint_schedule(
+    *,
+    cell_id: str,
+    observed_stages: Sequence[str],
+    snapshot_stages: Sequence[str],
+    terminal_state: str,
+) -> None:
+    """Allow only the frozen full schedule or a right-censored ordered prefix."""
+
+    observed = list(observed_stages)
+    scheduled = list(snapshot_stages)
+    if observed == scheduled:
+        return
+    if (
+        terminal_state == "right_censored"
+        and len(observed) < len(scheduled)
+        and observed == scheduled[: len(observed)]
+    ):
+        return
+    raise ValueError(f"{cell_id}: checkpoint schedule differs from config")
+
+
 def _task_specs(plan: Mapping[str, Any]) -> dict[tuple[str, str], dict[str, Any]]:
     blocks = plan.get("public_blocks")
     if not isinstance(blocks, list):
@@ -192,6 +214,7 @@ def build_current_composite_inputs(
     *,
     base_run: Path,
     replacement_run: Path,
+    cohort_id: str = CURRENT_COMPOSITE_COHORT_ID,
     replacement_block: str = "A_S",
     replacement_task: str = "reaction-to-crystallization",
     analysis_plan_path: Path,
@@ -202,6 +225,9 @@ def build_current_composite_inputs(
     root = root.resolve()
     base_run = base_run.resolve()
     replacement_run = replacement_run.resolve()
+    single_source_run = base_run == replacement_run
+    if not cohort_id:
+        raise ValueError("current-composite cohort id must be non-empty")
     analysis_plan_path = analysis_plan_path.resolve()
     formal_design_path = formal_design_path.resolve()
     base_plan_path = base_run / "execution_plan.json"
@@ -231,7 +257,7 @@ def build_current_composite_inputs(
     cells: list[CompositeCell] = []
     config_bindings: dict[str, dict[str, Any]] = {}
     for key, base_spec in base_specs.items():
-        use_replacement = key == selector
+        use_replacement = not single_source_run and key == selector
         spec = replacement_specs[key] if use_replacement else base_spec
         source_run = replacement_run if use_replacement else base_run
         config_path = (root / spec["config"]).resolve()
@@ -289,14 +315,6 @@ def build_current_composite_inputs(
                     raise ValueError(f"{cell_id}: participant result classification drifted")
                 if not isinstance(replay, Mapping) or replay.get("verified") is not True:
                     raise ValueError(f"{cell_id}: exact replay is not verified")
-                snapshots = analysis.get("belief_snapshots")
-                observed_stages = [
-                    str(row.get("stage", ""))
-                    for row in snapshots
-                    if isinstance(row, Mapping)
-                ] if isinstance(snapshots, list) else []
-                if observed_stages != snapshot_stages:
-                    raise ValueError(f"{cell_id}: checkpoint schedule differs from config")
                 complete_count = analysis.get("complete_experiment_count")
                 if (
                     isinstance(complete_count, bool)
@@ -314,6 +332,18 @@ def build_current_composite_inputs(
                     scheduled_experiments=int(spec["rounds"]),
                     failed_checks=failed_checks,
                 )
+                snapshots = analysis.get("belief_snapshots")
+                observed_stages = [
+                    str(row.get("stage", ""))
+                    for row in snapshots
+                    if isinstance(row, Mapping)
+                ] if isinstance(snapshots, list) else []
+                _validate_checkpoint_schedule(
+                    cell_id=cell_id,
+                    observed_stages=observed_stages,
+                    snapshot_stages=snapshot_stages,
+                    terminal_state=terminal_state,
+                )
                 summary_digest = file_sha256(summary_path)
                 trajectory_digest = file_sha256(trajectory_path)
                 terminal_digest = canonical_json_sha256(
@@ -325,7 +355,7 @@ def build_current_composite_inputs(
                 )
                 cell_key = canonical_json_sha256(
                     {
-                        "cohort_id": CURRENT_COMPOSITE_COHORT_ID,
+                        "cohort_id": cohort_id,
                         "cell_id": cell_id,
                         "terminal_artifact_sha256": terminal_digest,
                     }
@@ -421,12 +451,13 @@ def build_current_composite_inputs(
         "prospective_formal_result": True,
         "provider_call_count": 0,
         "participant_feedback_allowed": False,
-        "cohort_id": CURRENT_COMPOSITE_COHORT_ID,
+        "cohort_id": cohort_id,
         "composition": {
-            "base_retained_cell_count": 120,
-            "replacement_cell_count": 15,
+            "base_retained_cell_count": 135 if single_source_run else 120,
+            "replacement_cell_count": 0 if single_source_run else 15,
             "replacement_block": replacement_block,
             "replacement_task": replacement_task,
+            **({"single_source_run": True} if single_source_run else {}),
         },
         "source_runs": {
             "base": {
@@ -837,6 +868,7 @@ def execute_current_composite_evaluator(
     *,
     base_run: Path,
     replacement_run: Path,
+    cohort_id: str = CURRENT_COMPOSITE_COHORT_ID,
     analysis_plan_path: Path,
     formal_design_path: Path,
     output_root: Path,
@@ -854,6 +886,7 @@ def execute_current_composite_evaluator(
         root,
         base_run=base_run,
         replacement_run=replacement_run,
+        cohort_id=cohort_id,
         replacement_block=replacement_block,
         replacement_task=replacement_task,
         analysis_plan_path=analysis_plan_path,

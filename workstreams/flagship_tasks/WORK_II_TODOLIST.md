@@ -1,6 +1,6 @@
 # Work II TODO — Experimental Intelligence
 
-最后更新：2026-08-31
+最后更新：2026-09-03
 
 ## 0. 已冻结的执行理念：开发优先、最后一次冻结
 
@@ -24,7 +24,10 @@ hash。此理念优先于本文件中历史遗留的“每次开发改动后重�
 `420/420` truth executions、`675/675` checkpoint scores、`135/135` law evaluations 与 `726/726` launched
 blind replays，0 provider calls。7 failed、7 right-censored 和 84 个未启动 blind 分母均保留。三个 locus 的
 selective-correction gate 均未通过；A-P `p=0.079` 仅属 suggestive。A-E private 延期，
-WellAU/Qwen/Kimi 未启动新的 replication。Paper 2 当前结果统一从 `WORK_II_PAPER_RESULTS_ZH.md` 进入，
+WellAU/Qwen/Kimi 未启动新的 replication。W2-61/62/63 已把 participant-bearing 主证据补为双模型
+scheduled coverage：C2 各 `135` cells、B3 各 `30` cells、oracle-free 四条件 action successor 各 `180`
+slots；A-P/B2 另有完整双模型 matched formal 分母。所有失败和删失保留，因此该补全不等于全 cell completed、
+provider 因果效应或模型排行榜。Paper 2 当前结果统一从 `WORK_II_PAPER_RESULTS_ZH.md` 进入，
 当前论文故事见 `paper/prior_discovery_story_zh.md`。** Reaction-safety mechanism-oracle Q1、matched-prior Q2、world-0 D1
 与预注册 D2 worlds 1/4 均已完成；electrochemical mechanism-oracle 与 matched-prior Q2 均通过 5/5 worlds，
 electrochemical world-0 D1 为 retained operational failure，不进入 D2/R5。
@@ -677,6 +680,9 @@ design 与 analysis 由 formal builder 分别绑定，并通过人口、三臂�
 | W2-58 | TERMINAL / DEEPSEEK CANARY 0/3 + GPT UNSTARTED | runner-derived stage status 的 provider-free preparation、双 manifest 与静态入口保持有效；qualification/public truth/roster/public-packet hashes 在两模型间一致。用户于 2026-08-31 仅授权顺序 `3+3` canary，formal 从未授权。DeepSeek 三臂各执行 1 session、每条 2 turns：`6/6` provider receipts completed、返回码均为 0、同一 session 内 thread ID 一致、0 provider errors、0 retries、0 tools、0 infrastructure predecessors、0 physical experiments。三条 post 均保留 typed law 与 8 predictions，但都缺少有效 `selected_action_index`，并同时缺少 `evidence_assessment`；因此按冻结规则终态为 `0/3 completed + 3/3 participant-schema failures`，不补跑、不替换、不进入科学分母。按 DeepSeek→GPT stop rule，GPT canary `0/3`，DeepSeek/GPT formal 均 `0/30`；matched cross-model formal denominator 仍不存在。input/result/closeout hashes 均验证通过。事后核对确认 post schema 与 resume 路由正确，但 `codex-cli 0.145.0` + DeepSeek custom provider 三次以 rc=0 返回 pre-shaped JSON，故因果定位为 participant/provider-adapter schema-enforcement 边界的接口资格失败；前瞻性 runner 已显式提示两个 post-only 字段并补齐二次验证，旧结果不变。DeepSeek/GPT canary 与 formal authorization 当前全部为 false。见 `WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_CROSS_MODEL_EXPERIMENT_NOTE.md` 与 `reports/WORK_II_AS_STUDY_B3_RUNNER_DERIVED_STATUS_DEEPSEEK_CANARY_CLOSEOUT_ZH.md`。 |
 | W2-59 | DONE / TERMINAL BLOCK-SPECIFIC CROSS-MODEL COVERAGE | 冻结的 `270` 个 formal sessions 中终态观察 `36`、合格/可评分 `34`、保留失败 `2`、未启动 `234`；另有 `12/12` 排除式 canary 已观察，`11` completed、`1` participant-schema failure。A-P 与 A-S B2 首次形成完整 DeepSeek + `gpt-5.6-sol`/medium matched formal 分母：两模型均各完成 `15/15 + 15/15`、0 failures；A-P primary contrast 为 `0.0309` 与 `0.0602`，A-S B2 为 `0.0645` 与 `0.0915`，且两模型 misindexed exact 1.75-law recovery 均为 `0/5`。GPT C2 在分母内 canary 为 `3/135` terminal、`2` qualified、`1` provider/session qualification failure，余 `132` 未启动；GPT W2-50 为 `3/45` terminal、`2` eligible，misindexed 在 `5/12` experiments 后 session interruption，余 `42` 未启动；B3 的 DeepSeek/GPT canary 为 `2/3` 与 `3/3`，因共同门要求双方通过，formal 均 `0/30`。首次 GPT B3 零 provider 平台缺陷保留，修复后从 canary 第一单元重启；其余失败均不补跑、不替换。W2-55 对 GPT 新输出零 provider 检查后因 stop-boundary 分母不足而不可估计，不与 DeepSeek 拼接；provider-free W2-51/52/53 未重复。W2-59 无合法可继续 provider session。见 `WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_EXPERIMENT_NOTE.md` 与 `reports/WORK_II_CROSS_MODEL_MAIN_EVIDENCE_COMPLETION_CLOSEOUT_ZH.md`。 |
 | W2-60 | DONE / TERMINAL B2 LOW-REASONING ROBUSTNESS; A-P PLATFORM-DEFECTIVE PARTIAL | 为保持 agent harness 不变，冻结为 `deepseek-v4-flash` + Codex `reasoning_effort=low`，不是会换 direct controller 的 provider `thinking=off`。A-S B2 canary `3/3` 通过，formal `15/15`、30/30 turns、same-thread `15/15`、0 failures、80/80 provider-free truth；opaque/aligned/misindexed post error 为 `0.0067/0.0069/0.0069`，全部 15 cells 低于 0.02，misindexed exact 1.75-law recovery 仍为 `0/5`。注册 primary contrast 反向为 `-0.0405`，`2/5` worlds 为正，exact one-sided `p=0.8125`；provider-reported reasoning output 相对 high 从 `506,637` 降到 `400,639`（-20.9%）。结论是 numerical--structural break 对该 reasoning budget 稳健，但 selective-update contrast 方向配置敏感，不作 reasoning/model leaderboard。A-P low canary 的外层前台监督被超时截断：三臂有进度与 terminal-failed 事件，但无 cell receipts/canary summary，故 root 按 platform-defective partial 保留，formal `0/15`，不补跑、不作 A-P low 科学估计。见 `WORK_II_DEEPSEEK_LOW_REASONING_MATCHED_EVIDENCE_EXPERIMENT_NOTE.md`、`reports/WORK_II_AS_STUDY_B2_DEEPSEEK_V4_FLASH_LOW_RESULTS_ZH.md` 与对应机器结果。 |
+| W2-61 | DONE / TERMINAL FOUR-CONDITION CROSS-MODEL ACTION EXTENSION | 在 W2-50 冻结的 45 task--world--prior strata 上移除 oracle，形成 DeepSeek 与 Codex 各 `45 × 4=180`、总计 `360` 个 failure-aware 条件槽：`no_evidence`、`yoked_evidence`、`learned_law_only` 与 `autonomous_exploration`。DeepSeek/Codex 的 donor-eligible 分母为 `42/26`，共同可配对为 `26` strata（13 task--world clusters）；所有 donor、recipient、schema 与 session failures 均保留。donor-eligible autonomous-minus-no-evidence regret 差为 `-0.1214`（95% cluster interval `[-0.2607,0.0225]`）与 `-0.1379`（`[-0.3452,0.1103]`）；learned-law-minus-no-evidence 为 `-0.0267` 与 `+0.0970`，均跨零。yoked completion 为 DeepSeek `10/42`、Codex `24/26`，故 autonomous-minus-yoked 的 failure-aware 优势不能与纯 experiment-selection effect 等同。该 successor 支持四条件 action readout 与 failure-aware portability 边界，不作 provider 因果效应或模型排序。见 `WORK_II_W250_ACTION_ALIGNED_CAUSAL_EXTENSION_EXPERIMENT_NOTE.md` 与 `reports/work-ii-w2-61-cross-model-action-aligned-causal-extension-v0.1.json`。 |
+| W2-62 | DONE / TERMINAL CODEX C2 FULL-COHORT REPLICATION | `gpt-5.6-sol`/medium 在与 DeepSeek 完全相同的 45 task--world clusters、9 tasks、3 arms 上形成全 `135` scheduled-cell 分母：`126 completed + 3 failed + 6 right-censored`，完成 `1,253/1,260` participant experiments。provider-free current-composite evaluator 完成 `420/420` truth、`669/675` checkpoints、`129/135` laws、`756/810` scheduled blind executions；54 个未启动 blind executions 保留。Codex 的 A-E/A-P/A-S selective-correction gates 均失败，overall gate `p=1.0`。与 DeepSeek 的 135-coordinate matched descriptive analysis 得到 prediction improvement `0.1329/0.1198`、law MAE `0.1753/0.2371`、compression loss `0.0142/0.0686`、blind gain `-0.0001/-0.0010`（Codex/DeepSeek）；规律压缩改善没有转化为行动增益。不作 provider effect 或 leaderboard。见 `WORK_II_W262_CODEX_C2_FULL_REPLICATION_EXPERIMENT_NOTE.md` 及 W2-62 两份机器/中文报告。 |
+| W2-63 | DONE / TERMINAL DEEPSEEK B3 FAILURE-AWARE REPLICATION | 在与 Codex B3 相同的五个 partition worlds、三臂、每臂/世界两 session 科学表面上，DeepSeek high 完成冻结的 `30/30` scheduled slots：`17 completed + 13 participant-schema failures`；失败不得删除或替换。DeepSeek/Codex failure-aware joint family+1.75 recovery 为 `0/30` 与 `5/30`，Top-1 为 `0/30` 与 `2/30`，mean regret 为 `0.9579/0.7594`，post MAE 为 `0.0928/0.0320`；两模型在 eligible action opportunity 上 gain≥0.02 均为 0。结果支持“结构恢复与行动收益分离”，但 differential schema failure 阻止模型优越性解释。见 `WORK_II_W263_DEEPSEEK_B3_FULL_REPLICATION_EXPERIMENT_NOTE.md` 与 `reports/work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json`。 |
 | W2-37 | DONE / BOTH CANDIDATES PASSED | restart3 从 execution 0 完成 `10,240/10,240` primary 与 `10,240/10,240` exact replay，0 physical/platform/unsafe；crystallization reversible topology 与 partition power response 均 `5/5` worlds 通过，已生成两份 locked D1 config。它们仍 `formal_result=false`、`execution_authorized=false`，不等于 participant/R5 授权 |
 | W2-29 | DONE | reaction-safety 与 electrochemical mechanism-oracle 均已 5/5 通过；electrochemical 当前授权进入 Q2 matched-prior construction |
 | W2-30 | DONE | electrochemical matched-prior WellAU world-0 D1 已完成并完成 provider-free evaluator；`failed_retained`，中间 checkpoint 信号和失败归因已冻结，未经用户审核不重启新 block |
@@ -740,6 +746,21 @@ W2-51/52 的“完成”采用终态定义：固定分母、真实失败、未�
   `workstreams/flagship_tasks/reports/WORK_II_AS_STUDY_B2_DEEPSEEK_V4_FLASH_LOW_RESULTS_ZH.md`、
   `workstreams/flagship_tasks/reports/work-ii-w2-60-deepseek-low-reasoning-closeout-v0.1.json`、
   `workstreams/flagship_tasks/reports/WORK_II_W2_60_DEEPSEEK_LOW_REASONING_CLOSEOUT_ZH.md`
+- W2-61 oracle-free four-condition dual-model action successor：
+  `workstreams/flagship_tasks/WORK_II_W250_ACTION_ALIGNED_CAUSAL_EXTENSION_EXPERIMENT_NOTE.md`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-61-deepseek-action-aligned-causal-extension-v0.1.json`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-61-codex-action-aligned-causal-extension-v0.1.json`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-61-cross-model-action-aligned-causal-extension-v0.1.json`
+- W2-62 Codex C2 full-cohort 与双模型 current-composite：
+  `workstreams/flagship_tasks/WORK_II_W262_CODEX_C2_FULL_REPLICATION_EXPERIMENT_NOTE.md`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-62-codex-c2-current-composite-evaluation-v0.1.json`、
+  `workstreams/flagship_tasks/reports/WORK_II_W2_62_CODEX_C2_CURRENT_COMPOSITE_EVALUATION_ZH.md`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-62-c2-cross-model-current-composite-v0.1.json`、
+  `workstreams/flagship_tasks/reports/WORK_II_W2_62_C2_CROSS_MODEL_CURRENT_COMPOSITE_ZH.md`
+- W2-63 DeepSeek B3 full-cohort 与 failure-aware 双模型收束：
+  `workstreams/flagship_tasks/WORK_II_W263_DEEPSEEK_B3_FULL_REPLICATION_EXPERIMENT_NOTE.md`、
+  `workstreams/flagship_tasks/reports/work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json`、
+  `workstreams/flagship_tasks/reports/WORK_II_W2_63_B3_FAILURE_AWARE_CROSS_MODEL_ZH.md`
 - W2-56 replicated B3 DeepSeek canary、GPT-5.6-sol medium provider-free preparation 与 formal closeout：
   `workstreams/flagship_tasks/WORK_II_AS_STUDY_B3_REPLICATED_EXPERIMENT_NOTE.md`、
   `workstreams/flagship_tasks/WORK_II_AS_STUDY_B3_GPT56_SOL_MEDIUM_REPLICATION_EXPERIMENT_NOTE.md`、

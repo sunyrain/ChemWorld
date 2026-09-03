@@ -145,8 +145,6 @@ class W250YokedRepairClient(CodexRecipientSessionClient):
             max_tokens=max_tokens,
             output_schema=output_schema,
         )
-        if is_snapshot:
-            completion.payload = normalize_nullable_law_terms(completion.payload)
         return completion
 
 

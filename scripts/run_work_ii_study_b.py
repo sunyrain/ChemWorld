@@ -33,6 +33,7 @@ from chemworld.eval.work_ii_study_b2 import (
     prepare_study_b2_truth,
     summarize_study_b2_results,
 )
+from chemworld.providers.codex_subscription import HTTPS_PROVIDER_ID
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_PROTOCOL = ROOT / "configs/benchmark/work_ii_study_b_matched_evidence_v0.1.json"
@@ -264,8 +265,38 @@ def _launch_turn(
     }
 
 
+def _uses_cached_openai_login(provider: Mapping[str, Any]) -> bool:
+    auth_mode = provider.get("auth_mode")
+    return auth_mode == "chatgpt_subscription_cached_login" or (
+        auth_mode == "none" and provider.get("id") == HTTPS_PROVIDER_ID
+    )
+
+
+def _provider_compatible_output_schema(
+    provider: Mapping[str, Any],
+    schema: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Project strict local contracts into the selected provider's JSON-Schema subset."""
+
+    def visit(value: Any) -> Any:
+        if isinstance(value, Mapping):
+            return {
+                str(key): visit(item)
+                for key, item in value.items()
+                if not (_uses_cached_openai_login(provider) and key == "uniqueItems")
+            }
+        if isinstance(value, list):
+            return [visit(item) for item in value]
+        return deepcopy(value)
+
+    projected = visit(schema)
+    if not isinstance(projected, dict):
+        raise TypeError("provider output schema must remain an object")
+    return projected
+
+
 def _prepare_codex_home(temp_root: Path, provider: Mapping[str, Any]) -> dict[str, str]:
-    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+    if _uses_cached_openai_login(provider):
         codex_home = temp_root / "codex-home"
         codex_home.mkdir(parents=True, exist_ok=False)
         source_home = Path(os.environ.get("CODEX_HOME", Path.home() / ".codex"))
@@ -345,7 +376,7 @@ def _initial_command(provider: Mapping[str, Any], schema_path: Path, workspace: 
         "-C",
         str(workspace),
     ]
-    if provider.get("auth_mode") == "chatgpt_subscription_cached_login":
+    if _uses_cached_openai_login(provider):
         command.insert(2, "--ignore-user-config")
         model_index = command.index("-m")
         provider_id = str(provider["id"])
