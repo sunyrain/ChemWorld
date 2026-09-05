@@ -95,6 +95,11 @@ ignore = ["N803", "N806", "N815"]
 [tool.ruff.lint.per-file-ignores]
 "*.ipynb" = ["E501", "RUF001"]
 "apps/task_lab/*.py" = ["RUF001"]
+"apps/blender_lab/*.py" = ["RUF001"]
+# Blender registration requires CATEGORY_OT_name / CATEGORY_PT_name classes.
+"apps/blender_lab/blender_bridge.py" = ["N801"]
+# These files bootstrap their package when executed by Blender's --python option.
+"apps/blender_lab/{startup,build_lab,polish_glass,render_tour,prepare_scene}.py" = ["E402"]
 
 [tool.mypy]
 python_version = "3.11"

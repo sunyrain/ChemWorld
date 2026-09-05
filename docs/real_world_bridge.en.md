@@ -8,6 +8,10 @@ models, real datasets, and narrow physical systems.
 !!! info "Current status"
     This is a validation roadmap, not an operational physical-lab product.
 
+The [Blender laboratory](blender_lab.md) provides a local engineering interface for public-state
+visualization, generic scene logistics, and read-only feedback. It does not implement physical drivers
+or establish transfer validity.
+
 ## Validity ladder
 
 | Level | Question |

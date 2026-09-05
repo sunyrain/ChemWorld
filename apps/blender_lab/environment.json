@@ -1,0 +1,34 @@
+{
+  "schema_version": "1.0",
+  "environment_id": "scienceos.chemlab",
+  "name": "ChemLab 通用实验环境",
+  "frame": {"id":"lab_world", "units":"m", "handedness":"right", "axes":{"x":"east","y":"north","z":"up"}},
+  "bounds_m": {"x":[-4.35,4.35],"y":[-3.55,3.50],"z":[0,3.20]},
+  "navigation": {"grid_m":0.1,"clearance_m":0.06,"model":"2D inflated footprints; kinematic visualization, not a certified robot controller"},
+  "static_obstacles": [
+    {"id":"stool_west","position_m":[-3.60,-0.95,0],"size_m":[0.46,0.46,0.6]},
+    {"id":"stool_front","position_m":[2.25,-3.1,0],"size_m":[0.46,0.46,0.6]}
+  ],
+  "stations": {
+    "home":{"name":"充电与待命","dock_m":[0.45,-2.25,0.08],"yaw_deg":0},
+    "preparation":{"name":"配液台交接位","dock_m":[-0.5,-1.9,0.08],"yaw_deg":0,"sample_position_m":[-0.5,-1.12,0.94],"support":"bench_preparation"},
+    "analysis":{"name":"表征台交接位","dock_m":[-0.4,1.65,0.08],"yaw_deg":0,"sample_position_m":[-0.4,2.28,0.94],"support":"bench_analysis"},
+    "reaction":{"name":"反应区停靠位","dock_m":[-2.25,1.35,0.08],"yaw_deg":0}
+  },
+  "observation_contract": {"clock":"Unix UTC seconds","quality":["good","uncertain","bad"],"max_future_skew_s":5,"default_max_age_s":15,"authority":"Observed data never overwrites desired settings or simulation state."},
+  "metrics": {
+    "temperature_c":{"unit":"degC","tolerance":2.0,"target":"target_temperature_c"},
+    "stir_rpm":{"unit":"rpm","tolerance":10.0,"target":"stir_rpm"},
+    "volume_ml":{"unit":"ml","tolerance":1.0},
+    "mass_g":{"unit":"g","tolerance":0.01}
+  },
+  "execution": {"enabled_modes":["simulation"],"hardware_dispatch_enabled":false,"feedback_mode":"read-only shadow comparison","restart_policy":"interrupt outstanding commands; do not replay physical effects"},
+  "adapters": {
+    "simulation":{"status":"implemented","direction":"virtual commands and state"},
+    "mock":{"status":"implemented","direction":"explicitly synthetic observation producer"},
+    "manual":{"status":"implemented","direction":"user supplied measurements; provenance not independently verified"},
+    "sila2":{"status":"interface placeholder","direction":"future laboratory instrument driver"},
+    "opcua":{"status":"interface placeholder","direction":"future industrial device driver"},
+    "ros2":{"status":"interface placeholder","direction":"future mobile manipulator driver"}
+  }
+}

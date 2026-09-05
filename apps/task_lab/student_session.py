@@ -19,6 +19,7 @@ from apps.task_lab.interaction_semantics import (
 )
 from apps.task_lab.spectral_payload import spectral_payload
 from chemworld.data.logging import observation_to_json, to_builtin
+from chemworld.interfaces.blender import attach_blender
 from chemworld.materials import action_material_display
 from chemworld.tasks import get_task
 
@@ -32,6 +33,7 @@ class StudentSession:
     def __post_init__(self) -> None:
         task = get_task(self.task_id)
         self._env = gym.make("ChemWorld", **task.env_kwargs(seed=self.seed))
+        self._env = attach_blender(self._env)
         self._env.reset(seed=self.seed)
         self._history: list[dict[str, Any]] = []
         self._lock = threading.RLock()

@@ -110,6 +110,7 @@ def run_agent(
     budget_override: int | None = None,
     episode_mode_override: str | None = None,
     step_callback: Callable[[HistoryRecord, list[dict[str, Any]]], None] | None = None,
+    env_wrapper: Callable[[gym.Env[Any, Any]], gym.Env[Any, Any]] | None = None,
     method_resource_limits: dict[str, Any] | None = None,
     evaluation_policy: EvaluationPolicy = "task_contract",
     world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
@@ -202,6 +203,8 @@ def run_agent(
         env_id,
         **env_kwargs,
     )
+    if env_wrapper is not None:
+        env = env_wrapper(env)
     initial_obs, task_info = env.reset(seed=seed)
     if not hasattr(env.unwrapped, "task_info"):
         raise RuntimeError(f"{env_id} does not expose task_info()")
