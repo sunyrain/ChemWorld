@@ -1,340 +1,98 @@
-# Work II / ICLR 2027 故事：Causal Dissection from Evidence to Action
-
-更新时间：2026-09-03
-
-本文档是 Work II 的作者侧论证入口。它不是投稿定稿；原始 run、机器摘要、实验 note 和注册 evaluator 仍是证据来源。A-P/B2、C2、B3 与四条件 successor 已有 DeepSeek-v4-flash 和 GPT-5.6-sol 的 scheduled surface；原 W2-50 纵向队列及 W2-64 decision-aligned diagnostic 仍为 DeepSeek-only。Codex 是两者共用的 session harness，不是第三个 participant 模型。A-P 与 A-S B2 是完整 matched formal，C2 各有 135 cells，B3 各有 30 cells，四条件 successor 各有 180 slots。所有失败保留，因此“双模型补全”不等于全 cell completed，也不授权模型排行榜。
-
-## 1. 研究对象与中心命题
-
-我们研究的不是“模型能否在化学游戏里拿高分”，而是：一个自主科学 agent 在带着正确、错误或缺失的初始世界模型进入实验后，能否把有限实验转化为可预测、可执行并最终能改善行动的科学知识。
-
-ChemWorld 将这条链拆成彼此不可替代的层级：
-
-> initial world model → evidence acquisition → endpoint adaptation → counterfactual prediction → executable law → unseen action selection → evaluator validity → artifact portability
-
-当前 DeepSeek public cohort 给出的核心发现是能力链的系统性解耦：agent 会持续搜索，三个 locus 的平均预测误差也普遍下降；但注册的“错误先验应被更强纠正”并未通过，135 条规律虽然全部可执行，却多数比 final explicit prediction 更有损，blind action 又几乎完全复现 incumbent。W2-50 将这一边界推进到三任务、五世界的未见完整 ActionPlan：42 个可评分 terminal readouts 中仅 11 个选择真实 Top-1。第四断裂具有两个层次：Agent 层面的 law-action decoupling 表现为坏律也可能选对、合格律也可能选错；evaluator 层面的 rank-action misalignment 表现为 96-query oracle 在 8 个 fresh units 中 rank gate 通过 7 个却只有 1 个 Top-1，而首个 fresh 320-query unit rank gate 失败却 Top-1 正确且 regret 为 0。实验适应、数值学习、结构识别、规律压缩、行动迁移和 evaluator validity 不是同一个能力，也不会自动级联。
-
-这不是一个低档次的模型失败故事。它建立了一个此前常被总分掩盖的研究对象：**科学智能的转换损失与失效位置**。当前证据已经从 endpoint 一直观测到未见行动选择，形成第一张贯穿取证、预测、规律与行动的失效地图；后续 provider、private world 和 context-reset artifact portability 都可在同一能力链上定位，而不是继续堆叠不可解释的 leaderboard。
-
-## 2. 当前第一阶段的完整证据
-
-### 2.1 Participant 与 evaluator 分母
-
-| 层级 | 结果 | 含义 |
-|---|---:|---|
-| Matched task–world clusters | 45 | 9 个 task–locus，5 worlds/task |
-| Participant sessions | 135/135 terminal | opaque、aligned、misindexed 三臂完整入组 |
-| Participant experiments | 1,243/1,260 | 所有失败和未完成分母保留 |
-| Qualification | 121/135 | 7 failed、7 right-censored 不做完成者筛选 |
-| Belief checkpoints | 675/675 | pre、3 个中间、final |
-| Registered query predictions | 6,300 | 共 24,300 query–metric values |
-| Evaluator truth | 420/420 | 1,620 个 query–metric truth values，0 provider calls |
-| Checkpoint scoring | 675/675 | 全部可评分 |
-| Final typed laws | 135/135 | 全部成功执行和评价 |
-| Blind replay | 726/810 | 121 个 terminal-evaluable cells 全部完成；84 次因 14 个非终态 participant cells 预定不启动 |
-
-当前分析严格组合 corrected-semantics cohort 中未受影响的 120 cells 与从首 cell 完整重跑的 15-cell A-S crystallization replacement。随后发现 v0.1 evaluator 没有把冻结的 A-S `world_interventions` 传入 truth/blind runtime；v0.2 又从第一 evaluator 单元完整重跑 420 truth 与 726 eligible blind executions。旧 participant/evaluator 缺陷块均不拼接；participant 轨迹、evaluator truth 和 blind replay 彼此分离。
-
-### 2.2 Agent 确实进行了实质性实验搜索
-
-九个 task–locus 的平均 `best − first` 全为正；91.2% 的完成实验采用唯一 recipe，84.4% 的 session 最优点出现在预算后半段。整个 cohort 有 666/1,269 个 closed lifecycles 使用非终点测量，共 872 次 instrument uses。测量率随物理路径变化：结晶和分配高，电化学路径在 electrolysis 后直接 final assay，因此非终点测量为零。该结果证明 agent 利用了连续反馈，不等同于“只执行先验给出的首个方案”。
-
-### 2.3 初始世界模型的 endpoint 效应具有三种原型
-
-1. **持续正确性优势：A-E partition。** aligned 相对 misindexed 的首次实验差为 +0.106，best-score 差为 +0.200，均为 5/5 worlds 同方向。
-2. **起跑优势被探索追平：A-S crystallization。** aligned 的首次优势为 +0.141（5/5 worlds），到 best score 缩至 +0.055（3/5）。正确结构主要改变进入搜索空间的位置。
-3. **结构化脚手架与事实正确性分离：A-S partition。** aligned 和 misindexed 相对 opaque 的 best-score 优势分别为 +0.163 和 +0.143，而 aligned–misindexed 仅 +0.020。
-
-其余任务提供异质性边界：A-E reaction safety 只有小效应；distillation 的起始差异随后衰减；electrochemistry、A-E crystallization 和两个 A-P 任务均没有稳定的 aligned endpoint 优势。因此不能把正确先验写成普遍性能增强器。
-
-## 3. 决定性结果：能力链在何处断裂
-
-### 3.1 科学纠错：有学习，但没有注册意义上的选择性纠错
-
-所有 135 cells 从 pre 到 final 都有可评分的 held-out predictions，三臂和三个 locus 的平均误差均下降：
-
-| Locus | Opaque | Aligned | Misindexed |
-|---|---:|---:|---:|
-| A-E | +0.111 | +0.097 | +0.097 |
-| A-P | +0.090 | +0.033 | +0.065 |
-| A-S | +0.219 | +0.228 | +0.221 |
-
-但注册主问题不是“误差是否下降”，而是错误先验的改善是否显著大于正确先验，同时正确先验不退化。三个 locus 均未通过：
-
-| Locus | Failure-aware primary contrast | Registered p | 结论 |
-|---|---:|---:|---|
-| A-E | -0.214 | 0.990 | 不通过；aligned noninferiority 通过，但 misindexed selective improvement 不通过 |
-| A-P | +0.033 | 0.079 | 两任务均为正，属 suggestive，未过注册阈值 |
-| A-S | -0.224 | 1.000 | 不通过；partition 的负方向抵消 crystallization 的局部信号 |
-
-观察点敏感性也不改变结论：A-E 约为 0、A-S 为 -0.0066。失败-aware 规则确实使 crystallization 的非终态 cells 更保守，但总体失败不能被解释成纯删失伪影。
-
-科学含义是：agent 获得了新信息并改善了预测，却没有按干预位置稳定地把额外改进集中在错误初始模型上。**general learning 不等于 targeted model repair。**
-
-### 3.2 规律恢复：可执行性已解决，忠实压缩尚未解决
-
-135/135 final typed laws 均能在 evaluator 坐标上执行。这排除了“只是格式不合法”的浅层解释，但执行后暴露了更深的规律保真问题：
-
-| Locus | Law MAE | Pre→law improvement | Law − final prediction error |
-|---|---:|---:|---:|
-| A-E | 0.2765 | +0.0161 | +0.0855 |
-| A-P | 0.2206 | -0.0156 | +0.0780 |
-| A-S | 0.1552 | +0.2059 | +0.0167 |
-| Overall | 0.2371 | +0.0513 | +0.0686 |
-
-与 final explicit prediction 相比，law 更好/相等/更差为 50/1/84。A-S 的 pre→law 改善最强，说明结构干预确实最接近规律恢复；但即使在 A-S，规律通常仍比 agent 对具体 query 的最终预测更差。当前瓶颈因此不是 schema 或执行器，而是将局部、条件化 belief 压缩成一个保持预测质量的可复用关系。
-
-新增的 135-cell schema-capacity control 进一步定位了损失来源：直接对每个 agent 的完整 final prediction
-vector 拟合合法 full-schema typed law，可在 `135/135` cells 中经 production parser/executor 近乎精确复现，
-平均 MAE 为 `4.25e-13`；participant law 对同一 prediction state 的 MAE 为 `0.1539`。固定 participant
-term set 后 MAE 降至 `0.0114`（`58/135` 近乎精确），leave-one-query-out 为 `0.0788`。因此当前主要损失是
-agent 将预测状态蒸馏为稀疏 law 时的信息丢失，而不是 typed schema 容量不足；full-schema 拟合属于同域容量
-control，不能写成全局机制恢复。
-
-### 3.3 Blind action：可复现，但几乎没有新行动价值
-
-121 个可评价 cells 的 726 次 blind replay 全部完成。推荐相对 incumbent 的 better/equivalent/worse 为 1/119/1，recovered 平均 gain 约为 -0.0010。A-E 仅 1 个极小正增益，A-S crystallization 有 1 个明显负例；其余全部等价。
-
-这与 participant 历史中 133/135 推荐精确 incumbent 一致：final action 接口稳定地重放已知最好方案，却没有显示规律驱动的未观察条件优化。可复现性是必要能力，但不是发现增益。
-
-### 3.4 Matched evidence：从二分定位转向三层机制
-
-当前有效 matched-evidence 证据由 A-P Study B 和 A-S B2 各 5 个 worlds 组成。每个 fresh session 先提交
-pre-evidence prediction，再在同一 thread 中读取 8 条证据，最后预测 8 个不重叠 queries。DeepSeek 与
-GPT-5.6-sol medium 都完成 A-P `15/15` 与 B2 `15/15`，两模型合计 `60/60` formal sessions、`120/120`
-turns、0 failures、0 participant physical experiments；后续 DeepSeek-low B2 再增加 15/15，使当前有效
-matched formal 总数为 75 sessions。原 Study B A-S branch 的 truth source 没有实际
-应用冻结的 structural intervention，该 15-session 结果保留为历史平台缺陷证据，不进入当前 claim。
-该设计固定了 packet 内容，但同时增加 packet 与一个 response turn；因为没有 turn-matched no-packet
-control，它估计 conditional post-packet response，而不是纯 evidence-packet 因果效应。
-
-A-P 给出了清晰的 acquisition 定位。opaque/aligned/misindexed 的平均误差从 `0.3037/0.2822/0.3105` 收敛到
-`0.0816/0.0804/0.0778`；5/5 misindexed sessions 都明确推翻“高电位更可靠”，并恢复约 1.1 V 最优、
-1.3 V 以上坍塌的响应。错误参数方向在固定反证到达后不再持续，把 Study A 中的 A-P 损失定位在取得反证
-之前或 packet 后响应之外的上游环节；额外 response turn 未单独控制，因此不写成纯证据包效应。
-
-GPT 的匹配 A-P replication 得到 opaque/aligned/misindexed mean update gain
-`0.2551/0.2054/0.2657`，primary contrast `+0.0602`，`5/5` worlds 为正（exact one-sided
-`p=0.03125`）；DeepSeek 对应为 `+0.0309`、`3/5` worlds。两个配置都在相同反证到达后发生数值纠错，
-使 conditional post-packet numerical correction 获得 block-specific cross-model replication。
-
-A-S B2 提供固定的 phase-process packet，并用另一组 phase-process queries 评分。opaque/aligned/misindexed error 从 `0.2255/0.2736/0.3392` 降至
-`0.0074/0.0060/0.0071`；misindexed-minus-aligned update-gain contrast 为 `+0.0645`，3/5 worlds 为正，
-exact one-sided sign-flip `p=0.125`。这支持 law-level packet 后的 descriptive conditional response，
-但不能把 packet 与额外 response turn 分解为纯 acquisition effect，且方向并不稳定。
-
-事后 public-summary coding 显示，misindexed 0/5 表达 exact 1.75 law，仅 1/5 明确拒绝 supplied linear
-partition form，5/5 转向经验饱和/endpoint 模型。但 participant-visible audit 发现：B2 的 evidence 与
-scoring 只覆盖一个 nominal pair，未提供 base partition coefficient，也没有 typed family/exponent 字段；
-free-coefficient linear law 与 1.75-power law 在该表面存在精确 alias（系数倍数 `3.13588`）。常数 endpoint
-baseline 的 mean MAE 已达 `0.00649`，aligned DeepSeek-high exact-law positive control 也只有 `1/5`，未通过
-readout criterion。因此 B2 的稳健结论是 **underidentifying free-text surface 上的 post-packet
-numerical--exact-law-expression dissociation**，不能把 0/5 定位为 agent 内部 structural-identification failure。
-真正 participant-identifiable 的结构检验由后续 B3 承担。
-
-GPT 的匹配 B2 replication 得到 opaque/aligned/misindexed mean update gain
-`0.2138/0.2017/0.2931`，primary contrast `+0.0915`、`4/5` worlds 为正（exact one-sided
-`p=0.0625`），misindexed exact 1.75-law expression 仍为 `0/5`。这与 DeepSeek 的 `+0.0645`、`3/5`、
-`0/5` 形成一致的条件性数值—表达剖面，不是结构识别的跨模型检验。
-
-W2-60 又在同一 DeepSeek Codex harness 中只把 reasoning effort 从 high 改为 low。B2 canary `3/3`
-通过，formal `15/15`、30/30 turns、0 failures；opaque/aligned/misindexed post error 为
-`0.0067/0.0069/0.0069`，全部 15 cells 均低于 0.02，misindexed exact 1.75-law expression 仍为
-`0/5`。但 primary contrast 反向为 `-0.0405`，仅 `2/5` worlds 为正（exact one-sided
-`p=0.8125`）。provider-reported reasoning output 相对 high 从 `506,637` 降到 `400,639`
-（-20.9%）。因此最稳健的是 post-packet numerical--expression dissociation，而不是选择性 update contrast 的方向。
-`low` 不是 reasoning-off；真正 provider thinking-off 需要换 direct controller，会混入 harness 差异。
-独立 A-P low canary 没有形成 terminal cell receipts/canary summary，按 platform-defective partial 保留，
-formal `0/15`，不产生 A-P low 科学估计。
-
-W2-56 又用一套独立冻结的 GPT-5.6-sol medium 控制把 1.75 exponent 做成 participant-identifiable，并在相同三臂、5 worlds、每臂每
-world 两个 fresh sessions 上完成 `30/30` GPT-5.6-sol medium formal cells。opaque/aligned/misindexed 的
-post MAE 为 `0.0367/0.0215/0.0378`，但 family+exponent recovery 为 `0/10`、`5/10`、`0/10`；aligned 的
-world-mean exponent error 相对两个对照均在 `5/5` worlds 更低。misindexed 虽有 `8/10` 选择 power family，
-正确 exponent 仍为 `0/10`。这在 GPT block 内将原结论从“小样本没有恢复”加强为：可识别证据能部分保留正确先验，但没有
-选择性修正错误先验，family 标签也不能替代结构参数恢复。
-
-同一控制的行动结果是 `2/30` Top-1，且两次都位于没有 0.02 改进机会的同一 world；三个位于
-action-opportunity denominator 的 worlds 共 `18` cells，gain≥0.02 为 `0/18`。即使 joint structural
-recovery 且 action-eligible 的两个 cells 也为 `0/2`。因此“结构理解→有用新动作”仍是独立断裂。
-
-W2-63 在完全相同的 B3 science surface 上从第一 cell 新建 DeepSeek-high successor，终态为 `17/30`
-completed 与 `13/30` participant-schema failures。failure-aware joint recovery、Top-1、regret、post MAE
-分别为 `0/30`、`0/30`、`0.9579`、`0.0928`；GPT-5.6-sol 对应为 `5/30`、`2/30`、`0.7594`、`0.0320`。
-两模型 eligible gain≥0.02 均为 0。这个结果补齐 B3 双模型分母，同时以 differential schema failure
-明确限制 capability ranking。
-
-W2-62 也为 GPT-5.6-sol 补齐完整 135-cell C2：`126 completed + 3 failed + 6 right-censored`，1,253/1,260
-participant experiments；420/420 truth、669/675 checkpoints、129/135 laws、756/810 scheduled blind
-executions。GPT-5.6-sol 相对 DeepSeek-v4-flash 的 law MAE 从 `0.2371` 降至 `0.1753`、compression loss 从 `0.0686`
-降至 `0.0142`，但 blind gain 仍为 `-0.0001` 对 `-0.0010`。这使“更好的规律表示仍不保证行动增益”
-成为完整 C2 双模型结果。
-
-### 3.5 Open action 与 evaluator：第四断裂包含两个层次
-
-C2 的 blind replay 主要比较 final recommendation 与 participant 已经观察过的 incumbent，因此它能证明
-推荐是否可重放，却不能充分检验 agent 能否把实验知识迁移到一个新的行动集合。W2-48 为此引入纵向
-open-action assay：同一 persistent session 先自主完成 12 次实验和 `0/3/6/9/12` checkpoints，final
-checkpoint 后才看到 8 个完整公开的 ActionPlan；候选 outcome、真实排序和其他臂证据保持隐藏。Public plan、
-truth plan 与 executed plan 逐字绑定，从而排除了旧 feature-only packet 隐藏执行语义的解释。
-
-旧 W2-48 五个 fresh partition worlds 的三臂矩阵完成 `15/15` sessions、`180/180` participant
-experiments、`120/120` provider-free truth 和 `120/120` exact replay，binding 全部通过。`13/15`
-cells 满足完整资格；另外两个虽然完成 12 次实验并提交排序，但 campaign/checkpoint 完整性未通过，
-继续保留在 scheduled denominator。它是历史 development block，不与新矩阵合并。
-
-| Arm | Eligible | Mean selected rank | Mean normalized regret | Top-1 |
-|---|---:|---:|---:|---:|
-| Opaque | 4/5 | 4.25 | 0.3671 | 0/5 |
-| Aligned | 4/5 | 6.50 | 0.7658 | 0/5 |
-| Misindexed | 5/5 | 6.60 | 0.7477 | 0/5 |
-
-旧 W2-48 的 15 个 terminal readout 均未选择真实 Top-1。更新后的 W2-50 多任务五世界矩阵包含
-`45/45` cell records、`42/45` 可评分 cells、`240/240` truth 和 `240/240` exact replay；其中
-`11/42` 选择真实 Top-1。W2-50 的 mechanism–action joint outcome 为 `30/42`
-inadequate-law/wrong-action、`11/42` inadequate-law/correct-action、`1/42` adequate-law/wrong-action、
-`0/42` adequate-law/correct-action。三条结晶失败保留在 scheduled denominator；seed2/aligned repair
-只作技术敏感性结果，不替换原始 cell。
-
-W2-50 已经把 full-plan/ranking-only 接口放入 electrochemical、reaction-to-crystallization 和
-reaction-safety-constrained 三个任务的五世界矩阵。任务异质性很明显：Top-1 分别为 4/15、3/12 和
-4/15，平均 selected rank 分别为 3.60、4.58 和 2.00。这里支持的是跨任务运行和 law-to-action
-边界，不支持 pooled prior-arm 泛化；三条结晶失败仍作为结果的一部分保留。
-
-连续与阈值敏感性分析排除了“0.10 cutoff 人为制造解耦”的解释。42 个 eligible cells 中 law MAE 与
-selected rank 的 pooled Spearman 为 `-0.073`（task-world cluster bootstrap 95% interval
-`[-0.380, 0.256]`），与 normalized regret 为 `-0.133`（`[-0.452, 0.217]`）；分任务 rank 相关却为
-electrochemical `+0.524`、reaction safety `-0.592`、crystallization `-0.007`，方向不稳定。law-MAE
-阈值从 `0.05` 扫到 `0.30` 时，adequate subset 从 1 个增至 34 个，但其中 correct action 只从 0 个增至
-9 个。四象限因此只是连续、task-dependent 非单调关系的一个可读切片，而不是结论本身。
-
-W2-64 又对 DeepSeek W2-50 的 45 个冻结 cell 逐一执行最后一条可用 executable law；三条没有
-terminal action ranking 的失败 cell 仍保留更早的可执行 law。law-implied Top-1 为 `0/45`，participant
-failure-aware Top-1 为 `11/45`；42 条有效 participant rankings 中只有 `12/42` 跟随 law-implied Top-1，
-平均 law-implied/participant regret 为 `0.438/0.344`。该分解只属于 DeepSeek 纵向 cohort，且 law
-quality 与 law use 均未随机化，因此是 decision-aligned 描述性诊断，不是双模型因果效应。
-
-Agent 层面的结论是 law-action decoupling。W2-61 随后在 W2-50 scientific surface 上移除 oracle，
-为每个模型安排 45 strata × 4 conditions = 180 slots：no evidence、yoked evidence、learned-law-only、
-autonomous exploration。primary 是保留全部 45 strata 的 all-scheduled failure-aware strategy
-estimand：DeepSeek/GPT autonomy-minus-no-evidence 为 `-0.0913/+0.1102`，95% cluster intervals
-分别为 `[-0.2124,0.0388]` 与 `[-0.0533,0.2794]`，方向相反且均跨零。按任务分解也异质：DeepSeek
-三任务为 `-0.2398/-0.4060/+0.3720`，GPT 为 `+0.0891/-0.2191/+0.4605`。learned-law-minus-none
-为 `-0.0028/+0.2459`，没有一致的 artifact benefit。donor-eligible `42/26` 及其
-`-0.1214/-0.1379` 只作 post-treatment availability sensitivity；yoked 只完成 `10/42` 与 `24/26`，
-所以 autonomous-minus-yoked 的 failure-aware 优势不能解释成纯 experiment-selection effect。
-
-历史 W2-51 为此冻结了 no evidence、yoked evidence、autonomous exploration、
-learned-law-only 与 oracle-law 五条件设计，计划 15 个 task-world clusters、225 个 fresh sessions 和
-540 次 participant experiments。正式 provider-free preparation 在前 8 个 clusters 完成 `896/896`
-truth 与 exact replay，candidate gates 为 8/8，但 oracle gates 仅 7/8：第三个 fresh
-crystallization formal world 的候选排序 `rho=0.738095`，低于冻结 `0.80`。因此全部 provider sessions
-在 operational canary 前被拒绝，剩余 7 个 clusters 未启动，五个 participant contrasts 均未估计。
-这不是 W2-50 的阴性 participant effect，而是 causal control 本身未能跨 fresh world 资格化；它进一步
-限制了我们把终端排序升级为 action-transfer 因果主张。Evaluator 层面的结论是 rank-action
-misalignment：完整排序相关性和真实动作损失是不同 estimand，不能用前者替代后者。
-
-## 4. 第一阶段的统一结论
-
-当前 cohort、Study B、open-action 与 oracle-alignment evidence 同时支持以下八句话：
-
-1. 初始世界模型会因任务和干预位置不同而改变实验起点、搜索组织和 endpoint。
-2. Persistent agent 能利用实验反馈进行搜索，并普遍降低 held-out prediction error。
-3. 这种学习没有自动形成选择性的错误先验纠正，也没有可靠压缩成高保真 executable law。
-4. 最终 action 大多复现 incumbent，说明 prediction、law 和 action 之间存在独立转换损失。
-5. Matched evidence 的 conditional post-packet response 能消除 A-P 错误参数方向；在 A-S B2，packet 后出现 mixed prediction gain，但欠识别表面上未稳定表达 exact law，不能据此判断结构恢复；participant-identifiable 结构检验由 B3 承担，且 packet 与额外 response turn 未被拆开。
-6. 即使候选执行语义完整公开，规律充分性与未见行动选择仍是非单调映射：坏律可以选对，合格律也可以选错。
-7. 四条件 successor 的 all-scheduled autonomy 效应跨模型方向不一致且区间跨零，learned law 没有一致收益；yoked failures 又阻止纯 experiment-selection 解释。
-8. Evaluator 的完整排序相关性不能替代动作 regret：rank-pass/action-wrong 与 rank-fail/action-correct 都已出现。
-
-最重要的不是某个 p value “阴性”，而是我们获得了同一个系统在完整能力链上的联合观测：**搜索成功与科学纠错可以分离；预测改进与规律恢复可以分离；规律执行与行动迁移也可以分离。**
-
-## 5. 更大的论文计划
-
-### Phase I — Controlled capability map（当前已完成双模型 scheduled surface）
-
-在 A-E、A-P、A-S 三类世界模型干预下，测量 endpoint、prediction、law 和 action 的转换损失。当前 135-session public cohort 与 current-composite evaluator 已闭环。
-
-### Phase II — Evidence acquisition versus belief revision（A-P Study B + A-S B2 已终态）
-
-当前有效 block 已完成 10 clusters、30 fresh sessions。A-P 支持 conditional post-packet response；A-S B2 得到
-mixed prediction contrast 与 0/5 exact-law expression，但该 free-text one-pair surface 不具备结构可识别性。
-Phase II 因而收束为 acquisition 与 conditional numerical response 的定位，并把结构识别交给独立 B3，
-不再追加同类 B2 追求单一标签。
-
-### Phase III — From recovered law to unseen action（描述性终态；causal follow-up 已关闭）
-
-W2-50 在三个任务、五个 world 和三个 arm 中完成 45 个 cell records，并在 final checkpoint 后揭示 8 个
-完整 ActionPlan。42 个可评分 readout 中有 11 个 Top-1；唯一 adequate-law cell 仍然选错 action，
-因此 Phase III 不是缺失实验，而是当前新的转换损失结果：从规律到未见行动的迁移尚未闭合。
-
-W2-51 随后尝试用五条件设计把这个描述性边界分解为 evidence acquisition、experiment choice、artifact
-portability 和 artifact-quality loss。development oracle 在 15/15 worlds 通过，但 fresh formal
-preparation 的第 8 个 cluster 以 `rho=0.738095<0.80` 失败。按冻结规则，`896/896` 已完成 truth/replay
-和失败结果保留，0 participant sessions、0 provider calls、0 participant experiments；不更换 world、
-不补跑，也不报告不存在的因果对比。
-
-W2-52 将 oracle coverage 从 96 扩为 320 queries，并保持 ExtraTrees 固定。它在 7/7 exposed
-construction units、`2,352/2,352` truth/replay 上修复了四个历史失败，但首个 fresh prospective world
-仍以 `rho=0.714286<0.80` 停止；该 unit 同时 Top-1 正确且 regret=0。W2-53 对全部 16 个已完成
-unit-versions 的冻结回顾显示，完整排序 gate 与动作端点双向不充分。若未来重新研究 causal action transfer，
-必须提出明确不同、以 regret、近最优选择和 near-tie-aware ordering 为主的 prospective control，作为新实验另行授权。
-
-### Phase IV — Artifact portability and compositional transfer（Study D，未启动）
-
-将 agent 生成的 artifact 在 context reset 后交给新 session，测试它能否改善 target prediction、law 和 action。当前 law fidelity 结果意味着 D 不能默认成功；未来可以比较原始 typed law、结构化 evidence bundle 和更高保真 artifact。
-
-### Phase V — Generality（双模型主证据已补齐，更多模型仍开放）
-
-- A-E private：只用于 held-out within-family confirmation，不是当前 public 结论的修补实验。
-- Cross-provider 与 reasoning budget：A-P/B2 已有 DeepSeek + GPT 完整 matched formal，C2/B3/W2-61 也已形成双模型 failure-aware scheduled surfaces；W2-60 在 B2 建立 DeepSeek-low 完整分母，但 A-P low 无合格分母。若要做真正 thinking-off 或接入 Qwen、Kimi、WellAU，必须新建独立冻结 block，不能续跑既有未启动分母。
-- 开放式任务：在统一的最大实验预算与主动 stop/final-plan 接口下，研究何时继续探索、何时停止和如何推荐下一组实验。
-
-这些是大故事的扩展轴，不应在当前结果之后机械地全部跑满。每一阶段都应有独立问题、experiment note、分母和授权。
-
-## 6. 当前 claim 边界
-
-| Claim | 当前状态 |
-|---|---|
-| 初始世界模型改变实验搜索 | supported，限当前 DeepSeek agent system |
-| 正确先验普遍提高 endpoint | rejected；只有 task-specific effects |
-| Agent 普遍降低 held-out prediction error | supported descriptively |
-| Agent 选择性纠正错误先验 | Study A overall not supported；A-P matched evidence 支持 conditional response；A-S B2 prediction contrast mixed，exact-law-expression coding 为诊断性且表面不具结构可识别性；B3 提供独立结构检验 |
-| Final typed laws 可以执行 | DeepSeek supported，135/135；GPT 为 129/135 available laws，6 个缺失保留 |
-| Agent 恢复高保真可复用规律 | not supported overall；A-S 有部分相对恢复 |
-| Final recommendation 超越 incumbent | not supported，1/119/1 |
-| 结论跨 provider 泛化 | A-P/B2、C2、B3 与 W2-61 有双模型 scheduled surface，但 W2-50/W2-64 decision-aligned 诊断是 DeepSeek-only；所有跨模型结果均为 block-specific descriptive，不等于 provider causal effect |
-| Agent 能从 12 轮实验迁移到未见完整 ActionPlan | W2-50 不支持可靠迁移：42 个可评分 cells 中 11/42 Top-1；adequate-law/wrong-action 仍为 1/42 |
-| Open-action harness 已跨任务运行 | supported as bounded multi-task matrix：45/45 records、42/45 eligible、240/240 truth 与 replay；不支持 pooled arm effect |
-| 自主探索或 learned law 改善未见计划选择 | W2-61 all-scheduled autonomy-minus-none 为 DeepSeek `-0.0913`、GPT `+0.1102`，方向不一致且区间跨零；learned-law-minus-none 无一致收益；yoked failures 限制机制解释。原 W2-51 五条件效应仍未估计 |
-| 320-query oracle 已在 fresh worlds 泛化 | 不支持；construction 7/7 通过，但首个 prospective world `rho=0.714286<0.80` 后停止 |
-| 完整排序 gate 可以替代动作有效性 | 不支持；96-query 为 rank gate 7/8、Top-1 1/8，fresh 320-query 为 rank-fail/action-correct |
-| W2-54 已估计四条件或五条件因果效应 | 不支持；仅单 stratum development pilot，yoked 在 5/6 turns 后右删失 |
-| 规律 artifact 可在 context reset 后 portability/transfer | 未测试 |
-
-## 7. 主文叙事与图表
-
-1. **Figure 1 — Capability chain and study map**：合并世界干预、persistent loop 与 evidence partitions。
-2. **Figure 2 — Prior-conditioned discovery**：合并 endpoint archetypes、first action 与 prediction correction。
-3. **Figure 3/4 — Numerical expression versus identifiable structure**：matched evidence、B2 的 15/15 低 post-evidence error 与事后 exact-law-expression coding，以及双模型 B3 的可识别 law-to-action bridge。
-4. **Figure 5 — Better law, same action**：双模型 135-cell C2 selective correction、prediction improvement、law compression 与 blind action。
-5. **Figure 6 — Four-condition action and evaluator validity**：W2-61 四条件 regret/contrasts、W2-50 连续 law-action 关系与 W2-53 rank-action 错位。
-6. **Table 1 — Denominators and boundaries**：集中报告 worlds、sessions、experiments、truth/replay、provider calls、stop rule 与 claim 边界。
-7. **Supplementary control qualification**：分开呈现 W2-51 96-query stop 与 W2-52 exposed construction/fresh prospective 结果，不绘制不存在的 oracle-arm participant effect。
-
-## 8. 现在是否可以说“预测任务完成”
-
-可以精确地说：**DeepSeek-v4-flash 与 GPT-5.6-sol 的 C2 scheduled surfaces 均已终态；前者 675 checkpoints、135 laws、726 blind executions，后者 669 checkpoints、129 laws、756 blind executions。Codex 是共同运行 harness。**
-
-还可以进一步说：**当前 W2-50 多任务五世界 open-action 已完成 45/45 cell records、42/45 可评分
-cells、240/240 truth 与 240/240 exact replay，并把 action transfer 确立为独立失效层。**
-
-同时可以说：**W2-51 已按冻结规则完成正式判定并在 provider 前科学拒绝；它关闭了当前五条件设计，
-但没有测得 action-transfer 因果效应。**
-
-还可以说：**W2-52 已区分 construction repair 与 prospective failure，W2-53 已将 complete-ranking gate
-和 action validity 的不一致确立为 evaluator-design 结果；二者都不回写 W2-51 的门槛或 stop rule。**
-
-不能说整个 Paper 2 programme 的未来扩展全部完成。当前未执行的是 A-E private confirmation、
-Study D 的 context-reset artifact portability、更多模型与 confirmatory action replication。它们是下一阶段
-科学问题，不再是 current-composite evaluator、Study B、W2-50、W2-51 或 W2-52 的遗留门禁。
+# Work II 故事 — When Does Experimental Knowledge Improve Scientific Decisions?
+
+更新：2026-09-05。作者侧论证入口；任务和执行状态在
+[Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md)，新实验设计在
+[实验矩阵](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md)。
+已有结果通过[结果索引](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md)和
+[当前绑定](../configs/current.json)进入。计划中的干预与迁移不得写成已完成结果。
+
+## 1. 一个中心问题
+
+> 实验获得的知识，何时足以支持一个从未执行过的科学决策？
+> 显式知识的表示和使用，能否被干预以减少决策损失？
+
+ChemWorld的作用是提供可控的世界、真实可执行的操作与完整证据。
+第一篇已建立有限组件域内的世界/仪器能力；Work II检验完整Agent系统的实验知识和决策。
+对外不把八种已注册构造模式写成一般流程图编译，也不把同模型自洽性写成实验室预测效度。
+
+当前论文工作标题为 **When Does Experimental Knowledge Improve Scientific Decisions?**。
+当前回答是受限经验事实：预测、提交的规律与行为决策具有不同质量，端点和格式正确性
+不能单独确认知识的决策价值。新的表示/决策器干预是未来设计，不是现有因果结果。
+
+## 2. 现有证据的三条主结果
+
+### R1：数值改善和显式规律保真不同
+
+C2有两个模型各135个scheduled cells，DeepSeek/GPT完成121/126个。
+两者都有平均预测改善；注册selective-correction gates均未通过。
+laws可评价数为135/129，law MAE为0.2371/0.1753，compression loss为0.0686/0.0142。
+这是两配置的描述性差异；缺失规律和失败保留，不当作模型排名或随机law-quality干预。
+同域schema-capacity control支持存在提交时的信息损失，不证明已恢复可迁移真实机制。
+
+### R2：提交的规律和实际选择不同
+
+DeepSeek纵向队列有45 scheduled cells和42条可评分terminal rankings。
+重执行最后可用law得到0/45 Top-1，参与者得到11/45，follow-law为12/42。
+显式artifact不能替代实际行为读出；它也不是内部推理的直接观测。
+C2推荐主要为已见incumbent，因此零增益属于利用既有方案的边界，不能充当未见行动失败证明。
+W2-50有11/42 Top-1；没有同协议baseline时不判断其相对随机或无实验是否更好。
+
+### R3：目前的信息策略比较受到系统可用性限制
+
+W2-61两模型各180个四条件slots。all-scheduled autonomy-minus-none regret：
+DeepSeek -0.0913、GPT +0.1102，区间均跨零，负值有利于autonomy。
+DeepSeek/GPT donor-eligible为42/26，yoked完成10/42与24/26。
+失败计入主分析保留了系统策略含义；不能把该差异解释为纯实验选择、纯知识内容或内部中介。
+这构成新实验需要精简界面和固定信息交付的直接理由。
+
+## 3. 支持证据如何放置
+
+- A-P matched evidence：反证后出现数值纠错，作为条件性响应；没有turn-matched no-packet组，
+  不归因于纯packet效应。
+- B3：对受限函数形式实施可识别控制。两模型各30 scheduled，joint recovery0/30与5/30；
+  DeepSeek13个schema failures必须与科学判断分开报告，两模型固定机会gain成功均0/18。
+- B2、low reasoning：表面有精确alias，作为可识别性/表达诊断。后续B3已解决另一个测量问题，
+  不恢复B2重复试验，不称Agent“无法识别”不可识别的结构。
+- W2-51/52/53：完整排序与动作效用指标不等价，作为补充评价诊断。它们不与R1–R3并列成
+  同一种Agent能力断裂；原未启动participant分母保持未启动。
+- 先验端点三种形态、早期开发与资格失败：保留在结果索引和补充材料，压缩主文篇幅。
+
+## 4. 三个必须消除的解释跳跃
+
+1. best-minus-first和后半程出现最优说明持续搜索，随机或非自适应搜索也可改善；
+   反馈的增量价值需要同预算策略对照。
+2. H3是两组pre–final误差改善差，受初始headroom影响；结合初始预测和具体受反证关系解释。
+   不显著不能推出没有纠错能力，也不将先验描述直接等同内部世界模型。
+3. 全局MAE、精确family/exponent标签与真实决策损失不等价。评价应检查目标是否可识别、
+   是否影响决策、预测是否覆盖同一决策条件，以及选择是否真的使用可用知识。
+
+## 5. Spotlight空间：从经验缺口到可检验的修复条件
+
+“预测好不等于决策好”有明确既有研究基础，包括
+[Smart Predict, then Optimize](https://arxiv.org/abs/1710.08005)与
+[Decision-Focused Learning](https://doi.org/10.1609/aaai.v33i01.33011658)。
+一个拟合器加argmax或标准regret界不自动构成新方法，增加模型数也不能替代新知识。
+
+建议贡献增量依次为：
+1. M0建立低干扰、决策对齐的测量表面。
+2. M1固定证据，交叉替换表示与决策规则，定位可修复或不可修复的条件；与简单公开数据控制比较。
+3. M3在fresh context和事先定义的新条件中验证artifact是否仍有用，报告成本及失败边界。
+4. 余力用于M2取证因果价值或M4独立后端，而不继续扩旧oracle网格。
+
+有竞争力的结果应说明某一简洁干预为什么有效、适用于什么条件，并跨任务/完整模型系统复核。
+方法可简单，但改善需有实际效用、合理不确定性和同信息/预算baseline。
+如果只有描述性差异，按可信经验论文收束；如果M1或M3为负，保留负结果，不能为了spotlight换世界或加样本至正。
+这里不提供录用概率，也不把spotlight当成强制正结果门禁。
+
+## 6. 主文结构与显示项
+
+现有稿件围绕问题、设计、R1、R2、R3和测量限制组织；历史分支在补充材料保留。
+当前图资产可继续复用，caption只作对应数据支持的描述：
+- 系统图：可观察的artifact/决策与可干预变量。
+- C2：预测/规律误差及每模型完整分母。
+- 未见行动：实际选择、law-implied选择与逐world损失。
+- 信息策略：条件完成率、all-scheduled regret与不确定性。
+- B3/诊断：受限可识别性和接口负担；rank-gate历史放补充。
+
+M1完成后，其2×2干预和逐world效应才有资格成为新的主结果图；M3图也等待实际数据。
+绝不以预期实验图替换现有证据或在摘要写尚未估计的修复收益。

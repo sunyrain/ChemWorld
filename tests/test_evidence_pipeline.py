@@ -415,7 +415,9 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
         triarm["task_results"][task_key]["overall_recovery_claim"]["passed"] is False
         for task_key in ("electrochemical", "crystallization")
     )
-    assert current["publication"]["status"] == "working_manuscript_not_submission_ready"
+    assert current["publication"]["status"] == "frozen_first_paper_release"
+    assert current["publication"]["readiness_scope"] == "current_development_head"
+    assert current["publication"]["frozen_release"]["status"] == "published"
     assert current["publication"]["publication_ready"] is False
     assert current["task_design"] == {
         "matrix": "workstreams/flagship_tasks/reports/task-design-matrix-v1.json",
@@ -468,6 +470,8 @@ def test_current_state_model_separates_validation_freeze_and_publication() -> No
     )
     assert summary["formal_benchmark"]["benchmark_claim_allowed"] is False
     assert summary["publication"]["publication_ready"] is False
+    assert summary["publication"]["frozen_release"] == current["publication"]["frozen_release"]
+    assert summary["publication"]["readiness_scope"] == "current_development_head"
     publication = current["publication"]
     assert publication["manuscript"] == ("paper/experimental_intelligence_v1_manuscript.md")
     assert publication["display_items"] == ("paper/experimental_intelligence_v1_display_items.md")

@@ -102,33 +102,31 @@ credentials are read from the local process environment and must not enter the r
 
 ## Evidence status
 
-Pre-v0.5 algorithm numbers are retained only as protocol and failure-mode diagnostics; they are not current rankings.
+The first paper releases a bounded world-building and experimental-runtime instrument. Its frozen
+[public software and sanitized evidence](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724)
+are tagged v0.2.0. The release qualifies 64 reference units, 1,786 recipes and 52 generated cases,
+including eight new task–world identities within the supported component patterns. It does not
+establish arbitrary graph composition or physical-laboratory validity. Manuscript/figure assets and
+Work II experiments are maintained separately from this public software snapshot.
 
-The `chemworld-physical-chemistry-v0.5-candidate` backend has deterministic controls for all 15 registered tasks,
-including exact task-contract hashes, replay-bound transitions, and a fail-closed public boundary. Backend validation
-and clean-source attestation describe the environment only; they do not imply an algorithm ranking, a completed
-evaluation campaign, or real-chemistry validation.
+Work II studies when experimental knowledge supports scientific decisions. Two agent configurations
+each have 135 scheduled C2 campaigns, with 121 and 126 completed; their prediction, executable-law
+and decision outcomes differ. Unseen-plan and information-strategy studies retain all failures and
+have explicitly bounded interpretations. They do not establish a general repair method, provider
+ranking or transfer to real laboratories.
 
-All 15 tasks have executable complete-experiment contracts, but only two
-flagship tasks have formal multi-world Participant results. Those tasks have
-completed both a no-dossier descriptive campaign and a paired
-`opaque / nominal / misindexed` anonymous-material study. Correct information
-has confirmed positive value in electrochemistry and an inconclusive effect in
-crystallization. A targeted wrong prior changes early behavior in both tasks,
-but neither passes the joint recovery rule.
+Current research entry points are the [Work II TODO](workstreams/flagship_tasks/WORK_II_TODOLIST.md),
+[results index](workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md) and
+[next-experiment matrix](workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md).
+The [first-paper TODO](workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md) governs its separate release.
 
-[`configs/current.json`](configs/current.json) is the authoritative status surface. It reports backend-contract
-validation, clean-release attestation, formal-evaluation readiness, and publication readiness as separate states.
+[`configs/current.json`](configs/current.json) resolves generated evidence and separates frozen
+release identity from development-head qualification and publication readiness. Current-head false
+readiness flags describe ongoing development; they neither withdraw the frozen release nor qualify
+new experiments. Historical reports keep their original source and scientific scope.
 
-Historical RC28 Gate A passed on its frozen source, but its current-source
-binding is stale. Participant Gates B–E, private confirmation, and external
-bridge evidence remain incomplete. Current `benchmark_ready=false` and
-`publication_ready=false`; the evidence does not support broad SOTA,
-mechanism-adaptation, provider-causal, or real-world-transfer claims.
-
-See [Evidence and current status](https://sunyrain.github.io/ChemWorld/benchmark_release/)
-before citing results, and [Flagship experiments](https://sunyrain.github.io/ChemWorld/flagship_experiments/)
-for exact numbers and evidence links.
+The website provides environment tutorials; use the repository entry points above for current
+research status. Pre-v0.5 algorithm results remain historical diagnostics.
 
 ## Documentation
 

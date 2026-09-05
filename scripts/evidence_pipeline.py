@@ -2912,10 +2912,13 @@ def current_status_summary(
         "publication": {
             "status": publication["status"],
             "publication_ready": publication["publication_ready"],
+            "readiness_scope": publication.get("readiness_scope", "current_development_head"),
+            "frozen_release": publication.get("frozen_release"),
         },
         "interpretation": (
             "Backend validation, release attestation, mechanism identifiability, "
-            "formal benchmark readiness, and publication readiness are independent."
+            "formal benchmark readiness, and development-head publication readiness are "
+            "independent; a published frozen release keeps its own versioned evidence."
         ),
     }
 
@@ -3464,8 +3467,15 @@ def _write_current_registry() -> None:
     }
     current.pop("development_evidence", None)
     current.pop("history_policy", None)
+    frozen_release = current.get("publication", {}).get("frozen_release")
     current["publication"] = {
-        "status": "working_manuscript_not_submission_ready",
+        "status": (
+            "frozen_first_paper_release"
+            if frozen_release
+            else "working_manuscript_not_submission_ready"
+        ),
+        "readiness_scope": "current_development_head",
+        "frozen_release": frozen_release,
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
         "display_items": "paper/experimental_intelligence_v1_display_items.md",
         "bibliography": "paper/experimental_intelligence_v1_references.bib",
@@ -4006,8 +4016,15 @@ def check_current_evidence() -> list[str]:
         errors.append("current registry mechanism Gate A freshness is inconsistent")
     if mechanism_registry.get("benchmark_ready") != expected_gate_a_current:
         errors.append("current registry mechanism benchmark readiness is inconsistent")
-    if publication.get("status") != "working_manuscript_not_submission_ready":
+    expected_publication_status = (
+        "frozen_first_paper_release"
+        if publication.get("frozen_release")
+        else "working_manuscript_not_submission_ready"
+    )
+    if publication.get("status") != expected_publication_status:
         errors.append("current registry manuscript state is inconsistent")
+    if publication.get("readiness_scope") != "current_development_head":
+        errors.append("current registry publication readiness scope is ambiguous")
     expected_publication_paths = {
         "manuscript": "paper/experimental_intelligence_v1_manuscript.md",
         "display_items": "paper/experimental_intelligence_v1_display_items.md",

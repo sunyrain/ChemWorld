@@ -283,7 +283,7 @@ def render_figure_1() -> list[Path]:
 
     # a — matched initial-world-model intervention
     ax_a.set_title(
-        "Intervene on the initial model, not the world", loc="left", fontweight="bold", pad=5
+        "Vary the supplied description; keep the world fixed", loc="left", fontweight="bold", pad=5
     )
     ax_a.text(
         0.50,
@@ -391,7 +391,7 @@ def render_figure_1() -> list[Path]:
     panel_label(ax_b, "b")
 
     # c — evidence separation
-    ax_c.set_title("Score understanding after the campaign", loc="left", fontweight="bold", pad=5)
+    ax_c.set_title("Score outcomes after the campaign", loc="left", fontweight="bold", pad=5)
     rounded_box(
         ax_c,
         0.03,
@@ -441,7 +441,7 @@ def render_figure_1() -> list[Path]:
     panel_label(ax_c, "c")
 
     # d — decision rule
-    ax_d.set_title("Locate the conversion that failed", loc="left", fontweight="bold", pad=5)
+    ax_d.set_title("Separate prediction and decision quality", loc="left", fontweight="bold", pad=5)
     x0, y0, width, height = 0.20, 0.17, 0.72, 0.66
     ax_d.add_patch(
         Rectangle((x0, y0), width, height, facecolor="none", edgecolor=COLORS["ink"], linewidth=0.9)
@@ -453,15 +453,15 @@ def render_figure_1() -> list[Path]:
         [x0, x0 + width], [y0 + height / 2, y0 + height / 2], color=COLORS["grid"], linewidth=1.0
     )
     cells = [
-        (x0, y0 + height / 2, COLORS["red_light"], "States a law,\ndoes not act"),
+        (x0, y0 + height / 2, COLORS["red_light"], "Accurate prediction\npoor decision"),
         (
             x0 + width / 2,
             y0 + height / 2,
             COLORS["green_light"],
-            "Executable law\nconsistent + acts",
+            "Accurate prediction\ngood decision",
         ),
-        (x0, y0, "#F0F2F3", "Neither"),
-        (x0 + width / 2, y0, COLORS["orange_light"], "Endpoint heuristic\nacts without law"),
+        (x0, y0, "#F0F2F3", "Poor prediction\npoor decision"),
+        (x0 + width / 2, y0, COLORS["orange_light"], "Poor prediction\ngood decision"),
     ]
     for x, y, face, label in cells:
         ax_d.add_patch(Rectangle((x, y), width / 2, height / 2, facecolor=face, edgecolor="none"))
@@ -472,16 +472,16 @@ def render_figure_1() -> list[Path]:
             ha="center",
             va="center",
             fontsize=6.7,
-            fontweight="bold" if "Executable" in label else "normal",
+            fontweight="normal",
             color=COLORS["ink"],
         )
     ax_d.text(
-        0.56, 0.06, "Evidence-aligned action →", ha="center", fontsize=6.7, color=COLORS["muted"]
+        0.56, 0.06, "Decision quality →", ha="center", fontsize=6.7, color=COLORS["muted"]
     )
     ax_d.text(
         0.08,
         0.50,
-        "Predictive\nrecovery →",
+        "Predictive\naccuracy →",
         ha="center",
         va="center",
         fontsize=6.7,
@@ -502,7 +502,7 @@ def render_figure_1() -> list[Path]:
     fig.text(
         0.045,
         0.018,
-        "The agent-facing initial model is manipulated under one fixed world; search, "
+        "The supplied initial description is varied under one fixed world; search, "
         "prediction, executable law and unseen-plan selection remain separate evidence "
         "channels.",
         ha="left",
@@ -2676,7 +2676,7 @@ def render_figure_3_prospective(
     ax_d.invert_yaxis()
     ax_d.set_xlabel("Failure-aware selective-correction contrast")
     ax_d.set_title(
-        "General learning does not become\nselective wrong-model repair",
+        "The registered selective-correction\ncriteria are not met",
         loc="left",
         fontweight="bold",
         pad=6,

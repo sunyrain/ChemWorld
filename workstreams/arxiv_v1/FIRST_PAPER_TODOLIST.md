@@ -27,6 +27,11 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 
 ## 0. 当前进度快照
 
+- **DONE / Claim**：`Claim: Codex /root — RELEASE-STATUS-BOUNDARY — DONE`；已区分公开冻结的软件/证据
+  与开发HEAD资格；核实并改用实际v0.2.0公开范围，修复归档注入工具的旧段落依赖。
+  规范源、arXiv TeX、16页PDF、source ZIP/TAR及最小上传包同步，逐页渲染检查通过；
+  本轮31项定向集成检查、Ruff与diff检查通过。冻结实验数值和既有绑定未改，未重跑证据流水线。
+
 - **DONE**：15 个参考任务、既有边界用例、typed operations/instruments、资源账本、精确重放、
   单组件 world forks、known-policy controls 和已有完整 agent 生命周期均可复用。
 - **DONE（实现）/ 未执行（新故事）**：已有一个面向 15 个参考任务的跨世界资格 runner；它可作为
@@ -131,15 +136,21 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **DONE / 统一附录结构**：将原 Appendix A--D 合并为一个 `Appendix` 主节，并保留 A--D 四个功能小节；移除
   表格 caption 中误用的 `Appendix D.` 前缀，使组件 model-card 表显示为正常的 `Table 10.` 标题。规范源、arXiv
   TeX/PDF、source bundle 与 build manifest 已同次重建并完成附录页视觉检查。
-- **DONE / 独立公开发布**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — DONE`；第一篇冻结代码、协议、
+- **HISTORICAL / 原独立公开发布记录**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — DONE`；第一篇冻结代码、协议、
   机器报告、图件和 arXiv 包已发布到公开仓库 `sunyrain/ChemWorld-Public`，冻结提交 `9df2783` 并建立
-  `v0.1.0` 标签；后续 benchmark/Work II 配置、实验专用模块、运行结果和 provider payload 均未纳入。
+  `v0.1.0` 标签（该标签在2026-09-05远端已不存在；此段仅保存当时记录）；后续 benchmark/Work II 配置、实验专用模块、运行结果和 provider payload 均未纳入。
   公开快照通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier 与凭据扫描；
   引言和 Data and Code Availability 均提供仓库主页及固定版本链接，arXiv PDF/source bundle 同次重建。
 - **DONE / arXiv 最小上传包**：`Claim: Codex /root — ARXIV-SUBMISSION-ZIP — DONE`；在完整 source ZIP/TAR
   之外新增可直接上传的 `chemworld-arxiv-submission.zip`，仅含顶层 `main.tex`、`main.bbl`、
   `references.bib` 和三张正文引用 PDF 图；排除 manuscript Markdown、成品 PDF、日志、缓存与本地元数据，
   并由 build manifest 固定成员列表、文件大小和 SHA-256。
+
+当前公开绑定（2026-09-05核实远端tag、README及manifest）：
+[v0.2.0固定快照](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724)
+保留冻结runtime、公开配置/协议、例子及四份脱敏终态报告；不含稿件、图件、source bundle或Work II。
+v0.3.0主要补展示文档并沿用该runtime evidence。当前稿件链接与可用性声明以此实际范围为准，
+不得继续将旧v0.1.0历史记录视为当前公开状态；本次核实不是重跑实验或新执行审计。
 
 ## 1. 论文只讲什么
 

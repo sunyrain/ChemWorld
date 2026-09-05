@@ -19,15 +19,13 @@
 \hypersetup{
   unicode=true,
   pdfencoding=auto,
-  pdftitle={Causal Dissection of Scientific Agents: Breaks from Evidence
-to Action},
+  pdftitle={When Does Experimental Knowledge Improve Scientific
+Decisions?},
   pdfauthor={Anonymous},
-  pdfsubject={Controlled causal analysis of how experimental evidence
-becomes predictions, executable laws, unseen actions, and evaluator
-decisions},
-  pdfkeywords={scientific agents; autonomous experimentation; causal
-intervention; structural identification; executable laws; decision
-transfer; evaluator validity}
+  pdfsubject={Experimental knowledge, executable artifacts and decision
+quality in scientific agents},
+  pdfkeywords={scientific agents; experimental knowledge; decision
+quality; executable laws; controlled evaluation}
 }
 
 \providecommand{\tightlist}{%
@@ -35,8 +33,7 @@ transfer; evaluator validity}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
 \setlength{\emergencystretch}{2em}
 
-\title{Causal Dissection of Scientific Agents: Breaks from Evidence to
-Action}
+\title{When Does Experimental Knowledge Improve Scientific Decisions?}
 \author{Anonymous}
 
 % Keep review mode anonymous. Do not enable \iclrfinalcopy here.
@@ -45,92 +42,86 @@ Action}
 \maketitle
 
 \begin{abstract}
-Experimental success does not reveal whether a scientific agent learned
-the right model. We use ChemWorld as a controlled causal probe: physics,
-interface, resources, and stochastic identity stay fixed while the
-initial model is opaque, aligned, or misspecified at entity, parametric,
-or structural loci. Across 135 sessions nested within 45 independent
-task--world clusters, search patterns differed across arms and
-prediction error fell in every arm and locus, yet all three
-selective-correction criteria failed. After matched one-pair partition
-packets, mean error fell from 0.2255--0.3392 to 0.0060--0.0074 and exact
-1.75-law expression was 0/5 in both models, but this one-pair free-text
-surface admits an exact linear/power alias. On separate matched 30-cell
-reference-fitter-identifiable surfaces, failure-aware joint recovery was
-0/30 for DeepSeek-v4-flash (17 completed, 13 schema failures) and 5/30
-for GPT-5.6-sol, with no useful-gain success among 18 scheduled
-opportunities per model. On fully scheduled 135-cell surfaces, the
-129/135 available GPT-5.6-sol laws had lower MAE than the 135/135
-DeepSeek laws (0.175 versus 0.237), yet blind gain remained
-approximately zero in both. In an oracle-free four-condition development
-successor, the all-scheduled autonomy-minus-no-evidence estimate was
--0.091 for DeepSeek-v4-flash and +0.110 for GPT-5.6-sol; both intervals
-crossed zero. In the DeepSeek longitudinal cohort, re-executing the
-last-available laws from all 45 cells over the frozen candidate packets
-yielded 0/45 law-implied versus 11/45 participant Top-1 choices.
-Finally, a ranking control passed 7/8 fresh units while selecting Top-1
-in 1/8, whereas another failed the rank gate but selected Top-1 with
-zero regret. Numerical revision, structural identification, executable
-compression, decision transfer, and evaluator validity are distinct
-transitions rather than one score.
+Autonomous scientific agents can improve experimental outcomes without
+producing knowledge that reliably guides new decisions. We study this
+distinction in ChemWorld, holding the executable world fixed while
+varying the initial description supplied to an agent. Two model--tool
+configurations each entered 135 scheduled campaigns across 45 matched
+task--world clusters. Prediction errors decreased on average, but the
+registered selective-correction criteria were not met. Executable
+summaries retained different amounts of predictive information: the 129
+available GPT-5.6-sol laws had lower mean error than the 135
+DeepSeek-v4-flash laws (0.175 versus 0.237), while both configurations
+largely repeated their observed incumbent. A separate DeepSeek cohort
+exposed complete unseen action plans after experimentation. Re-executing
+its last-available laws selected the optimum in 0/45 scheduled cases,
+compared with 11/45 participant choices. A four-condition development
+study found uncertain, configuration-dependent differences between
+autonomous exploration and no-evidence decisions; substantial delivery
+failures limited attribution. Identifiable functional-form controls and
+evaluator diagnostics further separate knowledge quality from
+measurement reliability. These results establish descriptive gaps
+between predictions, submitted laws and decisions within bounded
+simulated tasks. They motivate direct interventions on knowledge
+representations and decision rules, while leaving causal repair and
+transfer to new contexts unresolved.
 \end{abstract}
 
 \section{Introduction}\label{introduction}
 
-Autonomous experimental agents are increasingly judged by whether they
-discover high-performing molecules or reactions. Yet an endpoint
-benchmark cannot distinguish whether an agent inherited a fortunate
-prior, navigated a productive search corridor, adopted a
-phenomenological interpolation, or genuinely revised its scientific
-understanding from evidence. We call this ambiguity endpoint
-underdetermination. The relevant question is not only whether an agent
-finds a good experiment, but what that experiment changes in its model
-of the world.
+Autonomous scientific agents choose experiments, interpret observations
+and recommend what to do next. The value of experimental knowledge
+therefore depends on the decisions it supports. A useful outcome, an
+accurate prediction and an executable scientific summary answer
+different questions: an agent may find a productive recipe, predict a
+local response, or express a relation without being able to select a
+good plan under new conditions.
 
-This distinction matters as language-model agents plan syntheses, call
-chemistry tools, operate instruments, and enter self-driving laboratory
-workflows
+This problem matters as language-model agents operate chemistry tools
+and self-driving laboratories
 \citep{boiko2023autonomous, bran2024augmenting, szymanski2023alab, darvish2025organa, song2025chemagents, vriza2026instruments}.
-Interactive environments increasingly test repeated cycles of
-hypothesis, intervention, and inference
+Interactive discovery environments make repeated experimentation
+accessible
 \citep{jansen2024discoveryworld, gandhi2025boxinggym, duan2025scigym, zheng2026newtonbench, yang2026causalab, batzoglou2026replayscm}.
-Yet pretrained knowledge, prompt-provided information, experiment
-selection, endpoint optimization, and verbal explanation are usually
-observed together. Consequently, a high score need not identify which
-transformation succeeded, and a low score need not identify which
-transformation failed.
+Predict-then-optimize and decision-focused learning already establish
+that predictive error and downstream decision loss can differ
+\citep{elmachtoub2022spo, wilder2019decisionfocused}. The additional
+question for a scientific agent is how autonomously acquired evidence, a
+supplied prior and a submitted knowledge artifact relate to the actual
+decision reached by the complete system.
 
-We make those transformations observable by using ChemWorld
-\citep{qiu2026chemworld} as a controlled causal probe. The same
-executable world, interface, resources, and stochastic identity are held
-fixed while its initial model is made opaque, aligned, or misspecified
-at a declared entity, parametric, or structural locus. Persistent agents
-then interact through a transactional laboratory interface.
-Evaluator-owned counterfactual queries, matched contradictory evidence,
-executable-law assays, and unseen complete ActionPlans separately
-measure search, prediction, structural identification, compression, and
-decision transfer.
+We use ChemWorld to make these objects separately observable. Within a
+matched cluster, the external world, public operations and resources
+remain fixed while the supplied initial description is opaque, aligned
+or misspecified at a declared entity, parametric or structural locus
+\citep{qiu2026chemworld}. A persistent session performs experiments and
+submits predictions and typed laws. Independent evaluators score those
+artifacts and execute complete action plans. The assignment changes
+participant-facing information; it does not directly manipulate an
+unobservable internal belief. The foundation paper establishes the
+bounded environment and replay semantics, while this study evaluates
+complete agent--tool configurations.
 
-Our contribution is a transition map rather than a scalar leaderboard.
-Its causal scope is explicit: initial-model assignment manipulates the
-participant-facing starting model, while matched counterevidence probes
-conditional post-packet response. Law--action analyses are descriptive
-associations, the four-condition successor estimates development-stage
-information strategies with system failures retained, and the oracle
-studies diagnose evaluator controls. Across these layers, four breaks
-emerge: search patterns differ across initial-model arms without
-establishing selective repair; post-packet numerical convergence does
-not certify structure, and recovery remains sparse on an identifiable
-control; executable laws can lose information present in explicit
-predictions; and neither law error nor rank qualification is a
-sufficient proxy for action validity.
+The primary study used a fixed DeepSeek-v4-flash experimental-agent
+configuration, with 135 scheduled cells nested within 45 task--world
+clusters. An independent GPT-5.6-sol successor used the same public
+scientific surface. We also examine matched evidence, reference-fitter-
+identifiable functional-form controls, unseen-plan selection and a
+four-condition development study. Three findings organize the results:
+predictive improvement and executable-summary fidelity differ; submitted
+laws and participant choices differ; and information-strategy
+comparisons depend on operational availability. Downstream associations
+are descriptive, not causal mediation estimates. The contribution is a
+reproducible account of these gaps and their measurement limits;
+interventions that repair them and tests of new-context transfer remain
+future work.
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-1-prior-to-law.pdf}
 \caption{\textbf{Endpoint success underdetermines scientific competence.}
 The same outcome can arise from a correct prior, local search, or evidence-driven model correction.
-ChemWorld intervenes on the initial model while holding the executable world fixed, then evaluates
+ChemWorld varies the supplied initial description while holding the executable world fixed, then evaluates
 the transitions from evidence to predictions, executable laws, and unseen actions.}
 \label{fig:capability-chain}
 \end{figure}
@@ -162,8 +153,8 @@ recommendation is scientific evidence only when the evaluator can
 execute the same complete plan without filling in hidden workflow
 choices.
 
-\subsection{Five-stage capability
-chain}\label{five-stage-capability-chain}
+\subsection{Observable outcomes and measurement
+limits}\label{observable-outcomes-and-measurement-limits}
 
 We distinguish five downstream outcomes. \textbf{Evidence acquisition}
 asks which informative experiments are selected and observed.
@@ -190,6 +181,12 @@ a separate longitudinal assay reveals eight outcome-hidden complete
 ActionPlans only after autonomous exploration has ended.
 
 \section{Experimental programme}\label{experimental-programme}
+
+The primary DeepSeek cohort comprises 135 separate sessions nested
+within 45 independent task--world clusters. The registered improvement
+contrast depends on initial error headroom; a failed gate does not
+establish an absence of correction ability. Initial predictions and
+contradicted relations provide its manipulation-check context.
 
 The prospective programme is layer-stratified. Entity interventions
 cover five task families and five independently selected public worlds
@@ -263,8 +260,8 @@ Gate alignment & 16 unit versions & Provider-free; 0 new execution & Rank validi
 \section{Results: from priors to
 laws}\label{results-from-priors-to-laws}
 
-\subsection{Priors scaffold search without selective
-correction}\label{priors-scaffold-search-without-selective-correction}
+\subsection{Prior-conditioned search and unmet correction
+criteria}\label{prior-conditioned-search-and-unmet-correction-criteria}
 
 All 135 scheduled sessions produced final records. Participants
 completed 1,243/1,260 planned experiments; 121 sessions met operational
@@ -511,6 +508,13 @@ worlds, transaction semantics and replay \citep{qiu2026chemworld}; this
 work contributes the intervention and measurement programme for
 scientific-agent epistemics.
 
+Decision-focused learning distinguishes prediction error from downstream
+decision loss \citep{elmachtoub2022spo, wilder2019decisionfocused}. Our
+additional setting is an agent that acquires evidence under operational
+constraints and submits a reusable knowledge artifact. This study
+measures artifact and action outcomes; it does not introduce a
+decision-focused training algorithm.
+
 Model-discovery systems increasingly combine language models with
 Bayesian design, symbolic fitting or probabilistic programme search
 \citep{murphy2026mda, wahl2026probabilistic, zheng2026newtonbench}. We
@@ -530,40 +534,35 @@ evaluator qualification.
 
 \section{Discussion and limitations}\label{discussion-and-limitations}
 
-The systems search and learn numerically, yet lose information at
-distinct transitions: priors do not establish selective repair;
-underidentifying B2 accuracy does not certify structure; identifiable B3
-recovery is sparse; and neither law error nor rank qualification
-suffices for action validity. The oracle stop prevented a
-decision-misaligned control from producing an uninterpretable
-participant effect.
+The contribution is a bounded account of experimental knowledge and
+decision quality. Predictive improvement does not establish selective
+repair, submitted laws lose different amounts of information, and those
+laws do not reproduce many participant decisions. The four-condition
+study estimates information strategies with operational failures
+retained. It does not isolate a pure evidence-content or
+experiment-selection effect.
 
-\subsection{A transition map for scientific-agent
-evaluation}\label{a-transition-map-for-scientific-agent-evaluation}
+Decision loss, near-optimality and operational availability should
+accompany prediction error. Continued search and best-minus-first
+improvement do not by themselves identify feedback learning. Likewise,
+11/42 scored Top-1 choices in the original longitudinal cohort do not
+estimate the benefit of experimentation without its own matched control.
+Historical rank-gate results concern evaluator design and are not
+another internal capability failure.
 
-Evaluation should therefore separate interventions from readouts, score
-prediction, law and action on their own units, and qualify controls on
-the intended endpoint. Regret, near-optimality and near-tie handling
-should be primary for selection, with full-rank metrics diagnostic.
-Evidence roles must also remain separate: the 96-query failure tests a
-control, the exposed 320-query pass tests construction, and the fresh
-failure tests generalization. Exact scheduled, eligible, completed and
-unstarted counts prevent these roles from being pooled into invented
-evidence.
+The study covers two fixed simulated model--tool configurations and five
+worlds per task. B2 is an underidentifying surface with retrospective
+coding; B3 retains 13 DeepSeek schema failures. Low reasoning is not
+thinking-off. Donor-eligible analyses are sensitivity-only; fixed order
+and earlier donors confound configuration with time. These limits
+preclude model ranking or mediation. Private confirmation and
+fresh-context transfer to new conditions remain untested.
 
-\subsection{Limitations and
-conclusion}\label{limitations-and-conclusion}
-
-This study covers two fixed simulated model--tool configurations, not
-provider ranking or laboratory fidelity. A-P/B2 have five worlds; B2 has
-an exact participant-visible alias and retrospective coding; DeepSeek
-low is not reasoning-off; and B3 retains 13 schema failures.
-Four-condition donor eligibility is sensitivity-only. Fixed execution
-order and earlier DeepSeek donors confound order with provider/time
-drift. These limits preclude ranking or mediation; context-reset
-portability and private replication remain untested. Scientific-agent
-claims must name interventions, units, failure rules and transfer
-boundaries.
+A next experiment would hold evidence fixed and independently change the
+artifact and decision rule, followed by a fresh-context test. The
+present study does not claim those effects or a validated repair method.
+It establishes empirical gaps and measurement conditions that such tests
+must address.
 
 \label{iclr-main-text-end}
 \clearpage

@@ -1,18 +1,18 @@
-# Display plan — causal dissection from evidence to action
+# Display plan — experimental knowledge and decisions
 
-The six main figures follow one argument: endpoint success is ambiguous; a controlled starting-model
-intervention makes the ambiguity identifiable; free discovery, matched evidence, executable
-compression, unseen-plan selection and evaluator alignment then locate distinct transition losses. Development matrices
-remain background evidence and do not occupy main display space.
+The six reusable assets separate prediction, submitted knowledge and decisions. Supplied-description
+assignment is manipulated; downstream law/action associations are descriptive. Interface failures
+and evaluator diagnostics remain separate measurement limits. This plan describes existing figures;
+future interventions and portability results are not displayed as completed evidence.
 
 ## Figure 1 — Endpoint success does not reveal what the agent learned
 
 **Claim:** the same useful endpoint can arise from different epistemic trajectories.
 
-- A: intervene on the agent's initial model while fixing the executable world;
+- A: vary the supplied initial description while fixing the executable world;
 - B: persistent evidence-to-action trajectory;
 - C: participant history remains separate from evaluator truth;
-- D: predictive recovery and evidence-aligned action define distinguishable outcomes.
+- D: predictive accuracy and decision quality define four conceptual outcome combinations.
 
 Conceptual only; no effect sizes or future-study denominators.
 
@@ -21,7 +21,7 @@ Conceptual only; no effect sizes or future-study denominators.
 **Claim:** entity, parametric and structural blocks use the same matched-arm logic but retain distinct
 scientific semantics and denominators.
 
-- A: five task families and five public worlds in the entity backbone;
+- A: five task families and five public worlds in the entity block;
 - B: locus-specific 8-, 10- and 12-experiment campaigns;
 - C: free discovery, matched evidence, law evaluation and unseen-plan selection as separate evidence
   partitions; future portability is greyed;
@@ -33,7 +33,7 @@ oracle expansion belong in the control-qualification layer, not the participant-
 ## Figure 3 — Prior uptake without established selective correction
 
 **Claim:** the starting-model intervention reaches the trajectory and general prediction learning
-occurs, but the wrong model is not selectively repaired.
+occurs, but the registered selective-correction criteria are not met. H3 depends on initial error headroom; unmet gates do not prove no correction ability.
 
 - A: pre-evidence normalized prediction errors by arm and locus;
 - B: first complete recipe differs in 45/45 aligned--misspecified, 45/45 opaque--aligned and 44/45
@@ -44,7 +44,7 @@ occurs, but the wrong model is not selectively repaired.
 
 Panel B is a retrospective manipulation check without a repeated same-arm baseline.
 
-## Figure 4 — B2 separates numerical fit from expression; B3 identifies structure
+## Figure 4 — B2 separates numerical fit from expression; B3 tests identifiable functional form
 
 **Claim:** identical packets yield low post-packet error without stable exact-law expression on B2's
 underidentifying free-text surface; a separate participant-identifiable B3 control finds sparse
@@ -66,11 +66,11 @@ retrospective public-summary expression coding, not structural-recovery estimate
 surface admits an exact linear/power alias, a constant endpoint baseline reaches mean MAE 0.00649,
 and the aligned DeepSeek-high positive control is only 1/5.
 
-## Figure 5 — Better executable laws still do not produce better actions
+## Figure 5 — Lower law error coexists with near-zero incumbent gain
 
-**Claim:** both complete C2 scheduled surfaces show general prediction learning without selective
-correction or an action advantage; GPT-5.6-sol reduces executable-law compression loss without improving
-blind action.
+**Claim:** both C2 scheduled surfaces show average prediction improvement and unmet correction
+criteria. GPT-5.6-sol has lower law/compression error, while incumbent replay gain is near zero
+in both configurations. This is an association, not a causal artifact-quality effect.
 
 - A: registered failure-aware correction estimates and lower bounds for A-E, A-P and A-S in both
   135-cell cohorts;

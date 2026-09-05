@@ -109,11 +109,13 @@ integration within the declared component and compatibility domain; comparative 
 performance, universal chemical fidelity and physical-laboratory transfer remain outside the
 present scope.
 
-**Open-source release.** Executable code, frozen protocols, processed evidence, replayable
-trajectories, figure sources and the manuscript release are openly available in the
-[ChemWorld public repository](https://github.com/sunyrain/ChemWorld-Public). The frozen
-code-and-evidence snapshot referenced in this paper is versioned as
-[v0.1.0](https://github.com/sunyrain/ChemWorld-Public/tree/v0.1.0).
+**Open-source release.** Executable code, frozen protocols and sanitized qualification evidence
+are openly available in the
+[ChemWorld public repository](https://github.com/sunyrain/ChemWorld-Public). The software-and-evidence
+release associated with this study is
+[v0.2.0](https://github.com/sunyrain/ChemWorld-Public/tree/v0.2.0).
+Manuscript and figure assets are distributed separately from that public software release.
+
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -753,17 +755,18 @@ discovery in changing worlds, are natural directions enabled by this foundation.
 
 # 8. Data and Code Availability
 
-A frozen, versioned public release associated with this study is openly available under the
-MIT License in the
-[ChemWorld public repository](https://github.com/sunyrain/ChemWorld-Public); the frozen
-code-and-evidence snapshot referenced here is tagged
-[v0.1.0](https://github.com/sunyrain/ChemWorld-Public/tree/v0.1.0). The release contains the
-executable code, publication configurations and protocols, processed machine- and
-human-readable qualification evidence, figure source files, replayable simulator
-environment--action trajectories, the arXiv PDF and source bundle, and an offline manifest
-verifier for the reported hashes and denominators. It is intentionally separated from
-subsequent benchmark development. Credentials, raw provider payloads, private seeds and local
-run caches are not included.
+A frozen, versioned software-and-evidence release associated with this study is openly available
+under the MIT License in the
+[ChemWorld public repository](https://github.com/sunyrain/ChemWorld-Public), with the
+[v0.2.0 snapshot](https://github.com/sunyrain/ChemWorld-Public/tree/v0.2.0)
+providing the frozen runtime, public configuration and protocols, runnable examples, and four final
+sanitized qualification reports. The reports preserve numerical results, actions, observations,
+resource and transaction receipts, failures and replay outcomes, with public sanitization provenance.
+An offline release verifier checks the packaged files and evidence denominators.
+The public software release excludes manuscript and figure assets, development plans, subsequent
+benchmark work, raw provider payloads, credentials and private evaluator configuration.
+The article and its submission source bundle are maintained separately from the software release.
+
 
 ```{=latex}
 \clearpage

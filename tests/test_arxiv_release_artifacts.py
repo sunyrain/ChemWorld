@@ -346,6 +346,8 @@ def test_release_manifest_records_completed_p0_gates(tmp_path: Path) -> None:
     assert "Jane Q. Scientist" not in injected
     assert "publicly archived by Zenodo" in injected
     assert "permits inspection of the raw execution records" in injected
+    assert "The public software release excludes manuscript and figure assets" in injected
+    assert "The article and its submission source bundle are maintained separately" in injected
     assert "SHA-256" not in injected
     assert "versioned release manifest" not in injected
     assert finalizer.inject_archive_metadata(injected, ready) == injected

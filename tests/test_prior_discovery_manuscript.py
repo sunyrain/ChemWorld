@@ -73,7 +73,10 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "partition discovery and" in evidence_map
     assert "immutable seed-0 failures" in evidence_map
     assert "Prior uptake without established selective correction" in display_items
-    assert "B2 separates numerical fit from expression; B3 identifies structure" in display_items
+    assert (
+        "B2 separates numerical fit from expression; B3 tests identifiable functional form"
+        in display_items
+    )
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "no same-arm replicate baseline" in limits
@@ -140,7 +143,7 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
         == 0
     )
     assert "does not establish selective repair" in manuscript
-    assert "Priors scaffold search without selective correction" in submission
+    assert "Prior-conditioned search and unmet correction criteria" in submission
     assert "1/119/1" in manuscript
     assert "Matched packets expose numerical--expression dissociation" in submission
     assert "underidentifying surface" in submission
@@ -191,5 +194,5 @@ def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:
     assert "0/13 versus 0/18" in appendix
     assert "0/18 for both models on the" in appendix
     assert "fixed scheduled-opportunity denominator" in appendix
-    assert "provider-specific" in combined
+    assert "two fixed model--tool configurations" in combined
     assert "cross-provider leaderboard" in evidence_map
