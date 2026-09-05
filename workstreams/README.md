@@ -13,8 +13,9 @@ Work II's [story](../paper/prior_discovery_story_zh.md),
 [experiment matrix](flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md) and
 [results index](flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md) have distinct responsibilities.
 The [paper guide](../paper/README.md) lists manuscript sources and deliverables.
-M1 and M3 are complete. The next scientific work is the mechanism-matching/new-condition design
-recorded in the matrix; no historical qualification brief defines a new launch.
+M1 and M3 are complete. The current closeout plan keeps one bounded B3 interface/tool diagnostic
+before manuscript integration; mechanism-transfer and full cross-system expansions are deferred.
+The matrix owns the design, and no historical qualification brief defines a new launch.
 
 Superseded plans, editorial handoffs and one-time QA snapshots belong in Git history. Frozen
 notes, configurations, machine reports, failures and source bindings remain at their required paths.

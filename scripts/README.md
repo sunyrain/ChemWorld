@@ -18,8 +18,9 @@ authorize a new experiment or restore a historical qualification gate.
 | Work II M3 information separation | `run_work_ii_m3_portability.py` | Completed M3 note/protocol; preserves sealed M1 source reuse |
 | Work II publication | `paper/figures/prior-discovery/render_prior_discovery_figures.py`, two current paper builders | Current evidence bindings and [paper guide](../paper/README.md) |
 
-M1/M3 are complete. The next mechanism-matching/new-condition block is design-only in the
-[experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md).
+M1/M3 are complete. The final B3 interface/tool diagnostic is a development design in the
+[experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md); its new runner is
+not implemented. Historical B3 runners retain their frozen tool prohibition and cannot launch it.
 The remaining sections describe retained protocol families, not a current experiment queue.
 
 ## Retained protocol and release tools

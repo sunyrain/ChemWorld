@@ -11,6 +11,11 @@ The [evidence map](prior_discovery_evidence_map.md) maps claims to bound results
 [display plan](prior_discovery_display_items.md) owns figure roles. Execution status belongs in
 the workstream TODO, and publication checks in the [submission checklist](ICLR_2027_SUBMISSION_CHECKLIST.md).
 
+The current closeout plan restores the four conversion-loss questions and keeps one final B3
+interface/tool diagnostic before manuscript integration. The story and experiment matrix describe
+that plan. The manuscripts, evidence map, display plan and PDFs still describe the last exported
+revision; update them together after the final experiment reaches its recorded endpoint.
+
 ## Build from sources
 
 From the repository root, use the locked environment:
