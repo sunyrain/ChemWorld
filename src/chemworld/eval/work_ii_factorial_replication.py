@@ -116,11 +116,13 @@ def bootstrap_interval(
     return np.quantile(samples, [tail, 1 - tail]).tolist()
 
 
-def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
+def summarize_factorial(
+    rows: list[dict], protocol: dict, *, conditions=CONDITIONS, contrasts=CONTRASTS
+) -> dict:
     expected = {
         (state["state_id"], condition)
         for state in source_schedule(protocol)
-        for condition in CONDITIONS
+        for condition in conditions
     }
     actual = [(row["state_id"], row["condition"]) for row in rows]
     if set(actual) != expected or len(actual) != len(expected):
@@ -139,12 +141,14 @@ def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
         ):
             raise ValueError("regret outside fixed utility scale")
         states[row["state_id"]][row["condition"]] = row
-    world_rows, condition_rows, contrasts = [], [], []
+    world_rows, condition_rows, contrast_rows = [], [], []
     for world in protocol["worlds"]:
         nested = [
-            state for state in states.values() if state["L-A"]["cluster_id"] == world["cluster_id"]
+            state
+            for state in states.values()
+            if state[conditions[0]]["cluster_id"] == world["cluster_id"]
         ]
-        for contrast, weights in CONTRASTS.items():
+        for contrast, weights in contrasts.items():
             values = [
                 sum(state[key]["failure_aware_regret"] * weight for key, weight in weights.items())
                 for state in nested
@@ -168,7 +172,7 @@ def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
                 }
             )
     for model in MODELS:
-        for condition in CONDITIONS:
+        for condition in conditions:
             selected = [
                 row for row in rows if row["model"] == model and row["condition"] == condition
             ]
@@ -191,7 +195,7 @@ def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
                     "top1_count": sum(row["top1"] for row in selected),
                 }
             )
-    for contrast in CONTRASTS:
+    for contrast in contrasts:
         selected = [row for row in world_rows if row["contrast"] == contrast]
         values = [
             [row["mean_difference"] for row in selected if row["task"] == task] for task in TASKS
@@ -206,7 +210,7 @@ def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
             seed=protocol["bootstrap_seed"],
             level=level,
         )
-        contrasts.append(
+        contrast_rows.append(
             {
                 "contrast": contrast,
                 "primary": primary,
@@ -219,15 +223,18 @@ def summarize_factorial(rows: list[dict], protocol: dict) -> dict:
                 },
             }
         )
-    primary = contrasts[0]
+    primary = next(row for row in contrast_rows if row["primary"])
     return {
         "condition_summaries": condition_rows,
-        "contrasts": contrasts,
+        "contrasts": contrast_rows,
         "world_contrasts": world_rows,
         "primary_material_benefit_supported": primary["interval"][1]
         < -protocol["minimum_practical_improvement"],
         "inference_limit": "Ten sampled task-world clusters, five per task. Percentile bootstrap "
         "intervals are approximate with this small sample. Models and repeated sessions are "
-        "nested observations, not additional independent worlds. One primary 95% interval; "
-        "four secondary intervals use 98.75% marginal coverage (Bonferroni family adjustment).",
+        "nested observations, not additional independent worlds. "
+        f"One primary {protocol['primary_interval_level'] * 100:g}% interval; "
+        f"{len(contrasts) - 1} secondary intervals use "
+        f"{protocol['secondary_interval_level'] * 100:g}% marginal coverage "
+        "(Bonferroni family adjustment).",
     }

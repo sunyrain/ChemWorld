@@ -249,6 +249,7 @@ def provider_call(
     *,
     total: int = 12,
     provider_override: dict | None = None,
+    prompt_override: str | None = None,
 ) -> dict:
     path = root / "provider" / call_id
     if (path / "receipt.json").exists():
@@ -263,7 +264,11 @@ def provider_call(
         seal(path / "receipt.json", receipt)
         return receipt
     ids = [row["id"] for row in packet["candidates"]]
-    prompt = participant_prompt(packet, coefficients=coefficients)
+    prompt = (
+        prompt_override
+        if prompt_override is not None
+        else participant_prompt(packet, coefficients=coefficients)
+    )
     seal(path / "started.json", {"call_id": call_id, "model": model, "stage": stage})
     seal(path / "prompt.json", {"prompt": prompt})
     provider = provider_override or read(PROVIDER_CONFIGS[model])["provider"]
