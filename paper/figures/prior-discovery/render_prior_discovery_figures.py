@@ -1728,12 +1728,23 @@ def main() -> int:
             action_extension,
         ),
     }
+    m1_binding = current["work_ii"].get("w2_72_m1_replication")
+    m1_report = None
+    if m1_binding and m1_binding.get("formal_result"):
+        import render_m1_replication
+
+        m1_report, m1_path = render_m1_replication.load_report()
+        outputs["figure_7"] = render_m1_replication.render(m1_report)
+        source_paths.extend([m1_path, OUTPUT_DIR / "render_m1_replication.py"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
         "status": "formal_results_with_bounded_secondary_analyses",
         "backend": "python_matplotlib",
         "formal_hypothesis_tests_run": False,
-        "provider_groups_mixed_in_scientific_contrasts": False,
+        "provider_groups_mixed_in_scientific_contrasts": m1_report is not None,
+        "provider_group_handling": "Historical cohorts remain separate by model. M1, when present, "
+        "uses its preregistered average over two model configurations and two repeats within "
+        "each independent world; it does not estimate provider superiority.",
         "source_bindings": [
             {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -1764,6 +1775,8 @@ def main() -> int:
             "law_action_continuous_rows": len(continuous_rows),
             "law_threshold_rows": len(threshold_rows),
             "decision_aligned_law_action_rows": len(decision_aligned_rows),
+            "m1_scheduled_slots": len(m1_report["slots"]) if m1_report else 0,
+            "m1_world_clusters": m1_report["independent_world_clusters"] if m1_report else 0,
         },
         "figures": {
             figure_id: [
@@ -1803,6 +1816,9 @@ def main() -> int:
             "truth, provider or physical execution and does not revise historical stop "
             "decisions.",
             "No cross-provider capability ranking or context-reset portability claim is supported.",
+            "M1, when present, replaces a quadratic representation and/or decision rule with "
+            "public evidence fixed. World-level intervals are read from its frozen analysis. "
+            "Recipients also receive evidence; this does not establish artifact-only transfer.",
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

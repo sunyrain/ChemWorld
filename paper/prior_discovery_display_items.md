@@ -1,9 +1,9 @@
 # Display plan — experimental knowledge and decisions
 
-The six reusable assets separate prediction, submitted knowledge and decisions. Supplied-description
-assignment is manipulated; downstream law/action associations are descriptive. Interface failures
-and evaluator diagnostics remain separate measurement limits. This plan describes existing figures;
-future interventions and portability results are not displayed as completed evidence.
+The seven reusable assets separate prediction, submitted knowledge and decisions. Historical
+downstream law/action associations remain descriptive; the new independent-world factorial block
+directly replaces explicit artifacts and decision rules. Its prespecified material benefit is
+unsupported. Interface failures and evaluator diagnostics remain separate; portability is untested.
 
 ## Figure 1 — Endpoint success does not reveal what the agent learned
 
@@ -68,6 +68,21 @@ regret is -0.0913/+0.1102, both intervals crossing zero. Yoked completion is 10/
 (10/42 and 24/26 among eligible donors), preventing a pure acquisition-effect interpretation.
 Complete-ranking/decision diagnostics move to the appendix table and remain in source data:
 16/16 frozen unit versions, zero new participant or truth executions. No historical stop is changed.
+
+## Figure 7 — Fixed-evidence intervention bounds a general law-use failure account
+
+- A: ten world rows show model-law and public-fit regret under the same maximizer. Hollow/filled
+  points distinguish representations; concentric points show equality without hiding world count.
+  Blue/purple identify the two tasks. Each point averages two models and two repeats within world.
+- B: five fixed contrasts show all world effects, paired means and stored intervals. The primary
+  uses 95% coverage, the four secondary intervals 98.75%; the primary material reference is −0.01.
+  Interaction is the difference between representation contrasts under X and A.
+
+All 160 selections are available. The primary is −0.00538 [−0.01630,+0.00061], with no supported
+material benefit. F-A/F-X choices agree 40/40; zero-width bootstrap intervals describe this sample,
+not population equivalence. Nearest-evidence regret 0.00354 is slightly below F-X 0.00425; both
+baselines and all source rows remain available. The task means are −0.01087/+0.00010.
+This is the new main result figure; B2/B3 asset 4 moves to the ICLR appendix. No M3 result is plotted.
 
 ## Supplementary qualification and exploratory evidence
 

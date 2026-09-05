@@ -21,6 +21,8 @@ from chemworld.eval.work_ii_evidence_to_action_runtime import (
     terminal_output_schema,
     yoked_snapshot_output_schema,
 )
+from chemworld.eval.work_ii_factorial import CONDITIONS, MODELS, TASKS
+from chemworld.eval.work_ii_factorial_replication import CONTRASTS
 from chemworld.eval.work_ii_reviewer_followup import (
     B3_METRIC_IDS,
     b3_output_schema,
@@ -45,9 +47,7 @@ GPT_C2 = (
     "work-ii-w2-62-codex-c2-current-composite-evaluation-v0.1.json"
 )
 B3_CROSS_MODEL = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
-    "work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json"
+    ROOT / "workstreams/flagship_tasks/reports/work-ii-w2-63-b3-failure-aware-cross-model-v0.1.json"
 )
 DEEPSEEK_C2_PROTOCOL = ROOT / "configs/benchmark/work_ii_deepseek_c2_prospective_v0.2.json"
 GPT_C2_PROTOCOL = ROOT / "configs/benchmark/work_ii_c2_gpt56_sol_medium_replication_v0.1.json"
@@ -681,6 +681,10 @@ assert boundaries["matched_evidence_conditional_post_packet_response_supported"]
 assert boundaries["matched_evidence_pure_packet_effect_supported"] is False
 assert boundaries["b2_structural_family_identification_supported"] is False
 
+if (ROOT / "verify_m1.py").exists():
+    import runpy
+    runpy.run_path(str(ROOT / "verify_m1.py"))
+
 print(f"verified {len(manifest['files'])} files and all publication invariants")
 """
 
@@ -731,6 +735,67 @@ def _write_zip(files: Mapping[str, bytes]) -> None:
         temporary_path.replace(OUTPUT_ZIP)
     finally:
         temporary_path.unlink(missing_ok=True)
+
+
+def _m1_files() -> dict[str, bytes]:
+    current = _load(ROOT / "configs/current.json")
+    binding = current["work_ii"].get("w2_72_m1_replication")
+    if not binding or not binding.get("formal_result"):
+        return {}
+    path = ROOT / binding["report"]
+    if _sha256_bytes(path.read_bytes()) != binding["report_sha256"]:
+        raise ValueError("M1 current report binding differs from the retained report")
+    report = _load(path)
+    protocol = _load(ROOT / report["protocol"])
+    protocol["providers"] = {
+        model: {key: provider[key] for key in ("model", "reasoning_effort")}
+        for model, provider in protocol["providers"].items()
+    }
+    projected = {
+        key: value
+        for key, value in report.items()
+        if key not in {"source_commit", "execution_surface", "experiment_note", "protocol"}
+    }
+    projected["source_hashes"] = [
+        {"role": "independent_world_factorial_report", "sha256": binding["report_sha256"]}
+    ]
+    primitive_source = (
+        "from __future__ import annotations\n"
+        "import json\nimport math\nfrom copy import deepcopy\n"
+        "from collections.abc import Mapping, Sequence\nfrom typing import Any\n"
+        "import numpy as np\n\nBASIS = ['1', 'x', 'y', 'x*x', 'x*y', 'y*y']\n\n"
+        + _function_source(
+            ROOT / "src/chemworld/eval/work_ii_factorial.py",
+            {
+                "public_packet",
+                "design_matrix",
+                "fit_public_law",
+                "output_schema",
+                "validate_payload",
+                "maximize",
+                "participant_prompt",
+                "nearest_public_choice",
+                "score_slots",
+            },
+        )
+    )
+    analysis_source = (
+        "from __future__ import annotations\n"
+        "from collections import defaultdict\nfrom typing import Any\nimport numpy as np\n\n"
+        + f"TASKS = {TASKS!r}\nMODELS = {MODELS!r}\nCONDITIONS = {CONDITIONS!r}\n"
+        + f"CONTRASTS = {CONTRASTS!r}\n\n"
+        + _function_source(
+            ROOT / "src/chemworld/eval/work_ii_factorial_replication.py",
+            {"source_schedule", "bootstrap_interval", "summarize_factorial"},
+        )
+    )
+    return {
+        "data/m1_replication.json": _json_bytes(_sanitize_value(projected)),
+        "protocols/m1_replication.json": _json_bytes(_sanitize_value(protocol)),
+        "methods/m1_public_primitives.py": primitive_source.encode("utf-8"),
+        "methods/m1_analysis.py": analysis_source.encode("utf-8"),
+        "verify_m1.py": (ROOT / "paper/iclr2027/supplement/verify_m1.py").read_bytes(),
+    }
 
 
 def build() -> dict[str, Any]:
@@ -817,6 +882,7 @@ def build() -> dict[str, Any]:
         "provenance/recovery_and_oracle_timeline.json": _json_bytes(_provenance_timeline()),
         "verify_supplement.py": VERIFY_SCRIPT.encode("utf-8"),
     }
+    files.update(_m1_files())
     for path in sorted(FIGURE_SOURCE_DIR.glob("*.csv")):
         content = _sanitize_csv(path.read_text(encoding="utf-8"))
         list(csv.reader(content.splitlines()))

@@ -42,29 +42,29 @@ quality; executable laws; controlled evaluation}
 \maketitle
 
 \begin{abstract}
-Autonomous scientific agents can improve experimental outcomes without
-producing knowledge that reliably guides new decisions. We study this
-distinction in ChemWorld, holding the executable world fixed while
-varying the initial description supplied to an agent. Two model--tool
-configurations each entered 135 scheduled campaigns across 45 matched
-task--world clusters. Prediction errors decreased on average, but the
-registered selective-correction criteria were not met. Executable
-summaries retained different amounts of predictive information: the 129
-available GPT-5.6-sol laws had lower mean error than the 135
-DeepSeek-v4-flash laws (0.175 versus 0.237), while both configurations
-largely repeated their observed incumbent. A separate DeepSeek cohort
-exposed complete unseen action plans after experimentation. Re-executing
-its last-available laws selected the optimum in 0/45 scheduled cases,
-compared with 11/45 participant choices. A four-condition development
-study found uncertain, configuration-dependent differences between
-autonomous exploration and no-evidence decisions; substantial delivery
-failures limited attribution. Identifiable functional-form controls and
-evaluator diagnostics further separate knowledge quality from
-measurement reliability. These results establish descriptive gaps
-between predictions, submitted laws and decisions within bounded
-simulated tasks. They motivate direct interventions on knowledge
-representations and decision rules, while leaving causal repair and
-transfer to new contexts unresolved.
+Autonomous scientific agents may improve predictions without producing
+knowledge that reliably guides new decisions. We study this distinction
+in ChemWorld through controlled initial descriptions, executable
+knowledge artifacts and complete action plans. Two model configurations
+each entered 135 scheduled campaigns across 45 matched task--world
+clusters. Prediction errors decreased on average, but the registered
+selective-correction criteria were not met, and executable summaries
+retained different amounts of predictive information. In a separate
+DeepSeek cohort, submitted laws selected the optimum in 0/45 scheduled
+unseen-plan cases, compared with 11/45 participant choices. We then held
+public evidence fixed in a factorial intervention across ten new worlds,
+crossing model-generated or numerically fitted quadratic laws with
+fresh-agent or deterministic selection. All 160 condition slots
+completed. Under the same maximizer, fitting changed mean regret by
+-0.00538 (95\% interval {[}-0.01630, 0.00061{]}), failing the
+prespecified material-benefit criterion. Fresh agents and the maximizer
+made identical choices in all 40 fitted-law pairs, while a
+nearest-evidence baseline had similarly low regret. These results limit
+a general inability-to-use-laws account: historical law/action
+disagreement coexists with high agreement on a simpler fixed-evidence
+surface. They establish bounded diagnostic findings, without isolating
+the cause of differences between protocols or demonstrating a general
+repair method or transfer to new physical conditions.
 \end{abstract}
 
 \section{Introduction}\label{introduction}
@@ -105,16 +105,17 @@ complete agent--tool configurations.
 The primary study used a fixed DeepSeek-v4-flash experimental-agent
 configuration, with 135 scheduled cells nested within 45 task--world
 clusters. An independent GPT-5.6-sol successor used the same public
-scientific surface. We also examine matched evidence, reference-fitter-
-identifiable functional-form controls, unseen-plan selection and a
-four-condition development study. Three findings organize the results:
-predictive improvement and executable-summary fidelity differ; submitted
-laws and participant choices differ; and information-strategy
-comparisons depend on operational availability. Downstream associations
-are descriptive, not causal mediation estimates. The contribution is a
-reproducible account of these gaps and their measurement limits;
-interventions that repair them and tests of new-context transfer remain
-future work.
+scientific surface. Matched-evidence controls, unseen-plan selection and
+failure-aware information strategies distinguish prediction, artifact
+fidelity and actual choice. We then test a proposed intervention
+directly: hold public evidence fixed and cross the source of a quadratic
+law with the rule selecting a plan. This ten-world factorial block finds
+no supported material benefit of fitted-law replacement and high
+agent/maximizer agreement. Together, the studies locate observed gaps
+and provide a boundary to a universal law-use failure account. Different
+protocols are not randomized against each other; neither their contrast
+nor the factorial intervention identifies internal psychological
+mediation.
 
 \begin{figure}[t]
 \centering
@@ -234,8 +235,9 @@ Provenance is block-specific: C2 and B3 have matched scheduled
 DeepSeek-v4-flash-high and GPT-5.6-sol-medium surfaces; matched evidence
 adds complete denominators and a DeepSeek-low B2 reasoning-budget
 ablation; the four-condition successor retains model-specific donor
-eligibility. Provider-free controls and model configurations are never
-pooled.
+eligibility. Historical controls and model configurations retain
+separate denominators. The new factorial block instead prespecifies an
+equal-weight mean over models and repeats within world.
 
 \begin{table}[t]
 \caption{\textbf{Executed evidence layers and claim boundaries.} A completed work package may contain
@@ -251,9 +253,8 @@ Prospective C2 & 270 scheduled & DeepSeek 121 complete; GPT 126 complete & Searc
 Matched evidence & 75 sessions & DeepSeek high + GPT medium (60); DeepSeek low (15) & Conditional numerical--exact-law-expression dissociation \\
 Identifiable-law B3 & 60 scheduled & DeepSeek 17+13 failures; GPT 30 & Structural recovery and action bridge \\
 Action assays & 45 cells + 360 slots & Open action + four conditions/model & Descriptive and failure-aware action transfer \\
-96-query control & 15 planned & Provider-free; 8 attempted & Retained pre-participant rejection \\
-320-query control & 7 exposed + 15 fresh & Provider-free; 7 pass + 1 fresh & Construction repair versus prospective rejection \\
-Gate alignment & 16 unit versions & Provider-free; 0 new execution & Rank validity versus action validity \\
+Factorial intervention & 160 slots; 10 worlds & 120/120 sessions; 200/200 physics/replays & Fixed-evidence law and decision-rule replacement \\
+Evaluator controls & 16 unit versions & Provider-free; original stops retained & Rank validity versus action validity \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -317,54 +318,25 @@ repeated same-arm baseline.}
 B3 tests
 structure}\label{matched-packets-expose-numericalexpression-dissociation-b3-tests-structure}
 
-Free discovery cannot distinguish failure to seek diagnostic evidence
-from failure to use it. After a decisive parametric packet, all five
-misspecified summaries rejected the supplied high-potential direction
-and recovered peak-and-collapse. This packet-plus-turn response does not
-isolate the packet.
+Matched packets provide conditional evidence response, with the packet
+and extra response turn bundled. In the parametric block, all five
+DeepSeek misspecified summaries rejected the supplied high-potential
+direction. B2 produced low post-packet error but no exact wrong-arm law
+expression (0/5 in each model and DeepSeek-low); its one-pair
+linear/power alias makes it an underidentifying surface. These
+observations cannot establish internal structural-identification
+failure.
 
-After the same B2 phase-process packet, opaque/aligned/misspecified mean
-errors fell from 0.2255/0.2736/0.3392 to 0.0074/0.0060/0.0071. The
-update contrast was positive in 3/5 worlds (exact one-sided
-\(p=0.125\)), and retrospective coding found 0/5 misspecified summaries
-expressing the exact law. Yet B2 exposed one nominal pair, no base
-coefficient or typed family/exponent, and an exact free-coefficient
-linear/power alias; a constant endpoint baseline reached MAE 0.00649 and
-the aligned positive control was only 1/5. B2 thus shows low error
-without stable exact-law expression on an underidentifying surface, not
-internal structural-identification failure
+B3 instead uses reference-fitter-qualified multi-pair evidence. It
+retained 30 GPT completions and 17 DeepSeek completions plus 13 schema
+failures. Joint recovery was 5/30 versus 0/30, and scheduled useful gain
+was 0/18 for both. The contrast is bounded by differential availability
+and the specified function family. Full packet, reasoning-budget and B3
+results, including every failure denominator, appear in the appendix
 (Fig.\textasciitilde{}\ref{fig:matched-evidence}).
 
-Matched DeepSeek/GPT contrasts were +0.0309/+0.0602 in A-P and
-+0.0645/+0.0915 in B2, with misspecified exact-law expression 0/5 in
-each model: a block-specific replication, not model ranking.
-
-Changing only DeepSeek's reasoning effort within the Codex harness from
-high to low preserved all 15 post errors below 0.02 and misspecified
-expression at 0/5, while the contrast reversed to -0.0405 (2/5;
-\(p=0.8125\)). This is same-harness robustness, not reasoning-off or
-configuration ranking.
-
-Frozen B3 used reference-fitter-qualified multi-pair evidence and a
-disjoint roster. GPT completed 30/30 sessions with
-opaque/aligned/misspecified joint recovery 0/10, 5/10, and 0/10.
-DeepSeek retained 17 completions and 13 schema failures; failure-aware
-recovery and Top-1 were 0/30 and 0/30 versus 5/30 and 2/30 for GPT.
-Scheduled useful gain was 0/18 for both. Differential failures preclude
-ranking.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{Numerical fit and structural recovery require different tests.}
-\textbf{a,} All 15 DeepSeek-high B2 cells before and after the same packet, shown on a log scale;
-gray/teal/orange denote opaque/aligned/misindexed arms. All post-packet errors are below 0.02,
-but the one-pair surface underidentifies family; low error is not structural recovery.
-\textbf{b,} B3 completion, joint family--exponent recovery, Top-1, and useful gain retain all
-scheduled opportunities. Counts distinguish 30 sessions from 18 gain opportunities per model,
-including 13 DeepSeek schema failures. Configuration contrasts are descriptive.}
-\label{fig:matched-evidence}
-\end{figure}
+\subsection{Executable laws lose information from
+predictions}\label{executable-laws-lose-information-from-predictions}
 
 All 135 DeepSeek laws executed, but 84 lost information relative to
 final explicit predictions; mean law MAE was 0.237 and compression loss
@@ -420,7 +392,7 @@ action, one an adequate law but wrong action, and none an adequate law
 and correct action. Task means ranged from rank 2.00 for reaction safety
 to 4.58 for crystallization, and every pairwise arm contrast changed
 sign under some leave-one-cluster-out omission. We therefore make no
-pooled arm-level claim (Fig.\textasciitilde{}\ref{fig:open-action}a,b).
+pooled arm-level claim (Fig.\textasciitilde{}\ref{fig:open-action}a).
 
 This separation survives continuous and threshold-sensitive analysis.
 Pooled law MAE correlated weakly with selected rank (Spearman
@@ -468,26 +440,18 @@ Donor-eligible autonomy contrasts (-0.1214/-0.1379; 42/26 strata) are
 post-treatment sensitivities; equal-task values are -0.0879/-0.0259.
 Yoked completion was 10/42 and 24/26. The block established no
 consistent autonomy or learned-law-only advantage
-(Fig.\textasciitilde{}\ref{fig:open-action}a,c).
+(Fig.\textasciitilde{}\ref{fig:open-action}b,c).
 
 \subsection{Evaluator-level ranking and decision quality are different
 estimands}\label{evaluator-level-ranking-and-decision-quality-are-different-estimands}
 
-A planned five-condition follow-up required an outcome-disjoint oracle
-law to rank eight candidates with Spearman \(\rho\geq0.80\). The first
-eight fresh clusters completed 896/896 truth/replays, but the eighth
-obtained \(\rho=0.738095\) and the wrong Top-1; the frozen stop left all
-225 participant sessions unstarted. Expanding 96 queries to a 320-query
-grid repaired 7/7 exposed units, yet the first fresh world failed at
-\(\rho=0.714286\) while selecting Top-1 with zero regret. A
-zero-execution diagnostic then reproduced all 16 unit versions: fresh
-96-query rank gates passed 7/8 but Top-1 only 1/8, whereas the fresh
-320-query unit was rank-fail/action-correct. Full-order correlation and
-decision validity therefore disagree in both directions
-(Fig.\textasciitilde{}\ref{fig:open-action}c,d;
-Table\textasciitilde{}\ref{tab:alignment}); the historical stops remain
-valid, while future controls should prioritize regret and
-near-optimality.
+A diagnostic of 16 frozen oracle-control versions found disagreement in
+both directions: a complete-ranking gate could pass while Top-1 was
+wrong, or fail while regret was zero. These provider-free controls
+identify a measurement distinction, not another participant failure. The
+original stops, all unstarted sessions and detailed values remain in the
+appendix (Table\textasciitilde{}\ref{tab:alignment}); regret and
+near-optimality directly address selected-action quality.
 
 \begin{figure}[t]
 \centering
@@ -501,6 +465,57 @@ bootstrap 95\% intervals, retaining all 45 strata per model. Both autonomous con
 The strategy block is development evidence; yoked failures prevent a pure acquisition-effect
 interpretation. Complete-ranking diagnostics remain in the appendix.}
 \label{fig:open-action}
+\end{figure}
+
+\section{Results: fixed-evidence representation and decision
+interventions}\label{results-fixed-evidence-representation-and-decision-interventions}
+
+The factorial intervention holds twelve public experiments per world
+fixed and crosses two quadratic representations---a source model's law
+(L) and a public ridge fit (F)---with two decision rules: a fresh
+same-model agent (A) and a shared deterministic maximizer (X). Five new
+worlds per task, two model configurations and two source repeats yield
+40 source states nested within ten worlds. Sources never see the eight
+terminal candidates; fresh recipients receive the evidence, candidates
+and designated law. All 120 provider sessions, 160 condition slots and
+200 physical executions with exact replay completed without failure or
+replacement.
+
+The prespecified primary contrast, F-X minus L-X, was -0.00538 (95\%
+world-bootstrap interval {[}-0.01630, 0.00061{]}). Its upper endpoint
+did not fall below -0.01, so the block does not support the proposed
+material benefit (Fig.\textasciitilde{}\ref{fig:m1-replication}). The
+task means were -0.01087 in electrochemistry and +0.00010 in
+crystallization; the negative effect was concentrated in one
+electrochemistry world. Regret uses a fixed utility scale of one, with
+models and repeats averaged within world. Five worlds per task limit the
+bootstrap approximation.
+
+Fresh-agent and maximizer choices agreed in 39/40 model-law pairs and
+all 40/40 fitted-law pairs. F-X minus F-A was consequently zero in every
+observed pair; its degenerate bootstrap interval is not a
+population-equivalence guarantee. Fitted-law selection had mean regret
+0.00425, compared with 0.00354 for nearest public evidence and 0.11109
+for exact expected uniform-random selection. The fitted method therefore
+shows no observed advantage over the simple retrieval baseline. These
+are local response-surface decisions with fixed acquisition. They supply
+a boundary to general law-use failure, while leaving artifact-only
+portability and the causes of historical protocol differences
+unresolved.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-7-m1-replication.pdf}
+\caption{\textbf{Fixed-evidence intervention did not establish a material repair benefit.}
+\textbf{a,} Every world has its own row. Hollow and filled points show model-law and fitted-law
+regret under the same maximizer, averaged over two models and two repeats; concentric points
+denote equality. Blue denotes electrochemistry and purple crystallization.
+\textbf{b,} Colored points are individual world effects; black diamonds and lines show means
+and prespecified intervals (95\% primary; 98.75\% secondary). The dotted primary reference is
+-0.01. Interaction is $(R_{\mathrm{F-X}}-R_{\mathrm{L-X}})-(R_{\mathrm{F-A}}-R_{\mathrm{L-A}})$ in regret. Zero-width intervals describe
+observed equality, not population equivalence. All 160 selections were available; repeats
+do not increase the ten-world denominator.}
+\label{fig:m1-replication}
 \end{figure}
 
 \section{Related work}\label{related-work}
@@ -540,8 +555,9 @@ intermediate representations \citep{imai2010mediation}; we do not infer
 such mediation from associated law and action readouts. The central
 contribution is therefore a tiered diagnostic design: controlled
 initial-model manipulations, conditional packet responses, failure-aware
-strategy estimates, descriptive law/action decomposition, and separate
-evaluator qualification.
+strategy estimates, descriptive law/action decomposition, and a
+fixed-evidence factorial intervention with separate evaluator
+qualification.
 
 \section{Discussion and limitations}\label{discussion-and-limitations}
 
@@ -569,11 +585,16 @@ and earlier donors confound configuration with time. These limits
 preclude model ranking or mediation. Private confirmation and
 fresh-context transfer to new conditions remain untested.
 
-A next experiment would hold evidence fixed and independently change the
-artifact and decision rule, followed by a fresh-context test. The
-present study does not claim those effects or a validated repair method.
-It establishes empirical gaps and measurement conditions that such tests
-must address.
+The fixed-evidence factorial intervention does not establish a material
+fitted-law benefit. Its near-complete agent/maximizer agreement also
+limits a general inability-to-deploy-laws account. It does not isolate
+why the earlier, longer experimental protocol produced greater
+disagreement: information, function class, decision dimension and
+interface all differ. Tool-free model fitting versus numerical ridge
+also bundles arithmetic with artifact construction. A matched-tool
+control would address that distinction; artifact-only and new-condition
+tests would address portability. Fit plus argmax is a classical
+baseline, and no new repair algorithm is claimed.
 
 \label{iclr-main-text-end}
 \clearpage

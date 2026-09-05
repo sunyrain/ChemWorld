@@ -23,7 +23,9 @@ Resolve generated evidence through [current bindings](../configs/current.json).
 | Legal schema has sufficient same-domain capacity | W2-55 capacity control | Full-basis fits reproduce 135/135 final prediction states. This is an interpolation/capacity diagnostic, not unseen-world recovery |
 | Rank qualification and decision utility differ | W2-51/52 original terminal controls and W2-53 reanalysis | 16 completed unit versions; original five-condition participant cohort unexecuted. Keep original rules and all unstarted units; no oracle relaunch |
 | Interface burden affects the measured system | DeepSeek C2 tool accounting and B3/W2-61 failures | 904 failed tool events include 888 checkpoint rejections. Report operational availability separately; do not interpret every failure as scientific incompetence |
-| New-context utility and independent-backend validity | No corresponding current outcome | Unresolved; proposed M1/M3/M4 results must not appear in current Results |
+| Fixed-evidence law/decision intervention | M1 independent-world formal report, current w2_72 binding | 10 worlds; 120/120 sessions, 160/160 slots, 200/200 physics/replays; primary -0.00538 [95% -0.01630, +0.00061], material benefit unsupported; fitted-law A/X agreement 40/40 |
+| Simple public-data baselines are competitive | Same M1 fixed baseline roster | F-X/nearest/random mean regret 0.00425/0.00354/0.11109; no observed fitted-method advantage over retrieval; not a new algorithm |
+| New-context utility and independent-backend validity | No corresponding current outcome | Artifact-only and new-physical-condition transfer remain unresolved; M3/M4 are not current Results |
 
 Search trajectories support sustained experimentation. A positive best-minus-first score or later
 optimum alone does not establish feedback learning without a budget-matched non-adaptive control.
@@ -53,8 +55,10 @@ relative to a matched baseline.
 
 ## New evidence needed
 
-M0 stabilizes measurement and execution semantics. M1 holds public evidence fixed and crosses
-Agent/fitted artifacts with Agent/deterministic decisions. M3 tests fresh-context utility on declared
-new conditions. M2 is needed only for an acquisition-effect claim; M4 addresses external validity.
-Their planning counts, primary contrasts, failures and costs are specified only in the experiment
-matrix, with a concise experiment note required before each new data-producing block.
+M0 and the independent M1 block are complete. The two-world canary remains development-only.
+M1 did not establish a material benefit, and near-complete A/X agreement limits a general law-use
+failure account. Cross-protocol differences are not randomized; arithmetic and law construction
+are bundled in the L/F contrast. Zero-width observed bootstrap intervals are not equivalence proof.
+M3 should first separate none/raw evidence/L-only/F-only, then define any physical-condition
+mapping. M2 is needed only for acquisition-effect claims; M4 addresses external validity.
+The matrix owns future counts and costs, with one experiment note before each data-producing block.

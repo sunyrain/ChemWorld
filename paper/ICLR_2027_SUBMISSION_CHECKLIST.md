@@ -32,11 +32,11 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - Shared [bibliography](prior_discovery_references.bib),
   [display plan](prior_discovery_display_items.md) and
   [claim/evidence map](prior_discovery_evidence_map.md).
-- The long draft uses six figure assets; the compact source selects assets 1 and 3–6.
-  Existing numeric data and original failure denominators remain unchanged.
-- The two-world representation/decision development canary has completed; formal replication and
-  fresh-context transfer remain planned. Development results are not current manuscript Results.
-  The two drafts must be revised together when new evidence is integrated.
+- The long draft uses seven figure assets; the compact source selects assets 1 and 3–7,
+  with the B2/B3 figure in the appendix. Historical values and failure denominators are retained.
+- The independent-world factorial block has completed with 120/120 sessions and 160/160 slots.
+  The primary material benefit was unsupported; the development canary remains separate.
+  Both drafts report the actual result. Artifact-only and new-condition transfer are untested.
 
 ## Delivery state
 
@@ -50,16 +50,24 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [ ] Freeze the actual submission evidence and complete final anonymous delivery checks.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The 2026-09-05 figure redesign builds contain nine main-text pages and 19 total pages in the anonymous
-submission, and 17 pages in the long draft. All 36 pages were rendered and visually inspected;
-the final missing-ranking annotation was checked again at page scale. Build checks report no overflow,
-undefined citations, unstable cross-references or anonymous identity leaks. The supplementary ZIP
-was rebuilt and passes its verifier; all 32 bibliography records resolve the drafts' citations.
+The M1 integration builds contain nine main-text pages and 21 total pages in the anonymous
+submission, and 20 pages in the long draft. The 41 pages were rendered for visual inspection;
+the new world-level figure and contrast table were also checked at page scale. Fonts were not
+reduced to meet the main-text limit. Final builds report no horizontal/vertical overflow,
+undefined citations, unstable cross-references or anonymous identity leaks.
 
-The focused integrated pass completed 28 tests covering the new experiment runner, manuscript,
-publication-data bindings and supplement. M0/M1 separately completed 42 physical executions and
-exact replays, 12 provider sessions and 16 condition slots with no failures. These are labelled
-development results; neither checks nor canary completion constitute formal evidence or submission.
+The focused publication pass covers 17 tests. The supplementary archive contains 55 files;
+its standalone verifier reconstructs scheduled denominators, both M1 baselines, all selection
+losses and five paired means. The optional NumPy check reconstructs public fits, exact maximizer
+choices and all five bootstrap intervals. The execution surface separately passed48 focused
+checks before freeze and its final source-binding check. Build metadata do not create new
+experimental outcomes or relabel the formal source blocks.
+
+M1 completed 200/200 physical executions and exact replays, 120/120 provider sessions and 160/160
+condition slots, without failure or replacement. F-X minus L-X was −0.00538 (95% interval
+[−0.01630,+0.00061]); the material-benefit criterion was not met. F-A/F-X choices agreed 40/40,
+and the nearest-evidence baseline was competitive. M2–M4 were not executed. Repository
+completion does not constitute actual OpenReview submission.
 
 Author metadata remain Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li and
 Xiaonan Wang; the first three share equal contribution and Xiaonan Wang is corresponding author.

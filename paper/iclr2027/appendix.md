@@ -262,6 +262,21 @@ fixed scheduled-opportunity denominator, with failures and unavailable rows coun
 matched comparison is descriptive because model configuration was not randomized and schema-failure
 patterns differed.
 
+```{=latex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
+\caption{\textbf{Numerical fit and structural recovery require different tests.}
+\textbf{a,} All 15 DeepSeek-high B2 cells before and after the same packet, shown on a log scale;
+gray/teal/orange denote opaque/aligned/misindexed arms. All post-packet errors are below 0.02,
+but the one-pair surface underidentifies family; low error is not structural recovery.
+\textbf{b,} B3 completion, joint family--exponent recovery, Top-1, and useful gain retain all
+scheduled opportunities. Counts distinguish 30 sessions from 18 gain opportunities per model,
+including 13 DeepSeek schema failures. Configuration contrasts are descriptive.}
+\label{fig:matched-evidence}
+\end{figure}
+```
+
 ## Cross-model successor denominators
 
 Historical stopped partials and stop boundaries remain immutable. They are not continued, pooled, or
@@ -421,6 +436,105 @@ Fresh 320-query & 1 & 0 & 1 & 1 \\
 \end{tabular}
 \end{table}
 ```
+
+## Independent-world representation-by-decision protocol
+
+The factorial block fixes public evidence while replacing either its explicit representation or
+the decision rule. Each of two task families has five new public-test worlds. Two fixed model
+configurations each produce two independently sampled source artifacts per world, giving 40
+source states nested within ten task--world clusters. Every source state has four conditions:
+model law with fresh agent selection (L-A), the same law with a deterministic maximizer (L-X),
+public-data fit with fresh agent selection (F-A), and the same fit with the maximizer (F-X).
+The scheduled design comprises 40 source and 80 recipient sessions, 160 condition slots,
+120 public evidence experiments and 80 hidden candidate evaluations, with exact replay of
+each physical execution. This block uses fixed experiment acquisition.
+
+Each world shares twelve evidence points and eight outcome-hidden candidate plans across models
+and repeats. Independently seeded Latin hypercubes fix the two-dimensional coordinates before
+outcomes are observed. Electrochemistry varies controlled potential over 0.65--1.65 V and current
+over 20--120 mA. Its fixed probe uses 1.18 V, 70 mA and 630 s; controlled duration is 3540 s,
+reagent amount 0.004 mol, electrolyte profile 2 and solvent 1. The complete LHS is rejected before
+execution if any point violates minimum probe changes of 0.02 V or 1 mA. Crystallization varies
+reaction temperature over 350--405 K and crystallization temperature over 275--295 K. Catalyst
+0 at 0.000315 mol, solvent 1, reagent 0.015 mol, stirring 675 rpm, reaction duration 3600 s,
+seed mass 0.008 g and crystallization duration 7200 s remain fixed. Both tasks share the same
+normalized design and disclose the complete executable plans.
+
+L and F use the same unclipped quadratic basis $(1,x,y,x^2,xy,y^2)$ in linearly normalized
+coordinates. F is ridge regression on the twelve public utilities, with penalty $10^{-6}$ and an
+unpenalized intercept. Source models see evidence before candidates are revealed and return six
+finite coefficients. Fresh recipients receive evidence, candidates and one artifact, and return
+only a candidate identifier. Calls are tool-free, capped at 600 s each, with no repair turn or
+replacement. The request for 2,048 output tokens does not cap hidden reasoning; actual usage is
+recorded. Source states have a fixed outcome-blind permutation, and each world/model uses one
+L-first and one F-first decision repeat. The maximizer breaks exact ties by candidate order.
+All choices are sealed before candidate utilities are loaded for analysis.
+
+Candidate utility is a single keyed-noise measured score in $[0,1]$. M1 regret uses the fixed
+utility scale one; earlier action assays retain their registered range normalization. Missing
+or invalid choices receive regret one in the scheduled primary analysis; completed-only values
+retain separate denominators. Near-optimality means regret at most 0.01. The primary contrast is
+F-X minus L-X. Differences are first averaged over the four model/repeat states within world,
+then equally across worlds within task and across tasks. A task-stratified world bootstrap uses
+20,000 percentile replicates. Its two-sided 95% upper endpoint must be below -0.01 to support
+the prespecified material benefit. The four secondary contrasts (L-X minus L-A, F-A minus L-A,
+F-X minus F-A, and their factorial interaction) use 98.75% marginal intervals, a Bonferroni
+adjustment for four comparisons. Five worlds per task give approximate small-sample intervals;
+model repeats do not add independent worlds.
+
+The nearest-public-observation baseline uses normalized Euclidean distance and row-order ties;
+the random baseline is its exact uniform-candidate expected regret. Both reuse the same data and
+count once per world. Missing source artifacts block the dependent L conditions while F continues.
+Physical, semantic or replay failure stops dependent provider work; forbidden tools and missing
+or reused session identity invalidate the remaining block. Interrupted started slots are retained
+without retries. Physical CPU/wall includes replay; recipe-resource totals count primary execution
+once. The protocol replaces explicit artifacts and decision computation, and does not identify
+internal belief mediation or artifact-only transfer: recipients still receive the original evidence.
+
+### Factorial outcomes and resources
+
+All 40 source states, 120 sessions and 160 conditions completed; there were no failed, blocked,
+replaced or unstarted slots. Scheduled and completed-only losses coincide. Mean regrets in
+L-A/L-X/F-A/F-X order were 0.01436/0.01502/0.00425/0.00425 for DeepSeek and
+0.00425/0.00425/0.00425/0.00425 for GPT. These configuration-specific summaries are descriptive.
+F-X selected the exact best measured candidate in 20/40 states and a candidate within 0.01 in
+28/40; the replicated fit copies still represent only ten worlds. Candidate MAE was
+0.05028 for DeepSeek laws, 0.04832 for GPT laws and 0.04459 for the public fit, all finite.
+Better average prediction error thus did not establish a material decision improvement.
+
+```{=latex}
+\begin{table}[ht]
+\centering
+\caption{\textbf{Prespecified factorial contrasts.} Differences use the fixed regret scale.
+The primary material threshold is -0.01. Secondary intervals adjust for four comparisons.}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Contrast & Mean difference & Interval \\
+\midrule
+F-X minus L-X (primary) & -0.005384 & 95\% [-0.016303, 0.000614] \\
+L-X minus L-A & +0.000331 & 98.75\% [0.000000, 0.001323] \\
+F-A minus L-A & -0.005053 & 98.75\% [-0.017329, 0.001582] \\
+F-X minus F-A & 0.000000 & 98.75\% [0.000000, 0.000000] \\
+Interaction & -0.000331 & 98.75\% [-0.001323, 0.000000] \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
+The ten-world average nearest-evidence regret was 0.00354, versus 0.00425 for F-X and 0.11109
+for exact expected uniform-random choice. These prespecified baselines reuse the same evidence
+and candidate evaluations; the comparison supplies no novel-algorithm advantage. The F-A/F-X
+bootstrap interval collapses to zero because all observed paired choices agree. It does not
+establish exact equivalence for unobserved worlds or model samples.
+
+Physical execution and replay consumed 1,780.8 s wall time and 1,768.3 s CPU. The 120 public
+evidence executions account for 1,068.6 s wall time; 80 hidden evaluations account for 712.3 s.
+Recipe resources count primary executions once: 2,300 operations, 54.8 measurement units,
+1,497,000 simulated recipe seconds and 1.9 mol reagent. Provider calls used 8,859.5 s wall time,
+1,623,791 input tokens (450,816 cached) and 942,258 output tokens (939,441 reasoning).
+All 120 calls report input/output usage; reasoning is included in output and cache in input.
+Source generation used 7,404.1 s versus 1,455.4 s for decisions. These costs describe this
+block, without extrapolating provider billing or virtual resource use to laboratory expenditure.
 
 ## Additional scope boundaries
 

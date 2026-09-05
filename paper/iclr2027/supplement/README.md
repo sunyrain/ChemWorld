@@ -1,7 +1,7 @@
 # Anonymous supplementary package
 
-This directory documents the generated supplementary archive for *Causal Dissection of Scientific
-Agents: Breaks from Evidence to Action*.
+This directory documents the generated supplementary archive for *When Does Experimental Knowledge
+Improve Scientific Decisions?*.
 
 The publication reanalysis field `formal_result=false` means that this provider-free synthesis did
 not create a new formal execution. It does not relabel the retained formal and development source
@@ -22,6 +22,9 @@ publication projection, not a copy of local run directories. It contains:
 - all 45 public B2 summaries, configuration-level expression counts, the retrospective coding
   function, and the participant-visible identifiability audit;
 - all figure source tables used by the venue-neutral figure bundle;
+- when the completed independent-world factorial report is bound, its 160 scheduled slots,
+  source coefficient vectors, public evidence and post-sealing candidate scores, with the fixed
+  protocol and public fitting/decision/cluster-analysis functions;
 - public protocol projections for the longitudinal, matched-evidence, identifiable-law, and
   four-condition action assays;
 - the exact system prompts or prompt-generating function sources used by the reported assays;
@@ -45,3 +48,10 @@ The verifier uses only the Python standard library. It validates every packaged 
 recomputes the four-condition contrasts and the C2/B3 failure-aware denominators from packaged
 cell-level records, and independently reruns the B2 expression coding. It does not contact a model
 provider or rerun a physical simulation.
+
+The independent-world factorial check also recomputes all decision losses, executor choices
+(within floating-point summation tolerance), and five task-stratified world-level mean contrasts.
+To additionally recompute the public ridge fits, exact maximizer choices and all five registered
+bootstrap intervals, install NumPy and run `python verify_m1.py --full` from the extracted archive.
+The default standard-library check requires no optional dependencies. The new report has its own
+execution-validity status and does not replace any earlier development result.

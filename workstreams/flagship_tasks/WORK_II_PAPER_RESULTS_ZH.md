@@ -17,6 +17,7 @@
 | B3 | 各30 scheduled；17/30 completed；13/0 schema failures | joint recovery 0/30与5/30；固定机会分母useful gain均0/18 |
 | W2-50/64 | DeepSeek-only，45 scheduled、42 rankings、240 truth/replay | law Top-1 0/45、participant 11/45、follow-law 12/42；描述性差异 |
 | W2-61 | 各180 slots、45 strata；donor eligible42/26；yoked完成10/42与24/26 | all-scheduled autonomy-minus-none regret -0.0913/+0.1102，两区间跨零；development系统策略比较 |
+| M1正式复核 | 10 worlds、40来源状态、120/120 sessions、160/160条件、200/200物理与replay；零失败 | 主差−0.00538，95%区间[−0.01630,+0.00061]，未支持实质收益；F-A/F-X 40/40一致 |
 | W2-55 | DeepSeek 135同域prediction states | 合法schema容量充足，不证明泛化或表示替换收益 |
 | W2-51/52/53 | 原五条件0 participant；16个完成unit-version诊断 | 完整排序与决策目标不同；旧stop rules及未启动分母保留 |
 
@@ -34,6 +35,21 @@ DeepSeek电化学规则替换改善regret 0.016772；GPT结晶拟合artifact替�
 其余固定执行器下artifact对比为零，所有F-A/F-X选择一致；全部结果和简单基线均保留。
 这是功能/成本校准及局部现象，不是正式多world复核、一般规律发现或已验证方法贡献。
 
+### M1独立世界正式复核
+
+[完整报告](reports/work-ii-m1-replication-20260905.md)和[机器数据](reports/work-ii-m1-replication-20260905.json)
+按[执行前说明](WORK_II_M1_REPLICATION_EXPERIMENT_NOTE.md)生成，绑定入口为current中的w2_72_m1_replication。
+主对比F-X minus L-X为−0.0053838，95%区间[−0.0163027,+0.0006139]；事前实质收益规则未通过。
+电化学/结晶task均值为−0.0108685/+0.0001009，收益集中在一个电化学world。
+F-A/F-X 40/40选择一致，L-A/L-X 39/40一致；零宽区间仅描述样本，不证明总体等价。
+拟合、最近邻、均匀随机期望regret分别为0.0042525、0.0035450、0.1110900。
+两个模型的拟合条件均有14/20近优、10/20 Top-1；重复拟合副本不增加十个独立world的分母。
+
+物理/replay29.7分钟，provider147.7分钟；输入1,623,791（cache450,816）、输出942,258
+（reasoning939,441），120/120有usage记录。所有条件完成，scheduled与completed-only相同。
+这是固定公开证据和局部二次类的正式边界证据；不支持普遍law-use失败、实质修复优势、
+artifact-only迁移或新算法优势。M2–M4未执行，开发canary未回填正式分母。
+
 ## 2. 当前可以支持的中心论点
 
 1. 预测质量、提交的可执行规律与实际决策是不同可观测量。显式law不能等同于内部belief。
@@ -44,7 +60,9 @@ DeepSeek电化学规则替换改善regret 0.016772；GPT结晶拟合artifact替�
 6. B2只作表达与可识别性诊断；B3测试有界函数形式，不是一般因果图发现。
 7. evaluator和interface缺陷与Agent科学表现分别报告；所有失败和历史拒绝继续保留。
 
-尚不支持：普遍规律恢复、可验证的表示修复方法、fresh-context新条件迁移或真实实验室效度。
+8. M1直接干预未支持预设实质拟合收益，且拟合规律下40/40 A/X一致；限制普遍law-use断裂解释。
+
+尚不支持：普遍规律恢复、稳健实质表示修复方法、artifact-only新条件迁移或真实实验室效度。
 
 ## 3. 证据角色与历史记录
 

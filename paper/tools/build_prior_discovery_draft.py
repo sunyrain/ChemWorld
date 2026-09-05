@@ -97,10 +97,13 @@ def load_figure_pdfs() -> list[Path]:
     if declared != canonical_sha(manifest):
         raise RuntimeError("figure manifest self-hash mismatch")
     figures = manifest.get("figures")
-    if not isinstance(figures, dict) or set(figures) != set(EXPECTED_FIGURE_IDS):
-        raise RuntimeError("draft requires exactly generated Figures 1--6")
+    expected = set(EXPECTED_FIGURE_IDS)
+    if "figure-7-m1-replication.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        expected.add("figure_7")
+    if not isinstance(figures, dict) or set(figures) != expected:
+        raise RuntimeError("draft figure roster differs from the manuscript's generated assets")
     pdfs: list[Path] = []
-    for figure_id in EXPECTED_FIGURE_IDS:
+    for figure_id in sorted(expected):
         outputs = figures[figure_id]
         matches = [row for row in outputs if str(row.get("path", "")).endswith(".pdf")]
         if len(matches) != 1:
@@ -166,8 +169,7 @@ def build() -> dict[str, Any]:
         if "LaTeX Error" in log:
             raise RuntimeError("compiled draft contains a LaTeX error")
         overfull_widths = [
-            float(value)
-            for value in re.findall(r"Overfull \\hbox \(([0-9.]+)pt too wide\)", log)
+            float(value) for value in re.findall(r"Overfull \\hbox \(([0-9.]+)pt too wide\)", log)
         ]
         underfull_hbox_count = len(re.findall(r"Underfull \\hbox", log))
         overfull_vbox_count = len(re.findall(r"Overfull \\vbox", log))
@@ -186,49 +188,39 @@ def build() -> dict[str, Any]:
         ROOT / "paper/prior_discovery_evidence_map.md",
         ROOT / "paper/prior_discovery_display_items.md",
         ROOT
-        / (
-            "workstreams/flagship_tasks/reports/"
-            "WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md"
-        ),
+        / ("workstreams/flagship_tasks/reports/WORK_II_OPEN_ACTION_DEVELOPMENT_CLOSEOUT_ZH.md"),
         ROOT
         / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-deepseek-five-task-development-complete-20260810.json"
         ),
-        ROOT / (
+        ROOT
+        / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-deepseek-five-task-development-evaluation-20260811.json"
         ),
-        ROOT / (
+        ROOT
+        / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-parametric-initial-model-pilot-evaluation-20260811.json"
         ),
-        ROOT / (
-            "workstreams/flagship_tasks/reports/"
-            "work-ii-deepseek-c2-paper-story-analysis-v0.1.json"
-        ),
-        ROOT / (
+        ROOT
+        / ("workstreams/flagship_tasks/reports/work-ii-deepseek-c2-paper-story-analysis-v0.1.json"),
+        ROOT
+        / (
             "workstreams/flagship_tasks/reports/"
             "work-ii-deepseek-c2-current-composite-evaluation-v0.2.json"
         ),
-        ROOT / (
-            "workstreams/flagship_tasks/reports/"
-            "work-ii-study-b-matched-evidence-results-v0.1.json"
-        ),
-        ROOT / (
-            "workstreams/flagship_tasks/reports/"
-            "work-ii-as-study-b2-phase-process-results-v0.1.json"
-        ),
+        ROOT
+        / ("workstreams/flagship_tasks/reports/work-ii-study-b-matched-evidence-results-v0.1.json"),
         ROOT
         / (
-            "workstreams/flagship_tasks/reports/"
-            "WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"
+            "workstreams/flagship_tasks/reports/work-ii-as-study-b2-phase-process-results-v0.1.json"
         ),
         ROOT
-        / (
-            "workstreams/flagship_tasks/reports/"
-            "work-ii-w2-64-publication-reanalysis-v0.1.json"
-        ),
+        / ("workstreams/flagship_tasks/reports/WORK_II_MULTI_TASK_OPEN_ACTION_FORMAL_AUDIT_ZH.md"),
+        ROOT
+        / ("workstreams/flagship_tasks/reports/work-ii-w2-64-publication-reanalysis-v0.1.json"),
         ROOT
         / (
             "configs/benchmark/"
@@ -236,10 +228,16 @@ def build() -> dict[str, Any]:
         ),
         *figure_pdfs,
     ]
+    if "figure-7-m1-replication.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        m1 = current["work_ii"]["w2_72_m1_replication"]
+        source_paths.append(ROOT / m1["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-draft-build-0.1",
         "status": "compiled_development_draft",
         "formal_result": False,
+        "formal_result_scope": "This publication build creates no new experimental outcomes; "
+        "included source blocks retain their own formal or development status.",
         "page_count": page_count,
         "source_date_epoch": SOURCE_DATE_EPOCH,
         "typesetting_audit": {
@@ -313,6 +311,12 @@ def build() -> dict[str, Any]:
             (
                 "The W2-53 panel reuses 16 frozen unit versions with no new execution "
                 "and changes no historical rank threshold or stop decision."
+            ),
+            (
+                "The independent-world factorial block, when included, uses ten world clusters "
+                "with two models and two repeats nested within each world. It replaces explicit "
+                "artifacts and decision computation, not internal beliefs, and does not test "
+                "artifact-only portability or a new mechanism topology."
             ),
         ],
     }

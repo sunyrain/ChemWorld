@@ -38,6 +38,7 @@ FIGURES = (
     "figure-4-matched-evidence-localization.pdf",
     "figure-5-capability-chain.pdf",
     "figure-6-open-action-formal.pdf",
+    "figure-7-m1-replication.pdf",
 )
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.pdf"
@@ -277,6 +278,10 @@ def build() -> dict[str, Any]:
         *(ICLR_DIR / name for name in STYLE_HASHES),
         *(FIGURE_DIR / name for name in FIGURES),
     ]
+    if "figure-7-m1-replication.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        m1 = current["work_ii"]["w2_72_m1_replication"]
+        source_paths.append(ROOT / m1["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-iclr2027-build-0.1",
         "status": (
@@ -285,6 +290,8 @@ def build() -> dict[str, Any]:
             else "anonymous_review_draft_over_main_text_limit"
         ),
         "formal_result": False,
+        "formal_result_scope": "This publication build creates no new experimental outcomes; "
+        "included source blocks retain their own formal or development status.",
         "anonymous_review_mode": True,
         "main_text_page_limit": 9,
         "main_text_page_count": main_text_pages,
@@ -359,6 +366,12 @@ def build() -> dict[str, Any]:
                 "The DeepSeek-low A-P canary produced no qualified terminal denominator; "
                 "formal execution remained 0/15 and no parametric low-reasoning effect "
                 "is estimated."
+            ),
+            (
+                "The independent-world factorial block, when included, averages nested model "
+                "repeats within ten world clusters by its prespecified estimand. It uses a "
+                "fixed utility scale, includes missing selections, and does not test "
+                "internal mediation or artifact-only transfer."
             ),
         ],
     }
