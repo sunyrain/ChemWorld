@@ -80,7 +80,7 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "cross-system ranking" in display_items
     limits = " ".join(figure_manifest["interpretation_limits"])
     assert "no same-arm replicate baseline" in limits
-    assert "complete DeepSeek-low A-S B2 ablation" in limits
+    assert "B2 cross-configuration contrasts remain in the source tables and text" in limits
 
 
 def test_draft_manifest_preserves_development_formal_private_boundaries() -> None:

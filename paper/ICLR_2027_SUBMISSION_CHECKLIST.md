@@ -34,8 +34,9 @@ research judgment but supplies neither current requirements nor a spotlight sele
   [claim/evidence map](prior_discovery_evidence_map.md).
 - The long draft uses six figure assets; the compact source selects assets 1 and 3–6.
   Existing numeric data and original failure denominators remain unchanged.
-- Future representation/decision interventions and fresh-context transfer are proposed work,
-  not current Results. The two drafts must be revised together after any new evidence.
+- The two-world representation/decision development canary has completed; formal replication and
+  fresh-context transfer remain planned. Development results are not current manuscript Results.
+  The two drafts must be revised together when new evidence is integrated.
 
 ## Delivery state
 
@@ -49,15 +50,16 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [ ] Freeze the actual submission evidence and complete final anonymous delivery checks.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The 2026-09-05 cleanup builds contain nine main-text pages and 19 total pages in the anonymous
-submission, and 18 pages in the long draft. All pages were rendered and inspected; revised concept
-and correction panels were checked again at page scale. Build checks report no overflow, undefined
-citations, unstable cross-references or anonymous identity leaks. The unchanged supplementary ZIP
-passes its independent verifier; all 32 bibliography records resolve the drafts' citations.
+The 2026-09-05 figure redesign builds contain nine main-text pages and 19 total pages in the anonymous
+submission, and 17 pages in the long draft. All 36 pages were rendered and visually inspected;
+the final missing-ranking annotation was checked again at page scale. Build checks report no overflow,
+undefined citations, unstable cross-references or anonymous identity leaks. The supplementary ZIP
+was rebuilt and passes its verifier; all 32 bibliography records resolve the drafts' citations.
 
-The focused integrated pass completed 31 tests. After the final Work II figure/caption edits, all
-16 affected manuscript, publication-data and supplement tests passed again. These checks certify
-the current draft artifacts, not new scientific evidence or actual submission.
+The focused integrated pass completed 28 tests covering the new experiment runner, manuscript,
+publication-data bindings and supplement. M0/M1 separately completed 42 physical executions and
+exact replays, 12 provider sessions and 16 condition slots with no failures. These are labelled
+development results; neither checks nor canary completion constitute formal evidence or submission.
 
 Author metadata remain Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li and
 Xiaonan Wang; the first three share equal contribution and Xiaonan Wang is corresponding author.

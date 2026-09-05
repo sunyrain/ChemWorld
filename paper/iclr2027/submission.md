@@ -67,10 +67,11 @@ transfer remain future work.
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-1-prior-to-law.pdf}
-\caption{\textbf{Endpoint success underdetermines scientific competence.}
-The same outcome can arise from a correct prior, local search, or evidence-driven model correction.
-ChemWorld varies the supplied initial description while holding the executable world fixed, then evaluates
-the transitions from evidence to predictions, executable laws, and unseen actions.}
+\caption{\textbf{Endpoint success does not reveal what the agent learned.}
+ChemWorld varies the supplied initial description while fixing the executable world, public rules,
+and budget. Held-out predictions, executable knowledge, and unseen-plan decisions are separate
+readouts. The diagram describes the design; its arrows do not identify internal belief or causal
+mediation through submitted knowledge.}
 \label{fig:capability-chain}
 \end{figure}
 ```
@@ -221,10 +222,13 @@ become preferential correction of a wrong starting model (Fig.~\ref{fig:prior-co
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-3-prior-uptake-and-correction.pdf}
-\caption{\textbf{Search patterns differ across initial-model arms, but the evidence does not establish
-selective repair of the wrong model.} Pre-evidence errors, first-recipe divergence, pre-to-final error reductions, and frozen
-failure-aware selective-correction contrasts are reported by intervention locus. Every arm improves
-on average, but no locus passes the selective-correction criterion.}
+\caption{\textbf{Prediction improves, but the evidence does not establish selective repair of the wrong model.}
+\textbf{a--c,} Mean pre-evidence and final errors by arm in entity, parametric, and structural
+blocks; lines connect aggregate means, not individual trajectories or confidence bounds.
+The registered selective-correction criteria are unmet (one-sided $p=0.990,0.079,1.000$), and
+initial error limits improvement headroom. First recipes differ in 45/45 aligned--misindexed,
+45/45 opaque--aligned, and 44/45 opaque--misindexed clusters; this retrospective check has no
+repeated same-arm baseline.}
 \label{fig:prior-correction}
 \end{figure}
 ```
@@ -259,11 +263,13 @@ Frozen B3 used reference-fitter-qualified multi-pair evidence and a disjoint ros
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-4-matched-evidence-localization.pdf}
-\caption{\textbf{B2 shows post-packet numerical--expression dissociation; identifiable B3 shows sparse structural recovery and no useful action gain.}
-Panels a--b detail DeepSeek-v4-flash-high conditional B2 results; the one-pair B2 surface underidentifies
-structural family. Panel c compares matched A-P DeepSeek-v4-flash/GPT-5.6-sol
-and B2 high/medium/low-reasoning contrasts. Panel d reports failure-aware completion, joint-law
-recovery, Top-1, and useful action gain on matched 30-cell B3 surfaces.}
+\caption{\textbf{Numerical fit and structural recovery require different tests.}
+\textbf{a,} All 15 DeepSeek-high B2 cells before and after the same packet, shown on a log scale;
+gray/teal/orange denote opaque/aligned/misindexed arms. All post-packet errors are below 0.02,
+but the one-pair surface underidentifies family; low error is not structural recovery.
+\textbf{b,} B3 completion, joint family--exponent recovery, Top-1, and useful gain retain all
+scheduled opportunities. Counts distinguish 30 sessions from 18 gain opportunities per model,
+including 13 DeepSeek schema failures. Configuration contrasts are descriptive.}
 \label{fig:matched-evidence}
 \end{figure}
 ```
@@ -285,12 +291,13 @@ matched cross-configuration comparison is descriptive, not a causal law-quality 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-5-capability-chain.pdf}
-\caption{\textbf{Lower executable-law error does not coincide with better blind action.}
-\textbf{a,} Registered correction estimates and adverse lower bounds for both fully scheduled
-135-cell C2 surfaces.
-\textbf{b,} Numerical learning by locus and model. \textbf{c,} Final-prediction versus executable-law
-MAE over 135 DeepSeek and 129 GPT laws. \textbf{d,} Blind outcomes over 121/126 evaluable cells while
-all 135/model remain scheduled; model contrasts are descriptive.}
+\caption{\textbf{Lower executable-law error coexists with near-zero incumbent gain.}
+\textbf{a,} Hollow and filled points show final-prediction and executable-law MAE on the same
+law-evaluable cells, grouped by locus and model; connecting lines show compression differences,
+not uncertainty. The matched denominators are 135 DeepSeek and 129 GPT laws.
+\textbf{b,} Better/equivalent/worse/unavailable incumbent-replay counts retain all 135 scheduled
+cells per model; hatching marks unavailable readouts. These are descriptive configuration
+contrasts and incumbent replays, not causal artifact effects or unseen-action benefits.}
 \label{fig:c2-cross-model}
 \end{figure}
 ```
@@ -364,10 +371,14 @@ historical stops remain valid, while future controls should prioritize regret an
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
-\caption{\textbf{Evidence, executable laws, and evaluator rankings are imperfect action proxies.}
-\textbf{a,c,} All-scheduled outcomes and clustered contrasts retain every donor and recipient failure.
-\textbf{b,} Last-available-law-implied versus participant regret for 45 frozen DeepSeek-v4-flash cells. \textbf{d,} Rank correlation
-versus regret for 16 frozen oracle unit-version records.}
+\caption{\textbf{Law quality and information strategies have distinct decision readouts.}
+\textbf{a,} Law-implied versus participant regret in the 45-cell DeepSeek matrix; 42 observed
+choices are dots and three missing rankings are crosses above the plotting range. The diagonal
+marks equal regret. \textbf{b,} Failure-aware strategy means with valid/scheduled counts.
+\textbf{c,} Paired strategy-minus-no-evidence differences with task-stratified world-cluster
+bootstrap 95\% intervals, retaining all 45 strata per model. Both autonomous contrasts cross zero.
+The strategy block is development evidence; yoked failures prevent a pure acquisition-effect
+interpretation. Complete-ranking diagnostics remain in the appendix.}
 \label{fig:open-action}
 \end{figure}
 ```

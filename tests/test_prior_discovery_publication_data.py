@@ -242,11 +242,10 @@ def test_figure_renderer_uses_tracked_publication_data_not_formal_run_summary() 
     manifest = json.loads(FIGURE_MANIFEST.read_text(encoding="utf-8"))
 
     assert "runs/formal/" not in renderer
-    assert "work-ii-w2-64-publication-reanalysis-v0.1.json" in renderer
+    assert 'current["work_ii"]["w2_64_publication_reanalysis"]["report"]' in renderer
     assert 'publication_reanalysis["w2_50"]' in renderer
 
     source_paths = {row["path"] for row in manifest["source_bindings"]}
-    assert (
-        "workstreams/flagship_tasks/reports/work-ii-w2-64-publication-reanalysis-v0.1.json"
-    ) in source_paths
+    current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+    assert current["work_ii"]["w2_64_publication_reanalysis"]["report"] in source_paths
     assert not any(path.startswith("runs/formal/") for path in source_paths)
