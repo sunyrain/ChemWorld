@@ -1,0 +1,53 @@
+{
+  "schema_version": "work-ii-final-diagnostic-1",
+  "source_root": "runs/formal/work-ii-as-study-b3-identifiable-law-action-v0.2-20260827-restart1",
+  "providers": {
+    "deepseek": {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "high",
+      "base_url": "https://api.deepseek.com/",
+      "wire_api": "responses",
+      "auth_mode": "experimental_bearer_token",
+      "api_key_file": "api.md",
+      "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json"
+    },
+    "gpt": {
+      "id": "chemworld_openai_https",
+      "name": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "auth_mode": "none",
+      "wire_api": "responses"
+    }
+  },
+  "development": {
+    "turn_timeout_s": 600,
+    "session_timeout_s": 1200,
+    "block_timeout_s": 14400
+  },
+  "formal": {
+    "turn_timeout_s": 600,
+    "session_timeout_s": 1200,
+    "block_timeout_s": 64800,
+    "provider_retries": 0
+  },
+  "tool_attempt_limit": 8,
+  "bootstrap_seed": 90770,
+  "bootstrap_draws": 20000,
+  "worlds_formal": 5,
+  "worlds_development": 1,
+  "repeats_formal": 2,
+  "repeats_development": 1,
+  "calibration": {
+    "report": "workstreams/flagship_tasks/reports/work-ii-final-diagnostic-development-20260905.json",
+    "report_sha256": "453f9eed1c5ba56e1d0662cab090bcf110554af6ead0ca692103db627d65863d",
+    "scheduled": 12,
+    "counts": {
+      "completed": 10,
+      "failed": 2
+    },
+    "reported_wall_seconds": 3501.735999999568
+  }
+}
