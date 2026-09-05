@@ -24,6 +24,16 @@
 Codex是共同session harness；“DeepSeek--Codex participant”不是双模型ensemble。
 前置材料信息三臂基线的60/60 cells、2,280 experiments是单独的GPT队列，不进入C2。
 
+### M0/M1开发结果（独立于上述论文证据）
+
+[机器摘要](reports/work-ii-m0-m1-development-20260905.json)与
+[可读对照表](reports/work-ii-m0-m1-development-20260905.md)，规则见
+[实验note](WORK_II_M0_M1_DEVELOPMENT_EXPERIMENT_NOTE.md)。2个开发task-worlds，
+42/42执行与replay、12/12 provider sessions、16/16 factorial slots完成；没有失败或替换。
+DeepSeek电化学规则替换改善regret 0.016772；GPT结晶拟合artifact替换改善0.134529。
+其余固定执行器下artifact对比为零，所有F-A/F-X选择一致；全部结果和简单基线均保留。
+这是功能/成本校准及局部现象，不是正式多world复核、一般规律发现或已验证方法贡献。
+
 ## 2. 当前可以支持的中心论点
 
 1. 预测质量、提交的可执行规律与实际决策是不同可观测量。显式law不能等同于内部belief。
