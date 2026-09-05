@@ -578,6 +578,53 @@ def markdown_report(report: dict) -> str:
         )
     lines += [
         "",
+        "## Descriptive controls and costs",
+        "",
+        "| Selection rule | Units | Mean regret | Near-optimal | Top-1 |",
+        "| --- | ---: | ---: | ---: | ---: |",
+    ]
+    for kind in ("L-X", "F-X", "nearest"):
+        selected = [row for row in report["deterministic_controls"] if row["condition"] == kind]
+        if selected:
+            lines.append(
+                f"| {kind} | {len(selected)} | "
+                f"{np.mean([row['failure_aware_regret'] for row in selected]):.6f} | "
+                f"{sum(row['near_optimal'] for row in selected)}/{len(selected)} | "
+                f"{sum(row['top1'] for row in selected)}/{len(selected)} |"
+            )
+    if report["random_baselines"]:
+        value = np.mean(
+            [row["uniform_random_expected_regret"] for row in report["random_baselines"]]
+        )
+        lines.append(f"| Uniform random (exact expectation) | 10 worlds | {value:.6f} | - | - |")
+    lines += [
+        "",
+        "L-X/F-X copies are nested source states; nearest/random count once per world. "
+        "These are descriptive controls, not additional recipient sessions or independent worlds.",
+        "",
+        "| Model | Artifact | Agent/maximizer agreement |",
+        "| --- | --- | ---: |",
+    ]
+    for row in report["agreement"]:
+        lines.append(f"| {row['model']} | {row['artifact']} | {row['agree']}/{row['eligible']} |")
+    if statistics:
+        lines += [
+            "",
+            "| Contrast | Electrochemistry mean | Crystallization mean |",
+            "| --- | ---: | ---: |",
+        ]
+        for row in statistics["contrasts"]:
+            lines.append(
+                f"| {row['contrast']} | {row['task_means']['electrochemical-conversion']:.6f} | "
+                f"{row['task_means']['reaction-to-crystallization']:.6f} |"
+            )
+    lines += [
+        "",
+        f"New physical execution/replay: {report['physical_costs']['wall_s']:.1f} wall seconds; "
+        f"provider: {report['provider_wall_s']:.1f} seconds. "
+        f"Usage available for {report['provider_usage_coverage']['with_input_and_output_usage']}/"
+        f"{report['provider_usage_coverage']['attempted']} attempted calls.",
+        "",
         "Provider output includes reasoning; cache is a subset of input. Missing usage is "
         "unknown. Physical CPU/wall includes replay; recipe resources count primary execution "
         "once. Reused M1 public experiments and source generation are historical shared costs, "
