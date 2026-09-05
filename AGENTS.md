@@ -8,9 +8,9 @@ Before changing the first paper or its evidence programme, read:
 2. The relevant experiment note, when the task produces new data
 3. Current artifact bindings under `configs/current.json` only when existing generated evidence is used
 
-The retired task matrix and superseded evidence plan are stored under
-`workstreams/arxiv_v1/archive/coordination/`. The old claim, integration, story and review directories
-are historical or machine-bound records; they do not authorize new work or define the current story.
+The retired task matrix, superseded evidence plan and editorial handoffs are available in Git
+history. Any retained claim or story file exists only for a frozen evidence consumer; it does not
+authorize new work or define the current story.
 Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_TODOLIST.md`.
 
 ## Lightweight execution

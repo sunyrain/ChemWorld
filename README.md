@@ -111,14 +111,20 @@ Work II experiments are maintained separately from this public software snapshot
 
 Work II studies when experimental knowledge supports scientific decisions. Two agent configurations
 each have 135 scheduled C2 campaigns, with 121 and 126 completed; their prediction, executable-law
-and decision outcomes differ. Unseen-plan and information-strategy studies retain all failures and
-have explicitly bounded interpretations. They do not establish a general repair method, provider
-ranking or transfer to real laboratories.
+and decision outcomes differ. A ten-world fixed-evidence intervention (M1) found no supported
+material benefit from fitted-law replacement, with agent/maximizer agreement in all 40 fitted-law
+pairs. Information separation (M3) then showed that model laws alone improved fresh decisions
+relative to task-only input on new candidates in those same ten worlds: regret difference −0.13723,
+95% interval [−0.15584, −0.12257]. Nearest-evidence retrieval reached the measured optimum in every
+world. These results establish bounded independent knowledge utility, with no demonstrated method
+advantage over retrieval, new-mechanism transfer, provider ranking or laboratory validity.
 
 Current research entry points are the [Work II TODO](workstreams/flagship_tasks/WORK_II_TODOLIST.md),
+[complete story](paper/prior_discovery_story_zh.md),
 [results index](workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md) and
 [next-experiment matrix](workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md).
 The [first-paper TODO](workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md) governs its separate release.
+The [paper guide](paper/README.md) identifies canonical manuscripts, current PDFs and build commands.
 
 [`configs/current.json`](configs/current.json) resolves generated evidence and separates frozen
 release identity from development-head qualification and publication readiness. Current-head false

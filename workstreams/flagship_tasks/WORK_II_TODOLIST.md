@@ -57,6 +57,7 @@ M3复用原10个world，不增加独立样本；nearest达到实测最优，新�
 | W2-71 | DONE | 六张图重构、配对分母与缺失值呈现修正；长稿17页，ICLR正文9页/总19页，PDF视觉及28项定向检查通过 |
 | W2-72 | DONE | M1正式完成：10 worlds、120/120会话、160/160条件、200/200物理/replay，零失败；冻结面核验通过，主实质改善未获支持；七图、两份PDF及匿名数值复现验证完成；17项定向检查、Ruff及41页视觉验收通过。见[实验说明](WORK_II_M1_REPLICATION_EXPERIMENT_NOTE.md)和[结果](reports/work-ii-m1-replication-20260905.md) |
 | W2-73 | NEXT (design only) | 机制匹配与新条件：事前固定来源–目标机制关系，正确/不匹配知识及none/raw/nearest控制，匹配数值工具；先在独立开发world验证测量区分度，再确定完整块。未执行，不按M1/M3失误挑选正式覆盖 |
+| W2-74 | DONE | Claim: Codex /root — 完整故事、当前导航和图文入口已收束；移除40个无现行消费者的退休文件，45项相关测试及Ruff、引用/链接检查通过。保留冻结证据、失败、资源和replay；未产生实验数据。本地缓存删除被自动审批阻止，残余项见[工程TODO的CD-50](../repository_quality/CLEANUP_CLOSEOUT_TODOLIST.md) |
 
 W2-01–W2-64继续使用各自终态结果，不为完成率重跑。W2-51/52的oracle排序路线关闭；
 W2-57/58/59/60失败或未启动部分不续跑补齐；W2-61/62/63独立后继不能回填旧分母。

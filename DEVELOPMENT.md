@@ -1,16 +1,16 @@
 # ChemWorld development guide
 
-ChemWorld keeps one active implementation and one active configuration surface. Git history is the
-archive for superseded protocols, reports, experiments, and maintenance decisions; historical copies
-do not remain in the main tree merely for replay convenience.
+ChemWorld keeps one current entry point per workstream. Git history stores superseded plans,
+editorial snapshots and retired producer code. Frozen experiment notes, inputs, results, failures
+and release artifacts remain available wherever evidence or replay consumers require them.
 
 ## Repository boundaries
 
 - `src/chemworld/` contains the installable environment, agent interfaces, and evaluation runtime.
-- `configs/current.json` identifies the active backend and mechanism-adaptation contracts.
-- `configs/` contains only active protocols or templates required by a current command.
-- `scripts/` contains current maintenance and experiment entry points.
-- `workstreams/` contains current, compact evidence summaries—not raw campaigns or version history.
+- `configs/current.json` resolves current evidence and distinguishes development state from frozen releases.
+- `configs/` contains current protocols/templates and frozen inputs required to interpret retained evidence.
+- `scripts/` contains current commands and retained reconstruction tools; its guide identifies their scope.
+- `workstreams/` contains one tracker per workstream, experiment notes and retained evidence records.
 - `runs/`, `site/`, caches, credentials, and provider responses are local artifacts and remain ignored.
 
 The environment provides physical-chemistry worlds, interventions, observations, budgets, scoring,
@@ -34,14 +34,15 @@ implicit dependency sync.
 ## Change workflow
 
 1. Resolve active paths from `configs/current.json`; do not select files by largest version suffix.
-2. Remove superseded code and configuration in the same change that migrates its remaining callers.
+2. Trace consumers before removing superseded code or configuration. Migrate active callers together;
+   preserve frozen inputs and results at their bound paths without refreshing historical hashes.
 3. Add or update focused tests for the affected contracts. Avoid a full test run unless the change
    genuinely spans the whole repository.
 4. Run Ruff and mypy on the changed Python modules, plus their focused tests. Run package-wide
    mypy only for cross-package changes or the integrated acceptance pass; run wheel smoke when
    packaging or resource lookup changes.
-5. Keep raw runs outside Git. Commit only a compact result when it is required to support a current
-   repository statement.
+5. Keep raw runs outside Git. Commit readable machine summaries with exact denominators and all
+   failures; retain the records needed by current evidence, replay and frozen release consumers.
 6. Check `git status --short` before committing; never add `api.md`, `key2.md`, `.env`, private seeds,
    or raw provider responses.
 
@@ -73,3 +74,15 @@ behavior and failure-path analysis over increasing a percentage with self-refere
 
 Generated evidence must distinguish environment validation from Agent performance. A passing backend
 check does not imply a method result, benchmark ranking, or publication claim.
+
+## Local generated files
+
+Use a task-specific directory under the system temporary directory for pytest `--basetemp`, PDF
+renders and diagnostic logs. Disposable `.pytest-tmp-*`, tool caches and generated `site/` output
+can be removed when no job uses them. Keep `.venv/`, credentials, user-supplied assets and `runs/`
+separate from that cleanup; an old run may still be the only source of a failure or replay record.
+
+Repository cleanup is tracked in
+[the engineering TODO](workstreams/repository_quality/CLEANUP_CLOSEOUT_TODOLIST.md).
+Development checks do not require an evidence-pipeline refresh. Release checks belong to the
+single authorized freeze after the execution surface is stable, as specified in [AGENTS.md](AGENTS.md).

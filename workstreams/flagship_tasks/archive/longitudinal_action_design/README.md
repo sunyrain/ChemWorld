@@ -11,8 +11,11 @@ Retained here:
 - the terminal W2-44 fixed-grid matched-action note;
 - the terminal W2-45 analytic-crossover note;
 - the terminal W2-46 corrected-volume/common-noise note.
-- the superseded W2-47 feature-only terminal packet note, config, pilot note, pilot launcher,
-  design materializer, and tests.
+- the superseded W2-47 feature-only terminal packet note, config and pilot note.
+
+The W2-47 historical launcher, materializer and exclusive tests have no current consumer and are
+retired to Git history. Their notes, configuration and diagnostic result remain here; no original
+participant, truth, replay or failure record was deleted.
 
 The W2-44--W2-46 configs are preserved under `configs/` in this archive. The unexecuted W2-40 config
 remains at its original benchmark path only because W2-43 uses its candidate-grid fields as a
@@ -27,6 +30,6 @@ to interpret the terminal negative results.
 
 The W2-47 single-world three-arm provider run is retained as a development protocol diagnostic only:
 its raw records remain under the ignored `runs/development/` root, while its feature-only terminal
-packet and launcher are archived here. The diagnostic exposed that the public candidate feature vector
+packet design is recorded here. The diagnostic exposed that the public candidate feature vector
 did not disclose the full executable operation plan; it is not a clean action-quality result.
 Its concise closeout is `reports/WORK_II_W2_47_FEATURE_ONLY_PACKET_DIAGNOSTIC_ZH.md`.

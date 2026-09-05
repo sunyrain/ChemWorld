@@ -5,8 +5,8 @@
 执行方式：**单 agent、main 分支、完成一段即提交并推送**  
 写作方式：**venue-neutral；Nature 系列 skill 停用，除非用户以后明确重新启用**
 
-本文件是第一篇当前唯一执行清单。新协作者先读本文件和同目录 `README.md`；`archive/`、
-claims、integration、story、reviews 以及旧审计材料均为历史记录，不得据此恢复任务或 owner。
+本文件是第一篇当前唯一执行清单。新协作者先读本文件和同目录 `README.md`；退休协调与编辑记录
+由Git历史保存，仍保留的claims、integration、story及旧审计材料只供冻结证据消费，不得据此恢复任务或owner。
 
 ## 0A. 协作认领与稿件源规则
 
@@ -25,132 +25,27 @@ claims、integration、story、reviews 以及旧审计材料均为历史记录�
 - **同步要求**：论文正文改动完成后，若影响标题、摘要、正文或图表，必须在同一发布段重建并检查 arXiv
   TeX/PDF、source bundle 和 build manifest；生成物未同步或 PDF 未做视觉检查时，该稿件段不算完成。
 
-## 0. 当前进度快照
+## 0. 当前状态与冻结成果
 
-- **DONE / Claim**：`Claim: Codex /root — RELEASE-STATUS-BOUNDARY — DONE`；已区分公开冻结的软件/证据
-  与开发HEAD资格；核实并改用实际v0.2.0公开范围，修复归档注入工具的旧段落依赖。
-  规范源、arXiv TeX、16页PDF、source ZIP/TAR及最小上传包同步，逐页渲染检查通过；
-  本轮31项定向集成检查、Ruff与diff检查通过。冻结实验数值和既有绑定未改，未重跑证据流水线。
-
-- **DONE**：15 个参考任务、既有边界用例、typed operations/instruments、资源账本、精确重放、
-  单组件 world forks、known-policy controls 和已有完整 agent 生命周期均可复用。
-- **DONE（实现）/ 未执行（新故事）**：已有一个面向 15 个参考任务的跨世界资格 runner；它可作为
-  C01、C04--C06 的参考集基线，但不能替代生成组合 C02 或未见组合 C03，也不证明世界空间只有 15 项。
-- **DONE**：A01，统一世界底座/仪器主张和边界；源稿的标题、摘要、引言和讨论已切换到新故事，且
-  arXiv TeX/PDF 已由规范源重建同步。
-- **DONE**：A02，Codex `/root` 完成 v1 世界组合语法与公开构造契约；规范见
-  `docs/world-composition-contract.md`。
-- **DONE**：A03，Codex `/root` 完成当前能力表；规范见 `docs/world-capability-map.md`。
-- **DONE**：A04，Codex `/root` 已将论文 Results 重排为构造、组合覆盖、接口/物理/事务资格、受控分叉、agent 使用和过程记录；arXiv TeX/PDF 已同步并通过视觉顺序检查。
-- **DONE**：B01，Codex `/root` 已实现统一声明式世界构造入口；合法的 v1 组件组合可编译为运行时任务与场景，并公开操作、仪器、资源、终止和评价表面。
-- **DONE**：B02，Codex `/root` 已实现执行前兼容性检查；缺失依赖、冲突状态所有者、单位不匹配、无效参数、资源不可能性和生命周期空洞会以结构化诊断 fail closed，声明范围会收窄运行时操作验证，结晶/电化学组合保留模板工作流门控。
-- **DONE**：B03，Codex `/root` 已实现覆盖引导的组合生成；离散轴使用 pairwise covering rows，连续轴使用 seeded Latin hypercube，工作流覆盖关键有序操作交互，并报告精确分母、成功数和全部失败。
-- **DONE**：B04，Codex `/root` 已补齐并统一说明单一过程模块、跨模块、多阶段和受控分叉 authoring 示例；三份组合请求通过统一编译器验证，15 个参考任务已按八个组件模式及同一 TaskSpec 覆盖层映射。
-- **DONE**：U00，Codex `/root` 已锁定 U01--U06 案例矩阵；六项分别承担多阶段传播、资源受限测量、失败恢复、受控分叉、未见组合/完整 agent 和案例广度证据，U05 与 C03 共用预先冻结的反应--蒸馏覆盖批次。
-- **DONE**：C00，Codex `/root` 已冻结 C01--C08 与 D01--D04 的单份组合资格实验说明；正式分母、覆盖 seeds、U05/C03 共同未见批次、测量、pass/failure 规则和输出均在数据生成前锁定。
-- **DONE / 平台预算修复 design v3**：v2 在第 16 步 final assay 暴露的 `measure` repeat-limit 合同矛盾已修复；旧失败完整保留。Design v3 未改变 coverage、seed、workflow、process-time 秒数或其他重复上限，全量组合资格从首个 case 重跑并通过 64/64 reference units、1,786/1,786 recipes、192/192 negatives、52/52 generated、8/8 unseen、32/32 modules、7/7 interfaces 和 7/7 mutants；受影响的 8 个确定性案例也从头重跑并通过。
-- **DONE**：`Claim: Codex /root — U00/B04-AMEND — DONE`；U02/U03 authoring example 已改用 runtime
-  支持的 `balanced` objective，冻结并执行验证 5-step 表征路径和 19-step 失败--恢复路径；规范源、arXiv
-  TeX、19 页 PDF、source bundle 和 build manifest 已由同一次确定性构建同步，PDF 第 3--4 页视觉检查通过。
-- **DONE / Claim**：`Claim: Codex /root — U01-U03/U06/E01-DET — DONE`；按
-  `experiments/first-paper-deterministic-use-cases.md` 完成 8 个冻结确定性案例。正式结果为 89/89 submitted
-  actions 均有完整回执、88 commits、1 个预注册 rollback、8 个 final assays；89/89 逐步资源对账、8/8
-  exact replay、U03 ghost-state 对账和 U04/U05 current evidence binding 全部通过，provider、leakage、
-  missing receipts 和 failure classes 均为零。规范论文源、arXiv TeX、19 页 PDF、source bundle 与 build
-  manifest 已同步；PDF 第 1、4、11 页视觉检查及重复构建零 diff 通过。
-- **DONE / Claim**：`Claim: Codex /root — U04/U05/E02-INSTRUMENT-USE — DONE`；U04 通过
-  `configs/current.json` 复用既有 single-private-component fork 正式证据，没有重跑。U05/E02 的 design-v3
-  真实 provider 单元在冻结 C03 首个未见反应--蒸馏组合上闭合一个完整生命周期：15/15 actions committed、
-  1 terminate、1 final assay、0 rollback、0 leakage、exact replay 零误差；process time 为
-  8,158.454/10,440 s。Provider accounting 为 1 session、1 logical Codex turn、17 MCP calls；累计 input
-  493,092（cache hit 440,832、uncached 52,260），output 2,973，均在冻结上限内。v1/v2 失败继续保留，
-  成功结果见 `reports/first-paper-agent-instrument-use-v3.{json,md}`。
-- **DONE**：E03/E04 与 F01、F02、F04--F06 已收束。正文保留 endpoint 与 19 维过程记录的区别，删除偏离主线的
-  archived pair；Related Work、能力边界、reference registry、coverage 映射、逐组件 model card、exact replay
-  定义和 agent provenance 已补齐。六图压缩为四图，14 页 arXiv PDF、source bundle 与 manifest 已集中验收。
-- **DONE / 优势导向收束**：标题、摘要、引言、Related Work、Results、Discussion、Conclusion 与 model cards
-  已围绕可组合世界、事务化生命周期、私有定律受控分叉、全面观测和精确重放重写；ChemGymRL、SDL、优化/
-  控制套件、交互式科学世界、覆盖设计与计算 provenance 的 Related Work 已恢复并定位，补入互补能力比较表。
-  生成块已严格拆分 topology novelty 与 exact task--world identity novelty，覆盖分母统一为 60/60、180/180、
-  212/212 和 84/84；删除开发历史句和主图中的 token/cache accounting。14 页 PDF 完成逐页视觉检查；发布测试
-  6 passed，图、作者与读者边界测试 11 passed，Ruff 与 diff 检查通过。
-- **DONE / 作者元数据**：补入 Xiaonan Wang 为第三作者及通讯作者，共用 Tsinghua affiliation 1，公开通讯邮箱为
-  `wangxiaonan@tsinghua.edu.cn`；规范源、arXiv TeX、PDF 与 source bundle 同步生成。
-- **DONE / 审稿意见择要采纳**：删除读者可见的 `v1` 表述，压缩摘要数字，补入 executable/qualitative 语义边界、
-  coverage 非穷尽说明、状态转移与 public/private projection 形式化、environment/action-trace replay taxonomy，
-  并加入两个 agent-facing 交互例子；未新增 agent benchmark、多模型比较或三阶覆盖实验。
-- **DONE / 最终清稿**：修正 Figure 4B 相对差异指标与方向判定说明，收紧软件实验底座资格表述，将具体
-  provider/model 信息下沉到 Methods，补齐 runtime 事件/账本对象、Qualification scope 与 protocol 术语；
-  规范源、四张可编辑 SVG、15 页 arXiv PDF、source bundle 和 manifest 已同步，18 项定向测试、Ruff、diff
-  检查和关键页视觉检查通过。
-- **DONE / 结果层次重构与全局清稿**：`Claim: Codex /root — A04-RESULTS-REFRAME — DONE`；将原第 4--7 节按
-  “世界资格验证—过程完整与受控干预—Agent 契约接入”重组，消除 failure、replay 和非参考世界证据的跨节重复，
-  同步统一摘要、贡献列表、Discussion、Methods、Conclusion 与测试断言；三张结果图已固定在对应证据章节，
-  16 页 arXiv PDF、source bundle 和 manifest 已同次重建，12 项定向测试、Ruff、diff 检查及第 5--12 页视觉检查通过。
-- **DONE / 最终 minor revision**：`Claim: Codex /root — FINAL-MINOR-POLISH — DONE`；收紧摘要中的 software-condition
-  与 safety 表述，统一 substrate / executable world / public instrument contract 术语，补齐 Section 3.2 接受/拒绝事件
-  形式化，压缩 ChemGymRL 比较，删除 Section 5.3 重复并将 Figure 4 后置到 Section 6.3；证据、结果结构与实验分母
-  未改变。16 页 arXiv PDF、source bundle 与 manifest 已重建，12 项定向测试、Ruff、diff 检查及关键页视觉检查通过。
-- **DONE / 发布前形式闭合与图件收口**：`Claim: Codex /root — FINAL-FORMAL-CLOSURE — DONE`；闭合
-  public world / private mechanism、preflight rejection / post-execution rollback 和直接私有字段暴露的定义，新增
-  controlled-fork 规格表与 19 个过程坐标表，并重做 Figure 1、修正 Figure 3/4 的原生可编辑矢量表达；未新增实验或改变
-  分母。18 页 arXiv PDF、source bundle 与 manifest 已同次重建，14 项定向测试、Ruff、diff 检查及第 1、3--5、8--10、
-  16 页视觉检查通过。
-- **DONE / 最终 replay 与验证边界闭合**：`Claim: Codex /root — FINAL-REPLAY-BOUNDARY — DONE`；确认 exact replay
-  重放完整 submitted action/transaction trace（失败案例 19/19 steps，含 1 个 rollback），从既有 192-probe 报告真实拆出
-  128 个 `P=0` admission rejects 与 64 个 `P=1,C=0` runtime-precondition rollbacks，并明确 solver/observation fault 未有独立
-  分母；同步统一 world/scenario/task--world identity、observation-RNG、fork 规律、过程坐标、Figure 1/2/4 和术语。19 页 arXiv
-  PDF、source bundle 与 manifest 已同次重建；20 项定向测试、Ruff、diff 检查及关键页视觉检查通过。未新增实验、未改冻结
-  分母、未虚构发布标识。
-- **DONE / 最终 PDF 版面微调**：`Claim: Codex /root — FINAL-PDF-LAYOUT — DONE`；第五页 commit 公式改为双行，
-  第十页 Figure 4 浮动顺序调整后消除空白右栏，Figure 4D 长标签重新断行；19 页规范 PDF、source bundle 与 manifest
-  已同次重建，逐页缩略图及第 5、10、11 页高分辨率检查通过，19 项定向测试、Ruff 与 diff 检查通过。
-- **DONE / 全面排版修复**：`Claim: Codex /root — FINAL-LAYOUT-COMPREHENSIVE — DONE`；统一双栏浮动参数、表格
-  ragged-right 列型、标题间距和附录全宽块，消除 Figure 2/3 浮动页、第 7 页空白右栏、附录孤页/孤行及参考文献前后
-  错序；规范 PDF 压缩为 18 页，且无 overfull 或未解析引用。PDF、source ZIP/TAR 与 manifest 已同次确定性重建，
-  逐页缩略图及第 7、8、15--18 页高分辨率检查、14 项定向测试、diff 检查和重复构建哈希一致性均通过；未新增实验或改动冻结分母。
-- **DEFERRED / 可选 Image 2 参考图**：WellAU Responses wire 的 bounded 生成探针未获得图像结果。Figure 1--3 现均按
-  用户指示直接采用给定 PNG；Image 2 生成及三张主图的矢量重建不再阻塞发布。
-- **当前 owner**：全部新工作由 `codex-1` 推进。旧文档或旧协议里的其他 owner 只表示历史提交者。
-- **DONE / Claim**：`Claim: Codex /root — CENTRAL-QUESTION-LAYOUT-REFRAME — DONE`；在不改变冻结证据、
-  实验分母或能力边界的前提下，将论文主轴提升为“世界构造本身成为受控实验变量”，同步重写标题、摘要、
-  引言、贡献、章节标题、Discussion 与 Conclusion；合并读者能力图谱和使用案例以消除附录整栏空白，统一
-  `Programmable Chemical Worlds` 页眉，并重建为 18 页 PDF。17 项论文/图件/发布测试、Ruff、无 overfull/
-  未解析引用检查、关键页高分辨率视觉验收及连续两次构建的 PDF/source bundle/manifest 哈希一致性均通过。
-- **DONE / Claim**：`Claim: Codex /root — FIGURE-INFORMATION-SWEEP — DONE`；按“每个面板必须提供不可由
-  一句话或表格更清楚替代的独立信息”清扫主图，删除 Figure 2C/D、Figure 3C/D 和 Figure 4C/D 的重复通过率、
-  PASS 卡片、资源占比与低信息时间线，将三张结果图收缩为横向双面板，并同步图注、正文、显示项和发布检查。
-  规范 PDF 由 18 页压缩为 17 页，Figure 2/3 在第 7 页形成紧凑证据组，Figure 4 在第 9 页贴近 fork 结果；
-  17 项论文/图件/发布测试、Ruff、diff 检查、无 overfull/未解析引用检查、逐页视觉验收和双构建哈希一致性均通过。
-- **DONE / Figure 1 直接替换**：按用户指定的 `ChemWorld_Figure1_editable_16x9_01.png` 直接替换 Figure 1，
-  不重做渲染器或矢量重建；同步更新图注、显示项、Figure manifest、17 页 PDF 和 source bundle。20 项定向测试、
-  Ruff、diff 检查及第 3 页高分辨率视觉检查通过。
-- **DONE / Figure 2 直接替换**：按用户指定的 `ChemWorld_Figure2_editable_16x9_01.png` 直接替换 Figure 2，
-  不重做渲染器或矢量重建；同步更新四面板图注、显示项、Figure manifest、arXiv PDF 和 source bundle，并完成定向测试与视觉检查。
-- **DONE / 主图精简与 Figure 3 直接替换**：删除信息已被正文、资格 census 和 Figure 1 覆盖的旧 Figure 3；
-  新 Figure 3 按用户指定的 4:3 PNG 直接插入，以 A--C 三个面板展示冻结执行案例、失败回滚后的继续提交，以及受控私有定律分叉与独立 agent 生命周期。
-- **DONE / Figure 2--3 原像素版面修复**：Figure 2（9599×5400）和 Figure 3（7200×5400）改用零边框、无插值的
-  lossless PDF 包装，修复手工 page box 引起的偏移、裁切和图注覆盖；17 页 PDF 与 source bundle 同次重建，最终 PDF
-  保留两张原始像素图，第 6、8 页高分辨率视觉检查确认边界完整且无文字覆盖；Figure manifest 工具只校验并绑定
-  三张直接插入资产，不再运行旧绘图路径覆盖用户给定图件。
-- **DONE / 统一附录结构**：将原 Appendix A--D 合并为一个 `Appendix` 主节，并保留 A--D 四个功能小节；移除
-  表格 caption 中误用的 `Appendix D.` 前缀，使组件 model-card 表显示为正常的 `Table 10.` 标题。规范源、arXiv
-  TeX/PDF、source bundle 与 build manifest 已同次重建并完成附录页视觉检查。
-- **HISTORICAL / 原独立公开发布记录**：`Claim: Codex /root — PUBLIC-REPOSITORY-RELEASE — DONE`；第一篇冻结代码、协议、
-  机器报告、图件和 arXiv 包已发布到公开仓库 `sunyrain/ChemWorld-Public`，冻结提交 `9df2783` 并建立
-  `v0.1.0` 标签（该标签在2026-09-05远端已不存在；此段仅保存当时记录）；后续 benchmark/Work II 配置、实验专用模块、运行结果和 provider payload 均未纳入。
-  公开快照通过 87 项定向/集成测试、382 文件 release manifest、离线 denominator verifier 与凭据扫描；
-  引言和 Data and Code Availability 均提供仓库主页及固定版本链接，arXiv PDF/source bundle 同次重建。
-- **DONE / arXiv 最小上传包**：`Claim: Codex /root — ARXIV-SUBMISSION-ZIP — DONE`；在完整 source ZIP/TAR
-  之外新增可直接上传的 `chemworld-arxiv-submission.zip`，仅含顶层 `main.tex`、`main.bbl`、
-  `references.bib` 和三张正文引用 PDF 图；排除 manuscript Markdown、成品 PDF、日志、缓存与本地元数据，
-  并由 build manifest 固定成员列表、文件大小和 SHA-256。
-
-当前公开绑定（2026-09-05核实远端tag、README及manifest）：
-[v0.2.0固定快照](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724)
-保留冻结runtime、公开配置/协议、例子及四份脱敏终态报告；不含稿件、图件、source bundle或Work II。
-v0.3.0主要补展示文档并沿用该runtime evidence。当前稿件链接与可用性声明以此实际范围为准，
-不得继续将旧v0.1.0历史记录视为当前公开状态；本次核实不是重跑实验或新执行审计。
+- 第一篇世界仪器发布已完成；本文件第1–6节保留原科学范围、任务完成状态与冻结案例设计。
+  A01–F06均为完成记录，不再发起旧任务。完整编辑/排版日志由Git历史保存。
+- 当前公开软件和脱敏证据为
+  [v0.2.0固定快照](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724)。
+  2026-09-05已核实tag、README与manifest；公开范围含runtime、配置/协议、例子和四份脱敏终态报告，
+  不含稿件、图件、source bundle或Work II。v0.3.0补展示文档并沿用该runtime evidence。
+- 资格结果保留64/64 reference units、1,786/1,786 recipes、192/192 negatives、52/52 generated
+  （含8个identity-new cases）、32/32 modules、7/7 interfaces和7/7 mutants。
+  组合资格design-v3、确定性使用案例design-v3和独立agent使用v3的报告由current绑定解析；
+  原v1/v2平台缺陷、失败和重跑关系继续保留，不回填分母。
+- 8个确定性案例保留89/89 submitted actions、88 commits、1个预注册rollback、8次final assay、
+  逐步资源对账和8/8 exact replay。完整agent案例保留15/15 committed actions、
+  terminate/final assay及零误差replay；它不是模型比较实验。
+- 当前规范稿与三张用户给定图已同步到16页arXiv PDF、完整source ZIP/TAR和最小上传ZIP。
+  最近一次发布边界更新通过31项定向检查、Ruff、diff及PDF视觉检查。输出位置见上方生成链。
+- 冻结发布身份与开发HEAD资格分别解释。后续Work II开发使旧qualification在当前HEAD失配时，
+  保留原冻结证据，不撤销公开release、不反复刷新旧审计。
+- 本轮仓库清理由工程TODO的CD-50管理；只压缩当前协调文字，保留本文件的冻结科学设计、
+  原始报告、失败、作者信息及已发布稿件。
 
 ## 1. 论文只讲什么
 
@@ -330,11 +225,7 @@ U05/C03 批次从头重跑并保留全部失败。
 - 不做逐任务 claim、租约、重复 reviewer、重复全量测试、手工 SHA 清单或多套 manifest；
 - 不再调用 Nature-specific skills；论文按内容选择期刊，不反向套用 Nature 叙事模板。
 
-## 7. 立即执行顺序
+## 7. 历史完成顺序（不再启动）
 
-1. 完成 A01--A04：先改论文契约和结构。
-2. 完成 B01--B04：让“可组合世界”成为清楚、可用的发布能力。
-3. 锁定 U01--U06 的案例矩阵，并让 U05 与 C03 共用同一批未见组合。
-4. 写一份短实验说明并一次完成 C01--C08 与 D01--D04。
-5. 完成 E01--E04：补一个未见世界 agent 使用例，压缩旧行为结果。
-6. 完成 F01--F06：统一改稿、重画图、一次验收、发布即停。
+上述论文契约、构造能力、案例矩阵、组合资格、agent案例和图文发布均已完成。
+新科学任务在Work II TODO管理；第一篇若有新的修改，直接在本文件追加具体任务，不恢复旧队列。

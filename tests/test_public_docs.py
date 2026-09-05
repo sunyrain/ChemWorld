@@ -1,10 +1,57 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from typing import Any
 
-from scripts.audit_public_docs import audit_public_docs
+import pytest
+from scripts.audit_public_docs import _maintainer_token_hits, audit_public_docs
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def test_repository_navigation_does_not_allow_maintainer_commands_in_public_docs(
+    tmp_path: Path,
+) -> None:
+    readme = tmp_path / "README.md"
+    page = tmp_path / "docs" / "guide.md"
+    page.parent.mkdir()
+    readme.write_text("[Research](workstreams/current.md)\n", encoding="utf-8")
+    page.write_text("Public tutorial.\n", encoding="utf-8")
+    assert _maintainer_token_hits([readme, page], tmp_path) == []
+
+    readme.write_text("python scripts/private_runner.py\n", encoding="utf-8")
+    page.write_text("[Internal](../workstreams/current.md)\n", encoding="utf-8")
+    hits = _maintainer_token_hits([readme, page], tmp_path)
+    assert {(hit["path"], hit["token"]) for hit in hits} == {
+        ("README.md", "python scripts/"),
+        ("docs/guide.md", "](../workstreams/"),
+    }
+
+
+def test_readme_uses_frozen_release_identity_independently_of_development_gate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    current_path = ROOT / "configs/current.json"
+    current = json.loads(current_path.read_text(encoding="utf-8"))
+    current["mechanism_adaptation"]["gate_a_evidence_current"] = False
+    original_read = Path.read_text
+
+    def read_with_registry(path: Path, *args: Any, **kwargs: Any) -> str:
+        if path == current_path:
+            return json.dumps(current)
+        return original_read(path, *args, **kwargs)
+
+    monkeypatch.setattr(Path, "read_text", read_with_registry)
+    report = audit_public_docs(ROOT)
+    assert "README.md" not in report["status_surface_missing_markers"]
+
+    current["publication"]["frozen_release"]["commit"] = "missing-release-for-test"
+    report = audit_public_docs(ROOT)
+    assert any(
+        "missing-release-for-test" in marker
+        for marker in report["status_surface_missing_markers"]["README.md"]
+    )
 
 
 def test_public_documentation_is_user_facing_and_matches_v05_truth() -> None:

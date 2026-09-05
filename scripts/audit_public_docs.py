@@ -13,9 +13,11 @@ import yaml
 ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_TOKENS = (
     "codex_subagent",
+    "python scripts/",
+)
+SITE_INTERNAL_LINK_TOKENS = (
     "](workstreams/",
     "](../workstreams/",
-    "python scripts/",
 )
 UNIMPLEMENTED_COMMANDS = ("chemworld score",)
 RESULT_PAGES = (
@@ -114,24 +116,18 @@ ENGLISH_NAV_TARGETS = (
     "real_world_bridge.md",
 )
 README_BOUNDARY_MARKERS = (
-    "campaign",
-    "participant gates b–e",  # noqa: RUF001
-    "does not support broad sota",
-    "real-world-transfer claims",
+    "frozen",
+    "bounded independent knowledge utility",
+    "no demonstrated method advantage",
+    "laboratory validity",
 )
-PASSED_GATE_A_STATUS_MARKERS = {
-    "README.md": ("Historical RC28 Gate A passed",),
+PASSED_GATE_A_STATUS_MARKERS: dict[str, tuple[str, ...]] = {
     "docs/benchmark_release.md": ("历史通过",),
 }
-FAILED_GATE_A_STATUS_MARKERS = {
-    "README.md": ("benchmark_ready=false",),
+FAILED_GATE_A_STATUS_MARKERS: dict[str, tuple[str, ...]] = {
     "docs/benchmark_release.md": ("benchmark_ready=false",),
 }
-BINDING_STALE_GATE_A_STATUS_MARKERS = {
-    "README.md": (
-        "binding is stale",
-        "benchmark_ready=false",
-    ),
+BINDING_STALE_GATE_A_STATUS_MARKERS: dict[str, tuple[str, ...]] = {
     "docs/benchmark_release.md": (
         "当前源码指纹已经变化",
         "benchmark_ready=false",
@@ -149,7 +145,7 @@ STALE_GATE_A_STATUS_MARKERS = (
 
 def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
     files = _public_files(root)
-    forbidden_hits = _token_hits(files, root, FORBIDDEN_TOKENS)
+    forbidden_hits = _maintainer_token_hits(files, root)
     unimplemented_hits = _token_hits(files, root, UNIMPLEMENTED_COMMANDS)
     obsolete_status_hits = _token_hits(files, root, OBSOLETE_STATUS_PHRASES)
     result_number_hits = _disallowed_token_hits(
@@ -209,6 +205,17 @@ def audit_public_docs(root: Path = ROOT) -> dict[str, Any]:
         if gate_a_pass
         else FAILED_GATE_A_STATUS_MARKERS
     )
+    # Repository navigation follows the published instrument identity. Development Gate A
+    # status remains in the benchmark page and does not redefine the frozen public release.
+    frozen_release = current.get("publication", {}).get("frozen_release", {})
+    if frozen_release.get("status") == "published":
+        expected_status_markers = {
+            **expected_status_markers,
+            "README.md": (
+                f"{frozen_release['repository_url']}/tree/{frozen_release['commit']}",
+                frozen_release["tag"],
+            ),
+        }
     status_surface_missing_markers = _missing_markers(
         root,
         expected_status_markers,
@@ -428,6 +435,14 @@ def _nav_targets(nav: list[Any]) -> list[str]:
 def _localized_source(target: str, locale: str) -> str:
     path = Path(target)
     return path.with_name(f"{path.stem}.{locale}{path.suffix}").as_posix()
+
+
+def _maintainer_token_hits(files: list[Path], root: Path) -> list[dict[str, Any]]:
+    """Allow repository research navigation while keeping site tutorials self-contained."""
+    site_files = [path for path in files if path.relative_to(root).parts[0] == "docs"]
+    return _token_hits(files, root, FORBIDDEN_TOKENS) + _token_hits(
+        site_files, root, SITE_INTERNAL_LINK_TOKENS
+    )
 
 
 def _token_hits(files: list[Path], root: Path, tokens: tuple[str, ...]) -> list[dict[str, Any]]:

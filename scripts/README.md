@@ -1,11 +1,28 @@
 # Script entry points
 
-The `scripts/` directory contains executable maintenance, validation, and experiment entry points for the active
-repository surface. Superseded runners belong in Git history rather than beside current implementations.
+The `scripts/` directory contains current commands and retained reconstruction tools. The workstream
+TODO and bound experiment note determine which command is appropriate; a retained runner does not
+authorize a new experiment or restore a historical qualification gate.
 
 - `audit_*.py`: read-only runtime and contract validation.
-- `run_*.py`: active experiment, evaluation, or focused release entry points.
-- `build_*.py`: deterministic builders for current artifacts.
+- `run_*.py`: experiment, evaluation, or focused release entry points; some serve frozen protocols.
+- `build_*.py`: deterministic artifact builders; current and historical scope must remain distinct.
+
+## Current research paths
+
+| Work | Entry points | Authority |
+| --- | --- | --- |
+| First-paper release | `paper/tools/build_arxiv_release.py` | First-paper TODO and canonical manuscript |
+| Work II M0/M1 development | `run_work_ii_factorial.py` | Development experiment note; separate from formal results |
+| Work II M1 formal replication | `run_work_ii_factorial_replication.py` | Completed M1 note/protocol; no automatic rerun |
+| Work II M3 information separation | `run_work_ii_m3_portability.py` | Completed M3 note/protocol; preserves sealed M1 source reuse |
+| Work II publication | `paper/figures/prior-discovery/render_prior_discovery_figures.py`, two current paper builders | Current evidence bindings and [paper guide](../paper/README.md) |
+
+M1/M3 are complete. The next mechanism-matching/new-condition block is design-only in the
+[experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md).
+The remaining sections describe retained protocol families, not a current experiment queue.
+
+## Retained protocol and release tools
 
 Resolve active runtime and protocol paths through `configs/current.json`; do not infer currency from a `vnext` name
 or a larger version suffix.

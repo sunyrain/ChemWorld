@@ -4,10 +4,10 @@ Python/matplotlib produces editable-text SVG/PDF and 600 dpi PNG/TIFF assets. Th
 [display plan](../../prior_discovery_display_items.md) is the single description of panel roles,
 denominators and interpretation limits. Captions live in the two manuscript sources.
 
-Figures 1–6 were redesigned around readable text, paired measurements, direct denominators and
-explicit missing outputs. Historical four-panel descriptions are superseded. The compact ICLR
-manuscript currently uses Figures 1 and 3–6 and renumbers them consecutively; Figure 2 remains
-available for the long manuscript.
+The eight current assets use readable text, paired measurements, direct denominators and explicit
+missing outputs. The compact ICLR manuscript uses assets 1, 3, 5, 6 and 8 in the main text, with
+assets 4 and 7 in the appendix, and renumbers them consecutively. The long manuscript uses all eight.
+Old development-only figure exports are retired; their numerical reports remain in the evidence index.
 
 ## Reproduction
 
@@ -27,5 +27,8 @@ Builds write to `paper/exports/prior-discovery-draft/` and
 `paper/exports/prior-discovery-iclr2027/`. Review exported PDFs at page scale after changing
 figures or prose. Labels, uncertainty and availability must remain legible at manuscript width.
 
-The independent-world M1 block has its own fixed experiment note. Its figure will use the
-completed formal report; planned or development outcomes do not substitute for that report.
+M1 and M3 each read their completed formal reports through the current registry. M1 displays the
+unsupported primary material-benefit result; M3 displays independent artifact utility and the
+nearest-evidence zero-regret boundary. Reused worlds and nested sessions remain distinguishable.
+Publication QA status belongs in the [submission checklist](../../ICLR_2027_SUBMISSION_CHECKLIST.md);
+do not maintain another copied QA report or figure hash inventory.
