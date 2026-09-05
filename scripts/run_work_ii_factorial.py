@@ -92,10 +92,16 @@ class Progress:
 class FrozenPlanAgent(_FrozenTruthReplayAgent):
     name = "work_ii_shared_frozen_plan"
 
+    def __init__(self, actions, *, formal_result=False):
+        super().__init__(actions)
+        self.formal_result = formal_result
+
     def manifest(self) -> dict[str, Any]:
         return {
             **super().manifest(),
-            "execution_role": "fixed_design_development",
+            "execution_role": "fixed_design_replication"
+            if self.formal_result
+            else "fixed_design_development",
             "participant_feedback": False,
         }
 
@@ -121,7 +127,7 @@ def execute_plan(
         spec = protocol["tasks"][task]
         run_agent(
             env_id=get_task(task).env_id,
-            agent=FrozenPlanAgent(actions),
+            agent=FrozenPlanAgent(actions, formal_result=protocol.get("formal_result", False)),
             world_split=protocol["world_split"],
             budget=len(actions),
             objective=protocol["objective"],
@@ -240,6 +246,9 @@ def provider_call(
     coefficients: list | None,
     progress: Progress,
     completed: int,
+    *,
+    total: int = 12,
+    provider_override: dict | None = None,
 ) -> dict:
     path = root / "provider" / call_id
     if (path / "receipt.json").exists():
@@ -257,7 +266,7 @@ def provider_call(
     prompt = participant_prompt(packet, coefficients=coefficients)
     seal(path / "started.json", {"call_id": call_id, "model": model, "stage": stage})
     seal(path / "prompt.json", {"prompt": prompt})
-    provider = read(PROVIDER_CONFIGS[model])["provider"]
+    provider = provider_override or read(PROVIDER_CONFIGS[model])["provider"]
     receipt: dict[str, Any] = {"call_id": call_id, "status": "failed", "usage": {}}
     try:
         with tempfile.TemporaryDirectory(prefix="chemworld-m1-") as temp:
@@ -277,14 +286,16 @@ def provider_call(
                 environment=environment,
                 timeout_s=600,
                 liveness=lambda event: progress.emit(
-                    "provider-live", completed, 12, call_id=call_id, live=event
+                    "provider-live", completed, total, call_id=call_id, live=event
                 ),
             )
             receipt.update(raw)
         if receipt["status"] == "completed":
             if receipt.get("tool_event_count", 0):
+                receipt["protocol_failure"] = "forbidden_tool_use"
                 raise RuntimeError("forbidden_tool_use")
             if not receipt.get("thread_id"):
+                receipt["protocol_failure"] = "missing_session_identity"
                 raise RuntimeError("missing_session_identity")
             validate_payload(receipt.get("final_payload"), stage, ids)
     except ValueError as error:

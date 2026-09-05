@@ -1,8 +1,9 @@
 # Work II 实验矩阵与贡献路线
 
 更新：2026-09-05。任务状态由 [WORK_II_TODOLIST.md](WORK_II_TODOLIST.md) 管理。
-M0/M1开发canary已按独立note执行；下文更大的正式/迁移矩阵仍是**未冻结、未执行的规模建议**。
-用户已授权本轮开发与优化；该授权没有将开发样本升级为正式证据。
+M0/M1开发canary已按独立note执行；用户已授权继续推进M1独立世界正式复核。
+M1按[执行前说明](WORK_II_M1_REPLICATION_EXPERIMENT_NOTE.md)固定为10 worlds、120会话机会、160条件；
+完成运行器验收后冻结执行。M2–M4仍是未执行建议，开发样本不升级或回填正式证据。
 已有块按原protocol/note和 [当前绑定](../../configs/current.json) 解释，不按新指标改写旧主结果。
 
 ## 1. 当前证据处置

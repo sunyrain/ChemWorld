@@ -77,9 +77,7 @@ def test_named_electrochemical_parameters_round_trip_through_internal_vector() -
     }
     vector = electrochemical_recipe_unit_vector_from_parameters(parameters)
     decoded = electrochemical_recipe_parameters_from_unit_vector(vector)
-    recipe = task_recipe_from_unit_vector(
-        get_task("electrochemical-conversion").to_dict(), vector
-    )
+    recipe = task_recipe_from_unit_vector(get_task("electrochemical-conversion").to_dict(), vector)
 
     assert np.all((vector >= 0.0) & (vector <= 1.0))
     assert decoded == pytest.approx(parameters)
@@ -90,12 +88,24 @@ def test_named_electrochemical_parameters_round_trip_through_internal_vector() -
 def test_electrochemical_runtime_records_contract_and_keeps_reverse_side_pool_closed() -> None:
     import gymnasium as gym
 
-    env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
+    # This tests runtime reaction direction, independently of the adaptive workflow's
+    # required measurements between the probe and controlled stages.
+    env = gym.make(
+        "ChemWorld",
+        task_id="electrochemical-conversion",
+        seed=0,
+        electrochemical_workflow_mode="autonomous_open_v1",
+    )
+
+    def committed_step(action):
+        _, _, _, _, info = env.step(action)
+        assert info["transaction_status"] == "committed"
+
     try:
         env.reset(seed=0)
-        env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 0})
-        env.step({"operation": "add_reagent", "amount_mol": 0.010})
-        env.step(
+        committed_step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 0})
+        committed_step({"operation": "add_reagent", "amount_mol": 0.010})
+        committed_step(
             {
                 "operation": "set_potential",
                 "potential_V": 0.80,
@@ -103,12 +113,12 @@ def test_electrochemical_runtime_records_contract_and_keeps_reverse_side_pool_cl
                 "electrolyte_profile": 1,
             }
         )
-        env.step({"operation": "electrolyze", "duration_s": 900.0})
+        committed_step({"operation": "electrolyze", "duration_s": 900.0})
         forward_state = env.unwrapped._state
         side_after_forward = forward_state.species_amounts["SideRed"]
         assert forward_state.species_amounts["Red"] > 0.0
 
-        env.step(
+        committed_step(
             {
                 "operation": "set_potential",
                 "potential_V": 2.0,
@@ -116,7 +126,7 @@ def test_electrochemical_runtime_records_contract_and_keeps_reverse_side_pool_cl
                 "electrolyte_profile": 1,
             }
         )
-        env.step({"operation": "electrolyze", "duration_s": 120.0})
+        committed_step({"operation": "electrolyze", "duration_s": 120.0})
         reverse_state = env.unwrapped._state
         settings = equipment_settings(reverse_state.equipment, "electrochemical_cell")
 

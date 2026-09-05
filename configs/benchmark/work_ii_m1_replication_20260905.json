@@ -1,0 +1,254 @@
+{
+  "version": "work-ii-m1-replication-1",
+  "formal_result": true,
+  "world_split": "public-test",
+  "objective": "balanced",
+  "observation_noise_mode": "keyed",
+  "observation_seed_base": 90500,
+  "noise_namespace": "work-ii-m1-replication-20260905",
+  "tasks": {
+    "electrochemical-conversion": {
+      "axes": [
+        [
+          "controlled_potential_V",
+          0.65,
+          1.65
+        ],
+        [
+          "controlled_current_mA",
+          20.0,
+          120.0
+        ]
+      ],
+      "fixed_controls": {
+        "controlled_duration_s": 3540.0,
+        "electrolyte_profile": 2,
+        "probe_current_mA": 70.0,
+        "probe_duration_s": 630.0,
+        "probe_potential_V": 1.18,
+        "reagent_amount_mol": 0.004,
+        "solvent": 1
+      },
+      "electrochemical_workflow_mode": "autonomous_open_v1",
+      "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2"
+    },
+    "reaction-to-crystallization": {
+      "axes": [
+        [
+          "reaction_temperature_K",
+          350.0,
+          405.0
+        ],
+        [
+          "crystallization_temperature_K",
+          275.0,
+          295.0
+        ]
+      ],
+      "fixed_controls": {
+        "catalyst": 0,
+        "catalyst_amount_mol": 0.000315,
+        "crystallization_duration_s": 7200.0,
+        "reaction_duration_s": 3600.0,
+        "reagent_amount_mol": 0.015,
+        "seed_mass_g": 0.008,
+        "solvent": 1,
+        "stirring_speed_rpm": 675.0
+      }
+    }
+  },
+  "evidence_xy": [
+    [
+      0.3804625256472584,
+      0.841554401535633
+    ],
+    [
+      0.5061760665255862,
+      0.3656502173662615
+    ],
+    [
+      0.6146406261476206,
+      0.9173727338699357
+    ],
+    [
+      0.2183483272637833,
+      0.22012182803216482
+    ],
+    [
+      0.07578454184397039,
+      0.6810905884695614
+    ],
+    [
+      0.910769446728453,
+      0.10430910460133258
+    ],
+    [
+      0.1506157225864796,
+      0.6115190228930628
+    ],
+    [
+      0.828844597462442,
+      0.43661936348637465
+    ],
+    [
+      0.28020220761492903,
+      0.3105260923366528
+    ],
+    [
+      0.994802800726544,
+      0.7548009803953669
+    ],
+    [
+      0.4362469446474299,
+      0.0255006644635165
+    ],
+    [
+      0.6893916932409702,
+      0.5820557410603967
+    ]
+  ],
+  "candidate_xy": [
+    [
+      0.2726613859557855,
+      0.667105231877973
+    ],
+    [
+      0.959839116544277,
+      0.784640309470978
+    ],
+    [
+      0.8532438032075392,
+      0.30012420610328594
+    ],
+    [
+      0.48895630193769785,
+      0.9617464421832593
+    ],
+    [
+      0.6812301007756361,
+      0.4088601581606783
+    ],
+    [
+      0.19336209517404102,
+      0.23179622264798716
+    ],
+    [
+      0.05852510673043748,
+      0.5513805783990917
+    ],
+    [
+      0.5614242597119236,
+      0.0053778408760045
+    ]
+  ],
+  "basis": [
+    "1",
+    "x",
+    "y",
+    "x*x",
+    "x*y",
+    "y*y"
+  ],
+  "ridge": 1e-06,
+  "score_scale": 1.0,
+  "epsilon": 0.01,
+  "failure_regret": 1.0,
+  "provider_timeout_s": 600,
+  "requested_output_tokens": 2048,
+  "provider_call_opportunities": 120,
+  "physical_execution_count": 200,
+  "intervention": null,
+  "mode": "release-freeze",
+  "condition_slots": 160,
+  "model_repeats": 2,
+  "primary_contrast": "F-X_minus_L-X",
+  "minimum_practical_improvement": 0.01,
+  "bootstrap_replicates": 20000,
+  "bootstrap_seed": 20260906,
+  "primary_interval_level": 0.95,
+  "secondary_interval_level": 0.9875,
+  "source_schedule_seed": 20260905,
+  "worlds": [
+    {
+      "cluster_id": "electrochemical-conversion--w01",
+      "task": "electrochemical-conversion",
+      "world_index": 0,
+      "world_seed": 1824423912
+    },
+    {
+      "cluster_id": "electrochemical-conversion--w02",
+      "task": "electrochemical-conversion",
+      "world_index": 1,
+      "world_seed": 158434047
+    },
+    {
+      "cluster_id": "electrochemical-conversion--w03",
+      "task": "electrochemical-conversion",
+      "world_index": 2,
+      "world_seed": 1761149990
+    },
+    {
+      "cluster_id": "electrochemical-conversion--w04",
+      "task": "electrochemical-conversion",
+      "world_index": 3,
+      "world_seed": 539560565
+    },
+    {
+      "cluster_id": "electrochemical-conversion--w05",
+      "task": "electrochemical-conversion",
+      "world_index": 4,
+      "world_seed": 769227047
+    },
+    {
+      "cluster_id": "reaction-to-crystallization--w01",
+      "task": "reaction-to-crystallization",
+      "world_index": 0,
+      "world_seed": 1450324386
+    },
+    {
+      "cluster_id": "reaction-to-crystallization--w02",
+      "task": "reaction-to-crystallization",
+      "world_index": 1,
+      "world_seed": 1020446816
+    },
+    {
+      "cluster_id": "reaction-to-crystallization--w03",
+      "task": "reaction-to-crystallization",
+      "world_index": 2,
+      "world_seed": 1645091735
+    },
+    {
+      "cluster_id": "reaction-to-crystallization--w04",
+      "task": "reaction-to-crystallization",
+      "world_index": 3,
+      "world_seed": 1109522865
+    },
+    {
+      "cluster_id": "reaction-to-crystallization--w05",
+      "task": "reaction-to-crystallization",
+      "world_index": 4,
+      "world_seed": 590161611
+    }
+  ],
+  "providers": {
+    "deepseek": {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "high",
+      "base_url": "https://api.deepseek.com/",
+      "wire_api": "responses",
+      "auth_mode": "experimental_bearer_token",
+      "api_key_file": "api.md",
+      "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json"
+    },
+    "gpt": {
+      "id": "chemworld_openai_https",
+      "name": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "auth_mode": "none",
+      "wire_api": "responses"
+    }
+  }
+}
