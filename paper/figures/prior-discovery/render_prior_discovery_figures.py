@@ -1736,15 +1736,25 @@ def main() -> int:
         m1_report, m1_path = render_m1_replication.load_report()
         outputs["figure_7"] = render_m1_replication.render(m1_report)
         source_paths.extend([m1_path, OUTPUT_DIR / "render_m1_replication.py"])
+    m3_binding = current["work_ii"].get("w2_69_m3_portability")
+    m3_report = None
+    if m3_binding and m3_binding.get("formal_result"):
+        import render_m3_portability
+
+        m3_report, m3_path = render_m3_portability.load_report()
+        outputs["figure_8"] = render_m3_portability.render(m3_report)
+        source_paths.extend([m3_path, OUTPUT_DIR / "render_m3_portability.py"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
         "status": "formal_results_with_bounded_secondary_analyses",
         "backend": "python_matplotlib",
         "formal_hypothesis_tests_run": False,
         "provider_groups_mixed_in_scientific_contrasts": m1_report is not None,
-        "provider_group_handling": "Historical cohorts remain separate by model. M1, when present, "
-        "uses its preregistered average over two model configurations and two repeats within "
-        "each independent world; it does not estimate provider superiority.",
+        "provider_group_handling": (
+            "Historical cohorts remain separate by model. M1/M3, when present, use the "
+            "preregistered average over two configurations and two repeats within each world; "
+            "this does not estimate provider superiority."
+        ),
         "source_bindings": [
             {
                 "path": path.relative_to(ROOT).as_posix(),
@@ -1777,6 +1787,8 @@ def main() -> int:
             "decision_aligned_law_action_rows": len(decision_aligned_rows),
             "m1_scheduled_slots": len(m1_report["slots"]) if m1_report else 0,
             "m1_world_clusters": m1_report["independent_world_clusters"] if m1_report else 0,
+            "m3_scheduled_slots": len(m3_report["slots"]) if m3_report else 0,
+            "m3_reused_world_clusters": m3_report["independent_world_clusters"] if m3_report else 0,
         },
         "figures": {
             figure_id: [
@@ -1790,8 +1802,8 @@ def main() -> int:
             for figure_id, paths in outputs.items()
         },
         "interpretation_limits": [
-            "Figure 1 states the identification problem; Figure 2 separates executed "
-            "evidence from future portability studies.",
+            "Figure 1 states the identification problem; Figure 2 displays prospective "
+            "task coverage, independent clusters and campaign budgets.",
             "Figure 3 combines the prospective formal locus decisions with retrospective "
             "manipulation summaries; first-recipe divergence has no same-arm replicate "
             "baseline.",
@@ -1815,10 +1827,14 @@ def main() -> int:
             "The gate-alignment diagnostic reproduces 16 frozen unit versions without new "
             "truth, provider or physical execution and does not revise historical stop "
             "decisions.",
-            "No cross-provider capability ranking or context-reset portability claim is supported.",
+            "No cross-provider capability ranking is supported. Historical context-reset "
+            "cohorts retain their original limits; M3 explicitly separates recipient information.",
             "M1, when present, replaces a quadratic representation and/or decision rule with "
             "public evidence fixed. World-level intervals are read from its frozen analysis. "
             "Recipients also receive evidence; this does not establish artifact-only transfer.",
+            "M3, when present, reuses the ten M1 worlds with new candidates and separates none, "
+            "raw evidence, model-law-only and fitted-law-only inputs. Stored intervals use "
+            "95% primary and 99% secondary coverage. Reuse adds no independent worlds.",
         ],
     }
     manifest["manifest_sha256"] = canonical_sha(manifest)

@@ -1,9 +1,11 @@
 # Display plan — experimental knowledge and decisions
 
-The seven reusable assets separate prediction, submitted knowledge and decisions. Historical
+The eight reusable assets separate prediction, submitted knowledge and decisions. Historical
 downstream law/action associations remain descriptive; the new independent-world factorial block
 directly replaces explicit artifacts and decision rules. Its prespecified material benefit is
-unsupported. Interface failures and evaluator diagnostics remain separate; portability is untested.
+unsupported. The information-separated follow-up supports same-world artifact utility, with no
+advantage over retrieval. Interface failures, evaluator diagnostics and changed-mechanism transfer
+remain separate.
 
 ## Figure 1 — Endpoint success does not reveal what the agent learned
 
@@ -82,7 +84,24 @@ All 160 selections are available. The primary is −0.00538 [−0.01630,+0.00061
 material benefit. F-A/F-X choices agree 40/40; zero-width bootstrap intervals describe this sample,
 not population equivalence. Nearest-evidence regret 0.00354 is slightly below F-X 0.00425; both
 baselines and all source rows remain available. The task means are −0.01087/+0.00010.
-This is the new main result figure; B2/B3 asset 4 moves to the ICLR appendix. No M3 result is plotted.
+This asset and B2/B3 asset 4 appear in the ICLR appendix; their results remain summarized in the main text.
+
+## Figure 8 — Compressed knowledge independently supports same-world decisions
+
+- A: four information conditions show all ten world means, with task colors consistent with Figure 7.
+  Each point averages four nested model/repeat states; small vertical offsets keep worlds visible.
+- B: six fixed paired contrasts show world effects, means and the stored bootstrap intervals.
+  L−none uses 95% coverage and the −0.01 material-benefit reference; five secondary contrasts use 99%.
+
+All 160 recipient selections and 80 new candidate executions/replays are available. The ten worlds
+are reused from M1, not ten independent replications. Primary L−none is −0.13723
+[−0.15584, −0.12257], with task means −0.25937/−0.01509. The figure explicitly states the nearest-evidence
+mean regret of zero: retrieval selects a measured optimum in all ten worlds. Raw evidence and F also
+improve on none; L/raw differences do not establish superiority or equivalence. New physical conditions
+and experimental savings are not tested. This is the final main-text result figure in the anonymous draft.
+
+The shared exports include editable SVG and vector PDF, high-resolution PNG/TIFF and six machine-derived
+source tables. Panel labels, world points and confidence intervals use the same design conventions as M1.
 
 ## Supplementary qualification and exploratory evidence
 
@@ -105,3 +124,5 @@ not plotted as a causal contrast; W2-61 is the separate participant-bearing succ
 5. W2-61 four-condition completion, registered contrasts and failure-aware denominators.
 6. W2-51/W2-52 control qualification, terminal gates and unstarted denominators.
 7. Statistical estimands, inference units and missing-outcome rules.
+8. M1 nested factorial means, five fixed contrasts and source/decision costs.
+9. M3 model-condition means, six fixed contrasts, retrieval controls and incremental/shared costs.

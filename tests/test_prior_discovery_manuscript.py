@@ -146,7 +146,7 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert "Prior-conditioned search and unmet correction criteria" in submission
     assert "1/119/1" in manuscript
     assert "Matched packets expose numerical--expression dissociation" in submission
-    assert "underidentifying surface" in submission
+    assert "underidentifying surface" in " ".join(submission.split())
     assert "135 separate sessions nested within 45 independent task--world clusters" in submission
     assert "135 independent persistent sessions" not in submission
     assert "confirmatory bounds use the adverse interval $[-1,+1]$" in appendix

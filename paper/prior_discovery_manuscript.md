@@ -32,21 +32,22 @@ bibliography: prior_discovery_references.bib
 abstract: |
   Autonomous scientific agents may improve predictions without producing knowledge that reliably
   guides new decisions. We study this distinction in ChemWorld through controlled initial
-  descriptions, executable knowledge artifacts and complete action plans. Two model configurations
-  each entered 135 scheduled campaigns across 45 matched task--world clusters. Prediction errors
-  decreased on average, but the registered selective-correction criteria were not met, and
-  executable summaries retained different amounts of predictive information. In a separate
-  DeepSeek cohort, submitted laws selected the optimum in 0/45 scheduled unseen-plan cases,
-  compared with 11/45 participant choices. We then held public evidence fixed in a factorial
-  intervention across ten new worlds, crossing model-generated or numerically fitted quadratic
-  laws with fresh-agent or deterministic selection. All 160 condition slots completed. Under the
-  same maximizer, fitting changed mean regret by -0.00538 (95% interval [-0.01630, 0.00061]),
-  failing the prespecified material-benefit criterion. Fresh agents and the maximizer made
-  identical choices in all 40 fitted-law pairs, while a nearest-evidence baseline had similarly
-  low regret. These results limit a general inability-to-use-laws account: historical law/action
-  disagreement coexists with high agreement on a simpler fixed-evidence surface. They establish
-  bounded diagnostic findings, without isolating the cause of differences between protocols or
-  demonstrating a general repair method or transfer to new physical conditions.
+  descriptions, executable artifacts and complete action plans. Two model configurations each
+  entered 135 scheduled campaigns across 45 matched task--world clusters. Prediction errors fell
+  on average, but selective-correction criteria were unmet and executable summaries retained
+  different amounts of predictive information. In a separate DeepSeek cohort, submitted laws
+  selected the optimum in 0/45 scheduled unseen-plan cases, versus 11/45 participant choices.
+  A ten-world fixed-evidence factorial intervention then found no supported material benefit of
+  numerically fitted-law replacement, with agent/maximizer agreement in all 40 fitted-law pairs.
+  We next separated task-only, raw-evidence, model-law-only and fitted-law-only inputs in 160 fresh
+  recipients on new candidates in those same worlds. Model-law-only input reduced regret relative
+  to task information alone by 0.13723 (95% interval [-0.15584, -0.12257]), meeting the prespecified
+  material-benefit criterion, primarily through electrochemistry. Raw evidence and fitted laws
+  also improved decisions; a nearest-evidence baseline achieved zero regret in all ten worlds.
+  Thus compact artifacts can support decisions independently of their source dialogue on this
+  bounded surface, without establishing superiority to raw evidence or retrieval. The results
+  distinguish historical law/action disagreement from conditional knowledge utility, while
+  leaving cross-protocol causes, new-physical-condition transfer and general repair methods open.
 
 
 ---
@@ -85,9 +86,10 @@ failure-aware information strategies distinguish prediction, artifact fidelity a
 We then test a proposed intervention directly: hold public evidence fixed and cross the source
 of a quadratic law with the rule selecting a plan. This ten-world factorial block finds no
 supported material benefit of fitted-law replacement and high agent/maximizer agreement.
-Together, the studies locate observed gaps and provide a boundary to a universal law-use failure
-account. Different protocols are not randomized against each other; neither their contrast nor
-the factorial intervention identifies internal psychological mediation.
+A follow-up separates raw evidence from artifact-only delivery on new plans in the same worlds.
+Model-generated laws have independent decision value relative to task information alone, although
+simple retrieval remains highly competitive. These studies bound general law-use failure without
+identifying cross-protocol causes, internal psychological mediation or a new repair algorithm.
 
 
 ```{=latex}
@@ -204,7 +206,7 @@ Entity / ontology & identity--property mappings, entity classes and property bun
 Structural / mechanistic & causal topology, active process modules and dominant-pathway assumptions & separately prespecified test \\
 Parametric & coefficient signs, thresholds, orderings and plausible ranges & separately prespecified test \\
 Observation model & instrument mapping, reliability, bias and noise assumptions & qualification screen; no participant outcome \\
-Scope / compositionality & applicability domains, invariant modules and transfer boundaries & future context-reset study; unexecuted \\
+Scope / compositionality & applicability domains, invariant modules and transfer boundaries & new-mechanism transfer; unexecuted \\
 Contract / resource boundary & budget, safety, action permissions and actual observation interface & authoritative and fixed; never treated as a manipulable prior \\
 \bottomrule
 \end{tabularx}
@@ -265,7 +267,8 @@ $\rightarrow$ prediction / belief update $\rightarrow$ executable law $\rightarr
 
 The paper measures prediction error, prediction-to-law compression loss and law/action
 inconsistency. These readouts locate observable gaps; they do not identify internal causal failure
-locations. Artifact portability remains untested and has no measured loss in the present data.
+locations. The explicit-artifact interventions separately test fixed-evidence replacement and
+same-world information deployment; neither identifies transfer across new mechanisms.
 
 An agent can succeed on any subset. In particular, endpoint success without predictive and transfer
 validity is classified as local optimization rather than law discovery.
@@ -303,10 +306,11 @@ identifiability criterion and retains its own denominator:
    a committed recommendation can reproduce observed value, while a separate longitudinal
    open-action assay tests whether the agent can rank previously unseen, fully specified ActionPlans;
    no verbal statement alone counts as discovery.
-4. **Future artifact portability (not executed).** After source-world learning, raw evidence,
-   prose summaries or executable laws could be transferred to a context-reset agent in a new
-   combination. This future study is not part of the present evidence, and within-family replication
-   remains separate from compositional transfer.
+4. **Explicit-artifact interventions.** A ten-world factorial assay replaces the quadratic
+   representation and decision rule with public evidence held fixed. Information separation then
+   compares task-only, raw-evidence, model-law-only and fitted-law-only inputs in fresh recipients
+   on new plans in the same worlds. These interventions retain their own nested denominators;
+   within-world deployment, new-parameter replication and compositional transfer are distinct.
 
 Participant provenance is block-specific. The prospective three-locus cohort and the original 45-cell
 open-action matrix use the fixed DeepSeek-v4-flash configuration. A-P and A-S B2 have complete,
@@ -314,12 +318,13 @@ separately reported DeepSeek-v4-flash and GPT-5.6-sol formal denominators; the t
 the identifiable-law B3 surface and the four-condition action surface also have complete scheduled
 denominators for both model configurations. GPT-5.6-sol is the model; Codex denotes the common session
 harness. Oracle qualification, truth execution, exact replay, law-capacity fitting and gate-alignment
-diagnostics are provider-free. Results are never pooled across participant configurations, and matched
-cross-configuration differences are descriptive rather than provider effects or a leaderboard.
+diagnostics are provider-free. Historical contrasts remain separated by configuration. The artifact
+interventions prespecify equal-weight model/repeat means within world; this estimates the studied
+mixture of configurations, not provider effects or a leaderboard.
 
 Observation/measurement interventions are reserved as a separate boundary probe. They require
 two-task identifiability and an exploratory three-arm study and are not included in the present
-denominator. Scope/compositional assumptions are tested only in the future portability study. This preserves a complete
+denominator. Transfer across changed physical mechanisms remains untested. This preserves a complete
 conceptual intervention space without claiming that every programmable coordinate has already been
 executed.
 
@@ -335,7 +340,7 @@ measurement surface. They do not show that an agent discovers those relations.
 The three loci contribute 25, 10, and 10 independent task--world clusters. Each cluster receives
 three supplied-description arms, giving 135 sessions and 1,260 planned complete experiments.
 Budgets are per session. Matched-packet, law-evaluation, and action studies retain separate
-denominators; future portability is not displayed as completed evidence.}
+denominators; later artifact interventions have separate inference units.}
 \label{fig:formal-cohort}
 \end{figure*}
 ```
@@ -916,8 +921,8 @@ not a population-equivalence guarantee. Fitted-law selection had mean regret 0.0
 with 0.00354 for nearest public evidence and 0.11109 for exact expected uniform-random selection.
 The fitted method therefore shows no observed advantage over the simple retrieval baseline.
 These are local response-surface decisions with fixed acquisition. They supply a boundary to
-general law-use failure, while leaving artifact-only portability and the causes of historical
-protocol differences unresolved.
+general law-use failure. Because raw evidence accompanies the artifacts here, independent artifact
+utility requires the information-separated test below; historical protocol differences remain unresolved.
 
 ```{=latex}
 \begin{figure*}[t]
@@ -955,6 +960,45 @@ Interaction & -0.000331 & 98.75\% [-0.001323, 0.000000] \\
 \end{table*}
 ```
 
+## 7.9 Information separation reveals independent artifact value
+
+We reused all ten factorial worlds and forty sealed sources, fixed eight new candidates per
+world, and assigned fresh recipients task information alone, raw evidence, model law alone (L)
+or fitted law alone (F). Only the raw condition received observations; law conditions received
+six original coefficients without source dialogue or provenance labels. All 160 sessions and
+80 hidden evaluations with exact replay completed, with no new recipient measurements.
+
+The primary L-minus-none regret contrast was -0.13723 (95\% interval [-0.15584, -0.12257]),
+meeting the prespecified material-benefit criterion (Fig.~\ref{fig:m3-portability}). Nine world
+means improved and one was zero; task means were -0.25937 for electrochemistry and -0.01509 for
+crystallization. These remain ten reused worlds, not ten additional independent replications.
+Mean regrets for none/raw/L/F were 0.14727/0.01124/0.01004/0.01459. Raw and F also improved on
+none under adjusted intervals. L minus raw was -0.00120 (99\% interval [-0.02353, 0.00951]); this
+establishes neither superiority nor equivalence. Nearest public evidence selected the measured
+optimum in all ten worlds, so these data do not establish an advantage over retrieval.
+
+Law-only deployment used 392,101 input tokens versus 541,225 for raw evidence, a descriptive
+27.6\% reduction; source acquisition and generation costs had already been incurred. Model-law
+recipients followed the deterministic maximizer in 40/40 states and fitted-law recipients in
+39/40. The result supports same-world context portability of the delivered artifact, without
+identifying internal law use, transfer across changed mechanisms or experimental savings.
+
+```{=latex}
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-8-m3-portability.pdf}
+\caption{\textbf{Artifacts support fresh decisions, while retrieval remains a strong baseline.}
+\textbf{a,} Dots show world means over two models and two repeats per information condition;
+diamonds show task means. All 160 selections are available. Nearest evidence has zero regret in
+all ten worlds. \textbf{b,} Colored points show paired world effects; black diamonds and lines
+show means and prespecified intervals (95\% primary; 99\% for five secondary comparisons).
+The dotted primary reference is -0.01. L/F denote model-generated/fitted laws supplied without
+raw observations. These are new candidate plans in the ten reused worlds, not new physical
+mechanisms or additional independent replication worlds.}
+\label{fig:m3-portability}
+\end{figure*}
+```
+
 # 8. Experimental knowledge and decision quality
 
 Prediction quality, artifact fidelity and final decision quality are distinct observable quantities.
@@ -971,8 +1015,9 @@ controls and ranking diagnostics delimit what the measurements establish.
 The fixed-evidence factorial block implements that representation/decision-rule intervention.
 It finds no supported material fitted-law benefit and 40/40 fitted-law agent/maximizer agreement.
 This limits a general law-use failure account, without isolating which difference from the
-historical protocols matters. Recipients still see evidence; artifact-only and new-condition
-transfer remain open.
+historical protocols matters. The information-separated follow-up establishes independent
+same-world artifact value relative to task-only input, while raw evidence also helps and nearest
+retrieval reaches the measured optimum in every world. Transfer to changed mechanisms remains open.
 
 # 9. Discussion
 
@@ -984,8 +1029,10 @@ autonomous evidence collection, supplied descriptions of hidden chemical relatio
 knowledge summaries and complete operational plans. The empirical contribution is the observation
 and localization of gaps among these objects within the evaluated systems. The direct factorial
 intervention adds a boundary: fitted-law replacement did not meet its material-benefit criterion,
-and fresh agents agreed with its maximizer in every fitted-law pair. A generally useful repair
-method remains unresolved.
+and fresh agents agreed with its maximizer in every fitted-law pair. The information-separated
+follow-up establishes independent artifact utility for new same-world plans, with a larger benefit
+in electrochemistry. Raw evidence also helps, and nearest retrieval solves all ten candidate sets;
+a generally useful repair method remains unresolved.
 
 Last-available laws reach Top-1 in 0/45 scheduled cases, participants in 11/45, and agreement is
 12/42 evaluable rankings. A submitted artifact is an incomplete proxy for the participant's decision.
@@ -1029,7 +1076,7 @@ earlier DeepSeek donors confound configuration with time and order. Ten prospect
 discard-affected checkpoint timing that cannot be repaired retrospectively. Exact replay preserves
 recorded execution; it does not erase these design limits.
 
-Fresh-context transfer to new conditions, private confirmation and independent-backend replication
+Transfer to changed physical conditions, private confirmation and independent-backend replication
 remain untested. The completed representation/decision-rule block uses quadratic representations
 on two-dimensional control domains; the simulator utility need not be quadratic. Numerical fitting
 is contrasted against tool-free model fitting.
@@ -1044,9 +1091,10 @@ systems, predictive improvement does not establish selective repair, executable 
 different amounts of information, and submitted laws do not reproduce many participant choices.
 Information-strategy estimates further depend on the reliability of evidence delivery.
 The direct factorial test supplies an additional boundary: no supported material fitted-law
-advantage and complete fitted-law agent/maximizer agreement. Future work must identify the
-conditions under which knowledge deployment changes, while reporting decision loss, operational
-availability and resource cost separately.
+advantage and complete fitted-law agent/maximizer agreement. Information separation then shows
+that compact laws can independently support new decisions in the same worlds, with task-dependent
+benefit and no demonstrated superiority to raw evidence or retrieval. Decision utility, operational
+availability, deployment cost and transfer to changed mechanisms remain separate questions.
 
 # 10. Methods
 
@@ -1207,8 +1255,8 @@ earlier gate or stop rule.
 No private participant cohort was executed for the present study. If private confirmation is pursued,
 it will use newly sealed world instances disjoint from exploratory and public worlds, retain the same
 three-arm participant and evaluator contracts, and preserve every completed, failed and unstarted
-cell in a one-shot denominator. Such a cohort would test within-family replication. A separate
-context-reset test would assess artifact portability; compositional transfer would additionally
+cell in a one-shot denominator. Such a cohort would test within-family replication. The information
+separation assay assesses new decisions in the same physical worlds. Compositional transfer would
 require a prespecified change in mechanism topology, not only a new conversation or parameter set.
 
 ## 10.8 Reproducibility and failure accounting
@@ -1307,6 +1355,119 @@ Recipe resources count primary executions once: 2,300 operations, 54.8 measureme
 All 120 calls report input/output usage; reasoning is included in output and cache in input.
 Source generation used 7,404.1 s versus 1,455.4 s for decisions. These costs describe this
 block, without extrapolating provider billing or virtual resource use to laboratory expenditure.
+
+## 10.10 Information separation and same-world context portability
+
+The context-portability assay reuses all ten factorial worlds, their twelve public observations
+per world and forty sealed source states. Private mechanisms, initial-state construction,
+objective, control ranges and fixed controls remain unchanged. A separately fixed eight-point
+Latin-hypercube design provides new candidate plans, disjoint from both the source observations
+and the earlier candidates. This requires 80 hidden physical evaluations and 80 exact replays,
+but no additional source measurements and no measurements by recipients. The independent-world
+denominator remains ten; the forty sources and 160 recipient sessions are nested within them.
+This is a new-decision assay in the same worlds, not transfer across changed private parameters
+or mechanism topology.
+
+Four information conditions receive identical task descriptions, coordinate/basis semantics,
+utility direction and range, complete candidate controls and ActionPlans, and the same minimal
+candidate-ID output schema. None receives no experiment-derived information. Raw receives the
+twelve public observations, including their plans, without a law. L and F receive only the six
+coefficients of the sealed model-generated or fitted quadratic, respectively, without raw
+observations, source dialogue or provenance labels. Coefficients are reused exactly, without
+refitting to the new candidates. No condition receives prior candidate outcomes or world identity.
+Information quantity and context length are part of these deployment strategies; prompts are
+not padded to equal length. Prompt bytes and actual provider tokens are recorded separately.
+
+The same two model configurations and two repeats per world are used, with fresh tool-free
+recipients. The forty source states are permuted before execution, and cyclic rotations of the
+four conditions across the nested states place each condition in each serial position once per
+world. Sessions have a 600-second timeout and no repair turns or retries. Missing artifacts block
+only their dependent information condition. Participant schema failures remain in the scheduled
+denominator; interrupted started calls are retained without replacement. Physical, replay,
+information-isolation or session-identity defects stop dependent work and invalidate formal
+inference. All recipient and deterministic choices are sealed before analysis loads new scores.
+
+The primary contrast is L minus none in failure-aware regret. The utility scale is fixed at one;
+missing or invalid choices receive regret one. Within-world differences average the four nested
+model/repeat states, then weight worlds equally within task and tasks equally overall. A
+20,000-replicate task-stratified world bootstrap supplies a two-sided 95% interval; its upper
+endpoint must be below -0.01 to support a material benefit. Five secondary contrasts---raw minus
+none, F minus none, L minus raw, F minus raw and F minus L---use 99% marginal intervals, adjusting
+for five comparisons. Completed-only losses retain eligible denominators. Top-1, regret at most
+0.01, individual-world effects and exact-maximizer agreement accompany the primary estimate.
+Small-sample and previously exposed-world limits remain; nonsignificance is not equivalence.
+
+Deterministic L/F maximizers, nearest public evidence and uniform-random expected regret are
+prespecified descriptive controls on the same new candidates. They add no provider or physical
+executions. New recipient and hidden-evaluation costs are separate from historical acquisition
+and source-generation costs. None uses no acquired evidence; raw and F inherit the shared public
+acquisition, while L also inherits its model's original source-generation cost. Source tool
+permissions remain those of the factorial experiment: matching recipient permissions does not
+remove the original model-versus-numerical-solver arithmetic difference. Zero recipient queries
+do not estimate experimental savings, and no internal mediation or new repair algorithm is
+identified by this information comparison.
+
+### Information-separation outcomes and resources
+
+All 160 recipients completed with no failures, retries or replacements; scheduled and completed-only losses coincide. The primary effect was negative in nine worlds and zero in one. Benefits were substantially larger in electrochemistry than crystallization.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{Information-separated decision quality.} Every model/condition has 20 scheduled and completed recipients, nested within ten reused worlds.}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Information & Mean regret & Near-optimal & Top-1 \\
+\midrule
+deepseek & none & 0.15270 & 3/20 & 3/20 \\
+deepseek & raw & 0.01643 & 17/20 & 15/20 \\
+deepseek & L & 0.01157 & 11/20 & 9/20 \\
+deepseek & F & 0.02309 & 12/20 & 10/20 \\
+gpt & none & 0.14184 & 10/20 & 10/20 \\
+gpt & raw & 0.00605 & 13/20 & 11/20 \\
+gpt & L & 0.00850 & 12/20 & 11/20 \\
+gpt & F & 0.00609 & 12/20 & 10/20 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+```
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{Prespecified information contrasts.} Negative regret differences favor the first condition. The primary material threshold is -0.01.}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Contrast & Mean difference & Interval \\
+\midrule
+L minus none & -0.137231 & 95\% [-0.155845, -0.122566] \\
+raw minus none & -0.136032 & 99\% [-0.166955, -0.106025] \\
+F minus none & -0.132680 & 99\% [-0.164488, -0.099817] \\
+L minus raw & -0.001199 & 99\% [-0.023529, 0.009508] \\
+F minus raw & +0.003352 & 99\% [-0.021421, 0.037629] \\
+F minus L & +0.004551 & 99\% [-0.008013, 0.031772] \\
+\bottomrule
+\end{tabular}
+\end{table*}
+```
+
+Model-law recipients matched the exact maximizer in 40/40 states and fitted-law recipients in
+39/40. Deterministic model-law and fitted-law regret was 0.01004 and 0.00609. The single fitted-law
+recipient disagreement increases its group mean to 0.01459; it is retained as a valid choice.
+Nearest public evidence selected the measured optimum in all ten worlds; uniform-random expected
+regret was 0.12022. These comparisons do not establish a novel-algorithm advantage.
+
+New physical execution/replay used 724.6 s wall time and 718.3 s CPU, with 920 operations,
+21.92 measurement units, 598,800 simulated recipe seconds and 0.76 mol reagent counted once
+for primary executions. Provider time was 2,722.6 s, with usage reported for 160/160 calls:
+1,716,721 input tokens (648,704 cached) and 255,544 output tokens (253,304 reasoning).
+Raw versus model-law deployment used 541,225/392,101 input tokens and 102,235/47,745 output
+tokens. Prompt bytes were 838,900/351,996 (58.0% fewer), whereas provider input fell by 27.6%;
+these measures include different overheads and must not be interchanged. Raw/model-law provider
+time was 929.1/529.3 s. Costs describe this deployment block, not monetary expenditure or
+experimental savings. Historical M1 public acquisition and original source generation are
+reported separately and were not incurred again. No equivalence or new-mechanism transfer
+claim follows from these data.
 
 # 11. Data and code availability
 

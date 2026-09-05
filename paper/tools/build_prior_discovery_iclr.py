@@ -39,6 +39,7 @@ FIGURES = (
     "figure-5-capability-chain.pdf",
     "figure-6-open-action-formal.pdf",
     "figure-7-m1-replication.pdf",
+    "figure-8-m3-portability.pdf",
 )
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.pdf"
@@ -278,10 +279,17 @@ def build() -> dict[str, Any]:
         *(ICLR_DIR / name for name in STYLE_HASHES),
         *(FIGURE_DIR / name for name in FIGURES),
     ]
-    if "figure-7-m1-replication.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+    if "figure-7-m1-replication.pdf" in (
+        MANUSCRIPT.read_text(encoding="utf-8") + APPENDIX.read_text(encoding="utf-8")
+    ):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         m1 = current["work_ii"]["w2_72_m1_replication"]
         source_paths.append(ROOT / m1["report"])
+    if "figure-8-m3-portability.pdf" in (
+        MANUSCRIPT.read_text(encoding="utf-8") + APPENDIX.read_text(encoding="utf-8")
+    ):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        source_paths.append(ROOT / current["work_ii"]["w2_69_m3_portability"]["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-iclr2027-build-0.1",
         "status": (
@@ -372,6 +380,12 @@ def build() -> dict[str, Any]:
                 "repeats within ten world clusters by its prespecified estimand. It uses a "
                 "fixed utility scale, includes missing selections, and does not test "
                 "internal mediation or artifact-only transfer."
+            ),
+            (
+                "M3 separates recipient information on new candidates in the ten reused M1 worlds. "
+                "Its primary artifact-only benefit is bounded by task, and no superiority to "
+                "raw evidence or nearest retrieval, equivalence or new-mechanism transfer "
+                "is claimed."
             ),
         ],
     }

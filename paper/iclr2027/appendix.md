@@ -493,6 +493,23 @@ internal belief mediation or artifact-only transfer: recipients still receive th
 
 ### Factorial outcomes and resources
 
+```{=latex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-7-m1-replication.pdf}
+\caption{\textbf{Fixed-evidence intervention did not establish a material repair benefit.}
+\textbf{a,} Every world has its own row. Hollow and filled points show model-law and fitted-law
+regret under the same maximizer, averaged over two models and two repeats; concentric points
+denote equality. Blue denotes electrochemistry and purple crystallization.
+\textbf{b,} Colored points are individual world effects; black diamonds and lines show means
+and prespecified intervals (95\% primary; 98.75\% secondary). The dotted primary reference is
+-0.01. Interaction is $(R_{\mathrm{F-X}}-R_{\mathrm{L-X}})-(R_{\mathrm{F-A}}-R_{\mathrm{L-A}})$ in regret. Zero-width intervals describe
+observed equality, not population equivalence. All 160 selections were available; repeats
+do not increase the ten-world denominator.}
+\label{fig:m1-replication}
+\end{figure}
+```
+
 All 40 source states, 120 sessions and 160 conditions completed; there were no failed, blocked,
 replaced or unstarted slots. Scheduled and completed-only losses coincide. Mean regrets in
 L-A/L-X/F-A/F-X order were 0.01436/0.01502/0.00425/0.00425 for DeepSeek and
@@ -536,13 +553,126 @@ All 120 calls report input/output usage; reasoning is included in output and cac
 Source generation used 7,404.1 s versus 1,455.4 s for decisions. These costs describe this
 block, without extrapolating provider billing or virtual resource use to laboratory expenditure.
 
+## Information separation and same-world context portability
+
+The context-portability assay reuses all ten factorial worlds, their twelve public observations
+per world and forty sealed source states. Private mechanisms, initial-state construction,
+objective, control ranges and fixed controls remain unchanged. A separately fixed eight-point
+Latin-hypercube design provides new candidate plans, disjoint from both the source observations
+and the earlier candidates. This requires 80 hidden physical evaluations and 80 exact replays,
+but no additional source measurements and no measurements by recipients. The independent-world
+denominator remains ten; the forty sources and 160 recipient sessions are nested within them.
+This is a new-decision assay in the same worlds, not transfer across changed private parameters
+or mechanism topology.
+
+Four information conditions receive identical task descriptions, coordinate/basis semantics,
+utility direction and range, complete candidate controls and ActionPlans, and the same minimal
+candidate-ID output schema. None receives no experiment-derived information. Raw receives the
+twelve public observations, including their plans, without a law. L and F receive only the six
+coefficients of the sealed model-generated or fitted quadratic, respectively, without raw
+observations, source dialogue or provenance labels. Coefficients are reused exactly, without
+refitting to the new candidates. No condition receives prior candidate outcomes or world identity.
+Information quantity and context length are part of these deployment strategies; prompts are
+not padded to equal length. Prompt bytes and actual provider tokens are recorded separately.
+
+The same two model configurations and two repeats per world are used, with fresh tool-free
+recipients. The forty source states are permuted before execution, and cyclic rotations of the
+four conditions across the nested states place each condition in each serial position once per
+world. Sessions have a 600-second timeout and no repair turns or retries. Missing artifacts block
+only their dependent information condition. Participant schema failures remain in the scheduled
+denominator; interrupted started calls are retained without replacement. Physical, replay,
+information-isolation or session-identity defects stop dependent work and invalidate formal
+inference. All recipient and deterministic choices are sealed before analysis loads new scores.
+
+The primary contrast is L minus none in failure-aware regret. The utility scale is fixed at one;
+missing or invalid choices receive regret one. Within-world differences average the four nested
+model/repeat states, then weight worlds equally within task and tasks equally overall. A
+20,000-replicate task-stratified world bootstrap supplies a two-sided 95% interval; its upper
+endpoint must be below -0.01 to support a material benefit. Five secondary contrasts---raw minus
+none, F minus none, L minus raw, F minus raw and F minus L---use 99% marginal intervals, adjusting
+for five comparisons. Completed-only losses retain eligible denominators. Top-1, regret at most
+0.01, individual-world effects and exact-maximizer agreement accompany the primary estimate.
+Small-sample and previously exposed-world limits remain; nonsignificance is not equivalence.
+
+Deterministic L/F maximizers, nearest public evidence and uniform-random expected regret are
+prespecified descriptive controls on the same new candidates. They add no provider or physical
+executions. New recipient and hidden-evaluation costs are separate from historical acquisition
+and source-generation costs. None uses no acquired evidence; raw and F inherit the shared public
+acquisition, while L also inherits its model's original source-generation cost. Source tool
+permissions remain those of the factorial experiment: matching recipient permissions does not
+remove the original model-versus-numerical-solver arithmetic difference. Zero recipient queries
+do not estimate experimental savings, and no internal mediation or new repair algorithm is
+identified by this information comparison.
+
+### Information-separation outcomes and resources
+
+All 160 recipients completed with no failures, retries or replacements; scheduled and completed-only losses coincide. The primary effect was negative in nine worlds and zero in one. Benefits were substantially larger in electrochemistry than crystallization.
+
+```{=latex}
+\begin{table}[ht]
+\centering
+\caption{\textbf{Information-separated decision quality.} Every model/condition has 20 scheduled and completed recipients, nested within ten reused worlds.}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Model & Information & Mean regret & Near-optimal & Top-1 \\
+\midrule
+deepseek & none & 0.15270 & 3/20 & 3/20 \\
+deepseek & raw & 0.01643 & 17/20 & 15/20 \\
+deepseek & L & 0.01157 & 11/20 & 9/20 \\
+deepseek & F & 0.02309 & 12/20 & 10/20 \\
+gpt & none & 0.14184 & 10/20 & 10/20 \\
+gpt & raw & 0.00605 & 13/20 & 11/20 \\
+gpt & L & 0.00850 & 12/20 & 11/20 \\
+gpt & F & 0.00609 & 12/20 & 10/20 \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
+```{=latex}
+\begin{table}[ht]
+\centering
+\caption{\textbf{Prespecified information contrasts.} Negative regret differences favor the first condition. The primary material threshold is -0.01.}
+\begin{tabular}{@{}lrl@{}}
+\toprule
+Contrast & Mean difference & Interval \\
+\midrule
+L minus none & -0.137231 & 95\% [-0.155845, -0.122566] \\
+raw minus none & -0.136032 & 99\% [-0.166955, -0.106025] \\
+F minus none & -0.132680 & 99\% [-0.164488, -0.099817] \\
+L minus raw & -0.001199 & 99\% [-0.023529, 0.009508] \\
+F minus raw & +0.003352 & 99\% [-0.021421, 0.037629] \\
+F minus L & +0.004551 & 99\% [-0.008013, 0.031772] \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
+Model-law recipients matched the exact maximizer in 40/40 states and fitted-law recipients in
+39/40. Deterministic model-law and fitted-law regret was 0.01004 and 0.00609. The single fitted-law
+recipient disagreement increases its group mean to 0.01459; it is retained as a valid choice.
+Nearest public evidence selected the measured optimum in all ten worlds; uniform-random expected
+regret was 0.12022. These comparisons do not establish a novel-algorithm advantage.
+
+New physical execution/replay used 724.6 s wall time and 718.3 s CPU, with 920 operations,
+21.92 measurement units, 598,800 simulated recipe seconds and 0.76 mol reagent counted once
+for primary executions. Provider time was 2,722.6 s, with usage reported for 160/160 calls:
+1,716,721 input tokens (648,704 cached) and 255,544 output tokens (253,304 reasoning).
+Raw versus model-law deployment used 541,225/392,101 input tokens and 102,235/47,745 output
+tokens. Prompt bytes were 838,900/351,996 (58.0% fewer), whereas provider input fell by 27.6%;
+these measures include different overheads and must not be interchanged. Raw/model-law provider
+time was 929.1/529.3 s. Costs describe this deployment block, not monetary expenditure or
+experimental savings. Historical M1 public acquisition and original source generation are
+reported separately and were not incurred again. No equivalence or new-mechanism transfer
+claim follows from these data.
+
 ## Additional scope boundaries
 
 The study covers simulated chemistry and two fixed agent--tool configurations, not laboratory fidelity
 or universal chemical coverage. C2 and B3 have matched scheduled surfaces; A-P/B2 have complete
 separate denominators plus a B2-only DeepSeek-low ablation. Differential failures and non-random
 provider assignment prohibit model ordering. The public cohort is not private confirmation, and
-high-fidelity artifact portability remains untested. The autonomous open-action cohort lacks a
+transfer across changed physical mechanisms remains untested. The autonomous open-action cohort lacks a
 same-agent no-evidence baseline; the oracle-free successor adds four information strategies, but
 donor/recipient failures limit mediation claims. The
 original five-condition oracle cohort remains unexecuted.

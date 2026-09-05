@@ -25,7 +25,9 @@ Resolve generated evidence through [current bindings](../configs/current.json).
 | Interface burden affects the measured system | DeepSeek C2 tool accounting and B3/W2-61 failures | 904 failed tool events include 888 checkpoint rejections. Report operational availability separately; do not interpret every failure as scientific incompetence |
 | Fixed-evidence law/decision intervention | M1 independent-world formal report, current w2_72 binding | 10 worlds; 120/120 sessions, 160/160 slots, 200/200 physics/replays; primary -0.00538 [95% -0.01630, +0.00061], material benefit unsupported; fitted-law A/X agreement 40/40 |
 | Simple public-data baselines are competitive | Same M1 fixed baseline roster | F-X/nearest/random mean regret 0.00425/0.00354/0.11109; no observed fitted-method advantage over retrieval; not a new algorithm |
-| New-context utility and independent-backend validity | No corresponding current outcome | Artifact-only and new-physical-condition transfer remain unresolved; M3/M4 are not current Results |
+| Artifact-only decision utility on new same-world plans | M3 formal report, current w2_69 binding | 160/160 recipients; 80/80 new physics/replays; ten reused M1 worlds, zero additional independent worlds. L−none −0.13723 [95% −0.15584, −0.12257], material benefit supported; task means −0.25937/−0.01509 |
+| Information compression does not establish a method advantage | Same M3 fixed controls and resource accounting | Nearest achieves zero regret and Top-1 10/10 worlds; L−raw 99% interval crosses zero. L input tokens are 27.6% fewer than raw, prompt bytes 58.0% fewer; neither superiority nor equivalence nor experiment savings is established |
+| New-physical-condition transfer and independent-backend validity | No corresponding current outcome | Changed-mechanism transfer, M2 acquisition isolation and M4 external replication remain untested |
 
 Search trajectories support sustained experimentation. A positive best-minus-first score or later
 optimum alone does not establish feedback learning without a budget-matched non-adaptive control.
@@ -59,6 +61,9 @@ M0 and the independent M1 block are complete. The two-world canary remains devel
 M1 did not establish a material benefit, and near-complete A/X agreement limits a general law-use
 failure account. Cross-protocol differences are not randomized; arithmetic and law construction
 are bundled in the L/F contrast. Zero-width observed bootstrap intervals are not equivalence proof.
-M3 should first separate none/raw evidence/L-only/F-only, then define any physical-condition
-mapping. M2 is needed only for acquisition-effect claims; M4 addresses external validity.
+M3 separates none/raw evidence/L-only/F-only and supports independent same-world artifact utility;
+raw evidence also helps and retrieval solves every candidate set. The next design should specify
+source–target mechanism mappings, matched/mismatched knowledge, none/raw/nearest controls and matched
+numerical tools, without selecting M3 failure cases. No new-condition block has run.
+M2 is needed only for acquisition-effect claims; M4 addresses external validity.
 The matrix owns future counts and costs, with one experiment note before each data-producing block.

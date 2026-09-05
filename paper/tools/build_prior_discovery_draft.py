@@ -100,6 +100,8 @@ def load_figure_pdfs() -> list[Path]:
     expected = set(EXPECTED_FIGURE_IDS)
     if "figure-7-m1-replication.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
         expected.add("figure_7")
+    if "figure-8-m3-portability.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        expected.add("figure_8")
     if not isinstance(figures, dict) or set(figures) != expected:
         raise RuntimeError("draft figure roster differs from the manuscript's generated assets")
     pdfs: list[Path] = []
@@ -232,6 +234,9 @@ def build() -> dict[str, Any]:
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         m1 = current["work_ii"]["w2_72_m1_replication"]
         source_paths.append(ROOT / m1["report"])
+    if "figure-8-m3-portability.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        source_paths.append(ROOT / current["work_ii"]["w2_69_m3_portability"]["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-draft-build-0.1",
         "status": "compiled_development_draft",
@@ -317,6 +322,11 @@ def build() -> dict[str, Any]:
                 "with two models and two repeats nested within each world. It replaces explicit "
                 "artifacts and decision computation, not internal beliefs, and does not test "
                 "artifact-only portability or a new mechanism topology."
+            ),
+            (
+                "M3 separately measures same-world context portability, adding no independent "
+                "worlds. Artifact-only input improves on task-only input; retrieval remains "
+                "competitive and transfer to changed physical mechanisms remains untested."
             ),
         ],
     }

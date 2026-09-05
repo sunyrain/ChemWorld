@@ -684,6 +684,9 @@ assert boundaries["b2_structural_family_identification_supported"] is False
 if (ROOT / "verify_m1.py").exists():
     import runpy
     runpy.run_path(str(ROOT / "verify_m1.py"))
+if (ROOT / "verify_m3.py").exists():
+    import runpy
+    runpy.run_path(str(ROOT / "verify_m3.py"))
 
 print(f"verified {len(manifest['files'])} files and all publication invariants")
 """
@@ -768,6 +771,7 @@ def _m1_files() -> dict[str, bytes]:
             ROOT / "src/chemworld/eval/work_ii_factorial.py",
             {
                 "public_packet",
+                "normalized_design",
                 "design_matrix",
                 "fit_public_law",
                 "output_schema",
@@ -795,6 +799,57 @@ def _m1_files() -> dict[str, bytes]:
         "methods/m1_public_primitives.py": primitive_source.encode("utf-8"),
         "methods/m1_analysis.py": analysis_source.encode("utf-8"),
         "verify_m1.py": (ROOT / "paper/iclr2027/supplement/verify_m1.py").read_bytes(),
+    }
+
+
+def _m3_files() -> dict[str, bytes]:
+    current = _load(ROOT / "configs/current.json")
+    binding = current["work_ii"].get("w2_69_m3_portability")
+    if not binding or not binding.get("formal_result"):
+        return {}
+    path = ROOT / binding["report"]
+    if _sha256_bytes(path.read_bytes()) != binding["report_sha256"]:
+        raise ValueError("M3 current binding differs from the retained report")
+    report = _load(path)
+    projected = {
+        key: value
+        for key, value in report.items()
+        if key not in {"source_commit", "execution_surface", "source_binding", "experiment_note"}
+    }
+    projected["scientific_source_data"] = {
+        key: value for key, value in report["scientific_source_data"].items() if key != "protocol"
+    }
+    projected["source_hashes"] = [
+        {"role": "context_portability_report", "sha256": binding["report_sha256"]},
+        {"role": "reused_m1_sources", "sha256": report["source_binding"]["report_sha256"]},
+    ]
+    protocol = {
+        key: value
+        for key, value in report["scientific_source_data"]["protocol"].items()
+        if key != "source_binding"
+    }
+    concrete = _load(ROOT / binding["protocol"])
+    protocol["providers"] = {
+        model: {key: provider[key] for key in ("model", "reasoning_effort")}
+        for model, provider in concrete["providers"].items()
+    }
+    information = (
+        "from __future__ import annotations\nimport json\nimport math\nfrom copy import deepcopy\n"
+        "from collections.abc import Sequence\nfrom typing import Any\n"
+        "BASIS = ['1', 'x', 'y', 'x*x', 'x*y', 'y*y']\n"
+        "CONDITIONS = ('none', 'raw', 'L', 'F')\n\n"
+        + _function_source(ROOT / "src/chemworld/eval/work_ii_factorial.py", {"validate_payload"})
+        + "\n"
+        + _function_source(
+            ROOT / "src/chemworld/eval/work_ii_m3_portability.py",
+            {"recipient_input", "recipient_prompt"},
+        )
+    )
+    return {
+        "data/m3_portability.json": _json_bytes(_sanitize_value(projected)),
+        "protocols/m3_portability.json": _json_bytes(_sanitize_value(protocol)),
+        "methods/m3_information.py": information.encode("utf-8"),
+        "verify_m3.py": (ROOT / "paper/iclr2027/supplement/verify_m3.py").read_bytes(),
     }
 
 
@@ -883,6 +938,7 @@ def build() -> dict[str, Any]:
         "verify_supplement.py": VERIFY_SCRIPT.encode("utf-8"),
     }
     files.update(_m1_files())
+    files.update(_m3_files())
     for path in sorted(FIGURE_SOURCE_DIR.glob("*.csv")):
         content = _sanitize_csv(path.read_text(encoding="utf-8"))
         list(csv.reader(content.splitlines()))
