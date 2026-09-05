@@ -57,7 +57,9 @@ def write(path: Path, value: Any) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     temporary = path.with_suffix(path.suffix + ".tmp")
     temporary.write_text(
-        json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n", encoding="utf-8"
+        json.dumps(value, indent=2, sort_keys=True, allow_nan=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
     temporary.replace(path)
 
@@ -287,7 +289,6 @@ def launch(
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         encoding="utf-8",
-        newline="\n",
         errors="replace",
         text=True,
         **options,
