@@ -134,6 +134,19 @@ family标签、typed-law参数承诺与预测数值分别呈现。B3 law不是C2
 
 ## 4. 第三模型与成本：已知和未确定
 
+**当前优先候选为Kimi-K2.6，已通过短工具闭环，完整开发资格仍待复核。**
+W2-85按固定顺序测试Kimi-K2.6与Qwen3.5-397B：四个harness会话全部尝试，7/8轮到达；
+Kimi在prompt_schema模式两轮同thread、2次真实MCP及合法终答通过，耗时17.08秒。
+strict模式下两模型均绕过工具；Qwen另有不支持指定tool_choice与多个system消息的错误。
+原生Responses仍均404，不能因为模型列在账号中就当作原生Codex兼容。
+
+Kimi进入六会话校准后因平台超时/取消缺陷中止：0/6完成、1失败、1中止、4未启动，
+2/12轮已尝试。首轮180.406秒SSE idle timeout后未结束的上游请求与第二会话重叠，
+已停止专属进程树。两个未完成请求的usage未知，不补零、不继续补齐。请求总时限、取消、
+增量日志和system合并的修复已通过42项相关测试，尚未做修复后线上资格复核。
+因此第三模型正式会话新增0，六会话/正式60会话ETA未知；短算术耗时不能外推。
+详见[实验说明](WORK_II_PROVIDER_SELECTION_NOTE.md)和[完整结果](reports/work-ii-provider-selection-20260906.md)。
+
 2026-09-06完成用户指定的GLM/SiliconFlow接入测试：`zai-org/GLM-5.3`模型发现、
 简短文本和工具API闭环通过；`/v1/responses`直连及当前Codex harness启动路径均404。
 6/6接入探针执行、4通过/2失败，尚未直接接通harness，MCP执行及同thread续接未到达。

@@ -1,0 +1,562 @@
+{
+  "schema_version": "chemworld-provider-selection-development-1",
+  "formal_result": false,
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_PROVIDER_SELECTION_NOTE.md",
+  "candidates": [
+    "Pro/moonshotai/Kimi-K2.6",
+    "Qwen/Qwen3.5-397B-A17B"
+  ],
+  "codex_version": "codex-cli 0.145.0",
+  "direct_scheduled": 6,
+  "direct": [
+    {
+      "model": "Pro/moonshotai/Kimi-K2.6",
+      "endpoint": "/responses",
+      "attempts": 1,
+      "http_status": 404,
+      "response_format": "non_json",
+      "error": "Not Found",
+      "wall_seconds": 0.125,
+      "check": "native_responses",
+      "status": "failed",
+      "passed": false
+    },
+    {
+      "model": "Pro/moonshotai/Kimi-K2.6",
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": "Pro/moonshotai/Kimi-K2.6",
+      "usage": {
+        "prompt_tokens": 76,
+        "completion_tokens": 49,
+        "total_tokens": 125,
+        "completion_tokens_details": {
+          "reasoning_tokens": 33
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 76
+      },
+      "wall_seconds": 3.484,
+      "check": "chat_tool_call",
+      "status": "passed",
+      "passed": true
+    },
+    {
+      "model": "Pro/moonshotai/Kimi-K2.6",
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": "Pro/moonshotai/Kimi-K2.6",
+      "usage": {
+        "prompt_tokens": 95,
+        "completion_tokens": 36,
+        "total_tokens": 131,
+        "completion_tokens_details": {
+          "reasoning_tokens": 35
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 95
+      },
+      "wall_seconds": 1.469,
+      "check": "chat_tool_return",
+      "status": "passed",
+      "passed": true
+    },
+    {
+      "model": "Qwen/Qwen3.5-397B-A17B",
+      "endpoint": "/responses",
+      "attempts": 1,
+      "http_status": 404,
+      "response_format": "non_json",
+      "error": "Not Found",
+      "wall_seconds": 0.125,
+      "check": "native_responses",
+      "status": "failed",
+      "passed": false
+    },
+    {
+      "model": "Qwen/Qwen3.5-397B-A17B",
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 400,
+      "model_returned": null,
+      "usage": null,
+      "error": {
+        "code": 20015,
+        "message": "Value error, Specifying functions for tool_choice is not yet supported.",
+        "data": null
+      },
+      "wall_seconds": 0.156,
+      "check": "chat_tool_call",
+      "status": "failed",
+      "passed": false
+    },
+    {
+      "model": "Qwen/Qwen3.5-397B-A17B",
+      "check": "chat_tool_return",
+      "status": "unstarted",
+      "passed": false,
+      "usage": null,
+      "reason": "initial_tool_call_did_not_pass"
+    }
+  ],
+  "harness_scheduled_sessions": 4,
+  "harness_scheduled_turns": 8,
+  "harness": [
+    {
+      "model": "Pro/moonshotai/Kimi-K2.6",
+      "schema_mode": "json_schema",
+      "status": "failed",
+      "scheduled_turns": 2,
+      "attempted_turns": 2,
+      "valid_answer_turns": 2,
+      "mcp_calls": 0,
+      "mcp_values": [],
+      "thread_count": 1,
+      "failures": [],
+      "bridge_requests": [
+        {
+          "request": 1,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 3642,
+            "completion_tokens": 101,
+            "total_tokens": 3743,
+            "completion_tokens_details": {
+              "reasoning_tokens": 78
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 3642
+          },
+          "schema_mode": "json_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "stop",
+          "upstream_chunks": 103,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 2.984
+        },
+        {
+          "request": 2,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 3716,
+            "completion_tokens": 120,
+            "total_tokens": 3836,
+            "completion_tokens_details": {
+              "reasoning_tokens": 97
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 3584
+            },
+            "prompt_cache_hit_tokens": 3584,
+            "prompt_cache_miss_tokens": 132
+          },
+          "schema_mode": "json_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "stop",
+          "upstream_chunks": 122,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 3.25
+        }
+      ],
+      "wall_seconds": 14.858999999938533
+    },
+    {
+      "model": "Pro/moonshotai/Kimi-K2.6",
+      "schema_mode": "prompt_schema",
+      "status": "passed",
+      "scheduled_turns": 2,
+      "attempted_turns": 2,
+      "valid_answer_turns": 2,
+      "mcp_calls": 2,
+      "mcp_values": [
+        42.0,
+        43.0
+      ],
+      "thread_count": 1,
+      "failures": [],
+      "bridge_requests": [
+        {
+          "request": 1,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 3703,
+            "completion_tokens": 91,
+            "total_tokens": 3794,
+            "completion_tokens_details": {
+              "reasoning_tokens": 67
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 1280
+            },
+            "prompt_cache_hit_tokens": 1280,
+            "prompt_cache_miss_tokens": 2423
+          },
+          "schema_mode": "prompt_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "tool_calls",
+          "upstream_chunks": 77,
+          "output_items": 1,
+          "tool_calls": 1,
+          "wall_seconds": 2.594
+        },
+        {
+          "request": 2,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 3893,
+            "completion_tokens": 112,
+            "total_tokens": 4005,
+            "completion_tokens_details": {
+              "reasoning_tokens": 95
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 3648
+            },
+            "prompt_cache_hit_tokens": 3648,
+            "prompt_cache_miss_tokens": 245
+          },
+          "schema_mode": "prompt_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "stop",
+          "upstream_chunks": 114,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 2.953
+        },
+        {
+          "request": 3,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 3895,
+            "completion_tokens": 136,
+            "total_tokens": 4031,
+            "completion_tokens_details": {
+              "reasoning_tokens": 111
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 3648
+            },
+            "prompt_cache_hit_tokens": 3648,
+            "prompt_cache_miss_tokens": 247
+          },
+          "schema_mode": "prompt_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "tool_calls",
+          "upstream_chunks": 122,
+          "output_items": 1,
+          "tool_calls": 1,
+          "wall_seconds": 3.641
+        },
+        {
+          "request": 4,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 4129,
+            "completion_tokens": 47,
+            "total_tokens": 4176,
+            "completion_tokens_details": {
+              "reasoning_tokens": 30
+            },
+            "prompt_tokens_details": {
+              "cached_tokens": 3840
+            },
+            "prompt_cache_hit_tokens": 3840,
+            "prompt_cache_miss_tokens": 289
+          },
+          "schema_mode": "prompt_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Pro/moonshotai/Kimi-K2.6",
+          "finish_reason": "stop",
+          "upstream_chunks": 49,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 1.922
+        }
+      ],
+      "wall_seconds": 17.07799999997951
+    },
+    {
+      "model": "Qwen/Qwen3.5-397B-A17B",
+      "schema_mode": "json_schema",
+      "status": "failed",
+      "scheduled_turns": 2,
+      "attempted_turns": 2,
+      "valid_answer_turns": 2,
+      "mcp_calls": 0,
+      "mcp_values": [],
+      "thread_count": 1,
+      "failures": [],
+      "bridge_requests": [
+        {
+          "request": 1,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 4475,
+            "completion_tokens": 116,
+            "total_tokens": 4591,
+            "prompt_tokens_details": {
+              "cached_tokens": 0
+            },
+            "prompt_cache_hit_tokens": 0,
+            "prompt_cache_miss_tokens": 4475
+          },
+          "schema_mode": "json_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Qwen/Qwen3.5-397B-A17B",
+          "finish_reason": "stop",
+          "upstream_chunks": 118,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 2.266
+        },
+        {
+          "request": 2,
+          "status": "completed",
+          "usage": {
+            "prompt_tokens": 4549,
+            "completion_tokens": 109,
+            "total_tokens": 4658,
+            "prompt_tokens_details": {
+              "cached_tokens": 4096
+            },
+            "prompt_cache_hit_tokens": 4096,
+            "prompt_cache_miss_tokens": 453
+          },
+          "schema_mode": "json_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 200,
+          "model_returned": "Qwen/Qwen3.5-397B-A17B",
+          "finish_reason": "stop",
+          "upstream_chunks": 111,
+          "output_items": 1,
+          "tool_calls": 0,
+          "wall_seconds": 1.719
+        }
+      ],
+      "wall_seconds": 9.655999999959022
+    },
+    {
+      "model": "Qwen/Qwen3.5-397B-A17B",
+      "schema_mode": "prompt_schema",
+      "status": "failed",
+      "scheduled_turns": 2,
+      "attempted_turns": 1,
+      "valid_answer_turns": 0,
+      "mcp_calls": 0,
+      "mcp_values": [],
+      "thread_count": 1,
+      "failures": [
+        "provider_failure"
+      ],
+      "bridge_requests": [
+        {
+          "request": 1,
+          "status": "failed",
+          "usage": null,
+          "schema_mode": "prompt_schema",
+          "requested_reasoning": {
+            "effort": "medium"
+          },
+          "effective_reasoning": "provider_default_not_effort_mapped",
+          "http_status": 400,
+          "error_code": "upstream_http_400",
+          "error": "{\"code\":20015,\"message\":\"\\\"messages\\\" in request are illegal: System message must be at the beginning...\",\"data\":null}",
+          "wall_seconds": 0.187
+        }
+      ],
+      "wall_seconds": 0.8129999998491257
+    }
+  ],
+  "selected": {
+    "label": "kimi",
+    "model": "Pro/moonshotai/Kimi-K2.6",
+    "schema_mode": "prompt_schema"
+  },
+  "third_model_adopted": false,
+  "formal_scientific_sessions": 0,
+  "calibration": {
+    "status": "stopped_platform_defect",
+    "scheduled_sessions": 6,
+    "attempted_sessions": 2,
+    "completed_sessions": 0,
+    "unstarted_sessions": 4,
+    "scheduled_turns": 12,
+    "attempted_turns": 2,
+    "results": [
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--opaque--r1--kimi--off",
+        "model": "kimi",
+        "arm": "opaque",
+        "tool": "off",
+        "status": "failed",
+        "elapsed_s": 180.40599999995902,
+        "score": {
+          "cell_id": "A_S_B3--partition-discovery--seed0--opaque--r1--kimi--off",
+          "cluster_id": "A_S_B3--partition-discovery--seed0",
+          "arm": "opaque",
+          "model": "kimi",
+          "tool": "off",
+          "repeat": 1,
+          "status": "failed",
+          "failure": "provider_failure",
+          "joint_recovery": 0,
+          "normalized_regret": 1.0,
+          "top1": 0,
+          "near_optimal": 0,
+          "useful_gain": 0,
+          "action_opportunity": true
+        },
+        "failure": "provider_failure",
+        "attempted_turns": 1
+      },
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--opaque--r1--kimi--on",
+        "model": "kimi",
+        "arm": "opaque",
+        "tool": "on",
+        "status": "interrupted",
+        "failure": "platform_process_tree_stopped",
+        "elapsed_s": null,
+        "score": null,
+        "attempted_turns": 1
+      },
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--aligned_nominal--r1--kimi--on",
+        "model": "kimi",
+        "arm": "aligned_nominal",
+        "tool": "on",
+        "status": "unstarted",
+        "failure": null,
+        "elapsed_s": null,
+        "score": null,
+        "attempted_turns": 0
+      },
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--aligned_nominal--r1--kimi--off",
+        "model": "kimi",
+        "arm": "aligned_nominal",
+        "tool": "off",
+        "status": "unstarted",
+        "failure": null,
+        "elapsed_s": null,
+        "score": null,
+        "attempted_turns": 0
+      },
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--misindexed_nominal--r1--kimi--off",
+        "model": "kimi",
+        "arm": "misindexed_nominal",
+        "tool": "off",
+        "status": "unstarted",
+        "failure": null,
+        "elapsed_s": null,
+        "score": null,
+        "attempted_turns": 0
+      },
+      {
+        "cell_id": "A_S_B3--partition-discovery--seed0--misindexed_nominal--r1--kimi--on",
+        "model": "kimi",
+        "arm": "misindexed_nominal",
+        "tool": "on",
+        "status": "unstarted",
+        "failure": null,
+        "elapsed_s": null,
+        "score": null,
+        "attempted_turns": 0
+      }
+    ],
+    "bridge_requests": [
+      {
+        "request": 1,
+        "status": "interrupted_unfinalized",
+        "usage": null,
+        "error_code": "upstream_outcome_unknown_after_platform_stop"
+      },
+      {
+        "request": 2,
+        "status": "interrupted_unfinalized",
+        "usage": null,
+        "error_code": "upstream_outcome_unknown_after_platform_stop"
+      }
+    ],
+    "wall_seconds": null
+  },
+  "stop_reason": "shared_platform_defect",
+  "wall_seconds": null,
+  "platform_incident": {
+    "recorded_at_utc": "2026-09-06T09:24:25.509654+00:00",
+    "reconstructed_from_existing_artifacts": true,
+    "source": "Existing session receipts, local request artifacts and executor stop observation",
+    "findings": [
+      "The first Kimi calibration pre-turn reached Codex SSE idle timeout at 180.406 s.",
+      "The upstream request remained unfinished when a second session was started.",
+      "The configured socket timeout did not enforce a total upstream request deadline.",
+      "The owned process tree was stopped; unfinished responses and usage are unknown.",
+      "Raw partial stream chunks were not durable in the interrupted implementation.",
+      "Deadline, cancellation, single-request isolation and incremental journaling were fixed and tested offline afterwards; this live block was not rerun."
+    ]
+  },
+  "resource_accounting": {
+    "direct_attempted": 5,
+    "direct_passed": 2,
+    "direct_failed": 3,
+    "smoke_turns_attempted": 7,
+    "harness_sessions_passed": 1,
+    "recorded_requests": 16,
+    "requests_without_usage": 6,
+    "reported_input_tokens": 32173,
+    "reported_output_tokens": 917,
+    "reported_reasoning_tokens": 546,
+    "calibration_session_eta_seconds": null,
+    "formal_60_session_eta_seconds": null
+  }
+}
