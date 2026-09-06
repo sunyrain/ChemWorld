@@ -39,8 +39,8 @@ def prepare_home(root: Path, bridge: ResponsesChatBridge) -> tuple[dict, dict, P
         (ROOT / "configs/providers/openrouter_kimi_k2_5_models.json").read_text(encoding="utf-8")
     )
     catalog["models"][0].update(
-        slug=MODEL,
-        display_name="GLM 5.3 via local Chat Completions bridge",
+        slug=bridge.model,
+        display_name=f"{bridge.model} via local Chat Completions bridge",
         description="Development transport candidate; context limits are local settings.",
         default_reasoning_level="medium",
         supports_reasoning_summaries=False,
@@ -53,7 +53,7 @@ def prepare_home(root: Path, bridge: ResponsesChatBridge) -> tuple[dict, dict, P
     write(catalog_path, catalog)
     provider = {
         "id": "siliconflow_glm_bridge",
-        "model": MODEL,
+        "model": bridge.model,
         "reasoning_effort": "medium",
         "auth_mode": "env_key",
     }
@@ -178,7 +178,7 @@ def smoke(root: Path, bridge: ResponsesChatBridge) -> dict:
     }
 
 
-def calibrate(root: Path, bridge: ResponsesChatBridge) -> dict:
+def calibrate(root: Path, bridge: ResponsesChatBridge, model_label: str = "glm") -> dict:
     protocol = json.loads(
         (ROOT / "configs/benchmark/work_ii_final_diagnostic_20260905.json").read_text(
             encoding="utf-8"
@@ -187,8 +187,8 @@ def calibrate(root: Path, bridge: ResponsesChatBridge) -> dict:
     candidates, source = science_inputs(protocol, development=True)
     cells = [deepcopy(c) for c in candidates if c["model"] == "gpt"]
     for cell in cells:
-        cell["model"] = "glm"
-        cell["cell_id"] = cell["cell_id"].replace("--gpt--", "--glm--")
+        cell["model"] = model_label
+        cell["cell_id"] = cell["cell_id"].replace("--gpt--", f"--{model_label}--")
     write(root / "inputs.json", {"cells": cells, "source": source})
     results = []
     block_start = time.monotonic()
@@ -200,7 +200,7 @@ def calibrate(root: Path, bridge: ResponsesChatBridge) -> dict:
         audit = directory / "tool_audit.jsonl"
         result = {
             "cell_id": cell["cell_id"],
-            "model": "glm",
+            "model": model_label,
             "tool": cell["tool"],
             "arm": cell["arm"],
             "status": "failed",
@@ -240,6 +240,9 @@ def calibrate(root: Path, bridge: ResponsesChatBridge) -> dict:
             write(directory / "partial.json", result)
             if receipt["failure"]:
                 result["failure"] = receipt["failure"]
+                if any(r["status"] == "started" for r in bridge.records):
+                    bridge.cancel_pending()
+                    result["stop_block"] = "unfinished_upstream_after_turn_failure"
                 break
             try:
                 validate(receipt["payload"], cell, stage)
@@ -278,7 +281,7 @@ def calibrate(root: Path, bridge: ResponsesChatBridge) -> dict:
             ),
             flush=True,
         )
-        if any(r["status"] == "failed" for r in bridge.records):
+        if result.get("stop_block") or any(r["status"] == "failed" for r in bridge.records):
             break
     return {
         "stage": "calibration",

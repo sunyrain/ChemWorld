@@ -11,6 +11,7 @@ import hmac
 import json
 import re
 import secrets
+import socket
 import threading
 import time
 import urllib.error
@@ -74,8 +75,8 @@ class ResponsesChatBridge:
         schema_mode: str = "json_schema",
         port: int = 0,
     ):
-        if schema_mode not in {"json_schema", "json_object"}:
-            raise ValueError("schema_mode must be json_schema or json_object")
+        if schema_mode not in {"json_schema", "json_object", "prompt_schema"}:
+            raise ValueError("Unknown schema transport mode")
         self.api_key, self.local_token = api_key, secrets.token_hex(32)
         self.audit_dir, self.model, self.upstream_url = audit_dir, model, upstream_url
         audit_dir.mkdir(parents=True, exist_ok=False)
@@ -86,6 +87,7 @@ class ResponsesChatBridge:
         self.reasoning: dict[str, str] = {}
         self.items: dict[str, dict] = {}
         self.lock = threading.RLock()
+        self.inflight: dict[str, tuple[Any, threading.Event]] = {}
         self.server = ThreadingHTTPServer(("127.0.0.1", port), self._handler())
         self.server.daemon_threads = True
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
@@ -99,9 +101,25 @@ class ResponsesChatBridge:
         return self
 
     def __exit__(self, *_args):
+        self.cancel_pending()
         self.server.shutdown()
         self.server.server_close()
         self.thread.join(timeout=5)
+
+    def cancel_pending(self) -> bool:
+        """Cancel upstream work and wait briefly for durable failure receipts."""
+        with self.lock:
+            pending = list(self.inflight.values())
+        deadline = time.monotonic() + 5
+        for cancel, _done in pending:
+            cancel()
+        return all(done.wait(max(0, deadline - time.monotonic())) for _, done in pending)
+
+    def cancel_response(self, response_id: str) -> None:
+        with self.lock:
+            pending = self.inflight.get(response_id)
+        if pending:
+            pending[0]()
 
     def _save(self, name: str, payload: Any) -> None:
         encoded = json.dumps(payload, ensure_ascii=False, indent=2, allow_nan=False)
@@ -250,7 +268,8 @@ class ResponsesChatBridge:
                     },
                 }
             else:
-                body["response_format"] = {"type": "json_object"}
+                if self.schema_mode == "json_object":
+                    body["response_format"] = {"type": "json_object"}
                 messages.insert(
                     0,
                     {
@@ -264,6 +283,9 @@ class ResponsesChatBridge:
                 )
         elif format_spec.get("type") == "json_object":
             body["response_format"] = {"type": "json_object"}
+        # Some Chat providers accept exactly one leading system message.
+        while len(messages) > 1 and messages[0]["role"] == messages[1]["role"] == "system":
+            messages[0]["content"] += "\n\n" + messages.pop(1)["content"]
         return body, names, inputs
 
     def _upstream(self, body: dict, record: dict) -> dict:
@@ -274,10 +296,40 @@ class ResponsesChatBridge:
         )
         text, reasoning, calls, chunks = [], [], {}, []
         result = {"usage": None, "finish_reason": None}
+        expired, cancelled, done = threading.Event(), threading.Event(), threading.Event()
+        holder: list[Any] = []
+        request_id = str(record.get("response_id", record["request"]))
+
+        def abort(*, timeout: bool = False):
+            (expired if timeout else cancelled).set()
+            if holder:
+                stream = holder[0]
+                # shutdown interrupts a concurrent blocking read; close alone may wait on it.
+                sock = getattr(getattr(getattr(stream, "fp", None), "raw", None), "_sock", None)
+                if sock is not None:
+                    with suppress(OSError):
+                        sock.shutdown(socket.SHUT_RDWR)
+
+        def check_cancelled():
+            if expired.is_set():
+                raise BridgeError("upstream_deadline", "Total upstream request deadline exceeded")
+            if cancelled.is_set():
+                raise BridgeError("upstream_cancelled", "Caller cancelled the upstream request")
+
+        timer = threading.Timer(self.timeout_s, lambda: abort(timeout=True))
+        timer.daemon = True
+        with self.lock:
+            self.inflight[request_id] = (abort, done)
+        timer.start()
+        journal_path = self.audit_dir / f"{record['request']:03d}-upstream-chunks.jsonl"
+        journal = journal_path.open("x", encoding="utf-8", newline="\n")
         try:
             with urllib.request.urlopen(req, timeout=self.timeout_s) as response:
+                holder.append(response)
+                check_cancelled()
                 record["http_status"] = response.status
                 for raw in response:
+                    check_cancelled()
                     line = raw.decode("utf-8").strip()
                     if not line.startswith("data:"):
                         continue
@@ -286,6 +338,12 @@ class ResponsesChatBridge:
                         break
                     chunk = json.loads(data)
                     chunks.append(chunk)
+                    encoded = json.dumps(chunk, ensure_ascii=True)
+                    for token in (self.api_key, self.local_token):
+                        encoded = encoded.replace(token, "[REDACTED]")
+                    journal.write(encoded + "\n")
+                    journal.flush()
+                    record["upstream_chunks"] = len(chunks)
                     if chunk.get("error"):
                         raise BridgeError("upstream_error", json.dumps(chunk["error"]))
                     if chunk.get("model"):
@@ -310,6 +368,7 @@ class ResponsesChatBridge:
                                 target[key] += call.get("function", {}).get(key, "") or ""
                         if choice.get("finish_reason"):
                             result["finish_reason"] = choice["finish_reason"]
+                check_cancelled()
         except urllib.error.HTTPError as error:
             record["http_status"] = error.code
             detail = error.read().decode("utf-8", errors="replace")
@@ -318,8 +377,16 @@ class ResponsesChatBridge:
                 {"status": error.code, "body": detail},
             )
             raise BridgeError(f"upstream_http_{error.code}", detail[:1500]) from error
+        except Exception:
+            check_cancelled()
+            raise
         finally:
+            timer.cancel()
+            journal.close()
             self._save(f"{record['request']:03d}-upstream-chunks.json", chunks)
+            with self.lock:
+                self.inflight.pop(request_id, None)
+            done.set()
         result.update(
             content="".join(text),
             reasoning_content="".join(reasoning),
@@ -341,11 +408,20 @@ class ResponsesChatBridge:
         with self.lock:
             if len(self.records) >= self.max_requests:
                 raise BridgeError("request_limit", "Configured request budget exhausted")
-            record = {"request": len(self.records) + 1, "status": "started", "usage": None}
+            busy = any(r["status"] == "started" for r in self.records)
+            record = {
+                "request": len(self.records) + 1,
+                "status": "started",
+                "usage": None,
+                "response_id": response_id,
+            }
             self.records.append(record)
         start = time.monotonic()
         self._save(f"{record['request']:03d}-responses-request.json", request)
+        self._save("ledger.json", self.records)
         try:
+            if busy:
+                raise BridgeError("request_in_flight", "Previous upstream request is still active")
             body, names, inputs = self.translate(request)
             self._save(f"{record['request']:03d}-chat-request.json", body)
             record.update(
@@ -481,6 +557,7 @@ class ResponsesChatBridge:
                                 self.wfile.write(b": keepalive\n\n")
                                 self.wfile.flush()
                         except OSError:
+                            bridge.cancel_response(response_id)
                             return
 
                 if streaming:
@@ -494,6 +571,7 @@ class ResponsesChatBridge:
                     threading.Thread(target=heartbeat, daemon=True).start()
                 try:
                     response = bridge.complete(request, response_id)
+                    stop.set()
                     if streaming:
                         for index, item in enumerate(response["output"]):
                             initial = deepcopy(item)

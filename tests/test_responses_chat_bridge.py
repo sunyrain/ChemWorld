@@ -1,7 +1,11 @@
 import io
 import json
+import threading
+import time
 import urllib.error
 import urllib.request
+from concurrent.futures import ThreadPoolExecutor
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 import pytest
 
@@ -267,3 +271,71 @@ def test_upstream_stream_retains_fragmented_calls_and_known_usage(
                 {"id": "c1", "name": "calculate", "arguments": '{"x":42}'}
             ]
         assert record["usage"] == usage
+
+
+@pytest.mark.parametrize("mode", ["deadline", "cancel"])
+def test_keepalives_cannot_extend_deadline_and_pending_requests_are_cancelled(tmp_path, mode):
+    stopped = threading.Event()
+    request_count = []
+    usage = {"prompt_tokens": 12, "completion_tokens": 3, "total_tokens": 15}
+
+    class Handler(BaseHTTPRequestHandler):
+        def log_message(self, *_args):
+            pass
+
+        def do_POST(self):
+            request_count.append(1)
+            self.rfile.read(int(self.headers["Content-Length"]))
+            self.send_response(200)
+            self.send_header("Content-Type", "text/event-stream")
+            self.end_headers()
+            try:
+                self.wfile.write(
+                    ("data: " + json.dumps({"usage": usage, "choices": []}) + "\n\n").encode()
+                )
+                self.wfile.flush()
+                while not stopped.wait(0.01):
+                    self.wfile.write(b": keepalive\n\n")
+                    self.wfile.flush()
+            except OSError:
+                return
+
+    server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+    worker = threading.Thread(target=server.serve_forever, daemon=True)
+    worker.start()
+    try:
+        with (
+            ResponsesChatBridge(
+                api_key="secret",
+                audit_dir=tmp_path / "audit",
+                upstream_url=f"http://127.0.0.1:{server.server_port}/chat/completions",
+                timeout_s=0.3 if mode == "deadline" else 3,
+            ) as bridge,
+            ThreadPoolExecutor(max_workers=1) as pool,
+        ):
+            started = time.monotonic()
+            request = {"model": bridge.model, "input": "test"}
+            future = pool.submit(bridge.complete, request, "r1")
+            if mode == "cancel":
+                while not bridge.records or bridge.records[0].get("usage") is None:
+                    assert time.monotonic() - started < 2
+                    stopped.wait(0.01)
+                with pytest.raises(BridgeError, match="still active"):
+                    bridge.complete(request, "r2")
+                assert bridge.cancel_pending()
+            with pytest.raises(BridgeError) as error:
+                future.result(timeout=2)
+            assert error.value.code == (
+                "upstream_deadline" if mode == "deadline" else "upstream_cancelled"
+            )
+            assert time.monotonic() - started < 2
+            assert len(request_count) == 1
+            assert bridge.records[0]["usage"] == usage
+            assert bridge.records[0]["status"] == "failed"
+            journal = (tmp_path / "audit/001-upstream-chunks.jsonl").read_text()
+            assert json.loads(journal.splitlines()[0])["usage"] == usage
+    finally:
+        stopped.set()
+        server.shutdown()
+        server.server_close()
+        worker.join(timeout=2)
