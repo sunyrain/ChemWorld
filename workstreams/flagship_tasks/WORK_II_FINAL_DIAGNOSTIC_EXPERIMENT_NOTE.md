@@ -1,9 +1,19 @@
 # Work II 最后诊断块：最小提交与公开数值工具
 
-状态：**开发已收尾，正式设计与预算已固定，待一次冻结后执行**。任务：W2-77。
+状态：**正式块于2026-09-06完成，120/120尝试，117有效完成、3失败保留**。任务：W2-77。
 本说明覆盖整个开发与后续诊断块，不建立额外readiness包；执行状态由
 [TODO](WORK_II_TODOLIST.md)管理，论文角色与取舍见[矩阵](WORK_II_EXPERIMENT_MATRIX.md)。
 本轮固定GPT/DeepSeek双模型，第三模型暂缓；开发完成后冻结正式执行面，不重复请求已有执行授权。
+
+终态报告：[可读摘要](reports/work-ii-final-diagnostic-20260905.md)及
+[机器数据](reports/work-ii-final-diagnostic-20260905.json)，由current的w2_77_final_diagnostic绑定。
+240轮全部尝试，零未启动、零补跑或替换；新增world、物理及replay均为0。
+主差+0.01667，95%区间[−0.08333,+0.10000]，未支持明确工具可用性收益，亦不证明等价。
+opaque/misindexed共80 scheduled、78有效，joint recovery为0；全部17次成功为aligned先验保持。
+GPT开放工具30会话均未调用；DeepSeek在20/30会话共尝试63次，其中9次表达式拒绝。
+3个失败为DeepSeek post提交校验、GPT传输中断和DeepSeek提供方输出上限各1例。
+报告wall合计33,619秒；输入8,251,168、输出5,152,198 tokens，两次失败轮用量缺失，均为已知下界。
+上述是终态记录，不改写以下执行前设计与原开发失败。
 
 开发前固定：复用原B3公开开发seed 0，三prior×两模型×两工具各一次，共12 sessions，24轮；
 每轮上限600秒，每session上限1200秒，整块上限4小时，无结果选择性重试。

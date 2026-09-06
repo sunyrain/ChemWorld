@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-09-05
+更新日期：2026-09-06
 
 本文件是 Paper 2 当前唯一的结果导航入口。它不替代 raw run、机器 summary、实验 note 或冻结 analysis plan；历史报告只描述各自执行时点，不再作为当前状态入口。
 
@@ -15,6 +15,7 @@
 | C2 evaluator | 各420 truth；675/669 checkpoints；135/129 laws；726/756 blind executions，原scheduled各810 | law MAE 0.2371/0.1753、compression loss 0.0686/0.0142；incumbent gain约为零 |
 | A-P/B2 matched | 每模型每块15/15 sessions，合计60；另DeepSeek-low B2为15/15 | 条件性packet后响应；B2三配置错误组exact expression均0/5，存在精确alias |
 | B3 | 各30 scheduled；17/30 completed；13/0 schema failures | joint recovery 0/30与5/30；固定机会分母useful gain均0/18 |
+| [W2-77最小接口/工具](reports/work-ii-final-diagnostic-20260905.md) | 120/120尝试，117有效、3失败；240轮，复用5 worlds | 工具主差+0.01667，95%[−0.08333,+0.10000]；未知/错误先验0/80恢复，17次成功均为正确先验保持 |
 | W2-50/64 | DeepSeek-only，45 scheduled、42 rankings、240 truth/replay | law Top-1 0/45、participant 11/45、follow-law 12/42；描述性差异 |
 | W2-61 | 各180 slots、45 strata；donor eligible42/26；yoked完成10/42与24/26 | all-scheduled autonomy-minus-none regret -0.0913/+0.1102，两区间跨零；development系统策略比较 |
 | M1正式复核 | 10 worlds、40来源状态、120/120 sessions、160/160条件、200/200物理与replay；零失败 | 主差−0.00538，95%区间[−0.01630,+0.00061]，未支持实质收益；F-A/F-X 40/40一致 |
