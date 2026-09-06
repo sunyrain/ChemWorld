@@ -5,7 +5,8 @@
 ## 1. 当前任务与唯一入口
 
 四层测量的正式实验与本轮收束已完成：最后B3诊断、图文整合、两版PDF及匿名复现包均已验收。
-W2-86完成三位独立AI审稿及必要文字同步；新增必做科学实验0，下一步为作者终审与投稿事项。
+W2-86完成三位独立AI审稿及必要文字同步，原范围新增必做科学实验0。
+用户随后授权优先尝试公开信息完整性的单因素干预：W2-87先做离线参考可行性，再据校准决定新Agent块。
 本轮固定GPT/DeepSeek双模型，第三模型暂缓；机制匹配、新条件迁移和全面框架交叉不作为写作前置。
 具体范围和停止规则见[收束矩阵](WORK_II_EXPERIMENT_MATRIX.md)；开发12/12终止（10有效完成、2失败），正式120/120尝试、117有效完成、3失败保留。
 
@@ -53,11 +54,12 @@ M1/M3提供观察到的成功设置及边界，没有识别跨协议差异的单
 
 ## 3. 当前任务
 
-2026-09-06用户要求独立专业评估并收束：三个只读审稿角色分别核查故事、方法和交付。
-Claim: Codex /root — W2-86 — DONE。协调者完成修改；旧正式块及其失败未重跑。
+2026-09-06独立评阅已完成，用户随后授权优先尝试解释成功/失败条件的单因素干预。
+Claim: Codex /root — W2-87 — DOING。单executor；旧正式块及其失败不重跑。
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
+| W2-87 | DOING (kernel stage complete) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)阶段A固定96/96 kernel校准通过，5项定向测试通过；[机器摘要](reports/work-ii-information-completeness-20260906.md)已绑定。剩余完整终点合同/同信息留出校准、新10world覆盖与证据、12开发和120正式会话，均未启动；历史工具on速度折算正式9.53小时，拟留10–14小时，连同工程/分析暂估3–5工作日。无新增provider/完整物理/replay；不将kernel通过当作参与者可识别性或整个干预完成 |
 | W2-86 | DONE | Claim: Codex /root — [三位独立AI评阅](reports/work-ii-independent-review-20260906.md)与收束完成；F2摘要信息边界、四层读出、F3同域容量及M3候选局限已同步。两版PDF仍9/25及24页，69文件包；16项出版测试、最后措辞6项复核、Ruff和链接/diff通过，49页渲染总览及7页逐页检查通过。第三模型桥接新增P1读头时限/P2中断usage恢复缺陷留作重资格前修复，未调用provider；新增必做科学实验0 |
 | W2-85 | DONE (calibration interrupted) | Claim: Codex /root — Kimi/Qwen四个harness会话全部尝试，Kimi prompt_schema两轮/2次真实MCP通过；strict均无工具，Qwen另有tool_choice与多system兼容错误。Kimi校准0/6完成：1超时失败、1平台中止、4未启动；因上游未取消及请求重叠停止。总deadline/取消/增量日志与system合并已修复，42项测试通过，未追加线上重跑。Kimi为优先候选，尚未取得完整第三模型资格；见[说明](WORK_II_PROVIDER_SELECTION_NOTE.md)与[结果](reports/work-ii-provider-selection-20260906.md) |
 | W2-84 | DONE (not qualified) | Claim: Codex /root — GLM适配开发块按停止规则结束：3次真实工程尝试0次完整通过；正确JSON/同thread可达，实际MCP调用0。离线模拟已跑通真实Codex两轮与2次MCP，但真实GLM分别绕过工具或把待调用写成普通JSON。6/6校准未启动，GLM暂不采用；保留全部失败及schema fallback偏离。见[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)与[结果](reports/work-ii-glm-adapter-20260906.md) |
@@ -166,7 +168,7 @@ M0/M1开发、M1正式和M3新候选分别计数；M3没有新增独立world，M
 18项出版集成检查、Ruff、diff及65文件匿名补充包验证通过，独立重算M1/M3全部11个区间。
 M3冻结执行面在运行前通过36项验收，运行后核验一致。原始provider/轨迹、历史失败与Work I未改。
 公开报告允许同一封存结果的说明重建，禁止覆盖不同的科学结果；Git文本使用规范LF以保留跨平台绑定。
-上述记录描述M3历史发布段；本轮收束由W2-86管理，随后为作者审读和投稿事项。
+上述记录描述M3历史发布段；W2-86收束已完成，新增信息完整性干预由W2-87管理，作者可同步终审。
 M2/M4、第三模型及机制匹配新条件均暂缓。
 M3正结果不触发追加同类样本，
 最近邻10/10最优的边界保留；M1未支持的门槛不因后继正结果改写。
