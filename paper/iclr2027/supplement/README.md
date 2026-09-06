@@ -30,6 +30,9 @@ publication projection, not a copy of local run directories. It contains:
   six fixed contrasts, descriptive controls and separately reported new/reused costs;
 - public protocol projections for the longitudinal, matched-evidence, identifiable-law, and
   four-condition action assays;
+- the final minimal-interface diagnostic: all 120 scored session records, three retained failures,
+  prior-stratified counts, five paired world effects, resources, fixed protocol and public
+  interface/numerics source;
 - the exact system prompts or prompt-generating function sources used by the reported assays;
 - representative strict response schemas and the executable-law contract;
 - a chronological platform-recovery and oracle-qualification provenance record;
@@ -64,3 +67,9 @@ candidate separation, all four prompt projections and their byte counts, losses,
 controls, costs and six paired means. `python verify_m3.py --full` reconstructs the candidate
 design, exact maximizer choices and all six world-bootstrap intervals with NumPy. It adds no
 provider calls or physical experiments and does not count the reused worlds as new replication.
+
+The final diagnostic verifier reconstructs joint family/exponent scores, action losses, all
+prior/model/tool denominators and the equal-weight paired mean. Run
+`python verify_final_diagnostic.py --full` with NumPy to reproduce the prespecified five-world
+bootstrap interval. The ordinary package verifier runs its standard-library checks automatically.
+Aligned-prior successes are retention; optional-tool assignment is distinct from actual uptake.

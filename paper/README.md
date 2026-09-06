@@ -11,10 +11,11 @@ The [evidence map](prior_discovery_evidence_map.md) maps claims to bound results
 [display plan](prior_discovery_display_items.md) owns figure roles. Execution status belongs in
 the workstream TODO, and publication checks in the [submission checklist](ICLR_2027_SUBMISSION_CHECKLIST.md).
 
-The current closeout plan restores the four conversion-loss questions and keeps one final B3
-interface/tool diagnostic before manuscript integration. The story and experiment matrix describe
-that plan. The manuscripts, evidence map, display plan and PDFs still describe the last exported
-revision; update them together after the final experiment reaches its recorded endpoint.
+The final B3 interface/tool diagnostic has reached its recorded endpoint: 120 attempted sessions,
+117 valid completions and three retained failures. Manuscripts and display sources now organize
+the four conversion questions and the M1/M3 success conditions. The accepted exports contain nine
+main-text pages / 25 total pages in the anonymous PDF, a 24-page long draft and a 67-file anonymous
+package. The workstream TODO records acceptance; no further experiment is automatically scheduled.
 
 ## Build from sources
 

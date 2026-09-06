@@ -10,7 +10,7 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import render_prior_discovery_figures as style
 from matplotlib.lines import Line2D
-from matplotlib.ticker import PercentFormatter
+from matplotlib.ticker import FuncFormatter, PercentFormatter
 
 MODELS = ("gpt", "deepseek")
 LABELS = ("GPT-5.6-sol", "DeepSeek-v4-flash")
@@ -18,12 +18,12 @@ COLORS = ("#8755A1", "#286B9B")
 ARMS = ("opaque", "misindexed_nominal", "aligned_nominal")
 
 
-def render(report: dict, output: Path) -> None:
+def render(report: dict, output: Path) -> list[Path]:
     if not report["formal_result"] or not report["execution_complete"]:
         raise ValueError("publication plot requires a terminal formal block")
     style.configure_matplotlib()
-    fig, (recovery, effect) = plt.subplots(1, 2, figsize=(7.4, 4.6))
-    fig.subplots_adjust(left=0.16, right=0.98, bottom=0.26, top=0.83, wspace=0.95)
+    fig, (recovery, effect) = plt.subplots(1, 2, figsize=(6.2, 3.9))
+    fig.subplots_adjust(left=0.16, right=0.98, bottom=0.30, top=0.83, wspace=0.95)
     lookup = {(r["model"], r["tool"], r["arm"]): r for r in report["by_prior"]}
     yticks, ylabels = [], []
     for mi, (model, label, color) in enumerate(zip(MODELS, LABELS, COLORS, strict=True)):
@@ -74,7 +74,7 @@ def render(report: dict, output: Path) -> None:
         yticklabels=ylabels,
         ylim=(7.1, -1.35),
         xlim=(-0.06, 1.52),
-        xlabel="Joint family + exponent recovery",
+        xlabel="Joint family/exponent success",
     )
     recovery.set_xticks([0, 0.5, 1])
     recovery.xaxis.set_major_formatter(PercentFormatter(1))
@@ -107,10 +107,11 @@ def render(report: dict, output: Path) -> None:
         yticklabels=["World 1", "World 2", "World 3", "World 4", "World 5", "Mean + 95% CI"],
         ylim=(7.1, -1.35),
         xlim=(-extent * 1.23, extent * 1.23),
-        xlabel="Tool-on minus tool-off",
+        xlabel="Tool effect (percentage points)",
     )
     effect.axvline(0, color="#8B95A1", lw=0.8)
-    effect.xaxis.set_major_formatter(PercentFormatter(1, decimals=0))
+    effect.xaxis.set_major_formatter(FuncFormatter(lambda x, _: f"{100 * x:+.0f}" if x else "0"))
+    effect.xaxis.label.set_fontsize(8.5)
     effect.set_title("b   Paired world effects", loc="left", fontsize=10, pad=24)
     for ax in (recovery, effect):
         ax.grid(axis="x", lw=0.5, color=style.COLORS["grid"])
@@ -147,7 +148,7 @@ def render(report: dict, output: Path) -> None:
             ),
         ],
         loc="lower left",
-        bbox_to_anchor=(0.02, 0.125),
+        bbox_to_anchor=(0.02, 0.115),
         ncol=3,
         fontsize=8.5,
         columnspacing=1.7,
@@ -157,23 +158,28 @@ def render(report: dict, output: Path) -> None:
     fig.text(
         0.035,
         0.082,
-        f"Each prior/model/tool: {denominator} scheduled sessions. "
-        f"Complete sessions: {completed}/{report['scheduled']}; failures remain in denominators.",
+        f"{denominator} sessions per prior/model/tool; "
+        f"{completed}/{report['scheduled']} valid. Failures retained.",
         fontsize=8.2,
         color=style.COLORS["muted"],
     )
     fig.text(
         0.035,
         0.035,
-        "*Aligned prior supplies the correct law: success here is retention. "
-        "Five reused worlds; the interval is a small-sample approximation.",
+        "*Aligned supplies the law: retention. Five reused worlds; approximate interval.",
         fontsize=8.1,
         color=style.COLORS["muted"],
     )
     output.parent.mkdir(parents=True, exist_ok=True)
+    if output.parent.resolve() == style.OUTPUT_DIR.resolve():
+        return style.export_figure(fig, output.name)
+    paths = []
     for extension in ("svg", "pdf", "png"):
-        fig.savefig(output.with_suffix("." + extension), dpi=240, bbox_inches="tight")
+        path = output.with_suffix("." + extension)
+        fig.savefig(path, dpi=300, bbox_inches="tight")
+        paths.append(path)
     plt.close(fig)
+    return paths
 
 
 def main() -> None:

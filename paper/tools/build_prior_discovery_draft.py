@@ -102,6 +102,8 @@ def load_figure_pdfs() -> list[Path]:
         expected.add("figure_7")
     if "figure-8-m3-portability.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
         expected.add("figure_8")
+    if "figure-9-final-diagnostic.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        expected.add("figure_9")
     if not isinstance(figures, dict) or set(figures) != expected:
         raise RuntimeError("draft figure roster differs from the manuscript's generated assets")
     pdfs: list[Path] = []
@@ -237,6 +239,9 @@ def build() -> dict[str, Any]:
     if "figure-8-m3-portability.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         source_paths.append(ROOT / current["work_ii"]["w2_69_m3_portability"]["report"])
+    if "figure-9-final-diagnostic.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        source_paths.append(ROOT / current["work_ii"]["w2_77_final_diagnostic"]["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-draft-build-0.1",
         "status": "compiled_development_draft",

@@ -687,6 +687,9 @@ if (ROOT / "verify_m1.py").exists():
 if (ROOT / "verify_m3.py").exists():
     import runpy
     runpy.run_path(str(ROOT / "verify_m3.py"))
+if (ROOT / "verify_final_diagnostic.py").exists():
+    import runpy
+    runpy.run_path(str(ROOT / "verify_final_diagnostic.py"))
 
 print(f"verified {len(manifest['files'])} files and all publication invariants")
 """
@@ -853,6 +856,47 @@ def _m3_files() -> dict[str, bytes]:
     }
 
 
+def _final_diagnostic_files() -> dict[str, bytes]:
+    binding = _load(ROOT / "configs/current.json")["work_ii"].get("w2_77_final_diagnostic")
+    if not binding or not binding.get("formal_result"):
+        return {}
+    path = ROOT / binding["report"]
+    if _sha256_bytes(path.read_bytes()) != binding["report_sha256"]:
+        raise ValueError("Final diagnostic current report binding mismatch")
+    report = _load(path)
+    projected = {k: v for k, v in report.items() if k not in {"source", "freeze", "providers"}}
+    projected["source_hashes"] = [{"role": "final_diagnostic", "sha256": binding["report_sha256"]}]
+    concrete = _load(ROOT / binding["protocol"])
+    protocol = {
+        k: v for k, v in concrete.items() if k not in {"providers", "source_root", "calibration"}
+    }
+    protocol["providers"] = {
+        model: {key: provider[key] for key in ("model", "reasoning_effort")}
+        for model, provider in concrete["providers"].items()
+    }
+    from chemworld.eval.work_ii_final_diagnostic import FAMILIES, METRICS
+
+    interface = (
+        "from __future__ import annotations\nimport json\nimport math\nfrom typing import Any\n"
+        + f"METRICS = {METRICS!r}\nFAMILIES = {FAMILIES!r}\n\n"
+        + _function_source(
+            ROOT / "src/chemworld/eval/work_ii_final_diagnostic.py",
+            {"schema", "validate", "prompt"},
+        )
+    )
+    return {
+        "data/final_diagnostic.json": _json_bytes(_sanitize_value(projected)),
+        "protocols/final_diagnostic.json": _json_bytes(_sanitize_value(protocol)),
+        "methods/final_diagnostic_interface.py": interface.encode("utf-8"),
+        "methods/diagnostic_numerics.py": (
+            ROOT / "src/chemworld/agents/diagnostic_numerics.py"
+        ).read_bytes(),
+        "verify_final_diagnostic.py": (
+            ROOT / "paper/iclr2027/supplement/verify_final_diagnostic.py"
+        ).read_bytes(),
+    }
+
+
 def build() -> dict[str, Any]:
     publication = _load(PUBLICATION_REPORT)
     action = _load(ACTION_REPORT)
@@ -939,6 +983,7 @@ def build() -> dict[str, Any]:
     }
     files.update(_m1_files())
     files.update(_m3_files())
+    files.update(_final_diagnostic_files())
     for path in sorted(FIGURE_SOURCE_DIR.glob("*.csv")):
         content = _sanitize_csv(path.read_text(encoding="utf-8"))
         list(csv.reader(content.splitlines()))

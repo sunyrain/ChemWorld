@@ -730,69 +730,78 @@ def model_legend(fig, *, y=0.98):
 
 
 def render_figure_1() -> list[Path]:
-    fig, ax = plt.subplots(figsize=(6.6, 2.05))
-    fig.subplots_adjust(left=0.005, right=0.995, top=0.96, bottom=0.04)
+    fig, ax = plt.subplots(figsize=(7.2, 2.5))
+    fig.subplots_adjust(left=0.005, right=0.995, top=0.98, bottom=0.02)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.axis("off")
     ax.text(
-        0.135,
+        0.115, 0.98, "Supplied description", ha="center", va="top", fontsize=10, fontweight="bold"
+    )
+    for y, label, color in (
+        (0.74, "Opaque", COLORS["opaque"]),
+        (0.51, "Aligned", COLORS["aligned"]),
+        (0.28, "Misindexed", COLORS["misindexed"]),
+    ):
+        rounded_box(
+            ax,
+            0.015,
+            y - 0.075,
+            0.20,
+            0.15,
+            label,
+            facecolor="white",
+            edgecolor=color,
+            fontsize=10,
+            linewidth=1.3,
+        )
+        arrow(ax, (0.225, y), (0.28, 0.51), color=color, mutation_scale=8)
+    rounded_box(
+        ax,
+        0.29,
+        0.32,
+        0.21,
+        0.39,
+        "Fixed world\nAgent experiments\nPublic evidence",
+        facecolor="#EFF4F7",
+        edgecolor="#BCC7CE",
+        fontsize=9.5,
+    )
+    ax.text(0.395, 0.21, "Same rules and budget", ha="center", fontsize=8.8, color=COLORS["muted"])
+    ax.text(
+        0.765,
         0.98,
-        "Vary the supplied description",
+        "Four conversion questions",
         ha="center",
         va="top",
         fontsize=10,
         fontweight="bold",
     )
-    for y, label, color in (
-        (0.73, "Opaque", COLORS["opaque"]),
-        (0.48, "Aligned", COLORS["aligned"]),
-        (0.23, "Misindexed", COLORS["misindexed"]),
-    ):
-        rounded_box(
-            ax,
-            0.025,
-            y - 0.08,
-            0.22,
-            0.16,
-            label,
-            facecolor="white",
-            edgecolor=color,
-            fontsize=10,
-            linewidth=1.4,
-        )
-        arrow(ax, (0.258, y), (0.34, 0.49), color=color, mutation_scale=9)
-    rounded_box(
-        ax,
-        0.35,
-        0.31,
-        0.24,
-        0.36,
-        "Fixed world\nAgent experiments\nPublic evidence",
-        facecolor="#EFF4F7",
-        edgecolor="#BCC7CE",
-        fontsize=10,
-    )
-    ax.text(0.47, 0.16, "Same rules and budget", ha="center", fontsize=9, color=COLORS["muted"])
-    ax.text(
-        0.825, 0.98, "Measure separately", ha="center", va="top", fontsize=10, fontweight="bold"
-    )
     for y, label in (
-        (0.73, "Held-out predictions"),
-        (0.48, "Executable knowledge"),
-        (0.23, "Unseen-plan decisions"),
+        (0.78, "F1   Search to selective correction"),
+        (0.59, "F2   Predictions to structure"),
+        (0.40, "F3   Predictions to executable laws"),
+        (0.21, "F4   Laws to unseen decisions"),
     ):
-        arrow(ax, (0.6, 0.49), (0.69, y), mutation_scale=9)
+        arrow(ax, (0.51, 0.51), (0.55, y), mutation_scale=8)
         rounded_box(
             ax,
-            0.7,
-            y - 0.08,
-            0.27,
-            0.16,
+            0.56,
+            y - 0.072,
+            0.425,
+            0.144,
             label,
             facecolor="white",
             edgecolor=COLORS["blue"],
-            fontsize=9.6,
+            fontsize=9.1,
         )
+    ax.text(
+        0.5,
+        0.035,
+        "Separate readouts and success conditions; no assumed internal causal chain",
+        ha="center",
+        fontsize=8.8,
+        color=COLORS["muted"],
+    )
     return export_figure(fig, "figure-1-prior-to-law")
 
 
@@ -1744,6 +1753,24 @@ def main() -> int:
         m3_report, m3_path = render_m3_portability.load_report()
         outputs["figure_8"] = render_m3_portability.render(m3_report)
         source_paths.extend([m3_path, OUTPUT_DIR / "render_m3_portability.py"])
+    diagnostic_binding = current["work_ii"].get("w2_77_final_diagnostic")
+    if diagnostic_binding and diagnostic_binding.get("formal_result"):
+        import render_final_diagnostic
+
+        diagnostic_path = ROOT / diagnostic_binding["report"]
+        if sha256_file(diagnostic_path) != diagnostic_binding["report_sha256"]:
+            raise ValueError("Final diagnostic current report binding mismatch")
+        diagnostic = json.loads(diagnostic_path.read_text(encoding="utf-8"))
+        outputs["figure_9"] = render_final_diagnostic.render(
+            diagnostic, OUTPUT_DIR / "figure-9-final-diagnostic"
+        )
+        source_paths.extend([diagnostic_path, OUTPUT_DIR / "render_final_diagnostic.py"])
+        for name, rows in (
+            ("priors", diagnostic["by_prior"]),
+            ("worlds", diagnostic["world_contrasts"]),
+            ("resources", diagnostic["resources"]),
+        ):
+            write_csv(SOURCE_DIR / f"figure-9-diagnostic-{name}.csv", rows, list(rows[0]))
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
         "status": "formal_results_with_bounded_secondary_analyses",
@@ -1751,7 +1778,7 @@ def main() -> int:
         "formal_hypothesis_tests_run": False,
         "provider_groups_mixed_in_scientific_contrasts": m1_report is not None,
         "provider_group_handling": (
-            "Historical cohorts remain separate by model. M1/M3, when present, use the "
+            "Historical cohorts remain separate by model. M1/M3 and the final diagnostic use the "
             "preregistered average over two configurations and two repeats within each world; "
             "this does not estimate provider superiority."
         ),

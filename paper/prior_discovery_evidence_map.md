@@ -1,6 +1,6 @@
 # Experimental knowledge and decisions — evidence map
 
-Internal authoring aid, updated 2026-09-05. This file maps manuscript claims to evidence; it does
+Internal authoring aid, updated 2026-09-06. This file maps manuscript claims to evidence; it does
 not define a second execution queue. Current tasks live in
 [Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md), future contrasts in the
 [experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md), and exact report
@@ -18,6 +18,7 @@ Resolve generated evidence through [current bindings](../configs/current.json).
 | Submitted laws and actual decisions differ | W2-50 and W2-64 decision-aligned reanalysis | DeepSeek-only: 45 scheduled, 42 rankings; law Top-1 0/45, participant 11/45, agreement 12/42. Not a randomized representation intervention or evidence of internal law use |
 | Information strategies have uncertain system-level effects | W2-61 dual-model development successor | 180 slots and 45 strata per model; primary regret contrasts -0.0913/+0.1102, both intervals cross zero. Donor and delivery failures retained; no pure acquisition or mediation effect |
 | A bounded functional-form target can be assessed separately | B3 GPT formal and DeepSeek successor | 30 scheduled per model; 30/17 completed, 0/13 schema failures, joint recovery 5/30 and 0/30. Scheduled useful-gain successes 0/18 for both. Not general causal-graph discovery |
+| F2 with minimal submissions and optional numerics | Final diagnostic, current w2_77 binding | 120 attempted, 117 valid, three failures, five reused worlds; primary +0.01667 [95% -0.08333, +0.10000]. Zero recoveries in 80 opaque/misindexed sessions; 17 aligned retentions. GPT tool uptake 0/30, DeepSeek 20/30; no forced-computation, randomized schema or public-only-identifiability claim |
 | Matched packets support conditional post-packet response | A-P/B2 matched DeepSeek/GPT and DeepSeek-low B2 | 15 sessions per block; packet and extra turn bundled. B2 wrong-arm exact expression 0/5 in all three configurations |
 | B2 does not identify the structural family | W2-64 participant-visible identifiability and expression coding | One-pair exact linear/power alias, weak positive expression control and low-error constant baseline. Expression counts are not structural recovery |
 | Legal schema has sufficient same-domain capacity | W2-55 capacity control | Full-basis fits reproduce 135/135 final prediction states. This is an interpolation/capacity diagnostic, not unseen-world recovery |
@@ -55,14 +56,16 @@ relative to a matched baseline.
 - Observation-model screening, private confirmation and compositional transfer do not supply
   unreported positive participant outcomes. Within-family replication is not compositional transfer.
 
-## New evidence needed
+## Completed closeout and deferred questions
 
 M0 and the independent M1 block are complete. The two-world canary remains development-only.
 M1 did not establish a material benefit, and near-complete A/X agreement limits a general law-use
 failure account. Cross-protocol differences are not randomized; arithmetic and law construction
 are bundled in the L/F contrast. Zero-width observed bootstrap intervals are not equivalence proof.
 M3 separates none/raw evidence/L-only/F-only and supports independent same-world artifact utility;
-raw evidence also helps and retrieval solves every candidate set. The next design should specify
+raw evidence also helps and retrieval solves every candidate set. The final minimal-interface
+diagnostic has also completed, with all 120 sessions retained and no remaining required experiment.
+Any separately authorized future transfer design should specify
 source–target mechanism mappings, matched/mismatched knowledge, none/raw/nearest controls and matched
 numerical tools, without selecting M3 failure cases. No new-condition block has run.
 M2 is needed only for acquisition-effect claims; M4 addresses external validity.

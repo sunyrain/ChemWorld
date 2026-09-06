@@ -277,6 +277,71 @@ including 13 DeepSeek schema failures. Configuration contrasts are descriptive.}
 \end{figure}
 ```
 
+## Minimal-interface and optional-numerics diagnostic
+
+The final diagnostic reuses five scored partition worlds and their sealed public packets,
+three initial descriptions, two model configurations and two fresh-session repeats. Within each
+combination, post-evidence numerics is either unavailable or optional, giving 120 sessions and
+240 pre/post turns. The pre stage has no tools; post resumes the same thread. Family, exponent
+and eight query predictions are declared once; post also selects a query. The public mapping
+to a typed law does not fit parameters or inspect hidden truth. No new independent worlds,
+participant physics, truth execution or replay were produced.
+
+The numerical interface accepts only literal array arithmetic and a fixed whitelist including
+logarithms and least squares. It cannot read files, use the network or invoke the simulator.
+At most eight attempted calls are permitted per session; rejected expressions also consume that
+allowance. Budgets were fixed after a separate twelve-session development block: 600 seconds per
+turn, 1,200 per session and 18 hours overall, with request and stream retries disabled. GPT used
+medium reasoning and DeepSeek high; these are not equal-compute settings.
+
+Joint success requires the power family and an exponent within 0.10 of 1.75. A failed session
+scores zero joint success and normalized regret one; predictive errors use explicit available-pair
+denominators. The sole primary contrast is tool-on minus tool-off joint success, averaging
+priors and repeats within model and the two models equally within world. The five world means
+are resampled 20,000 times with seed 90770 for a percentile 95% interval. The interval is a
+small-sample approximation, not evidence that 120 sessions are independent worlds. Aligned priors
+already supply the correct family and exponent: their success measures retention.
+
+```{=latex}
+\begin{table}[t]
+\centering
+\caption{\textbf{Final diagnostic outcomes retain every scheduled session.}
+Each model/tool group has 30 sessions and 18 prespecified useful-gain opportunities.
+Prediction MAE uses the complete paired denominator in column two.}
+\label{tab:final-diagnostic}
+\small
+\begin{tabular}{lrrrr}
+\toprule
+Model / numerics & Valid & Pre / post MAE & Joint & Useful gain \\
+\midrule
+GPT / off & 29/30 & 0.2963 / 0.0367 & 6/30 & 0/18 \\
+GPT / on & 30/30 & 0.2891 / 0.0435 & 7/30 & 2/18 \\
+DeepSeek / off & 29/30 & 0.2946 / 0.0695 & 2/30 & 0/18 \\
+DeepSeek / on & 29/30 & 0.2899 / 0.0718 & 2/30 & 0/18 \\
+\bottomrule
+\end{tabular}
+\end{table}
+```
+
+The terminal block contains 117 valid sessions and three retained failures: one DeepSeek
+tool-enabled post-submission validation failure, one GPT transport interruption and one DeepSeek
+provider output-limit failure. All 240 turns were attempted, without replacement. The separate
+development block had ten valid sessions and two provider failures; it is excluded from formal
+denominators. The five paired world effects were +0.16667, -0.16667, 0, 0 and +0.08333.
+Opaque and misspecified strata contain zero joint recoveries in 80 scheduled sessions; the 17
+aligned successes measure retention. Top-1 choices were 0/30, 1/30, 0/30 and 0/30 in table order.
+These action readouts are restricted query choices, not a replication of the longitudinal assay.
+
+Total recorded wall time was 33,619 seconds (9.34 hours). Reported usage was 8,251,168 input and
+5,152,198 output tokens; two failed turns lack usage, so these are known lower bounds. GPT made
+no numerical calls in its 30 enabled sessions. DeepSeek attempted 63 calls in 20/30 enabled
+sessions, including nine rejected expressions; tool computation totaled 0.027 seconds.
+Availability includes voluntary uptake and its message/computation costs. It does not isolate
+internal arithmetic, and the high versus medium settings do not imply equal reasoning budgets.
+The old B3 qualification fitter accessed a privileged simulator, so its success does not establish
+public-only identifiability. Historical schema differences were not randomized.
+
+
 ## Cross-model successor denominators
 
 Historical stopped partials and stop boundaries remain immutable. They are not continued, pooled, or
@@ -378,6 +443,23 @@ regret minus law-implied regret. All 45 laws executed; none implied the true Top
 action selected Top-1 in 11/45 scheduled cells. Among 42 cells with a valid participant ranking, the
 participant followed the law-implied Top-1 in 12. Mean law-implied and participant regret were 0.438
 and 0.344. This is a descriptive decomposition: neither law quality nor law use was randomized.
+
+```{=latex}
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{figures/prior-discovery/figure-6-open-action-formal.pdf}
+\caption{\textbf{Law quality and information strategies have distinct decision readouts.}
+\textbf{a,} Law-implied versus participant regret in the 45-cell DeepSeek matrix; 42 observed
+choices are dots and three missing rankings are crosses above the plotting range. The diagonal
+marks equal regret. \textbf{b,} Failure-aware strategy means with valid/scheduled counts.
+\textbf{c,} Paired strategy-minus-no-evidence differences with task-stratified world-cluster
+bootstrap 95\% intervals, retaining all 45 strata per model. Both autonomous contrasts cross zero.
+The strategy block is development evidence; yoked failures prevent a pure acquisition-effect
+interpretation. Complete-ranking diagnostics remain in the appendix.}
+\label{fig:open-action}
+\end{figure}
+```
+
 
 ## Oracle-control qualification
 

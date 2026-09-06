@@ -40,6 +40,7 @@ FIGURES = (
     "figure-6-open-action-formal.pdf",
     "figure-7-m1-replication.pdf",
     "figure-8-m3-portability.pdf",
+    "figure-9-final-diagnostic.pdf",
 )
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.pdf"
@@ -290,6 +291,9 @@ def build() -> dict[str, Any]:
     ):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         source_paths.append(ROOT / current["work_ii"]["w2_69_m3_portability"]["report"])
+    if "figure-9-final-diagnostic.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+        current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+        source_paths.append(ROOT / current["work_ii"]["w2_77_final_diagnostic"]["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-iclr2027-build-0.1",
         "status": (

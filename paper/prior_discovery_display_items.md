@@ -103,6 +103,20 @@ and experimental savings are not tested. This is the final main-text result figu
 The shared exports include editable SVG and vector PDF, high-resolution PNG/TIFF and six machine-derived
 source tables. Panel labels, world points and confidence intervals use the same design conventions as M1.
 
+## Figure 9 — Structure remains a separate readout under minimal submissions
+
+The final diagnostic uses two aligned panels. Panel a separates each model and prior, pairs tool
+off/on markers, and shades aligned-prior retention. Each marker retains ten scheduled sessions;
+117/120 are valid. Panel b shows all five paired world effects, both model contributions and the
+equally weighted mean with the prespecified approximate 95% interval. Colors match the model
+legend; unavailable outputs remain in denominators. No new hypothesis test is fitted for plotting.
+
+Opaque and misindexed strata have zero joint recoveries in 80 scheduled cases. All 17 successes
+are aligned retention. The primary +1.67 percentage-point estimate has interval [-8.33, +10.00].
+GPT tool uptake is 0/30 and DeepSeek 20/30, so availability must not be relabelled forced use.
+This figure is in the main text of both drafts; the historical action-strategy figure moves to
+the anonymous appendix. Figure 1 now introduces all four conversion questions separately.
+
 ## Supplementary qualification and exploratory evidence
 
 Configuration-separated development results retain exact denominators, failures and replay records in

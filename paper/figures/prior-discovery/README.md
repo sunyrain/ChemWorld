@@ -4,9 +4,9 @@ Python/matplotlib produces editable-text SVG/PDF and 600 dpi PNG/TIFF assets. Th
 [display plan](../../prior_discovery_display_items.md) is the single description of panel roles,
 denominators and interpretation limits. Captions live in the two manuscript sources.
 
-The eight current assets use readable text, paired measurements, direct denominators and explicit
-missing outputs. The compact ICLR manuscript uses assets 1, 3, 5, 6 and 8 in the main text, with
-assets 4 and 7 in the appendix, and renumbers them consecutively. The long manuscript uses all eight.
+The nine current assets use readable text, paired measurements, direct denominators and explicit
+missing outputs. The compact ICLR manuscript uses assets 1, 3, 9, 5 and 8 in the main text, with
+assets 4, 6 and 7 in the appendix, and renumbers them consecutively. The long manuscript uses all nine.
 Old development-only figure exports are retired; their numerical reports remain in the evidence index.
 
 ## Reproduction
