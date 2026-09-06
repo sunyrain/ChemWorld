@@ -337,6 +337,12 @@ def _prepare_codex_home(temp_root: Path, provider: Mapping[str, Any]) -> dict[st
         f"experimental_bearer_token = {json.dumps(key)}",
         "supports_websockets = false",
     ]
+    if provider.get("http_headers"):
+        headers = ", ".join(
+            f"{json.dumps(name)} = {json.dumps(value)}"
+            for name, value in provider["http_headers"].items()
+        )
+        lines.append("http_headers = {" + headers + "}")
     (codex_home / "config.toml").write_text("\n".join(lines) + "\n", encoding="utf-8")
     environment = os.environ.copy()
     environment["CODEX_HOME"] = str(codex_home)

@@ -14,6 +14,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 from scripts.run_work_ii_final_diagnostic import build_command, launch, tool_allowed
+from scripts.run_work_ii_study_b import _prepare_codex_home
 
 from chemworld.agents.diagnostic_numerics import calculate
 from chemworld.eval.work_ii_final_diagnostic import (
@@ -193,15 +194,17 @@ def test_formal_retries_disabled_on_both_turns(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("stream", [False, True])
-@pytest.mark.parametrize("effort", ["high", "low"])
+@pytest.mark.parametrize("effort", ["high", "low", "none"])
 def test_cli_zero_retries_with_local_error_service(
     tmp_path: Path, stream: bool, effort: str
 ) -> None:
     calls = []
     requests = []
+    user_agents = []
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self) -> None:
+            user_agents.append(self.headers.get("User-Agent"))
             requests.append(
                 json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))))
             )
@@ -232,29 +235,36 @@ def test_cli_zero_retries_with_local_error_service(
     server = ThreadingHTTPServer(("127.0.0.1", 0), Handler)
     worker = threading.Thread(target=server.serve_forever, daemon=True)
     worker.start()
-    task_codex_home = tmp_path / "codex-home"
-    task_codex_home.mkdir()
     catalog = (
         Path(__file__).resolve().parents[1] / "configs/providers/deepseek_v4_flash_models.json"
     )
-    config = f"model_catalog_json = {json.dumps(catalog.as_posix())}\n"
-    config += '[model_providers.fixture]\nname="Local fixture"\nwire_api="responses"\n'
-    config += f'base_url="http://127.0.0.1:{server.server_port}/v1/"\n'
-    config += "supports_websockets=false\n"
-    (task_codex_home / "config.toml").write_text(config)
+    key_file = tmp_path / "fixture-key.txt"
+    key_file.write_text("local-fixture-only")
     contract = tmp_path / "schema.json"
     contract.write_text(
         '{"type":"object","properties":{"ok":{"type":"boolean"}},'
         '"required":["ok"],"additionalProperties":false}'
     )
-    provider = {"id": "fixture", "model": "deepseek-v4-flash", "reasoning_effort": effort}
+    provider = {
+        "id": "fixture",
+        "name": "Local fixture",
+        "model": "deepseek-v4-flash",
+        "reasoning_effort": effort,
+        "auth_mode": "experimental_bearer_token",
+        "api_key_file": str(key_file),
+        "model_catalog_json": str(catalog),
+        "base_url": f"http://127.0.0.1:{server.server_port}/v1/",
+        "wire_api": "responses",
+        "http_headers": {"User-Agent": "ChemWorld/0.2"},
+    }
+    environment = _prepare_codex_home(tmp_path, provider)
     command = build_command(provider, contract, tmp_path, provider_retries=0)
     try:
         receipt = launch(
             command,
             "Local transport fixture: return JSON.",
             tmp_path,
-            {**os.environ, "CODEX_HOME": str(task_codex_home)},
+            environment,
             tmp_path / "output",
             20,
             False,
@@ -268,6 +278,7 @@ def test_cli_zero_retries_with_local_error_service(
     assert calls == ["/v1/responses"]
     assert requests[0]["model"] == "deepseek-v4-flash"
     assert requests[0]["reasoning"]["effort"] == effort
+    assert user_agents == ["ChemWorld/0.2"]
     assert receipt["failure"] == "provider_failure"
 
 

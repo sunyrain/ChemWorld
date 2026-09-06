@@ -161,6 +161,10 @@ def summarize(results: list[dict], cells: list[dict], *, formal: bool) -> dict:
         "usage_missing_turns": sum(not bool(t.get("usage")) for t in receipts),
         "provider_error_turns": sum(bool(t.get("provider_errors")) for t in receipts),
         "wall_seconds": sum(r.get("elapsed_s", 0) for r in results),
+        "wall_seconds_incomplete_sessions": sum(
+            any(t.get("elapsed_unavailable", False) for t in r.get("receipts", []))
+            for r in results
+        ),
         "tool_attempts": sum(len(r.get("tool_audit", [])) for r in results),
         "tool_rejections": sum(
             t["status"] != "completed" for r in results for t in r.get("tool_audit", [])
@@ -170,7 +174,15 @@ def summarize(results: list[dict], cells: list[dict], *, formal: bool) -> dict:
         ),
     }
     for key in ("input_tokens", "output_tokens", "cached_input_tokens", "reasoning_output_tokens"):
-        resources[key] = sum(t.get("usage", {}).get(key, 0) for t in receipts)
+        total = 0
+        for result in results:
+            cumulative_by_thread = {}
+            for receipt in result.get("receipts", []):
+                usage = receipt.get("usage", {})
+                if key in usage:
+                    cumulative_by_thread[receipt.get("thread_id")] = usage[key]
+            total += sum(cumulative_by_thread.values())
+        resources[key] = total
     return {
         "schema_version": "work-ii-information-intervention-1",
         "formal_result": formal,
@@ -182,7 +194,7 @@ def summarize(results: list[dict], cells: list[dict], *, formal: bool) -> dict:
         "groups": groups,
         "primary": {
             "contrast": "complete_minus_original_joint_recovery_unknown_and_wrong_priors",
-            "mean": float(values.mean()),
+            "mean": float(values.mean()) if terminal else None,
             "approximate_world_bootstrap_95": interval,
             "bootstrap_seed": 90870,
             "bootstrap_draws": 20000,
@@ -191,7 +203,8 @@ def summarize(results: list[dict], cells: list[dict], *, formal: bool) -> dict:
         "rows": rows,
         "resources": resources,
         "failures": [r for r in rows if r["status"] != "completed"],
-        "resource_accounting": "CLI-reported usage; missing/interrupted usage is a lower bound.",
+        "resource_accounting": "CLI usage is cumulative within each thread. Sum the last available "
+        "cumulative value per thread and session; missing/interrupted usage is a lower bound.",
         "interpretation": "Aligned-prior retention is separate from recovery. Units are worlds, "
         "not queries, priors or models. Information length is part of the disclosure treatment. "
         "Current-v3 data are not a reanalysis of historical B3 runtime semantics.",

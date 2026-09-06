@@ -71,6 +71,8 @@ def surface(provider: dict | None = None) -> dict:
     paths = list(SURFACE)
     if provider and provider.get("model_catalog_json"):
         paths.append(provider["model_catalog_json"])
+    if provider and provider.get("transport") == "standard_http_headers":
+        paths.append("src/chemworld/providers/responses_header_transport.py")
     return {p: digest(ROOT / p) for p in paths}
 
 
@@ -107,6 +109,13 @@ def analyze(root: Path, export: Path | None = None) -> dict:
     )
     if (root / "freeze.json").exists():
         report["freeze"] = read(root / "freeze.json")
+    if (root / "user_stop.json").exists():
+        report["status"] = "stopped_by_user"
+        report["user_stop"] = read(root / "user_stop.json")
+        report["interpretation"] += (
+            " This block was stopped by the user for a configuration change; all attempted, "
+            "interrupted and unstarted units are retained. It is excluded from the new block."
+        )
     write(root / "summary.json", report)
     lines = [
         "# W2-87 information completeness",
@@ -149,6 +158,8 @@ def analyze(root: Path, export: Path | None = None) -> dict:
 
 
 def run(root: Path) -> None:
+    if (root / "user_stop.json").exists():
+        raise ValueError("user-stopped block is retained and must not be resumed")
     inputs = read(root / "inputs.json")
     if inputs["phase"] == "formal":
         frozen = read(root / "freeze.json")

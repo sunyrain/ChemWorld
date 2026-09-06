@@ -13,6 +13,7 @@ import sys
 import tempfile
 import threading
 import time
+from contextlib import ExitStack
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
@@ -400,18 +401,34 @@ def run_session(
     audit = directory / "tool_audit.jsonl"
     budgets = protocol[phase]
     try:
-        with tempfile.TemporaryDirectory(prefix="chemworld-b3-minimal-") as temporary:
+        with ExitStack() as stack:
+            temporary = stack.enter_context(
+                tempfile.TemporaryDirectory(prefix="chemworld-b3-minimal-")
+            )
             temporary_root = Path(temporary)
             workspace = temporary_root / "workspace"
             workspace.mkdir()
-            environment = _prepare_codex_home(temporary_root, protocol["providers"][cell["model"]])
+            provider = deepcopy(protocol["providers"][cell["model"]])
+            if provider.get("transport") == "standard_http_headers":
+                from chemworld.providers.responses_header_transport import (
+                    standard_headers_transport,
+                )
+
+                provider["base_url"] = stack.enter_context(
+                    standard_headers_transport(
+                        provider["base_url"],
+                        directory / "transport.jsonl",
+                        budgets["turn_timeout_s"],
+                    )
+                )
+            environment = _prepare_codex_home(temporary_root, provider)
             thread_id = None
             for stage in ("pre", "post"):
                 schema_path = temporary_root / (stage + "_schema.json")
                 write(schema_path, schema(cell, stage))
                 enabled = stage == "post" and cell["tool"] == "on"
                 command = build_command(
-                    protocol["providers"][cell["model"]],
+                    provider,
                     schema_path,
                     workspace,
                     audit=audit if enabled else None,
@@ -441,6 +458,12 @@ def run_session(
                 write(directory / "partial.json", result)
                 if receipt["failure"]:
                     result["failure"] = receipt["failure"]
+                    break
+                if (
+                    provider.get("reasoning_effort") == "none"
+                    and receipt["usage"].get("reasoning_output_tokens") != 0
+                ):
+                    result["failure"] = "platform_reasoning_not_disabled"
                     break
                 try:
                     validate(receipt["payload"], cell, stage)
