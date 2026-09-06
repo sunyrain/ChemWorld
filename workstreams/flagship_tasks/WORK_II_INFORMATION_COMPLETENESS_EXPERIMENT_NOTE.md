@@ -1,10 +1,57 @@
 # Work II：公开观测映射完整性的单因素干预
 
 2026-09-06；任务W2-87。用户已授权优先尝试本方向并先完成GPT。A/B/C开发资格已封存，
-GPT独立冻结的正式块60/60完成；DeepSeek尚未启动。旧正式证据与论文保持原终态；
+GPT独立冻结的正式块60/60完成；DeepSeek Flash/low的6会话开发已通过，准备60正式。旧正式证据与论文保持原终态；
 第三模型不进入本块。执行状态由[TODO](WORK_II_TODOLIST.md)管理。
 
+## DeepSeek执行前补充：Flash低推理配置
+
+2026-09-06，用户授权推进DeepSeek并优先考虑Flash的速度与比较公平性；在DeepSeek新块首单位
+之前固定为`deepseek-v4-flash / low`，使用官方原生Responses入口及现有Codex harness。
+旧配置已是Flash/high，GPT为GPT-5.6-sol/medium且报告了reasoning tokens；Flash不是关闭
+thinking的同义词。[DeepSeek官方说明](https://api-docs.deepseek.com/guides/thinking_mode)规定
+默认high，medium/xhigh均映射high，low保持low，Responses的none关闭thinking。
+[Codex配置说明](https://developers.openai.com/codex/config-reference)将reasoning effort作为
+模型设置；同名档位不提供跨提供方计算量相等的保证。本次按速度取向选low，不追加high/none
+选优实验，不根据恢复结果选择档位。历史high及GPT正式结果均不替换。
+
+固定开发块仍为既有独立开发world×3先验×2信息条件＝6会话/12轮；沿用原证据、完整合同、
+schema、工具、评分和顺序，不产生新物理数据。每轮600秒、会话1200秒、整块7200秒，
+provider重试0；所有失败保留，provider/schema失败继续下一单位，平台/越界工具失败停止。
+技术通过要求6/6结构有效、12/12收据与usage完整、fresh thread及pre/post续接正确，
+配置/实际harness支持low；不要求工具采用，也不以科学恢复率判定技术通过。
+输出独立开发机器JSON/可读摘要及全部原始收据（ignored目录）。
+
+开发通过后固定正式总时限并执行同一十world的60会话/120轮；每轮600秒、会话1200秒及
+零重试与GPT一致。正式前绑定模型目录这一实际执行依赖；仅冻结新DeepSeek执行面一次，
+不刷新已完成GPT的历史资格。正式主分析、保留失败、world bootstrap和停止规则沿用原设计。
+公平性含义是相同公开证据/任务/工具机会及每个模型内部相同资源规则；分别报告模型配置、
+耗时、输入/输出/推理用量。跨模型合并估计两个明确配置的平均披露效应，不作等算力排行榜。
+
+### DeepSeek开发终态与正式冻结预算
+
+[开发报告](reports/work-ii-information-deepseek-low-development-20260906.md)及机器JSON已封存：
+6/6会话有效、12/12轮收据和usage完整，6个fresh thread，组内续接正确；3对实际提示词
+只在post完整合同披露上不同。会话wall合计2410.343秒＝40.172分钟；单会话244.672–532.359秒，
+单轮89.641–442.469秒。没有provider/schema/platform会话失败或重试。
+27次工具尝试含21成功、6次模型表达式SyntaxError拒绝，均消耗工具预算，原记录全部保留。
+技术通过不要求工具零拒绝；没有平台修复或更改接受条件。
+
+CLI报告输入1987018 tokens（cache1779456）、输出441242（reasoning423602）。
+真实Codex对本地回环服务的4项定向检查确认high/low值逐字进入Responses请求，HTTP/SSE失败
+均只发送一次；没有调用真实provider或增加科学样本。low仍包含大量推理，不能声称关闭推理、
+等算力或已经因降档获得速度收益。正式依据本次完整校准外推24103.43秒＝6.695小时，
+固定软ETA 6–8小时；整块硬预算43200秒（12小时），每轮600秒/会话1200秒/重试0。
+总窗口用于顺序执行相同60单位，不把更长总窗口解释为每次决策得到更高预算。
+
+开发恢复为原说明0/2、完整合同2/2，正确先验保持两组各1/1；仅为开发记录，
+不进入正式分母，不据此改变low配置、world、阈值、条件顺序或停止规则。
+正式覆盖和主分析沿用原十world设计。GPT、DeepSeek分别终态后，再按同world内两模型平均
+合并；每个world仍是一个重采样单位。两个配置的资源及效果分开报告。
+
 ## GPT正式终态（2026-09-06）
+
+以下保留GPT阶段终态；DeepSeek最新执行设计见上文补充，实时阶段由TODO和运行摘要管理。
 
 [机器报告](reports/work-ii-information-gpt-formal-20260906.json)、
 [可读摘要](reports/work-ii-information-gpt-formal-20260906.md)及

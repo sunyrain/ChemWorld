@@ -67,8 +67,11 @@ def prepare(root: Path, phase: str, model: str) -> None:
     print(f"prepared {model} {phase}: {len(cells)} sessions / {len(cells) * 2} turns", flush=True)
 
 
-def surface() -> dict:
-    return {p: digest(ROOT / p) for p in SURFACE}
+def surface(provider: dict | None = None) -> dict:
+    paths = list(SURFACE)
+    if provider and provider.get("model_catalog_json"):
+        paths.append(provider["model_catalog_json"])
+    return {p: digest(ROOT / p) for p in paths}
 
 
 def freeze(root: Path) -> None:
@@ -85,7 +88,7 @@ def freeze(root: Path) -> None:
             "source_commit": subprocess.check_output(
                 ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
             ).strip(),
-            "execution_surface": surface(),
+            "execution_surface": surface(inputs["protocol"]["providers"][inputs["model"]]),
             "inputs_sha256": digest(root / "inputs.json"),
         },
     )
@@ -149,7 +152,8 @@ def run(root: Path) -> None:
     inputs = read(root / "inputs.json")
     if inputs["phase"] == "formal":
         frozen = read(root / "freeze.json")
-        if frozen["execution_surface"] != surface() or frozen["inputs_sha256"] != digest(
+        provider = inputs["protocol"]["providers"][inputs["model"]]
+        if frozen["execution_surface"] != surface(provider) or frozen["inputs_sha256"] != digest(
             root / "inputs.json"
         ):
             raise ValueError("frozen inputs or runtime changed")

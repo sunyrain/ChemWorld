@@ -1,8 +1,9 @@
-"""Render the terminal GPT disclosure experiment as a standalone research figure."""
+"""Render one terminal disclosure configuration as a standalone research figure."""
 # ruff: noqa: RUF001
 
 from __future__ import annotations
 
+import argparse
 import csv
 import hashlib
 import json
@@ -24,11 +25,15 @@ LABELS = ("Original formula", "Complete mapping")
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--model", choices=("gpt", "deepseek"), default="gpt")
+    model = parser.parse_args().model
+    stem = "figure-10-information-gpt" if model == "gpt" else "figure-11-information-deepseek"
     binding = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))["work_ii"][
         "w2_87_information_completeness"
     ]
-    path = ROOT / binding["gpt_formal_report"]
-    if hashlib.sha256(path.read_bytes()).hexdigest() != binding["gpt_formal_report_sha256"]:
+    path = ROOT / binding[model + "_formal_report"]
+    if hashlib.sha256(path.read_bytes()).hexdigest() != binding[model + "_formal_report_sha256"]:
         raise ValueError("terminal report differs from current binding")
     report = json.loads(path.read_text(encoding="utf-8"))
     if report["status"] != "terminal" or not report["formal_result"] or report["scheduled"] != 60:
@@ -48,7 +53,7 @@ def main() -> None:
             row[info + "_prediction_n"] = len(available)
         paired.append(row)
     OUTPUT.mkdir(parents=True, exist_ok=True)
-    data_path = OUTPUT / "source_data/figure-10-information-gpt-worlds.csv"
+    data_path = OUTPUT / "source_data" / f"{stem}-worlds.csv"
     data_path.parent.mkdir(parents=True, exist_ok=True)
     with data_path.open("w", encoding="utf-8", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(paired[0]), lineterminator="\n")
@@ -77,7 +82,8 @@ def main() -> None:
     figure.text(
         0.095,
         0.925,
-        "GPT-5.6-sol  |  10 worlds  |  matched observations, priors and tool access",
+        f"{report['provider']['model']} / {report['provider']['reasoning_effort']}"
+        "  |  10 worlds  |  matched observations, priors and tools",
         color="#526170",
         fontsize=10,
     )
@@ -164,7 +170,7 @@ def main() -> None:
         color="#526170",
     )
     for suffix in ("pdf", "svg", "png"):
-        output_path = OUTPUT / f"figure-10-information-gpt.{suffix}"
+        output_path = OUTPUT / f"{stem}.{suffix}"
         figure.savefig(output_path, dpi=220)
         if suffix == "svg":
             output_path.write_text(
@@ -176,7 +182,7 @@ def main() -> None:
                 newline="\n",
             )
     plt.close(figure)
-    print("Terminal GPT figure exported as PDF, SVG and PNG; world source data exported.")
+    print(f"Terminal {model} figure exported as PDF, SVG and PNG; world source data exported.")
 
 
 if __name__ == "__main__":

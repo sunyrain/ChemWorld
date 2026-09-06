@@ -193,12 +193,18 @@ def test_formal_retries_disabled_on_both_turns(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("stream", [False, True])
-def test_cli_zero_retries_with_local_error_service(tmp_path: Path, stream: bool) -> None:
+@pytest.mark.parametrize("effort", ["high", "low"])
+def test_cli_zero_retries_with_local_error_service(
+    tmp_path: Path, stream: bool, effort: str
+) -> None:
     calls = []
+    requests = []
 
     class Handler(BaseHTTPRequestHandler):
         def do_POST(self) -> None:
-            self.rfile.read(int(self.headers.get("Content-Length", "0")))
+            requests.append(
+                json.loads(self.rfile.read(int(self.headers.get("Content-Length", "0"))))
+            )
             calls.append(self.path)
             if stream:
                 self.send_response(200)
@@ -241,7 +247,7 @@ def test_cli_zero_retries_with_local_error_service(tmp_path: Path, stream: bool)
         '{"type":"object","properties":{"ok":{"type":"boolean"}},'
         '"required":["ok"],"additionalProperties":false}'
     )
-    provider = {"id": "fixture", "model": "deepseek-v4-flash", "reasoning_effort": "high"}
+    provider = {"id": "fixture", "model": "deepseek-v4-flash", "reasoning_effort": effort}
     command = build_command(provider, contract, tmp_path, provider_retries=0)
     try:
         receipt = launch(
@@ -260,6 +266,8 @@ def test_cli_zero_retries_with_local_error_service(tmp_path: Path, stream: bool)
         server.server_close()
         worker.join(timeout=5)
     assert calls == ["/v1/responses"]
+    assert requests[0]["model"] == "deepseek-v4-flash"
+    assert requests[0]["reasoning"]["effort"] == effort
     assert receipt["failure"] == "provider_failure"
 
 
