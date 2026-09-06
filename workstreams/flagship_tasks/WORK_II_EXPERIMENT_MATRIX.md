@@ -134,6 +134,13 @@ family标签、typed-law参数承诺与预测数值分别呈现。B3 law不是C2
 
 ## 4. 第三模型与成本：已知和未确定
 
+2026-09-06完成用户指定的GLM/SiliconFlow接入测试：`zai-org/GLM-5.3`模型发现、
+简短文本和工具API闭环通过；`/v1/responses`直连及当前Codex harness启动路径均404。
+6/6接入探针执行、4通过/2失败，尚未直接接通harness，MCP执行及同thread续接未到达。
+该结果仅说明当前入口的协议兼容性，不属于第三模型科学复核；短调用速度不外推正式ETA。
+后续接入需另行开发并验证Responses→Chat Completions适配器，或使用支持Responses的GLM入口。
+原始凭据未保存，正式矩阵和双模型主分析不变；见[脱敏报告](reports/work-ii-glm-harness-20260906.md)。
+
 2026-09-05对已有候选配置做了不联网的静态检查：
 Qwen `qwen3.8-max`（Model Studio）与Kimi `moonshotai/kimi-k2.5`（OpenRouter）
 均能构造当前配置的命令，但当前进程对应环境凭据均不可用，且都未完成真实调用验证。

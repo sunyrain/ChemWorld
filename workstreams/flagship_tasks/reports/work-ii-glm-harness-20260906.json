@@ -1,0 +1,148 @@
+{
+  "schema_version": "chemworld-glm-harness-smoke-1",
+  "formal_result": false,
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_GLM_HARNESS_SMOKE_NOTE.md",
+  "model": "zai-org/GLM-5.3",
+  "base_url": "https://api.siliconflow.cn/v1",
+  "models_discovered": [
+    "zai-org/GLM-5.3",
+    "zai-org/GLM-5.2",
+    "Pro/zai-org/GLM-5.1",
+    "zai-org/GLM-4.5V",
+    "zai-org/GLM-4.5-Air",
+    "THUDM/GLM-4-32B-0414",
+    "THUDM/GLM-Z1-9B-0414",
+    "THUDM/GLM-4-9B-0414"
+  ],
+  "codex_version": "codex-cli 0.145.0",
+  "harness_command_builder": "scripts.run_work_ii_final_diagnostic.build_command",
+  "probe_units": "Five direct HTTP probes plus one actual Codex session",
+  "scheduled_probes": 6,
+  "attempted_probes": 6,
+  "passed_probes": 4,
+  "failed_probes": 2,
+  "checks": [
+    {
+      "endpoint": "/models",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": null,
+      "usage": null,
+      "wall_seconds": 0.172,
+      "check": "models",
+      "passed": true
+    },
+    {
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": "zai-org/GLM-5.3",
+      "usage": {
+        "prompt_tokens": 28,
+        "completion_tokens": 43,
+        "total_tokens": 71,
+        "completion_tokens_details": {
+          "reasoning_tokens": 39
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 28
+      },
+      "wall_seconds": 1.844,
+      "check": "chat_text",
+      "passed": true
+    },
+    {
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": "zai-org/GLM-5.3",
+      "usage": {
+        "prompt_tokens": 209,
+        "completion_tokens": 62,
+        "total_tokens": 271,
+        "completion_tokens_details": {
+          "reasoning_tokens": 45
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 209
+      },
+      "wall_seconds": 1.797,
+      "check": "chat_tool_call",
+      "passed": true
+    },
+    {
+      "endpoint": "/chat/completions",
+      "attempts": 1,
+      "http_status": 200,
+      "model_returned": "zai-org/GLM-5.3",
+      "usage": {
+        "prompt_tokens": 281,
+        "completion_tokens": 7,
+        "total_tokens": 288,
+        "completion_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "prompt_tokens_details": {
+          "cached_tokens": 192
+        },
+        "prompt_cache_hit_tokens": 192,
+        "prompt_cache_miss_tokens": 89
+      },
+      "wall_seconds": 0.875,
+      "check": "chat_tool_return",
+      "passed": true
+    },
+    {
+      "endpoint": "/responses",
+      "attempts": 1,
+      "http_status": 404,
+      "response_format": "non_json",
+      "error": "Not Found",
+      "wall_seconds": 0.125,
+      "check": "native_responses",
+      "passed": false
+    },
+    {
+      "check": "native_codex",
+      "passed": false,
+      "exit_code": 1,
+      "timed_out": false,
+      "wall_seconds": 0.641,
+      "errors": [
+        "unexpected status 404 Not Found: Not Found, url: https://api.siliconflow.cn/v1/responses",
+        "unexpected status 404 Not Found: Not Found, url: https://api.siliconflow.cn/v1/responses"
+      ],
+      "tool_attempts": 0,
+      "usage": [],
+      "continuation_tested": false
+    }
+  ],
+  "usage_coverage": "Usage received for three successful Chat Completions requests; failed Responses and Codex requests returned no usage.",
+  "reported_usage": {
+    "prompt_tokens": 518,
+    "completion_tokens": 112,
+    "total_tokens": 630
+  },
+  "unreached_harness_checks": [
+    "MCP tool execution",
+    "schema-valid terminal output",
+    "same-thread continuation"
+  ],
+  "local_launcher_incidents": [
+    {
+      "stage": "discovery preflight",
+      "provider_requests": 0,
+      "reason": "Closed stdin in non-PTY invocation; corrected using getpass in a PTY."
+    }
+  ],
+  "result": "chat_and_tools_available_native_codex_not_connected",
+  "scientific_sessions": 0,
+  "core_executions": 0,
+  "interpretation": "Compatibility smoke only. The configured /v1/responses route returned 404 both directly and through the existing Codex harness. A Responses-to-Chat adapter was not implemented or tested. Hello/arithmetic latency is not a scientific-session ETA."
+}
