@@ -4,6 +4,7 @@ import argparse
 import csv
 import io
 import json
+import mimetypes
 import threading
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -135,6 +136,12 @@ def openapi():
             "Release scene ownership; preserve the last public frame", obj({"session_id": string})
         ),
     }
+    paths["/api/v1/chemworld/timeline"] = {
+        "get": operation("Read up to 1,000 public frames from the latest session; no execution")
+    }
+    paths["/api/v1/explorer/evidence"] = {
+        "get": operation("Read current published research summaries without provider payloads")
+    }
     return {
         "openapi": "3.1.0",
         "info": {
@@ -160,10 +167,14 @@ class Handler(BaseHTTPRequestHandler):
 
     def respond(self, payload, status=200, content_type="application/json; charset=utf-8"):
         body = (
-            json.dumps(payload, ensure_ascii=False, allow_nan=False)
-            if content_type.startswith("application/json")
-            else payload
-        ).encode("utf-8")
+            payload
+            if isinstance(payload, bytes)
+            else (
+                json.dumps(payload, ensure_ascii=False, allow_nan=False)
+                if content_type.startswith("application/json")
+                else payload
+            ).encode("utf-8")
+        )
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(body)))
@@ -189,6 +200,25 @@ class Handler(BaseHTTPRequestHandler):
         url = urlsplit(self.path)
         path = url.path.rstrip("/") or "/"
         try:
+            if method == "GET" and (path in {"/", "/explore"} or path.startswith("/explorer/")):
+                relative = "index.html" if path in {"/", "/explore"} else path[len("/explorer/") :]
+                static = (ROOT / "static").resolve()
+                file = (static / relative).resolve()
+                if not file.is_relative_to(static) or not file.is_file():
+                    raise LabError("Explorer asset not found", 404)
+                content_type = {".js": "text/javascript", ".glb": "model/gltf-binary"}.get(
+                    file.suffix, mimetypes.guess_type(file.name)[0] or "application/octet-stream"
+                )
+                self.respond(file.read_bytes(), content_type=content_type)
+                return
+            if method == "GET" and path == "/api/v1/chemworld/timeline":
+                self.respond(lab.projection.timeline())
+                return
+            if method == "GET" and path == "/api/v1/explorer/evidence":
+                from .explorer import evidence_summary
+
+                self.respond(evidence_summary())
+                return
             if path == "/api/v1/chemworld/frame":
                 self.respond(
                     lab.projection.snapshot()
@@ -215,7 +245,7 @@ class Handler(BaseHTTPRequestHandler):
                 )
                 return
             if method == "GET":
-                if path in {"/", "/docs"}:
+                if path == "/docs":
                     rows = "\n".join(
                         f"{a['id']:<22} {a['kind']:<12} {a['name']}\n"
                         f"  GET/PATCH /api/v1/assets/{a['id']}\n"

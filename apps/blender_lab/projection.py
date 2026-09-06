@@ -33,6 +33,7 @@ class ProjectionStore:
         self.frame = None
         self.owner = None
         self.received_at = None
+        self.history = []
 
     def snapshot(self):
         with self.lock:
@@ -85,10 +86,23 @@ class ProjectionStore:
                     if frame != self.frame:
                         raise LabError("Step already published with different contents", 409)
                     return self.snapshot()
+            if self.frame is None or self.frame["session_id"] != sid:
+                self.history = []
             self.owner = sid
             self.frame = deepcopy(frame)
+            self.history.append(deepcopy(frame))
+            self.history = self.history[-1000:]
             self.received_at = time.time()
             return self.snapshot()
+
+    def timeline(self):
+        """Presentation history only; seeking never re-executes a Core action."""
+        with self.lock:
+            return {
+                "frames": deepcopy(self.history),
+                "retained_limit": 1000,
+                "active_session_id": self.owner,
+            }
 
     def release(self, data):
         with self.lock:

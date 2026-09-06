@@ -109,6 +109,11 @@ uv run --no-sync python -m apps.blender_lab --blender /path/to/blender
 ```
 
 Set `CHEMWORLD_BLENDER_URL=http://127.0.0.1:8877` when starting Task Lab to connect the display.
+
+For the browser explorer, run `uv run --no-sync python -m apps.blender_lab --api-only --port 8878`
+and open **http://127.0.0.1:8878/explore**. It provides the exported Blender scene, 36 selectable
+assets, public experiment playback, live observation history, and interactive research evidence.
+Blender is not required for viewing; all web dependencies are served locally.
 Physical hardware dispatch is not implemented.
 
 ## Evidence status

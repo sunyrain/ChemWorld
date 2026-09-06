@@ -5,6 +5,52 @@ sample, and generic environment contracts. The editable scene has 36 addressable
 
 ![Laboratory and mobile assistant](previews/environment_overview.png)
 
+## Explore in a browser
+
+The local service now includes an offline-capable 3D explorer at **`/explore`**. Blender is only
+needed to edit or re-export the source scene; the browser loads its exported geometry directly.
+
+![Browser explorer with public observations and experiment timeline](previews/explorer_overview.png)
+
+```powershell
+uv run --no-sync python -m apps.blender_lab --api-only --port 8878
+# Open http://127.0.0.1:8878/explore
+```
+
+Rotate the actual scene, choose any of its 36 assets, switch between five camera views, and scrub
+the eight-action Core development example. Unknown measurements remain empty. **实时观测** reads
+the optional observer's public frames; seeking is read-only and never repeats a Core action.
+The service retains up to 1,000 frames from its latest session in memory; a service restart clears
+this presentation history. Original Core trajectories remain the replay source.
+
+The **证据图谱** view explains four conversion questions and plots the final structural diagnostic,
+law/decision agreement and independent knowledge utility. Model filters, per-world effects,
+registered intervals, exact denominators and SVG/JSON downloads accompany the plots. Numerical
+series resolve current reports through `configs/current.json`. The example trajectory, scene
+logistics and research cohorts remain explicitly distinct. This is an author/project explorer,
+not the anonymous submission package.
+
+![Interactive evidence chart with paired world effects and registered uncertainty](previews/explorer_evidence.png)
+
+On small screens, swipe the chart horizontally to keep labels readable. Keyboard users can focus
+the chart and use the arrow keys. The expandable table retains exact values and denominators.
+
+The sealed sample transport runs in the same scene service as Blender. Web navigation, arm pose,
+grasp and place use that service's virtual state. It is still an illustrative carrier, not a bound
+Core aliquot or a hardware controller. A stop does not resume itself; use the explorer's **复位**
+button, Blender's automation panel, or the `reset_estop` device action before submitting another task.
+
+Rebuild browser geometry without overwriting `ChemLab.blend`:
+
+```powershell
+& 'D:\Blender\blender.exe' --background --disable-autoexec apps/blender_lab/ChemLab.blend --python apps/blender_lab/export_explorer_scene.py -- --output apps/blender_lab/static/chemlab.glb
+```
+
+The web viewer vendors Three.js **0.169.0**, its OrbitControls/GLTFLoader/BufferGeometryUtils modules
+and MIT license under `static/vendor/`. No CDN requests, remote analytics, bundler or Node installation
+are needed to run it. `build_explorer_demo.py` captures the fixed example through `BlenderObserver`;
+run it only as a labelled development experiment with a new ignored trajectory path.
+
 ## Where the workflow connects
 
 ```text
@@ -118,6 +164,8 @@ The local service's `GET /openapi.json` describes its routes. Main integration e
 | Endpoint | Purpose |
 | --- | --- |
 | `GET/POST /api/v1/chemworld/frame` | Read/publish versioned public display frames |
+| `GET /api/v1/chemworld/timeline` | Read the latest session's public display history |
+| `GET /api/v1/explorer/evidence` | Read current research summaries for the evidence charts |
 | `POST /api/v1/chemworld/release` | Release scene ownership without erasing the last frame |
 | `GET /api/v1/environment` and `/state` | Spatial definition, capabilities, and demo scene state |
 | `POST /api/v1/environment/commands` and `/tasks` | Explicit virtual actions and sequential plans |

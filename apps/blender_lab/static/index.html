@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ChemWorld · 实验与知识探索</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%23187374'/%3E%3Ctext x='6' y='29' font-size='26' fill='white'%3EC%3C/text%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="/explorer/explorer.css" />
+    <script type="importmap">
+      { "imports": { "three": "/explorer/vendor/three.module.js" } }
+    </script>
+  </head>
+  <body>
+    <header class="masthead">
+      <a class="brand" href="/explore"
+        ><span class="brand-icon">C<span>◦</span></span
+        ><span
+          >CHEMWORLD<small>EXPERIMENTS → KNOWLEDGE → DECISIONS</small></span
+        ></a
+      >
+      <nav aria-label="探索视图">
+        <button class="nav active" data-page="lab">实验室</button
+        ><button class="nav" data-page="evidence">证据图谱</button>
+      </nav>
+      <span class="connection" id="connection" role="status"
+        >连接本地实验室…</span
+      >
+    </header>
+    <main>
+      <section id="lab-page">
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">THE OBSERVABLE LAB</p>
+            <h1>让实验过程，看得见。</h1>
+            <p class="intro">探索仪器，沿时间轴回看操作，观察知识从何而来。</p>
+          </div>
+          <a class="subtle-link" href="/docs" target="_blank" rel="noopener"
+            >接口文档 ↗</a
+          >
+        </div>
+        <div class="lab-grid">
+          <aside class="panel workflow">
+            <div class="section-label">01 <span>实验过程</span></div>
+            <h2 id="workflow-title">从配液到终检</h2>
+            <p class="muted small" id="workflow-description">
+              固定八步示例 · 公开观测回放
+            </p>
+            <div class="segmented">
+              <button id="recorded" class="active">示例回放</button
+              ><button id="live">实时观测</button>
+            </div>
+            <ol id="steps" class="steps" aria-label="实验步骤"></ol>
+            <div class="workflow-foot">
+              <span class="source-dot"></span
+              ><span id="source-description">Core 开发示例 · 非论文样本</span>
+            </div>
+          </aside>
+          <div class="scene-column">
+            <div class="scene-shell" id="scene-shell">
+              <div class="scene-top">
+                <span class="pill" id="scene-mode">公开轨迹回放</span
+                ><span id="scene-count">36 个场景资产</span>
+              </div>
+              <div
+                id="viewport"
+                role="img"
+                aria-label="可旋转的三维实验室，亦可使用下方设备选择列表"
+              ></div>
+              <div id="loading" role="status">正在载入 Blender 实验室…</div>
+              <div class="scene-bottom">
+                <span>拖动旋转 · 滚轮缩放 · 点选设备</span
+                ><button id="snapshot" title="导出当前三维视图">
+                  导出视图 ↗
+                </button>
+              </div>
+            </div>
+            <div class="view-controls" aria-label="场景视角">
+              <button data-view="overview" class="active">全景</button
+              ><button data-view="reaction">反应区</button
+              ><button data-view="analysis">表征区</button
+              ><button data-view="preparation">配液区</button
+              ><button data-view="top">俯视</button
+              ><label class="asset-picker"
+                >设备
+                <select id="asset-select" aria-label="选择场景设备">
+                  <option value="">浏览全部设备</option>
+                </select></label
+              >
+            </div>
+            <div class="panel playback">
+              <button id="play" class="play" aria-label="播放公开轨迹">
+                ▶
+              </button>
+              <div class="timeline">
+                <div>
+                  <strong id="step-title">实验开始</strong
+                  ><span id="step-position">0 / 8</span>
+                </div>
+                <input
+                  id="scrubber"
+                  aria-label="公开轨迹时间轴"
+                  type="range"
+                  min="0"
+                  max="8"
+                  value="0"
+                  step="1"
+                />
+              </div>
+              <button id="previous" aria-label="上一步">‹</button
+              ><button id="next" aria-label="下一步">›</button>
+            </div>
+            <div class="panel asset-detail">
+              <div>
+                <p class="eyebrow">SELECTED INSTRUMENT</p>
+                <h2 id="asset-name">反应器</h2>
+                <p class="muted small" id="asset-kind">
+                  选择场景中的设备，查看能力与观测连接。
+                </p>
+              </div>
+              <div id="asset-capabilities" class="capabilities"></div>
+            </div>
+          </div>
+          <aside class="panel observations">
+            <div class="section-label">02 <span>公开观测</span></div>
+            <h2>此刻，我们知道什么？</h2>
+            <p class="muted small">只有仪器已报告的值才会出现。</p>
+            <div id="measurements" class="measurements"></div>
+            <div class="budget">
+              <div>
+                <span>操作预算</span><strong id="budget-label">—</strong>
+              </div>
+              <div class="meter"><span id="budget-meter"></span></div>
+            </div>
+            <details class="report" open>
+              <summary>本步实验报告</summary>
+              <pre id="report-text">等待公开报告</pre>
+            </details>
+            <div class="transport">
+              <p class="eyebrow">SCENE LOGISTICS</p>
+              <h3>跟随样品去表征</h3>
+              <p class="small muted">
+                独立场景搬运演示；样品管尚未绑定 Core 样本。
+              </p>
+              <div>
+                <button id="transport">运行搬运</button
+                ><button id="estop" class="quiet">停止</button>
+              </div>
+              <p id="transport-status" class="small" role="status">
+                机器人待命
+              </p>
+            </div>
+          </aside>
+        </div>
+        <div class="next-story">
+          <span>一次实验之后，知识能走多远？</span
+          ><button id="open-evidence">
+            探索四层转化与成功边界 <span>→</span>
+          </button>
+        </div>
+      </section>
+      <section id="evidence-page" hidden>
+        <div class="page-heading">
+          <div>
+            <p class="eyebrow">THE KNOWLEDGE STUDY</p>
+            <h1>从实验经验，到科学决策。</h1>
+            <p class="intro">
+              四种可观测的转化问题，以及知识能够独立发挥作用的条件。
+            </p>
+          </div>
+          <div>
+            <button id="download-chart" class="subtle-link">
+              导出矢量图 ↗</button
+            ><button id="download-data" class="subtle-link">图表数据 ↗</button>
+          </div>
+        </div>
+        <div class="evidence-tabs" role="tablist" aria-label="知识转化问题">
+          <button role="tab" data-evidence="f1">
+            <span>F1</span>搜索 → 纠错</button
+          ><button role="tab" data-evidence="f2">
+            <span>F2</span>预测 → 结构</button
+          ><button role="tab" data-evidence="f3">
+            <span>F3</span>预测 → 规律</button
+          ><button role="tab" data-evidence="f4">
+            <span>F4</span>规律 → 行动</button
+          ><button role="tab" data-evidence="m1">
+            <span>M1</span>选择一致性</button
+          ><button role="tab" class="active" data-evidence="m3">
+            <span>M3</span>知识独立效用
+          </button>
+        </div>
+        <article class="panel evidence-body">
+          <div class="evidence-intro">
+            <p class="eyebrow" id="evidence-kicker"></p>
+            <h2 id="evidence-title"></h2>
+            <p id="evidence-description"></p>
+            <div id="evidence-counts" class="count-row"></div>
+          </div>
+          <div class="evidence-filter">
+            <label
+              >查看配置
+              <select id="model-filter">
+                <option value="all">两个模型等权</option>
+                <option value="gpt">GPT</option>
+                <option value="deepseek">DeepSeek</option>
+              </select></label
+            ><span id="chart-note"></span>
+          </div>
+          <div
+            id="evidence-chart"
+            role="region"
+            aria-label="证据图表，可横向滚动"
+            aria-live="polite"
+            tabindex="0"
+          ></div>
+          <p id="evidence-boundary" class="evidence-boundary"></p>
+          <details>
+            <summary>查看精确数值与分母</summary>
+            <div id="evidence-table"></div>
+          </details>
+        </article>
+        <div class="research-foot">
+          <p>
+            各实验使用自己的协议与分母。会话、工具条件和重复采样不会增加独立世界数量。
+          </p>
+          <p>
+            三维实验室展示操作与观测；论文图表展示已封存的研究结果。二者不构成真实实验室迁移证据。
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer>
+      <span>CHEMWORLD / EXPLORER</span
+      ><span>公开观测 · 可执行实验 · 可检验知识</span>
+    </footer>
+    <div id="notice" class="notice" role="alert" hidden></div>
+    <script type="module" src="/explorer/explorer.js"></script>
+  </body>
+</html>

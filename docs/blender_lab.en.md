@@ -4,6 +4,20 @@ The optional local application in `apps/blender_lab/` adds an editable laborator
 manipulator, explicit carrier transport, and generic environment contracts. The installable adapter
 is `chemworld.interfaces.blender`.
 
+## Browser exploration
+
+Run `uv run --no-sync python -m apps.blender_lab --api-only --port 8878` and open
+**http://127.0.0.1:8878/explore**. The browser renders the actual exported Blender scene with
+36 selectable assets, five camera views, public trajectory playback and an optional live observer.
+The fixed eight-action development example keeps unknown measurements empty; seeking never
+repeats a Core action. Scene carrier transport remains an independent virtual demonstration.
+
+The research view covers four conversion questions plus agreement and independent knowledge
+utility. It includes model filters, per-world effects, intervals, denominators and SVG/JSON exports.
+Research series use current report bindings. All web dependencies are local, and Blender is only
+needed for editing/re-exporting the scene. This project explorer is separate from the anonymous
+paper supplement.
+
 ## Integration boundary
 
 ChemWorld Core remains the experimental executor: it owns actions, public observations, budgets,

@@ -39,6 +39,10 @@ python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
 
 ## 可选 Blender 连接
 
+浏览器探索器也可独立启动：`uv run --no-sync python -m apps.blender_lab --api-only --port 8878`，
+然后打开 `http://127.0.0.1:8878/explore`。将下方环境变量的端口改为8878，Task Lab公开观测
+就会出现在探索器“实时观测”页；时间轴回看不重新执行动作。
+
 先按 [Blender 应用说明](../blender_lab/README.md) 启动实验室，然后在启动 Task Lab 的同一终端设置
 `CHEMWORLD_BLENDER_URL=http://127.0.0.1:8877`（PowerShell 使用 `$env:CHEMWORLD_BLENDER_URL = "http://127.0.0.1:8877"`）。
 Student、LLM 和经典 Agent 会话会把公开观测发送到三维界面；未设置时保持原有行为。Core 继续负责实验、

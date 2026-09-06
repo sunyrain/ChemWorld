@@ -80,6 +80,7 @@ def main() -> None:
                 stderr=log,
             )
     print(f"Blender service: {url}")
+    print(f"Interactive explorer: {url}/explore (also available with --api-only)")
     print(f"Set CHEMWORLD_BLENDER_URL={url} for Task Lab or wrap your Gym environment.")
 
 
