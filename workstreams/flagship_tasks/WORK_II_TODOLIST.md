@@ -59,7 +59,7 @@ Claim: Codex /root — W2-87 — DOING。单executor；旧正式块及其失败�
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
-| W2-87 | DOING (kernel stage complete) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)阶段A固定96/96 kernel校准通过，5项定向测试通过；[机器摘要](reports/work-ii-information-completeness-20260906.md)已绑定。剩余完整终点合同/同信息留出校准、新10world覆盖与证据、12开发和120正式会话，均未启动；历史工具on速度折算正式9.53小时，拟留10–14小时，连同工程/分析暂估3–5工作日。无新增provider/完整物理/replay；不将kernel通过当作参与者可识别性或整个干预完成 |
+| W2-87 | DOING (GPT formal ready) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)按用户要求GPT优先。A 96/96通过；B1合同错配24失败保留，B2 24/24通过；C 10/10新world资格、240/240执行和重放通过。GPT开发6/6完成、12轮usage完整、805.906秒、零失败；32项定向验收通过。准备冻结GPT 60正式（40恢复+20保持），每轮600秒/会话1200秒/整块4小时/重试0，实测ETA约2.24小时。DeepSeek 6开发/60正式后续。旧B3不回填新资格 |
 | W2-86 | DONE | Claim: Codex /root — [三位独立AI评阅](reports/work-ii-independent-review-20260906.md)与收束完成；F2摘要信息边界、四层读出、F3同域容量及M3候选局限已同步。两版PDF仍9/25及24页，69文件包；16项出版测试、最后措辞6项复核、Ruff和链接/diff通过，49页渲染总览及7页逐页检查通过。第三模型桥接新增P1读头时限/P2中断usage恢复缺陷留作重资格前修复，未调用provider；新增必做科学实验0 |
 | W2-85 | DONE (calibration interrupted) | Claim: Codex /root — Kimi/Qwen四个harness会话全部尝试，Kimi prompt_schema两轮/2次真实MCP通过；strict均无工具，Qwen另有tool_choice与多system兼容错误。Kimi校准0/6完成：1超时失败、1平台中止、4未启动；因上游未取消及请求重叠停止。总deadline/取消/增量日志与system合并已修复，42项测试通过，未追加线上重跑。Kimi为优先候选，尚未取得完整第三模型资格；见[说明](WORK_II_PROVIDER_SELECTION_NOTE.md)与[结果](reports/work-ii-provider-selection-20260906.md) |
 | W2-84 | DONE (not qualified) | Claim: Codex /root — GLM适配开发块按停止规则结束：3次真实工程尝试0次完整通过；正确JSON/同thread可达，实际MCP调用0。离线模拟已跑通真实Codex两轮与2次MCP，但真实GLM分别绕过工具或把待调用写成普通JSON。6/6校准未启动，GLM暂不采用；保留全部失败及schema fallback偏离。见[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)与[结果](reports/work-ii-glm-adapter-20260906.md) |

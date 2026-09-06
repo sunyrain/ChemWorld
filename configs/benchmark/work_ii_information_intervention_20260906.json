@@ -1,0 +1,52 @@
+{
+  "schema_version": "work-ii-information-intervention-1",
+  "providers": {
+    "deepseek": {
+      "id": "deepseek",
+      "name": "DeepSeek",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "high",
+      "base_url": "https://api.deepseek.com/",
+      "wire_api": "responses",
+      "auth_mode": "experimental_bearer_token",
+      "api_key_file": "api.md",
+      "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json"
+    },
+    "gpt": {
+      "id": "chemworld_openai_https",
+      "name": "OpenAI",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium",
+      "auth_mode": "none",
+      "wire_api": "responses"
+    }
+  },
+  "development": {
+    "gpt": {
+      "turn_timeout_s": 600,
+      "session_timeout_s": 1200,
+      "block_timeout_s": 7200,
+      "provider_retries": 0
+    },
+    "deepseek": null
+  },
+  "formal": {
+    "gpt": {
+      "turn_timeout_s": 600,
+      "session_timeout_s": 1200,
+      "block_timeout_s": 14400,
+      "provider_retries": 0
+    },
+    "deepseek": null
+  },
+  "formal_stimuli": "runs/development/work-ii-information-ten-world-stimuli-20260906/stimuli.json",
+  "formal_stimuli_sha256": "84822800586bde247ee04b5025a017b3a201adefd1e9f6e816ac8ad2fcc4d908",
+  "calibration_gpt": {
+    "report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-development-20260906.json",
+    "report_sha256": "714a9c24e5dc146341608a82a573cfcd4aa60d1bb8cc04b44bda864814299613",
+    "sessions": 6,
+    "turns": 12,
+    "wall_seconds": 805.9060000001919,
+    "historical_rate_formal_hours": 2.238627777778311
+  }
+}

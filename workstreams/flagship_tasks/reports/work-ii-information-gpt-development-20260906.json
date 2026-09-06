@@ -1,0 +1,269 @@
+{
+  "budgets": {
+    "block_timeout_s": 7200,
+    "provider_retries": 0,
+    "session_timeout_s": 1200,
+    "turn_timeout_s": 600
+  },
+  "counts": {
+    "completed": 6
+  },
+  "failures": [],
+  "formal_result": false,
+  "groups": [
+    {
+      "analysis": "recovery",
+      "counts": {
+        "completed": 2
+      },
+      "information": "original",
+      "joint_recovery": 0,
+      "mean_normalized_regret_failure_aware": 0.034022680858620404,
+      "scheduled": 2,
+      "tool_use_sessions": 0
+    },
+    {
+      "analysis": "retention",
+      "counts": {
+        "completed": 1
+      },
+      "information": "original",
+      "joint_recovery": 1,
+      "mean_normalized_regret_failure_aware": 0.034022680858620404,
+      "scheduled": 1,
+      "tool_use_sessions": 0
+    },
+    {
+      "analysis": "recovery",
+      "counts": {
+        "completed": 2
+      },
+      "information": "complete",
+      "joint_recovery": 2,
+      "mean_normalized_regret_failure_aware": 0.034022680858620404,
+      "scheduled": 2,
+      "tool_use_sessions": 0
+    },
+    {
+      "analysis": "retention",
+      "counts": {
+        "completed": 1
+      },
+      "information": "complete",
+      "joint_recovery": 1,
+      "mean_normalized_regret_failure_aware": 0.034022680858620404,
+      "scheduled": 1,
+      "tool_use_sessions": 0
+    }
+  ],
+  "interpretation": "Aligned-prior retention is separate from recovery. Units are worlds, not queries, priors or models. Information length is part of the disclosure treatment. Current-v3 data are not a reanalysis of historical B3 runtime semantics.",
+  "models": [
+    "gpt"
+  ],
+  "phase": "development",
+  "primary": {
+    "approximate_world_bootstrap_95": null,
+    "bootstrap_draws": 20000,
+    "bootstrap_seed": 90870,
+    "contrast": "complete_minus_original_joint_recovery_unknown_and_wrong_priors",
+    "mean": 1.0
+  },
+  "provider": {
+    "auth_mode": "none",
+    "id": "chemworld_openai_https",
+    "model": "gpt-5.6-sol",
+    "name": "OpenAI",
+    "reasoning_effort": "medium",
+    "wire_api": "responses"
+  },
+  "reference_binding": {
+    "complete_physical_experiments": 24,
+    "endpoint_report": "workstreams/flagship_tasks/reports/work-ii-information-endpoint-20260906-v3-repair.json",
+    "endpoint_report_sha256": "418a620cb46fce8fa105a4f6178878e010c8b4adf0313f5dfa4500f181bb61d9",
+    "exact_replays": 24,
+    "experiment_note": "workstreams/flagship_tasks/WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md",
+    "formal_agent_block_ready": false,
+    "formal_result": false,
+    "gpt_development_ready": true,
+    "kernel_passed": 96,
+    "kernel_scheduled": 96,
+    "provider_calls": 0,
+    "report": "workstreams/flagship_tasks/reports/work-ii-information-completeness-20260906.json",
+    "report_sha256": "640e9f72cc3eb3c0077f967d3ed8c05a5622f90b7c4237841888dff581d7c7c8",
+    "retained_endpoint_failure": {
+      "complete_physical_experiments": 24,
+      "exact_replays": 24,
+      "mapping_passed": 0,
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-endpoint-20260906.json",
+      "report_sha256": "c9a9a52cea164952cf99b2c3ae4aca8786ca8b2c3809c2f5c3367a84e27abc7c"
+    },
+    "status": "development_reference_qualified"
+  },
+  "resource_accounting": "CLI-reported usage; missing/interrupted usage is a lower bound.",
+  "resources": {
+    "attempted_sessions": 6,
+    "cached_input_tokens": 0,
+    "input_tokens": 214953,
+    "output_tokens": 40676,
+    "provider_error_turns": 0,
+    "reasoning_output_tokens": 33539,
+    "scheduled_turns": 12,
+    "tool_attempts": 0,
+    "tool_compute_seconds": 0,
+    "tool_rejections": 0,
+    "turns": 12,
+    "usage_available_turns": 12,
+    "usage_missing_turns": 0,
+    "wall_seconds": 805.9060000001919
+  },
+  "rows": [
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--gpt--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.6,
+      "post_exponent_abs_error": 0.1499999999999999,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.09412372011082247,
+      "pre_exponent": 1,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.2974089897707589,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--gpt--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "complete",
+      "joint_recovery": 1,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.75,
+      "post_exponent_abs_error": 0.0,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.005100151051532482,
+      "pre_exponent": 1,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.30132557139979677,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--gpt--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "complete",
+      "joint_recovery": 1,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.75,
+      "post_exponent_abs_error": 0.0,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.006484581870567049,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.3012429554318078,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--gpt--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "original",
+      "joint_recovery": 1,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.75,
+      "post_exponent_abs_error": 0.0,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.035861545657087116,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.3071554554318078,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--gpt--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.36,
+      "post_exponent_abs_error": 0.3899999999999999,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.06234727026568726,
+      "pre_exponent": 1,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.2985534897707589,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--gpt--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": null,
+      "information": "complete",
+      "joint_recovery": 1,
+      "model": "gpt",
+      "near_optimal": 0,
+      "normalized_regret": 0.034022680858620404,
+      "post_exponent": 1.75,
+      "post_exponent_abs_error": 0.0,
+      "post_family": "FAMILY_B_POWER",
+      "post_mae": 0.005101401051532481,
+      "pre_exponent": 1,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.30131050889979677,
+      "raw_regret": 0.013466715812683105,
+      "status": "completed",
+      "tool_used": false,
+      "top1": 0
+    }
+  ],
+  "scheduled": 6,
+  "schema_version": "work-ii-information-intervention-1",
+  "status": "terminal",
+  "world_contrasts": [
+    {
+      "complete_minus_original": 1,
+      "world": "W2-87-development-1"
+    }
+  ],
+  "worlds": 1
+}

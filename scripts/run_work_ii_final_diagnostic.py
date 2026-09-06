@@ -384,7 +384,14 @@ def launch(
 
 
 def run_session(
-    cell: dict, protocol: dict, phase: str, directory: Path, deadline: float, progress: dict
+    cell: dict,
+    protocol: dict,
+    phase: str,
+    directory: Path,
+    deadline: float,
+    progress: dict,
+    *,
+    prompt_factory=prompt,
 ) -> dict:
     started = time.monotonic()
     result = {k: cell[k] for k in ("cell_id", "model", "tool")}
@@ -421,7 +428,7 @@ def run_session(
                     break
                 receipt = launch(
                     command,
-                    prompt(cell, stage, cell["tool"]),
+                    prompt_factory(cell, stage, cell["tool"]),
                     workspace,
                     environment,
                     directory / stage,
