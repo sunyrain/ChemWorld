@@ -7,6 +7,10 @@ not define a second execution queue. Current tasks live in
 navigation in the [results index](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md).
 Resolve generated evidence through [current bindings](../configs/current.json).
 
+The four conversion questions have different evidential strength; they are not four established
+ability failures. In particular, the public-information review narrows historical B3 qualification:
+the privileged reference path does not establish participant-only structural identifiability.
+
 ## Current claims and boundaries
 
 | Claim/readout | Bound evidence | Status and allowed interpretation |

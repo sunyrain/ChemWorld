@@ -74,7 +74,7 @@ def test_seed_zero_gate_pilots_do_not_enter_paired_scientific_contrasts() -> Non
     assert "immutable seed-0 failures" in evidence_map
     assert "Prior uptake without established selective correction" in display_items
     assert (
-        "B2 separates numerical fit from expression; B3 tests identifiable functional form"
+        "B2 separates numerical fit from expression; B3 measures typed structural outputs"
         in display_items
     )
     assert "cross-system ranking" in display_items

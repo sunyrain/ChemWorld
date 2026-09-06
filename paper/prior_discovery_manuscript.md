@@ -37,15 +37,16 @@ abstract: |
   campaigns across 45 matched task--world clusters. Prediction errors fell, selective-correction
   criteria remained unmet, and executable summaries lost predictive information. A final 120-session
   minimal-interface diagnostic retained 117 valid completions, yet recovered the joint family and
-  exponent in 0/80 opaque or misspecified cases. Optional numerics changed recovery by +1.67
-  percentage points (95% interval [-8.33, 10.00]); all recoveries retained an already-correct prior.
+  exponent in 0/80 opaque or misspecified cases. The public observation mapping was incomplete,
+  so this does not establish failure on an identifiable task. Optional numerics changed success
+  by +1.67 percentage points (95% interval [-8.33, 10.00]); all successes retained a correct prior.
   In a separate DeepSeek cohort, laws selected the optimum in 0/45 unseen-plan cases versus 11/45
   participant choices. These differences are conditional: a ten-world representation/decision
   intervention found no supported material fitted-law benefit and complete fitted-law
   agent/maximizer agreement. Delivering model laws alone to fresh recipients on new same-world
   candidates reduced regret by 0.13723 relative to task information alone, while nearest-evidence
-  retrieval attained zero regret. Together these results separate conversion losses from success
-  conditions; they do not establish four internal causal failures, universal agent deficits,
+  retrieval attained zero regret. These results distinguish artifact fidelity, behavioral agreement
+  and decision utility; they do not establish four internal causal failures, universal agent deficits,
   retrieval superiority or transfer to changed physical conditions.
 
 
@@ -90,7 +91,7 @@ The primary study used a fixed DeepSeek-v4-flash experimental-agent configuratio
 scientific surface. A final matched-packet experiment adds minimal submissions and optional
 numerics to test F2 with fewer submission demands. We also cross law source with decision rule
 under fixed evidence, then deliver laws independently of raw evidence to fresh recipients.
-These interventions establish conditions for agreement and useful knowledge, bounding a general
+These interventions exhibit settings with agreement and useful knowledge, bounding a general
 law-use failure account without identifying the causes of historical cross-protocol differences.
 
 
@@ -552,7 +553,7 @@ criterion does not establish an absence of correction ability.
 \caption{\textbf{Prediction improves, but the evidence does not establish selective repair of the wrong model.}
 \textbf{a--c,} Mean pre-evidence and final errors by arm in entity, parametric, and structural
 blocks; lines connect aggregate means, not individual trajectories or confidence bounds.
-The registered selective-correction criteria are unmet (one-sided $p=0.990,0.079,1.000$), and
+The failure-aware selective-correction gates are unmet (one-sided $p=0.990,0.079,1.000$), and
 initial error limits improvement headroom. First recipes differ in 45/45 aligned--misindexed,
 45/45 opaque--aligned, and 44/45 opaque--misindexed clusters; this retrospective check has no
 repeated same-arm baseline.}
@@ -682,7 +683,7 @@ prespecified approximate 95\% interval. Tool availability is the intervention: G
 \end{figure*}
 ```
 
-## 6.5 F3: Executable laws often lose information present in predictive belief
+## 6.5 F3: Executable laws often lose information present in conditional predictions
 
 All **135/135** final typed laws executed on their prespecified continuous coordinates, but
 executability did not preserve the information in the agent's conditional predictions. Mean law MAE
@@ -691,16 +692,15 @@ equal in one and worse in 84; mean law-minus-final error was +0.069. Even in the
 where pre-to-law improvement was largest, law error remained higher than final explicit-prediction
 error on average. The typed interface solved syntax and coverage, not faithful model compression.
 
-A same-domain schema-capacity control localized that loss. For every cell, we fitted the best legal
+A same-domain schema-capacity control assessed whether these prediction vectors were expressible. For every cell, we fitted the best legal
 identity-link typed law directly to the agent's complete final prediction vector and executed it
 through the production parser. The full registered basis reproduced the prediction state in
 **135/135** cells (mean MAE $4.25\times10^{-13}$), whereas the participant's submitted law differed
 from the same prediction state by 0.1539 MAE. Holding the participant's term set fixed reduced that
 gap to 0.0114 MAE (58/135 near-exact cells), and leave-one-query-out fitting yielded 0.0788 MAE.
-Thus the interface can carry the observed predictive state; most information loss arose during the
-agent's distillation into a sparse law, not from schema capacity. Because the full-basis fit uses
-coordinates from the same evaluation domain, it is a capacity control rather than evidence of
-global mechanistic identification.
+Thus the schema can carry these observed prediction vectors, while the submitted laws preserve
+them imperfectly. The fit uses the same evaluation domain; it establishes representation capacity,
+without identifying an internal cause of the discrepancy or demonstrating global mechanistic recovery.
 
 Paired blind replay tested a still narrower claim: whether the final commitment reproduced the value
 of an observed incumbent. It completed **726/726** executions for 121 evaluable cells; the 14 failed
@@ -1055,7 +1055,8 @@ It finds no supported material fitted-law benefit and 40/40 fitted-law agent/max
 This limits a general law-use failure account, without isolating which difference from the
 historical protocols matters. The information-separated follow-up establishes independent
 same-world artifact value relative to task-only input, while raw evidence also helps and nearest
-retrieval reaches the measured optimum in every world. Transfer to changed mechanisms remains open.
+retrieval reaches the measured optimum in every world. Within each task, all five worlds share one
+candidate grid and have the same measured optimum coordinates. Transfer to changed mechanisms remains open.
 
 # 9. Discussion
 
@@ -1064,8 +1065,9 @@ retrieval reaches the measured optimum in every world. Transfer to changed mecha
 Prediction error and decision loss need not agree, as established in predict-then-optimize and
 decision-focused learning [@elmachtoub2022spo; @wilder2019decisionfocused]. Our setting adds
 autonomous evidence collection, supplied descriptions of hidden chemical relations, executable
-knowledge summaries and complete operational plans. The empirical contribution is the observation
-and localization of gaps among these objects within the evaluated systems. The direct factorial
+knowledge summaries and complete operational plans. We measure the fidelity of submitted laws to
+the agent's own predictions and their agreement with actual choices, then deliver the laws separately
+from source observations to test recipient decision utility. The direct factorial
 intervention adds a boundary: fitted-law replacement did not meet its material-benefit criterion,
 and fresh agents agreed with its maximizer in every fitted-law pair. The information-separated
 follow-up establishes independent artifact utility for new same-world plans, with a larger benefit

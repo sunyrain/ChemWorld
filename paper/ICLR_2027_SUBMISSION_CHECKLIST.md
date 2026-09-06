@@ -53,21 +53,30 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [ ] Freeze the actual submission evidence and complete final anonymous delivery checks.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The final-diagnostic integration builds contain nine main-text pages and 25 total pages in the
+The W2-86 independent-review closeout builds contain nine main-text pages and 25 total pages in the
 anonymous submission, and 24 pages in the long draft. All 49 pages were rendered and visually checked;
 the four-question diagram, final diagnostic, evidence table and author/abstract page also passed
 page-scale inspection. The evidence table uses wrapping columns and a larger font. Fonts
 were not reduced to meet the main-text limit. Final builds report no horizontal/vertical
 overflow, undefined citations, unstable cross-references or anonymous identity leaks.
 
-The integrated diagnostic/publication pass has 38 passing tests, with Ruff and diff checks clean.
-The supplementary archive contains 67 files. Its M1/M3/final-diagnostic verifiers reconstruct scheduled
+The historical W2-81 integrated pass recorded 48 passing tests and 72 subtests. W2-86 reran the
+three publication test files: 16 passed; its independent engineering reviewer separately obtained
+40 passing focused tests. These counts describe different scopes, not one combined test suite.
+The supplementary archive contains 69 files. Its M1/M3/final-diagnostic verifiers reconstruct scheduled
 denominators, retained failures, deterministic controls, selection losses and twelve paired means.
 Full NumPy checks reconstruct public fits, exact maximizer choices and all twelve bootstrap intervals;
 M3 also verifies source reuse and recipient information isolation. All actual exported full
 verifiers passed. The final diagnostic's eight frozen execution files and sealed inputs match;
 all 120 fresh threads preserve their pre/post identity. Build metadata do not create new outcomes or
 relabel the formal source blocks.
+
+W2-86 additionally synchronized the F2 public-information limitation into both abstracts, narrowed
+the four-question and same-domain-capacity interpretations, and reported the fixed M3 candidate
+design. All 49 pages were checked in rendered overview, with seven changed pages inspected at
+page scale. No new scientific experiment or provider call was made. The third-model bridge remains
+unqualified; two reproduced transport/accounting defects are deferred in the
+[independent review](../workstreams/flagship_tasks/reports/work-ii-independent-review-20260906.md).
 
 M1 completed 200/200 physical executions and exact replays, 120/120 provider sessions and 160/160
 condition slots, without failure or replacement. F-X minus L-X was −0.00538 (95% interval

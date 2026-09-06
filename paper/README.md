@@ -13,8 +13,8 @@ the workstream TODO, and publication checks in the [submission checklist](ICLR_2
 
 The final B3 interface/tool diagnostic has reached its recorded endpoint: 120 attempted sessions,
 117 valid completions and three retained failures. Manuscripts and display sources now organize
-the four conversion questions and the M1/M3 success conditions. The accepted exports contain nine
-main-text pages / 25 total pages in the anonymous PDF, a 24-page long draft and a 67-file anonymous
+the four conversion questions and the observed M1/M3 successes and boundaries. The exports contain nine
+main-text pages / 25 total pages in the anonymous PDF, a 24-page long draft and a 69-file anonymous
 package. The workstream TODO records acceptance; no further experiment is automatically scheduled.
 
 ## Build from sources

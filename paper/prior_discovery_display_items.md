@@ -1,6 +1,6 @@
 # Display plan — experimental knowledge and decisions
 
-The eight reusable assets separate prediction, submitted knowledge and decisions. Historical
+The nine reusable assets separate prediction, submitted knowledge and decisions. Historical
 downstream law/action associations remain descriptive; the new independent-world factorial block
 directly replaces explicit artifacts and decision rules. Its prespecified material benefit is
 unsupported. The information-separated follow-up supports same-world artifact utility, with no
@@ -30,7 +30,10 @@ The caption retains first-recipe differences (45/45, 45/45, 44/45) and registere
 p values (0.990, 0.079, 1.000). Initial error headroom limits correction contrasts; unmet criteria
 do not establish inability. The recipe check has no repeated same-arm baseline.
 
-## Figure 4 — B2 separates numerical fit from expression; B3 tests identifiable functional form
+## Figure 4 — B2 separates numerical fit from expression; B3 measures typed structural outputs
+
+Historical B3 qualification used privileged simulator access. The later public-information
+review did not establish participant-only identifiability; typed scoring does not resolve that gap.
 
 - A: all 15 paired DeepSeek-high B2 pre/post errors, logarithmic y axis, reference at 0.02.
 - B: B3 completion, joint recovery, Top-1, and useful-gain dot plot with direct counts. Completion,
