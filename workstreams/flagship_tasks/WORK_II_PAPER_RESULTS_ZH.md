@@ -2,9 +2,17 @@
 
 更新日期：2026-09-06
 
-新增[公开信息复核](reports/work-ii-public-information-20260906.md)：全部5个既有world、40对公开证据、
+新增[W2-87 GPT信息完整性正式结果](reports/work-ii-information-gpt-formal-20260906.md)：
+10world、60/60会话、120/120轮完成，零失败。未知/错误先验恢复6/20→20/20，
+主差+70个百分点，近似world-bootstrap 95%[+45,+95]；保持8/10→10/10，单独报告。
+未知/错误先验的预测MAE0.03871→0.00606，归一化regret0.07097→0.00748，Top-1为5/20→12/20。
+见[图件](../../paper/figures/prior-discovery/figure-10-information-gpt.pdf)和
+[实验说明](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)。这是已资格v3合同下的新GPT块；
+DeepSeek尚未执行，现有投稿PDF未整合。信息长度、配对噪声与同族参数覆盖限制解释范围。
+
+此前[公开信息复核](reports/work-ii-public-information-20260906.md)：全部5个既有world、40对公开证据、
 160个metric对，无缺失。水相含量与相比例各40/40对完全相同，有机相与score平均绝对差
-0.005873/0.004992。公开合同未给完整观测映射；同信息结构充分性仍未建立。这是事后描述性再分析，
+0.005873/0.004992。历史公开合同未给完整观测映射；其同信息结构充分性仍未建立。这是事后描述性再分析，
 不增加provider、物理执行或独立样本，也不证明真实模拟器不可识别。current的w2_79_public_information
 绑定机器报告；匿名补充包提供全部配对值及24个可独立复算的摘要。
 
@@ -17,6 +25,7 @@
 
 | 证据块 | 终态分母（DeepSeek / GPT，除非另注） | 可支持的结果 |
 | --- | --- | --- |
+| [W2-87信息完整性](reports/work-ii-information-gpt-formal-20260906.md) | GPT-only，10新world，60/60正式会话、120轮，零失败；6开发另计 | 恢复6/20→20/20，主差+0.70、近似95%[+0.45,+0.95]；保持8/10→10/10；新v3数据不回填历史B3 |
 | C2 public | 各135 scheduled；121/126 completed；1,243/1,253 completed experiments，各1,260 planned | 平均预测改善；原selective-correction gates均未通过 |
 | C2 evaluator | 各420 truth；675/669 checkpoints；135/129 laws；726/756 blind executions，原scheduled各810 | law MAE 0.2371/0.1753、compression loss 0.0686/0.0142；incumbent gain约为零 |
 | A-P/B2 matched | 每模型每块15/15 sessions，合计60；另DeepSeek-low B2为15/15 | 条件性packet后响应；B2三配置错误组exact expression均0/5，存在精确alias |

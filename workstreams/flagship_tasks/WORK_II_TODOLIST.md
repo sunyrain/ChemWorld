@@ -7,8 +7,10 @@
 四层测量的正式实验与本轮收束已完成：最后B3诊断、图文整合、两版PDF及匿名复现包均已验收。
 W2-86完成三位独立AI审稿及必要文字同步，原范围新增必做科学实验0。
 用户随后授权优先尝试公开信息完整性的单因素干预：W2-87先做离线参考可行性，再据校准决定新Agent块。
+W2-87的GPT阶段已完成6开发+60正式；正式恢复6/20→20/20，主差+70个百分点，
+近似world区间[+45,+95]。独立结果/图件完成，现有投稿PDF仍为之前交付；DeepSeek 6+60尚未启动。
 本轮固定GPT/DeepSeek双模型，第三模型暂缓；机制匹配、新条件迁移和全面框架交叉不作为写作前置。
-具体范围和停止规则见[收束矩阵](WORK_II_EXPERIMENT_MATRIX.md)；开发12/12终止（10有效完成、2失败），正式120/120尝试、117有效完成、3失败保留。
+具体范围和停止规则见[收束矩阵](WORK_II_EXPERIMENT_MATRIX.md)；旧W2-77开发12/12终止（10有效完成、2失败），正式120/120尝试、117有效完成、3失败保留。
 
 M1独立世界正式块已完成：10 worlds、120/120 sessions、160/160条件、200/200物理执行与重放，
 零失败和替换；图文与发布验证已完成。主效应−0.00538，95%区间[−0.01630,+0.00061]，
@@ -51,6 +53,8 @@ M1/M3提供观察到的成功设置及边界，没有识别跨协议差异的单
 - B3各30 scheduled：DeepSeek17完成/13 schema失败、GPT30完成；joint recovery0/30与5/30。
 - B2、reasoning-budget、schema capacity和rank/action mismatch承担测量或评价诊断，
   不共同充当Agent内部“能力链断裂”的因果证据。
+- W2-87 GPT：固定v3环境下，仅补全post观测合同，未知/错误先验恢复6/20→20/20，
+  正确先验保持8/10→10/10；单模型、同族参数覆盖的条件性披露效应，未回填旧B3。
 
 ## 3. 当前任务
 
@@ -59,7 +63,7 @@ Claim: Codex /root — W2-87 — DOING。单executor；旧正式块及其失败�
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
-| W2-87 | DOING (GPT formal ready) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)按用户要求GPT优先。A 96/96通过；B1合同错配24失败保留，B2 24/24通过；C 10/10新world资格、240/240执行和重放通过。GPT开发6/6完成、12轮usage完整、805.906秒、零失败；32项定向验收通过。准备冻结GPT 60正式（40恢复+20保持），每轮600秒/会话1200秒/整块4小时/重试0，实测ETA约2.24小时。DeepSeek 6开发/60正式后续。旧B3不回填新资格 |
+| W2-87 | DOING (GPT DONE; DeepSeek pending) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)的GPT阶段完成：6开发+60正式，正式120轮usage完整、零失败/重试，2.321小时。恢复6/20→20/20，主差+70个百分点、近似95%[+45,+95]；保持8/10→10/10。A/B2/C资格完成，B1合同错配24失败保留。7文件/输入冻结、60个同thread会话、30对提示词及独立统计复算通过；定向32项测试通过。报告、独立四面板图与逐world数据完成；DeepSeek 6开发/60正式及后续稿件整合待办。旧B3不回填新资格 |
 | W2-86 | DONE | Claim: Codex /root — [三位独立AI评阅](reports/work-ii-independent-review-20260906.md)与收束完成；F2摘要信息边界、四层读出、F3同域容量及M3候选局限已同步。两版PDF仍9/25及24页，69文件包；16项出版测试、最后措辞6项复核、Ruff和链接/diff通过，49页渲染总览及7页逐页检查通过。第三模型桥接新增P1读头时限/P2中断usage恢复缺陷留作重资格前修复，未调用provider；新增必做科学实验0 |
 | W2-85 | DONE (calibration interrupted) | Claim: Codex /root — Kimi/Qwen四个harness会话全部尝试，Kimi prompt_schema两轮/2次真实MCP通过；strict均无工具，Qwen另有tool_choice与多system兼容错误。Kimi校准0/6完成：1超时失败、1平台中止、4未启动；因上游未取消及请求重叠停止。总deadline/取消/增量日志与system合并已修复，42项测试通过，未追加线上重跑。Kimi为优先候选，尚未取得完整第三模型资格；见[说明](WORK_II_PROVIDER_SELECTION_NOTE.md)与[结果](reports/work-ii-provider-selection-20260906.md) |
 | W2-84 | DONE (not qualified) | Claim: Codex /root — GLM适配开发块按停止规则结束：3次真实工程尝试0次完整通过；正确JSON/同thread可达，实际MCP调用0。离线模拟已跑通真实Codex两轮与2次MCP，但真实GLM分别绕过工具或把待调用写成普通JSON。6/6校准未启动，GLM暂不采用；保留全部失败及schema fallback偏离。见[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)与[结果](reports/work-ii-glm-adapter-20260906.md) |
