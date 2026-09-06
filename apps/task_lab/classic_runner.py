@@ -158,6 +158,8 @@ def run_classic_task(
             }
         )
 
+    from chemworld.interfaces.blender import attach_blender
+
     run_agent(
         env_id="ChemWorld",
         agent=agent,
@@ -170,6 +172,7 @@ def run_classic_task(
         budget_override=effective_budget if contract_profile == "extended-research" else None,
         episode_mode_override="campaign" if campaign_override else None,
         step_callback=on_step,
+        env_wrapper=attach_blender,
     )
 
     records = load_jsonl(trajectory_path)

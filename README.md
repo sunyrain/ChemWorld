@@ -100,6 +100,17 @@ python -m apps.task_lab.server --port 8876
 The documentation site is static; the visual interface currently runs locally. Classical agents work offline. Online model
 credentials are read from the local process environment and must not enter the repository or evaluation artifacts.
 
+An optional [Blender laboratory](apps/blender_lab/README.md) adds a mobile manipulator, explicit carrier
+transport, and a public-state view of Student Lab and Agent workflows. Core remains the experimental
+executor; the scene's educational inventory is separate. From a source checkout, launch it with:
+
+```bash
+uv run --no-sync python -m apps.blender_lab --blender /path/to/blender
+```
+
+Set `CHEMWORLD_BLENDER_URL=http://127.0.0.1:8877` when starting Task Lab to connect the display.
+Physical hardware dispatch is not implemented.
+
 ## Evidence status
 
 The first paper releases a bounded world-building and experimental-runtime instrument. Its frozen

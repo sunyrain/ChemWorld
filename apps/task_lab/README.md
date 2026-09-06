@@ -37,6 +37,13 @@ python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
 
 服务默认只监听 `127.0.0.1`。不要将带有模型凭据的本地服务直接暴露到公网。
 
+## 可选 Blender 连接
+
+先按 [Blender 应用说明](../blender_lab/README.md) 启动实验室，然后在启动 Task Lab 的同一终端设置
+`CHEMWORLD_BLENDER_URL=http://127.0.0.1:8877`（PowerShell 使用 `$env:CHEMWORLD_BLENDER_URL = "http://127.0.0.1:8877"`）。
+Student、LLM 和经典 Agent 会话会把公开观测发送到三维界面；未设置时保持原有行为。Core 继续负责实验、
+预算与回放。一个场景端口同时展示一个会话；自动化助手搬运需要显式调用物流任务，不会由普通动作自动触发。
+
 ## 配置 DeepSeek
 
 不要把 key 写进受版本控制的 Python、Markdown、前端或运行结果。PowerShell 中也可以只为当前终端设置环境变量：

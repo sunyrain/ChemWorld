@@ -117,7 +117,9 @@ def run_task(
         env_kwargs["budget_override"] = effective_budget
         if campaign_override:
             env_kwargs["episode_mode_override"] = "campaign"
-    env = gym.make("ChemWorld", **env_kwargs)
+    from chemworld.interfaces.blender import attach_blender
+
+    env = attach_blender(gym.make("ChemWorld", **env_kwargs))
     try:
         env.reset(seed=selected_seed)
         base: Any = env.unwrapped
