@@ -1,0 +1,48 @@
+# DeepSeek none: actual Codex outbound request
+
+One engineering request; no scientific data.
+
+```json
+{
+  "formal_result": false,
+  "scheduled": 1,
+  "real_requests": 1,
+  "captured": [
+    {
+      "path": "/responses",
+      "model": "deepseek-v4-flash",
+      "reasoning": {
+        "effort": "none"
+      },
+      "keys": [
+        "model",
+        "input",
+        "tools",
+        "tool_choice",
+        "parallel_tool_calls",
+        "reasoning",
+        "store",
+        "stream",
+        "include",
+        "prompt_cache_key",
+        "text",
+        "client_metadata"
+      ],
+      "max_output_tokens": null
+    }
+  ],
+  "receipt": {
+    "failure": null,
+    "elapsed_s": 2.218000000109896,
+    "usage": {
+      "input_tokens": 4593,
+      "cached_input_tokens": 0,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 5,
+      "reasoning_output_tokens": 0
+    },
+    "provider_errors": []
+  },
+  "upstream_errors": []
+}
+```

@@ -1,0 +1,437 @@
+{
+  "budgets": {
+    "block_timeout_s": 7200,
+    "provider_retries": 0,
+    "session_timeout_s": 1200,
+    "turn_timeout_s": 600
+  },
+  "counts": {
+    "failed": 6
+  },
+  "failures": [
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_pre",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.2449929554318078,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_post",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.27405545543180776,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_post",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.0,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.17180570821510627,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.0,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.2531179554318078,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    }
+  ],
+  "formal_result": false,
+  "groups": [
+    {
+      "analysis": "recovery",
+      "counts": {
+        "failed": 2
+      },
+      "information": "original",
+      "joint_recovery": 0,
+      "mean_normalized_regret_failure_aware": 1.0,
+      "scheduled": 2,
+      "tool_use_sessions": 1
+    },
+    {
+      "analysis": "retention",
+      "counts": {
+        "failed": 1
+      },
+      "information": "original",
+      "joint_recovery": 0,
+      "mean_normalized_regret_failure_aware": 1.0,
+      "scheduled": 1,
+      "tool_use_sessions": 1
+    },
+    {
+      "analysis": "recovery",
+      "counts": {
+        "failed": 2
+      },
+      "information": "complete",
+      "joint_recovery": 0,
+      "mean_normalized_regret_failure_aware": 1.0,
+      "scheduled": 2,
+      "tool_use_sessions": 0
+    },
+    {
+      "analysis": "retention",
+      "counts": {
+        "failed": 1
+      },
+      "information": "complete",
+      "joint_recovery": 0,
+      "mean_normalized_regret_failure_aware": 1.0,
+      "scheduled": 1,
+      "tool_use_sessions": 1
+    }
+  ],
+  "interpretation": "Aligned-prior retention is separate from recovery. Units are worlds, not queries, priors or models. Information length is part of the disclosure treatment. Current-v3 data are not a reanalysis of historical B3 runtime semantics.",
+  "models": [
+    "deepseek"
+  ],
+  "phase": "development",
+  "primary": {
+    "approximate_world_bootstrap_95": null,
+    "bootstrap_draws": 20000,
+    "bootstrap_seed": 90870,
+    "contrast": "complete_minus_original_joint_recovery_unknown_and_wrong_priors",
+    "mean": 0.0
+  },
+  "provider": {
+    "api_key_file": "api.md",
+    "auth_mode": "experimental_bearer_token",
+    "base_url": "https://api.deepseek.com/",
+    "http_headers": {
+      "User-Agent": "ChemWorld/0.2"
+    },
+    "id": "deepseek",
+    "model": "deepseek-v4-flash",
+    "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+    "name": "DeepSeek",
+    "reasoning_effort": "none",
+    "transport": "standard_http_headers",
+    "wire_api": "responses"
+  },
+  "reference_binding": {
+    "deepseek_development_completed": 0,
+    "deepseek_development_remaining": 6,
+    "deepseek_development_run": "runs/development/work-ii-information-deepseek-none-transport-20260907",
+    "deepseek_development_scheduled": 6,
+    "deepseek_development_turns": 0,
+    "deepseek_formal_remaining": 60,
+    "deepseek_formal_run": "runs/formal/work-ii-information-deepseek-none-20260907",
+    "deepseek_formal_scheduled": 60,
+    "deepseek_http_headers": {
+      "User-Agent": "ChemWorld/0.2"
+    },
+    "deepseek_low_retained": {
+      "cli_version": "0.145.0",
+      "counts": {
+        "completed": 2,
+        "failed": 2,
+        "unstarted": 56
+      },
+      "development_completed": 6,
+      "development_remaining": 0,
+      "development_report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-low-development-20260906.json",
+      "development_report_sha256": "edfb41b697c5ad721f2bf593630cef30c18174fc4afdf1b9b1908a2b501ef400",
+      "development_run": "runs/development/work-ii-information-deepseek-low-20260906",
+      "development_scheduled": 6,
+      "development_turns": 12,
+      "formal_live_summary": "runs/formal/work-ii-information-deepseek-low-20260906/summary.json",
+      "formal_remaining": 60,
+      "formal_report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-low-stopped-20260907.json",
+      "formal_report_sha256": "502310278c357fee3c77e331a2d86cb94f5538de85ee4ba146aa0aa359abba58",
+      "formal_run": "runs/formal/work-ii-information-deepseek-low-20260906",
+      "formal_scheduled": 60,
+      "formal_source_commit": "6da6517c2bc201c8c2744566496df44a575e4fdc",
+      "model": "deepseek-v4-flash",
+      "reasoning_effort": "low",
+      "status": "stopped_by_user"
+    },
+    "deepseek_model": "deepseek-v4-flash",
+    "deepseek_none_configuration_failed": {
+      "attempted_sessions": 1,
+      "failure": "none_with_codex_user_agent_reported_reasoning",
+      "observed_pre_reasoning_tokens": 43979,
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-none-configuration-failed-20260907.json",
+      "report_sha256": "f6fb8bf6a2a83f0b213f9b2cfa6f47097b9f787114da82ffab6f2efb9785948c",
+      "run": "runs/development/work-ii-information-deepseek-none-20260907",
+      "unstarted_sessions": 5
+    },
+    "deepseek_none_headers_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-none-headers-20260907.json",
+    "deepseek_none_headers_report_sha256": "4663c9855e16d2a91b3dd27647285197d538daadcf029e8e9bfb4dcfa3e7aa88",
+    "deepseek_none_originator_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-none-originator-20260907.json",
+    "deepseek_none_originator_report_sha256": "2fd196cca2dc42542353631c09c767ac11e95ab04468e1da36bc92308a0b889a",
+    "deepseek_none_user_agent_failed": {
+      "attempted_sessions": 1,
+      "observed_pre_reasoning_tokens": 20483,
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-none-user-agent-failed-20260907.json",
+      "report_sha256": "5193514b8b901b3d333f7d0c71f5abdd3c6ee7d51267249ca796317bcd1a4eb6",
+      "run": "runs/development/work-ii-information-deepseek-none-fixed-20260907",
+      "unstarted_sessions": 5
+    },
+    "deepseek_none_wire_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-none-wire-20260907.json",
+    "deepseek_none_wire_report_sha256": "8ce1f46aeb883e3e60ca79b693fbf5a8f09d80bdb4c35b1aa07830a8d8933bc8",
+    "deepseek_reasoning_effort": "none",
+    "deepseek_thinking_toggle_report": "workstreams/flagship_tasks/reports/work-ii-deepseek-thinking-toggle-20260907.json",
+    "deepseek_thinking_toggle_report_sha256": "0be7b4a96a6bed7e7a7898c772976db83b08485db5bad2be270e94211f3c3532",
+    "deepseek_transport": "standard_http_headers",
+    "endpoint_qualified_exact_replays": 24,
+    "endpoint_qualified_physical_experiments": 24,
+    "endpoint_report": "workstreams/flagship_tasks/reports/work-ii-information-endpoint-20260906-v3-repair.json",
+    "endpoint_report_sha256": "418a620cb46fce8fa105a4f6178878e010c8b4adf0313f5dfa4500f181bb61d9",
+    "exact_replays_all_attempts": 288,
+    "experiment_note": "workstreams/flagship_tasks/WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md",
+    "formal_agent_block_ready": true,
+    "formal_models": [
+      "gpt"
+    ],
+    "formal_result": true,
+    "gpt_development_completed": 6,
+    "gpt_development_ready": true,
+    "gpt_development_report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-development-resource-corrected-20260907.json",
+    "gpt_development_report_before_usage_correction": {
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-development-20260906.json",
+      "report_sha256": "714a9c24e5dc146341608a82a573cfcd4aa60d1bb8cc04b44bda864814299613"
+    },
+    "gpt_development_report_sha256": "c487db6dccafd6a9df66cacf2c26cdfb74ba5193db86acc767cd4b0dc2bb3dbe",
+    "gpt_development_turns": 12,
+    "gpt_formal_attempted": 60,
+    "gpt_formal_completed": 60,
+    "gpt_formal_failed": 0,
+    "gpt_formal_primary": {
+      "approximate_world_bootstrap_95": [
+        0.45,
+        0.95
+      ],
+      "bootstrap_draws": 20000,
+      "bootstrap_seed": 90870,
+      "contrast": "complete_minus_original_joint_recovery_unknown_and_wrong_priors",
+      "mean": 0.7
+    },
+    "gpt_formal_report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-formal-resource-corrected-20260907.json",
+    "gpt_formal_report_before_usage_correction": {
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-formal-20260906.json",
+      "report_sha256": "598e9da0d2e365903279055a49c1e77e38be93a93dfe7d8b5d639bc97a8264da"
+    },
+    "gpt_formal_report_sha256": "1f16fd7a74f506dc0bdc82b0feb38d69343805fc869ef880546613241e062ed7",
+    "gpt_formal_run": "runs/formal/work-ii-information-gpt-20260906",
+    "gpt_formal_scheduled": 60,
+    "gpt_formal_source_commit": "1928cc87dfc49855c507aaeae0375bed2a0f8d45",
+    "gpt_formal_turns": 120,
+    "gpt_formal_wall_seconds": 8355.718000001041,
+    "kernel_passed": 96,
+    "kernel_provider_calls": 0,
+    "kernel_report": "workstreams/flagship_tasks/reports/work-ii-information-completeness-20260906.json",
+    "kernel_report_sha256": "640e9f72cc3eb3c0077f967d3ed8c05a5622f90b7c4237841888dff581d7c7c8",
+    "kernel_scheduled": 96,
+    "physical_executions_all_attempts": 288,
+    "protocol": "configs/benchmark/work_ii_information_intervention_20260906.json",
+    "report": "workstreams/flagship_tasks/reports/work-ii-information-gpt-formal-resource-corrected-20260907.json",
+    "report_sha256": "1f16fd7a74f506dc0bdc82b0feb38d69343805fc869ef880546613241e062ed7",
+    "retained_endpoint_failure": {
+      "complete_physical_experiments": 24,
+      "exact_replays": 24,
+      "mapping_passed": 0,
+      "report": "workstreams/flagship_tasks/reports/work-ii-information-endpoint-20260906.json",
+      "report_sha256": "c9a9a52cea164952cf99b2c3ae4aca8786ca8b2c3809c2f5c3367a84e27abc7c"
+    },
+    "status": "gpt_complete_deepseek_none_requalification",
+    "stimuli_exact_replays": 240,
+    "stimuli_physical_completed": 240,
+    "stimuli_qualified_worlds": 10,
+    "stimuli_report": "workstreams/flagship_tasks/reports/work-ii-information-stimuli-20260906.json",
+    "stimuli_report_sha256": "d1174dbd03a43635dad7a029ee95da8223da9162ff432c8effe47ca6a7ce2ffc"
+  },
+  "resource_accounting": "CLI usage is cumulative within each thread. Sum the last available cumulative value per thread and session; missing/interrupted usage is a lower bound.",
+  "resources": {
+    "attempted_sessions": 6,
+    "cached_input_tokens": 164096,
+    "input_tokens": 206789,
+    "output_tokens": 22146,
+    "provider_error_turns": 3,
+    "reasoning_output_tokens": 0,
+    "scheduled_turns": 12,
+    "tool_attempts": 15,
+    "tool_compute_seconds": 0.004169499734416604,
+    "tool_rejections": 4,
+    "turns": 10,
+    "usage_available_turns": 7,
+    "usage_missing_turns": 3,
+    "wall_seconds": 377.3279999999795,
+    "wall_seconds_incomplete_sessions": 0
+  },
+  "rows": [
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_pre",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "opaque",
+      "cell_id": "W2-87-development-1--opaque--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.2449929554318078,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "aligned_nominal",
+      "cell_id": "W2-87-development-1--aligned_nominal--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_post",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.75,
+      "pre_exponent_abs_error": 0.0,
+      "pre_family": "FAMILY_B_POWER",
+      "pre_mae": 0.27405545543180776,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--deepseek--original",
+      "cluster_id": "W2-87-development-1",
+      "failure": "participant_schema_post",
+      "information": "original",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.0,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.17180570821510627,
+      "status": "failed",
+      "tool_used": true,
+      "top1": 0
+    },
+    {
+      "arm": "misindexed_nominal",
+      "cell_id": "W2-87-development-1--misindexed_nominal--deepseek--complete",
+      "cluster_id": "W2-87-development-1",
+      "failure": "provider_failure",
+      "information": "complete",
+      "joint_recovery": 0,
+      "model": "deepseek",
+      "normalized_regret": 1.0,
+      "pre_exponent": 1.0,
+      "pre_exponent_abs_error": 0.75,
+      "pre_family": "FAMILY_A_LINEAR",
+      "pre_mae": 0.2531179554318078,
+      "status": "failed",
+      "tool_used": false,
+      "top1": 0
+    }
+  ],
+  "scheduled": 6,
+  "schema_version": "work-ii-information-intervention-1",
+  "status": "terminal",
+  "world_contrasts": [
+    {
+      "complete_minus_original": 0,
+      "world": "W2-87-development-1"
+    }
+  ],
+  "worlds": 1
+}

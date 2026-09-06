@@ -1,0 +1,75 @@
+{
+  "schema_version": "deepseek-thinking-toggle-engineering-1",
+  "formal_result": false,
+  "scheduled": 2,
+  "results": [
+    {
+      "probe": "responses_none",
+      "endpoint": "/responses",
+      "request": {
+        "model": "deepseek-v4-flash",
+        "input": "Return only the JSON object {\"ok\":true}.",
+        "reasoning": {
+          "effort": "none"
+        },
+        "max_output_tokens": 128,
+        "stream": false
+      },
+      "http_status": 200,
+      "usage": {
+        "input_tokens": 14,
+        "input_tokens_details": {
+          "cached_tokens": 0
+        },
+        "output_tokens": 5,
+        "output_tokens_details": {
+          "reasoning_tokens": 0
+        },
+        "total_tokens": 19
+      },
+      "response_status": "completed",
+      "reasoning_tokens": 0,
+      "valid_json": true,
+      "passed": true,
+      "wall_seconds": 0.39099999982863665
+    },
+    {
+      "probe": "chat_disabled",
+      "endpoint": "/chat/completions",
+      "request": {
+        "model": "deepseek-v4-flash",
+        "messages": [
+          {
+            "role": "user",
+            "content": "Return only the JSON object {\"ok\":true}."
+          }
+        ],
+        "thinking": {
+          "type": "disabled"
+        },
+        "max_tokens": 128,
+        "stream": false
+      },
+      "http_status": 200,
+      "usage": {
+        "prompt_tokens": 14,
+        "completion_tokens": 5,
+        "total_tokens": 19,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "prompt_cache_hit_tokens": 0,
+        "prompt_cache_miss_tokens": 14
+      },
+      "response_status": null,
+      "reasoning_content_chars": 0,
+      "reasoning_tokens": null,
+      "valid_json": true,
+      "passed": false,
+      "wall_seconds": 0.5160000000614673
+    }
+  ],
+  "passed": 1,
+  "real_requests": 2,
+  "provider_retries": 0
+}

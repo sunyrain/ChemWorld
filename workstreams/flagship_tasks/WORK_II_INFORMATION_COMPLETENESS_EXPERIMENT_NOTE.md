@@ -1,8 +1,110 @@
 # Work II：公开观测映射完整性的单因素干预
 
 2026-09-06；任务W2-87。用户已授权优先尝试本方向并先完成GPT。A/B/C开发资格已封存，
-GPT独立冻结的正式块60/60完成；DeepSeek Flash/low的6会话开发已通过，60正式已冻结启动。旧正式证据与论文保持原终态；
+GPT独立冻结的正式块60/60完成；用户于2026-09-07要求关闭DeepSeek推理，low正式块已停止并保留，none开发已终态但未取得正式资格。旧正式证据与论文保持原终态；
 第三模型不进入本块。执行状态由[TODO](WORK_II_TODOLIST.md)管理。
+
+## 当前终态：关闭推理已实现，none未通过正式资格
+
+[标准头透传开发报告](reports/work-ii-information-deepseek-none-transport-development-20260907.md)：
+固定6/6会话尝试、0完整通过；共尝试10/12轮，另外2个post因pre失败未启动。
+3个结构化提交失败（1 pre、2 post）、3个provider输出上限中断，全部保留。
+7/10轮usage可用，7份均显式reasoning=0；3轮缺失usage不能补作0。
+21次上游请求均记录effort=none、HTTP200，无透传连接失败或额外重试；
+6个fresh thread、4个实际pre/post续接一致；科学输入与原开发6单位完全一致。
+15次计算工具尝试中4次表达式拒绝，本地计算0.0041695秒；wall合计377.328秒（6.289分钟）。
+去重后可用usage为input206789（cache164096）、output22146、reasoning0，缺失部分为下界。
+
+关闭API thinking并未阻止模型把分析写入普通输出；出现JSON外说明及达到max_output_tokens的中断。
+这是当前harness配置的提交/资源资格失败，不能写作none的科学恢复率结论，也不能与GPT合并主效应。
+按预先规定停止进入60正式：预算仍为空，无运行中任务、无自动追加或重跑；正式ETA不适用。
+low（2完成、1工具预算失败、1用户中断、56未启动）及两次none配置失败开发（各1尝试、5未启动）
+均由current单独绑定和保留。GPT仍是W2-87唯一完整正式结果，稿件/PDF整合另行处理。
+交付验证：43项定向测试、Ruff与diff检查通过；包括HTTP body/SSE/错误原样转发、
+停止时关闭上游连接、零额外重试、none非零或缺失usage时阻止post，以及累计usage去重。
+当前文档72处本地链接有效，current报告绑定与科学输入核对通过；没有重跑历史正式证据。
+
+## 用户要求关闭推理：独立none块（2026-09-07，执行前固定）
+
+用户在核对延迟后明确要求不要推理，选择依据为运行成本偏好，不是科学作答得分。
+停止原Flash/low正式块：计划60，已完成2、工具预算失败1、用户中断1、未启动56；
+原始输入、冻结来源、作答、失败与中断记录保留，未启动部分不续接为none，也不并入新正式效应。
+none仍为deepseek-v4-flash及官方Responses入口，reasoning.effort固定none；仅关闭thinking，
+GPT已完成的medium配置和结果不变。新块是披露效应的配置复制，不声称跨模型等算力。
+
+问题：无推理配置能否在相同harness中完成结构化pre/post并保持会话续接，耗时是否可接受？
+开发覆盖仍为既有独立开发world×3先验×2信息条件＝6会话/12轮，顺序、公开输入、工具与评分不变。
+每轮600秒、会话1200秒、整块7200秒、provider重试0，post计算工具最多8次尝试；
+保留所有失败和资源消耗，沿用provider/schema失败继续、平台/越界工具失败停止的规则。
+先用真实Codex对本地回环服务验证none逐字进入请求及零隐藏重试，新增真实provider调用0。
+技术通过须6/6结构有效、12/12收据与usage完整、6个fresh thread和组内一致续接；
+12轮reasoning_output_tokens显式存在且为0，同时确认本地实际请求发送none。
+不要求采用工具或科学恢复成功；工具表达式拒绝消耗预算且保留。开发不通过则停止进入正式，
+不换world、阈值或重跑失败单元取得通过。输出独立机器/可读报告及ignored原始收据。
+
+通过后用实测耗时固定none正式总预算，再冻结同十world×3先验×2信息条件＝60新会话，
+沿用已固定的主读出、每轮/会话工具与时间限制、零重试及world bootstrap；不重做物理资格。
+科学输入与GPT正式逐字比较，low停止原因和全部60分母单列。未取得none开发结果前不承诺ETA。
+usage汇总按同thread最后可用累计值去重，中断缺失计下界；这是已验证的分析口径修复，
+不改变任何模型输入、评分或执行行为，旧GPT/low原报告保留并另行导出资源修订版。
+
+### none入口配置失败与两项工程定位（真实探针前固定）
+
+none开发首个pre回执耗时363.828秒、reasoning43979；actual turn context为none，
+本地同版本Codex请求也已验证none，但真实回执不满足关闭推理的资格要求。
+按平台配置不匹配停止后续单位：1会话已尝试且post中断、5未启动，原始pre作答和全部记录保留；
+不进入正式、不把它写为none科学效果或用重跑挑选有效答案。
+
+独立工程问题：是DeepSeek原生接口未执行关闭开关，还是Codex请求映射产生偏差？
+固定两个顺序工程探针，均仅请求公开常量JSON {"ok":true}，不读取world、先验、评分或私有种子：
+1. 官方Responses接口，reasoning.effort=none，max_output_tokens=128。
+2. 官方Chat Completions接口，thinking.type=disabled，max_tokens=128。
+每请求60秒、全块120秒、重试0；记录请求开关、HTTP结果、响应状态、usage/推理token、
+文本是否有效、wall和全部失败。关闭成功要求显式报告reasoning=0且返回有效JSON；
+usage缺失为未知，不能当0。每30秒提供进度。输出一个机器/可读工程摘要，原始响应仅存ignored目录。
+这些是接口工程探针，不是新科学单元，不进入GPT/DeepSeek正式分母。
+依据两个开关的直接结果定位下一步；尚未授权其结果为科学证据，none正式继续等待。
+
+两探针终态：Responses none在0.391秒返回有效JSON且reasoning=0，通过；Chat disabled在0.516秒
+返回有效JSON且无reasoning_content，但usage未显式给reasoning计数，按预定规则记未知/未通过。
+原生Responses能够关闭thinking，因此追加一个独立工程定位请求（执行前固定）：
+同版本真实Codex、同none配置、同结构化输出模式，仅请求公开常量JSON；通过本地回环转发器
+原样转发一次到官方Responses，记录实际出站reasoning参数、响应usage和wall，原始请求/响应ignored保存。
+单请求60秒、零重试，不提供world或评分、不改写上游请求参数；有明确非零reasoning或映射差异则定位为未解决。
+这项探针不以生成内容正确以外的任何科学成绩选配置，也不计入正式实验。
+
+回环转发定位终态：真实Codex出站body明确为reasoning.effort=none，2.218秒、output5、reasoning0。
+转发器保留body但只发送标准Authorization/Content-Type头；与原生直连还存在请求头差异，
+因此尚不能把原失败简单归为body映射错误。下一工程块固定复用此公开常量body，顺序做两请求：
+完整Codex头（去掉Host/Content-Length，由HTTP库重算）及只添加Codex User-Agent的标准头。
+两请求各60秒、零重试，记录响应usage、wall和头名称；不发布认证值或客户端标识。
+先封存两条件，再执行；无world、私有评分或科学结果选择。判断标准仍为有效常量JSON及显式reasoning=0。
+
+头对照终态：完整Codex头及仅Codex User-Agent均返回有效JSON，但reasoning分别49、15；
+相同body的标准头转发为0。当前入口对Codex User-Agent的处理使none失效，不能只凭配置或body宣称无推理。
+平台修复仅为本实验provider显式配置User-Agent=ChemWorld/0.2，保持官方Responses直连、模型、none、
+所有科学输入/工具/schema/预算不变；不部署转发器。真实Codex回环测试须确认此头与none同时出站。
+受影响开发资格从首单位另行执行：同6会话/12轮、相同覆盖、测量、预算、通过和停止规则，
+原none失败块及low全部保留。新输出根为work-ii-information-deepseek-none-fixed-20260907；
+须12轮显式reasoning=0且全部技术通过，才固定和启动none正式60会话。
+
+仅覆盖User-Agent的重资格同样未通过：首pre为160.410秒、reasoning20483；停止其post和后续单位，
+1会话尝试、5未启动全部保留。User-Agent是已证明的一个触发条件，但不能据此断定它是唯一条件。
+下一工程块固定两个短请求，仍复用公开常量body和已捕获的Codex头：
+（a）只将User-Agent改为ChemWorld/0.2；（b）同时将Originator改为ChemWorld。
+每请求60秒、零重试，沿用显式reasoning=0及有效JSON的标准；完整记录两条件和全部失败，
+无科学数据。确认完整原生请求头控制有效之后才再开启科学开发资格。
+
+两项补充头对照仍未关闭推理（reasoning21/135），仅覆盖UA/Originator不足。
+下一修复采用已验证可关闭thinking的标准HTTP头透传：本地回环仅原样转发官方Responses请求体及
+Authorization、Content-Type、Accept、必要Content-Encoding，使用ChemWorld User-Agent，
+不转发Codex身份/元数据头。没有Responses→Chat转换、不改prompt/schema/tool messages；
+仍由真实Codex执行并续接，原始输入和评分不变。透传生命周期归同一会话执行器所有，
+退出/超时关闭上游socket，零额外重试；记录每个请求的起止、请求模式、HTTP状态和取消。
+先验证原样body/标准头、SSE与HTTP错误保留及取消，再重新从首单位运行同6会话资格，
+输出根为work-ii-information-deepseek-none-transport-20260907。每轮回执若未显式报告reasoning=0，
+立即按平台配置不匹配停止后续单位；此检查落实既有无推理技术通过条件，避免再消费post请求。
+其余覆盖、测量、预算、科学通过/失败定义和输出均沿用原none开发说明，前两失败块完整保留。
 
 ## DeepSeek执行前补充：Flash低推理配置
 
@@ -102,8 +204,10 @@ GPT-5.6-sol/medium完成60/60会话、120/120轮，零provider/schema/platform�
 终态核对：60个独立thread，每会话pre/post同thread；30对pre提示词逐字相同，
 post除新增完整合同外逐字段相同。完整组post平均13144.8字符，原组10737.5字符；
 信息长度属于处理。7个冻结执行文件及封存输入均未改变，实际交付的完整合同由公开初温
-生成，不接受目标指数。输入tokens 2148201（其中cache472320），输出395748
-（其中reported reasoning323219），120/120有usage；工具计算与重试均0。
+生成，不接受目标指数。原报告将pre累计usage重复计入；2026-09-07按每会话最终累计值修正为
+输入1552862（cache332544）、输出327180（reasoning278923），120/120有usage；工具计算与重试均0。
+[资源修订报告](reports/work-ii-information-gpt-formal-resource-corrected-20260907.md)已绑定current；
+原报告与全部收据保留，rows、groups、primary、world contrasts及分母逐项一致，未重新调用模型。
 
 该结果支持本GPT配置、固定候选与同族参数覆盖下的披露效应：公开终点映射完整性是一个
 可干预的成功条件。它不等于所有Agent的共性，也不隔离合同中的某个公式、纯语义或内部

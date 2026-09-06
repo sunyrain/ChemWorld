@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-09-06
+更新日期：2026-09-07
 
 新增[W2-87 GPT信息完整性正式结果](reports/work-ii-information-gpt-formal-20260906.md)：
 10world、60/60会话、120/120轮完成，零失败。未知/错误先验恢复6/20→20/20，
@@ -8,7 +8,16 @@
 未知/错误先验的预测MAE0.03871→0.00606，归一化regret0.07097→0.00748，Top-1为5/20→12/20。
 见[图件](../../paper/figures/prior-discovery/figure-10-information-gpt.pdf)和
 [实验说明](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)。这是已资格v3合同下的新GPT块；
-DeepSeek尚未执行，现有投稿PDF未整合。信息长度、配对噪声与同族参数覆盖限制解释范围。
+DeepSeek尚无完整W2-87正式结果，现有投稿PDF未整合。信息长度、配对噪声与同族参数覆盖限制解释范围。
+GPT累计usage已去重，[资源修订报告](reports/work-ii-information-gpt-formal-resource-corrected-20260907.md)
+绑定current；科学评分、分母和wall不变，原报告保留。
+
+用户要求关闭DeepSeek推理后，[none开发](reports/work-ii-information-deepseek-none-transport-development-20260907.md)
+已终态：6/6尝试、0完整通过，3格式失败、3输出上限中断；10/12轮中7份usage显式reasoning0、3轮缺失。
+标准HTTP头透传保留请求体及Responses语义；21次请求effort均为none，无额外重试或传输失败。
+这是提交/资源资格失败，60正式不启动，不作为科学恢复率或跨模型披露主效应。
+[low停止块](reports/work-ii-information-deepseek-low-stopped-20260907.md)保留2完成、1工具预算失败、
+1用户中断及56未启动；两次none配置失败开发各1尝试/5未启动亦保留，完整过程见同一实验说明。
 
 此前[公开信息复核](reports/work-ii-public-information-20260906.md)：全部5个既有world、40对公开证据、
 160个metric对，无缺失。水相含量与相比例各40/40对完全相同，有机相与score平均绝对差
