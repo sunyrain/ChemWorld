@@ -1,0 +1,282 @@
+{
+  "schema_version": "chemworld-glm-adapter-development-1",
+  "formal_result": false,
+  "model": "zai-org/GLM-5.3",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md",
+  "codex_versions": [
+    "codex-cli 0.145.0"
+  ],
+  "third_model_adopted": false,
+  "status": "not_qualified",
+  "transport": {
+    "attempt_limit": 3,
+    "attempted": 3,
+    "passed": 0,
+    "scheduled_turns_in_attempted_blocks": 6,
+    "attempted_turns": 4,
+    "attempts": [
+      {
+        "attempt": "smoke-01",
+        "raw_root": "runs/development/work-ii-glm-adapter-20260906/smoke-01",
+        "schema_mode": "json_schema",
+        "passed": false,
+        "failure_reasons": [
+          "answer_or_thread_check_failed",
+          "mcp_not_executed",
+          "unsupported_tool"
+        ],
+        "scheduled_turns": 2,
+        "attempted_turns": 1,
+        "mcp_calls": 0,
+        "turns": [
+          {
+            "turn": 1,
+            "status": "failed",
+            "failure": "provider_failure",
+            "payload_fields": null,
+            "tool_event_count": 0,
+            "usage": {},
+            "wall_seconds": 0.6089999999385327
+          },
+          {
+            "turn": 2,
+            "status": "unstarted",
+            "failure": null,
+            "payload_fields": null,
+            "tool_event_count": null,
+            "usage": null,
+            "wall_seconds": null
+          }
+        ],
+        "wall_seconds": 0.625,
+        "bridge_requests": [
+          {
+            "request": 1,
+            "status": "failed",
+            "usage": null,
+            "error_code": "unsupported_tool",
+            "error": "Only declared function tools are supported",
+            "wall_seconds": 0.0
+          }
+        ]
+      },
+      {
+        "attempt": "smoke-02",
+        "raw_root": "runs/development/work-ii-glm-adapter-20260906/smoke-02",
+        "schema_mode": "json_schema",
+        "passed": false,
+        "failure_reasons": [
+          "mcp_not_executed"
+        ],
+        "scheduled_turns": 2,
+        "attempted_turns": 2,
+        "mcp_calls": 0,
+        "turns": [
+          {
+            "turn": 1,
+            "status": "valid_answer_and_thread",
+            "failure": null,
+            "payload_fields": [
+              "marker",
+              "ok",
+              "sum"
+            ],
+            "tool_event_count": 0,
+            "usage": {
+              "input_tokens": 4119,
+              "cached_input_tokens": 0,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 58,
+              "reasoning_output_tokens": 37
+            },
+            "wall_seconds": 5.609999999869615
+          },
+          {
+            "turn": 2,
+            "status": "valid_answer_and_thread",
+            "failure": null,
+            "payload_fields": [
+              "marker",
+              "ok",
+              "sum"
+            ],
+            "tool_event_count": 0,
+            "usage": {
+              "input_tokens": 8304,
+              "cached_input_tokens": 4096,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 128,
+              "reasoning_output_tokens": 86
+            },
+            "wall_seconds": 6.406999999890104
+          }
+        ],
+        "wall_seconds": 12.061999999918044,
+        "bridge_requests": [
+          {
+            "request": 1,
+            "status": "completed",
+            "usage": {
+              "prompt_tokens": 4119,
+              "completion_tokens": 58,
+              "total_tokens": 4177,
+              "completion_tokens_details": {
+                "reasoning_tokens": 37
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 0
+              },
+              "prompt_cache_hit_tokens": 0,
+              "prompt_cache_miss_tokens": 4119
+            },
+            "schema_mode": "json_schema",
+            "requested_reasoning": {
+              "effort": "medium"
+            },
+            "effective_reasoning": "provider_default_not_effort_mapped",
+            "http_status": 200,
+            "finish_reason": "stop",
+            "model_returned": "zai-org/GLM-5.3",
+            "upstream_chunks": 60,
+            "output_items": 1,
+            "tool_calls": 0,
+            "wall_seconds": 2.734
+          },
+          {
+            "request": 2,
+            "status": "completed",
+            "usage": {
+              "prompt_tokens": 4185,
+              "completion_tokens": 70,
+              "total_tokens": 4255,
+              "completion_tokens_details": {
+                "reasoning_tokens": 49
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 4096
+              },
+              "prompt_cache_hit_tokens": 4096,
+              "prompt_cache_miss_tokens": 89
+            },
+            "schema_mode": "json_schema",
+            "requested_reasoning": {
+              "effort": "medium"
+            },
+            "effective_reasoning": "provider_default_not_effort_mapped",
+            "http_status": 200,
+            "finish_reason": "stop",
+            "model_returned": "zai-org/GLM-5.3",
+            "upstream_chunks": 72,
+            "output_items": 1,
+            "tool_calls": 0,
+            "wall_seconds": 2.079
+          }
+        ]
+      },
+      {
+        "attempt": "smoke-03",
+        "raw_root": "runs/development/work-ii-glm-adapter-20260906/smoke-03",
+        "schema_mode": "json_object",
+        "passed": false,
+        "failure_reasons": [
+          "answer_or_thread_check_failed",
+          "mcp_not_executed"
+        ],
+        "scheduled_turns": 2,
+        "attempted_turns": 1,
+        "mcp_calls": 0,
+        "turns": [
+          {
+            "turn": 1,
+            "status": "failed",
+            "failure": null,
+            "payload_fields": [
+              "marker",
+              "ok",
+              "pending_tool_calls"
+            ],
+            "tool_event_count": 0,
+            "usage": {
+              "input_tokens": 4172,
+              "cached_input_tokens": 1728,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 93,
+              "reasoning_output_tokens": 49
+            },
+            "wall_seconds": 7.625
+          },
+          {
+            "turn": 2,
+            "status": "unstarted",
+            "failure": null,
+            "payload_fields": null,
+            "tool_event_count": null,
+            "usage": null,
+            "wall_seconds": null
+          }
+        ],
+        "wall_seconds": 7.640000000130385,
+        "bridge_requests": [
+          {
+            "request": 1,
+            "status": "completed",
+            "usage": {
+              "prompt_tokens": 4172,
+              "completion_tokens": 93,
+              "total_tokens": 4265,
+              "completion_tokens_details": {
+                "reasoning_tokens": 49
+              },
+              "prompt_tokens_details": {
+                "cached_tokens": 1728
+              },
+              "prompt_cache_hit_tokens": 1728,
+              "prompt_cache_miss_tokens": 2444
+            },
+            "schema_mode": "json_object",
+            "requested_reasoning": {
+              "effort": "medium"
+            },
+            "effective_reasoning": "provider_default_not_effort_mapped",
+            "http_status": 200,
+            "finish_reason": "stop",
+            "model_returned": "zai-org/GLM-5.3",
+            "upstream_chunks": 95,
+            "output_items": 1,
+            "tool_calls": 0,
+            "wall_seconds": 4.344
+          }
+        ]
+      }
+    ]
+  },
+  "calibration": {
+    "scheduled_sessions": 6,
+    "attempted_sessions": 0,
+    "completed_sessions": 0,
+    "failed_sessions": 0,
+    "unstarted_sessions": 6,
+    "scheduled_turns": 12,
+    "attempted_turns": 0,
+    "status": "unstarted_transport_not_qualified",
+    "results": []
+  },
+  "resource_accounting": {
+    "bridge_requests": 4,
+    "requests_reaching_upstream_http": 3,
+    "requests_without_usage": 1,
+    "reported_input_tokens": 12476,
+    "reported_output_tokens": 221,
+    "reported_reasoning_tokens": 135,
+    "attempt_wall_seconds": 20.32700000004843,
+    "formal_60_session_eta_seconds": null
+  },
+  "limits": [
+    "Development transport qualification only; historical two-model evidence is unchanged.",
+    "Provider-default reasoning; Codex medium is not mapped to equivalent GLM effort.",
+    "Upstream output is buffered before Responses output-item SSE events are emitted.",
+    "Freeform tools use a JSON input string; grammar constraints are conveyed as text.",
+    "Missing provider usage remains null in request records.",
+    "Short smoke latency does not estimate the unstarted six-session calibration."
+  ]
+}

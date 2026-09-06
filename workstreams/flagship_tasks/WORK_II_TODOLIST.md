@@ -56,6 +56,7 @@ Claim: Codex /root — W2-79 / W2-80 / W2-81 — DONE。单executor，developmen
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
+| W2-84 | DONE (not qualified) | Claim: Codex /root — GLM适配开发块按停止规则结束：3次真实工程尝试0次完整通过；正确JSON/同thread可达，实际MCP调用0。离线模拟已跑通真实Codex两轮与2次MCP，但真实GLM分别绕过工具或把待调用写成普通JSON。6/6校准未启动，GLM暂不采用；保留全部失败及schema fallback偏离。见[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)与[结果](reports/work-ii-glm-adapter-20260906.md) |
 | W2-83 | DONE | Claim: Codex /root — GLM-5.3/SiliconFlow接入探针6/6执行：模型列表、文本、工具调用和返回通过；原生Responses与实际Codex路径均404，未直接接通harness。3次成功推理共630 reported tokens；MCP/结构化终答/同thread续接未到达，零科学会话。2项定向测试、Ruff、凭据隔离与diff检查通过。见[接入说明](WORK_II_GLM_HARNESS_SMOKE_NOTE.md)及[结果](reports/work-ii-glm-harness-20260906.md) |
 | W2-82 | DONE | 剩余矩阵与ETA已汇报并写入矩阵第0节：原必做实验0；新增同信息校准→双模型信息补全对照→可选第三模型。120/180正式及12/18开发仅为排期草案；按原模型分项耗时估计双模型交付3–5工作日、含第三模型4–7工作日。未启动新实验、冻结新预算或改变原分母 |
 | W2-79 | DONE | 全部5个既有B3公开包、40对证据/160个metric对复核完成，无缺失。公开合同缺完整观测映射；同信息结构充分性仍未建立。可读机器摘要已绑定，零新provider/物理执行；不回填旧主分析 |

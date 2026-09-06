@@ -138,8 +138,17 @@ family标签、typed-law参数承诺与预测数值分别呈现。B3 law不是C2
 简短文本和工具API闭环通过；`/v1/responses`直连及当前Codex harness启动路径均404。
 6/6接入探针执行、4通过/2失败，尚未直接接通harness，MCP执行及同thread续接未到达。
 该结果仅说明当前入口的协议兼容性，不属于第三模型科学复核；短调用速度不外推正式ETA。
-后续接入需另行开发并验证Responses→Chat Completions适配器，或使用支持Responses的GLM入口。
-原始凭据未保存，正式矩阵和双模型主分析不变；见[脱敏报告](reports/work-ii-glm-harness-20260906.md)。
+原始凭据未保存，正式矩阵和双模型主分析不变；见[原生入口报告](reports/work-ii-glm-harness-20260906.md)。
+
+随后按用户授权完成W2-84本地Responses→Chat适配开发：namespace/function/custom翻译、
+SSE与usage路径实现；离线模拟驱动真实Codex两轮与2次MCP成功。真实GLM的3次工程尝试
+0/3完整通过：1次本地工具声明缺失；修复后严格schema两轮终答正确但不调用工具，
+json_object下将待调用写成普通JSON，仍未执行MCP。第三次fallback触发偏离及原始失败
+在[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)中保留；见[结果](reports/work-ii-glm-adapter-20260906.md)。
+
+**GLM暂不作为第三模型。** 6个B3开发会话全部未启动，正式新增会话0，ETA未知；
+已到三次工程尝试上限，不自动继续本块。后续可另行设计工具阶段与终答结构化分离的
+适配验证，或更换支持Responses的同模型入口；目前不能把失败归因为GLM科学能力。
 
 2026-09-05对已有候选配置做了不联网的静态检查：
 Qwen `qwen3.8-max`（Model Studio）与Kimi `moonshotai/kimi-k2.5`（OpenRouter）
