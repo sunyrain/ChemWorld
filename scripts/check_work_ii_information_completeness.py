@@ -194,7 +194,9 @@ def main() -> None:
             "Cost extrapolations use existing tool-on sessions, not new measured throughput."
         ),
     }
-    target.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    target.write_text(
+        json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8", newline="\n"
+    )
     lines = [
         "# 公开信息补全：离线可行性与剩余矩阵",
         "",
@@ -225,7 +227,7 @@ def main() -> None:
         "",
         "全部失败及96单位的读数、偏差见同名JSON；不以好结果替换。",
     ]
-    target.with_suffix(".md").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    target.with_suffix(".md").write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
     current["work_ii"]["w2_87_information_completeness"] = {
         "report": REPORT,
         "report_sha256": hashlib.sha256(target.read_bytes()).hexdigest(),
@@ -238,7 +240,7 @@ def main() -> None:
         "provider_calls": 0,
     }
     current_path.write_text(
-        json.dumps(current, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(current, indent=2, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n"
     )
     print(target.with_suffix(".md").read_text(encoding="utf-8"), flush=True)
 
