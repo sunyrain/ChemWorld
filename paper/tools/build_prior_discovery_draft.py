@@ -242,6 +242,9 @@ def build() -> dict[str, Any]:
     if "figure-9-final-diagnostic.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         source_paths.append(ROOT / current["work_ii"]["w2_77_final_diagnostic"]["report"])
+    current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
+    if "w2_79_public_information" in current["work_ii"]:
+        source_paths.append(ROOT / current["work_ii"]["w2_79_public_information"]["report"])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-draft-build-0.1",
         "status": "compiled_development_draft",

@@ -3,6 +3,10 @@
 This directory documents the generated supplementary archive for *When Does Experimental Knowledge
 Improve Scientific Decisions?*.
 
+The public-information inspection additionally releases all 160 paired calibration metric values
+from five reused worlds. `verify_public_information.py` recomputes 24 descriptive summaries.
+It is a post-hoc information-contract inspection, not new formal qualification or a structural solver.
+
 The publication reanalysis field `formal_result=false` means that this provider-free synthesis did
 not create a new formal execution. It does not relabel the retained formal and development source
 blocks, whose evidence roles remain explicit in the packaged data.

@@ -330,8 +330,8 @@ conceptual intervention space without claiming that every programmable coordinat
 executed.
 
 Environment validation and participant outcomes form separate evidence layers. Environment tests
-establish that the hidden relations are coherent, identifiable and executable through the public
-measurement surface. They do not show that an agent discovers those relations.
+check execution and controlled differences in observations. Structural identifiability additionally
+requires a participant-visible observation model; privileged reference fits do not establish it.
 
 ```{=latex}
 \begin{figure*}[!t]
@@ -606,16 +606,16 @@ DeepSeek high on the same block. Thus low reasoning preserved the low-error/exac
 showing that selective numerical updating is configuration-sensitive. This is a robustness ablation,
 not a reasoning-superiority test or a thinking-off experiment.
 
-An independent frozen control then made the 1.75 exponent statistically identifiable under a
-registered reference fitter by disclosing
-reference coefficients across four nominal pairs and scored a disjoint eight-query roster. After a
+An independent frozen control then disclosed reference coefficients across four nominal pairs
+and scored a disjoint eight-query roster. Its registered fitter recovered the exponent using
+privileged simulator access, which does not establish same-information identifiability. After a
 3/3 canary, all **30/30** GPT-5.6-sol medium sessions completed (five worlds, three arms, two fresh
 sessions per arm and world). Mean post-evidence errors were 0.0367, 0.0215 and 0.0378 for opaque,
 aligned and misspecified cells. Joint family--exponent recovery was **0/10**, **5/10** and **0/10**;
 the aligned arm had lower world-mean exponent error than each comparator in **5/5** worlds. The
 misspecified arm selected the power family in 8/10 sessions but recovered the 1.75 exponent in 0/10,
-  showing that a family label alone is not structural identification. Thus reference-fitter-identifiable
-evidence partly preserved a correct prior but still did not selectively correct a wrong one.
+showing that a family label alone is not joint structural recovery. The supplied evidence partly
+preserved a correct prior but did not produce registered recovery in the misspecified stratum.
 
 The same control also tested the evidence-to-action bridge without participant experiments. Only
 **2/30** choices were Top-1, both in the same world where no candidate could improve on the visible
@@ -660,6 +660,11 @@ The prespecified tool-on minus tool-off contrast was +1.67 percentage points, wi
 Tool uptake differed: GPT used numerics in 0/30 enabled sessions, DeepSeek in 20/30. The result
 therefore estimates availability in these systems, not a forced-computation effect. The historical
 reference fitter used a privileged simulator; public-only identifiability remains unproven.
+A post-hoc inspection of all 40 public calibration pairs found identical aqueous-product and
+phase-ratio observations in 40/40 pairs each. Mean absolute target--reference differences were
+0.005873 for organic product and 0.004992 for score. The packets disclose coefficient formulas
+but no complete observation equations or noise model. These are descriptive paired differences,
+not signal-to-noise estimates or held-out prediction baselines; no private simulator was used.
 This block reduces the observed submission-failure burden without randomly isolating a schema
 effect, and does not replace free-form law compression or the longitudinal action assay.
 
@@ -1144,8 +1149,8 @@ wording and confidence language, while the latter applies a prespecified permuta
 identifiers. Structural, parametric and observation-model extensions alter only their declared
 agent-facing representation while retaining the external world and contract. Confirmatory structural
 claims require a separate participant-visible identifiability analysis. The B2 post-packet block failed
-that requirement and is retained only as an underidentification/expression diagnostic; B3 supplies the
-typed reference-fitter-identifiable structural test.
+that requirement and is retained only as an underidentification/expression diagnostic; B3 supplies a
+typed structural readout whose public-only information sufficiency remains unproven.
 
 ## 10.2 Transactional execution and resources
 
@@ -1214,8 +1219,8 @@ private reasoning text. They were not preregistered structural-recovery endpoint
 participant-visible audit additionally checks the number of nominal pairs, availability of the base
 partition coefficient, presence of typed family/exponent fields, observational aliases, a constant
 endpoint baseline and an aligned positive control. Because that audit rejects structural-family
-identifiability, B2 expression counts remain diagnostics; the separate typed B3 assay supplies the
-participant-identifiable structural test.
+identifiability, B2 expression counts remain diagnostics; the separate typed B3 assay supplies a
+structural readout, with a privileged reference qualification and an unresolved public-information gap.
 
 The DeepSeek-high and GPT-medium matched-evidence blocks use identical world, arm, query and packet
 coordinates. The DeepSeek-low B2 ablation changes only the reasoning-effort setting within the Codex harness;
@@ -1225,7 +1230,7 @@ differences are descriptive; no model- or reasoning-superiority test, pooled pro
 extrapolation to the prospective cohort and open-action blocks is performed. The low parametric block
 has no qualified denominator and is excluded.
 
-The independent identifiable-law control fixes five public structural worlds, the same three prior
+The independent typed-law control fixes five public structural worlds, the same three prior
 arms and two independent fresh sessions per arm and world. Its eight evidence rows and disjoint
 eight-query scoring roster are selected provider-free on development worlds. All five public worlds
 enter family, exponent, prediction, Top-1, rank and regret denominators; action gain enters only for

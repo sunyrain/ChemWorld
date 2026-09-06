@@ -690,6 +690,9 @@ if (ROOT / "verify_m3.py").exists():
 if (ROOT / "verify_final_diagnostic.py").exists():
     import runpy
     runpy.run_path(str(ROOT / "verify_final_diagnostic.py"))
+if (ROOT / "verify_public_information.py").exists():
+    import runpy
+    runpy.run_path(str(ROOT / "verify_public_information.py"))
 
 print(f"verified {len(manifest['files'])} files and all publication invariants")
 """
@@ -984,6 +987,14 @@ def build() -> dict[str, Any]:
     files.update(_m1_files())
     files.update(_m3_files())
     files.update(_final_diagnostic_files())
+    public_binding = _load(ROOT / "configs/current.json")["work_ii"].get("w2_79_public_information")
+    if public_binding:
+        information = _load(ROOT / public_binding["report"])
+        information.pop("experiment_note", None)
+        files["data/public_information.json"] = _json_bytes(information)
+        files["verify_public_information.py"] = (
+            ROOT / "paper/iclr2027/supplement/verify_public_information.py"
+        ).read_bytes()
     for path in sorted(FIGURE_SOURCE_DIR.glob("*.csv")):
         content = _sanitize_csv(path.read_text(encoding="utf-8"))
         list(csv.reader(content.splitlines()))

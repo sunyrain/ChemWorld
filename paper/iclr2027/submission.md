@@ -254,8 +254,8 @@ All 17 successes were aligned-prior retention: GPT off/on 6/10 and 7/10, DeepSee
 The prespecified tool-on minus tool-off contrast was +1.67 percentage points, with a five-world
 95% bootstrap interval [-8.33, 10.00]. This supports neither a clear improvement nor equivalence.
 Tool uptake differed: GPT used numerics in 0/30 enabled sessions, DeepSeek in 20/30. The result
-therefore estimates availability in these systems, not a forced-computation effect. The historical
-reference fitter used a privileged simulator; public-only identifiability remains unproven.
+therefore estimates availability in these systems, not a forced-computation effect. Public packets
+omit complete observation equations; public-only identifiability remains unproven (Appendix).
 This block reduces the observed submission-failure burden without randomly isolating a schema
 effect, and does not replace free-form law compression or the longitudinal action assay.
 

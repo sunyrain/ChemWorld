@@ -205,7 +205,8 @@ and a free-coefficient linear law (coefficient multiplier 3.13588). A constant e
 obtained mean scoring MAE 0.00649, while the aligned DeepSeek-high exact-law positive control was only
 1/5 and failed its readout criterion. B2 therefore supports conditional low post-packet error and lack
 of stable exact-law expression on an underidentifying surface, not a participant-level
-structural-identification failure. The separate B3 control below supplies that identifiable test.
+structural-identification failure. The separate B3 control below supplies a typed structural readout;
+its privileged fitter does not establish participant-visible information sufficiency.
 
 The reasoning-budget ablation kept the DeepSeek model, Codex harness, prompts, schemas, public
 packets, worlds, and evaluator fixed while changing only `reasoning_effort` from high to low. It is
@@ -340,6 +341,17 @@ Availability includes voluntary uptake and its message/computation costs. It doe
 internal arithmetic, and the high versus medium settings do not imply equal reasoning budgets.
 The old B3 qualification fitter accessed a privileged simulator, so its success does not establish
 public-only identifiability. Historical schema differences were not randomized.
+
+A post-hoc public-information inspection used all five existing worlds, one public packet per
+world and all eight calibration pairs per packet (40 pairs; 160 metric pairs; no missing rows).
+The candidate formulas name an effective coefficient and a process factor, but the packets omit
+complete observation equations, a process-factor definition and a noise model. Aqueous-product
+and phase-ratio observations are exactly equal between target and reference in 40/40 pairs each.
+Organic-product absolute differences have mean 0.005873 and maximum 0.012553; score differences
+have mean 0.004992 and maximum 0.010670. All paired values and per-world summaries are included
+in the supplement. These descriptive contrasts do not estimate signal-to-noise, test held-out
+prediction or prove that the implemented simulator is unidentifiable. This inspection adds no
+participant sessions, physical executions or independent worlds.
 
 
 ## Cross-model successor denominators
