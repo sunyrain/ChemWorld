@@ -100,6 +100,17 @@ def combine(reports: dict[str, dict]) -> dict:
         "models": list(MODELS),
         "providers": {m: reports[m]["provider"] for m in MODELS},
         "budgets": {m: reports[m]["budgets"] for m in MODELS},
+        "effective_budgets": {
+            m: reports[m].get("effective_budgets", reports[m]["budgets"]) for m in MODELS
+        },
+        "execution_schedule_amendments": {
+            m: {
+                key: reports[m][key]
+                for key in ("schedule_amendment", "parallel_schedule_amendment")
+                if key in reports[m]
+            }
+            for m in MODELS
+        },
         "counts": dict(Counter(r["status"] for r in rows)),
         "groups": groups,
         "primary": {
@@ -121,7 +132,9 @@ def combine(reports: dict[str, dict]) -> dict:
         "not equal-compute competitors. The two models share ten worlds, "
         "not twenty independent worlds. Retention is separate from recovery. "
         "Disclosure length and paired observation noise are part of the setting. "
-        "Historical Flash/high and historical B3 runtime results are not pooled here.",
+        "Historical Flash/high and historical B3 runtime results are not pooled here. "
+        "User-authorized calendar and concurrency amendments are retained alongside the "
+        "original and effective budgets; execution scheduling was not identical throughout.",
     }
 
 
@@ -169,6 +182,11 @@ def main() -> None:
             "Primary (80 recovery sessions; ten world clusters):",
             "```json",
             json.dumps(report["primary"], indent=2),
+            "```",
+            "",
+            "Effective budgets (original budgets and scheduling amendments retained in JSON):",
+            "```json",
+            json.dumps(report["effective_budgets"], indent=2),
             "```",
             "",
             "Resources by configuration (CLI-reported usage; unavailable usage is a lower bound):",
