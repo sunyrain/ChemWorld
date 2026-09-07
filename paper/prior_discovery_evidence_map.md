@@ -1,6 +1,6 @@
 # Experimental knowledge and decisions — evidence map
 
-Internal authoring aid, updated 2026-09-06. This file maps manuscript claims to evidence; it does
+Internal authoring aid, updated 2026-09-07. This file maps manuscript claims to evidence; it does
 not define a second execution queue. Current tasks live in
 [Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md), future contrasts in the
 [experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md), and exact report
@@ -23,6 +23,8 @@ the privileged reference path does not establish participant-only structural ide
 | Information strategies have uncertain system-level effects | W2-61 dual-model development successor | 180 slots and 45 strata per model; primary regret contrasts -0.0913/+0.1102, both intervals cross zero. Donor and delivery failures retained; no pure acquisition or mediation effect |
 | A bounded functional-form target can be assessed separately | B3 GPT formal and DeepSeek successor | 30 scheduled per model; 30/17 completed, 0/13 schema failures, joint recovery 5/30 and 0/30. Scheduled useful-gain successes 0/18 for both. Not general causal-graph discovery |
 | F2 with minimal submissions and optional numerics | Final diagnostic, current w2_77 binding | 120 attempted, 117 valid, three failures, five reused worlds; primary +0.01667 [95% -0.08333, +0.10000]. Zero recoveries in 80 opaque/misindexed sessions; 17 aligned retentions. GPT tool uptake 0/30, DeepSeek 20/30; no forced-computation, randomized schema or public-only-identifiability claim |
+| Completing the observation mapping improves structure | Current information-completeness combined report | 120 scheduled, 112 valid, 8 failures/interruption; GPT 6/20→20/20 and DeepSeek 3/20→17/20. Shared ten-world primary +0.70 [95% +0.525,+0.85]; same-family coverage and disclosure length limit generalization |
+| Structure recovery does not ensure action improvement | Same original disclosure block | GPT Top-1 5/20→12/20; DeepSeek 6/20→4/20. Descriptive action directions, no significant-worsening or internal-mediation claim; one selected retry per failure is sensitivity-only |
 | Matched packets support conditional post-packet response | A-P/B2 matched DeepSeek/GPT and DeepSeek-low B2 | 15 sessions per block; packet and extra turn bundled. B2 wrong-arm exact expression 0/5 in all three configurations |
 | B2 does not identify the structural family | W2-64 participant-visible identifiability and expression coding | One-pair exact linear/power alias, weak positive expression control and low-error constant baseline. Expression counts are not structural recovery |
 | Legal schema has sufficient same-domain capacity | W2-55 capacity control | Full-basis fits reproduce 135/135 final prediction states. This is an interpolation/capacity diagnostic, not unseen-world recovery |

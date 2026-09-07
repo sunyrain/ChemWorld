@@ -70,6 +70,7 @@ def main() -> None:
             "axes.linewidth": 0.7,
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
+            "svg.fonttype": "none",
             "savefig.facecolor": "white",
             "figure.facecolor": "white",
         }
@@ -171,7 +172,7 @@ def main() -> None:
     )
     for suffix in ("pdf", "svg", "png"):
         output_path = OUTPUT / f"{stem}.{suffix}"
-        figure.savefig(output_path, dpi=220)
+        figure.savefig(output_path, dpi=300)
         if suffix == "svg":
             output_path.write_text(
                 "\n".join(

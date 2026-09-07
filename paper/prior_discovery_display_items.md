@@ -1,6 +1,6 @@
 # Display plan — experimental knowledge and decisions
 
-The nine reusable assets separate prediction, submitted knowledge and decisions. Historical
+The ten manuscript assets separate prediction, submitted knowledge and decisions. Historical
 downstream law/action associations remain descriptive; the new independent-world factorial block
 directly replaces explicit artifacts and decision rules. Its prespecified material benefit is
 unsupported. The information-separated follow-up supports same-world artifact utility, with no
@@ -117,8 +117,9 @@ legend; unavailable outputs remain in denominators. No new hypothesis test is fi
 Opaque and misindexed strata have zero joint recoveries in 80 scheduled cases. All 17 successes
 are aligned retention. The primary +1.67 percentage-point estimate has interval [-8.33, +10.00].
 GPT tool uptake is 0/30 and DeepSeek 20/30, so availability must not be relabelled forced use.
-This figure is in the main text of both drafts; the historical action-strategy figure moves to
-the anonymous appendix. Figure 1 now introduces all four conversion questions separately.
+This figure remains in the long draft and moves to the anonymous appendix alongside the
+historical action-strategy figure. Figure 10 supplies the new main-text F2 intervention.
+Figure 1 introduces all four conversion questions separately.
 
 ## Supplementary qualification and exploratory evidence
 
@@ -143,3 +144,18 @@ not plotted as a causal contrast; W2-61 is the separate participant-bearing succ
 7. Statistical estimands, inference units and missing-outcome rules.
 8. M1 nested factorial means, five fixed contrasts and source/decision costs.
 9. M3 model-condition means, six fixed contrasts, retrieval controls and incremental/shared costs.
+
+## Figure 10 — Information helps structure; action gains differ
+
+The main-text disclosure figure compares original and complete observation mapping within
+GPT/medium and DeepSeek Flash/low. Four aligned panels show recovery, Top-1, available prediction
+MAE and failure-aware normalized regret. Recovery/action retain 20 scheduled unknown/wrong-prior
+sessions per group; prediction labels give available n. Shared worlds remain ten, with the
+pooled approximate world interval stated for recovery only. Bars do not imply independent-session
+uncertainty. Correct-prior retention remains a separate methods table.
+
+The main figure always uses the original 120 attempts. Eight selected failure retries have their
+own sensitivity table and never replace the plotted primary. The historical optional-numerics
+figure now lives in the appendix. Standalone GPT and DeepSeek figures provide world-level
+recovery, retention, prediction and regret views in the figure directory; they are supplementary
+exploration assets and do not increase the ten-asset manuscript roster.

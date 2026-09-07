@@ -693,6 +693,9 @@ if (ROOT / "verify_final_diagnostic.py").exists():
 if (ROOT / "verify_public_information.py").exists():
     import runpy
     runpy.run_path(str(ROOT / "verify_public_information.py"))
+if (ROOT / "verify_information.py").exists():
+    import runpy
+    runpy.run_path(str(ROOT / "verify_information.py"))
 
 print(f"verified {len(manifest['files'])} files and all publication invariants")
 """
@@ -900,6 +903,86 @@ def _final_diagnostic_files() -> dict[str, bytes]:
     }
 
 
+def _information_files() -> dict[str, bytes]:
+    binding = _load(ROOT / "configs/current.json")["work_ii"].get(
+        "w2_87_information_completeness", {}
+    )
+    if not binding.get("combined_report"):
+        return {}
+    path = ROOT / binding["combined_report"]
+    if _sha256_bytes(path.read_bytes()) != binding["combined_report_sha256"]:
+        raise ValueError("information report current binding mismatch")
+    report = _load(path)
+    projected = {
+        key: report[key]
+        for key in (
+            "formal_result",
+            "status",
+            "scheduled",
+            "worlds",
+            "models",
+            "counts",
+            "groups",
+            "primary",
+            "model_primary",
+            "world_contrasts",
+            "rows",
+            "failures",
+            "resources_by_model",
+            "budgets",
+            "effective_budgets",
+            "interpretation",
+        )
+    }
+    projected["providers"] = {
+        model: {key: provider[key] for key in ("model", "reasoning_effort")}
+        for model, provider in report["providers"].items()
+    }
+    projected["source_sha256"] = binding["combined_report_sha256"]
+    interface = (
+        "from __future__ import annotations\nimport json\nfrom statistics import mean\n"
+        "from methods.final_diagnostic_interface import (\n"
+        "    prompt as minimal_prompt, validate, METRICS)\n"
+        + _function_source(
+            ROOT / "src/chemworld/eval/work_ii_information_intervention.py", {"prompt", "score"}
+        )
+    )
+    files = {
+        "data/information_disclosure.json": _json_bytes(_sanitize_value(projected)),
+        "methods/information_interface.py": interface.encode("utf-8"),
+        "verify_information.py": (
+            ROOT / "paper/iclr2027/supplement/verify_information.py"
+        ).read_bytes(),
+    }
+    if binding.get("failure_retry_report"):
+        retry_path = ROOT / binding["failure_retry_report"]
+        if _sha256_bytes(retry_path.read_bytes()) != binding["failure_retry_report_sha256"]:
+            raise ValueError("retry sensitivity current binding mismatch")
+        retry = _load(retry_path)
+        selected = {
+            key: retry[key]
+            for key in (
+                "formal_result",
+                "evidence_class",
+                "status",
+                "scheduled",
+                "counts",
+                "selection",
+                "rows",
+                "failures",
+                "resources",
+                "original_primary",
+                "original_counts",
+                "one_retry_sensitivity",
+                "effective_budgets",
+                "interpretation",
+            )
+        }
+        selected["source_sha256"] = binding["failure_retry_report_sha256"]
+        files["data/information_failure_retry.json"] = _json_bytes(_sanitize_value(selected))
+    return files
+
+
 def build() -> dict[str, Any]:
     publication = _load(PUBLICATION_REPORT)
     action = _load(ACTION_REPORT)
@@ -987,6 +1070,7 @@ def build() -> dict[str, Any]:
     files.update(_m1_files())
     files.update(_m3_files())
     files.update(_final_diagnostic_files())
+    files.update(_information_files())
     public_binding = _load(ROOT / "configs/current.json")["work_ii"].get("w2_79_public_information")
     if public_binding:
         information = _load(ROOT / public_binding["report"])

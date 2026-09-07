@@ -9,6 +9,7 @@ import os
 import re
 import shutil
 import subprocess
+import sys
 import tempfile
 import zipfile
 from pathlib import Path
@@ -41,6 +42,7 @@ FIGURES = (
     "figure-7-m1-replication.pdf",
     "figure-8-m3-portability.pdf",
     "figure-9-final-diagnostic.pdf",
+    "figure-10-information-models.pdf",
 )
 EXPORT_DIR = ROOT / "paper/exports/prior-discovery-iclr2027"
 OUTPUT_PDF = EXPORT_DIR / "prior-discovery-iclr2027-anonymous.pdf"
@@ -178,6 +180,7 @@ def assert_anonymous_supplement() -> None:
 
 def build() -> dict[str, Any]:
     assert_official_assets()
+    run([sys.executable, str(ROOT / "paper/tools/build_prior_discovery_supplement.py")], cwd=ROOT)
     assert_anonymous_supplement()
     pandoc = required_tool("pandoc", Path.home() / "AppData/Local/Pandoc/pandoc.exe")
     miktex = Path.home() / "AppData/Local/Programs/MiKTeX/miktex/bin/x64"
@@ -291,12 +294,18 @@ def build() -> dict[str, Any]:
     ):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         source_paths.append(ROOT / current["work_ii"]["w2_69_m3_portability"]["report"])
-    if "figure-9-final-diagnostic.pdf" in MANUSCRIPT.read_text(encoding="utf-8"):
+    if "figure-9-final-diagnostic.pdf" in (
+        MANUSCRIPT.read_text(encoding="utf-8") + APPENDIX.read_text(encoding="utf-8")
+    ):
         current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
         source_paths.append(ROOT / current["work_ii"]["w2_77_final_diagnostic"]["report"])
     current = json.loads((ROOT / "configs/current.json").read_text(encoding="utf-8"))
     if "w2_79_public_information" in current["work_ii"]:
         source_paths.append(ROOT / current["work_ii"]["w2_79_public_information"]["report"])
+    information = current["work_ii"].get("w2_87_information_completeness", {})
+    for key in ("combined_report", "failure_retry_report"):
+        if information.get(key):
+            source_paths.append(ROOT / information[key])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-iclr2027-build-0.1",
         "status": (

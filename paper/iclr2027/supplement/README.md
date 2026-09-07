@@ -37,6 +37,12 @@ publication projection, not a copy of local run directories. It contains:
 - the final minimal-interface diagnostic: all 120 scored session records, three retained failures,
   prior-stratified counts, five paired world effects, resources, fixed protocol and public
   interface/numerics source;
+- the observation-mapping intervention: all 120 original scored sessions, eight failures or
+  interruptions, ten shared-world effects, separate recovery/retention and action metrics,
+  actual budgets, configuration details and cumulative resource totals;
+- when the one-retry sensitivity is bound, all eight selected original failures and their
+  additional attempts, resource costs and the descriptive virtual one-retry result; these
+  never replace the original 120-session primary;
 - the exact system prompts or prompt-generating function sources used by the reported assays;
 - representative strict response schemas and the executable-law contract;
 - a chronological platform-recovery and oracle-qualification provenance record;
@@ -77,3 +83,9 @@ prior/model/tool denominators and the equal-weight paired mean. Run
 `python verify_final_diagnostic.py --full` with NumPy to reproduce the prespecified five-world
 bootstrap interval. The ordinary package verifier runs its standard-library checks automatically.
 Aligned-prior successes are retention; optional-tool assignment is distinct from actual uptake.
+
+The disclosure verifier reconstructs the original recovery, action and prediction aggregates,
+the ten-world contrast and the selected retry sensitivity separately. Run
+`python verify_information.py --full` with NumPy to recompute its approximate world-bootstrap
+interval. The ordinary package verifier includes the standard-library checks automatically.
+Additional model and query counts never increase independent worlds.

@@ -1,6 +1,15 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-09-07
+更新日期：2026-09-07。双模型正式结果与一次补跑敏感性均已整合进两版稿件、图表和匿名复现包。
+
+以下先列本轮补充结果；原120会话正式主分析随后单列，分母与失败保持不变。
+8/8额外会话有效、16/16轮，零新执行失败；未知/错误先验5/5恢复，正确先验2/3保持，另1例有效但科学答案错误，保留不再补跑。
+虚拟一次重试敏感性中DeepSeek恢复5/20→20/20（+75个百分点），Top-1 7/20→5/20，regret 0.05551→0.09597；保持8/10→10/10。
+两条方向保留，但该分析按原失败事后选择，不能替换原120会话主结果或被当作独立复现/新显著性主张。
+实测日历20.10分钟、会话wall总和3404.030秒；16份usage完整，新增input2255824（cache1979776）、output450242（reasoning433005），35工具尝试、11拒绝。
+8个输入逐字不变、16份实际提示词与对应GPT及冻结prompt一致、8个fresh thread及pre/post续接一致；8个恢复/Top-1/regret评分和累计usage独立复核通过。
+结果见[一次补跑报告](reports/work-ii-information-failure-retry-20260907.md)，独立绑定current；无剩余会话，不重跑有效但错误的答案。
+
 
 新增[W2-87双模型信息完整性合并结果](reports/work-ii-information-two-configurations-20260907.md)：
 120/120计划会话已终态，112有效、8失败/历史中断，复用同10个新world，不是20个独立world。
@@ -12,8 +21,9 @@ GPT Top-1 5/20→12/20、失败计入regret 0.07097→0.00748；DeepSeek Top-1 6
 分模型来源：[GPT资源修订报告](reports/work-ii-information-gpt-formal-resource-corrected-20260907.md)、
 [DeepSeek终态报告](reports/work-ii-information-deepseek-low-parallel-20260907.md)均已绑定current。
 DeepSeek 52有效、7执行失败、1历史中断，119轮/5份usage缺失；原失败分母与取消日历截止/三并发修订完整保留。
-原GPT报告保留，累计usage去重不改科学评分。现有[GPT图](../../paper/figures/prior-discovery/figure-10-information-gpt.pdf)已交付，
-DeepSeek图及两版投稿PDF整合仍待后续；信息长度、配对噪声与同族参数覆盖继续限制解释范围。
+原GPT报告保留，累计usage去重不改科学评分。[双模型比较图](../../paper/figures/prior-discovery/figure-10-information-models.pdf)、
+[GPT独立图](../../paper/figures/prior-discovery/figure-10-information-gpt.pdf)与[DeepSeek独立图](../../paper/figures/prior-discovery/figure-11-information-deepseek.pdf)均已交付。
+两版稿件/PDF与匿名包已整合并通过复算和视觉检查，交付状态见[投稿清单](../../paper/ICLR_2027_SUBMISSION_CHECKLIST.md)；信息长度、配对噪声与同族参数覆盖继续限制解释范围。
 
 用户要求关闭DeepSeek推理后，[none开发](reports/work-ii-information-deepseek-none-transport-development-20260907.md)
 已终态：6/6尝试、0完整通过，3格式失败、3输出上限中断；10/12轮中7份usage显式reasoning0、3轮缺失。
@@ -41,6 +51,7 @@ DeepSeek图及两版投稿PDF整合仍待后续；信息长度、配对噪声与
 | 证据块 | 终态分母（DeepSeek / GPT，除非另注） | 可支持的结果 |
 | --- | --- | --- |
 | [W2-87信息完整性](reports/work-ii-information-two-configurations-20260907.md) | 共享10新world，120/120正式终态，112有效/8失败或中断；两模型各6开发另计 | GPT恢复6/20→20/20，DeepSeek3/20→17/20；合并+0.70、近似95%[+0.525,+0.85]；DeepSeek行动读出未同向改善，新v3数据不回填历史B3 |
+| [W2-89一次补跑](reports/work-ii-information-failure-retry-20260907.md) | 原8失败各一次额外会话，8有效/16轮，7例结构正确、1例有效但答错；无新增独立world | 事后敏感性中DeepSeek恢复5/20→20/20、Top-1 7/20→5/20；总计保留128次尝试，不能替换原主结果或当作独立复现 |
 | C2 public | 各135 scheduled；121/126 completed；1,243/1,253 completed experiments，各1,260 planned | 平均预测改善；原selective-correction gates均未通过 |
 | C2 evaluator | 各420 truth；675/669 checkpoints；135/129 laws；726/756 blind executions，原scheduled各810 | law MAE 0.2371/0.1753、compression loss 0.0686/0.0142；incumbent gain约为零 |
 | A-P/B2 matched | 每模型每块15/15 sessions，合计60；另DeepSeek-low B2为15/15 | 条件性packet后响应；B2三配置错误组exact expression均0/5，存在精确alias |

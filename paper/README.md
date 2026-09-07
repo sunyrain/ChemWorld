@@ -11,11 +11,14 @@ The [evidence map](prior_discovery_evidence_map.md) maps claims to bound results
 [display plan](prior_discovery_display_items.md) owns figure roles. Execution status belongs in
 the workstream TODO, and publication checks in the [submission checklist](ICLR_2027_SUBMISSION_CHECKLIST.md).
 
-The final B3 interface/tool diagnostic has reached its recorded endpoint: 120 attempted sessions,
-117 valid completions and three retained failures. Manuscripts and display sources now organize
-the four conversion questions and the observed M1/M3 successes and boundaries. The exports contain nine
-main-text pages / 25 total pages in the anonymous PDF, a 24-page long draft and a 69-file anonymous
-package. The workstream TODO records acceptance; no further experiment is automatically scheduled.
+Both drafts and the anonymous package now include the observation-mapping intervention: 120 original
+sessions, 112 valid completions and eight retained failures or interruptions. Eight additional
+selected-failure retries are reported separately as a descriptive sensitivity analysis. The four
+conversion questions connect conditional structural recovery to its action limits and the observed
+M1/M3 successes and boundaries; the historical interface/tool diagnostic remains in the appendix.
+Current page counts and completed verification are recorded in the
+[submission checklist](ICLR_2027_SUBMISSION_CHECKLIST.md). Experiments and manuscript integration are
+complete; the remaining submission steps are author review and OpenReview preparation.
 
 ## Build from sources
 

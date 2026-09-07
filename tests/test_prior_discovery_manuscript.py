@@ -145,7 +145,7 @@ def test_current_c2_story_binds_completed_prediction_law_action_evaluator() -> N
     assert "does not establish selective repair" in manuscript
     assert "Prior-conditioned search and unmet correction criteria" in submission
     assert "1/119/1" in manuscript
-    assert "Matched packets expose numerical--expression dissociation" in submission
+    assert "Structure recovery depends on the disclosed mapping" in submission
     assert "underidentifying surface" in " ".join(submission.split())
     assert "135 separate sessions nested within 45 independent task--world clusters" in submission
     assert "135 independent persistent sessions" not in submission
@@ -190,9 +190,9 @@ def test_gpt_b3_formal_result_is_bound_with_provider_specific_limits() -> None:
     assert action["action_opportunity_eligible_cell_denominator"] == 18
     assert action["gain_at_least_0_02_count"] == 0
     combined = manuscript + submission + appendix + evidence_map
-    assert "0/18 for both" in submission
+    assert "0/18 for both" in combined
     assert "0/13 versus 0/18" in appendix
     assert "0/18 for both models on the" in appendix
     assert "fixed scheduled-opportunity denominator" in appendix
-    assert "two fixed model--tool configurations" in combined
+    assert "two model families" in combined
     assert "cross-provider leaderboard" in evidence_map

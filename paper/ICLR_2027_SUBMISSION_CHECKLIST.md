@@ -1,6 +1,6 @@
 # ICLR 2027 submission checklist
 
-Updated: 2026-09-06. This file owns format, deadlines, anonymity and delivery.
+Updated: 2026-09-07. This file owns format, deadlines, anonymity and delivery.
 Scientific results belong in the [results index](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md);
 new experiments belong in the [matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md);
 execution status belongs in [Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md).
@@ -32,10 +32,11 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - Shared [bibliography](prior_discovery_references.bib),
   [display plan](prior_discovery_display_items.md) and
   [claim/evidence map](prior_discovery_evidence_map.md).
-- The long draft uses nine figure assets; the compact source selects assets 1 and 3–9,
-  with historical B2/B3, action strategies and M1 in the appendix, and the final diagnostic
-  and M3 in the main text. Historical values and
-  failure denominators are retained.
+- The long draft uses ten figure assets. The compact source uses assets 1, 3, 10, 5 and 8
+  in the main text, and 4, 6, 7 and 9 in the appendix, with consecutive reader-facing numbering.
+  The dual-configuration observation-mapping comparison is in the main text; the historical
+  interface/tool diagnostic is in the appendix. Standalone GPT and DeepSeek world views remain
+  available. Historical values and failure denominators are retained.
 - The independent-world factorial block has completed with 120/120 sessions and 160/160 slots.
   The primary material benefit was unsupported; the development canary remains separate.
   Both drafts report the actual result. M3 separately supports artifact-only same-world utility;
@@ -48,52 +49,50 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [x] Previous 30 bibliography entries source-checked on 2026-09-03.
 - [x] Two decision-focused-learning references added and DOI metadata checked on 2026-09-05.
 - [x] Rebuild and visually inspect both drafts after the current story cleanup.
+- [x] Integrate the 120-session observation-mapping primary and separate eight-session retry sensitivity.
+- [x] Verify the actual exported anonymous archive, including selected retries and their added costs.
 - [ ] Confirm the title, author order and OpenReview profiles before the abstract deadline.
 - [ ] Confirm reciprocal-review eligibility, exemptions and current AI-policy compliance.
 - [ ] Freeze the actual submission evidence and complete final anonymous delivery checks.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The W2-86 independent-review closeout builds contain nine main-text pages and 25 total pages in the
-anonymous submission, and 24 pages in the long draft. All 49 pages were rendered and visually checked;
-the four-question diagram, final diagnostic, evidence table and author/abstract page also passed
-page-scale inspection. The evidence table uses wrapping columns and a larger font. Fonts
-were not reduced to meet the main-text limit. Final builds report no horizontal/vertical
-overflow, undefined citations, unstable cross-references or anonymous identity leaks.
+The W2-87/W2-89 closeout contains nine main-text pages and 27 total pages in the
+[anonymous submission](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-anonymous.pdf),
+and 26 pages in the [long draft](exports/prior-discovery-draft/prior-discovery-draft.pdf).
+All 53 pages were rendered and visually inspected in six overview sheets; the new comparison
+figure, methods and retry table also passed page-scale inspection. Wide methods tables use
+full-width wrapping columns. Fonts and margins were not reduced to meet the main-text limit.
+Both builds report no horizontal/vertical overflow, citation errors, unstable cross-references
+or anonymous identity leaks.
 
-The historical W2-81 integrated pass recorded 48 passing tests and 72 subtests. W2-86 reran the
-three publication test files: 16 passed; its independent engineering reviewer separately obtained
-40 passing focused tests. These counts describe different scopes, not one combined test suite.
-The supplementary archive contains 69 files. Its M1/M3/final-diagnostic verifiers reconstruct scheduled
-denominators, retained failures, deterministic controls, selection losses and twelve paired means.
-Full NumPy checks reconstruct public fits, exact maximizer choices and all twelve bootstrap intervals;
-M3 also verifies source reuse and recipient information isolation. All actual exported full
-verifiers passed. The final diagnostic's eight frozen execution files and sealed inputs match;
-all 120 fresh threads preserve their pre/post identity. Build metadata do not create new outcomes or
-relabel the formal source blocks.
+The focused integrated pass recorded 25 passing tests across the three publication test files
+and the information comparison, retry and parallel-scheduling tests. These counts describe this
+scope; historical acceptance counts remain in Git and their original task records.
+The [anonymous archive](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-supplement.zip)
+contains 76 files. The actual exported archive passed its standalone verifier and the full
+observation-mapping verifier, including recomputed original denominators, action losses, prediction
+means, ten shared-world effects, the approximate bootstrap interval and selected-retry sensitivity.
+The M1/M3/final-diagnostic full checks also passed during this integration; their unchanged data
+reconstruct public fits, maximizer choices and twelve bootstrap intervals. M3 verifies source reuse
+and recipient information isolation. The disclosure verifier is additional to those twelve checks.
 
-W2-86 additionally synchronized the F2 public-information limitation into both abstracts, narrowed
-the four-question and same-domain-capacity interpretations, and reported the fixed M3 candidate
-design. All 49 pages were checked in rendered overview, with seven changed pages inspected at
-page scale. No new scientific experiment or provider call was made. The third-model bridge remains
-unqualified; two reproduced transport/accounting defects are deferred in the
+Original W2-87 formal evidence remains 120 sessions: 112 valid and eight failures or interruptions.
+The original input and report bindings are unchanged. All eight failed DeepSeek sessions received
+one fresh complete pre/post attempt: 8/8 valid, 16/16 turns, seven correct structural outcomes and
+one valid but scientifically wrong answer retained. The eight frozen inputs, sixteen delivered
+prompts, fresh threads, within-session continuation, scores and cumulative usage were checked.
+Both manuscripts and the archive report the additional attempts and costs separately as a
+post-hoc selected-failure sensitivity analysis. The retained programme has 128 attempts;
+it is not relabelled as 120 failure-free formal sessions or independent replication.
+
+The two model families retain their study-specific settings. The third-model bridge remains
+unqualified; its two reproduced transport/accounting defects are deferred in the
 [independent review](../workstreams/flagship_tasks/reports/work-ii-independent-review-20260906.md).
-
-M1 completed 200/200 physical executions and exact replays, 120/120 provider sessions and 160/160
-condition slots, without failure or replacement. F-X minus L-X was −0.00538 (95% interval
-[−0.01630,+0.00061]); the material-benefit criterion was not met. F-A/F-X choices agreed 40/40,
-and the nearest-evidence baseline was competitive. M3 completed 160/160 recipients and 80/80
-new hidden executions/replays with no failure, retry or replacement. L−none was −0.13723
-(95% interval [−0.15584,−0.12257]), supporting material benefit; nearest achieved zero regret
-in all ten reused worlds. There are zero additional independent worlds, and no raw/retrieval
-superiority or equivalence claim. M2/M4 and changed-mechanism experiments were not executed.
-Repository completion does not constitute actual OpenReview submission.
-
-The final diagnostic attempted 120/120 sessions and 240 turns, retaining 117 valid sessions and
-three failures without replacement. Tool availability changed joint recovery by +0.01667
-(95% [-0.08333, +0.10000]); neither clear improvement nor equivalence is established. Opaque and
-misspecified priors had zero joint recoveries in 80 scheduled cases; all 17 successes were aligned
-retention. GPT tool uptake was 0/30, DeepSeek 20/30. This is a bounded availability intervention,
-with no forced-computation, randomized schema-repair or public-only-identifiability claim.
+M2/M4 and changed-mechanism experiments remain unexecuted. The bounded four-question framing,
+historical information limitations, M1 unsupported material-benefit result and M3 same-world
+utility/nearest-baseline boundary remain explicit. Scientific values are maintained in the
+[results index](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md).
+No further experiment is scheduled. Repository completion does not constitute actual OpenReview submission.
 
 Author metadata remain Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li and
 Xiaonan Wang; the first three share equal contribution and Xiaonan Wang is corresponding author.

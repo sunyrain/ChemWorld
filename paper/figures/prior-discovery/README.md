@@ -1,12 +1,14 @@
 # Experimental knowledge and decision figures
 
-Python/matplotlib produces editable-text SVG/PDF and 600 dpi PNG/TIFF assets. The current
+Python/matplotlib produces vector SVG/PDF and high-resolution PNG assets; historical panels also provide TIFF. The current
 [display plan](../../prior_discovery_display_items.md) is the single description of panel roles,
 denominators and interpretation limits. Captions live in the two manuscript sources.
 
-The nine current assets use readable text, paired measurements, direct denominators and explicit
-missing outputs. The compact ICLR manuscript uses assets 1, 3, 9, 5 and 8 in the main text, with
-assets 4, 6 and 7 in the appendix, and renumbers them consecutively. The long manuscript uses all nine.
+The ten manuscript assets use direct denominators and explicit missing outputs. The compact
+ICLR manuscript uses assets 1, 3, 10, 5 and 8 in the main text, with assets 4, 6, 7 and 9 in
+the appendix, and renumbers them consecutively. The long manuscript uses all ten.
+The disclosure comparison retains original failures; separate GPT and DeepSeek world views
+are available as standalone PDF/SVG/PNG assets. Selected retries are reported in a methods table.
 Old development-only figure exports are retired; their numerical reports remain in the evidence index.
 
 ## Reproduction

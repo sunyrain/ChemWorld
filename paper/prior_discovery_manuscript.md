@@ -30,24 +30,24 @@ equal_contribution_note: "Jiangjie Qiu, Yijun Li and Yaotian Yang contributed eq
 date: ""
 bibliography: prior_discovery_references.bib
 abstract: |
-  Scientific agents can improve experimental outcomes without converting that experience into
-  accurate, executable and useful knowledge. We measure four observable conversion questions in
-  ChemWorld: search to selective correction, numerical prediction to structure, predictions to
-  executable laws, and laws to unseen decisions. Two model configurations each entered 135
+  Scientific agents can improve experimental outcomes without converting experience into
+  accurate, executable and useful knowledge. We measure four observable conversion questions
+  in ChemWorld: search to selective correction, numerical prediction to structure, predictions
+  to executable laws, and laws to unseen decisions. Two model systems each entered 135
   campaigns across 45 matched task--world clusters. Prediction errors fell, selective-correction
-  criteria remained unmet, and executable summaries lost predictive information. A final 120-session
-  minimal-interface diagnostic retained 117 valid completions, yet recovered the joint family and
-  exponent in 0/80 opaque or misspecified cases. The public observation mapping was incomplete,
-  so this does not establish failure on an identifiable task. Optional numerics changed success
-  by +1.67 percentage points (95% interval [-8.33, 10.00]); all successes retained a correct prior.
-  In a separate DeepSeek cohort, laws selected the optimum in 0/45 unseen-plan cases versus 11/45
-  participant choices. These differences are conditional: a ten-world representation/decision
+  criteria remained unmet, and executable summaries lost predictive information. A subsequent
+  120-session disclosure intervention in ten shared worlds retained 112 valid completions and
+  eight failures or interruptions. Completing the public observation mapping raised joint
+  family/exponent recovery from 6/20 to 20/20 for GPT and 3/20 to 17/20 for DeepSeek: a pooled
+  gain of 70 percentage points (approximate 95% interval [52.5, 85]). Optimal action choices
+  increased from 5/20 to 12/20 for GPT but changed from 6/20 to 4/20 for DeepSeek. Structure
+  recovery therefore did not ensure consistent action gains. Separately, a ten-world factorial
   intervention found no supported material fitted-law benefit and complete fitted-law
   agent/maximizer agreement. Delivering model laws alone to fresh recipients on new same-world
   candidates reduced regret by 0.13723 relative to task information alone, while nearest-evidence
-  retrieval attained zero regret. These results distinguish artifact fidelity, behavioral agreement
-  and decision utility; they do not establish four internal causal failures, universal agent deficits,
-  retrieval superiority or transfer to changed physical conditions.
+  retrieval attained zero regret. These results identify conditional information benefits and
+  distinguish artifact fidelity from decision utility, without establishing four internal causal
+  failures, universal agent deficits or transfer to changed physical conditions.
 
 
 ---
@@ -88,8 +88,8 @@ substitute for measuring the next.
 
 The primary study used a fixed DeepSeek-v4-flash experimental-agent configuration, with
 135 scheduled cells nested within 45 task--world clusters; a GPT-5.6-sol successor used the same
-scientific surface. A final matched-packet experiment adds minimal submissions and optional
-numerics to test F2 with fewer submission demands. We also cross law source with decision rule
+scientific surface. A matched-packet diagnostic reduces submission demands; a subsequent disclosure
+intervention tests whether completing the observation mapping improves structure and action. We also cross law source with decision rule
 under fixed evidence, then deliver laws independently of raw evidence to fresh recipients.
 These interventions exhibit settings with agreement and useful knowledge, bounding a general
 law-use failure account without identifying the causes of historical cross-protocol differences.
@@ -683,6 +683,46 @@ prespecified approximate 95\% interval. Tool availability is the intervention: G
 \end{figure*}
 ```
 
+### Completing the observation mapping
+
+A separate disclosure intervention tests an actionable information condition. Ten new worlds
+span power exponents 1.35--2.25. Within each configuration, paired sessions receive the same
+observations, priors, minimal submission and optional calculator; only the post-evidence
+disclosure adds the complete observation mapping. GPT/medium and DeepSeek Flash/low each
+have 60 scheduled sessions. All 120 reached terminal states: 112 valid completions and eight
+DeepSeek failures or interruptions, retained in the denominator.
+
+Among unknown or wrong priors, joint recovery rises from 6/20 to 20/20 for GPT and from
+3/20 to 17/20 for DeepSeek (Fig.~\ref{fig:information-completeness}). Both gains are 70
+percentage points; the pooled approximate world-bootstrap 95% interval is [52.5, 85]. Models
+and priors are averaged within each of ten shared worlds before resampling. Correct-prior
+retention is separate: 8/10 to 10/10 and 6/10 to 10/10, respectively.
+
+Prediction error also decreases among available submissions, but action gains differ. GPT
+Top-1 rises from 5/20 to 12/20 and normalized regret falls from 0.07097 to 0.00748; DeepSeek
+Top-1 changes from 6/20 to 4/20 and regret from 0.15090 to 0.24263. The latter direction is
+descriptive, not a significant-worsening claim. Completing the mapping thus improves structural
+outputs in both tested configurations without guaranteeing action improvement. Disclosure
+length and paired observation noise are part of this setting; the new runtime and bounded
+power-family coverage do not retrospectively establish identifiability of historical packets.
+A selected one-retry sensitivity retains both directions: DeepSeek recovery 5/20 to 20/20
+and Top-1 7/20 to 5/20; it does not replace the original primary.
+
+```{=latex}
+\begin{figure*}[tp]
+\centering
+\includegraphics[width=\textwidth]{figures/prior-discovery/figure-10-information-models.pdf}
+\caption{\textbf{Completing the observation mapping improves structure recovery; action gains differ.}
+\textbf{a--b,} Joint family/exponent recovery and optimal action choice retain 20 scheduled
+unknown/wrong-prior sessions per configuration and disclosure condition.
+\textbf{c,} Prediction error uses the available submissions shown by $n$.
+\textbf{d,} Failed sessions receive worst normalized regret. All panels show the original
+attempts, with ten shared worlds; selected failure retries do not replace these outcomes.
+The two configurations are compared within system, not at equal compute.}
+\label{fig:information-completeness}
+\end{figure*}
+```
+
 ## 6.5 F3: Executable laws often lose information present in conditional predictions
 
 All **135/135** final typed laws executed on their prespecified continuous coordinates, but
@@ -1062,6 +1102,10 @@ candidate grid and have the same measured optimum coordinates. Transfer to chang
 
 ## 9.1 The decision value of experimental knowledge
 
+Completing the public mapping improves structural recovery by 70 percentage points in each
+of two tested configurations, while their action changes differ. This intervention identifies
+a conditional information benefit, not an internal mechanism or a general action repair.
+
 Prediction error and decision loss need not agree, as established in predict-then-optimize and
 decision-focused learning [@elmachtoub2022spo; @wilder2019decisionfocused]. Our setting adds
 autonomous evidence collection, supplied descriptions of hidden chemical relations, executable
@@ -1106,8 +1150,13 @@ and resource rules.
 
 ## 9.3 Scope and unresolved questions
 
-The study covers bounded simulated chemistry, two fixed model--tool configurations and five
-independent worlds per task. C2 retains different completion patterns, and model contrasts are
+The disclosure intervention spans ten shared worlds in one power family. Additional prompt
+length and paired noise are part of the treatment; it is not changed-mechanism transfer.
+DeepSeek/low and GPT/medium differ in reasoning and observed compute. Calendar and concurrency
+amendments are reported, and selected failure retries remain supplementary sensitivity evidence.
+
+The study covers bounded simulated chemistry and two model families under study-specific
+tool/reasoning configurations, with world counts defined separately for each protocol. C2 retains different completion patterns, and model contrasts are
 descriptive rather than provider effects. A-P/B2 have only five worlds; B2 uses retrospective
 expression coding on an underidentifying surface. DeepSeek low is not a thinking-off experiment
 or a reasoning-superiority test; its parametric block has no qualified formal denominator.
@@ -1131,7 +1180,8 @@ Nearest-evidence retrieval is already competitive; no general repair algorithm i
 Experimental knowledge must be evaluated through the decisions it actually supports. In these
 systems, predictive improvement does not establish selective repair, executable summaries lose
 different amounts of information, and submitted laws do not reproduce many participant choices.
-Information-strategy estimates further depend on the reliability of evidence delivery.
+Completing observation mapping improves structure recovery in both tested configurations,
+while action gains differ. Information-strategy estimates further depend on delivery reliability.
 The direct factorial test supplies an additional boundary: no supported material fitted-law
 advantage and complete fitted-law agent/maximizer agreement. Information separation then shows
 that compact laws can independently support new decisions in the same worlds, with task-dependent
@@ -1575,6 +1625,128 @@ internal arithmetic, and the high versus medium settings do not imply equal reas
 The old B3 qualification fitter accessed a privileged simulator, so its success does not establish
 public-only identifiability. Historical schema differences were not randomized.
 
+
+## 10.12 Observation-mapping disclosure intervention
+
+This block uses ten new partition worlds with independently fixed seeds and target exponents
+spanning 1.35--2.25 within the same power-law family. Three prior conditions cross original
+formula disclosure with the complete observation mapping in each world and configuration.
+Each model has 60 scheduled fresh sessions, with a pre-response and a post-evidence continuation
+in the same thread. All 119 delivered DeepSeek prompts match their GPT counterparts byte for
+byte. Both conditions expose identical candidate parameter domains, observations, queries,
+prior descriptions, schema and calculator access. The post-response in the complete condition
+additionally receives the observation equations, process factors and noise specification.
+Disclosure length is consequently bundled with information completeness. Observation noise is
+paired across conditions; no unseen-family or changed-mechanism generalization is tested.
+
+Before provider execution, a public-only numerical reference was qualified on the current
+observation contract and all ten stimulus worlds. The first 24-execution endpoint block exposed
+an inactive runtime setting and failed qualification; its executions and replays remain recorded.
+After correcting the new block's setting, all 24 requalification and 240 ten-world stimulus
+executions and their exact replays passed. This correction was made before the agent blocks;
+it does not change the historical B3 or optional-numerics data. Six development sessions per
+configuration passed separately before the 60-session blocks.
+
+GPT uses medium reasoning and DeepSeek Flash uses low reasoning in the same native agent
+harness. Each turn is limited to 600 seconds and each session to 1,200 seconds, with at most
+eight post-response calculator attempts and zero provider retries. The initial GPT block limit
+was four hours. DeepSeek's original calendar limit was later removed by user instruction;
+after 21 terminal sessions, the remaining 39 were dispatched by one coordinator to at most
+three independent workers, finishing in 99.44 minutes without a rate-limit downgrade.
+These are disclosed scheduling changes. Scientific inputs, per-session budgets and failure
+scoring remained fixed; the systems are not equal-compute competitors. A thinking-disabled
+development configuration failed qualification and did not enter either formal result.
+
+Family must be correct and exponent absolute error at most 0.10 for joint recovery. The primary
+population contains the two unknown/wrong-prior strata; correct-prior retention is reported
+separately. Failures receive zero joint recovery and Top-1, and worst normalized regret of one.
+Prediction error is reported only for available valid submissions with exact sample counts.
+The complete-minus-original recovery contrast averages priors and configurations within world,
+then weights the ten worlds equally. Approximate 95% intervals resample these ten clusters
+20,000 times with a fixed analysis seed; model/query counts do not increase independent worlds.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Original disclosure results.} Unknown/wrong-prior groups each contain 20 scheduled sessions. Parentheses in the prediction column give available sample counts. Correct-prior retention is separate.}
+\begin{tabular}{@{}llrrrr@{}}
+\toprule
+Configuration & Disclosure & Recovery & Top-1 & MAE ($n$) & Regret \\
+\midrule
+GPT / medium & Original & 6/20 & 5/20 & 0.03871 (20) & 0.07097 \\
+ & Complete & 20/20 & 12/20 & 0.00606 (20) & 0.00748 \\
+DeepSeek / low & Original & 3/20 & 6/20 & 0.04654 (18) & 0.15090 \\
+ & Complete & 17/20 & 4/20 & 0.00608 (17) & 0.24263 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+```
+
+GPT completes 60/60 sessions; DeepSeek completes 52/60, with two tool-budget failures, three
+post-response schema failures, one provider output-limit failure, one turn timeout and one
+retained user interruption. Together they account for 239/240 scheduled turns. In the complete
+DeepSeek recovery group, all 17 valid submissions recover structure, but the primary remains
+17/20. Correct-prior retention changes from 8/10 to 10/10 for GPT and 6/10 to 10/10 for DeepSeek.
+Recovery improves in eight GPT worlds (two ties) and all ten DeepSeek worlds. Both effects are
++70 percentage points; configuration-specific approximate intervals are [45, 95] and [55, 85].
+The pooled recovery rate changes from 9/40 to 37/40, with interval [52.5, 85] for the gain.
+The opposite action directions are descriptive and do not establish significant worsening or
+an internal structure-to-action mechanism.
+
+Resources are cumulative within a conversation, so the last available usage per thread is
+counted once. GPT reports 1,552,862 input tokens (332,544 cached), 327,180 output tokens
+(278,923 reasoning), and 8,355.718 session-wall seconds. DeepSeek reports 15,067,287 input
+tokens (13,120,384 cached), 3,470,258 output tokens (3,356,264 reasoning), 296 calculator
+attempts and 88 rejections. DeepSeek session-wall time totals 26,198.564 seconds, with the
+interrupted session incomplete; it is not parallel elapsed time. Usage is available for
+114/119 attempted turns, so DeepSeek resource totals are lower bounds. No cost is erased by
+concurrency, interruption or failure.
+
+### One additional attempt for each failed session
+
+After inspecting the original terminal results, the user authorized one additional attempt for
+every failed or interrupted DeepSeek session. This selected-failure sensitivity block fixed all
+eight eligible cases before execution, retained the original scientific inputs and frozen
+executor, and used a fresh complete pre/post session for each. Reasoning, turn/session limits,
+calculator limits and zero provider retries were unchanged. Three independent workers were
+allowed, without a block calendar deadline. Further failures or unfavorable answers would not
+trigger another attempt. The original 120-session primary and its eight failures remain intact.
+
+All eight additional sessions completed validly (16/16 turns), without execution failures.
+Five unknown/wrong-prior cases recovered structure; two of three correct-prior cases retained
+it, while the remaining valid answer was incorrect. In the descriptive virtual result allowing
+one retry per original failure, DeepSeek recovery changes from 5/20 to 20/20, compared with
+3/20 to 17/20 in the original primary. Top-1 is 7/20 versus 5/20 and normalized regret is
+0.05551 versus 0.09597. Thus the structure benefit and the descriptive adverse action direction
+persist after this reliability sensitivity. Correct-prior retention is 8/10 versus 10/10.
+These are post-hoc selected attempts, not an independent replication, a new primary or evidence
+of statistically significant action worsening. No confidence interval is claimed for this
+selected retry comparison.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\small
+\caption{\textbf{Descriptive one-retry sensitivity for DeepSeek.} Original successful attempts are retained; each original failure contributes its single additional attempt. The original primary is unchanged.}
+\begin{tabular}{@{}llrrr@{}}
+\toprule
+Population & Disclosure & Recovery/retention & Top-1 & Regret \\
+\midrule
+Unknown/wrong & Original & 5/20 & 7/20 & 0.05551 \\
+ & Complete & 20/20 & 5/20 & 0.09597 \\
+Correct prior & Original & 8/10 & 5/10 & 0.06583 \\
+ & Complete & 10/10 & 3/10 & 0.08297 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+```
+
+Additional elapsed time was 20.10 minutes; session-wall time summed to 3,404.030 seconds.
+All 16 usage receipts are available: 2,255,824 input tokens (1,979,776 cached), 450,242 output
+tokens (433,005 reasoning), 35 calculator attempts and 11 rejections. These costs are additional
+to the original formal block. The complete programme therefore retains 128 attempted sessions,
+including the original eight failures, rather than erasing them after successful retries.
 
 # 11. Data and code availability
 

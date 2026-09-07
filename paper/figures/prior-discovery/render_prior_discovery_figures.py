@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import csv
 import hashlib
+import importlib.util
 import json
 from collections.abc import Iterable
 from pathlib import Path
@@ -1771,6 +1772,15 @@ def main() -> int:
             ("resources", diagnostic["resources"]),
         ):
             write_csv(SOURCE_DIR / f"figure-9-diagnostic-{name}.csv", rows, list(rows[0]))
+    information_binding = current["work_ii"].get("w2_87_information_completeness", {})
+    if information_binding.get("combined_report"):
+        renderer_path = ROOT / "paper/tools/render_information_comparison.py"
+        spec = importlib.util.spec_from_file_location("information_comparison", renderer_path)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        information, information_path = module.load_report()
+        outputs["figure_10"] = [ROOT / item["path"] for item in module.render(information)]
+        source_paths.extend([information_path, renderer_path])
     manifest: dict[str, Any] = {
         "schema_version": "chemworld-prior-discovery-figure-manifest-0.1",
         "status": "formal_results_with_bounded_secondary_analyses",
