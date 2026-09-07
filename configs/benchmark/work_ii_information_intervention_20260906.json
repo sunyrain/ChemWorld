@@ -2,19 +2,15 @@
   "schema_version": "work-ii-information-intervention-1",
   "providers": {
     "deepseek": {
-      "id": "deepseek",
-      "name": "DeepSeek",
-      "model": "deepseek-v4-flash",
-      "reasoning_effort": "none",
-      "http_headers": {
-        "User-Agent": "ChemWorld/0.2"
-      },
-      "transport": "standard_http_headers",
-      "base_url": "https://api.deepseek.com/",
-      "wire_api": "responses",
-      "auth_mode": "experimental_bearer_token",
       "api_key_file": "api.md",
-      "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json"
+      "auth_mode": "experimental_bearer_token",
+      "base_url": "https://api.deepseek.com/",
+      "id": "deepseek",
+      "model": "deepseek-v4-flash",
+      "model_catalog_json": "configs/providers/deepseek_v4_flash_models.json",
+      "name": "DeepSeek",
+      "reasoning_effort": "low",
+      "wire_api": "responses"
     },
     "gpt": {
       "id": "chemworld_openai_https",
@@ -46,7 +42,12 @@
       "block_timeout_s": 14400,
       "provider_retries": 0
     },
-    "deepseek": null
+    "deepseek": {
+      "block_timeout_s": 43200,
+      "provider_retries": 0,
+      "session_timeout_s": 1200,
+      "turn_timeout_s": 600
+    }
   },
   "formal_stimuli": "runs/development/work-ii-information-ten-world-stimuli-20260906/stimuli.json",
   "formal_stimuli_sha256": "84822800586bde247ee04b5025a017b3a201adefd1e9f6e816ac8ad2fcc4d908",
@@ -58,7 +59,7 @@
     "wall_seconds": 805.9060000001919,
     "historical_rate_formal_hours": 2.238627777778311
   },
-  "calibration_deepseek_low_historical": {
+  "calibration_deepseek": {
     "report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-low-development-20260906.json",
     "report_sha256": "edfb41b697c5ad721f2bf593630cef30c18174fc4afdf1b9b1908a2b501ef400",
     "sessions": 6,
@@ -67,7 +68,7 @@
     "rate_formal_hours": 6.695397222221881,
     "reasoning_effort": "low"
   },
-  "calibration_deepseek": {
+  "calibration_deepseek_none_retained": {
     "report": "workstreams/flagship_tasks/reports/work-ii-information-deepseek-none-transport-development-20260907.json",
     "report_sha256": "eace136c612f52621afec6e2ea882f14cd3543e6ceb5d65e444a72c4f191b160",
     "sessions": 6,
