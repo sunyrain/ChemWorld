@@ -3,9 +3,14 @@
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import os
+import shutil
 import subprocess
+import sys
+import tarfile
+import tempfile
 import time
 from pathlib import Path
 
@@ -97,6 +102,95 @@ def freeze(root: Path) -> None:
     print("formal frozen once", flush=True)
 
 
+def authorized_resume(root: Path) -> dict | None:
+    """A later explicit resume supersedes only the stop record it names."""
+    path = root / "user_resume.json"
+    if not path.exists() or not (root / "user_stop.json").exists():
+        return None
+    record = read(path)
+    if record.get("user_stop_sha256") != digest(root / "user_stop.json"):
+        return None
+    return record
+
+
+def resume_frozen(root: Path, export: Path | None = None) -> None:
+    """Explicitly resume unattempted cells with the original source and deadline."""
+    if (root / "executor.lock").exists():
+        raise ValueError("executor is already active; preserve its work")
+    if not (root / "user_stop.json").exists() or (root / "user_resume.json").exists():
+        raise ValueError("requires an explicitly stopped block without a previous resume")
+    inputs, frozen, ledger = (
+        read(root / name) for name in ("inputs.json", "freeze.json", "block.json")
+    )
+    if inputs["phase"] != "formal" or digest(root / "inputs.json") != frozen["inputs_sha256"]:
+        raise ValueError("frozen formal inputs changed")
+    if time.time() >= ledger["deadline_epoch"]:
+        raise ValueError("original block deadline elapsed; do not reset the budget")
+    if digest(ROOT / "uv.lock") != frozen["execution_surface"]["uv.lock"]:
+        raise ValueError("resume requires the original locked environment")
+    if export and (export.exists() or export.with_suffix(".md").exists()):
+        raise FileExistsError("preserve existing exported report")
+    archive = subprocess.check_output(
+        ["git", "archive", frozen["source_commit"], "scripts", "src", "configs", "uv.lock"],
+        cwd=ROOT,
+    )
+    with tempfile.TemporaryDirectory(prefix="chemworld-frozen-information-") as temporary:
+        snapshot = Path(temporary)
+        with tarfile.open(fileobj=io.BytesIO(archive)) as bundle:
+            bundle.extractall(snapshot, filter="data")
+        for name, expected in frozen["execution_surface"].items():
+            if digest(snapshot / name) != expected:
+                raise ValueError(f"historical execution surface mismatch: {name}")
+        provider = inputs["protocol"]["providers"][inputs["model"]]
+        if provider.get("api_key_file"):
+            credential = Path(provider["api_key_file"])
+            if not credential.is_absolute():
+                destination = snapshot / credential
+                destination.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copyfile(ROOT / credential, destination)
+        # Recheck immediately before handing the unchanged block to its old executor.
+        if (root / "executor.lock").exists() or time.time() >= ledger["deadline_epoch"]:
+            raise ValueError("executor active or original deadline elapsed")
+        record = {
+            "requested_epoch": time.time(),
+            "reason": "user_requested_restore_original_design",
+            "user_stop_sha256": digest(root / "user_stop.json"),
+            "source_commit": frozen["source_commit"],
+            "deadline_epoch": ledger["deadline_epoch"],
+            "budget_policy": "original_calendar_deadline_unchanged",
+            "resume_policy": "unattempted_only_preserve_all_failures_and_interruptions",
+        }
+        with (root / "user_resume.json").open("x", encoding="utf-8") as handle:
+            json.dump(record, handle, indent=2)
+            handle.write("\n")
+        bootstrap = (
+            "import sys; from pathlib import Path; "
+            "sys.path[:0] = [sys.argv[1], str(Path(sys.argv[1]) / 'src')]; "
+            "from scripts.run_work_ii_information_intervention import run; "
+            "run(Path(sys.argv[2]))"
+        )
+        print(json.dumps({"stage": "resume_frozen", **record}), flush=True)
+        result = subprocess.run(
+            [sys.executable, "-u", "-c", bootstrap, str(snapshot), str(root)],
+            cwd=ROOT,
+            check=False,
+        )
+        # The original executor owns data production; the current analyzer fixes
+        # cumulative usage and records the stop/resume history after it exits.
+        if not (root / "executor.lock").exists():
+            report = analyze(root, export)
+            print(
+                json.dumps(
+                    {"stage": "finished", "status": report["status"], "counts": report["counts"]}
+                ),
+                flush=True,
+            )
+        if result.returncode:
+            raise RuntimeError(
+                f"historical executor exited {result.returncode}; inspect preserved records"
+            )
+
+
 def analyze(root: Path, export: Path | None = None) -> dict:
     inputs = read(root / "inputs.json")
     results = collect(root, inputs["cells"])
@@ -110,12 +204,22 @@ def analyze(root: Path, export: Path | None = None) -> dict:
     if (root / "freeze.json").exists():
         report["freeze"] = read(root / "freeze.json")
     if (root / "user_stop.json").exists():
-        report["status"] = "stopped_by_user"
         report["user_stop"] = read(root / "user_stop.json")
-        report["interpretation"] += (
-            " This block was stopped by the user for a configuration change; all attempted, "
-            "interrupted and unstarted units are retained. It is excluded from the new block."
-        )
+        resumed = authorized_resume(root)
+        if resumed:
+            report["user_resume"] = resumed
+            report["interpretation"] += (
+                " The user authorized resuming the original configuration and calendar deadline. "
+                "Only previously unattempted units resumed; all failures and interruptions remain."
+            )
+            if report["counts"].get("unstarted") and time.time() >= resumed["deadline_epoch"]:
+                report["status"] = "deadline_reached_with_unstarted"
+        else:
+            report["status"] = "stopped_by_user"
+            report["interpretation"] += (
+                " This block was stopped by the user for a configuration change; all attempted, "
+                "interrupted and unstarted units are retained. It is excluded from the new block."
+            )
     write(root / "summary.json", report)
     lines = [
         "# W2-87 information completeness",
@@ -158,8 +262,8 @@ def analyze(root: Path, export: Path | None = None) -> dict:
 
 
 def run(root: Path) -> None:
-    if (root / "user_stop.json").exists():
-        raise ValueError("user-stopped block is retained and must not be resumed")
+    if (root / "user_stop.json").exists() and not authorized_resume(root):
+        raise ValueError("user-stopped block requires explicit resume-frozen authorization")
     inputs = read(root / "inputs.json")
     if inputs["phase"] == "formal":
         frozen = read(root / "freeze.json")
@@ -235,7 +339,7 @@ def run(root: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("action", choices=("prepare", "freeze", "run", "analyze"))
+    parser.add_argument("action", choices=("prepare", "freeze", "run", "analyze", "resume-frozen"))
     parser.add_argument("--phase", choices=("development", "formal"), default="development")
     parser.add_argument("--model", choices=("gpt", "deepseek"), default="gpt")
     parser.add_argument("--root", type=Path, required=True)
@@ -248,6 +352,8 @@ def main() -> None:
         freeze(root)
     elif args.action == "run":
         run(root)
+    elif args.action == "resume-frozen":
+        resume_frozen(root, args.export)
     else:
         analyze(root, args.export)
 

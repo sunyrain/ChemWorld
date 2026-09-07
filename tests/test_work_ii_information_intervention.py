@@ -131,6 +131,110 @@ def test_user_stopped_block_reports_original_denominator_and_cannot_resume(tmp_p
         run(tmp_path)
 
 
+def test_explicit_resume_keeps_failed_attempts_and_original_deadline(tmp_path, monkeypatch):
+    from scripts import run_work_ii_information_intervention as runner
+
+    cells = cells_for_world(world(), "gpt", 0)
+    runner.write(
+        tmp_path / "inputs.json",
+        {
+            "phase": "development",
+            "model": "gpt",
+            "cells": cells,
+            "protocol": {"providers": {"gpt": {}}, "development": {}},
+            "reference_binding": {},
+        },
+    )
+    runner.write(tmp_path / "block.json", {"started_epoch": 100, "deadline_epoch": 200})
+    runner.write(tmp_path / "user_stop.json", {"reason": "configuration_change"})
+    runner.write(
+        tmp_path / "user_resume.json",
+        {
+            "user_stop_sha256": runner.digest(tmp_path / "user_stop.json"),
+            "deadline_epoch": 200,
+        },
+    )
+    failed = {"cell_id": cells[0]["cell_id"], "status": "failed", "failure": "tool_budget_exceeded"}
+    runner.write(tmp_path / "sessions/001/result.json", failed)
+    runner.write(tmp_path / "sessions/002/attempt.json", {"cell_id": cells[1]["cell_id"]})
+    original_files = {p: p.read_bytes() for p in tmp_path.rglob("*.json")}
+    monkeypatch.setattr(runner.time, "time", lambda: 150)
+    called = []
+
+    def finish(cell, protocol, phase, directory, deadline, progress, **kwargs):
+        assert deadline == 200
+        called.append(cell["cell_id"])
+        result = {
+            "cell_id": cell["cell_id"],
+            "status": "failed",
+            "failure": "schema_validation_failed",
+            "elapsed_s": 1,
+        }
+        runner.write(directory / "result.json", result)
+        return result
+
+    monkeypatch.setattr(runner, "run_session", finish)
+    runner.run(tmp_path)
+    assert called == [c["cell_id"] for c in cells[2:]]
+    assert all(p.read_bytes() == content for p, content in original_files.items())
+    report = runner.read(tmp_path / "summary.json")
+    assert report["counts"] == {"failed": 6}
+    assert report["status"] != "stopped_by_user"
+    assert report["failures"][1]["failure"] == "interrupted_attempt_not_reissued"
+    assert "user_stop" in report and "user_resume" in report
+    runner.write(tmp_path / "user_stop.json", {"reason": "later_user_stop"})
+    assert runner.authorized_resume(tmp_path) is None
+    with pytest.raises(ValueError, match="user-stopped"):
+        runner.run(tmp_path)
+
+
+def test_frozen_resume_never_extends_expired_budget(tmp_path, monkeypatch):
+    from scripts import run_work_ii_information_intervention as runner
+
+    runner.write(tmp_path / "inputs.json", {"phase": "formal"})
+    runner.write(
+        tmp_path / "freeze.json", {"inputs_sha256": runner.digest(tmp_path / "inputs.json")}
+    )
+    runner.write(tmp_path / "block.json", {"started_epoch": 100, "deadline_epoch": 200})
+    runner.write(tmp_path / "user_stop.json", {"reason": "configuration_change"})
+    original_ledger = (tmp_path / "block.json").read_bytes()
+    monkeypatch.setattr(runner.time, "time", lambda: 201)
+    with pytest.raises(ValueError, match="deadline elapsed"):
+        runner.resume_frozen(tmp_path)
+    assert (tmp_path / "block.json").read_bytes() == original_ledger
+    assert not (tmp_path / "user_resume.json").exists()
+
+
+def test_resumed_deadline_reports_unstarted_without_inventing_results(tmp_path, monkeypatch):
+    from scripts import run_work_ii_information_intervention as runner
+
+    runner.write(
+        tmp_path / "inputs.json",
+        {
+            "phase": "formal",
+            "model": "gpt",
+            "cells": cells_for_world(world(), "gpt", 0),
+            "protocol": {"providers": {"gpt": {}}, "formal": {}},
+            "reference_binding": {},
+        },
+    )
+    runner.write(tmp_path / "user_stop.json", {"reason": "configuration_change"})
+    runner.write(
+        tmp_path / "user_resume.json",
+        {
+            "user_stop_sha256": runner.digest(tmp_path / "user_stop.json"),
+            "deadline_epoch": 200,
+        },
+    )
+    monkeypatch.setattr(runner.time, "time", lambda: 201)
+    report = runner.analyze(tmp_path)
+    assert report["status"] == "deadline_reached_with_unstarted"
+    assert report["counts"] == {"unstarted": 6}
+    assert report["primary"]["mean"] is None
+    assert report["primary"]["approximate_world_bootstrap_95"] is None
+    assert not (tmp_path / "sessions").exists()
+
+
 @pytest.mark.parametrize("reasoning_tokens", [1, None])
 def test_none_mode_mismatch_stops_before_post(tmp_path, monkeypatch, reasoning_tokens):
     from scripts import run_work_ii_final_diagnostic as runner
