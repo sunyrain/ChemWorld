@@ -1,6 +1,6 @@
 # Work II TODO — Experimental knowledge and scientific decisions
 
-最后更新：2026-09-07。执行者：Codex /root；单 executor，main 分支。
+最后更新：2026-09-07。执行者：Codex /root；main 分支。用户11:47授权本块单调度器、3并行会话。
 
 ## 1. 当前任务与唯一入口
 
@@ -9,13 +9,12 @@ W2-86完成三位独立AI审稿及必要文字同步，原范围新增必做科�
 用户随后授权优先尝试公开信息完整性的单因素干预：W2-87先做离线参考可行性，再据校准决定新Agent块。
 W2-87的GPT阶段已完成6开发+60正式；正式恢复6/20→20/20，主差+70个百分点，
 近似world区间[+45,+95]。独立结果/图件完成，现有投稿PDF仍为之前交付。
-用户于10:36明确取消原整块日历截止。第012会话完整落盘后完成管理交接，未新增中断；
-10:45已用无整块日历截止的调度从第013会话继续。当前9完成、2执行失败、1历史用户中断、1运行、47未启动。
-两项执行失败为工具预算超限和provider输出token上限，原结果全部保留、不重跑。
-每轮600秒、每会话1200秒、post工具最多8次、零重试及全部科学输入/评分保持；平台/越界故障仍停止。
-最近8会话平均约7.7分钟，48个尚未终态约6.1小时，软ETA今天16:30–18:00（+08:00）；11:39不再是停止点。
-原截止及停止/恢复历史保留，最终报告披露用户要求的排期修订。none的0/6资格失败独立保留，none正式不启动。
-累计usage修正在终态分析中应用，两个披露条件沿用同一low配置，不声称与GPT/medium等算力。
+用户10:36取消整块日历截止，11:47进一步授权并行。当前采用一个调度器、3个独立会话worker。
+第021会话完整落盘后交接，未新增中断或重发；当前18完成、2执行失败、1历史中断、3运行、36未启动。
+从022开始按原索引分派，各自pre→post及独立thread/工作目录/输出保留；每轮600秒、每会话1200秒、
+8次post工具尝试、零重试及所有科学输入/评分不变。平台/越界故障停止新分派并排空；明确429限流排空后降至1并发。
+剩余39个单位的应用前保守软ETA为2–3小时，预计今天14:00–15:00附近；真实并发吞吐尚待首批会话终态校准，原16:30–18:00串行排期已被替代。
+原截止、串行段和全部失败保留，终态报告披露两项排期修订并去重累计usage；none资格失败独立保留，不进入正式。
 本轮固定GPT/DeepSeek双模型，第三模型暂缓；机制匹配、新条件迁移和全面框架交叉不作为写作前置。
 具体范围和停止规则见[收束矩阵](WORK_II_EXPERIMENT_MATRIX.md)；旧W2-77开发12/12终止（10有效完成、2失败），正式120/120尝试、117有效完成、3失败保留。
 
@@ -66,11 +65,11 @@ M1/M3提供观察到的成功设置及边界，没有识别跨协议差异的单
 ## 3. 当前任务
 
 2026-09-06独立评阅已完成，用户随后授权优先尝试解释成功/失败条件的单因素干预。
-Claim: Codex /root — W2-87 — DOING。单executor；旧正式块及其失败不重跑。
+Claim: Codex /root — W2-87 — DOING。用户11:47授权单调度器、三会话并发；旧正式块及其失败不重跑。
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
-| W2-87 | DOING (GPT DONE; DeepSeek low RUNNING) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)：GPT 6开发+60正式完成，恢复6/20→20/20、主差+70个百分点，报告/图件完成。用户10:36取消整块日历截止；第012成功落盘后交接，10:45从013继续，9完成、2执行失败、1历史中断、1运行、47未启动。每轮/会话及工具预算、零重试、原科学设计保留；48个尚未终态约6.1小时，软ETA16:30–18:00。原截止、全部失败与none独立失败块保留，终态报告披露排期修订；11项测试和冻结调度跨过期截止的离线校验通过，未追加provider探针。完整终态后再合并双模型与整稿 |
+| W2-87 | DOING (GPT DONE; DeepSeek 3 WORKERS) | Claim: Codex /root — [信息完整性干预](WORK_II_INFORMATION_COMPLETENESS_EXPERIMENT_NOTE.md)：GPT 60/60正式完成，恢复6/20→20/20。用户授权取消日历截止并开启3并发，021完整落盘后从022接管，无新增中断；18完成、2执行失败、1历史中断、3运行、36未启动。一个调度器、独立会话输出，15项测试与真实冻结入口离线并行校验通过；明确429排空后降串行，平台/越界停止新分派，失败不重发。保守软ETA2–3小时，实际吞吐待首批终态。完整终态后双模型统计、图表和稿件整合 |
 | W2-86 | DONE | Claim: Codex /root — [三位独立AI评阅](reports/work-ii-independent-review-20260906.md)与收束完成；F2摘要信息边界、四层读出、F3同域容量及M3候选局限已同步。两版PDF仍9/25及24页，69文件包；16项出版测试、最后措辞6项复核、Ruff和链接/diff通过，49页渲染总览及7页逐页检查通过。第三模型桥接新增P1读头时限/P2中断usage恢复缺陷留作重资格前修复，未调用provider；新增必做科学实验0 |
 | W2-85 | DONE (calibration interrupted) | Claim: Codex /root — Kimi/Qwen四个harness会话全部尝试，Kimi prompt_schema两轮/2次真实MCP通过；strict均无工具，Qwen另有tool_choice与多system兼容错误。Kimi校准0/6完成：1超时失败、1平台中止、4未启动；因上游未取消及请求重叠停止。总deadline/取消/增量日志与system合并已修复，42项测试通过，未追加线上重跑。Kimi为优先候选，尚未取得完整第三模型资格；见[说明](WORK_II_PROVIDER_SELECTION_NOTE.md)与[结果](reports/work-ii-provider-selection-20260906.md) |
 | W2-84 | DONE (not qualified) | Claim: Codex /root — GLM适配开发块按停止规则结束：3次真实工程尝试0次完整通过；正确JSON/同thread可达，实际MCP调用0。离线模拟已跑通真实Codex两轮与2次MCP，但真实GLM分别绕过工具或把待调用写成普通JSON。6/6校准未启动，GLM暂不采用；保留全部失败及schema fallback偏离。见[开发说明](WORK_II_GLM_ADAPTER_DEVELOPMENT_NOTE.md)与[结果](reports/work-ii-glm-adapter-20260906.md) |
@@ -154,7 +153,7 @@ provider约13.9分钟；输入153,016、输出95,411 tokens（其中95,149 reaso
   它们是完整agent systems，不是模型排行榜；旧提供方/预算设置不自动授权新campaign。
 - 保留task-pattern-owned stock、时间、测量、样品、终检、token与wall-clock账本。
   新实验先做本协议的成本校准，不沿用旧并发和39–93h等过时ETA。
-- 当前单executor；不根据旧文档恢复三臂并发。超过60秒的命令每分钟至少报告stage、
+- W2-87按用户本次授权采用单调度器、3会话并发；不据此恢复其他旧三臂队列。超过60秒的命令每分钟至少报告stage、
   完成/总量、吞吐与ETA，或明确liveness counter。
 - Python、pytest、Ruff和实验入口均使用 `uv run --no-sync ...`。
 - 原始provider payload、credentials、private seeds和ignored runs不进Git。
