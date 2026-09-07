@@ -156,7 +156,7 @@ pre-response. They reveal conditional post-packet updating but, without a turn-m
 control, do not identify a pure evidence-packet effect. The longitudinal
 action matrix separately contains three tasks, five worlds, and three arms (45 scheduled cells). After
 12 autonomous experiments, each agent ranks eight new plans; regret and Top-1 are primary action
-readouts, while complete-rank correlation and law adequacy are diagnostics. Table~\ref{tab:evidence}
+readouts, while complete-rank correlation and law adequacy are diagnostics. Table \ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
 C2 and B3 retain matched scheduled surfaces for both configurations; matched evidence adds a
@@ -193,7 +193,7 @@ Evaluator controls & 16 unit versions & Provider-free; original stops retained &
 
 ## F1: Prior-conditioned search and unmet correction criteria
 
-All 135 scheduled sessions produced final records. Participants completed 1,243/1,260 planned
+DeepSeek produced records for all 135 scheduled sessions and completed 1,243/1,260 planned
 experiments; 121 sessions met operational eligibility. The denominator retains 26 discarded
 lifecycles, 13 resource-ledger rejections, and all right-censored cells. Every session submitted five
 checkpoints, providing 6,300 counterfactual predictions and 24,300 query--metric values.
@@ -217,19 +217,19 @@ aligned, and misspecified cells were 0.111/0.097/0.097 at the entity locus,
 0.090/0.033/0.065 at the parametric locus, and 0.219/0.228/0.221 at the structural locus. The stricter
 selective-correction contrasts were -0.214 for entity ($p=0.990$), +0.033 for parametric
 ($p=0.079$), and -0.224 for structural ($p=1.000$); none passed. These criteria did not establish
-preferential correction of a wrong starting model (Fig.~\ref{fig:prior-correction}).
+preferential correction of a wrong starting model (Fig. \ref{fig:prior-correction}).
 
 ```{=latex}
 \begin{figure}[t]
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-3-prior-uptake-and-correction.pdf}
 \caption{\textbf{Prediction improves, but the evidence does not establish selective repair of the wrong model.}
-\textbf{a--c,} Mean pre-evidence and final errors by arm in entity, parametric, and structural
-blocks; lines connect aggregate means, not individual trajectories or confidence bounds.
-The failure-aware selective-correction gates are unmet (one-sided $p=0.990,0.079,1.000$), and
-initial error limits improvement headroom. First recipes differ in 45/45 aligned--misindexed,
-45/45 opaque--aligned, and 44/45 opaque--misindexed clusters; this retrospective check has no
-repeated same-arm baseline.}
+\textbf{a--c,} DeepSeek and \textbf{d--f,} GPT effective pre/final prediction errors by prior
+and intervention locus; lines connect aggregate observed-point summaries with retained-checkpoint
+handling. Each model has 135 scheduled sessions in 45 world clusters. Confirmatory tests separately
+retain adverse failure bounds; all locus criteria are unmet in both models. Initial error limits
+improvement headroom. DeepSeek first-recipe differences are 45/45, 45/45 and 44/45 matched clusters;
+this retrospective check has no repeated same-arm baseline.}
 \label{fig:prior-correction}
 \end{figure}
 ```
@@ -253,7 +253,7 @@ have 60 scheduled sessions. All 120 reached terminal states: 112 valid completio
 DeepSeek failures or interruptions, retained in the denominator.
 
 Among unknown or wrong priors, joint recovery rises from 6/20 to 20/20 for GPT and from
-3/20 to 17/20 for DeepSeek (Fig.~\ref{fig:information-completeness}). Both gains are 70
+3/20 to 17/20 for DeepSeek (Fig. \ref{fig:information-completeness}). Both gains are 70
 percentage points; the pooled approximate world-bootstrap 95% interval is [52.5, 85]. Models
 and priors are averaged within each of ten shared worlds before resampling. Correct-prior
 retention is separate: 8/10 to 10/10 and 6/10 to 10/10, respectively.
@@ -296,7 +296,7 @@ The matched GPT-5.6-sol surface retained 126 completed, 3 failed, and 6 right-ce
 locus gates again failed. GPT-5.6-sol versus DeepSeek-v4-flash law MAE was 0.1753 (129 laws) versus
 0.2371 (135 laws), and compression loss was 0.0142 versus 0.0686; blind gain was -0.0001 (126 cells)
 versus -0.0010 (121 cells). Lower observed
-compression error therefore coexisted with near-zero blind gain (Fig.~\ref{fig:c2-cross-model}); this
+compression error therefore coexisted with near-zero blind gain (Fig. \ref{fig:c2-cross-model}); this
 matched cross-configuration comparison is descriptive, not a causal law-quality intervention.
 
 ```{=latex}
@@ -304,11 +304,11 @@ matched cross-configuration comparison is descriptive, not a causal law-quality 
 \centering
 \includegraphics[width=\linewidth]{figures/prior-discovery/figure-5-capability-chain.pdf}
 \caption{\textbf{Lower executable-law error coexists with near-zero incumbent gain.}
-\textbf{a,} Hollow and filled points show final-prediction and executable-law MAE on the same
+\textbf{a,} Hollow circles and filled squares show final-prediction and executable-law MAE on the same
 law-evaluable cells, grouped by locus and model; connecting lines show compression differences,
 not uncertainty. The matched denominators are 135 DeepSeek and 129 GPT laws.
 \textbf{b,} Better/equivalent/worse/unavailable incumbent-replay counts retain all 135 scheduled
-cells per model; hatching marks unavailable readouts. These are descriptive configuration
+cells per model, with missing outcomes stated explicitly. These are descriptive configuration
 contrasts and incumbent replays, not causal artifact effects or unseen-action benefits.}
 \label{fig:c2-cross-model}
 \end{figure}
@@ -328,9 +328,9 @@ A separate development successor retained four strategies over 45 strata per mod
 Autonomy-minus-none regret was -0.0913 for DeepSeek (95% interval [-0.2124, 0.0388]) and +0.1102
 for GPT ([-0.0533, 0.2794]). Both intervals cross zero and include donor and delivery failures;
 they do not isolate a pure acquisition effect. Completed-donor sensitivities, all failures and
-the descriptive law/action decomposition appear in the appendix (Fig.~\ref{fig:open-action}).
+the descriptive law/action decomposition appear in the appendix (Fig. \ref{fig:open-action}).
 Ranking-gate versus decision-loss disagreement is separately an evaluator diagnostic, not a
-fourth internal participant fault (Table~\ref{tab:alignment}).
+fourth internal participant fault (Table \ref{tab:alignment}).
 
 # Observed successes: controlled artifact and information interventions
 
@@ -346,7 +346,7 @@ executions with exact replay completed without failure or replacement.
 F-X minus L-X regret was -0.00538 (95\% world-bootstrap interval [-0.01630, 0.00061]); the upper
 endpoint did not fall below the prespecified -0.01 material-benefit threshold. Task means were
 -0.01087 in electrochemistry and +0.00010 in crystallization, with the substantial negative effect
-concentrated in one world. Figure~\ref{fig:m1-replication} in the appendix shows all world effects
+concentrated in one world. Figure \ref{fig:m1-replication} in the appendix shows all world effects
 and five registered contrasts. The fixed utility scale is one; models and repeats are averaged
 within world, and five worlds per task limit the bootstrap approximation.
 
@@ -366,7 +366,7 @@ six original coefficients without source dialogue or provenance labels. All 160 
 80 hidden evaluations with exact replay completed, with no new recipient measurements.
 
 The primary L-minus-none regret contrast was -0.13723 (95\% interval [-0.15584, -0.12257]),
-meeting the prespecified material-benefit criterion (Fig.~\ref{fig:m3-portability}). Nine world
+meeting the prespecified material-benefit criterion (Fig. \ref{fig:m3-portability}). Nine world
 means improved and one was zero; task means were -0.25937 for electrochemistry and -0.01509 for
 crystallization. These remain ten reused worlds, not ten additional independent replications.
 Mean regrets for none/raw/L/F were 0.14727/0.01124/0.01004/0.01459. Raw and F also improved on

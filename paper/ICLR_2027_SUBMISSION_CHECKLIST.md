@@ -1,6 +1,6 @@
 # ICLR 2027 submission checklist
 
-Updated: 2026-09-07. This file owns format, deadlines, anonymity and delivery.
+Updated: 2026-09-08. This file owns format, deadlines, anonymity and delivery.
 Scientific results belong in the [results index](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md);
 new experiments belong in the [matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md);
 execution status belongs in [Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md).
@@ -51,30 +51,34 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [x] Rebuild and visually inspect both drafts after the current story cleanup.
 - [x] Integrate the 120-session observation-mapping primary and separate eight-session retry sensitivity.
 - [x] Verify the actual exported anonymous archive, including selected retries and their added costs.
+- [x] Revise the four-question design, two-model correction panels and prediction/law comparison; verify their manuscript-scale rendering.
 - [ ] Confirm the title, author order and OpenReview profiles before the abstract deadline.
 - [ ] Confirm reciprocal-review eligibility, exemptions and current AI-policy compliance.
-- [ ] Freeze the actual submission evidence and complete final anonymous delivery checks.
+- [ ] Confirm the author-approved submission version; repeat export checks if its sources change.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The W2-87/W2-89 closeout contains nine main-text pages and 27 total pages in the
+The W2-90 figure and explanation closeout contains nine main-text pages and 27 total pages in the
 [anonymous submission](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-anonymous.pdf),
 and 26 pages in the [long draft](exports/prior-discovery-draft/prior-discovery-draft.pdf).
-All 53 pages were rendered and visually inspected in six overview sheets; the new comparison
-figure, methods and retry table also passed page-scale inspection. Wide methods tables use
+All 53 pages were rendered and visually inspected in six overview sheets; all 19 figure-bearing
+pages also passed page-scale inspection. Literal tildes in prose cross-references were removed.
+Wide methods tables use
 full-width wrapping columns. Fonts and margins were not reduced to meet the main-text limit.
 Both builds report no horizontal/vertical overflow, citation errors, unstable cross-references
 or anonymous identity leaks.
 
-The focused integrated pass recorded 25 passing tests across the three publication test files
-and the information comparison, retry and parallel-scheduling tests. These counts describe this
-scope; historical acceptance counts remain in Git and their original task records.
+The current focused pass recorded 16 passing tests across the three publication test files,
+plus Ruff and whitespace checks. All 18 new correction-table rows, including their scheduled
+and observed counts and both means, match the current-bound source reports. Earlier numerical
+source tables are unchanged. The previous experiment integration passed 25 tests including
+information comparison, retry and parallel scheduling; those unchanged runners were not rerun.
 The [anonymous archive](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-supplement.zip)
-contains 76 files. The actual exported archive passed its standalone verifier and the full
-observation-mapping verifier, including recomputed original denominators, action losses, prediction
-means, ten shared-world effects, the approximate bootstrap interval and selected-retry sensitivity.
-The M1/M3/final-diagnostic full checks also passed during this integration; their unchanged data
-reconstruct public fits, maximizer choices and twelve bootstrap intervals. M3 verifies source reuse
-and recipient information isolation. The disclosure verifier is additional to those twelve checks.
+contains 77 files, including its manifest and the new two-model correction table. The actual
+exported archive passed its standalone verifier, covering M1/M3, final diagnostic, public
+information and disclosure data, including original failures and the separate retry sensitivity.
+The previous W2-87/W2-89 integration also ran full M1/M3/final-diagnostic checks that reconstructed
+public fits, maximizer choices and twelve bootstrap intervals, plus the full disclosure interval.
+Those scientific inputs and intervals are unchanged in this visual revision.
 
 Original W2-87 formal evidence remains 120 sessions: 112 valid and eight failures or interruptions.
 The original input and report bindings are unchanged. All eight failed DeepSeek sessions received
@@ -97,3 +101,16 @@ No further experiment is scheduled. Repository completion does not constitute ac
 Author metadata remain Jiangjie Qiu, Yijun Li, Yaotian Yang, Honghao Chen, Wentao Li and
 Xiaonan Wang; the first three share equal contribution and Xiaonan Wang is corresponding author.
 These names belong in the identified draft and author records, not the anonymous submission.
+
+## Author review route
+
+1. Read the title and abstract on page 1, then the four-question design on page 2. The contribution
+   concerns measured conversions and their conditions; it does not establish four universal internal failures.
+2. Review the five main-text figures on pages 2 and 5–8 alongside the limitations on page 9.
+   Keep structural recovery separate from action gains, and retain the unsupported M1 result and
+   M3 nearest-retrieval boundary. The [Chinese story](prior_discovery_story_zh.md#四层实验的作者讲解)
+   provides the experiment comparisons and two concrete recorded examples.
+3. Use the appendix to resolve methods, denominator and retry questions. Original failures remain
+   in the primary analysis; the eight selected retries are a separate sensitivity analysis.
+4. Confirm title, author metadata, profiles and eligibility, then complete the actual OpenReview
+   submission. Third-model qualification and new-mechanism transfer remain future work.

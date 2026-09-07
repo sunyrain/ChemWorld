@@ -1,6 +1,6 @@
 # Work II 四层测量：证据与论文收束矩阵
 
-更新：2026-09-07。执行状态只由[Work II TODO](WORK_II_TODOLIST.md)管理。
+更新：2026-09-08。执行状态只由[Work II TODO](WORK_II_TODOLIST.md)管理。
 本矩阵取代旧的扩展排期；已执行块仍按各自原note、冻结协议和[当前绑定](../../configs/current.json)解释。
 原始结果与失败见[结果索引](WORK_II_PAPER_RESULTS_ZH.md)，论证见[完整故事](../../paper/prior_discovery_story_zh.md)。
 
@@ -67,7 +67,7 @@ usage按同thread最后累计值去重，5轮缺失为下界，不能用并发�
 
 第三模型、M2/M4、新机制迁移和全框架交叉仍暂缓。Kimi桥接的P1/P2工程项不位于本双模型实验路径，
 不作为本块前置；它们恢复前仍需修复和另立资格块，见[独立评阅](reports/work-ii-independent-review-20260906.md)。
-两版PDF与匿名附件均已纳入原双模型结果及单列补跑分析，当前进入作者终审；
+W2-90已补充四层实验讲解和实测案例，更新核心图表并重建两版PDF及匿名附件；当前进入作者终审。
 交付页数、复现检查及投稿账户事项见[投稿清单](../../paper/ICLR_2027_SUBMISSION_CHECKLIST.md)。
 
 ## 1. W2-79–86历史收束记录（当前交付见第0节）

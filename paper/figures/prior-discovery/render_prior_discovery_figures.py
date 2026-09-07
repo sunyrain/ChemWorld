@@ -28,9 +28,9 @@ COLORS = {
     "muted": "#667780",
     "grid": "#DCE4E8",
     "paper": "#FFFFFF",
-    "opaque": "#A8B4BA",
-    "aligned": "#2A9D8F",
-    "misindexed": "#DD8D24",
+    "opaque": "#75848E",
+    "aligned": "#008579",
+    "misindexed": "#C77B25",
     "blue": "#356A94",
     "blue_light": "#DCEAF4",
     "teal_light": "#DDF2EE",
@@ -111,14 +111,14 @@ def configure_matplotlib() -> None:
         {
             "font.family": "sans-serif",
             "font.sans-serif": ["Arial", "Helvetica", "DejaVu Sans", "sans-serif"],
-            "font.size": 10.0,
-            "axes.titlesize": 11.0,
-            "axes.labelsize": 10.0,
-            "xtick.labelsize": 9.5,
-            "ytick.labelsize": 9.5,
+            "font.size": 8.5,
+            "axes.titlesize": 10.0,
+            "axes.labelsize": 8.5,
+            "xtick.labelsize": 8.0,
+            "ytick.labelsize": 8.0,
             "axes.spines.right": False,
             "axes.spines.top": False,
-            "axes.linewidth": 0.75,
+            "axes.linewidth": 0.65,
             "legend.frameon": False,
             "svg.fonttype": "none",
             "svg.hashsalt": "chemworld-prior-discovery-figures",
@@ -167,7 +167,7 @@ def export_figure(fig: mpl.figure.Figure, stem: str) -> list[Path]:
         bbox_inches="tight",
         metadata={"CreationDate": None, "ModDate": None},
     )
-    fig.savefig(png_path, dpi=600, bbox_inches="tight")
+    fig.savefig(png_path, dpi=400, bbox_inches="tight")
     fig.savefig(
         tiff_path,
         dpi=600,
@@ -693,15 +693,12 @@ def clean_axis(ax, *, grid="x"):
 
 
 def heading(ax, letter, title):
-    ax.set_title(title, loc="left", fontsize=11, fontweight="bold", pad=13)
-    ax.text(
-        -0.12,
-        1.055,
-        letter,
-        transform=ax.transAxes,
-        fontsize=12,
+    ax.set_title(
+        f"{letter}  {title}",
+        loc="left",
+        fontsize=10,
         fontweight="bold",
-        va="bottom",
+        pad=12,
         color=COLORS["ink"],
     )
 
@@ -731,76 +728,90 @@ def model_legend(fig, *, y=0.98):
 
 
 def render_figure_1() -> list[Path]:
-    fig, ax = plt.subplots(figsize=(7.2, 2.5))
-    fig.subplots_adjust(left=0.005, right=0.995, top=0.98, bottom=0.02)
+    fig, ax = plt.subplots(figsize=(7.2, 2.55))
+    fig.subplots_adjust(left=0.005, right=0.995, top=0.99, bottom=0.02)
     ax.set(xlim=(0, 1), ylim=(0, 1))
     ax.axis("off")
     ax.text(
-        0.115, 0.98, "Supplied description", ha="center", va="top", fontsize=10, fontweight="bold"
-    )
-    for y, label, color in (
-        (0.74, "Opaque", COLORS["opaque"]),
-        (0.51, "Aligned", COLORS["aligned"]),
-        (0.28, "Misindexed", COLORS["misindexed"]),
-    ):
-        rounded_box(
-            ax,
-            0.015,
-            y - 0.075,
-            0.20,
-            0.15,
-            label,
-            facecolor="white",
-            edgecolor=color,
-            fontsize=10,
-            linewidth=1.3,
-        )
-        arrow(ax, (0.225, y), (0.28, 0.51), color=color, mutation_scale=8)
-    rounded_box(
-        ax,
-        0.29,
-        0.32,
-        0.21,
-        0.39,
-        "Fixed world\nAgent experiments\nPublic evidence",
-        facecolor="#EFF4F7",
-        edgecolor="#BCC7CE",
-        fontsize=9.5,
-    )
-    ax.text(0.395, 0.21, "Same rules and budget", ha="center", fontsize=8.8, color=COLORS["muted"])
-    ax.text(
-        0.765,
-        0.98,
-        "Four conversion questions",
-        ha="center",
+        0.015,
+        0.97,
+        "From experimental evidence to scientific decisions",
+        fontsize=12,
+        weight="bold",
         va="top",
-        fontsize=10,
-        fontweight="bold",
+        color=COLORS["ink"],
     )
-    for y, label in (
-        (0.78, "F1   Search to selective correction"),
-        (0.59, "F2   Predictions to structure"),
-        (0.40, "F3   Predictions to executable laws"),
-        (0.21, "F4   Laws to unseen decisions"),
+    ax.text(0.015, 0.825, "INITIAL DESCRIPTION", fontsize=7, weight="bold", color=COLORS["muted"])
+    for x, word, color in (
+        (0.015, "Opaque", COLORS["opaque"]),
+        (0.115, "Aligned", COLORS["aligned"]),
+        (0.215, "Misindexed", COLORS["misindexed"]),
     ):
-        arrow(ax, (0.51, 0.51), (0.55, y), mutation_scale=8)
-        rounded_box(
-            ax,
-            0.56,
-            y - 0.072,
-            0.425,
-            0.144,
-            label,
-            facecolor="white",
-            edgecolor=COLORS["blue"],
-            fontsize=9.1,
-        )
+        ax.text(x, 0.735, word, fontsize=8, color=color, weight="bold")
+    arrow(ax, (0.33, 0.767), (0.382, 0.767), mutation_scale=9)
     ax.text(
-        0.5,
-        0.035,
-        "Separate readouts and success conditions; no assumed internal causal chain",
-        ha="center",
-        fontsize=8.8,
+        0.40, 0.825, "SHARED EXPERIMENTAL WORLD", fontsize=7, weight="bold", color=COLORS["muted"]
+    )
+    ax.text(0.40, 0.735, "Fixed physics, operations and budgets", fontsize=8)
+    arrow(ax, (0.73, 0.767), (0.775, 0.767), mutation_scale=9)
+    ax.text(0.795, 0.825, "HIDDEN EVALUATION", fontsize=7, weight="bold", color=COLORS["muted"])
+    ax.text(0.795, 0.735, "Truth and candidate outcomes", fontsize=7.8)
+    cards = [
+        (
+            "F1",
+            "Targeted correction",
+            "Before  →  After",
+            "Wrong vs aligned priors",
+            "Prediction-error reduction",
+        ),
+        (
+            "F2",
+            "Structure identification",
+            "Predictions  ↔  Structure",
+            "Original vs complete mapping",
+            "Family + exponent recovery",
+        ),
+        (
+            "F3",
+            "Executable knowledge",
+            "Answers  ↔  Equations",
+            "Same queries, same submission",
+            "Prediction-to-law loss",
+        ),
+        (
+            "F4",
+            "Decision utility",
+            "Law choice  ↔  Agent choice",
+            "Same unseen candidate plans",
+            "Agreement + decision regret",
+        ),
+    ]
+    accents = (COLORS["blue"], COLORS["aligned"], COLORS["violet"], COLORS["misindexed"])
+    for i, ((label, title, comparison, control, readout), color) in enumerate(
+        zip(cards, accents, strict=True)
+    ):
+        x = 0.015 + i * 0.248
+        box = FancyBboxPatch(
+            (x, 0.15),
+            0.232,
+            0.47,
+            boxstyle="round,pad=0.002,rounding_size=0.012",
+            facecolor="#F5F7F9",
+            edgecolor="#D8E1E6",
+            linewidth=0.6,
+        )
+        ax.add_patch(box)
+        ax.plot([x + 0.012, x + 0.220], [0.604, 0.604], color=color, lw=2.3)
+        ax.text(x + 0.013, 0.555, label, color=color, weight="bold", fontsize=9, va="top")
+        ax.text(x + 0.013, 0.465, title, weight="bold", fontsize=8.3, va="top")
+        ax.text(x + 0.013, 0.357, comparison, fontsize=8.1, va="top", color=color)
+        ax.text(x + 0.013, 0.271, control, fontsize=7.2, va="top", color=COLORS["muted"])
+        ax.text(x + 0.013, 0.198, readout, fontsize=7.4, va="top")
+    ax.text(
+        0.015,
+        0.045,
+        "Four separate measurements; success in one does not establish success in another.",
+        fontsize=8,
         color=COLORS["muted"],
     )
     return export_figure(fig, "figure-1-prior-to-law")
@@ -856,66 +867,103 @@ def render_figure_2(design: dict, preflight: dict) -> list[Path]:
     return export_figure(fig, "figure-2-formal-cohort")
 
 
-def render_figure_3_prospective(initial_rows, recipe_rows, improvement_rows, decision_rows):
-    del recipe_rows  # complete manipulation counts remain in the caption and source data
-    initial = {(row["locus"], row["arm"]): row["mean_normalized_mae"] for row in initial_rows}
-    gains = {
-        (row["locus"], row["arm"]): row["mean_pre_to_final_improvement"] for row in improvement_rows
-    }
-    if any(row["passed"] for row in decision_rows):
-        raise ValueError("selective-correction caption no longer matches the evidence")
-    fig, axes = plt.subplots(1, 3, figsize=(6.6, 2.95), sharey=True)
-    fig.subplots_adjust(left=0.11, right=0.985, top=0.79, bottom=0.22, wspace=0.22)
-    for ax, locus, letter, n in zip(axes, LOCUS_NAMES, "abc", (25, 10, 10), strict=True):
-        heading(ax, letter, LOCUS_NAMES[locus])
-        clean_axis(ax, grid="y")
-        for arm in ARM_ORDER:
-            before = initial[locus, arm]
-            ax.plot(
-                [0, 1],
-                [before, before - gains[locus, arm]],
-                "o-",
-                color=ARM_COLOR[arm],
-                lw=1.8,
-                ms=5,
-                label=ARM_LABEL[arm],
-            )
-        ax.set(
-            xlim=(-0.17, 1.17),
-            ylim=(0, 0.43),
-            xticks=[0, 1],
-            xticklabels=["Before", "Final"],
-            yticks=[0, 0.1, 0.2, 0.3, 0.4],
-        )
-        ax.text(
-            0.5,
-            -0.27,
-            f"{n} clusters · {3 * n} sessions",
-            transform=ax.transAxes,
-            ha="center",
-            fontsize=9,
-            color=COLORS["muted"],
-        )
-    axes[0].set_ylabel("Mean prediction MAE")
-    handles, labels = axes[0].get_legend_handles_labels()
-    fig.legend(
-        handles,
-        labels,
-        loc="upper center",
-        bbox_to_anchor=(0.53, 1.02),
-        ncol=3,
-        columnspacing=1.5,
-        handlelength=1.5,
-        fontsize=10,
+def render_figure_3_prospective(deepseek_report, gpt_report):
+    models = (
+        ("deepseek", "DeepSeek Flash / high", deepseek_report),
+        ("codex", "GPT-5.6 / medium", gpt_report),
     )
+    fig, axes = plt.subplots(2, 3, figsize=(7.2, 3.55), sharex=True, sharey=True)
+    fig.subplots_adjust(left=0.09, right=0.97, top=0.73, bottom=0.20, wspace=0.27, hspace=0.64)
     fig.text(
-        0.55,
-        0.015,
-        "Selective-correction criterion unmet at every locus",
-        ha="center",
-        fontsize=9.5,
+        0.09,
+        0.975,
+        "Prediction improves; selective correction remains unestablished",
+        fontsize=11.7,
+        weight="bold",
+        va="top",
+        color=COLORS["ink"],
+    )
+    handles = [
+        mpl.lines.Line2D([], [], color=ARM_COLOR[a], marker=m, ms=4, lw=1.4, label=ARM_LABEL[a])
+        for a, m in zip(ARM_ORDER, ("o", "s", "^"), strict=True)
+    ]
+    fig.legend(
+        handles=handles,
+        loc="upper left",
+        bbox_to_anchor=(0.075, 0.91),
+        ncol=3,
+        fontsize=8.2,
+        handlelength=1.4,
+        columnspacing=1.6,
+    )
+    source_rows = []
+    for ri, (model, name, report) in enumerate(models):
+        y = 0.79 if ri == 0 else 0.455
+        fig.text(0.09, y, name, color=MODEL_COLORS[model], fontsize=8.3, weight="bold")
+        for ci, (locus, label) in enumerate(LOCUS_NAMES.items()):
+            ax = axes[ri, ci]
+            clean_axis(ax, grid="y")
+            ax.set_title(
+                f"{'abcdef'[ri * 3 + ci]}  {label}", loc="left", fontsize=8.7, weight="bold", pad=5
+            )
+            group = report["prediction_correction"]["locus_results"][locus]
+            for arm, marker in zip(ARM_ORDER, ("o", "s", "^"), strict=True):
+                values = group["by_arm"][arm]
+                before, after = (
+                    values["mean_effective_pre_error"],
+                    values["mean_effective_final_error"],
+                )
+                ax.plot(
+                    [0, 1],
+                    [before, after],
+                    color=ARM_COLOR[arm],
+                    marker=marker,
+                    ms=4.1,
+                    lw=1.5,
+                    mec="white",
+                    mew=0.35,
+                )
+                source_rows.append(
+                    {
+                        "model": model,
+                        "locus": locus,
+                        "arm": arm,
+                        "scheduled": values["cell_count"],
+                        "observed_pre": values["scored_pre_count"],
+                        "observed_final": values["scored_final_count"],
+                        "mean_effective_pre_error": before,
+                        "mean_effective_final_error": after,
+                    }
+                )
+            ax.set(
+                xlim=(-0.17, 1.17),
+                ylim=(0, 0.45),
+                xticks=[0, 1],
+                xticklabels=["Before", "Final"],
+                yticks=[0, 0.2, 0.4],
+            )
+            ax.tick_params(axis="both", labelsize=7.7, pad=2)
+    fig.text(
+        0.012, 0.46, "Mean normalized prediction error", rotation=90, va="center", fontsize=8.1
+    )
+    for ax in axes[0]:
+        ax.tick_params(axis="x", labelbottom=False)
+    fig.text(
+        0.09,
+        0.083,
+        "Per model: entity 75, parameters 30, structure 30 scheduled sessions; 45 world clusters.",
+        fontsize=7.6,
         color=COLORS["muted"],
     )
+    fig.text(
+        0.09,
+        0.033,
+        "Observed-point summaries use retained checkpoints; "
+        "confirmatory tests retain adverse failure bounds.",
+        fontsize=7.3,
+        color=COLORS["muted"],
+    )
+    write_csv(SOURCE_DIR / "figure-3-two-model-predictions.csv", source_rows, list(source_rows[0]))
     return export_figure(fig, "figure-3-prior-uptake-and-correction")
 
 
@@ -989,80 +1037,97 @@ def render_figure_4_matched(cell_rows, cross_configuration_rows, b3_rows):
 
 def render_figure_5_cross_model_c2(model_rows, locus_rows, gate_rows):
     del gate_rows
-    fig = plt.figure(figsize=(6.6, 3.25))
-    left = fig.add_axes((0.15, 0.24, 0.35, 0.59))
-    right = fig.add_axes((0.64, 0.24, 0.34, 0.59))
-    heading(left, "a", "Prediction → executable law")
+    fig = plt.figure(figsize=(7.2, 3.15))
+    left = fig.add_axes((0.14, 0.27, 0.39, 0.48))
+    right = fig.add_axes((0.61, 0.25, 0.375, 0.50))
+    fig.text(
+        0.035,
+        0.97,
+        "Executable laws can lose information present in direct answers",
+        fontsize=11.5,
+        weight="bold",
+        va="top",
+        color=COLORS["ink"],
+    )
+    heading(left, "a", "Matched prediction and law error")
     clean_axis(left)
     for row in locus_rows:
-        y = (2 - list(LOCUS_NAMES).index(row["locus"])) * 1.5
-        y += 0.21 if row["model"] == "deepseek" else -0.21
+        y = (2 - list(LOCUS_NAMES).index(row["locus"])) * 1.35
+        y += 0.20 if row["model"] == "deepseek" else -0.20
         color = MODEL_COLORS[row["model"]]
         law = row["mean_law_mae"]
-        matched_prediction = law - row["mean_law_compression_loss"]
-        left.plot([matched_prediction, law], [y, y], color=color, lw=2)
-        left.plot(matched_prediction, y, "o", mfc="white", mec=color, ms=5, mew=1.3)
-        left.plot(law, y, "o", color=color, ms=5)
+        prediction = law - row["mean_law_compression_loss"]
+        left.plot([prediction, law], [y, y], color=color, lw=1.8)
+        left.plot(prediction, y, "o", mfc="white", mec=color, ms=4.8, mew=1.2)
+        left.plot(law, y, "s", color=color, ms=4.2)
     left.set(
-        xlim=(0.1, 0.31),
-        ylim=(-0.6, 3.7),
-        yticks=[3, 1.5, 0],
+        xlim=(0.10, 0.32),
+        ylim=(-0.5, 3.2),
+        yticks=[2.7, 1.35, 0],
         yticklabels=list(LOCUS_NAMES.values()),
         xticks=[0.1, 0.2, 0.3],
         xlabel="Mean absolute error",
     )
-    left.tick_params(axis="y", length=0)
-    heading(right, "b", "Incumbent replay")
-    outcome_colors = [COLORS["aligned"], "#CDD5DB", COLORS["misindexed"], "#FAFAFA"]
-    for row, y in zip(model_rows, [1, 0], strict=True):
+    left.tick_params(axis="y", length=0, labelsize=8.4)
+    heading(right, "b", "Replay of the observed incumbent")
+    right.set(xlim=(0, 1), ylim=(0, 1))
+    right.axis("off")
+    cols = [0.10, 0.37, 0.62, 0.89]
+    for x, label in zip(cols, ("Better", "Equal", "Worse", "Missing"), strict=True):
+        right.text(x, 0.90, label, ha="center", fontsize=8.0, color=COLORS["muted"])
+    for row, top in zip(model_rows, (0.74, 0.32), strict=True):
+        color = MODEL_COLORS[row["model"]]
         counts = [
             row["blind_better_count"],
             row["blind_equivalent_count"],
             row["blind_worse_count"],
             row["scheduled_cell_count"] - row["blind_gain_evaluable_count"],
         ]
-        start = 0
-        for index, (count, color) in enumerate(zip(counts, outcome_colors, strict=True)):
-            right.barh(
-                y,
-                count,
-                left=start,
-                height=0.25,
-                color=color,
-                edgecolor="#8998A2",
-                linewidth=0.5,
-                hatch="////" if index == 3 else None,
+        right.text(0, top, MODEL_SHORT[row["model"]], fontsize=9, weight="bold", color=color)
+        right.plot([0, 1], [top - 0.055] * 2, color="#DEE5E9", lw=0.65)
+        for x, value in zip(cols, counts, strict=True):
+            right.text(
+                x,
+                top - 0.19,
+                str(value),
+                ha="center",
+                va="center",
+                fontsize=11,
+                weight="bold" if x == cols[1] else "normal",
+                color=COLORS["ink"],
             )
-            start += count
-        right.text(
-            0,
-            y + 0.25,
-            MODEL_SHORT[row["model"]],
-            fontsize=10,
-            fontweight="bold",
-            color=MODEL_COLORS[row["model"]],
-        )
-        right.text(0, y - 0.34, " / ".join(map(str, counts)), fontsize=10, color=COLORS["ink"])
-    right.set(
-        xlim=(0, 135),
-        ylim=(-0.55, 1.7),
-        xticks=[0, 45, 90, 135],
-        yticks=[],
-        xlabel="Scheduled cells",
+    right.text(
+        0, -0.19, "135 scheduled per model; missing retained", fontsize=7.6, color=COLORS["muted"]
     )
-    clean_axis(right)
-    right.spines["left"].set_visible(False)
-    model_legend(fig, y=1.02)
-    fig.text(0.12, 0.095, "○ Prediction    ● Law", fontsize=9.5, color=COLORS["muted"])
-    fig.text(
-        0.63, 0.095, "Counts: better / equal / worse / missing", fontsize=8.5, color=COLORS["muted"]
+    fig.legend(
+        handles=[
+            mpl.lines.Line2D(
+                [],
+                [],
+                color=MODEL_COLORS[key],
+                marker="o",
+                linestyle="none",
+                markersize=4,
+                label=MODEL_SHORT[key],
+            )
+            for key in ("deepseek", "codex")
+        ],
+        loc="upper left",
+        bbox_to_anchor=(0.14, 0.90),
+        borderaxespad=0,
+        ncol=2,
+        frameon=False,
+        fontsize=8,
     )
     fig.text(
-        0.51,
-        0.015,
-        "Matched law evaluations: 135 DeepSeek, 129 GPT · 135 scheduled per model",
-        ha="center",
-        fontsize=9,
+        0.14, 0.12, "○ Direct prediction    ■ Executable law", fontsize=8, color=COLORS["muted"]
+    )
+    fig.text(
+        0.035,
+        0.025,
+        "Same law-evaluable cells at both endpoints: 135 DeepSeek / 129 GPT. "
+        "Replay tests an observed plan.",
+        fontsize=7.4,
         color=COLORS["muted"],
     )
     return export_figure(fig, "figure-5-capability-chain")
@@ -1711,12 +1776,7 @@ def main() -> int:
     outputs = {
         "figure_1": render_figure_1(),
         "figure_2": render_figure_2(design, preflight),
-        "figure_3": render_figure_3_prospective(
-            initial_rows,
-            recipe_rows,
-            improvement_rows,
-            decision_rows,
-        ),
+        "figure_3": render_figure_3_prospective(deepseek_c2, codex_c2),
         "figure_4": render_figure_4_matched(
             matched_cell_rows,
             cross_configuration_rows,
@@ -1804,6 +1864,11 @@ def main() -> int:
             "prospective_recipe_comparisons": len(recipe_rows),
             "prospective_improvement_rows": len(improvement_rows),
             "prospective_locus_decisions": len(decision_rows),
+            "prospective_two_model_checkpoint_rows": sum(
+                len(group["by_arm"])
+                for report in (deepseek_c2, codex_c2)
+                for group in report["prediction_correction"]["locus_results"].values()
+            ),
             "matched_structural_cell_rows": len(matched_cell_rows),
             "matched_structural_contrast_rows": len(matched_contrast_rows),
             "matched_exact_law_expression_rows": len(matched_qualitative_rows),
@@ -1841,14 +1906,14 @@ def main() -> int:
         "interpretation_limits": [
             "Figure 1 states the identification problem; Figure 2 displays prospective "
             "task coverage, independent clusters and campaign budgets.",
-            "Figure 3 combines the prospective formal locus decisions with retrospective "
-            "manipulation summaries; first-recipe divergence has no same-arm replicate "
-            "baseline.",
+            "Figure 3 displays both models using effective pre/final checkpoint means. "
+            "Formal tests retain adverse failure bounds; retrospective first-recipe divergence "
+            "has no same-arm replicate baseline.",
             "Figure 4 combines conditional post-packet B2 results across three configurations with "
             "the failure-aware two-model B3 control. B2 has an exact participant-visible "
             "linear/power alias and supports an expression, not structural-identification, "
-            "readout; B3 supplies the typed reference-fitter-identifiable test. No "
-            "configuration-superiority test is performed.",
+            "readout; B3 adds typed scoring without establishing public-information sufficiency. "
+            "No configuration-superiority test is performed.",
             "B2 cross-configuration contrasts remain in the source tables and text; "
             "the incomplete A-P low block is excluded.",
             "Figure 5 compares fully scheduled 135-cell DeepSeek-v4-flash and GPT-5.6-sol "

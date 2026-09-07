@@ -9,8 +9,8 @@ remain separate.
 
 ## Figure 1 — Endpoint success does not reveal what the agent learned
 
-One compact design diagram: three supplied-description arms feed a fixed executable world and
-experimental campaign, followed by three separate prediction/knowledge/decision readouts.
+One compact design diagram: three supplied-description arms share a fixed executable world and
+hidden evaluation. Four parallel cards state each conversion's comparison and readout.
 Conceptual only; arrows do not identify internal belief or causal mediation.
 
 ## Figure 2 — One intervention logic across three scientific loci
@@ -22,11 +22,13 @@ are not mixed into this cohort graphic.
 
 ## Figure 3 — Prior uptake without established selective correction
 
-Three aligned panels show mean prediction error before and after experiments for entity,
-parameters and structure on the same y scale. Arm colors are consistent throughout the figures.
-Lines connect aggregate means; no confidence intervals are inferred from summary-only values.
+Six aligned panels show effective mean prediction error before and after experiments: DeepSeek
+and GPT form separate rows, with entity, parameters and structure as columns on the same scale.
+Colors and marker shapes identify prior arms. Lines connect observed-point summaries with retained
+checkpoint handling; confirmatory tests separately retain adverse bounds for missing outcomes.
+Exact scheduled/observed counts are provided in the two-model source table. No plot interval is inferred.
 
-The caption retains first-recipe differences (45/45, 45/45, 44/45) and registered selective-correction
+The text retains first-recipe differences (45/45, 45/45, 44/45) and registered selective-correction
 p values (0.990, 0.079, 1.000). Initial error headroom limits correction contrasts; unmet criteria
 do not establish inability. The recipe check has no repeated same-arm baseline.
 
@@ -49,10 +51,10 @@ are descriptive, and the packet-plus-turn response is not a pure packet effect.
 ## Figure 5 — Lower law error coexists with near-zero incumbent gain
 
 - A: prediction-to-law dumbbells by locus/model, using the same law-evaluable cells for both ends.
-  Hollow points are final predictions; filled points are executable laws. These are means and
+  Hollow circles are final predictions; filled squares are executable laws. These are means and
   compression differences, not uncertainty intervals. Matching matters for GPT's 129 available laws.
-- B: incumbent-replay outcomes with direct better/equivalent/worse/unavailable counts:
-  DeepSeek 1/119/1/14 and GPT 0/125/1/9, each on 135 scheduled cells. Hatching marks missing readouts.
+- B: a count table retains better/equivalent/worse/unavailable outcomes without hiding rare events:
+  DeepSeek 1/119/1/14 and GPT 0/125/1/9, each on 135 scheduled cells. Missing readouts remain explicit.
 
 The completed evaluator contains 420/420 truth executions per model. DeepSeek contributes 675/675
 checkpoint scores and 135 laws; GPT contributes 669/675 checkpoint scores and 129 laws. All H3
@@ -103,7 +105,7 @@ mean regret of zero: retrieval selects a measured optimum in all ten worlds. Raw
 improve on none; L/raw differences do not establish superiority or equivalence. New physical conditions
 and experimental savings are not tested. This is the final main-text result figure in the anonymous draft.
 
-The shared exports include editable SVG and vector PDF, high-resolution PNG/TIFF and six machine-derived
+The shared exports include editable SVG and vector PDF, high-resolution PNG/TIFF and machine-derived
 source tables. Panel labels, world points and confidence intervals use the same design conventions as M1.
 
 ## Figure 9 — Structure remains a separate readout under minimal submissions

@@ -11,6 +11,10 @@ The disclosure comparison retains original failures; separate GPT and DeepSeek w
 are available as standalone PDF/SVG/PNG assets. Selected retries are reported in a methods table.
 Old development-only figure exports are retired; their numerical reports remain in the evidence index.
 
+The design overview separates four conversion questions. The correction figure now shows both
+models across all three intervention loci, with exact counts in the two-model source table.
+The prediction/law figure uses matched dumbbells and an explicit replay-outcome count table.
+
 ## Reproduction
 
 From the repository root:
