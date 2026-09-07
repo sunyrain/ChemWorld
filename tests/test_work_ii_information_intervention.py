@@ -235,6 +235,79 @@ def test_resumed_deadline_reports_unstarted_without_inventing_results(tmp_path, 
     assert not (tmp_path / "sessions").exists()
 
 
+def test_applied_calendar_amendment_reports_actual_budget_and_preserves_original(
+    tmp_path, monkeypatch
+):
+    from scripts import run_work_ii_information_intervention as runner
+
+    budgets = {
+        "turn_timeout_s": 600,
+        "session_timeout_s": 1200,
+        "block_timeout_s": 43200,
+        "provider_retries": 0,
+    }
+    runner.write(
+        tmp_path / "inputs.json",
+        {
+            "phase": "formal",
+            "model": "gpt",
+            "cells": cells_for_world(world(), "gpt", 0),
+            "protocol": {"providers": {"gpt": {}}, "formal": budgets},
+            "reference_binding": {},
+        },
+    )
+    runner.write(tmp_path / "user_stop.json", {"reason": "configuration_change"})
+    runner.write(
+        tmp_path / "user_resume.json",
+        {
+            "user_stop_sha256": runner.digest(tmp_path / "user_stop.json"),
+            "deadline_epoch": 200,
+        },
+    )
+    runner.write(tmp_path / "block.json", {"started_epoch": 100, "deadline_epoch": 200})
+    original = {p: p.read_bytes() for p in tmp_path.glob("*.json")}
+    amendment = {"original_deadline_epoch": 200, "effective_deadline_epoch": None}
+    runner.write(tmp_path / "block_deadline_override.json", amendment)
+    monkeypatch.setattr(runner.time, "time", lambda: 201)
+    assert runner.analyze(tmp_path)["status"] == "deadline_reached_with_unstarted"
+    amendment["activated_epoch"] = 150
+    runner.write(tmp_path / "block_deadline_override.json", amendment)
+    report = runner.analyze(tmp_path)
+    assert report["status"] == "incomplete"
+    assert report["counts"] == {"unstarted": 6}
+    assert report["primary"]["mean"] is None
+    assert report["budgets"] == budgets
+    assert report["effective_budgets"] == {**budgets, "block_timeout_s": None}
+    assert report["schedule_amendment"] == amendment
+    assert all(p.read_bytes() == content for p, content in original.items())
+
+
+def test_calendar_amendment_cannot_override_platform_stop(tmp_path):
+    from scripts import run_work_ii_information_intervention as runner
+
+    cells = cells_for_world(world(), "gpt", 0)
+    runner.write(tmp_path / "inputs.json", {"phase": "formal", "cells": cells})
+    runner.write(
+        tmp_path / "freeze.json", {"inputs_sha256": runner.digest(tmp_path / "inputs.json")}
+    )
+    runner.write(tmp_path / "block.json", {"deadline_epoch": 200})
+    runner.write(tmp_path / "user_stop.json", {"reason": "configuration_change"})
+    runner.write(
+        tmp_path / "user_resume.json",
+        {"user_stop_sha256": runner.digest(tmp_path / "user_stop.json")},
+    )
+    runner.write(
+        tmp_path / "block_deadline_override.json",
+        {"original_deadline_epoch": 200, "effective_deadline_epoch": None},
+    )
+    runner.write(
+        tmp_path / "sessions/001/result.json",
+        {"cell_id": cells[0]["cell_id"], "failure": "platform_thread_changed", "status": "failed"},
+    )
+    with pytest.raises(ValueError, match="does not override platform"):
+        runner.resume_frozen(tmp_path, without_block_deadline=True)
+
+
 @pytest.mark.parametrize("reasoning_tokens", [1, None])
 def test_none_mode_mismatch_stops_before_post(tmp_path, monkeypatch, reasoning_tokens):
     from scripts import run_work_ii_final_diagnostic as runner
