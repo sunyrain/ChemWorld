@@ -114,11 +114,19 @@ def authorized_resume(root: Path) -> dict | None:
 
 
 def resume_frozen(
-    root: Path, export: Path | None = None, *, without_block_deadline: bool = False
+    root: Path,
+    export: Path | None = None,
+    *,
+    without_block_deadline: bool = False,
+    workers: int = 1,
 ) -> None:
     """Resume frozen sessions, optionally applying an explicit calendar amendment."""
     if (root / "executor.lock").exists():
         raise ValueError("executor is already active; preserve its work")
+    if workers not in (1, 2, 3) or (workers > 1 and not without_block_deadline):
+        raise ValueError("parallel resume requires an explicit calendar amendment and 2-3 workers")
+    if workers > 1 and read(root / "parallel_schedule.json")["requested_workers"] != workers:
+        raise ValueError("parallel worker count was not recorded")
     if not (root / "user_stop.json").exists() or (
         (root / "user_resume.json").exists() and not without_block_deadline
     ):
@@ -207,7 +215,12 @@ if sys.argv[3] == 'without_block_deadline':
             return {**value, 'deadline_epoch': float('inf')}
         return value
     runner.read = amended_read
-runner.run(root)
+if int(sys.argv[4]) > 1:
+    import runpy
+    run_parallel = runpy.run_path(sys.argv[5])['run_parallel']
+    run_parallel(root, runner, int(sys.argv[4]))
+else:
+    runner.run(root)
 """
         print(json.dumps({"stage": "resume_frozen", **record}), flush=True)
         result = subprocess.run(
@@ -219,6 +232,8 @@ runner.run(root)
                 str(snapshot),
                 str(root),
                 "without_block_deadline" if without_block_deadline else "original_deadline",
+                str(workers),
+                str(ROOT / "scripts/run_work_ii_information_parallel.py"),
             ],
             cwd=ROOT,
             check=False,
@@ -288,6 +303,14 @@ def analyze(root: Path, export: Path | None = None) -> dict:
             " The user subsequently removed the block calendar deadline. This is a disclosed "
             "scheduling amendment, not an unchanged original block stopping rule. Turn/session "
             "timeouts, tool limits, coverage, failure rules and all earlier outcomes were retained."
+        )
+    parallel_path = root / "parallel_schedule.json"
+    if parallel_path.exists() and (parallel := read(parallel_path)).get("activated_epoch"):
+        report["parallel_schedule_amendment"] = parallel
+        report["interpretation"] += (
+            f" The user also authorized up to {parallel['requested_workers']} concurrent "
+            "independent sessions for the remaining queue. Dispatch followed original indices; "
+            "completion order could differ. Rate-limit events and concurrency changes are retained."
         )
     write(root / "summary.json", report)
     lines = [
@@ -416,9 +439,12 @@ def main() -> None:
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--export", type=Path)
     parser.add_argument("--without-block-deadline", action="store_true")
+    parser.add_argument("--workers", type=int, choices=(1, 2, 3), default=1)
     args = parser.parse_args()
     if args.without_block_deadline and args.action != "resume-frozen":
         parser.error("--without-block-deadline applies only to an explicitly amended frozen resume")
+    if args.workers > 1 and (args.action != "resume-frozen" or not args.without_block_deadline):
+        parser.error("parallel workers require resume-frozen --without-block-deadline")
     root = args.root.resolve()
     if args.action == "prepare":
         prepare(root, args.phase, args.model)
@@ -427,7 +453,12 @@ def main() -> None:
     elif args.action == "run":
         run(root)
     elif args.action == "resume-frozen":
-        resume_frozen(root, args.export, without_block_deadline=args.without_block_deadline)
+        resume_frozen(
+            root,
+            args.export,
+            without_block_deadline=args.without_block_deadline,
+            workers=args.workers,
+        )
     else:
         analyze(root, args.export)
 
