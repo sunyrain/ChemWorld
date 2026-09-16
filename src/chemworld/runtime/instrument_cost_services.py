@@ -15,6 +15,7 @@ from chemworld.foundation import (
     scale_species_initial_amounts,
     upsert_equipment_record,
 )
+from chemworld.runtime.full_process_contract import active, sample_domain, withdraw_sample
 from chemworld.world.instruments import (
     INSTRUMENT_RUNTIME_MODEL_ID,
     INSTRUMENT_RUNTIME_PROVENANCE,
@@ -34,7 +35,7 @@ class ChemWorldInstrumentCostServices:
     def apply_measurement_cost(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         instrument_id = instrument_name(action.get("instrument", "hplc"))
         instrument = self.constitution.instruments.get(instrument_id)
-        contract = instrument_contracts().get(instrument_id)
+        contract = instrument_contracts(include_particle_size=active(state)).get(instrument_id)
         if instrument is None or contract is None:
             raise ValueError(f"unsupported instrument: {instrument_id!r}")
         if instrument_id == "final_assay" and instrument_completed(state.equipment, "final_assay"):
@@ -45,6 +46,7 @@ class ChemWorldInstrumentCostServices:
         ):
             raise ValueError("instrument cost and sampling domain must be finite and nonnegative")
         volume = float(instrument.sample_volume_L)
+        sampled = withdraw_sample(state, volume) if active(state) else state
         if state.volume_L < volume:
             raise ValueError(
                 f"insufficient sample volume for {instrument_id}: "
@@ -53,6 +55,7 @@ class ChemWorldInstrumentCostServices:
         fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
         species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
         ledger = state.ledger.with_updates(
+            time_s=state.ledger.time_s + (120.0 if instrument_id == "particle_size" else 0.0),
             cost=state.ledger.cost + instrument.cost,
             sample_consumed_L=state.ledger.sample_consumed_L + volume,
         )
@@ -63,7 +66,9 @@ class ChemWorldInstrumentCostServices:
             "measurement_index": use_count,
             "model_id": INSTRUMENT_RUNTIME_MODEL_ID,
             "provider_path": INSTRUMENT_RUNTIME_PROVIDER_PATH,
-            "provider_contract_hash": instrument_runtime_contract_hash(),
+            "provider_contract_hash": instrument_runtime_contract_hash(
+                include_particle_size=active(state)
+            ),
             "maturity": "reference_validated",
             "role": "runtime",
             "provenance": list(INSTRUMENT_RUNTIME_PROVENANCE),
@@ -80,9 +85,17 @@ class ChemWorldInstrumentCostServices:
             },
         }
         execution_history = list(previous_settings.get("execution_history", ()))
+        if instrument_id == "particle_size":
+            execution.update(
+                model_id="synthetic-particle-summary-v1",
+                maturity="development",
+                provenance=["synthetic population-balance scalar observation"],
+            )
+        if active(state):
+            execution["diagnostics"]["sample_domain"] = list(sample_domain(state))
         execution_history.append(execution)
         equipment = upsert_equipment_record(
-            state.equipment,
+            sampled.equipment,
             equipment_id=equipment_id,
             equipment_type="instrument",
             attached_vessel_id=state.vessel_id,
@@ -93,14 +106,16 @@ class ChemWorldInstrumentCostServices:
                 "last_cost": instrument.cost,
                 "last_sample_consumed_L": volume,
                 "use_count": use_count,
-                "model_id": INSTRUMENT_RUNTIME_MODEL_ID,
+                "model_id": execution["model_id"],
                 "provider_path": INSTRUMENT_RUNTIME_PROVIDER_PATH,
                 "provider_contract_hash": execution["provider_contract_hash"],
-                "provenance": list(INSTRUMENT_RUNTIME_PROVENANCE),
+                "provenance": execution["provenance"],
                 "diagnostics": execution["diagnostics"],
                 "execution_history": execution_history,
             },
         )
+        if active(state):
+            return sampled.replace(ledger=ledger, equipment=equipment)
         return state.replace(
             species_amounts=species,
             phases=scale_phase_ledger(

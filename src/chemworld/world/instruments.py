@@ -22,10 +22,10 @@ INSTRUMENT_RUNTIME_PROVENANCE = (
 )
 
 
-def chemworld_instruments() -> dict[str, Instrument]:
+def chemworld_instruments(*, include_particle_size: bool = False) -> dict[str, Instrument]:
     """Return instrument definitions used by the shared observation law."""
 
-    return {
+    instruments = {
         "hplc": Instrument(
             "hplc",
             "HPLC",
@@ -198,6 +198,20 @@ def chemworld_instruments() -> dict[str, Instrument]:
             requires_terminated=True,
         ),
     }
+    if include_particle_size:
+        instruments["particle_size"] = Instrument(
+            "particle_size",
+            "In situ particle imaging",
+            ("crystal_size", "crystal_csd_quality", "crystal_fines_fraction"),
+            cost=0.04,
+            sample_volume_L=0.0,
+            noise_std={
+                "crystal_size": 0.015,
+                "crystal_csd_quality": 0.015,
+                "crystal_fines_fraction": 0.015,
+            },
+        )
+    return instruments
 
 
 @dataclass(frozen=True)
@@ -248,7 +262,7 @@ class InstrumentContract:
         }
 
 
-def instrument_contracts() -> dict[str, InstrumentContract]:
+def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, InstrumentContract]:
     """Return formal contracts for every instrument available in ChemWorld."""
 
     latency = {
@@ -257,6 +271,7 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         "gc": 480.0,
         "hplc": 600.0,
         "final_assay": 1200.0,
+        "particle_size": 120.0,
     }
     calibration = {
         "uvvis": "beer_lambert_public_calibration_v2",
@@ -264,8 +279,10 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         "gc": "retention_plate_public_calibration_v2",
         "hplc": "retention_plate_public_calibration_v2",
         "final_assay": "synthetic_multichannel_public_calibration_v2",
+        "particle_size": "bounded_particle_imaging_v1",
     }
     axes: dict[str, dict[str, Any]] = {
+        "particle_size": {"key": "diameter_summary", "unit": "micrometre", "range": [0, 250]},
         "uvvis": {"key": "wavelength_nm", "unit": "nm", "range": [320.0, 760.0]},
         "ph_meter": {"key": "replicate_index", "unit": "index", "range": None},
         "gc": {"key": "time_min", "unit": "min", "range": [0.0, 4.0]},
@@ -277,6 +294,7 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
         },
     }
     calibration_methods = {
+        "particle_size": "Number-weighted particle imaging; d50 and count fraction below 20 um",
         "uvvis": "Beer-Lambert absorbance with blank, path length, and dilution",
         "ph_meter": "Nernstian electrode response at declared temperature",
         "gc": "retention factor, dead time, theoretical plates, and detector response",
@@ -285,7 +303,9 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
     }
     lod = {"uvvis": 0.0025, "gc": 0.0012, "hplc": 0.0008}
     contracts: dict[str, InstrumentContract] = {}
-    for instrument_id, instrument in chemworld_instruments().items():
+    for instrument_id, instrument in chemworld_instruments(
+        include_particle_size=include_particle_size
+    ).items():
         processed_schema = {
             key: {"type": ["number", "null"], "minimum": 0.0, "maximum": 1.0}
             for key in instrument.observable_keys
@@ -294,7 +314,11 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
             instrument_id=instrument_id,
             observable_keys=instrument.observable_keys,
             input_state_schema={
-                "physical_state": "virtual_liquid_sample",
+                "physical_state": (
+                    "in_situ_slurry"
+                    if instrument_id == "particle_size"
+                    else "virtual_liquid_sample"
+                ),
                 "required_public_fields": ["sample_basis_volume_L", "replicate_count"],
                 "forbidden_fields": [
                     "hidden_species_amounts",
@@ -352,7 +376,7 @@ def instrument_contracts() -> dict[str, InstrumentContract]:
     return contracts
 
 
-def instrument_runtime_contract_hash() -> str:
+def instrument_runtime_contract_hash(*, include_particle_size: bool = False) -> str:
     """Return a stable fingerprint of the exact runtime instrument contract."""
 
     payload = {
@@ -361,7 +385,9 @@ def instrument_runtime_contract_hash() -> str:
         "provenance": list(INSTRUMENT_RUNTIME_PROVENANCE),
         "instruments": {
             instrument_id: contract.to_dict()
-            for instrument_id, contract in sorted(instrument_contracts().items())
+            for instrument_id, contract in sorted(
+                instrument_contracts(include_particle_size=include_particle_size).items()
+            )
         },
     }
     encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")

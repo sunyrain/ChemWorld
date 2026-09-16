@@ -24,6 +24,7 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     normalize_electrochemical_workflow_mode,
 )
+from chemworld.runtime.full_process_contract import active, population_active
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import (
@@ -104,14 +105,10 @@ class OperationValidator:
         target_species: tuple[str, ...] = (),
         reagent_charge_molar_multiplier: float = 1.0,
         task_id: str | None = None,
-        electrochemical_workflow_mode: str = (
-            ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE
-        ),
+        electrochemical_workflow_mode: str = (ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE),
         operation_types: tuple[str, ...] = OPERATION_TYPES,
         action_codec: ActionCodec | None = None,
-        authored_field_bounds: Mapping[
-            tuple[str, str], tuple[float, float]
-        ] | None = None,
+        authored_field_bounds: Mapping[tuple[str, str], tuple[float, float]] | None = None,
     ) -> None:
         self.constitution = constitution
         self.allowed_operations = allowed_operations
@@ -194,6 +191,8 @@ class OperationValidator:
             "operation",
             *contracts[operation_type].required_fields,
         }
+        if operation_type == "distill" and population_active(state):
+            declared_fields.add("cut_fraction")
         preconditions["payload_fields_declared"] = set(canonical).issubset(declared_fields)
         valid_operations = self.valid_operations(state)
         action_mask = tuple(operation in valid_operations for operation in self.operation_types)
@@ -238,6 +237,14 @@ class OperationValidator:
 
         dynamic_low = low
         dynamic_high = high
+        if (
+            operation_type == "collect_fraction"
+            and field == "transfer_fraction"
+            and active(state)
+            and state.phases is not None
+            and "collected_fraction" in state.phases.phases
+        ):
+            dynamic_low = 0.0
         authored = self.authored_field_bounds.get((operation_type, field))
         if authored is not None:
             dynamic_low = max(dynamic_low, authored[0])
@@ -263,9 +270,7 @@ class OperationValidator:
         elif operation_type == "seed_crystals" and field == "seed_mass_g":
             cumulative_limit = OPERATION_CUMULATIVE_FIELD_LIMITS[(operation_type, field)]
             charged = float(
-                equipment_settings(state.equipment, "crystallizer").get(
-                    "crystal_seed_mass_g", 0.0
-                )
+                equipment_settings(state.equipment, "crystallizer").get("crystal_seed_mass_g", 0.0)
             )
             dynamic_high = min(dynamic_high, max(cumulative_limit - charged, 0.0))
         elif (
@@ -320,8 +325,7 @@ class OperationValidator:
             self.task_id == "electrochemical-conversion"
             and operation_type == "measure"
             and field == "instrument"
-            and self.electrochemical_workflow_mode
-            != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+            and self.electrochemical_workflow_mode != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
         ):
             required = self._electrochemical_required_instruments(state)
             if required:
@@ -411,9 +415,7 @@ class OperationValidator:
             and flagship_crystallization
             and operation_type == "filter_crystals"
         ):
-            preconditions["filter_crystals_requires_current_slurry_assay"] = (
-                current_nonfinal_assay
-            )
+            preconditions["filter_crystals_requires_current_slurry_assay"] = current_nonfinal_assay
         if crystals_filtered:
             preconditions["isolated_crystals_require_assay_or_termination"] = operation_type in {
                 "discard_batch",
@@ -457,9 +459,7 @@ class OperationValidator:
             seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
             primary_target = self.target_species[0] if self.target_species else None
             mother_liquor = (
-                None
-                if state.phases is None
-                else state.phases.phases.get("mother_liquor")
+                None if state.phases is None else state.phases.phases.get("mother_liquor")
             )
             if primary_target is None:
                 dissolved_target_mol = 0.0
@@ -469,8 +469,7 @@ class OperationValidator:
                 )
             else:
                 dissolved_target_mol = (
-                    float(state.species_amounts.get(primary_target, 0.0))
-                    - seed_target_mol
+                    float(state.species_amounts.get(primary_target, 0.0)) - seed_target_mol
                 )
             preconditions["cool_crystallize_target_feed_available"] = (
                 dissolved_target_mol > self.constitution.tolerance
@@ -479,8 +478,24 @@ class OperationValidator:
             preconditions["instrument_allowed_by_task"] = (
                 str(payload.get("instrument", "hplc")) in self.allowed_instruments
             )
+        if operation_type == "measure" and payload.get("instrument") == "particle_size":
+            solid = None if state.phases is None else state.phases.phases.get("solid")
+            preconditions["particle_population_available"] = (
+                active(state)
+                and solid is not None
+                and sum(solid.species_amounts_mol.values()) > self.constitution.tolerance
+            )
         if check_payload:
             preconditions.update(self._payload_checks(operation_type, payload, state))
+            if operation_type == "distill" and "cut_fraction" in payload:
+                preconditions["cut_fraction_supported"] = population_active(state)
+                preconditions["payload_bounds:cut_fraction"] = self._in_range(
+                    payload,
+                    "cut_fraction",
+                    0.005,
+                    0.9,
+                    inclusive_low=True,
+                )
         return preconditions
 
     def _has_current_nonfinal_assay(self, state: WorldState) -> bool:
@@ -492,6 +507,8 @@ class OperationValidator:
             else self.allowed_instruments
         )
         for instrument_id in instrument_ids:
+            if population_active(state) and instrument_id == "particle_size":
+                continue  # Particle imaging cannot substitute for the required chemical assay.
             if instrument_id == "final_assay":
                 continue
             settings = equipment_settings(
@@ -516,10 +533,7 @@ class OperationValidator:
         cell = equipment_settings(state.equipment, "electrochemical_cell")
         setpoint_count = len(tuple(cell.get("setpoint_history", ())))
         electrolysis_count = len(tuple(cell.get("electrolysis_history", ())))
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1:
             allowed = {
                 "add_solvent",
                 "add_reagent",
@@ -535,10 +549,7 @@ class OperationValidator:
             return operation_type in {"add_solvent", "add_reagent", "set_potential"}
         if electrolysis_count == 0:
             return operation_type == "electrolyze"
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE:
             if self._electrochemical_outcome_assay_complete(state):
                 return operation_type == "terminate"
             return operation_type == "measure"
@@ -557,15 +568,9 @@ class OperationValidator:
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if not electrolysis_history:
             return ()
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1:
             return ()
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE:
             last_end = self._float(dict(electrolysis_history[-1]).get("end_time_s"))
             if last_end is None:
                 return ()
@@ -603,15 +608,9 @@ class OperationValidator:
     def _electrochemical_outcome_assay_complete(self, state: WorldState) -> bool:
         cell = equipment_settings(state.equipment, "electrochemical_cell")
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1:
             return bool(electrolysis_history)
-        if (
-            self.electrochemical_workflow_mode
-            == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE
-        ):
+        if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE:
             return bool(electrolysis_history) and not self._electrochemical_required_instruments(
                 state
             )
@@ -870,6 +869,13 @@ class OperationValidator:
                     "transfer_fraction",
                 )
             ]
+            low, high = self.public_field_bounds(
+                operation_type,
+                "transfer_fraction",
+                state,
+                low=low,
+                high=high,
+            )
             checks["payload_bounds:transfer_fraction"] = self._in_range(
                 payload,
                 "transfer_fraction",

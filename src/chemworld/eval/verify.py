@@ -171,6 +171,7 @@ def verify_records(
             env_kwargs["budget_override"] = int(first["budget"])
             env_kwargs["episode_mode_override"] = str(first["episode_mode"])
         optional_string_kwargs = {
+            "full_process_contract_id": "full_process_contract_id",
             "electrochemical_workflow_mode": "electrochemical_workflow_mode",
             "electrochemical_material_family_id": (
                 "electrochemical_material_family_id"

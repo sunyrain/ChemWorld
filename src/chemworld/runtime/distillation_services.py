@@ -14,6 +14,7 @@ from chemworld.foundation import (
     upsert_equipment_record,
 )
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
+from chemworld.runtime.full_process_contract import population_active
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.runtime.vnext_downstream import run_duty_limited_distillation
 from chemworld.world.parameters import ChemWorldParameters
@@ -182,9 +183,7 @@ def _distillation_phases(
             phase_id="distillate",
             vessel_id=state.vessel_id,
             phase_type="liquid",
-            volume_L=(
-                0.0 if previous_distillate is None else previous_distillate.volume_L
-            )
+            volume_L=(0.0 if previous_distillate is None else previous_distillate.volume_L)
             + max(new_distillate_volume_L, 0.0),
             species_amounts_mol=distillate_amounts,
             settled=True,
@@ -219,24 +218,20 @@ class ChemWorldDistillationServices:
         previous_phases = {} if state.phases is None else state.phases.phases
         bottoms = previous_phases.get("bottoms")
         feed_amounts = (
-            state.species_amounts.copy()
-            if bottoms is None
-            else bottoms.species_amounts_mol.copy()
+            state.species_amounts.copy() if bottoms is None else bottoms.species_amounts_mol.copy()
         )
         feed_volume_L = max(
             state.volume_L if bottoms is None else bottoms.volume_L,
             0.0,
         )
         feed_source_phase = "reactor_liquid" if bottoms is None else "bottoms"
-        p_mol = sum(
-            float(feed_amounts.get(species_id, 0.0))
-            for species_id in target_species
-        )
+        p_mol = sum(float(feed_amounts.get(species_id, 0.0)) for species_id in target_species)
         impurity_mol = sum(
-            float(feed_amounts.get(species_id, 0.0))
-            for species_id in impurity_species
+            float(feed_amounts.get(species_id, 0.0)) for species_id in impurity_species
         )
         distillate_cut = float(np.clip(0.25 + duration / 9000.0, 0.05, 0.90))
+        if population_active(state) and "cut_fraction" in action:
+            distillate_cut = float(action["cut_fraction"])
         theoretical_stages = float(np.clip(2.0 + duration / 900.0, 1.0, 20.0))
         if p_mol + impurity_mol <= 1.0e-12:
             distillate_product = 0.0
@@ -307,9 +302,7 @@ class ChemWorldDistillationServices:
                     else None
                 ),
                 "distillation_adapter_id": (
-                    "wf-60-duty-limited-distillation"
-                    if executed_model_id is not None
-                    else None
+                    "wf-60-duty-limited-distillation" if executed_model_id is not None else None
                 ),
                 "distillation_provenance": (
                     list(
@@ -367,9 +360,7 @@ class ChemWorldDistillationServices:
             pre_separation_product_mol=initial_p,
             solvent_loss=solvent_loss,
             distillate_purity=float(np.clip(receiver_purity, 0.0, 1.0)),
-            distillate_recovery=float(
-                np.clip(receiver_product / initial_p, 0.0, 1.0)
-            ),
+            distillate_recovery=float(np.clip(receiver_product / initial_p, 0.0, 1.0)),
         )
         return state.replace(
             volume_L=receiver.volume_L,

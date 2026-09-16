@@ -62,7 +62,10 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "physics_maturity": env.kernel_maturity.lowest_level.value,
         "proxy_allowed": env.kernel_maturity.proxy_allowed,
         "instruments": {
-            key: contract.to_dict() for key, contract in instrument_contracts().items()
+            key: contract.to_dict()
+            for key, contract in instrument_contracts(
+                include_particle_size=getattr(env, "full_process_contract_id", None) is not None,
+            ).items()
         },
         "operations": [operation.to_dict() for operation in chemworld_operations()],
         "operation_contracts": {
@@ -76,10 +79,10 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "backend": semi_mechanistic_backend_spec().to_dict(),
         "observation_keys": list(OBSERVATION_KEYS),
     }
+    if getattr(env, "full_process_contract_id", None) is not None:
+        payload["full_process_contract_id"] = env.full_process_contract_id
     if env.task_id == "electrochemical-conversion":
-        payload["electrochemical_workflow_mode"] = (
-            env.electrochemical_workflow_mode
-        )
+        payload["electrochemical_workflow_mode"] = env.electrochemical_workflow_mode
     if env.compiled_composition is not None:
         payload["composition"] = env.compiled_composition.to_public_dict()
         payload["composition_request"] = env.compiled_composition.spec.to_dict()
@@ -94,13 +97,9 @@ def build_task_info(env: Any) -> dict[str, Any]:
         dossier = env.material_information_dossier()
         if dossier is not None:
             material_information["dossier"] = dossier
-            material_information["dossier_sha256"] = (
-                env.material_information_sha256
-            )
+            material_information["dossier_sha256"] = env.material_information_sha256
         payload["material_information"] = material_information
-    campaign_resources = env.public_campaign_resource_state(
-        include_card=True
-    )
+    campaign_resources = env.public_campaign_resource_state(include_card=True)
     if campaign_resources is not None:
         payload["campaign_resources"] = campaign_resources
     if env.debug_truth:
@@ -161,9 +160,7 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         "observation_noise_namespace": env.observation_noise_namespace,
         "last_observation_noise": env.observation_noise_provenance(),
         "campaign_resource_card_sha256": (
-            None
-            if env.campaign_resource_card is None
-            else env.campaign_resource_card.card_sha256
+            None if env.campaign_resource_card is None else env.campaign_resource_card.card_sha256
         ),
         "world_family_intervention_version": metadata.get("world_family_intervention_version"),
         "world_family_intervention_hash": metadata.get("world_family_intervention_hash"),
@@ -174,9 +171,7 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         "electrochemical_material_family_contract_version": metadata.get(
             "electrochemical_material_family_contract_version"
         ),
-        "electrochemical_material_family_id": metadata.get(
-            "electrochemical_material_family_id"
-        ),
+        "electrochemical_material_family_id": metadata.get("electrochemical_material_family_id"),
         "electrochemical_material_family_sha256": metadata.get(
             "electrochemical_material_family_sha256"
         ),
@@ -186,9 +181,7 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         "crystallization_material_family_contract_version": metadata.get(
             "crystallization_material_family_contract_version"
         ),
-        "crystallization_material_family_id": metadata.get(
-            "crystallization_material_family_id"
-        ),
+        "crystallization_material_family_id": metadata.get("crystallization_material_family_id"),
         "crystallization_material_family_sha256": metadata.get(
             "crystallization_material_family_sha256"
         ),
@@ -201,9 +194,7 @@ def build_evaluator_provenance(env: Any) -> dict[str, Any]:
         # dossier (or opaque mode).  The evaluator still needs the exact
         # configuration to reconstruct a misindexed arm during trajectory
         # replay, so keep it in evaluator-only provenance.
-        "material_information_config": deepcopy(
-            getattr(env, "material_information_config", None)
-        ),
+        "material_information_config": deepcopy(getattr(env, "material_information_config", None)),
     }
 
 

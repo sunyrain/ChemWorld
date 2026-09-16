@@ -125,6 +125,7 @@ def run_agent(
     scoring_contract_id: str | None = None,
     observation_noise_mode: str | None = None,
     observation_noise_namespace: str | None = None,
+    full_process_contract_id: str | None = None,
 ) -> list[HistoryRecord]:
     """Run one benchmark episode and optionally write a JSONL trajectory."""
 
@@ -162,6 +163,8 @@ def run_agent(
         env_kwargs["observation_noise_namespace"] = str(
             observation_noise_namespace
         )
+    if full_process_contract_id is not None:
+        env_kwargs["full_process_contract_id"] = full_process_contract_id
     if task_id is not None:
         env_kwargs["task_id"] = task_id
     if composition is not None:

@@ -275,6 +275,7 @@ class CoolingCrystallizationResult:
     step_reports: tuple[CrystallizationStepReport, ...]
     warnings: tuple[str, ...]
     provenance: dict[str, str]
+    population_cohorts: tuple[tuple[float, float], ...] = ()
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -305,6 +306,11 @@ class CoolingCrystallizationResult:
             "step_reports": [report.to_dict() for report in self.step_reports],
             "warnings": list(self.warnings),
             "provenance": dict(self.provenance),
+            **(
+                {"population_cohorts": [list(c) for c in self.population_cohorts]}
+                if self.population_cohorts
+                else {}
+            ),
         }
 
 
@@ -337,6 +343,8 @@ def cooling_crystallization(
     seed_diameter_m: float = 100.0e-6,
     time_steps: int = 120,
     execution_spec: CrystallizationExecutionSpec | None = None,
+    initial_cohorts: tuple[tuple[float, float], ...] | None = None,
+    retain_population: bool = False,
 ) -> CoolingCrystallizationResult:
     """Integrate a compact size-cohort cooling-crystallization model."""
 
@@ -369,7 +377,17 @@ def cooling_crystallization(
 
     seed_target_mol = seed_mass_g / 1000.0 / kinetics.target_molecular_weight_kg_mol
     cohorts: list[_CrystalCohort] = []
-    if seed_target_mol > 0.0:
+    if initial_cohorts is not None:
+        for count, diameter in initial_cohorts:
+            _positive_finite(count, "cohort particle count")
+            _positive_finite(diameter, "cohort diameter")
+            cohorts.append(_CrystalCohort(count, diameter))
+        population_mol = sum(
+            c.particle_count * _particle_moles(c.diameter_m, kinetics) for c in cohorts
+        )
+        if abs(population_mol - seed_target_mol) > 1.0e-10:
+            raise ValueError("initial cohort population does not close supplied solid mass")
+    elif seed_target_mol > 0.0:
         seed_particle_mol = _particle_moles(seed_diameter_m, kinetics)
         seed_particle_count = seed_target_mol / seed_particle_mol
         if seed_particle_count < policy.minimum_effective_seed_particles:
@@ -535,6 +553,9 @@ def cooling_crystallization(
         growth_solver_iterations=solver_iterations,
         growth_solver_max_residual_mol=solver_max_residual,
         crystal_size_distribution=csd,
+        population_cohorts=tuple((c.particle_count, c.diameter_m) for c in cohorts)
+        if retain_population
+        else (),
         step_reports=tuple(reports),
         warnings=tuple(warnings),
         provenance={

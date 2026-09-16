@@ -189,6 +189,24 @@ class ChemWorldObservationKernel:
         *,
         species_amounts_mol: dict[str, float] | None = None,
     ) -> dict[str, Any]:
+        if instrument_id == "particle_size":
+            self.last_provider_execution = {
+                "model_id": "synthetic-particle-summary-v1",
+                "maturity": "development",
+                "role": "runtime",
+                "success": True,
+                "failure_reason": None,
+                "provenance": ["population-balance scalar summary with Gaussian noise"],
+            }
+            return {
+                "kind": "particle_size_signal",
+                "d50_um": 250.0 * float(values["crystal_size"]),
+                "fines_number_fraction": values["crystal_fines_fraction"],
+                "csd_quality": values["crystal_csd_quality"],
+                "fines_threshold_um": 20.0,
+                "weighting": "number",
+                "metadata": {"synthetic": True, "raw_images_available": False},
+            }
         replicate_count = 3 if instrument_id == "final_assay" else 2
         provider_seed = int(rng.integers(0, 2**31 - 1))
         provider_result = self.instrument_provider.evaluate(
@@ -249,20 +267,56 @@ class ChemWorldObservationKernel:
         truth = self.species_view.truth_values(state)
         downstream = (
             self._partition_v3_truth_values(state)
-            if self.scoring_contract.contract_id
-            == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
+            if self.scoring_contract.contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
             else downstream_truth_values(
                 state,
                 product_amount_mol=self.species_view.target_amount(state),
                 impurity_amount_mol=self.species_view.impurity_amount(state),
-                initial_product_mol=max(
-                    self.species_view.initial_reactant_amount(state), 1.0e-12
-                ),
+                initial_product_mol=max(self.species_view.initial_reactant_amount(state), 1.0e-12),
                 target_species=self.species_view.target_species_for_state(state),
                 impurity_species=self.species_view.impurity_species_for_state(state),
             )
         )
         truth.update(downstream)
+        from chemworld.runtime.full_process_contract import (
+            FULL_PROCESS_SEED_CONTRACT,
+            active,
+            population_active,
+        )
+
+        if active(state):
+            phases = {} if state.phases is None else state.phases.phases
+            denominator = max(self.species_view.initial_reactant_amount(state), 1.0e-12)
+            if state.metadata.get("full_process_task_id") == "reaction-to-distillation":
+                # Same current receiver and original charge as the native purity/recovery assay.
+                truth["distillate_purity"] = downstream["purity"]
+                truth["distillate_recovery"] = downstream["recovery"]
+            if "solid" in phases:
+                solid = phases["solid"].species_amounts_mol
+                product = sum(solid.get(k, 0.0) for k in self.species_view.target_species)
+                impurity = sum(solid.get(k, 0.0) for k in self.species_view.impurity_species)
+                metrics = {} if state.process is None else state.process.metrics
+                seed = metrics.get(
+                    "retained_seed_mol",
+                    equipment_settings(state.equipment, "crystallizer").get("seed_target_mol", 0.0),
+                )
+                if state.metadata.get("full_process_contract_id") == FULL_PROCESS_SEED_CONTRACT:
+                    # A filtered slurry can be reheated, seeded or cooled again.
+                    # Its current solid provenance supersedes the last filter receipt.
+                    seed = equipment_settings(state.equipment, "crystallizer").get(
+                        "seed_target_mol", 0.0
+                    )
+                truth["crystal_purity"] = product / max(product + impurity, 1.0e-12)
+                truth["crystal_yield"] = float(
+                    np.clip((product - min(seed, product)) / denominator, 0.0, 1.0)
+                )
+                if population_active(state):
+                    settings = equipment_settings(state.equipment, "crystallizer")
+                    cv = min(max(float(settings.get("csd_cv", 0)), 0), 1)
+                    fines = float(settings.get("csd_fines_number_fraction", 0))
+                    truth["crystal_size"] = min(float(settings.get("csd_d50_m", 0)) / 250e-6, 1)
+                    truth["crystal_fines_fraction"] = fines
+                    truth["crystal_csd_quality"] = 0.55 * (1 - cv) + 0.45 * (1 - fines)
         equilibrium = self._equilibrium_truth_values(state)
         # Once the electrochemical runtime has solved its coupled aqueous
         # state, instrument-facing equilibrium signals must come from that
@@ -275,8 +329,7 @@ class ChemWorldObservationKernel:
     def _partition_v3_truth_values(self, state: WorldState) -> dict[str, float]:
         phase_ledger = self.phase_ledgers.phase_ledger(state)
         product_amount = sum(
-            float(entry.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0))
-            for entry in phase_ledger.values()
+            float(entry.get(PHASE_PRODUCT_AMOUNT_KEY, 0.0)) for entry in phase_ledger.values()
         )
         impurity_amount = sum(
             float(entry.get("impurity_mol", 0.0)) for entry in phase_ledger.values()
@@ -321,9 +374,7 @@ class ChemWorldObservationKernel:
         )
         residual = max(
             abs(float(process_metrics.get("electrolyte_charge_balance_error_eq", 0.0))),
-            abs(
-                float(process_metrics.get("electrolyte_material_balance_error_mol", 0.0))
-            )
+            abs(float(process_metrics.get("electrolyte_material_balance_error_mol", 0.0)))
             / inventory_scale,
         )
         diagnostic = cell.get("aqueous_equilibrium_diagnostic", {})

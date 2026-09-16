@@ -16,6 +16,13 @@ from chemworld.foundation import (
 )
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import SolubilityCurveSpec
+from chemworld.runtime.full_process_contract import (
+    FULL_PROCESS_SEED_CONTRACT,
+    FULL_PROCESS_THERMAL_CONTRACT,
+    population_active,
+    population_settings,
+    shrink_population,
+)
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.reaction_kernel import integrate_compiled_reaction_ode
@@ -77,19 +84,13 @@ class ChemWorldReactionThermalServices:
         )
         if solid_target <= 1.0e-12:
             return state, 0.0
-        solvent_index = int(
-            equipment_settings(state.equipment, "batch_reactor").get("solvent", 0)
-        )
+        solvent_index = int(equipment_settings(state.equipment, "batch_reactor").get("solvent", 0))
         material_coupling_enabled = (
             state.metadata.get("crystallization_material_family_id")
             == "reaction-crystallization-latent-materials-v1"
         )
         solubility_multiplier = (
-            float(
-                self.world.crystallization_solvent_solubility_multipliers[
-                    solvent_index
-                ]
-            )
+            float(self.world.crystallization_solvent_solubility_multipliers[solvent_index])
             if material_coupling_enabled and solvent_index in range(4)
             else 1.0
         )
@@ -107,8 +108,7 @@ class ChemWorldReactionThermalServices:
             provenance_id="chemworld-world-law-v0.2-solubility-policy",
         )
         equilibrium_capacity = (
-            curve.solubility_mol_per_l(min(target_temperature_K, 430.0))
-            * liquor.volume_L
+            curve.solubility_mol_per_l(min(target_temperature_K, 430.0)) * liquor.volume_L
         )
         dissolved_target = max(
             float(liquor.species_amounts_mol.get(target_species, 0.0)),
@@ -144,9 +144,7 @@ class ChemWorldReactionThermalServices:
             ),
         )
         crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
-        dissolution_history = list(
-            crystallizer_settings.get("dissolution_history", ())
-        )
+        dissolution_history = list(crystallizer_settings.get("dissolution_history", ()))
         dissolution_history.append(
             {
                 "initial_temperature_K": state.temperature_K,
@@ -163,6 +161,34 @@ class ChemWorldReactionThermalServices:
             status="partially_redissolved",
             settings={"dissolution_history": dissolution_history},
         )
+        if population_active(state):
+            remaining = (solid_target - redissolved_target) / solid_target
+            cohorts = shrink_population(
+                crystallizer_settings.get("population_cohorts", ()), remaining
+            )
+            equipment = upsert_equipment_record(
+                equipment,
+                equipment_id="crystallizer",
+                equipment_type="crystallizer",
+                attached_vessel_id=state.vessel_id,
+                settings={
+                    **population_settings(cohorts),
+                    "seed_target_mol": float(crystallizer_settings.get("seed_target_mol", 0.0))
+                    * remaining,
+                    **(
+                        {
+                            "dissolved_seed_target_mol": float(
+                                crystallizer_settings.get("dissolved_seed_target_mol", 0.0)
+                            )
+                            + float(crystallizer_settings.get("seed_target_mol", 0.0))
+                            * (1 - remaining)
+                        }
+                        if state.metadata.get("full_process_contract_id")
+                        == FULL_PROCESS_SEED_CONTRACT
+                        else {}
+                    ),
+                },
+            )
         return (
             state.replace(
                 phases=PhaseLedger(phases),
@@ -179,6 +205,7 @@ class ChemWorldReactionThermalServices:
         duration_s: float,
         target_temperature_K: float,
         heat: bool,
+        phase_change_heat_J: float = 0.0,
     ) -> WorldState:
         """Apply thermal time after quench without advancing reaction chemistry."""
 
@@ -187,6 +214,7 @@ class ChemWorldReactionThermalServices:
             world=self.world,
             final_temperature_K=target_temperature_K,
             duration_s=duration_s,
+            phase_change_heat_J=phase_change_heat_J,
         )
         ledger = state.ledger.with_updates(
             time_s=state.ledger.time_s + duration_s,
@@ -197,6 +225,7 @@ class ChemWorldReactionThermalServices:
                 + abs(thermal.jacket_energy_J) / 250_000.0
             ),
             energy_jacket_J=state.ledger.energy_jacket_J + thermal.jacket_energy_J,
+            heat_reaction_J=state.ledger.heat_reaction_J + thermal.phase_change_heat_J,
             heat_loss_J=state.ledger.heat_loss_J + thermal.heat_loss_J,
         )
         reactor_settings = equipment_settings(state.equipment, "batch_reactor")
@@ -211,9 +240,7 @@ class ChemWorldReactionThermalServices:
                 "last_operation": "heat" if heat else "wait",
                 "last_operation_semantic": "thermal_hold_after_quench",
                 "reaction_chemistry_advanced": False,
-                "reaction_advance_index": int(
-                    reactor_settings.get("reaction_advance_index", 0)
-                ),
+                "reaction_advance_index": int(reactor_settings.get("reaction_advance_index", 0)),
             },
         )
         process_metrics = {} if state.process is None else state.process.metrics
@@ -221,8 +248,7 @@ class ChemWorldReactionThermalServices:
             state.process,
             reaction_chemistry_stopped=1.0,
             quenched_hold_cumulative_time_s=(
-                float(process_metrics.get("quenched_hold_cumulative_time_s", 0.0))
-                + duration_s
+                float(process_metrics.get("quenched_hold_cumulative_time_s", 0.0)) + duration_s
             ),
         )
         return state.replace(
@@ -270,12 +296,39 @@ class ChemWorldReactionThermalServices:
             maximum=1200.0,
         )
         if state.quenched:
-            return self._quenched_thermal_hold(
-                state,
+            working_state, dissolved = (
+                self._redissolve_crystals_for_heating(state, target_temperature)
+                if heat
+                and state.metadata.get("full_process_contract_id")
+                in {
+                    FULL_PROCESS_THERMAL_CONTRACT,
+                    FULL_PROCESS_SEED_CONTRACT,
+                }
+                else (state, 0.0)
+            )
+            result = self._quenched_thermal_hold(
+                working_state,
                 duration_s=duration,
                 target_temperature_K=target_temperature,
                 heat=heat,
+                phase_change_heat_J=(
+                    20000.0 * dissolved
+                    if state.metadata.get("full_process_contract_id") == FULL_PROCESS_SEED_CONTRACT
+                    else 0.0
+                ),
             )
+            if (
+                dissolved > 0
+                and state.metadata.get("full_process_contract_id") != FULL_PROCESS_SEED_CONTRACT
+            ):
+                energy = 20000.0 * dissolved
+                result = result.replace(
+                    ledger=result.ledger.with_updates(
+                        energy_jacket_J=result.ledger.energy_jacket_J + energy,
+                        heat_reaction_J=result.ledger.heat_reaction_J + energy,
+                    )
+                )
+            return result
         working_state, redissolved_target = (
             self._redissolve_crystals_for_heating(state, target_temperature)
             if heat
@@ -330,14 +383,10 @@ class ChemWorldReactionThermalServices:
             time_s=working_state.ledger.time_s + result.duration_s,
             cost=working_state.ledger.cost + result.cost_delta,
             energy_jacket_J=(
-                working_state.ledger.energy_jacket_J
-                + result.energy_jacket_J
-                + dissolution_heat_J
+                working_state.ledger.energy_jacket_J + result.energy_jacket_J + dissolution_heat_J
             ),
             heat_reaction_J=(
-                working_state.ledger.heat_reaction_J
-                + result.heat_reaction_J
-                + dissolution_heat_J
+                working_state.ledger.heat_reaction_J + result.heat_reaction_J + dissolution_heat_J
             ),
             heat_loss_J=working_state.ledger.heat_loss_J + result.heat_loss_J,
         )
@@ -381,9 +430,7 @@ class ChemWorldReactionThermalServices:
                 float(
                     0.0
                     if working_state.process is None
-                    else working_state.process.metrics.get(
-                        "reaction_cumulative_time_s", 0.0
-                    )
+                    else working_state.process.metrics.get("reaction_cumulative_time_s", 0.0)
                 )
                 + result.duration_s
             ),
@@ -415,9 +462,7 @@ class ChemWorldReactionThermalServices:
             state=state,
             solvent_risks=self.world.solvent_risks,
             pressure_override_Pa=(
-                float(pressure_override)
-                if isinstance(pressure_override, int | float)
-                else None
+                float(pressure_override) if isinstance(pressure_override, int | float) else None
             ),
         )
         return state.replace(pressure_Pa=pressure, ledger=state.ledger.with_updates(risk=risk))

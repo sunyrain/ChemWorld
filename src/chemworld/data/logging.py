@@ -206,6 +206,7 @@ class TrajectoryLogger:
             "observation_noise_mode": task_info.get(
                 "observation_noise_mode"
             ),
+            "full_process_contract_id": task_info.get("full_process_contract_id"),
             "observation_noise_namespace": task_info.get(
                 "observation_noise_namespace"
             ),

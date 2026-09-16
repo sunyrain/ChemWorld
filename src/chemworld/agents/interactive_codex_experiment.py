@@ -3311,6 +3311,11 @@ def _bounded_current_packet(
         "campaign_resources": _compact_nested(resource_snapshot),
         "recipe_coverage_contract": _compact_nested(recipe_coverage_contract),
         "visible_metrics": _compact_scalars(context.visible_metrics),
+        **(
+            {"operational_state": _compact_nested(tool_view["operational_state"])}
+            if isinstance(tool_view.get("operational_state"), Mapping)
+            else {}
+        ),
         "latest_measurement": summarize_measurement(context.latest_spectra),
         "characterization_artifact": to_builtin(artifact) if artifact else None,
         "active_constraint_flags": {
@@ -3509,6 +3514,7 @@ def _material_information_payload(
 def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
     keys = (
         "env_id",
+        "full_process_contract_id",
         "task_id",
         "task_contract_hash",
         "composition",

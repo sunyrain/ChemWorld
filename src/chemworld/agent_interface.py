@@ -2,7 +2,8 @@
 
 The functions in this module are intentionally thin adapters over the existing
 task registry, operation validator, observation contracts, and campaign state.
-They do not read hidden ledgers or rate constants.
+The full-process sensor view exposes explicitly declared operational readouts,
+never latent composition, process-quality summaries, or rate constants.
 """
 
 from __future__ import annotations
@@ -15,7 +16,7 @@ import numpy as np
 
 from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
-from chemworld.foundation import equipment_settings
+from chemworld.foundation import equipment_settings, selected_phase_id
 from chemworld.materials import material_choice_labels
 from chemworld.operation_validator import (
     ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA,
@@ -30,11 +31,13 @@ from chemworld.physchem.electrochemical_task_contract import (
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
-    INSTRUMENTS,
     OPERATION_FIELD_BOUNDS,
     OPERATION_FIELD_CHOICES,
     OPERATION_TYPES,
     operation_contracts,
+)
+from chemworld.world.operations import (
+    EXTENDED_INSTRUMENTS as INSTRUMENTS,
 )
 
 PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.2"
@@ -436,6 +439,19 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
         _field_schema(field, operation=operation, task_id=task_id)
         for field in contract.required_fields
     ]
+    from chemworld.runtime.full_process_contract import population_active
+
+    if operation == "distill" and state is not None and population_active(state):
+        fields.append(
+            {
+                "field": "cut_fraction",
+                "required": False,
+                "type": "number",
+                "bounds": {"low": 0.005, "high": 0.9},
+                "description": "Requested fraction of feed distilled; independent of "
+                "duration. Actual cut is limited by duty. Omission uses legacy duration rule.",
+            }
+        )
     if operation == "measure":
         allowed_instruments = getattr(base, "allowed_instruments", set(INSTRUMENTS))
         fields = [
@@ -649,9 +665,7 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
         affordance = base.operation_validator.operation_affordance(operation, base._state)
         validation = affordance.to_dict()
         schema = action_schema(base, operation)
-        resource_reasons = list(
-            _campaign_resource_rejection_reasons_for_operation(base, operation)
-        )
+        resource_reasons = list(_campaign_resource_rejection_reasons_for_operation(base, operation))
         resource_reasons.extend(
             _campaign_schema_resource_rejection_reasons(base, operation, schema)
         )
@@ -692,25 +706,22 @@ def resource_blocked_actions(env: Any) -> list[dict[str, Any]]:
     valid = set(base.operation_validator.valid_operations(base._state))
     allowed = set(getattr(base, "allowed_operations", set(OPERATION_TYPES)))
     blocked: list[dict[str, Any]] = []
-    operation_types = tuple(
-        getattr(base.operation_validator, "operation_types", OPERATION_TYPES)
-    )
+    operation_types = tuple(getattr(base.operation_validator, "operation_types", OPERATION_TYPES))
     for operation in operation_types:
         if operation not in valid or operation not in allowed:
             continue
-        if operation == "discard_batch" and not getattr(
-            base,
-            "_campaign_batch_discard_available",
-            lambda: False,
-        )():
+        if (
+            operation == "discard_batch"
+            and not getattr(
+                base,
+                "_campaign_batch_discard_available",
+                lambda: False,
+            )()
+        ):
             continue
         schema = action_schema(base, operation)
-        reasons = list(
-            _campaign_resource_rejection_reasons_for_operation(base, operation)
-        )
-        reasons.extend(
-            _campaign_schema_resource_rejection_reasons(base, operation, schema)
-        )
+        reasons = list(_campaign_resource_rejection_reasons_for_operation(base, operation))
+        reasons.extend(_campaign_schema_resource_rejection_reasons(base, operation, schema))
         reasons = list(dict.fromkeys(reasons))
         if not reasons:
             continue
@@ -779,9 +790,7 @@ def _campaign_duration_capacity_s(
     if isinstance(reserve, dict):
         allowed = reserve.get("allowed_operation_classes", [])
         allowed_operations = (
-            {str(item) for item in allowed}
-            if isinstance(allowed, list | tuple)
-            else set()
+            {str(item) for item in allowed} if isinstance(allowed, list | tuple) else set()
         )
         if operation not in allowed_operations:
             capacity = max(
@@ -865,9 +874,7 @@ def _campaign_resource_rejection_reasons_for_operation(
         and int(operation_repeats.get(operation, 0)) < 1
     ):
         reasons.append(f"operation_repeat_limit:{operation}")
-    if _campaign_starts_vessel(base, operation) and int(
-        remaining.get("vessel_starts", 0)
-    ) < 1:
+    if _campaign_starts_vessel(base, operation) and int(remaining.get("vessel_starts", 0)) < 1:
         reasons.append("vessel_start_limit")
     if operation == "measure":
         schema_choices = [
@@ -923,11 +930,7 @@ def _campaign_schema_resource_rejection_reasons(
         stock_id, field_name = stock_contract
         if stock_id in ledger.card.stock_limits:
             stocks = remaining.get("stocks", {})
-            available = (
-                float(stocks.get(stock_id, 0.0))
-                if isinstance(stocks, dict)
-                else 0.0
-            )
+            available = float(stocks.get(stock_id, 0.0)) if isinstance(stocks, dict) else 0.0
     duration_capacity_s, duration_reason = _campaign_duration_capacity_s(
         base,
         operation,
@@ -1102,9 +1105,7 @@ def experiment_lifecycle_contract(episode_mode: Any) -> dict[str, str]:
     )
     return {
         "terminate_action_template": '{"operation":"terminate"}',
-        "final_assay_action_template": (
-            '{"operation":"measure","instrument":"final_assay"}'
-        ),
+        "final_assay_action_template": ('{"operation":"measure","instrument":"final_assay"}'),
         "terminate_effect": (
             "terminate marks the current process as terminated; it does not by itself "
             "complete the experiment."
@@ -1241,17 +1242,11 @@ def task_prompt(env: Any) -> dict[str, Any]:
         "material_catalog": info.get("material_catalog", {}),
         "material_information": info.get("material_information"),
         **(
-            {
-                "campaign_resources": deepcopy(
-                    info["campaign_resources"]
-                )
-            }
+            {"campaign_resources": deepcopy(info["campaign_resources"])}
             if "campaign_resources" in info
             else {}
         ),
-        "electrochemical_workflow_mode": info.get(
-            "electrochemical_workflow_mode"
-        ),
+        "electrochemical_workflow_mode": info.get("electrochemical_workflow_mode"),
         "measurement_policy": profile["measurement_policy"],
         "experiment_lifecycle": experiment_lifecycle,
         "recommended_strategy": list(profile["recommended_strategy"]),
@@ -1267,9 +1262,7 @@ def campaign_state(env: Any) -> dict[str, Any]:
 
     base = _base_env(env)
     summaries = deepcopy(getattr(base, "_experiment_summaries", []))
-    completed_summaries = [
-        summary for summary in summaries if summary.get("final_assay") is True
-    ]
+    completed_summaries = [summary for summary in summaries if summary.get("final_assay") is True]
     scored = [
         _safe_float(summary.get("leaderboard_score"), default=-1.0)
         for summary in completed_summaries
@@ -1577,9 +1570,7 @@ def _failure_summary(info: dict[str, Any]) -> dict[str, Any]:
     ]
     return {
         "precondition_failed": bool(flags.get("precondition_failed", False)),
-        "campaign_resource_rejected": bool(
-            flags.get("campaign_resource_rejected", False)
-        ),
+        "campaign_resource_rejected": bool(flags.get("campaign_resource_rejected", False)),
         "constitution_failed": bool(flags.get("constitution_failed", False)),
         "transaction_status": info.get("transaction_status"),
         "rollback_reason": info.get("rollback_reason"),
@@ -1611,9 +1602,7 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
     resource_rejected = failure["campaign_resource_rejected"]
     failed = failure["precondition_failed"] or resource_rejected
     status = (
-        "cannot_complete"
-        if resource_rejected
-        else "failed_precondition" if failed else "accepted"
+        "cannot_complete" if resource_rejected else "failed_precondition" if failed else "accepted"
     )
     operation = info.get("operation_type") or "none"
     opening = (
@@ -1684,11 +1673,7 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
     if summary["warnings"]:
         lines.append("Spectral warnings: " + ", ".join(summary["warnings"]) + ".")
     if failure["resource_rejection_reasons"]:
-        lines.append(
-            "Resource limits: "
-            + ", ".join(failure["resource_rejection_reasons"])
-            + "."
-        )
+        lines.append("Resource limits: " + ", ".join(failure["resource_rejection_reasons"]) + ".")
     recovery = _recovery_suggestion(env, info)
     if recovery is not None:
         lines.append(f"Recovery suggestion: {recovery}")
@@ -1713,9 +1698,98 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
     }
 
 
+def full_process_operational_state(env: Any, info: dict[str, Any]) -> dict[str, Any]:
+    """Expose process controls and sensor readings, never composition or model parameters.
+
+    This is an additive development interface for the three full-process tasks.
+    It deliberately separates current controls from carried analytical results.
+    """
+    base = _base_env(env)
+    if getattr(base, "task_id", None) not in {
+        "reaction-to-purification",
+        "reaction-to-crystallization",
+        "reaction-to-distillation",
+    }:
+        return {}
+    state = getattr(base, "_state", None)
+    if state is None:
+        return {}
+    selected = selected_phase_id(state.phases)
+    fresh = (
+        info.get("operation_type") == "measure"
+        and info.get("transaction_status") == "committed"
+        and info.get("instrument") is not None
+    )
+    process = state.process
+    has_previous = bool(process is not None and process.last_observation)
+    phases = {} if state.phases is None else state.phases.phases
+    from chemworld.runtime.full_process_contract import active, sample_domain
+
+    resolved = active(state)
+    return {
+        "schema_version": "chemworld-full-process-operational-state-0.1",
+        "sensor_contract": "Ideal temperature and volume readouts; analytical quality requires "
+        "a paid instrument. Phase identities and selection are operation bookkeeping.",
+        "temperature_K": float(state.temperature_K),
+        "active_volume_L": float(state.volume_L),
+        "process_time_s": float(state.ledger.time_s),
+        "quenched": bool(state.quenched),
+        "terminated": bool(state.terminated),
+        "selected_phase": selected,
+        "phases": {
+            str(key): {
+                "phase_type": phase.phase_type,
+                "volume_L": float(phase.volume_L),
+                "selected": bool(phase.selected),
+                "settled": bool(phase.settled),
+            }
+            for key, phase in phases.items()
+        },
+        "measurement_context": {
+            "fresh_measurement_this_step": fresh,
+            "status": "measured_this_step"
+            if fresh
+            else ("carried_not_remeasured" if has_previous else "not_measured"),
+            "instrument_this_step": info.get("instrument") if fresh else None,
+            "selected_phase_at_measurement": selected if fresh else None,
+            "scope_note": "Current phase selection does not relabel an earlier reading. "
+            "Reaction metrics and downstream metrics follow their own instrument contracts; "
+            "they are not all assays of the same material.",
+            "purification_default_metric_phase": (
+                "organic" if selected is None and "organic" in phases else None
+            ),
+        },
+        "sampling_contract": (
+            "Only the selected liquid phase is depleted. Solid and mother_liquor form one "
+            "representative analytical slurry group, including after filtration; they are not "
+            "separately stored bottles. Recovery/yield denominators are original reactant charge."
+            if resolved
+            else "Current runtime proportionally depletes all inventories during "
+            "sampling, including saved phases. It is not isolated receiver sampling."
+        ),
+        "sample_domain": list(sample_domain(state)) if resolved else None,
+        "receiver_selection_contract": (
+            "collect_fraction=0 selects an existing saved collected_fraction without mixing "
+            "new distillate. Positive fractions add current distillate to that saved receiver."
+            if resolved and base.task_id == "reaction-to-distillation"
+            else None
+        ),
+        "particle_measurement_contract": (
+            "Paid particle_size measurement is available after crystals exist: non-destructive, "
+            "120 seconds, cost 0.04, noisy number-weighted d50 and fines below 20 um."
+            if resolved and base.task_id == "reaction-to-crystallization"
+            else "Crystal size and fines are measured only by final_assay in the current task; "
+            "HPLC does not provide an online particle-size measurement."
+            if base.task_id == "reaction-to-crystallization"
+            else None
+        ),
+    }
+
+
 def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
     """Return a structured public observation bundle for tool agents."""
 
+    operational = full_process_operational_state(env, info)
     return {
         "mode": "tool_json",
         "task": {
@@ -1735,6 +1809,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "available_actions": available_actions(env),
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info),
+        **({"operational_state": operational} if operational else {}),
     }
 
 

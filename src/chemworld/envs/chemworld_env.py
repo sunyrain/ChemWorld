@@ -65,6 +65,13 @@ from chemworld.runtime import (
     MechanismSpeciesView,
     make_chemworld_constitution,
 )
+from chemworld.runtime.full_process_contract import (
+    FULL_PROCESS_CONTRACT,
+    FULL_PROCESS_POPULATION_CONTRACT,
+    FULL_PROCESS_SEED_CONTRACT,
+    FULL_PROCESS_TASKS,
+    FULL_PROCESS_THERMAL_CONTRACT,
+)
 from chemworld.tasks import default_kernel_maturity, get_task
 from chemworld.world.composition import (
     CompiledWorldComposition,
@@ -121,15 +128,12 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         observation_noise_mode: str = "sequential",
         observation_noise_namespace: str = "chemworld-default-observation",
         world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
-        electrochemical_workflow_mode: str = (
-            ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE
-        ),
+        electrochemical_workflow_mode: str = (ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE),
         electrochemical_material_family_id: str | None = None,
         crystallization_material_family_id: str | None = None,
+        full_process_contract_id: str | None = None,
         material_information: Mapping[str, Any] | None = None,
-        campaign_resource_card: (
-            Mapping[str, Any] | CampaignResourceCard | None
-        ) = None,
+        campaign_resource_card: (Mapping[str, Any] | CampaignResourceCard | None) = None,
         scoring_contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
         debug_truth: bool = False,
         render_mode: str | None = None,
@@ -186,18 +190,33 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.observation_noise_mode = observation_noise_mode
         self.observation_noise_namespace = observation_noise_namespace
+        if full_process_contract_id not in {
+            None,
+            FULL_PROCESS_CONTRACT,
+            FULL_PROCESS_POPULATION_CONTRACT,
+            FULL_PROCESS_SEED_CONTRACT,
+            FULL_PROCESS_THERMAL_CONTRACT,
+        }:
+            raise ValueError("unsupported full_process_contract_id")
+        self.full_process_contract_id = full_process_contract_id
+        if full_process_contract_id is not None:
+            if self.task_id not in FULL_PROCESS_TASKS:
+                raise ValueError("full process contract requires a native full-process task")
+            self.task_spec = replace(
+                self.task_spec,
+                tags=(*self.task_spec.tags, full_process_contract_id),
+                allowed_instruments=(*self.task_spec.allowed_instruments, "particle_size")
+                if self.task_id == "reaction-to-crystallization"
+                else self.task_spec.allowed_instruments,
+            )
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
         )
-        self.electrochemical_material_family_id = (
-            normalize_electrochemical_material_family(
-                electrochemical_material_family_id
-            )
+        self.electrochemical_material_family_id = normalize_electrochemical_material_family(
+            electrochemical_material_family_id
         )
-        self.crystallization_material_family_id = (
-            normalize_crystallization_material_family(
-                crystallization_material_family_id
-            )
+        self.crystallization_material_family_id = normalize_crystallization_material_family(
+            crystallization_material_family_id
         )
         material_family_id = (
             self.electrochemical_material_family_id
@@ -209,15 +228,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.material_information_config = normalize_static_material_information_config(
             material_information,
             task_ids=(
-                ()
-                if self.runtime_task_profile_id is None
-                else (self.runtime_task_profile_id,)
+                () if self.runtime_task_profile_id is None else (self.runtime_task_profile_id,)
             ),
             material_family_id=material_family_id,
         )
-        self.material_information_condition = str(
-            self.material_information_config["mode"]
-        )
+        self.material_information_condition = str(self.material_information_config["mode"])
         self._material_information_dossier = static_material_information_dossier(
             self.material_information_config,
             task_id=str(self.runtime_task_profile_id or ""),
@@ -235,9 +250,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 ).encode("utf-8")
             ).hexdigest()
         )
-        self.campaign_resource_card = self._normalize_campaign_resource_card(
-            campaign_resource_card
-        )
+        self.campaign_resource_card = self._normalize_campaign_resource_card(campaign_resource_card)
         self.scoring_contract_id = str(scoring_contract_id)
         self.debug_truth = debug_truth
         self.world_interventions = tuple(world_interventions or ())
@@ -287,9 +300,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         self.action_codec = ActionCodec(
             operation_types=(
-                CAMPAIGN_OPERATION_TYPES
-                if self.campaign_controls_enabled
-                else OPERATION_TYPES
+                CAMPAIGN_OPERATION_TYPES if self.campaign_controls_enabled else OPERATION_TYPES
             )
         )
         self.scenario_generator = DefaultScenarioGenerator()
@@ -314,7 +325,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.crystallization_material_family_id,
         )
         self.world = self.scenario_instance.parameters
-        self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
+        self.constitution = make_chemworld_constitution(
+            self.scenario_instance.compiled_mechanism,
+            include_particle_size=full_process_contract_id is not None,
+        )
         self.observation_contract = self._make_observation_contract()
         self.operation_validator = self._make_operation_validator()
         self.runtime = self._make_runtime()
@@ -338,7 +352,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._experiment_index = 0
         self._operation_id = 0
         self._done = False
-        self._state = deepcopy(self.scenario_instance.initial_state)
+        self._state = self._fresh_initial_state()
         self._last_observation = empty_observation()
         self._last_operation_record: OperationRecord | None = None
         self._last_info: dict[str, Any] = {}
@@ -381,9 +395,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         }
         if options and options.get("scenario_id"):
             if self.compiled_composition is not None:
-                raise ValueError(
-                    "scenario_id reset overrides are unavailable for composed worlds"
-                )
+                raise ValueError("scenario_id reset overrides are unavailable for composed worlds")
             self.scenario_spec = get_scenario(str(options["scenario_id"]), split=self.world_split)
         self.scenario_instance = self.scenario_generator.generate(
             self.scenario_spec,
@@ -399,8 +411,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             self.crystallization_material_family_id,
         )
         self.world = self.scenario_instance.parameters
-        self._state = deepcopy(self.scenario_instance.initial_state)
-        self.constitution = make_chemworld_constitution(self.scenario_instance.compiled_mechanism)
+        self._state = self._fresh_initial_state()
+        self.constitution = make_chemworld_constitution(
+            self.scenario_instance.compiled_mechanism,
+            include_particle_size=self.full_process_contract_id is not None,
+        )
         self.operation_validator = self._make_operation_validator()
         self.observation_contract = self._make_observation_contract()
         self.runtime = self._make_runtime()
@@ -463,8 +478,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
         if self._campaign_resource_ledger is not None:
             resource_starts_vessel = (
-                not self._campaign_resource_current_vessel_started
-                and not is_campaign_discard
+                not self._campaign_resource_current_vessel_started and not is_campaign_discard
             )
             resource_event_id = campaign_resource_event_id(
                 self._campaign_id,
@@ -486,9 +500,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             resource_preflight is not None and not resource_preflight.allowed
         )
         resource_rejection_reasons = (
-            resource_preflight.rejection_reasons
-            if resource_preflight is not None
-            else ()
+            resource_preflight.rejection_reasons if resource_preflight is not None else ()
         )
         if campaign_resource_rejected:
             validation = self._campaign_resource_failure_validation(
@@ -503,9 +515,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 validation,
                 tuple(
                     str(reason)
-                    for reason in declared_process_preflight.get(
-                        "rejection_reasons", ()
-                    )
+                    for reason in declared_process_preflight.get("rejection_reasons", ())
                 ),
             )
             runtime_result = self.runtime.apply_invalid_transaction(
@@ -555,9 +565,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         operation_record = runtime_result.operation_record
         runtime_info = runtime_result.info_payload()
         if declared_process_preflight is not None:
-            runtime_info["declared_process_time_preflight"] = deepcopy(
-                declared_process_preflight
-            )
+            runtime_info["declared_process_time_preflight"] = deepcopy(declared_process_preflight)
             runtime_info["declared_process_resources"] = (
                 self.public_declared_process_resource_state()
             )
@@ -567,9 +575,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     "transaction_status": "campaign_resource_rejected",
                     "rollback_reason": "campaign_resource_rejected",
                     "campaign_resource_rejected": True,
-                    "campaign_resource_rejection_reasons": list(
-                        resource_rejection_reasons
-                    ),
+                    "campaign_resource_rejection_reasons": list(resource_rejection_reasons),
                 }
             )
         preconditions_passed = all(operation_record.preconditions.values())
@@ -598,6 +604,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     species=previous_state.species,
                     phases=previous_state.phases,
                 )
+                if self.full_process_contract_id is not None:
+                    observation_state = observation_state.replace(
+                        process=previous_state.process,
+                        equipment=previous_state.equipment,
+                    )
             if self.observation_noise_mode == "keyed":
                 operation_type = str(action.get("operation") or "unknown")
                 instrument = str(operation_record.instrument or action.get("instrument") or "none")
@@ -656,8 +667,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     noise_provenance["status"] = "committed"
                     if noise_counter_key is not None:
                         self._observation_occurrences[noise_counter_key] = (
-                            self._observation_occurrences.get(noise_counter_key, 0)
-                            + 1
+                            self._observation_occurrences.get(noise_counter_key, 0) + 1
                         )
                 else:
                     # Observation generation is part of the atomic public
@@ -691,9 +701,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 self._declared_operation_counts[operation] += 1
         runtime_info = runtime_result.info_payload()
         if declared_process_preflight is not None:
-            runtime_info["declared_process_time_preflight"] = deepcopy(
-                declared_process_preflight
-            )
+            runtime_info["declared_process_time_preflight"] = deepcopy(declared_process_preflight)
             runtime_info["declared_process_resources"] = (
                 self.public_declared_process_resource_state()
             )
@@ -703,9 +711,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     "transaction_status": "campaign_resource_rejected",
                     "rollback_reason": "campaign_resource_rejected",
                     "campaign_resource_rejected": True,
-                    "campaign_resource_rejection_reasons": list(
-                        resource_rejection_reasons
-                    ),
+                    "campaign_resource_rejection_reasons": list(resource_rejection_reasons),
                 }
             )
         self._last_observation_noise_provenance = deepcopy(noise_provenance)
@@ -759,13 +765,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     )
                 ),
             }
-            resource_outcome_delta = (
-                self._campaign_resource_ledger.record_outcome(
-                    resource_event_id,
-                    action,
-                    resource_outcome,
-                    starts_vessel=resource_starts_vessel,
-                )
+            resource_outcome_delta = self._campaign_resource_ledger.record_outcome(
+                resource_event_id,
+                action,
+                resource_outcome,
+                starts_vessel=resource_starts_vessel,
             )
             if resource_outcome_delta.vessel_starts:
                 self._campaign_resource_current_vessel_started = True
@@ -776,9 +780,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "operation_committed": operation_committed,
                 "transaction_status": runtime_info["transaction_status"],
                 "rejected": campaign_resource_rejected,
-                "rejection_reasons": list(
-                    resource_preflight.rejection_reasons
-                ),
+                "rejection_reasons": list(resource_preflight.rejection_reasons),
             }
 
         self._step_count += 1
@@ -786,9 +788,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         successful_final_assay = operation_committed and operation_record.is_final_assay
         campaign_final_assay = successful_final_assay and self.episode_mode == "campaign"
         campaign_discard = (
-            operation_committed
-            and is_campaign_discard
-            and self.episode_mode == "campaign"
+            operation_committed and is_campaign_discard and self.episode_mode == "campaign"
         )
         campaign_batch_closed = campaign_final_assay or campaign_discard
         budget_exhausted = self._step_count >= self.budget
@@ -818,9 +818,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         info.update(runtime_info)
         if resource_preflight is not None and resource_outcome_delta is not None:
             info["campaign_resource_preflight"] = resource_preflight.to_dict()
-            info["campaign_resource_outcome_delta"] = (
-                resource_outcome_delta.to_dict()
-            )
+            info["campaign_resource_outcome_delta"] = resource_outcome_delta.to_dict()
         if campaign_resource_rejected:
             info["constraint_flags"] = {
                 **info.get("constraint_flags", {}),
@@ -871,15 +869,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 "completed_ordinal": completed_ordinal,
                 "terminal_step": self._step_count,
                 "outcome": "completed" if campaign_final_assay else "discarded",
-                "leaderboard_score": (
-                    info["leaderboard_score"] if campaign_final_assay else None
-                ),
+                "leaderboard_score": (info["leaderboard_score"] if campaign_final_assay else None),
                 "safety_risk": value_or_default(observation_values, "safety_risk"),
                 "cost": value_or_default(observation_values, "cost"),
                 "final_assay": bool(campaign_final_assay),
-                "discard_reason": (
-                    str(action.get("reason", "")) if campaign_discard else None
-                ),
+                "discard_reason": (str(action.get("reason", "")) if campaign_discard else None),
                 "resource_delta": self._batch_resource_delta(
                     self._current_batch_resource_baseline,
                     (
@@ -920,9 +914,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 info["campaign_terminal_blockers"] = blockers
                 terminated = True
             if self._campaign_resource_ledger is not None:
-                info["campaign_resources"] = (
-                    self.public_campaign_resource_state()
-                )
+                info["campaign_resources"] = self.public_campaign_resource_state()
         elif (
             self.episode_mode == "campaign"
             and self._campaign_resource_ledger is not None
@@ -930,9 +922,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         ):
             self._campaign_terminal = True
             self._campaign_terminal_reason = "operation_attempt_limit_exhausted"
-            self._right_censored_open_batch = bool(
-                self._campaign_resource_current_vessel_started
-            )
+            self._right_censored_open_batch = bool(self._campaign_resource_current_vessel_started)
             info["campaign_terminal"] = True
             info["campaign_terminal_reason"] = self._campaign_terminal_reason
             info["right_censored_open_batch"] = self._right_censored_open_batch
@@ -981,15 +971,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             "last_event_id": snapshot["last_event_id"],
             "current_experiment": {
                 "experiment_index": self._experiment_index,
-                "vessel_started": (
-                    self._campaign_resource_current_vessel_started
-                ),
+                "vessel_started": (self._campaign_resource_current_vessel_started),
             },
             "campaign_terminal": self._campaign_terminal,
             "campaign_terminal_reason": self._campaign_terminal_reason,
-            "latest_receipt": deepcopy(
-                self._last_campaign_resource_receipt
-            ),
+            "latest_receipt": deepcopy(self._last_campaign_resource_receipt),
         }
         lifecycle_reserve = self._campaign_lifecycle_reserve()
         if lifecycle_reserve is not None:
@@ -1014,8 +1000,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         if (
             ledger is None
             or self.task_id != "electrochemical-conversion"
-            or self.electrochemical_workflow_mode
-            != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
+            or self.electrochemical_workflow_mode != ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1
         ):
             return None
         state = ledger.snapshot()["state"]
@@ -1023,11 +1008,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         remaining_attempts = int(remaining["operation_attempts"])
         remaining_vessels = int(remaining["vessel_starts"])
         current_open = bool(self._campaign_resource_current_vessel_started)
-        future_unstarted = (
-            remaining_vessels
-            if current_open
-            else max(remaining_vessels - 1, 0)
-        )
+        future_unstarted = remaining_vessels if current_open else max(remaining_vessels - 1, 0)
         current_final_assay_operations = 0
         current_discard_operations = 0
         if current_open:
@@ -1064,9 +1045,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
 
         future_final_assay_reserve = 6 * future_unstarted
         future_discard_reserve = 2 * future_unstarted
-        final_assay_floor = (
-            current_final_assay_operations + future_final_assay_reserve
-        )
+        final_assay_floor = current_final_assay_operations + future_final_assay_reserve
         discard_floor = current_discard_operations + future_discard_reserve
         return {
             "schema_version": "chemworld-campaign-lifecycle-reserve-0.1",
@@ -1077,12 +1056,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             },
             "current_batch": {
                 "open": current_open,
-                "minimum_operations_to_final_assay": (
-                    current_final_assay_operations
-                ),
-                "minimum_operations_to_explicit_discard": (
-                    current_discard_operations
-                ),
+                "minimum_operations_to_final_assay": (current_final_assay_operations),
+                "minimum_operations_to_explicit_discard": (current_discard_operations),
             },
             "future_unstarted_batches": future_unstarted,
             "minimum_future_batch_operation_reserve": {
@@ -1091,9 +1066,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             },
             "recommended_remaining_attempt_floor": {
                 "to_final_assay_all_planned_batches": final_assay_floor,
-                "to_close_all_planned_batches_with_discards_allowed": (
-                    discard_floor
-                ),
+                "to_close_all_planned_batches_with_discards_allowed": (discard_floor),
             },
             "discretionary_attempts_before_final_assay_floor": max(
                 remaining_attempts - final_assay_floor,
@@ -1161,8 +1134,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             return card
         if not isinstance(card, Mapping):
             raise TypeError(
-                "campaign_resource_card must be a mapping, "
-                "CampaignResourceCard, or None"
+                "campaign_resource_card must be a mapping, CampaignResourceCard, or None"
             )
         payload = deepcopy(dict(card))
         if "hard_limits" in payload:
@@ -1247,23 +1219,20 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     str(item): (
                         int(after_map.get(item, 0)) - int(before_map.get(item, 0))
                         if key == "instrument_uses"
-                        else float(after_map.get(item, 0.0))
-                        - float(before_map.get(item, 0.0))
+                        else float(after_map.get(item, 0.0)) - float(before_map.get(item, 0.0))
                     )
                     for item in sorted(set(before_map) | set(after_map))
                     if (
                         int(after_map.get(item, 0)) - int(before_map.get(item, 0))
                         if key == "instrument_uses"
-                        else float(after_map.get(item, 0.0))
-                        - float(before_map.get(item, 0.0))
+                        else float(after_map.get(item, 0.0)) - float(before_map.get(item, 0.0))
                     )
                 }
         before_report = before.get("report_only", {})
         after_report = after.get("report_only", {})
         if isinstance(before_report, Mapping) and isinstance(after_report, Mapping):
             delta["report_only"] = {
-                key: float(after_report.get(key, 0.0))
-                - float(before_report.get(key, 0.0))
+                key: float(after_report.get(key, 0.0)) - float(before_report.get(key, 0.0))
                 for key in (
                     "process_time_s",
                     "sample_consumed_L",
@@ -1289,9 +1258,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         else:
             candidate_risk = float(observed_risk)
             normalized_observed_risk = (
-                candidate_risk
-                if isfinite(candidate_risk) and candidate_risk >= 0.0
-                else 0.0
+                candidate_risk if isfinite(candidate_risk) and candidate_risk >= 0.0 else 0.0
             )
         return {
             "process_time_s": positive_delta(
@@ -1322,9 +1289,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
     def _load_process_time_policy(self) -> ProcessTimeBudgetPolicy | None:
         if self.compiled_composition is None:
             return None
-        raw = self.compiled_composition.spec.task.resources.get(
-            "process_time_policy"
-        )
+        raw = self.compiled_composition.spec.task.resources.get("process_time_policy")
         if raw is None:
             return None
         if not isinstance(raw, Mapping):
@@ -1427,8 +1392,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
     def _make_runtime(self) -> ChemWorldRuntime:
         partition_nominal_pair_contract = (
             INDEPENDENT_NOMINAL_SOLVENT_EXTRACTANT_PAIR_V1
-            if self.scoring_contract.contract_id
-            == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
+            if self.scoring_contract.contract_id == PARTITION_S0_EXTRACTION_EFFICIENCY_V3
             else None
         )
         return ChemWorldRuntime(
@@ -1487,9 +1451,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         validation: OperationValidation,
         rejection_reasons: tuple[str, ...],
     ) -> OperationValidation:
-        resource_reasons = tuple(
-            f"campaign_resource:{reason}" for reason in rejection_reasons
-        )
+        resource_reasons = tuple(f"campaign_resource:{reason}" for reason in rejection_reasons)
         return replace(
             validation,
             is_valid=False,
@@ -1528,7 +1490,16 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
 
     def _fresh_initial_state(self) -> WorldState:
-        return deepcopy(self.scenario_instance.initial_state)
+        state = deepcopy(self.scenario_instance.initial_state)
+        if self.full_process_contract_id is not None:
+            state = state.replace(
+                metadata={
+                    **state.metadata,
+                    "full_process_contract_id": self.full_process_contract_id,
+                    "full_process_task_id": self.task_id,
+                }
+            )
+        return state
 
     def _observation_seed(self, world_seed: int) -> int:
         """Resolve observation noise independently from hidden-world generation.

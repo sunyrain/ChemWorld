@@ -71,6 +71,7 @@ OPERATION_TYPES = (
 )
 CAMPAIGN_OPERATION_TYPES = (*OPERATION_TYPES, *CAMPAIGN_CONTROL_OPERATIONS)
 INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
+EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 
 # Operation-specific input contracts are the single source of truth for values
 # whose effective runtime domain is narrower than the shared Gym field space.
@@ -357,7 +358,7 @@ def operation_name(value: Any) -> str:
 
 def instrument_name(value: Any) -> str:
     if isinstance(value, str):
-        if value not in INSTRUMENTS:
+        if value not in (*INSTRUMENTS, "particle_size"):
             raise ValueError(f"Unsupported instrument: {value}")
         return value
     return INSTRUMENTS[_discrete_index(value, len(INSTRUMENTS), "instrument")]
