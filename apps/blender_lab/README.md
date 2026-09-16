@@ -18,7 +18,24 @@ uv run --no-sync python -m apps.blender_lab --api-only --port 8878
 ```
 
 Rotate the actual scene, choose any of its 36 assets, switch between five camera views, and scrub
-the eight-action Core development example. Unknown measurements remain empty. **实时观测** reads
+the eight-action Core development example. **示例回放 → ▶** now moves the cart, articulates its arm,
+and carries the sample from the reaction handoff to the analysis bench before returning home.
+The approximately 63-second illustration supports pause, 0.5×/1×/2×/4× speed, a continuous scrubber,
+step navigation, **回到起点**, and optional **镜头跟随小车**. Selecting a camera preset exits follow mode.
+Dragging or stepping pauses playback and restores the entire scene at that time, including sample
+visibility, grasp and custody. Selecting a step jumps to its start; its new observations appear only
+after that step finishes. Switching away from the lab or hiding the tab pauses playback.
+
+These motions are explicitly **动作示意**, authored to accompany the existing public observations;
+they are not a recorded robot execution or a Core sample binding. The reaction handoff is local to
+this illustration. Routes use the scene navigator against catalog geometry; this is not a contact
+simulation. The heat stage compresses 300 simulated seconds into five presentation seconds. Final
+assay remains report-only, without assigning an unrelated instrument model. The original Core demo
+and research data are unchanged.
+
+![Camera following the cart as it carries the illustrative sample](previews/explorer_playback.png)
+
+Unknown measurements remain empty. **实时观测** reads
 the optional observer's public frames; seeking is read-only and never repeats a Core action.
 The service retains up to 1,000 frames from its latest session in memory; a service restart clears
 this presentation history. Original Core trajectories remain the replay source.
@@ -35,7 +52,11 @@ not the anonymous submission package.
 On small screens, swipe the chart horizontally to keep labels readable. Keyboard users can focus
 the chart and use the arrow keys. The expandable table retains exact values and denominators.
 
-The sealed sample transport runs in the same scene service as Blender. Web navigation, arm pose,
+The separate **后台场景搬运** button switches to the live scene and explicitly submits one virtual
+transport task. Live polling never overrides recorded playback poses. In live mode, historical
+public frames can still be browsed, but the cart shows the service's current state; those frames
+have no recorded motion. The sealed sample transport runs in the same scene service as Blender.
+Web navigation, arm pose,
 grasp and place use that service's virtual state. It is still an illustrative carrier, not a bound
 Core aliquot or a hardware controller. A stop does not resume itself; use the explorer's **复位**
 button, Blender's automation panel, or the `reset_estop` device action before submitting another task.
@@ -50,6 +71,17 @@ The web viewer vendors Three.js **0.169.0**, its OrbitControls/GLTFLoader/Buffer
 and MIT license under `static/vendor/`. No CDN requests, remote analytics, bundler or Node installation
 are needed to run it. `build_explorer_demo.py` captures the fixed example through `BlenderObserver`;
 run it only as a labelled development experiment with a new ignored trajectory path.
+
+Rebuild only the authored animation (no Core runs, provider calls, or live scene commands):
+
+```powershell
+uv run --no-sync python -m apps.blender_lab.build_explorer_motion
+uv run --no-sync pytest apps/blender_lab/test_explorer_motion.py apps/blender_lab/test_explorer.py -q
+node --test apps/blender_lab/test_replay.mjs
+```
+
+`static/replay-motion.json` contains the authored poses and timing; `static/replay.js` evaluates
+them deterministically at any time. Node is only needed for the optional JavaScript tests.
 
 ## Where the workflow connects
 

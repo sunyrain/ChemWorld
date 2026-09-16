@@ -46,7 +46,7 @@
             <div class="section-label">01 <span>实验过程</span></div>
             <h2 id="workflow-title">从配液到终检</h2>
             <p class="muted small" id="workflow-description">
-              固定八步示例 · 公开观测回放
+              八步实验 · 小车与样品同步演示
             </p>
             <div class="segmented">
               <button id="recorded" class="active">示例回放</button
@@ -55,13 +55,13 @@
             <ol id="steps" class="steps" aria-label="实验步骤"></ol>
             <div class="workflow-foot">
               <span class="source-dot"></span
-              ><span id="source-description">Core 开发示例 · 非论文样本</span>
+              ><span id="source-description">Core 开发观测 + 动作示意 · 非论文样本</span>
             </div>
           </aside>
           <div class="scene-column">
             <div class="scene-shell" id="scene-shell">
               <div class="scene-top">
-                <span class="pill" id="scene-mode">公开轨迹回放</span
+                <span class="pill" id="scene-mode">实验回放 · 动作示意</span
                 ><span id="scene-count">36 个场景资产</span>
               </div>
               <div
@@ -112,6 +112,24 @@
               <button id="previous" aria-label="上一步">‹</button
               ><button id="next" aria-label="下一步">›</button>
             </div>
+            <div class="playback-options">
+              <button id="restart" title="暂停并回到起点">↺ 回到起点</button>
+              <label>速度
+                <select id="playback-speed" aria-label="回放速度">
+                  <option value="0.5">0.5×</option>
+                  <option value="1" selected>1×</option>
+                  <option value="2">2×</option>
+                  <option value="4">4×</option>
+                </select>
+              </label>
+              <label><input id="follow-robot" type="checkbox" /> 镜头跟随小车</label>
+            </div>
+            <div id="motion-detail" class="panel motion-detail">
+              <div class="motion-heading"><span class="motion-badge">动作示意</span><span id="motion-time">0:00</span></div>
+              <p id="motion-stage" role="status">准备开始 · 小车待命</p>
+              <p id="sample-status">样品：尚未取样</p>
+              <p class="muted small">公开实验观测配合动作编排；样品管未绑定实验样本。</p>
+            </div>
             <div class="panel asset-detail">
               <div>
                 <p class="eyebrow">SELECTED INSTRUMENT</p>
@@ -127,6 +145,7 @@
             <div class="section-label">02 <span>公开观测</span></div>
             <h2>此刻，我们知道什么？</h2>
             <p class="muted small">只有仪器已报告的值才会出现。</p>
+            <p id="observation-step" class="muted small"></p>
             <div id="measurements" class="measurements"></div>
             <div class="budget">
               <div>
@@ -135,18 +154,18 @@
               <div class="meter"><span id="budget-meter"></span></div>
             </div>
             <details class="report" open>
-              <summary>本步实验报告</summary>
+              <summary>最近完成步骤的报告</summary>
               <pre id="report-text">等待公开报告</pre>
             </details>
             <div class="transport">
               <p class="eyebrow">SCENE LOGISTICS</p>
-              <h3>跟随样品去表征</h3>
+              <h3>后台场景搬运</h3>
               <p class="small muted">
-                独立场景搬运演示；样品管尚未绑定 Core 样本。
+                切换实时场景，独立运行虚拟搬运。示例回放不会发送搬运指令。
               </p>
               <div>
-                <button id="transport">运行搬运</button
-                ><button id="estop" class="quiet">停止</button>
+                <button id="transport">切换实时并搬运</button
+                ><button id="estop" class="quiet" disabled>停止</button>
               </div>
               <p id="transport-status" class="small" role="status">
                 机器人待命

@@ -1,6 +1,7 @@
 import * as THREE from "three";
 import { OrbitControls } from "./vendor/controls/OrbitControls.js";
 import { GLTFLoader } from "./vendor/loaders/GLTFLoader.js";
+import { ReplayClock, sampleMotion } from "./replay.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
@@ -50,7 +51,14 @@ const state = {
   assets: [],
   evidence: null,
   study: "m3",
-  timer: null,
+  motion: null,
+  clock: null,
+  activeStep: 0,
+  motionPose: null,
+  livePlaying: false,
+  liveTick: 0,
+  environment: null,
+  follow: false,
   selected: "reactor_01",
   liveFrames: [],
   transport: null,
@@ -62,6 +70,8 @@ let renderer,
   lab,
   dirty = true;
 const roots = new Map();
+let actionMarker;
+let followPosition = null;
 const selectedBox = new THREE.Box3Helper(new THREE.Box3(), 0x267f78);
 selectedBox.visible = false;
 
@@ -112,6 +122,9 @@ $("open-evidence").onclick = () => showPage("evidence");
 
 function setView(view) {
   if (!camera) return;
+  state.follow = false;
+  $("follow-robot").checked = false;
+  followPosition = null;
   const views = {
     overview: [
       [9, 8.5, 10.5],
@@ -197,6 +210,19 @@ async function setupScene() {
     lab = gltf.scene;
     scene.add(lab);
     scene.add(selectedBox);
+    actionMarker = new THREE.Mesh(
+      new THREE.RingGeometry(0.36, 0.42, 48),
+      new THREE.MeshBasicMaterial({
+        color: 0x269c92,
+        transparent: true,
+        opacity: 0.8,
+        side: THREE.DoubleSide,
+        depthWrite: false,
+      }),
+    );
+    actionMarker.rotation.x = -Math.PI / 2;
+    actionMarker.visible = false;
+    scene.add(actionMarker);
     lab.traverse((o) => {
       const id = o.userData.lab_id;
       if (id && o.parent?.userData.lab_id !== id) roots.set(id, o);
@@ -219,6 +245,8 @@ async function setupScene() {
     setView("overview");
     resize();
     selectAsset(state.selected, false);
+    if (state.mode === "recorded") renderReplay(true);
+    else if (state.environment) applyEnvironment(state.environment);
     let down = null;
     renderer.domElement.addEventListener(
       "pointerdown",
@@ -242,16 +270,6 @@ async function setupScene() {
       if (hit) selectAsset(hit.object.userData.lab_id, false);
     });
     new ResizeObserver(resize).observe($("viewport"));
-    function animate() {
-      requestAnimationFrame(animate);
-      if (document.hidden || $("lab-page").hidden) return;
-      controls.update();
-      if (dirty) {
-        renderer.render(scene, camera);
-        dirty = false;
-      }
-    }
-    animate();
   } catch (error) {
     $("loading").textContent =
       "三维视图未能载入。仍可使用设备列表、轨迹与证据图表。";
@@ -263,6 +281,11 @@ function selectAsset(id, focus = false) {
   state.selected = id;
   const asset = state.assets.find((a) => a.id === id);
   if (!asset) return;
+  if (focus && id !== "robot_01") {
+    state.follow = false;
+    $("follow-robot").checked = false;
+    followPosition = null;
+  }
   $("asset-select").value = id;
   $("asset-name").textContent = asset.name;
   const mapped = ["uvvis_01", "ftir_01", "ph_01"].includes(id);
@@ -294,70 +317,226 @@ $("snapshot").onclick = () => {
   }
 };
 function pause() {
-  clearInterval(state.timer);
-  state.timer = null;
-  $("play").textContent = "▶";
-  $("play").setAttribute("aria-label", "播放公开轨迹");
+  state.clock?.pause(performance.now());
+  state.livePlaying = false;
+  if (state.mode === "recorded" && state.motion) renderReplay();
+  updatePlayButton();
 }
+function updatePlayButton() {
+  const playing =
+    state.mode === "recorded" ? state.clock?.playing : state.livePlaying;
+  $("play").textContent = playing ? "Ⅱ" : "▶";
+  $("play").setAttribute("aria-label", playing ? "暂停公开轨迹" : "播放公开轨迹");
+}
+const timeLabel = (t) =>
+  `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
+function applyPoses(robot, poses, sampleVisible = true) {
+  for (const id of ["robot_01", "sample_tube_01"]) {
+    const root = roots.get(id),
+      pos = poses[id];
+    if (!root || !pos) continue;
+    root.position.set(pos[0], pos[2], -pos[1]);
+    if (id === "robot_01")
+      root.rotation.y = ((robot.base_yaw_deg || 0) * Math.PI) / 180;
+    else root.visible = sampleVisible;
+  }
+  updateArm(robot, poses.robot_01);
+  if (roots.has(state.selected)) {
+    const selected = roots.get(state.selected);
+    selectedBox.box.setFromObject(selected);
+    selectedBox.visible = selected.visible;
+  }
+  dirty = true;
+}
+function applyEnvironment(environment) {
+  if (state.mode !== "live") return;
+  applyPoses(environment.robot, environment.simulation.poses || {});
+  if (actionMarker) actionMarker.visible = false;
+}
+function renderReplay(force = false) {
+  const pose = sampleMotion(state.motion, state.clock.time);
+  const changed =
+    state.index !== pose.frameIndex ||
+    state.activeStep !== pose.step ||
+    state.motionPose?.asset !== pose.asset;
+  state.index = pose.frameIndex;
+  state.activeStep = pose.step;
+  state.motionPose = pose;
+  applyPoses(pose.robot, pose.poses, pose.sampleVisible);
+  if (force || changed) renderFrame();
+  $("scrubber").value = pose.time;
+  $("scrubber").setAttribute(
+    "aria-valuetext", `${timeLabel(pose.time)}，${pose.label}`,
+  );
+  $("motion-time").textContent = `${timeLabel(pose.time)} / ${timeLabel(state.motion.duration)}`;
+  if ($("motion-stage").textContent !== pose.label)
+    $("motion-stage").textContent = pose.label;
+  $("sample-status").textContent = !pose.sampleVisible
+    ? "样品：尚未取样"
+    : pose.holder === "robot_01"
+      ? "样品：夹爪携带中"
+      : pose.holder === "analysis"
+        ? "样品：表征台交接位"
+        : "样品：反应区交接位";
+  if (actionMarker) {
+    const root = roots.get(pose.asset);
+    actionMarker.visible = Boolean(root?.visible);
+    if (root) {
+      const center = new THREE.Box3()
+        .setFromObject(root).getCenter(new THREE.Vector3());
+      actionMarker.position.set(
+        center.x, pose.asset === "robot_01" ? 0.025 : 0.95, center.z,
+      );
+      const pulse = pose.effect ? 1 + 0.12 * Math.sin(pose.time * 5) : 1;
+      actionMarker.scale.setScalar(pulse);
+      actionMarker.material.color.set(pose.effect === "heat" ? 0xd68b3a : 0x269c92);
+    }
+  }
+  updatePlayButton();
+}
+function seekTime(time) {
+  state.clock.seek(time, performance.now());
+  renderReplay(true);
+}
+function animate(now) {
+  requestAnimationFrame(animate);
+  if (document.hidden || $("lab-page").hidden) return;
+  if (state.mode === "recorded" && state.clock?.playing) {
+    state.clock.tick(now);
+    renderReplay();
+  } else if (
+    state.mode === "live" && state.livePlaying && now - state.liveTick >= 1800
+  ) {
+    state.liveTick = now;
+    seek(state.index + 1);
+    if (state.index === state.frames.length - 1) pause();
+  }
+  const robot = roots.get("robot_01");
+  if (state.follow && robot && camera) {
+    if (followPosition) {
+      const delta = robot.position.clone().sub(followPosition);
+      camera.position.add(delta);
+      controls.target.add(delta);
+    }
+    followPosition = robot.position.clone();
+  }
+  controls?.update();
+  if (renderer && scene && camera && dirty) {
+    renderer.render(scene, camera);
+    dirty = false;
+  }
+}
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) pause();
+});
+$("playback-speed").onchange = (e) => {
+  state.clock?.setRate(Number(e.target.value), performance.now());
+};
+$("restart").onclick = () => {
+  pause();
+  if (state.mode === "recorded") seekTime(0);
+  else seek(0);
+};
+$("follow-robot").onchange = (e) => {
+  state.follow = e.target.checked;
+  followPosition = null;
+  if (state.follow) {
+    selectAsset("robot_01", true);
+    document.querySelectorAll("[data-view]")
+      .forEach((b) => b.classList.remove("active"));
+  }
+};
 function setMode(mode) {
   pause();
   state.mode = mode;
   state.frames = mode === "recorded" ? state.demo.frames : state.liveFrames;
   state.index = mode === "recorded" ? 0 : Math.max(0, state.frames.length - 1);
+  followPosition = null;
+  $("motion-detail").hidden = mode !== "recorded";
+  $("playback-speed").disabled = mode !== "recorded";
+  $("estop").disabled = mode !== "live";
+  $("transport").textContent = mode === "recorded" ? "切换实时并搬运" : "运行搬运";
   $("recorded").classList.toggle("active", mode === "recorded");
   $("live").classList.toggle("active", mode === "live");
   $("scene-mode").textContent =
-    mode === "recorded" ? "公开轨迹回放" : "实时公开观测";
+    mode === "recorded" ? "实验回放 · 动作示意" : "实时场景 · 公开观测";
   $("source-description").textContent =
     mode === "recorded"
-      ? "Core 开发示例 · 非论文样本"
+      ? "Core 开发观测 + 动作示意 · 非论文样本"
       : "当前会话 · 仅显示已收到的公开帧";
   $("workflow-description").textContent =
     mode === "recorded"
-      ? "固定八步示例 · 公开观测回放"
+      ? "八步实验 · 小车与样品同步演示"
       : "随公开帧更新 · 可回看已收到的步骤";
-  renderFrame();
+  if (mode === "recorded") seekTime(0);
+  else {
+    if (state.environment) applyEnvironment(state.environment);
+    renderFrame();
+  }
+  if (state.follow) selectAsset("robot_01", true);
 }
 $("recorded").onclick = () => setMode("recorded");
 $("live").onclick = () => setMode("live");
 function seek(index) {
+  if (state.mode === "recorded") {
+    const step = Math.max(0, Math.min(index, state.frames.length));
+    seekTime(state.motion.stepStarts[step] ?? state.motion.duration);
+    return;
+  }
   state.index = Math.max(0, Math.min(index, state.frames.length - 1));
   renderFrame();
 }
 $("play").onclick = () => {
-  if (state.timer) {
+  if (state.mode === "recorded" ? state.clock?.playing : state.livePlaying) {
     pause();
     return;
   }
   if (!state.frames.length) return;
-  if (state.index === state.frames.length - 1) seek(0);
-  $("play").textContent = "Ⅱ";
-  $("play").setAttribute("aria-label", "暂停公开轨迹");
-  state.timer = setInterval(() => {
-    seek(state.index + 1);
-    if (state.index === state.frames.length - 1) pause();
-  }, 1800);
+  if (state.mode === "recorded") {
+    state.clock.play(performance.now());
+    renderReplay(true);
+  } else {
+    if (state.index === state.frames.length - 1) seek(0);
+    state.livePlaying = true;
+    state.liveTick = performance.now();
+  }
+  updatePlayButton();
 };
 $("scrubber").oninput = (e) => {
+  const value = Number(e.target.value);
   pause();
-  seek(Number(e.target.value));
+  if (state.mode === "recorded") seekTime(value);
+  else seek(value);
 };
 $("previous").onclick = () => {
   pause();
-  seek(state.index - 1);
+  seek((state.mode === "recorded" ? state.activeStep : state.index) - 1);
 };
 $("next").onclick = () => {
   pause();
-  seek(state.index + 1);
+  seek((state.mode === "recorded" ? state.activeStep : state.index) + 1);
 };
 function renderFrame() {
   const frame = state.frames[state.index];
-  $("scrubber").max = Math.max(0, state.frames.length - 1);
-  $("scrubber").value = state.index;
+  const recorded = state.mode === "recorded";
+  const activeStep = recorded ? state.activeStep : state.index;
+  $("scrubber").max = recorded
+    ? state.motion.duration : Math.max(0, state.frames.length - 1);
+  $("scrubber").step = recorded ? "any" : "1";
+  $("scrubber").value = recorded ? state.clock.time : state.index;
+  if (!recorded) {
+    $("scrubber").setAttribute("aria-valuetext", `第 ${state.index} 步`);
+    $("scene-mode").textContent = !frame
+      ? "实时场景 · 等待公开会话"
+      : state.index < state.frames.length - 1
+        ? "实时场景 · 历史观测（无运动记录）"
+        : "实时场景 · 最新公开观测";
+  }
   $("step-position").textContent = frame
-    ? `${state.index} / ${state.frames.length - 1}`
+    ? `${activeStep} / ${state.frames.length - 1}`
     : "0 / 0";
-  $("step-title").textContent = frame ? titleOf(frame) : "等待 Core 会话";
+  $("step-title").textContent = frame
+    ? titleOf(state.frames[activeStep]) : "等待 Core 会话";
   $("workflow-title").textContent =
     state.mode === "recorded"
       ? "从配液到终检"
@@ -366,7 +545,7 @@ function renderFrame() {
     .slice(1)
     .map(
       (f, i) =>
-        `<li><button data-step="${i + 1}" class="${state.index === i + 1 ? "active" : ""}"><span class="step-number ${i + 1 < state.index ? "step-done" : ""}">${i + 1 < state.index ? "✓" : i + 1}</span>${esc(titleOf(f))}</button></li>`,
+        `<li><button data-step="${i + 1}" class="${activeStep === i + 1 ? "active" : ""}"><span class="step-number ${i + 1 <= state.index ? "step-done" : ""}">${i + 1 <= state.index ? "✓" : i + 1}</span>${esc(titleOf(f))}</button></li>`,
     )
     .join("");
   $("steps")
@@ -402,10 +581,16 @@ function renderFrame() {
     ? `${100 * Math.max(0, Math.min(1, budget.remaining_budget / budget.budget))}%`
     : "0";
   $("report-text").textContent = frame?.report_text || "没有公开报告。";
-  $("previous").disabled = !frame || state.index === 0;
-  $("next").disabled = !frame || state.index === state.frames.length - 1;
+  $("observation-step").textContent = recorded
+    ? `已完成 ${state.index} / ${state.frames.length - 1} 步 · 新观测在动作结束后显示`
+    : "公开帧回看；三维小车显示后台当前状态";
+  $("previous").disabled = !frame || activeStep === 0;
+  $("next").disabled = !frame || (recorded
+    ? state.clock.time >= state.motion.duration
+    : state.index === state.frames.length - 1);
   $("play").disabled = state.frames.length < 2;
-  if (frame?.asset_id) selectAsset(frame.asset_id, false);
+  const asset = recorded ? state.motionPose?.asset : frame?.asset_id;
+  if (asset) selectAsset(asset, false);
 }
 async function poll() {
   try {
@@ -422,31 +607,13 @@ async function poll() {
     if (state.mode === "live") {
       state.frames = state.liveFrames;
       if (following) state.index = Math.max(0, state.frames.length - 1);
-      renderFrame();
-      $("scene-mode").textContent = timeline.active_session_id
-        ? "实时公开观测"
-        : timeline.frames.length
-          ? "最近会话回看"
-          : "等待公开会话";
       $("source-description").textContent = timeline.active_session_id
         ? "当前会话 · 仅显示已收到的公开帧"
         : "会话未运行 · 保留最近公开记录";
     }
-    const poses = environment.simulation.poses || {};
-    for (const id of ["robot_01", "sample_tube_01"]) {
-      const root = roots.get(id),
-        pos = poses[id];
-      if (root && pos) {
-        root.position.set(pos[0], pos[2], -pos[1]);
-        if (id === "robot_01")
-          root.rotation.y =
-            ((environment.robot.base_yaw_deg || 0) * Math.PI) / 180;
-      }
-    }
-    updateArm(environment.robot, poses.robot_01);
-    if (roots.has(state.selected))
-      selectedBox.box.setFromObject(roots.get(state.selected));
-    dirty = true;
+    state.environment = environment;
+    applyEnvironment(environment);
+    if (state.mode === "live") renderFrame();
     const task = state.transport
       ? environment.tasks.find((t) => t.id === state.transport)
       : environment.tasks.at(-1);
@@ -475,6 +642,7 @@ async function poll() {
 }
 $("transport").onclick = async () => {
   try {
+    setMode("live");
     $("transport").disabled = true;
     const task = await api("/api/v1/environment/demo/transport", {});
     state.transport = task.id;
@@ -845,9 +1013,10 @@ function drawEvidence() {
 }
 
 try {
-  const [assets, demo, evidence] = await Promise.all([
+  const [assets, demo, motion, evidence] = await Promise.all([
     api("/api/v1/assets"),
     api("/explorer/demo.json"),
+    api("/explorer/replay-motion.json"),
     api("/api/v1/explorer/evidence").catch((error) => {
       notice(`论文汇总暂不可用：${error.message}`);
       return null;
@@ -855,6 +1024,11 @@ try {
   ]);
   state.assets = assets.assets;
   state.demo = demo;
+  if (JSON.stringify(motion.actions) !== JSON.stringify(demo.actions)) {
+    throw new Error("示例步骤已更新，请重新生成配套动作示意。");
+  }
+  state.motion = motion;
+  state.clock = new ReplayClock(motion.duration);
   state.evidence = evidence;
   $("asset-select").innerHTML =
     '<option value="">浏览全部设备</option>' +
@@ -864,6 +1038,7 @@ try {
   setMode("recorded");
   selectAsset("reactor_01");
   setupScene();
+  requestAnimationFrame(animate);
   await poll();
   setInterval(poll, 2500);
 } catch (error) {
