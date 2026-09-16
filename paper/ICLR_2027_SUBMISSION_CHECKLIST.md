@@ -1,6 +1,6 @@
 # ICLR 2027 submission checklist
 
-Updated: 2026-09-08. This file owns format, deadlines, anonymity and delivery.
+Updated: 2026-09-14. This file owns format, deadlines, anonymity and delivery.
 Scientific results belong in the [results index](../workstreams/flagship_tasks/WORK_II_PAPER_RESULTS_ZH.md);
 new experiments belong in the [matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md);
 execution status belongs in [Work II TODO](../workstreams/flagship_tasks/WORK_II_TODOLIST.md).
@@ -57,7 +57,18 @@ research judgment but supplies neither current requirements nor a spotlight sele
 - [ ] Confirm the author-approved submission version; repeat export checks if its sources change.
 - [ ] Submit through OpenReview (user action; not performed by repository cleanup).
 
-The W2-90 figure and explanation closeout contains nine main-text pages and 27 total pages in the
+The W2-91 design clarification contains nine main-text pages and 28 total pages in the anonymous
+submission, and 26 pages in the long draft. Both now map scientific questions to actual model
+coverage, distinguish within-system contrasts from model comparisons, and retain the original
+analysis weights and failures. The later DeepSeek-low disclosure block and the distinction between
+disclosing an observation mapping and changing physical measurements are stated correctly.
+The 16 publication tests pass; updated design/table pages and end pages were visually checked.
+Both builds have zero horizontal/vertical overflow and no undefined citations; anonymous checks
+pass. Figure data, scientific inputs and the 77-file supplementary archive are unchanged.
+The proposed paired-world/repair programme appears only in the planning matrix, not as executed
+evidence in either manuscript. No new provider calls or scientific experiments were performed.
+
+The earlier W2-90 figure and explanation closeout contained nine main-text pages and 27 total pages in the
 [anonymous submission](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-anonymous.pdf),
 and 26 pages in the [long draft](exports/prior-discovery-draft/prior-discovery-draft.pdf).
 All 53 pages were rendered and visually inspected in six overview sheets; all 19 figure-bearing

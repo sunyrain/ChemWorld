@@ -97,8 +97,8 @@ remain in the process log and resource accounting.
 ### System, prompt, tool, and budget contract
 
 `DeepSeek-v4-flash` with `reasoning_effort=high` supplies the primary DeepSeek C2, matched-evidence,
-B3-successor, and action surfaces; the same model at `low` supplies only the completed B2
-reasoning-budget ablation. `GPT-5.6-sol` with `reasoning_effort=medium` supplies the matched GPT
+B3-successor, and action surfaces; `low` supplies the completed B2 reasoning-budget ablation
+and the later observation-mapping disclosure block. `GPT-5.6-sol` with `reasoning_effort=medium` supplies the matched GPT
 replications. Both run through the Codex session harness; “Codex” therefore denotes execution
 infrastructure, not a third participant model. Provider aliases, run dates, receipt counts, and usage
 fields remain in the retained internal records rather than the anonymous supplement. The supplement
@@ -117,6 +117,42 @@ the exact static system prompts, selected prompt-generating function sources, pu
 projections, representative strict response schemas, and the executable-law contract.
 The package also contains all 45 sanitized B2 public summaries, the retrospective expression-coding
 function, three-configuration all-arm counts, and the participant-visible B2 identifiability audit.
+
+### Model coverage and the unit of inference
+
+The programme developed from a DeepSeek cohort to matched GPT successor studies and later
+two-system interventions. The included systems are not a representative sample of model families.
+A configuration includes the model, reasoning setting, prompts, tools and execution policy.
+A second model checks recurrence of a within-system effect; shared worlds remain shared inference
+units, and the common harness limits external validity.
+
+```{=latex}
+\begin{table}[t]
+\centering
+\caption{\textbf{Model coverage follows the scientific question.} Counts are scheduled sessions; failures remain in each protocol's denominator.}
+\label{tab:model-coverage}
+\footnotesize
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\linewidth}{@{}>{\raggedright\arraybackslash}p{0.26\linewidth}>{\raggedright\arraybackslash}p{0.35\linewidth}Y@{}}
+\toprule
+Scientific question & Executed model coverage & Inferential role \\
+\midrule
+Search, correction and law fidelity & C2: DeepSeek and GPT, 135 sessions each & Matched surface; original gates retained \\
+Evidence and interface diagnostics & Both families; extra DeepSeek-low B2 ablation & Separate protocol-specific controls \\
+Longitudinal law/action agreement & Original 45-session DeepSeek cohort only & Single-system descriptive evidence \\
+Law replacement and isolated delivery & Both families in every M1/M3 condition & Fixed system mixture in ten worlds \\
+Observation-mapping disclosure & GPT/medium and DeepSeek/low, 60 sessions each & Within-system effects in ten shared worlds \\
+\bottomrule
+\end{tabularx}
+\end{table}
+```
+
+Interventions compare information, artifact source or decision rule within a configuration.
+Across-model comparisons are descriptive: equal laboratory budgets do not equate hidden reasoning
+compute, and effort labels are not a shared scale. Historical settings and prespecified pooled
+weights are unchanged. Pooled effects describe these systems only; different significance decisions
+do not establish a model-by-intervention interaction or equivalence. Failed model integrations
+provide engineering evidence, not additional scientific participants.
 
 ### Executable-law schema and ActionPlan construction
 

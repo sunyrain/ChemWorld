@@ -61,7 +61,8 @@ substitute for measuring the next.
 
 The primary study used a fixed DeepSeek-v4-flash experimental-agent configuration, with
 135 scheduled cells nested within 45 task--world clusters; a GPT-5.6-sol successor used the same
-scientific surface. A matched-packet diagnostic reduces submission demands; a subsequent disclosure
+scientific surface. These are within-system intervention studies in two model families, not a
+representative model survey. A matched-packet diagnostic reduces submission demands; a subsequent disclosure
 intervention tests whether completing the observation mapping improves structure and action. We also cross law source with decision rule
 under fixed evidence, then deliver laws independently of raw evidence to fresh recipients.
 These interventions exhibit settings with agreement and useful knowledge, bounding a general
@@ -159,9 +160,11 @@ action matrix separately contains three tasks, five worlds, and three arms (45 s
 readouts, while complete-rank correlation and law adequacy are diagnostics. Table \ref{tab:evidence}
 keeps these layers and their claim boundaries explicit.
 
-C2 and B3 retain matched scheduled surfaces for both configurations; matched evidence adds a
-DeepSeek-low B2 ablation. Historical controls preserve configuration-specific denominators.
-The two artifact interventions prespecify equal-weight model/repeat means within world.
+C2 and B3 cover both configurations; the original longitudinal action assay is DeepSeek-only.
+Later artifact and disclosure interventions test both systems under block-specific reasoning
+settings. Model panels show within-system contrasts, not equal-compute rankings. Prespecified
+model/repeat means within world estimate a fixed mixture of these systems; shared worlds are
+not independent replications across models. The appendix maps model coverage to each question.
 
 ```{=latex}
 \begin{table}[t]

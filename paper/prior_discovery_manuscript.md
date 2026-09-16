@@ -88,7 +88,8 @@ substitute for measuring the next.
 
 The primary study used a fixed DeepSeek-v4-flash experimental-agent configuration, with
 135 scheduled cells nested within 45 task--world clusters; a GPT-5.6-sol successor used the same
-scientific surface. A matched-packet diagnostic reduces submission demands; a subsequent disclosure
+scientific surface. These are within-system intervention studies in two model families, not a
+representative model survey. A matched-packet diagnostic reduces submission demands; a subsequent disclosure
 intervention tests whether completing the observation mapping improves structure and action. We also cross law source with decision rule
 under fixed evidence, then deliver laws independently of raw evidence to fresh recipients.
 These interventions exhibit settings with agreement and useful knowledge, bounding a general
@@ -324,11 +325,10 @@ diagnostics are provider-free. Historical contrasts remain separated by configur
 interventions prespecify equal-weight model/repeat means within world; this estimates the studied
 mixture of configurations, not provider effects or a leaderboard.
 
-Observation/measurement interventions are reserved as a separate boundary probe. They require
-two-task identifiability and an exploratory three-arm study and are not included in the present
-denominator. Transfer across changed physical mechanisms remains untested. This preserves a complete
-conceptual intervention space without claiming that every programmable coordinate has already been
-executed.
+The later observation-mapping disclosure block changes the description of how measurements arise,
+with the observations and world held fixed. It is distinct from changing an instrument's physical
+measurement law. Transfer across changed physical mechanisms remains untested; neither disclosure
+nor new candidates in the same world establish that form of transfer.
 
 Environment validation and participant outcomes form separate evidence layers. Environment tests
 check execution and controlled differences in observations. Structural identifiability additionally
@@ -346,6 +346,41 @@ denominators; later artifact interventions have separate inference units.}
 \label{fig:formal-cohort}
 \end{figure*}
 ```
+
+### Model coverage and the unit of inference
+
+The programme developed from a DeepSeek cohort to matched GPT successor studies and later
+two-system interventions. It is a bounded study of integrated systems rather than a representative
+sample of model families. The model, reasoning setting, prompts, tools and execution policy jointly
+define a configuration. A second model tests whether a particular within-system effect recurs;
+it does not isolate a base-model cause or provide an independent replication of shared worlds.
+
+```{=latex}
+\begin{table*}[t]
+\centering
+\caption{\textbf{Model coverage follows the scientific question.} Counts are scheduled sessions; failures remain in each protocol's denominator.}
+\label{tab:model-coverage}
+\small
+\renewcommand{\arraystretch}{1.1}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{0.26\textwidth}>{\raggedright\arraybackslash}p{0.35\textwidth}Y@{}}
+\toprule
+Scientific question & Executed model coverage & Role in inference \\
+\midrule
+Search, correction and law fidelity & C2: DeepSeek and GPT, 135 sessions each & Matched scientific surface; original gates and failures retained \\
+Evidence and interface diagnostics & Both families; additional DeepSeek-low B2 ablation & Protocol-specific controls; incomplete low-effort blocks supply no formal effect \\
+Longitudinal law/action agreement & Original 45-session DeepSeek cohort only & Descriptive single-system evidence \\
+Law replacement and isolated delivery & Both families in each M1/M3 condition & Prespecified equal-weight system/repeat means within ten worlds \\
+Observation-mapping disclosure & GPT/medium and DeepSeek/low, 60 sessions each & Within-system effects on ten shared worlds \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+```
+
+Contrasts change information, artifact source or decision rule within a configuration. Across-model
+comparisons are descriptive; equal laboratory budgets do not equate reasoning compute or effort
+labels. Historical settings and pooled weights remain block-specific, describing the studied system
+mixture. Different significance decisions do not establish interaction, and nonsignificance does
+not establish equivalence.
 
 ## 4.2 Persistent experimental agent
 

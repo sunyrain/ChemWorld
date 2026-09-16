@@ -7,6 +7,13 @@ unsupported. The information-separated follow-up supports same-world artifact ut
 advantage over retrieval. Interface failures, evaluator diagnostics and changed-mechanism transfer
 remain separate.
 
+Model panels represent within-system scientific contrasts. The current two-system results retain
+both configurations and their original weights; the historical longitudinal cohort stays explicitly
+DeepSeek-only. Neither panel symmetry nor pooled means imply a model leaderboard or independent
+world replication. Future paired-world studies should show both swap directions and per-pair effects;
+repair studies should align laboratory budgets and display unchanged-world controls. These future
+plots require new data and are not implied by the current assets.
+
 ## Figure 1 — Endpoint success does not reveal what the agent learned
 
 One compact design diagram: three supplied-description arms share a fixed executable world and
