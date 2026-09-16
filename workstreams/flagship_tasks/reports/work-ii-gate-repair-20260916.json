@@ -1,0 +1,2684 @@
+{
+  "evidence_mode": "development",
+  "status": "closed",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_GATE_REPAIR_NOTE.md",
+  "run_root": "runs/development/work-ii-gate-repair-20260916",
+  "elapsed_seconds": 175.98500000004424,
+  "counts": {
+    "campaigns_planned": 23,
+    "campaigns_complete": 18,
+    "batches_planned": 75,
+    "batches_complete": 61,
+    "operations": 376,
+    "resources_passed": 18,
+    "replays_passed": 18,
+    "triarm_entry_passes": 12,
+    "response_passes": 4,
+    "local_prior_passes": 4,
+    "system_screen_passes": 3,
+    "world_response_passes": 2,
+    "model_calls": 0,
+    "retries": 0
+  },
+  "systems": [
+    {
+      "card": "RX",
+      "reference_runtime_passed": true,
+      "response_comparisons": [
+        {
+          "batches": [
+            2,
+            4
+          ],
+          "delta": 0.7336341887712479,
+          "cutoff": 0.025455844122715714,
+          "passed": true
+        },
+        {
+          "batches": [
+            6,
+            8
+          ],
+          "delta": 0.7235161364078522,
+          "cutoff": 0.025455844122715714,
+          "passed": true
+        }
+      ],
+      "response_passed": true,
+      "triarm_physics_invariant": true,
+      "aligned_supported": true,
+      "misindexed_refuted": true,
+      "local_prior_qualification": true,
+      "screen_passed": true
+    },
+    {
+      "card": "EQ",
+      "reference_runtime_passed": true,
+      "response_comparisons": [
+        {
+          "batches": [
+            1,
+            2
+          ],
+          "delta": -0.0914117693901062,
+          "cutoff": 0.025455844122715714,
+          "passed": true
+        },
+        {
+          "batches": [
+            3,
+            4
+          ],
+          "delta": -0.1762479990720749,
+          "cutoff": 0.025455844122715714,
+          "passed": true
+        }
+      ],
+      "response_passed": true,
+      "triarm_physics_invariant": true,
+      "aligned_supported": true,
+      "misindexed_refuted": true,
+      "local_prior_qualification": true,
+      "world_deltas": [
+        0.06137135624885559,
+        0.08560150861740112,
+        0.052959978580474854,
+        0.08537986874580383
+      ],
+      "world_response_passed": true,
+      "screen_passed": true
+    },
+    {
+      "card": "BC",
+      "reference_runtime_passed": true,
+      "response_comparisons": [
+        {
+          "batches": [
+            1,
+            3
+          ],
+          "delta": 0.6361050214618444,
+          "cutoff": 0.025455844122715714,
+          "passed": true
+        }
+      ],
+      "response_passed": true,
+      "triarm_physics_invariant": true,
+      "aligned_supported": true,
+      "misindexed_refuted": true,
+      "local_prior_qualification": true,
+      "screen_passed": true
+    },
+    {
+      "card": "PA",
+      "reference_runtime_passed": false,
+      "response_comparisons": [
+        {
+          "batches": [
+            1,
+            2
+          ],
+          "delta": null,
+          "cutoff": 0.04242640687119286,
+          "passed": false
+        },
+        {
+          "batches": [
+            3,
+            4
+          ],
+          "delta": null,
+          "cutoff": 0.04242640687119286,
+          "passed": false
+        }
+      ],
+      "response_passed": false,
+      "triarm_physics_invariant": false,
+      "aligned_supported": false,
+      "misindexed_refuted": false,
+      "local_prior_qualification": false,
+      "world_deltas": [],
+      "world_response_passed": false,
+      "phase_fraction_sums": [],
+      "mass_errors_mol": [],
+      "phase_accounting_passed": false,
+      "screen_passed": false
+    },
+    {
+      "card": "FL",
+      "reference_runtime_passed": true,
+      "response_comparisons": [
+        {
+          "batches": [
+            4,
+            6
+          ],
+          "delta": 0.1535117793828249,
+          "cutoff": 0.05091168824543143,
+          "passed": true
+        },
+        {
+          "batches": [
+            7,
+            9
+          ],
+          "delta": 0.2651546001434326,
+          "cutoff": 0.05091168824543143,
+          "passed": true
+        }
+      ],
+      "response_passed": true,
+      "triarm_physics_invariant": true,
+      "aligned_supported": true,
+      "misindexed_refuted": true,
+      "local_prior_qualification": true,
+      "world_deltas": [
+        0.004344217013567686,
+        0.015558663755655289,
+        0.0341784842312336,
+        0.01710468716919422,
+        0.057631716132164,
+        0.11307832598686218,
+        0.0331643745303154,
+        0.10255001485347748,
+        0.17299243807792664
+      ],
+      "world_response_passed": true,
+      "feasible_points": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "window_covered": false,
+      "screen_passed": false
+    }
+  ],
+  "campaigns": [
+    {
+      "card": "RX",
+      "stage": "base",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "RX",
+        "prior_record": null,
+        "commission": "Investigate target formation, competing conversion, and thermal/time history. Explain what your experiments support and predict new interventions.",
+        "measurement_contract": "Temperature is the actual fluid sensor reading; heat target is a boundary control. Reaction yield/conversion and byproduct signals require paid assays.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 8,
+      "completed_batches": 8,
+      "planned_operations": 48,
+      "operations": 48,
+      "metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.014303863048553467,
+          "cost": 0.24024833738803864,
+          "degradation_warning": 0.002331334399059415,
+          "safety_risk": 0.0967801958322525,
+          "score": 0.19743135571479797,
+          "selectivity": 1.0,
+          "virtual_spectrum_summary": 0.0010491004213690758,
+          "yield": 0.012466533109545708
+        },
+        {
+          "byproduct_signal": 0.014241265133023262,
+          "conversion": 0.05497885122895241,
+          "cost": 0.24028167128562927,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09806076437234879,
+          "score": 0.22774337232112885,
+          "selectivity": 1.0,
+          "virtual_spectrum_summary": 0.007832695730030537,
+          "yield": 0.06560586392879486
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.9926719665527344,
+          "cost": 0.24049000442028046,
+          "degradation_warning": 0.0029784429352730513,
+          "safety_risk": 0.11883249133825302,
+          "score": 0.7822568416595459,
+          "selectivity": 0.9993311166763306,
+          "virtual_spectrum_summary": 0.0013402992626652122,
+          "yield": 0.9978770017623901
+        },
+        {
+          "byproduct_signal": 0.12161656469106674,
+          "conversion": 1.0,
+          "cost": 0.24274000525474548,
+          "degradation_warning": 0.012132588773965836,
+          "safety_risk": 0.11844892054796219,
+          "score": 0.627874493598938,
+          "selectivity": 0.777110755443573,
+          "virtual_spectrum_summary": 0.07234878093004227,
+          "yield": 0.7992400527000427
+        },
+        {
+          "byproduct_signal": 0.008330723270773888,
+          "conversion": 0.0010880441404879093,
+          "cost": 0.40584832429885864,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.0967801958322525,
+          "score": 0.16888634860515594,
+          "selectivity": 1.0,
+          "virtual_spectrum_summary": 0.004581897985190153,
+          "yield": 0.007699672598391771
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.07318365573883057,
+          "cost": 0.4058816730976105,
+          "degradation_warning": 0.012653224170207977,
+          "safety_risk": 0.09806076437234879,
+          "score": 0.20715707540512085,
+          "selectivity": 0.9938287138938904,
+          "virtual_spectrum_summary": 0.005693950690329075,
+          "yield": 0.07355794310569763
+        },
+        {
+          "byproduct_signal": 0.0023605013266205788,
+          "conversion": 0.9827718734741211,
+          "cost": 0.40608999133110046,
+          "degradation_warning": 0.009870527312159538,
+          "safety_risk": 0.11883249133825302,
+          "score": 0.752110481262207,
+          "selectivity": 0.985271692276001,
+          "virtual_spectrum_summary": 0.005740012973546982,
+          "yield": 0.996273934841156
+        },
+        {
+          "byproduct_signal": 0.10475549846887589,
+          "conversion": 0.9927389621734619,
+          "cost": 0.4083400070667267,
+          "degradation_warning": 0.0060815210454165936,
+          "safety_risk": 0.11844892054796219,
+          "score": 0.6055899858474731,
+          "selectivity": 0.794569194316864,
+          "virtual_spectrum_summary": 0.06035220995545387,
+          "yield": 0.7970740795135498
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 48,
+          "vessel_starts": 8,
+          "final_assays": 8,
+          "discarded_batches": 0,
+          "closed_batches": 8,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 8,
+            "add_reagent": 8,
+            "add_solvent": 8,
+            "heat": 8,
+            "measure": 8,
+            "terminate": 8
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00108,
+            "reagent_mol": 0.08,
+            "solvent_L": 0.224
+          },
+          "remaining": {
+            "operation_attempts": 0,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.03892,
+              "extractant_L": 0.48,
+              "phase_liquid_L": 0.48,
+              "reagent_mol": 0.24,
+              "solvent_L": 0.41600000000000004
+            },
+            "per_instrument": {},
+            "process_time_s": 114528.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 672.0,
+            "sample_consumed_L": 0.0024,
+            "physical_cost": 2.58992,
+            "accumulated_risk": 0.864244739972195,
+            "peak_risk": 0.11883249077265559
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 48,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 26.42200000002049,
+      "replay_seconds": 0.9070000000065193,
+      "directory": "runs/development/work-ii-gate-repair-20260916/RX-base",
+      "failures": []
+    },
+    {
+      "card": "RX",
+      "stage": "O",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "RX",
+        "prior_record": null,
+        "commission": "Investigate target formation, competing conversion, and thermal/time history. Explain what your experiments support and predict new interventions.",
+        "measurement_contract": "Temperature is the actual fluid sensor reading; heat target is a boundary control. Reaction yield/conversion and byproduct signals require paid assays.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.10238148272037506,
+          "conversion": 0.9951422214508057,
+          "cost": 0.24274000525474548,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.11844892054796219,
+          "score": 0.6278876066207886,
+          "selectivity": 0.7886616587638855,
+          "virtual_spectrum_summary": 0.056309815496206284,
+          "yield": 0.7944623827934265
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.05106011778116226,
+          "cost": 0.24028167128562927,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09806076437234879,
+          "score": 0.22246631979942322,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.06169924512505531
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 4e-05,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 36,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00996,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28495.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 305.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.4830216666666666,
+            "accumulated_risk": 0.21650968482372818,
+            "peak_risk": 0.11844891832792848
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.9380000000237487,
+      "replay_seconds": 0.2190000000409782,
+      "directory": "runs/development/work-ii-gate-repair-20260916/RX-O",
+      "failures": []
+    },
+    {
+      "card": "RX",
+      "stage": "A",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "RX",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.028,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 2e-05,
+              "catalyst": 1
+            },
+            {
+              "operation": "heat",
+              "target_temperature_K": 335,
+              "duration_s": 300,
+              "stirring_speed_rpm": 720
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "yield",
+          "estimate": 0.79924,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Investigate target formation, competing conversion, and thermal/time history. Explain what your experiments support and predict new interventions.",
+        "measurement_contract": "Temperature is the actual fluid sensor reading; heat target is a boundary control. Reaction yield/conversion and byproduct signals require paid assays.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.10238148272037506,
+          "conversion": 0.9951422214508057,
+          "cost": 0.24274000525474548,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.11844892054796219,
+          "score": 0.6278876066207886,
+          "selectivity": 0.7886616587638855,
+          "virtual_spectrum_summary": 0.056309815496206284,
+          "yield": 0.7944623827934265
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.05106011778116226,
+          "cost": 0.24028167128562927,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09806076437234879,
+          "score": 0.22246631979942322,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.06169924512505531
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 4e-05,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 36,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00996,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28495.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 305.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.4830216666666666,
+            "accumulated_risk": 0.21650968482372818,
+            "peak_risk": 0.11844891832792848
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.9219999999622814,
+      "replay_seconds": 0.21799999999348074,
+      "directory": "runs/development/work-ii-gate-repair-20260916/RX-A",
+      "failures": []
+    },
+    {
+      "card": "RX",
+      "stage": "M",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "RX",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.028,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 2e-05,
+              "catalyst": 1
+            },
+            {
+              "operation": "heat",
+              "target_temperature_K": 335,
+              "duration_s": 300,
+              "stirring_speed_rpm": 720
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "yield",
+          "estimate": 0.065606,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Investigate target formation, competing conversion, and thermal/time history. Explain what your experiments support and predict new interventions.",
+        "measurement_contract": "Temperature is the actual fluid sensor reading; heat target is a boundary control. Reaction yield/conversion and byproduct signals require paid assays.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.10238148272037506,
+          "conversion": 0.9951422214508057,
+          "cost": 0.24274000525474548,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.11844892054796219,
+          "score": 0.6278876066207886,
+          "selectivity": 0.7886616587638855,
+          "virtual_spectrum_summary": 0.056309815496206284,
+          "yield": 0.7944623827934265
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.05106011778116226,
+          "cost": 0.24028167128562927,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09806076437234879,
+          "score": 0.22246631979942322,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.06169924512505531
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 4e-05,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 36,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00996,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28495.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 305.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.4830216666666666,
+            "accumulated_risk": 0.21650968482372818,
+            "peak_risk": 0.11844891832792848
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.9380000000237487,
+      "replay_seconds": 0.23399999999674037,
+      "directory": "runs/development/work-ii-gate-repair-20260916/RX-M",
+      "failures": []
+    },
+    {
+      "card": "EQ",
+      "stage": "base",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": null,
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 4,
+      "completed_batches": 4,
+      "planned_operations": 20,
+      "operations": 20,
+      "metrics": [
+        {
+          "acid_dissociation_fraction": 0.1654711365699768,
+          "cost": 0.18283000588417053,
+          "equilibrium_confidence": 0.478721559047699,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3087976574897766,
+          "precipitation_signal": 0.11330676078796387,
+          "safety_risk": 0.036258332431316376,
+          "score": 0.2963947057723999
+        },
+        {
+          "acid_dissociation_fraction": 0.0740593671798706,
+          "cost": 0.21279999613761902,
+          "equilibrium_confidence": 0.3780456781387329,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2791265845298767,
+          "precipitation_signal": 0.14355503022670746,
+          "safety_risk": 0.07211781293153763,
+          "score": 0.23437833786010742
+        },
+        {
+          "acid_dissociation_fraction": 0.24837687611579895,
+          "cost": 0.19243000447750092,
+          "equilibrium_confidence": 0.5626224875450134,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.32536739110946655,
+          "precipitation_signal": 0.017292482778429985,
+          "safety_risk": 0.036250557750463486,
+          "score": 0.3379861116409302
+        },
+        {
+          "acid_dissociation_fraction": 0.07212887704372406,
+          "cost": 0.2223999947309494,
+          "equilibrium_confidence": 0.4954957664012909,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.272754430770874,
+          "precipitation_signal": 0.15034911036491394,
+          "safety_risk": 0.041846614331007004,
+          "score": 0.28722667694091797
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 20,
+          "vessel_starts": 4,
+          "final_assays": 4,
+          "discarded_batches": 0,
+          "closed_batches": 4,
+          "nonfinal_instrument_uses": 4,
+          "instrument_uses": {
+            "ph_meter": 4
+          },
+          "operation_committed_counts": {
+            "add_reagent": 4,
+            "add_solvent": 4,
+            "measure": 8,
+            "terminate": 4
+          },
+          "stocks_used": {
+            "reagent_mol": 0.02002,
+            "solvent_L": 0.16
+          },
+          "remaining": {
+            "operation_attempts": 4,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.02,
+              "extractant_L": 0.24,
+              "phase_liquid_L": 0.24,
+              "reagent_mol": 0.13998,
+              "solvent_L": 0.16
+            },
+            "per_instrument": {},
+            "process_time_s": 57600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.00132,
+            "physical_cost": 0.81046,
+            "accumulated_risk": 0.18647331651041438,
+            "peak_risk": 0.07211781044138575
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 20,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 5.8439999999827705,
+      "replay_seconds": 0.3130000000237487,
+      "directory": "runs/development/work-ii-gate-repair-20260916/EQ-base",
+      "failures": []
+    },
+    {
+      "card": "EQ",
+      "stage": "shift",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": null,
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 4,
+      "completed_batches": 4,
+      "planned_operations": 20,
+      "operations": 20,
+      "metrics": [
+        {
+          "acid_dissociation_fraction": 0.08269841969013214,
+          "cost": 0.18283000588417053,
+          "equilibrium_confidence": 0.3869432806968689,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3701690137386322,
+          "precipitation_signal": 0.11346462368965149,
+          "safety_risk": 0.036258332431316376,
+          "score": 0.24470075964927673
+        },
+        {
+          "acid_dissociation_fraction": 0.0738222748041153,
+          "cost": 0.21279999613761902,
+          "equilibrium_confidence": 0.3777375817298889,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.36472809314727783,
+          "precipitation_signal": 0.14357398450374603,
+          "safety_risk": 0.07211781293153763,
+          "score": 0.24275527894496918
+        },
+        {
+          "acid_dissociation_fraction": 0.10434452444314957,
+          "cost": 0.19243000447750092,
+          "equilibrium_confidence": 0.4130045771598816,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3783273696899414,
+          "precipitation_signal": 0.016839049756526947,
+          "safety_risk": 0.036250557750463486,
+          "score": 0.24707955121994019
+        },
+        {
+          "acid_dissociation_fraction": 0.07142335176467896,
+          "cost": 0.2223999947309494,
+          "equilibrium_confidence": 0.4945802092552185,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.35813429951667786,
+          "precipitation_signal": 0.15040521323680878,
+          "safety_risk": 0.041846614331007004,
+          "score": 0.29521995782852173
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 20,
+          "vessel_starts": 4,
+          "final_assays": 4,
+          "discarded_batches": 0,
+          "closed_batches": 4,
+          "nonfinal_instrument_uses": 4,
+          "instrument_uses": {
+            "ph_meter": 4
+          },
+          "operation_committed_counts": {
+            "add_reagent": 4,
+            "add_solvent": 4,
+            "measure": 8,
+            "terminate": 4
+          },
+          "stocks_used": {
+            "reagent_mol": 0.02002,
+            "solvent_L": 0.16
+          },
+          "remaining": {
+            "operation_attempts": 4,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.02,
+              "extractant_L": 0.24,
+              "phase_liquid_L": 0.24,
+              "reagent_mol": 0.13998,
+              "solvent_L": 0.16
+            },
+            "per_instrument": {},
+            "process_time_s": 57600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.00132,
+            "physical_cost": 0.81046,
+            "accumulated_risk": 0.18647331651041438,
+            "peak_risk": 0.07211781044138575
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 20,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 5.860000000044238,
+      "replay_seconds": 0.3130000000237487,
+      "directory": "runs/development/work-ii-gate-repair-20260916/EQ-shift",
+      "failures": []
+    },
+    {
+      "card": "EQ",
+      "stage": "O",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": null,
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 10,
+      "operations": 10,
+      "metrics": [
+        {
+          "acid_dissociation_fraction": 0.06960902363061905,
+          "cost": 0.21279999613761902,
+          "equilibrium_confidence": 0.3690871000289917,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2814139127731323,
+          "precipitation_signal": 0.16004033386707306,
+          "safety_risk": 0.07211781293153763,
+          "score": 0.23215845227241516
+        },
+        {
+          "acid_dissociation_fraction": 0.16674014925956726,
+          "cost": 0.18283000588417053,
+          "equilibrium_confidence": 0.4837924838066101,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3114736080169678,
+          "precipitation_signal": 0.1137700080871582,
+          "safety_risk": 0.036258332431316376,
+          "score": 0.2992675006389618
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 10,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 2,
+          "instrument_uses": {
+            "ph_meter": 2
+          },
+          "operation_committed_counts": {
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 4,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "reagent_mol": 0.01001,
+            "solvent_L": 0.04
+          },
+          "remaining": {
+            "operation_attempts": 14,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06999,
+              "solvent_L": 0.12
+            },
+            "per_instrument": {},
+            "process_time_s": 28800.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.00066,
+            "physical_cost": 0.39563,
+            "accumulated_risk": 0.10837614331815978,
+            "peak_risk": 0.07211781044138575
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 10,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.125,
+      "replay_seconds": 0.1559999999590218,
+      "directory": "runs/development/work-ii-gate-repair-20260916/EQ-O",
+      "failures": []
+    },
+    {
+      "card": "EQ",
+      "stage": "A",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.02,
+              "solvent": 0
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "measure",
+              "instrument": "ph_meter"
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "acid_dissociation_fraction",
+          "estimate": 0.074059,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 10,
+      "operations": 10,
+      "metrics": [
+        {
+          "acid_dissociation_fraction": 0.06960902363061905,
+          "cost": 0.21279999613761902,
+          "equilibrium_confidence": 0.3690871000289917,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2814139127731323,
+          "precipitation_signal": 0.16004033386707306,
+          "safety_risk": 0.07211781293153763,
+          "score": 0.23215845227241516
+        },
+        {
+          "acid_dissociation_fraction": 0.16674014925956726,
+          "cost": 0.18283000588417053,
+          "equilibrium_confidence": 0.4837924838066101,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3114736080169678,
+          "precipitation_signal": 0.1137700080871582,
+          "safety_risk": 0.036258332431316376,
+          "score": 0.2992675006389618
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 10,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 2,
+          "instrument_uses": {
+            "ph_meter": 2
+          },
+          "operation_committed_counts": {
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 4,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "reagent_mol": 0.01001,
+            "solvent_L": 0.04
+          },
+          "remaining": {
+            "operation_attempts": 14,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06999,
+              "solvent_L": 0.12
+            },
+            "per_instrument": {},
+            "process_time_s": 28800.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.00066,
+            "physical_cost": 0.39563,
+            "accumulated_risk": 0.10837614331815978,
+            "peak_risk": 0.07211781044138575
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 10,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.1410000000032596,
+      "replay_seconds": 0.1720000000204891,
+      "directory": "runs/development/work-ii-gate-repair-20260916/EQ-A",
+      "failures": []
+    },
+    {
+      "card": "EQ",
+      "stage": "M",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.02,
+              "solvent": 0
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "measure",
+              "instrument": "ph_meter"
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "acid_dissociation_fraction",
+          "estimate": 0.165471,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 10,
+      "operations": 10,
+      "metrics": [
+        {
+          "acid_dissociation_fraction": 0.06960902363061905,
+          "cost": 0.21279999613761902,
+          "equilibrium_confidence": 0.3690871000289917,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2814139127731323,
+          "precipitation_signal": 0.16004033386707306,
+          "safety_risk": 0.07211781293153763,
+          "score": 0.23215845227241516
+        },
+        {
+          "acid_dissociation_fraction": 0.16674014925956726,
+          "cost": 0.18283000588417053,
+          "equilibrium_confidence": 0.4837924838066101,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.3114736080169678,
+          "precipitation_signal": 0.1137700080871582,
+          "safety_risk": 0.036258332431316376,
+          "score": 0.2992675006389618
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 10,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 2,
+          "instrument_uses": {
+            "ph_meter": 2
+          },
+          "operation_committed_counts": {
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 4,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "reagent_mol": 0.01001,
+            "solvent_L": 0.04
+          },
+          "remaining": {
+            "operation_attempts": 14,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06999,
+              "solvent_L": 0.12
+            },
+            "per_instrument": {},
+            "process_time_s": 28800.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.00066,
+            "physical_cost": 0.39563,
+            "accumulated_risk": 0.10837614331815978,
+            "peak_risk": 0.07211781044138575
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 10,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.125,
+      "replay_seconds": 0.17199999996228144,
+      "directory": "runs/development/work-ii-gate-repair-20260916/EQ-M",
+      "failures": []
+    },
+    {
+      "card": "BC",
+      "stage": "base",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "BC",
+        "prior_record": null,
+        "commission": "Use the limited shared experimental budget to diagnose reaction behavior, predict new conditions, and state what remains unresolved.",
+        "measurement_contract": "All batches, instruments, samples and materials share one budget. Stopping early alone is not evidence of an informative diagnosis.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 3,
+      "completed_batches": 3,
+      "planned_operations": 18,
+      "operations": 18,
+      "metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.01419998612254858,
+          "cost": 0.40584832429885864,
+          "degradation_warning": 0.002331348368898034,
+          "safety_risk": 0.09677830338478088,
+          "score": 0.17252948880195618,
+          "selectivity": 1.0,
+          "virtual_spectrum_summary": 0.0010491067077964544,
+          "yield": 0.012362638488411903
+        },
+        {
+          "byproduct_signal": 0.02163715288043022,
+          "conversion": 0.999010443687439,
+          "cost": 0.40608999133110046,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.1188872903585434,
+          "score": 0.7570081353187561,
+          "selectivity": 1.0,
+          "virtual_spectrum_summary": 0.011900433339178562,
+          "yield": 0.9954848289489746
+        },
+        {
+          "byproduct_signal": 0.183758944272995,
+          "conversion": 0.993797242641449,
+          "cost": 0.4108400046825409,
+          "degradation_warning": 0.024470075964927673,
+          "safety_risk": 0.11647891998291016,
+          "score": 0.4950680434703827,
+          "selectivity": 0.6488009095191956,
+          "virtual_spectrum_summary": 0.112078957259655,
+          "yield": 0.6484676599502563
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 18,
+          "vessel_starts": 3,
+          "final_assays": 3,
+          "discarded_batches": 0,
+          "closed_batches": 3,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 3,
+            "add_reagent": 3,
+            "add_solvent": 3,
+            "heat": 3,
+            "measure": 3,
+            "terminate": 3
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00075,
+            "reagent_mol": 0.03,
+            "solvent_L": 0.084
+          },
+          "remaining": {
+            "operation_attempts": 0,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.014249999999999999,
+              "extractant_L": 0.18,
+              "phase_liquid_L": 0.18,
+              "reagent_mol": 0.09,
+              "solvent_L": 0.15599999999999997
+            },
+            "per_instrument": {},
+            "process_time_s": 42569.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 631.0,
+            "sample_consumed_L": 0.0009,
+            "physical_cost": 1.222778333333333,
+            "accumulated_risk": 0.3321445132386734,
+            "peak_risk": 0.11888728998742129
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 18,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 5.297000000020489,
+      "replay_seconds": 0.34399999998277053,
+      "directory": "runs/development/work-ii-gate-repair-20260916/BC-base",
+      "failures": []
+    },
+    {
+      "card": "BC",
+      "stage": "O",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "BC",
+        "prior_record": null,
+        "commission": "Use the limited shared experimental budget to diagnose reaction behavior, predict new conditions, and state what remains unresolved.",
+        "measurement_contract": "All batches, instruments, samples and materials share one budget. Stopping early alone is not evidence of an informative diagnosis.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.18487706780433655,
+          "conversion": 0.9951422214508057,
+          "cost": 0.4108400046825409,
+          "degradation_warning": 0.0006617599865421653,
+          "safety_risk": 0.11647891998291016,
+          "score": 0.48750048875808716,
+          "selectivity": 0.6344422101974487,
+          "virtual_spectrum_summary": 0.10198017209768295,
+          "yield": 0.6402429342269897
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.0010748595232143998,
+          "cost": 0.40584832429885864,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09677830338478088,
+          "score": 0.16796506941318512,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.01172255165874958
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.0005,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 6,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.0095,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28199.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 601.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.8166883333333333,
+            "accumulated_risk": 0.21325722325125207,
+            "peak_risk": 0.11647891966852379
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.952999999979511,
+      "replay_seconds": 0.21899999998277053,
+      "directory": "runs/development/work-ii-gate-repair-20260916/BC-O",
+      "failures": []
+    },
+    {
+      "card": "BC",
+      "stage": "A",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "BC",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.028,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 0.00025,
+              "catalyst": 1
+            },
+            {
+              "operation": "heat",
+              "target_temperature_K": 335,
+              "duration_s": 600,
+              "stirring_speed_rpm": 720
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "yield",
+          "estimate": 0.648468,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Use the limited shared experimental budget to diagnose reaction behavior, predict new conditions, and state what remains unresolved.",
+        "measurement_contract": "All batches, instruments, samples and materials share one budget. Stopping early alone is not evidence of an informative diagnosis.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.18487706780433655,
+          "conversion": 0.9951422214508057,
+          "cost": 0.4108400046825409,
+          "degradation_warning": 0.0006617599865421653,
+          "safety_risk": 0.11647891998291016,
+          "score": 0.48750048875808716,
+          "selectivity": 0.6344422101974487,
+          "virtual_spectrum_summary": 0.10198017209768295,
+          "yield": 0.6402429342269897
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.0010748595232143998,
+          "cost": 0.40584832429885864,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09677830338478088,
+          "score": 0.16796506941318512,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.01172255165874958
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.0005,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 6,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.0095,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28199.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 601.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.8166883333333333,
+            "accumulated_risk": 0.21325722325125207,
+            "peak_risk": 0.11647891966852379
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.922000000020489,
+      "replay_seconds": 0.2029999999795109,
+      "directory": "runs/development/work-ii-gate-repair-20260916/BC-A",
+      "failures": []
+    },
+    {
+      "card": "BC",
+      "stage": "M",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "BC",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.028,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 0.00025,
+              "catalyst": 1
+            },
+            {
+              "operation": "heat",
+              "target_temperature_K": 335,
+              "duration_s": 600,
+              "stirring_speed_rpm": 720
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "yield",
+          "estimate": 0.012363,
+          "half_width": 0.025455844122715714
+        },
+        "commission": "Use the limited shared experimental budget to diagnose reaction behavior, predict new conditions, and state what remains unresolved.",
+        "measurement_contract": "All batches, instruments, samples and materials share one budget. Stopping early alone is not evidence of an informative diagnosis.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 12,
+      "operations": 12,
+      "metrics": [
+        {
+          "byproduct_signal": 0.18487706780433655,
+          "conversion": 0.9951422214508057,
+          "cost": 0.4108400046825409,
+          "degradation_warning": 0.0006617599865421653,
+          "safety_risk": 0.11647891998291016,
+          "score": 0.48750048875808716,
+          "selectivity": 0.6344422101974487,
+          "virtual_spectrum_summary": 0.10198017209768295,
+          "yield": 0.6402429342269897
+        },
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.0010748595232143998,
+          "cost": 0.40584832429885864,
+          "degradation_warning": 0.0,
+          "safety_risk": 0.09677830338478088,
+          "score": 0.16796506941318512,
+          "selectivity": 0.9882725477218628,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.01172255165874958
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 12,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "heat": 2,
+            "measure": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.0005,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.056
+          },
+          "remaining": {
+            "operation_attempts": 6,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.0095,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10400000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 28199.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 601.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.8166883333333333,
+            "accumulated_risk": 0.21325722325125207,
+            "peak_risk": 0.11647891966852379
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 12,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 2.9530000000377186,
+      "replay_seconds": 0.20400000002700835,
+      "directory": "runs/development/work-ii-gate-repair-20260916/BC-M",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "base",
+      "failure": {
+        "type": "AttributeError",
+        "message": "'ChemWorldEnv' object has no attribute 'compiled_mechanism'"
+      },
+      "runtime_passed": false,
+      "packet_delivered": false,
+      "received_packet": null,
+      "planned_batches": 4,
+      "completed_batches": 0,
+      "planned_operations": 28,
+      "operations": 0,
+      "metrics": [],
+      "resources": {
+        "passed": false,
+        "errors": [
+          "no physical trajectory",
+          "vessel/closed-batch mismatch"
+        ],
+        "final_state": {}
+      },
+      "replay": {
+        "verified": false,
+        "error": "Trajectory is empty"
+      },
+      "evaluator_records": [],
+      "physical_seconds": 0.045999999972991645,
+      "replay_seconds": 0.0,
+      "directory": "runs/development/work-ii-gate-repair-20260916/PA-base",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "shift",
+      "failure": {
+        "type": "AttributeError",
+        "message": "'ChemWorldEnv' object has no attribute 'compiled_mechanism'"
+      },
+      "runtime_passed": false,
+      "packet_delivered": false,
+      "received_packet": null,
+      "planned_batches": 4,
+      "completed_batches": 0,
+      "planned_operations": 28,
+      "operations": 0,
+      "metrics": [],
+      "resources": {
+        "passed": false,
+        "errors": [
+          "no physical trajectory",
+          "vessel/closed-batch mismatch"
+        ],
+        "final_state": {}
+      },
+      "replay": {
+        "verified": false,
+        "error": "Trajectory is empty"
+      },
+      "evaluator_records": [],
+      "physical_seconds": 0.0470000000204891,
+      "replay_seconds": 0.0,
+      "directory": "runs/development/work-ii-gate-repair-20260916/PA-shift",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "O",
+      "failure": "upstream_missing",
+      "runtime_passed": false,
+      "packet_delivered": false,
+      "received_packet": null,
+      "planned_batches": 2,
+      "completed_batches": 0,
+      "planned_operations": 14,
+      "operations": 0,
+      "metrics": [],
+      "resources": {
+        "passed": false
+      },
+      "replay": {
+        "verified": false
+      }
+    },
+    {
+      "card": "PA",
+      "stage": "A",
+      "failure": "upstream_missing",
+      "runtime_passed": false,
+      "packet_delivered": false,
+      "received_packet": null,
+      "planned_batches": 2,
+      "completed_batches": 0,
+      "planned_operations": 14,
+      "operations": 0,
+      "metrics": [],
+      "resources": {
+        "passed": false
+      },
+      "replay": {
+        "verified": false
+      }
+    },
+    {
+      "card": "PA",
+      "stage": "M",
+      "failure": "upstream_missing",
+      "runtime_passed": false,
+      "packet_delivered": false,
+      "received_packet": null,
+      "planned_batches": 2,
+      "completed_batches": 0,
+      "planned_operations": 14,
+      "operations": 0,
+      "metrics": [],
+      "resources": {
+        "passed": false
+      },
+      "replay": {
+        "verified": false
+      }
+    },
+    {
+      "card": "FL",
+      "stage": "base",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "FL",
+        "prior_record": null,
+        "commission": "Identify a configuration-dependent feasible operating window from outlet reaction measurements and temperature/pressure readouts; recommend a supported point.",
+        "measurement_contract": "Configured volume V=Q*tau and tube length change with the flow/residence settings. The temperature target is a wall boundary, not the fluid temperature. run_flow requires fresh configuration. Nominal processed volume is not delivered product mass.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 9,
+      "completed_batches": 9,
+      "planned_operations": 63,
+      "operations": 63,
+      "metrics": [
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.0050569879822432995,
+          "safety_risk": 0.10139788687229156,
+          "score": 0.1769563853740692,
+          "selectivity": 0.9816097021102905,
+          "yield": 0.0034757480025291443
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.028049025684595108,
+          "safety_risk": 0.17217721045017242,
+          "score": 0.18465681374073029,
+          "selectivity": 0.9684738516807556,
+          "yield": 0.021400904282927513
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.03465431556105614,
+          "safety_risk": 0.36343637108802795,
+          "score": 0.1805577278137207,
+          "selectivity": 0.9521869421005249,
+          "yield": 0.0480400025844574
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.025525493547320366,
+          "safety_risk": 0.10235253721475601,
+          "score": 0.17710795998573303,
+          "selectivity": 0.9236809015274048,
+          "yield": 0.021499788388609886
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.08370193839073181,
+          "safety_risk": 0.17548301815986633,
+          "score": 0.2030160129070282,
+          "selectivity": 0.891537606716156,
+          "yield": 0.06634634733200073
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.17903727293014526,
+          "safety_risk": 0.37027329206466675,
+          "score": 0.23697268962860107,
+          "selectivity": 0.7985656261444092,
+          "yield": 0.15336087346076965
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.05273529887199402,
+          "safety_risk": 0.10355637222528458,
+          "score": 0.18156664073467255,
+          "selectivity": 0.8730967044830322,
+          "yield": 0.04204586148262024
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.14332130551338196,
+          "safety_risk": 0.179207444190979,
+          "score": 0.20495031774044037,
+          "selectivity": 0.7244036793708801,
+          "yield": 0.11346902698278427
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.31788989901542664,
+          "safety_risk": 0.37694182991981506,
+          "score": 0.25779038667678833,
+          "selectivity": 0.5796453356742859,
+          "yield": 0.19289687275886536
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 63,
+          "vessel_starts": 9,
+          "final_assays": 9,
+          "discarded_batches": 0,
+          "closed_batches": 9,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 9,
+            "add_reagent": 9,
+            "add_solvent": 9,
+            "measure": 9,
+            "run_flow": 9,
+            "set_flow_rate": 9,
+            "terminate": 9
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00198,
+            "reagent_mol": 0.09,
+            "solvent_L": 0.23399999999999999
+          },
+          "remaining": {
+            "operation_attempts": 9,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.043019999999999996,
+              "extractant_L": 0.54,
+              "phase_liquid_L": 0.54,
+              "reagent_mol": 0.27,
+              "solvent_L": 0.486
+            },
+            "per_instrument": {},
+            "process_time_s": 59400.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 70200.0,
+            "sample_consumed_L": 0.0026999999999999997,
+            "physical_cost": 4.12812,
+            "accumulated_risk": 1.9448259604561642,
+            "peak_risk": 0.37694181726337395
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 63,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 42.26600000000326,
+      "replay_seconds": 1.827999999979511,
+      "directory": "runs/development/work-ii-gate-repair-20260916/FL-base",
+      "failures": []
+    },
+    {
+      "card": "FL",
+      "stage": "shift",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "FL",
+        "prior_record": null,
+        "commission": "Identify a configuration-dependent feasible operating window from outlet reaction measurements and temperature/pressure readouts; recommend a supported point.",
+        "measurement_contract": "Configured volume V=Q*tau and tube length change with the flow/residence settings. The temperature target is a wall boundary, not the fluid temperature. run_flow requires fresh configuration. Nominal processed volume is not delivered product mass.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 9,
+      "completed_batches": 9,
+      "planned_operations": 63,
+      "operations": 63,
+      "metrics": [
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.009401204995810986,
+          "safety_risk": 0.10163803398609161,
+          "score": 0.17902261018753052,
+          "selectivity": 0.9770551323890686,
+          "yield": 0.0076552946120500565
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.0436076894402504,
+          "safety_risk": 0.17303380370140076,
+          "score": 0.19253958761692047,
+          "selectivity": 0.9553118944168091,
+          "yield": 0.03587784990668297
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.06883279979228973,
+          "safety_risk": 0.36528974771499634,
+          "score": 0.1980261355638504,
+          "selectivity": 0.9262570142745972,
+          "yield": 0.07835399359464645
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.04263018071651459,
+          "safety_risk": 0.10326507687568665,
+          "score": 0.17932821810245514,
+          "selectivity": 0.879257321357727,
+          "yield": 0.03589260205626488
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.1413336545228958,
+          "safety_risk": 0.17834316194057465,
+          "score": 0.21351121366024017,
+          "selectivity": 0.7772538661956787,
+          "yield": 0.10124922543764114
+        },
+        {
+          "cost": 0.45368000864982605,
+          "flow_conversion": 0.29211559891700745,
+          "safety_risk": 0.375462144613266,
+          "score": 0.2597053647041321,
+          "selectivity": 0.6265742182731628,
+          "yield": 0.1940639764070511
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.08589967340230942,
+          "safety_risk": 0.1051914319396019,
+          "score": 0.17613275349140167,
+          "selectivity": 0.7506707310676575,
+          "yield": 0.06165808439254761
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.24587132036685944,
+          "safety_risk": 0.18366877734661102,
+          "score": 0.2106005698442459,
+          "selectivity": 0.517789363861084,
+          "yield": 0.13420501351356506
+        },
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.49088233709335327,
+          "safety_risk": 0.3840555250644684,
+          "score": 0.28257593512535095,
+          "selectivity": 0.36780235171318054,
+          "yield": 0.18751023709774017
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 63,
+          "vessel_starts": 9,
+          "final_assays": 9,
+          "discarded_batches": 0,
+          "closed_batches": 9,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 9,
+            "add_reagent": 9,
+            "add_solvent": 9,
+            "measure": 9,
+            "run_flow": 9,
+            "set_flow_rate": 9,
+            "terminate": 9
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00198,
+            "reagent_mol": 0.09,
+            "solvent_L": 0.23399999999999999
+          },
+          "remaining": {
+            "operation_attempts": 9,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.043019999999999996,
+              "extractant_L": 0.54,
+              "phase_liquid_L": 0.54,
+              "reagent_mol": 0.27,
+              "solvent_L": 0.486
+            },
+            "per_instrument": {},
+            "process_time_s": 59400.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 70200.0,
+            "sample_consumed_L": 0.0026999999999999997,
+            "physical_cost": 4.12812,
+            "accumulated_risk": 1.9699476850017494,
+            "peak_risk": 0.3840555163811491
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 63,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 42.26600000000326,
+      "replay_seconds": 1.827999999979511,
+      "directory": "runs/development/work-ii-gate-repair-20260916/FL-shift",
+      "failures": []
+    },
+    {
+      "card": "FL",
+      "stage": "O",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "FL",
+        "prior_record": null,
+        "commission": "Identify a configuration-dependent feasible operating window from outlet reaction measurements and temperature/pressure readouts; recommend a supported point.",
+        "measurement_contract": "Configured volume V=Q*tau and tube length change with the flow/residence settings. The temperature target is a wall boundary, not the fluid temperature. run_flow requires fresh configuration. Nominal processed volume is not delivered product mass.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.3307833969593048,
+          "safety_risk": 0.37694182991981506,
+          "score": 0.25865718722343445,
+          "selectivity": 0.5702226161956787,
+          "yield": 0.1848767101764679
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.005708273965865374,
+          "safety_risk": 0.10139788687229156,
+          "score": 0.1729079633951187,
+          "selectivity": 0.9610251784324646,
+          "yield": 0.0028356618713587523
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "run_flow": 2,
+            "set_flow_rate": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00044,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.052
+          },
+          "remaining": {
+            "operation_attempts": 58,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00956,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10800000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 12600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 16200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.9223600000000001,
+            "accumulated_risk": 0.47833970544891435,
+            "peak_risk": 0.37694181726337395
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 4.922000000020489,
+      "replay_seconds": 0.375,
+      "directory": "runs/development/work-ii-gate-repair-20260916/FL-O",
+      "failures": []
+    },
+    {
+      "card": "FL",
+      "stage": "A",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "FL",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.026,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 0.00022,
+              "catalyst": 1
+            },
+            {
+              "operation": "set_flow_rate",
+              "flow_rate_mL_min": 1.2,
+              "residence_time_s": 7200
+            },
+            {
+              "operation": "run_flow",
+              "target_temperature_K": 430,
+              "duration_s": 14400
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "flow_conversion",
+          "estimate": 0.31789,
+          "half_width": 0.05091168824543143
+        },
+        "commission": "Identify a configuration-dependent feasible operating window from outlet reaction measurements and temperature/pressure readouts; recommend a supported point.",
+        "measurement_contract": "Configured volume V=Q*tau and tube length change with the flow/residence settings. The temperature target is a wall boundary, not the fluid temperature. run_flow requires fresh configuration. Nominal processed volume is not delivered product mass.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.3307833969593048,
+          "safety_risk": 0.37694182991981506,
+          "score": 0.25865718722343445,
+          "selectivity": 0.5702226161956787,
+          "yield": 0.1848767101764679
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.005708273965865374,
+          "safety_risk": 0.10139788687229156,
+          "score": 0.1729079633951187,
+          "selectivity": 0.9610251784324646,
+          "yield": 0.0028356618713587523
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "run_flow": 2,
+            "set_flow_rate": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00044,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.052
+          },
+          "remaining": {
+            "operation_attempts": 58,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00956,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10800000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 12600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 16200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.9223600000000001,
+            "accumulated_risk": 0.47833970544891435,
+            "peak_risk": 0.37694181726337395
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 4.889999999955762,
+      "replay_seconds": 0.375,
+      "directory": "runs/development/work-ii-gate-repair-20260916/FL-A",
+      "failures": []
+    },
+    {
+      "card": "FL",
+      "stage": "M",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "FL",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.026,
+              "solvent": 2
+            },
+            {
+              "operation": "add_reagent",
+              "amount_mol": 0.01
+            },
+            {
+              "operation": "add_catalyst",
+              "catalyst_amount_mol": 0.00022,
+              "catalyst": 1
+            },
+            {
+              "operation": "set_flow_rate",
+              "flow_rate_mL_min": 1.2,
+              "residence_time_s": 7200
+            },
+            {
+              "operation": "run_flow",
+              "target_temperature_K": 430,
+              "duration_s": 14400
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "flow_conversion",
+          "estimate": 0.005057,
+          "half_width": 0.05091168824543143
+        },
+        "commission": "Identify a configuration-dependent feasible operating window from outlet reaction measurements and temperature/pressure readouts; recommend a supported point.",
+        "measurement_contract": "Configured volume V=Q*tau and tube length change with the flow/residence settings. The temperature target is a wall boundary, not the fluid temperature. run_flow requires fresh configuration. Nominal processed volume is not delivered product mass.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.5136799812316895,
+          "flow_conversion": 0.3307833969593048,
+          "safety_risk": 0.37694182991981506,
+          "score": 0.25865718722343445,
+          "selectivity": 0.5702226161956787,
+          "yield": 0.1848767101764679
+        },
+        {
+          "cost": 0.4086799919605255,
+          "flow_conversion": 0.005708273965865374,
+          "safety_risk": 0.10139788687229156,
+          "score": 0.1729079633951187,
+          "selectivity": 0.9610251784324646,
+          "yield": 0.0028356618713587523
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_catalyst": 2,
+            "add_reagent": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "run_flow": 2,
+            "set_flow_rate": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "catalyst_mol": 0.00044,
+            "reagent_mol": 0.02,
+            "solvent_L": 0.052
+          },
+          "remaining": {
+            "operation_attempts": 58,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.00956,
+              "extractant_L": 0.12,
+              "phase_liquid_L": 0.12,
+              "reagent_mol": 0.06,
+              "solvent_L": 0.10800000000000001
+            },
+            "per_instrument": {},
+            "process_time_s": 12600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 16200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.9223600000000001,
+            "accumulated_risk": 0.47833970544891435,
+            "peak_risk": 0.37694181726337395
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [],
+      "physical_seconds": 4.922000000020489,
+      "replay_seconds": 0.39100000000325963,
+      "directory": "runs/development/work-ii-gate-repair-20260916/FL-M",
+      "failures": []
+    }
+  ],
+  "full_science_gate_qualified": false,
+  "full_agent_chain_tested": false
+}

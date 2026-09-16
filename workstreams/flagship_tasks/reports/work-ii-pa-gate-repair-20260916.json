@@ -1,0 +1,849 @@
+{
+  "evidence_mode": "development",
+  "status": "closed",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_PA_GATE_REPAIR_NOTE.md",
+  "run_root": "runs/development/work-ii-pa-gate-repair-20260916",
+  "elapsed_seconds": 30.35899999999674,
+  "counts": {
+    "campaigns_planned": 5,
+    "campaigns_complete": 5,
+    "batches_planned": 14,
+    "batches_complete": 14,
+    "operations": 98,
+    "resources_passed": 5,
+    "replays_passed": 5,
+    "triarm_entry_passes": 3,
+    "response_passes": 1,
+    "local_prior_passes": 1,
+    "system_screen_passes": 1,
+    "world_response_passes": 1,
+    "model_calls": 0,
+    "retries": 0
+  },
+  "systems": [
+    {
+      "card": "PA",
+      "reference_runtime_passed": true,
+      "response_comparisons": [
+        {
+          "batches": [
+            1,
+            2
+          ],
+          "delta": 0.18676303327083588,
+          "cutoff": 0.04242640687119286,
+          "passed": true
+        },
+        {
+          "batches": [
+            3,
+            4
+          ],
+          "delta": 0.21551620960235596,
+          "cutoff": 0.04242640687119286,
+          "passed": true
+        }
+      ],
+      "response_passed": true,
+      "triarm_physics_invariant": true,
+      "aligned_supported": true,
+      "misindexed_refuted": true,
+      "local_prior_qualification": true,
+      "world_deltas": [
+        0.04949389398097992,
+        0.25836268067359924,
+        0.0781821608543396,
+        0.13521260023117065
+      ],
+      "world_response_passed": true,
+      "phase_fraction_sums": [
+        1.0020578354597092,
+        1.0074832737445831,
+        1.0155357122421265,
+        1.0038859248161316
+      ],
+      "mass_errors_mol": [
+        0.0,
+        0.0,
+        1.734723475976807e-18,
+        1.734723475976807e-18
+      ],
+      "phase_accounting_passed": true,
+      "screen_passed": true
+    }
+  ],
+  "campaigns": [
+    {
+      "card": "PA",
+      "stage": "base",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "PA",
+        "prior_record": null,
+        "commission": "Establish a predictive account of target material in both liquid phases across media and phase ratios, including sampling and separation losses.",
+        "measurement_contract": "product_in_organic and product_in_aqueous are fractions of the initial target inventory, not concentrations or fractions of the current selected phase. Measure both before phase removal. Sampling consumes inventory; discarded phases are not free to recover.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 4,
+      "completed_batches": 4,
+      "planned_operations": 28,
+      "operations": 28,
+      "metrics": [
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.0,
+          "phase_ratio": 0.1332067996263504,
+          "product_in_aqueous": 0.8591691255569458,
+          "product_in_organic": 0.14288870990276337,
+          "purity": 0.9339876770973206,
+          "recovery": 0.15067380666732788,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.02221781387925148
+        },
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.030968233942985535,
+          "phase_ratio": 0.10668905824422836,
+          "product_in_aqueous": 0.6778315305709839,
+          "product_in_organic": 0.32965174317359924,
+          "purity": 0.9614982008934021,
+          "recovery": 0.3304249346256256,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.2017519325017929
+        },
+        {
+          "cost": 0.24789999425411224,
+          "impurity_signal": 0.047408320009708405,
+          "phase_ratio": 0.3921217620372772,
+          "product_in_aqueous": 0.5629945993423462,
+          "product_in_organic": 0.4525411128997803,
+          "purity": 0.9303226470947266,
+          "recovery": 0.45381954312324524,
+          "safety_risk": 0.04098616912961006,
+          "score": 0.2891483008861542
+        },
+        {
+          "cost": 0.24789999425411224,
+          "impurity_signal": 0.05356336385011673,
+          "phase_ratio": 0.4011707901954651,
+          "product_in_aqueous": 0.33582860231399536,
+          "product_in_organic": 0.6680573225021362,
+          "purity": 0.9092762470245361,
+          "recovery": 0.6757128834724426,
+          "safety_risk": 0.04098616912961006,
+          "score": 0.49414879083633423
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 28,
+          "vessel_starts": 4,
+          "final_assays": 4,
+          "discarded_batches": 0,
+          "closed_batches": 4,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_extractant": 4,
+            "add_phase": 4,
+            "add_solvent": 4,
+            "measure": 4,
+            "mix": 4,
+            "settle": 4,
+            "terminate": 4
+          },
+          "stocks_used": {
+            "extractant_L": 0.072,
+            "phase_liquid_L": 0.072,
+            "solvent_L": 0.1
+          },
+          "remaining": {
+            "operation_attempts": 20,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.02,
+              "extractant_L": 0.16799999999999998,
+              "phase_liquid_L": 0.16799999999999998,
+              "reagent_mol": 0.16,
+              "solvent_L": 0.22
+            },
+            "per_instrument": {},
+            "process_time_s": 55200.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 2400.0,
+            "sample_consumed_L": 0.0012,
+            "physical_cost": 0.9532000000000003,
+            "accumulated_risk": 0.24987671709421672,
+            "peak_risk": 0.06246917927355418
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 28,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008769600332487738,
+          "expected_sample_target_mol": 3.618817193598792e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 1.734723475976807e-18
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008769600332487738,
+          "expected_sample_target_mol": 3.618817193598792e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 1.734723475976807e-18
+        }
+      ],
+      "physical_seconds": 9.655999999959022,
+      "replay_seconds": 0.34399999998277053,
+      "directory": "runs/development/work-ii-pa-gate-repair-20260916/PA-base",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "shift",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "PA",
+        "prior_record": null,
+        "commission": "Establish a predictive account of target material in both liquid phases across media and phase ratios, including sampling and separation losses.",
+        "measurement_contract": "product_in_organic and product_in_aqueous are fractions of the initial target inventory, not concentrations or fractions of the current selected phase. Measure both before phase removal. Sampling consumes inventory; discarded phases are not free to recover.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 4,
+      "completed_batches": 4,
+      "planned_operations": 28,
+      "operations": 28,
+      "metrics": [
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.0,
+          "phase_ratio": 0.1332067996263504,
+          "product_in_aqueous": 0.8096752166748047,
+          "product_in_organic": 0.1923826038837433,
+          "purity": 0.9688696265220642,
+          "recovery": 0.2001677006483078,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.06923700869083405
+        },
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.028006447479128838,
+          "phase_ratio": 0.10668905824422836,
+          "product_in_aqueous": 0.41946882009506226,
+          "product_in_organic": 0.5880144238471985,
+          "purity": 0.9848189949989319,
+          "recovery": 0.5887876152992249,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.44719648361206055
+        },
+        {
+          "cost": 0.24789999425411224,
+          "impurity_signal": 0.031134476885199547,
+          "phase_ratio": 0.3921217620372772,
+          "product_in_aqueous": 0.4848124086856842,
+          "product_in_organic": 0.5307232737541199,
+          "purity": 0.9698452353477478,
+          "recovery": 0.5320017337799072,
+          "safety_risk": 0.04098616912961006,
+          "score": 0.36342138051986694
+        },
+        {
+          "cost": 0.24789999425411224,
+          "impurity_signal": 0.04485882446169853,
+          "phase_ratio": 0.4011707901954651,
+          "product_in_aqueous": 0.2006160318851471,
+          "product_in_organic": 0.8032699227333069,
+          "purity": 0.9315989017486572,
+          "recovery": 0.8109254240989685,
+          "safety_risk": 0.04098616912961006,
+          "score": 0.6226007342338562
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 28,
+          "vessel_starts": 4,
+          "final_assays": 4,
+          "discarded_batches": 0,
+          "closed_batches": 4,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_extractant": 4,
+            "add_phase": 4,
+            "add_solvent": 4,
+            "measure": 4,
+            "mix": 4,
+            "settle": 4,
+            "terminate": 4
+          },
+          "stocks_used": {
+            "extractant_L": 0.072,
+            "phase_liquid_L": 0.072,
+            "solvent_L": 0.1
+          },
+          "remaining": {
+            "operation_attempts": 20,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.02,
+              "extractant_L": 0.16799999999999998,
+              "phase_liquid_L": 0.16799999999999998,
+              "reagent_mol": 0.16,
+              "solvent_L": 0.22
+            },
+            "per_instrument": {},
+            "process_time_s": 55200.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 2400.0,
+            "sample_consumed_L": 0.0012,
+            "physical_cost": 0.9532000000000003,
+            "accumulated_risk": 0.24987671709421672,
+            "peak_risk": 0.06246917927355418
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 28,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.00876960033248774,
+          "expected_sample_target_mol": 3.618817193598792e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.00876960033248774,
+          "expected_sample_target_mol": 3.618817193598792e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        }
+      ],
+      "physical_seconds": 10.172000000020489,
+      "replay_seconds": 0.39100000000325963,
+      "directory": "runs/development/work-ii-pa-gate-repair-20260916/PA-shift",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "O",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "PA",
+        "prior_record": null,
+        "commission": "Establish a predictive account of target material in both liquid phases across media and phase ratios, including sampling and separation losses.",
+        "measurement_contract": "product_in_organic and product_in_aqueous are fractions of the initial target inventory, not concentrations or fractions of the current selected phase. Measure both before phase removal. Sampling consumes inventory; discarded phases are not free to recover.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.01254204474389553,
+          "phase_ratio": 0.12357146292924881,
+          "product_in_aqueous": 0.6497997045516968,
+          "product_in_organic": 0.32261019945144653,
+          "purity": 0.9613534808158875,
+          "recovery": 0.32907867431640625,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.19688154757022858
+        },
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.02060776948928833,
+          "phase_ratio": 0.10318857431411743,
+          "product_in_aqueous": 0.8833774328231812,
+          "product_in_organic": 0.15349149703979492,
+          "purity": 0.959267258644104,
+          "recovery": 0.14092478156089783,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.031811170279979706
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_extractant": 2,
+            "add_phase": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "mix": 2,
+            "settle": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "extractant_L": 0.012,
+            "phase_liquid_L": 0.036,
+            "solvent_L": 0.05
+          },
+          "remaining": {
+            "operation_attempts": 34,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.108,
+              "phase_liquid_L": 0.08399999999999999,
+              "reagent_mol": 0.08,
+              "solvent_L": 0.11
+            },
+            "per_instrument": {},
+            "process_time_s": 27600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 1200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.45740000000000003,
+            "accumulated_risk": 0.12493835854710836,
+            "peak_risk": 0.06246917927355418
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        }
+      ],
+      "physical_seconds": 3.030999999959022,
+      "replay_seconds": 0.1720000000204891,
+      "directory": "runs/development/work-ii-pa-gate-repair-20260916/PA-O",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "A",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "PA",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.025,
+              "solvent": 0
+            },
+            {
+              "operation": "add_phase",
+              "phase": "aqueous",
+              "volume_L": 0.018
+            },
+            {
+              "operation": "add_extractant",
+              "extractant": 3,
+              "volume_L": 0.006
+            },
+            {
+              "operation": "mix",
+              "duration_s": 240,
+              "stirring_speed_rpm": 750
+            },
+            {
+              "operation": "settle",
+              "duration_s": 360
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "product_in_organic",
+          "estimate": 0.329652,
+          "half_width": 0.04242640687119286
+        },
+        "commission": "Establish a predictive account of target material in both liquid phases across media and phase ratios, including sampling and separation losses.",
+        "measurement_contract": "product_in_organic and product_in_aqueous are fractions of the initial target inventory, not concentrations or fractions of the current selected phase. Measure both before phase removal. Sampling consumes inventory; discarded phases are not free to recover.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.01254204474389553,
+          "phase_ratio": 0.12357146292924881,
+          "product_in_aqueous": 0.6497997045516968,
+          "product_in_organic": 0.32261019945144653,
+          "purity": 0.9613534808158875,
+          "recovery": 0.32907867431640625,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.19688154757022858
+        },
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.02060776948928833,
+          "phase_ratio": 0.10318857431411743,
+          "product_in_aqueous": 0.8833774328231812,
+          "product_in_organic": 0.15349149703979492,
+          "purity": 0.959267258644104,
+          "recovery": 0.14092478156089783,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.031811170279979706
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_extractant": 2,
+            "add_phase": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "mix": 2,
+            "settle": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "extractant_L": 0.012,
+            "phase_liquid_L": 0.036,
+            "solvent_L": 0.05
+          },
+          "remaining": {
+            "operation_attempts": 34,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.108,
+              "phase_liquid_L": 0.08399999999999999,
+              "reagent_mol": 0.08,
+              "solvent_L": 0.11
+            },
+            "per_instrument": {},
+            "process_time_s": 27600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 1200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.45740000000000003,
+            "accumulated_risk": 0.12493835854710836,
+            "peak_risk": 0.06246917927355418
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        }
+      ],
+      "physical_seconds": 3.0469999999622814,
+      "replay_seconds": 0.1720000000204891,
+      "directory": "runs/development/work-ii-pa-gate-repair-20260916/PA-A",
+      "failures": []
+    },
+    {
+      "card": "PA",
+      "stage": "M",
+      "failure": null,
+      "runtime_passed": true,
+      "packet_delivered": true,
+      "received_packet": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "PA",
+        "prior_record": {
+          "scope_actions": [
+            {
+              "operation": "add_solvent",
+              "volume_L": 0.025,
+              "solvent": 0
+            },
+            {
+              "operation": "add_phase",
+              "phase": "aqueous",
+              "volume_L": 0.018
+            },
+            {
+              "operation": "add_extractant",
+              "extractant": 3,
+              "volume_L": 0.006
+            },
+            {
+              "operation": "mix",
+              "duration_s": 240,
+              "stirring_speed_rpm": 750
+            },
+            {
+              "operation": "settle",
+              "duration_s": 360
+            },
+            {
+              "operation": "terminate"
+            },
+            {
+              "operation": "measure",
+              "instrument": "final_assay"
+            }
+          ],
+          "metric": "product_in_organic",
+          "estimate": 0.142889,
+          "half_width": 0.04242640687119286
+        },
+        "commission": "Establish a predictive account of target material in both liquid phases across media and phase ratios, including sampling and separation losses.",
+        "measurement_contract": "product_in_organic and product_in_aqueous are fractions of the initial target inventory, not concentrations or fractions of the current selected phase. Measure both before phase removal. Sampling consumes inventory; discarded phases are not free to recover.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "planned_batches": 2,
+      "completed_batches": 2,
+      "planned_operations": 14,
+      "operations": 14,
+      "metrics": [
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.01254204474389553,
+          "phase_ratio": 0.12357146292924881,
+          "product_in_aqueous": 0.6497997045516968,
+          "product_in_organic": 0.32261019945144653,
+          "purity": 0.9613534808158875,
+          "recovery": 0.32907867431640625,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.19688154757022858
+        },
+        {
+          "cost": 0.22869999706745148,
+          "impurity_signal": 0.02060776948928833,
+          "phase_ratio": 0.10318857431411743,
+          "product_in_aqueous": 0.8833774328231812,
+          "product_in_organic": 0.15349149703979492,
+          "purity": 0.959267258644104,
+          "recovery": 0.14092478156089783,
+          "safety_risk": 0.04453540965914726,
+          "score": 0.031811170279979706
+        }
+      ],
+      "resources": {
+        "passed": true,
+        "errors": [],
+        "final_state": {
+          "operation_attempts": 14,
+          "vessel_starts": 2,
+          "final_assays": 2,
+          "discarded_batches": 0,
+          "closed_batches": 2,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {
+            "add_extractant": 2,
+            "add_phase": 2,
+            "add_solvent": 2,
+            "measure": 2,
+            "mix": 2,
+            "settle": 2,
+            "terminate": 2
+          },
+          "stocks_used": {
+            "extractant_L": 0.012,
+            "phase_liquid_L": 0.036,
+            "solvent_L": 0.05
+          },
+          "remaining": {
+            "operation_attempts": 34,
+            "vessel_starts": 0,
+            "final_assays": 0,
+            "nonfinal_instrument_uses": 0,
+            "stocks": {
+              "catalyst_mol": 0.01,
+              "extractant_L": 0.108,
+              "phase_liquid_L": 0.08399999999999999,
+              "reagent_mol": 0.08,
+              "solvent_L": 0.11
+            },
+            "per_instrument": {},
+            "process_time_s": 27600.0,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 1200.0,
+            "sample_consumed_L": 0.0006,
+            "physical_cost": 0.45740000000000003,
+            "accumulated_risk": 0.12493835854710836,
+            "peak_risk": 0.06246917927355418
+          }
+        }
+      },
+      "replay": {
+        "verified": true,
+        "checked_steps": 14,
+        "max_abs_error": 0.0,
+        "mismatches": []
+      },
+      "evaluator_records": [
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        },
+        {
+          "initial_target_mol": 0.008805788504423727,
+          "before_assay_target_mol": 0.008805788504423727,
+          "after_assay_target_mol": 0.008751875513580316,
+          "expected_sample_target_mol": 5.391299084341058e-05,
+          "before_error_mol": 0.0,
+          "after_plus_sample_error_mol": 0.0
+        }
+      ],
+      "physical_seconds": 3.0469999999622814,
+      "replay_seconds": 0.1720000000204891,
+      "directory": "runs/development/work-ii-pa-gate-repair-20260916/PA-M",
+      "failures": []
+    }
+  ],
+  "full_science_gate_qualified": false,
+  "full_agent_chain_tested": false
+}
