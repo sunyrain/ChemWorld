@@ -1,0 +1,2295 @@
+{
+  "schema_version": "work-ii-astra-full-process-report-1",
+  "formal_result": false,
+  "model": "gpt-6-astra",
+  "reasoning_effort": "medium",
+  "agent_retries": 0,
+  "counts": {
+    "agent_scheduled": 3,
+    "agent_attempted": 3,
+    "reference_scheduled": 4,
+    "reference_attempted": 4,
+    "agent_final_assays": 2,
+    "agent_quality_passed": 0,
+    "reference_final_assays": 3,
+    "recorded_operations": 109,
+    "unlogged_failed_operations": 1,
+    "replay_verified_trajectories_or_prefixes": 7
+  },
+  "all_resource_checks_passed": true,
+  "known_usage_totals": {
+    "input_token_count": 1401189,
+    "cached_input_token_count": 1287296,
+    "uncached_input_token_count": 113893,
+    "output_token_count": 2458,
+    "mcp_tool_calls": 43,
+    "mcp_step_calls": 40,
+    "provider_process_attempt_count": 3,
+    "provider_session_count": 3
+  },
+  "token_usage_missing_conditions": [
+    "reaction-to-crystallization"
+  ],
+  "total_token_usage_complete": false,
+  "systematic_failure_established": false,
+  "cells": [
+    {
+      "task": "reaction-to-purification",
+      "kind": "reference",
+      "status": "failed",
+      "failure": {
+        "message": "outcome exceeded process-time reservation: operation=dry, actual_s=300.0, reserved_s=0.0",
+        "type": "CampaignResourceIntegrityError"
+      },
+      "operations": 15,
+      "committed": 15,
+      "final_assays": 0,
+      "quality_targets": {
+        "purity": [
+          ">=",
+          0.8
+        ],
+        "recovery": [
+          ">=",
+          0.1
+        ]
+      },
+      "quality_checks": {
+        "purity": false,
+        "recovery": false
+      },
+      "quality_passed": false,
+      "final_metrics": {},
+      "leaderboard_score": null,
+      "replay": {
+        "checked_steps": 15,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.13361455068185282,
+        "peak_risk": 0.13361455068185282,
+        "physical_cost": 0.6618936036004387,
+        "process_time_s": 3073.8541768610585,
+        "sample_consumed_L": 0.0006000000000000001
+      },
+      "stocks_used": {
+        "solvent_L": 0.028,
+        "reagent_mol": 0.01,
+        "catalyst_mol": 0.00025,
+        "phase_liquid_L": 0.012,
+        "extractant_L": 0.018,
+        "wash_solvent_L": 0.008
+      },
+      "nonfinal_instruments": 3,
+      "remaining_resources": {
+        "final_assays": 1,
+        "nonfinal_instrument_uses": 9,
+        "operation_attempts": 75,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 40126.14582313894,
+        "stocks": {
+          "catalyst_mol": 0.00475,
+          "extractant_L": 0.062,
+          "phase_liquid_L": 0.068,
+          "reagent_mol": 0.03,
+          "seed_g": 0.05,
+          "solvent_L": 0.052000000000000005,
+          "wash_solvent_L": 0.07200000000000001
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [
+        {
+          "operation": "dry",
+          "status": "resource_accounting_exception_after_runtime",
+          "known_elapsed_s": 300,
+          "durable_trajectory_row": false,
+          "accounting": "15-step prefix totals only; failing operation not a committed record"
+        }
+      ],
+      "operation_counts": {
+        "add_solvent": 1,
+        "add_reagent": 1,
+        "add_catalyst": 1,
+        "heat": 1,
+        "wait": 1,
+        "measure": 3,
+        "quench": 1,
+        "add_phase": 1,
+        "add_extractant": 1,
+        "mix": 1,
+        "settle": 1,
+        "separate_phase": 1,
+        "wash": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.028
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "amount_mol": 0.01,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1500.0,
+            "operation": "heat",
+            "stirring_speed_rpm": 720.0,
+            "target_temperature_K": 385.0
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "duration_s": 900.0,
+            "operation": "wait",
+            "stirring_speed_rpm": 720.0
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "operation": "add_phase",
+            "phase": "aqueous",
+            "volume_L": 0.012
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "extractant": 3,
+            "operation": "add_extractant",
+            "volume_L": 0.018
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "duration_s": 240.0,
+            "operation": "mix",
+            "stirring_speed_rpm": 850.0
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "duration_s": 420.0,
+            "operation": "settle"
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "operation": "separate_phase",
+            "target_phase": "organic"
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "operation": "wash",
+            "wash_volume_L": 0.008
+          },
+          "status": "committed",
+          "step": 15
+        }
+      ],
+      "measurements": [
+        {
+          "step": 6,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.08391547203063965,
+            "conversion": 0.20231392979621887,
+            "cost": 0.34084001183509827,
+            "impurity_signal": 0.06897877901792526,
+            "purity": 0.5290163159370422,
+            "recovery": 0.08359050750732422,
+            "safety_risk": 0.1021326407790184,
+            "score": 0.24256132543087006,
+            "selectivity": 0.43289899826049805,
+            "yield": 0.10502312332391739
+          }
+        },
+        {
+          "step": 8,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.08223967254161835,
+            "conversion": 0.21643505990505219,
+            "cost": 0.4645935893058777,
+            "impurity_signal": 0.07575057446956635,
+            "purity": 0.5132969617843628,
+            "recovery": 0.09845506399869919,
+            "safety_risk": 0.09907033294439316,
+            "score": 0.22939912974834442,
+            "selectivity": 0.4332563877105713,
+            "yield": 0.07260619103908539
+          }
+        },
+        {
+          "step": 13,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.06872977316379547,
+            "conversion": 0.20265384018421173,
+            "cost": 0.6148936152458191,
+            "impurity_signal": 0.038872409611940384,
+            "purity": 0.7150246500968933,
+            "recovery": 0.04456586018204689,
+            "safety_risk": 0.08627446740865707,
+            "score": 0.2614000737667084,
+            "selectivity": 0.22691290080547333,
+            "yield": 0.044956058263778687
+          }
+        }
+      ],
+      "provider_usage": {},
+      "elapsed_s": 10.234000000025844,
+      "provider_terminal": [],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/reference/reaction-to-purification"
+    },
+    {
+      "task": "reaction-to-crystallization",
+      "kind": "reference",
+      "status": "completed",
+      "failure": null,
+      "operations": 16,
+      "committed": 16,
+      "final_assays": 1,
+      "quality_targets": {
+        "crystal_purity": [
+          ">=",
+          0.8
+        ],
+        "crystal_yield": [
+          ">=",
+          0.1
+        ],
+        "crystal_fines_fraction": [
+          "<=",
+          0.5
+        ]
+      },
+      "quality_checks": {
+        "crystal_purity": true,
+        "crystal_yield": true,
+        "crystal_fines_fraction": false
+      },
+      "quality_passed": false,
+      "final_metrics": {
+        "byproduct_signal": 0.39738529920578003,
+        "conversion": 0.9768351912498474,
+        "cost": 0.8550320267677307,
+        "crystal_csd_quality": 0.521408200263977,
+        "crystal_fines_fraction": 1.0,
+        "crystal_purity": 0.9794964790344238,
+        "crystal_size": 0.06438033282756805,
+        "crystal_yield": 0.4339868426322937,
+        "degradation_warning": 0.09976717829704285,
+        "safety_risk": 0.09369894862174988,
+        "score": 0.3579115569591522,
+        "selectivity": 0.3035740256309509,
+        "virtual_spectrum_summary": 0.26345714926719666,
+        "yield": 0.29857203364372253
+      },
+      "leaderboard_score": 0.3579115541865027,
+      "replay": {
+        "checked_steps": 16,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.14735031401797688,
+        "peak_risk": 0.14565247075505144,
+        "physical_cost": 0.855032048542151,
+        "process_time_s": 6800.978116640425,
+        "sample_consumed_L": 0.0009
+      },
+      "stocks_used": {
+        "solvent_L": 0.028,
+        "reagent_mol": 0.01,
+        "catalyst_mol": 0.00025,
+        "seed_g": 0.006
+      },
+      "nonfinal_instruments": 3,
+      "remaining_resources": {
+        "final_assays": 0,
+        "nonfinal_instrument_uses": 9,
+        "operation_attempts": 56,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 36399.02188335957,
+        "stocks": {
+          "catalyst_mol": 0.00475,
+          "extractant_L": 0.08,
+          "phase_liquid_L": 0.08,
+          "reagent_mol": 0.03,
+          "seed_g": 0.044000000000000004,
+          "solvent_L": 0.052000000000000005,
+          "wash_solvent_L": 0.08
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_solvent": 1,
+        "add_reagent": 1,
+        "add_catalyst": 1,
+        "heat": 2,
+        "wait": 1,
+        "measure": 4,
+        "quench": 1,
+        "seed_crystals": 1,
+        "cool_crystallize": 2,
+        "filter_crystals": 1,
+        "terminate": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.028
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "amount_mol": 0.01,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1500.0,
+            "operation": "heat",
+            "stirring_speed_rpm": 720.0,
+            "target_temperature_K": 385.0
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "duration_s": 900.0,
+            "operation": "wait",
+            "stirring_speed_rpm": 720.0
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "operation": "seed_crystals",
+            "seed_mass_g": 0.006
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "duration_s": 1800.0,
+            "operation": "cool_crystallize",
+            "target_temperature_K": 278.15
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "duration_s": 300.0,
+            "operation": "heat",
+            "stirring_speed_rpm": 600.0,
+            "target_temperature_K": 300.0
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "duration_s": 1800.0,
+            "operation": "cool_crystallize",
+            "target_temperature_K": 278.15
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "operation": "filter_crystals"
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "operation": "terminate"
+          },
+          "status": "committed",
+          "step": 15
+        },
+        {
+          "action": {
+            "instrument": "final_assay",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 16
+        }
+      ],
+      "measurements": [
+        {
+          "step": 6,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.4030824303627014,
+            "conversion": 0.9691011309623718,
+            "cost": 0.34084001183509827,
+            "crystal_purity": 0.0013708227779716253,
+            "safety_risk": 0.10915504395961761,
+            "score": 0.05993860960006714,
+            "selectivity": 0.2861427366733551,
+            "yield": 0.29725348949432373
+          }
+        },
+        {
+          "step": 8,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.4014066159725189,
+            "conversion": 0.983222246170044,
+            "cost": 0.4716702699661255,
+            "crystal_purity": 0.007735736668109894,
+            "safety_risk": 0.10253636538982391,
+            "score": 0.053042374551296234,
+            "selectivity": 0.28650012612342834,
+            "yield": 0.2648365795612335
+          }
+        },
+        {
+          "step": 13,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.38789671659469604,
+            "conversion": 0.9694409966468811,
+            "cost": 0.6690320372581482,
+            "crystal_purity": 0.983740508556366,
+            "safety_risk": 0.09375975281000137,
+            "score": 0.24758583307266235,
+            "selectivity": 0.32542577385902405,
+            "yield": 0.2976902425289154
+          }
+        },
+        {
+          "step": 16,
+          "instrument": "final_assay",
+          "metrics": {
+            "byproduct_signal": 0.39738529920578003,
+            "conversion": 0.9768351912498474,
+            "cost": 0.8550320267677307,
+            "crystal_csd_quality": 0.521408200263977,
+            "crystal_fines_fraction": 1.0,
+            "crystal_purity": 0.9794964790344238,
+            "crystal_size": 0.06438033282756805,
+            "crystal_yield": 0.4339868426322937,
+            "degradation_warning": 0.09976717829704285,
+            "safety_risk": 0.09369894862174988,
+            "score": 0.3579115569591522,
+            "selectivity": 0.3035740256309509,
+            "virtual_spectrum_summary": 0.26345714926719666,
+            "yield": 0.29857203364372253
+          }
+        }
+      ],
+      "provider_usage": {},
+      "elapsed_s": 16.82799999997951,
+      "provider_terminal": [],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/reference/reaction-to-crystallization"
+    },
+    {
+      "task": "reaction-to-distillation",
+      "kind": "reference",
+      "status": "completed",
+      "failure": null,
+      "operations": 17,
+      "committed": 17,
+      "final_assays": 1,
+      "quality_targets": {
+        "distillate_purity": [
+          ">=",
+          0.8
+        ],
+        "distillate_recovery": [
+          ">=",
+          0.1
+        ]
+      },
+      "quality_checks": {
+        "distillate_purity": false,
+        "distillate_recovery": true
+      },
+      "quality_passed": false,
+      "final_metrics": {
+        "byproduct_signal": 0.9936215877532959,
+        "conversion": 0.10877621173858643,
+        "cost": 0.9534816145896912,
+        "degradation_warning": 0.00951413530856371,
+        "distillate_purity": 0.08089719712734222,
+        "distillate_recovery": 0.8831964731216431,
+        "safety_risk": 0.22942470014095306,
+        "score": 0.24471572041511536,
+        "selectivity": 1.0,
+        "solvent_loss": 0.24355275928974152,
+        "virtual_spectrum_summary": 0.5507732629776001,
+        "yield": 0.11531522870063782
+      },
+      "leaderboard_score": 0.24471572456600632,
+      "replay": {
+        "checked_steps": 17,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.26955177200177016,
+        "peak_risk": 0.2294246997707071,
+        "physical_cost": 0.953481633505847,
+        "process_time_s": 5719.357784489292,
+        "sample_consumed_L": 0.001
+      },
+      "stocks_used": {
+        "solvent_L": 0.028,
+        "reagent_mol": 0.01,
+        "catalyst_mol": 0.00025
+      },
+      "nonfinal_instruments": 4,
+      "remaining_resources": {
+        "final_assays": 0,
+        "nonfinal_instrument_uses": 8,
+        "operation_attempts": 55,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 37480.64221551071,
+        "stocks": {
+          "catalyst_mol": 0.00475,
+          "extractant_L": 0.08,
+          "phase_liquid_L": 0.08,
+          "reagent_mol": 0.03,
+          "seed_g": 0.05,
+          "solvent_L": 0.052000000000000005,
+          "wash_solvent_L": 0.08
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_solvent": 1,
+        "add_reagent": 1,
+        "add_catalyst": 1,
+        "heat": 1,
+        "wait": 1,
+        "measure": 5,
+        "quench": 1,
+        "evaporate": 1,
+        "distill": 2,
+        "collect_fraction": 2,
+        "terminate": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.028
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "amount_mol": 0.01,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1500.0,
+            "operation": "heat",
+            "stirring_speed_rpm": 720.0,
+            "target_temperature_K": 385.0
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "duration_s": 900.0,
+            "operation": "wait",
+            "stirring_speed_rpm": 720.0
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "duration_s": 600.0,
+            "operation": "evaporate",
+            "target_temperature_K": 335.0
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "duration_s": 1500.0,
+            "operation": "distill",
+            "reflux_ratio": 2.0,
+            "target_temperature_K": 360.0
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "operation": "collect_fraction",
+            "transfer_fraction": 0.5
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "instrument": "gc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "duration_s": 1200.0,
+            "operation": "distill",
+            "reflux_ratio": 3.0,
+            "target_temperature_K": 370.0
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "operation": "collect_fraction",
+            "transfer_fraction": 0.92
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "instrument": "gc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 15
+        },
+        {
+          "action": {
+            "operation": "terminate"
+          },
+          "status": "committed",
+          "step": 16
+        },
+        {
+          "action": {
+            "instrument": "final_assay",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 17
+        }
+      ],
+      "measurements": [
+        {
+          "step": 6,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.9993187189102173,
+            "conversion": 0.10104212909936905,
+            "cost": 0.34084001183509827,
+            "distillate_purity": 0.0,
+            "safety_risk": 0.18185336887836456,
+            "score": 0.08967403322458267,
+            "selectivity": 0.9944151639938354,
+            "yield": 0.12413283437490463
+          }
+        },
+        {
+          "step": 8,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.9976429343223572,
+            "conversion": 0.11516324430704117,
+            "cost": 0.4700649678707123,
+            "distillate_purity": 0.0,
+            "safety_risk": 0.1765691041946411,
+            "score": 0.07656615972518921,
+            "selectivity": 0.9947725534439087,
+            "yield": 0.09171590954065323
+          }
+        },
+        {
+          "step": 12,
+          "instrument": "gc",
+          "metrics": {
+            "byproduct_signal": 1.0,
+            "cost": 0.6368149518966675,
+            "degradation_warning": 0.0,
+            "distillate_purity": 0.10597280412912369,
+            "safety_risk": 0.2187652885913849,
+            "score": 0.03603075444698334,
+            "virtual_spectrum_summary": 0.550000011920929
+          }
+        },
+        {
+          "step": 15,
+          "instrument": "gc",
+          "metrics": {
+            "byproduct_signal": 1.0,
+            "cost": 0.7934816479682922,
+            "degradation_warning": 0.01586068607866764,
+            "distillate_purity": 0.10194683074951172,
+            "safety_risk": 0.22942470014095306,
+            "score": 0.034661922603845596,
+            "virtual_spectrum_summary": 0.5571373105049133
+          }
+        },
+        {
+          "step": 17,
+          "instrument": "final_assay",
+          "metrics": {
+            "byproduct_signal": 0.9936215877532959,
+            "conversion": 0.10877621173858643,
+            "cost": 0.9534816145896912,
+            "degradation_warning": 0.00951413530856371,
+            "distillate_purity": 0.08089719712734222,
+            "distillate_recovery": 0.8831964731216431,
+            "safety_risk": 0.22942470014095306,
+            "score": 0.24471572041511536,
+            "selectivity": 1.0,
+            "solvent_loss": 0.24355275928974152,
+            "virtual_spectrum_summary": 0.5507732629776001,
+            "yield": 0.11531522870063782
+          }
+        }
+      ],
+      "provider_usage": {},
+      "elapsed_s": 10.125,
+      "provider_terminal": [],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/reference/reaction-to-distillation"
+    },
+    {
+      "task": "reaction-to-purification",
+      "kind": "reference-corrected",
+      "status": "completed",
+      "failure": null,
+      "operations": 21,
+      "committed": 21,
+      "final_assays": 1,
+      "quality_targets": {
+        "purity": [
+          ">=",
+          0.8
+        ],
+        "recovery": [
+          ">=",
+          0.1
+        ]
+      },
+      "quality_checks": {
+        "purity": false,
+        "recovery": false
+      },
+      "quality_passed": false,
+      "final_metrics": {
+        "byproduct_signal": 0.001030734390951693,
+        "conversion": 0.9956614375114441,
+        "cost": 0.9357269406318665,
+        "degradation_warning": 0.00951413530856371,
+        "impurity_signal": 0.025956816971302032,
+        "process_mass_balance_error": 0.0016568248393014073,
+        "purity": 0.7983799576759338,
+        "recovery": 0.037343427538871765,
+        "safety_risk": 0.08166538923978806,
+        "score": 0.28860315680503845,
+        "selectivity": 0.031030675396323204,
+        "virtual_spectrum_summary": 0.004848265089094639,
+        "yield": 0.03171531856060028
+      },
+      "leaderboard_score": 0.28860315833330824,
+      "replay": {
+        "checked_steps": 21,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.13429407644957844,
+        "peak_risk": 0.13361455068185282,
+        "physical_cost": 0.9357269369337721,
+        "process_time_s": 3973.8541768610585,
+        "sample_consumed_L": 0.0011
+      },
+      "stocks_used": {
+        "solvent_L": 0.028,
+        "reagent_mol": 0.01,
+        "catalyst_mol": 0.00025,
+        "phase_liquid_L": 0.012,
+        "extractant_L": 0.018,
+        "wash_solvent_L": 0.008
+      },
+      "nonfinal_instruments": 4,
+      "remaining_resources": {
+        "final_assays": 0,
+        "nonfinal_instrument_uses": 8,
+        "operation_attempts": 69,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 39226.14582313894,
+        "stocks": {
+          "catalyst_mol": 0.00475,
+          "extractant_L": 0.062,
+          "phase_liquid_L": 0.068,
+          "reagent_mol": 0.03,
+          "seed_g": 0.05,
+          "solvent_L": 0.052000000000000005,
+          "wash_solvent_L": 0.07200000000000001
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_solvent": 1,
+        "add_reagent": 1,
+        "add_catalyst": 1,
+        "heat": 1,
+        "wait": 1,
+        "measure": 5,
+        "quench": 1,
+        "add_phase": 1,
+        "add_extractant": 1,
+        "mix": 1,
+        "settle": 1,
+        "separate_phase": 1,
+        "wash": 1,
+        "dry": 1,
+        "concentrate": 1,
+        "transfer": 1,
+        "terminate": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.028
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "amount_mol": 0.01,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.00025,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1500.0,
+            "operation": "heat",
+            "stirring_speed_rpm": 720.0,
+            "target_temperature_K": 385.0
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "duration_s": 900.0,
+            "operation": "wait",
+            "stirring_speed_rpm": 720.0
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "operation": "add_phase",
+            "phase": "aqueous",
+            "volume_L": 0.012
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "extractant": 3,
+            "operation": "add_extractant",
+            "volume_L": 0.018
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "duration_s": 240.0,
+            "operation": "mix",
+            "stirring_speed_rpm": 850.0
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "duration_s": 420.0,
+            "operation": "settle"
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "operation": "separate_phase",
+            "target_phase": "organic"
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "operation": "wash",
+            "wash_volume_L": 0.008
+          },
+          "status": "committed",
+          "step": 15
+        },
+        {
+          "action": {
+            "operation": "dry"
+          },
+          "status": "committed",
+          "step": 16
+        },
+        {
+          "action": {
+            "duration_s": 600.0,
+            "operation": "concentrate"
+          },
+          "status": "committed",
+          "step": 17
+        },
+        {
+          "action": {
+            "operation": "transfer",
+            "transfer_fraction": 0.97
+          },
+          "status": "committed",
+          "step": 18
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 19
+        },
+        {
+          "action": {
+            "operation": "terminate"
+          },
+          "status": "committed",
+          "step": 20
+        },
+        {
+          "action": {
+            "instrument": "final_assay",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 21
+        }
+      ],
+      "measurements": [
+        {
+          "step": 6,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.08391547203063965,
+            "conversion": 0.20231392979621887,
+            "cost": 0.34084001183509827,
+            "impurity_signal": 0.06897877901792526,
+            "purity": 0.5290163159370422,
+            "recovery": 0.08359050750732422,
+            "safety_risk": 0.1021326407790184,
+            "score": 0.24256132543087006,
+            "selectivity": 0.43289899826049805,
+            "yield": 0.10502312332391739
+          }
+        },
+        {
+          "step": 8,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.08223967254161835,
+            "conversion": 0.21643505990505219,
+            "cost": 0.4645935893058777,
+            "impurity_signal": 0.07575057446956635,
+            "purity": 0.5132969617843628,
+            "recovery": 0.09845506399869919,
+            "safety_risk": 0.09907033294439316,
+            "score": 0.22939912974834442,
+            "selectivity": 0.4332563877105713,
+            "yield": 0.07260619103908539
+          }
+        },
+        {
+          "step": 13,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.06872977316379547,
+            "conversion": 0.20265384018421173,
+            "cost": 0.6148936152458191,
+            "impurity_signal": 0.038872409611940384,
+            "purity": 0.7150246500968933,
+            "recovery": 0.04456586018204689,
+            "safety_risk": 0.08627446740865707,
+            "score": 0.2614000737667084,
+            "selectivity": 0.22691290080547333,
+            "yield": 0.044956058263778687
+          }
+        },
+        {
+          "step": 19,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.02733490988612175,
+            "conversion": 1.0,
+            "cost": 0.7757269144058228,
+            "impurity_signal": 0.000931473623495549,
+            "purity": 0.8108362555503845,
+            "recovery": 0.023570166900753975,
+            "safety_risk": 0.08166538923978806,
+            "score": 0.2896852195262909,
+            "selectivity": 0.026905367150902748,
+            "yield": 0.05240407958626747
+          }
+        },
+        {
+          "step": 21,
+          "instrument": "final_assay",
+          "metrics": {
+            "byproduct_signal": 0.001030734390951693,
+            "conversion": 0.9956614375114441,
+            "cost": 0.9357269406318665,
+            "degradation_warning": 0.00951413530856371,
+            "impurity_signal": 0.025956816971302032,
+            "process_mass_balance_error": 0.0016568248393014073,
+            "purity": 0.7983799576759338,
+            "recovery": 0.037343427538871765,
+            "safety_risk": 0.08166538923978806,
+            "score": 0.28860315680503845,
+            "selectivity": 0.031030675396323204,
+            "virtual_spectrum_summary": 0.004848265089094639,
+            "yield": 0.03171531856060028
+          }
+        }
+      ],
+      "provider_usage": {},
+      "elapsed_s": 17.5,
+      "provider_terminal": [],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/reference-corrected/reaction-to-purification"
+    },
+    {
+      "task": "reaction-to-purification",
+      "kind": "agent",
+      "status": "completed",
+      "failure": null,
+      "operations": 22,
+      "committed": 22,
+      "final_assays": 1,
+      "quality_targets": {
+        "purity": [
+          ">=",
+          0.8
+        ],
+        "recovery": [
+          ">=",
+          0.1
+        ]
+      },
+      "quality_checks": {
+        "purity": false,
+        "recovery": true
+      },
+      "quality_passed": false,
+      "final_metrics": {
+        "byproduct_signal": 0.38786646723747253,
+        "conversion": 0.834233283996582,
+        "cost": 1.0,
+        "degradation_warning": 0.045419562608003616,
+        "impurity_signal": 0.2660044729709625,
+        "process_mass_balance_error": 0.0016568248393014073,
+        "purity": 0.28402605652809143,
+        "recovery": 0.10645896196365356,
+        "safety_risk": 0.1546132117509842,
+        "score": 0.12585817277431488,
+        "selectivity": 0.11913292109966278,
+        "virtual_spectrum_summary": 0.2337653487920761,
+        "yield": 0.10083085298538208
+      },
+      "leaderboard_score": 0.12585817999405138,
+      "replay": {
+        "checked_steps": 22,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.3164894194947203,
+        "peak_risk": 0.2496156925830261,
+        "physical_cost": 1.5227238227367694,
+        "process_time_s": 22528.837592372754,
+        "sample_consumed_L": 0.0015
+      },
+      "stocks_used": {
+        "reagent_mol": 0.04,
+        "solvent_L": 0.04,
+        "catalyst_mol": 0.001,
+        "phase_liquid_L": 0.04,
+        "wash_solvent_L": 0.04,
+        "extractant_L": 0.02
+      },
+      "nonfinal_instruments": 6,
+      "remaining_resources": {
+        "final_assays": 0,
+        "nonfinal_instrument_uses": 6,
+        "operation_attempts": 68,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 20671.162407627246,
+        "stocks": {
+          "catalyst_mol": 0.004,
+          "extractant_L": 0.06,
+          "phase_liquid_L": 0.04,
+          "reagent_mol": 0.0,
+          "seed_g": 0.05,
+          "solvent_L": 0.04,
+          "wash_solvent_L": 0.04
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_reagent": 1,
+        "add_solvent": 1,
+        "add_catalyst": 1,
+        "heat": 3,
+        "measure": 7,
+        "quench": 1,
+        "add_phase": 1,
+        "wash": 2,
+        "add_extractant": 1,
+        "mix": 1,
+        "dry": 1,
+        "concentrate": 1,
+        "terminate": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.04
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.001,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1800,
+            "operation": "heat",
+            "stirring_speed_rpm": 600,
+            "target_temperature_K": 345
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 800,
+            "target_temperature_K": 365
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "duration_s": 10800,
+            "operation": "heat",
+            "stirring_speed_rpm": 800,
+            "target_temperature_K": 345
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "operation": "add_phase",
+            "phase": "organic",
+            "volume_L": 0.04
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "operation": "wash",
+            "wash_volume_L": 0.02
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "extractant": 3,
+            "operation": "add_extractant",
+            "volume_L": 0.02
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "duration_s": 600,
+            "operation": "mix",
+            "stirring_speed_rpm": 600
+          },
+          "status": "committed",
+          "step": 15
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 16
+        },
+        {
+          "action": {
+            "operation": "wash",
+            "wash_volume_L": 0.02
+          },
+          "status": "committed",
+          "step": 17
+        },
+        {
+          "action": {
+            "operation": "dry"
+          },
+          "status": "committed",
+          "step": 18
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 19
+        },
+        {
+          "action": {
+            "duration_s": 1800,
+            "operation": "concentrate"
+          },
+          "status": "committed",
+          "step": 20
+        },
+        {
+          "action": {
+            "operation": "terminate"
+          },
+          "status": "committed",
+          "step": 21
+        },
+        {
+          "action": {
+            "instrument": "final_assay",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 22
+        }
+      ],
+      "measurements": [
+        {
+          "step": 5,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.06194155663251877,
+            "conversion": 0.11358986049890518,
+            "cost": 0.5861999988555908,
+            "impurity_signal": 0.047004859894514084,
+            "purity": 0.42075636982917786,
+            "recovery": 0.034576576203107834,
+            "safety_risk": 0.2273121029138565,
+            "score": 0.15590886771678925,
+            "selectivity": 0.3524464964866638,
+            "yield": 0.056009188294410706
+          }
+        },
+        {
+          "step": 7,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.305555522441864,
+            "conversion": 0.6143662929534912,
+            "cost": 0.7261999845504761,
+            "impurity_signal": 0.299066424369812,
+            "purity": 0.3651053309440613,
+            "recovery": 0.19169087707996368,
+            "safety_risk": 0.24961569905281067,
+            "score": 0.1925671249628067,
+            "selectivity": 0.30056288838386536,
+            "yield": 0.1658419966697693
+          }
+        },
+        {
+          "step": 9,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.423761785030365,
+            "conversion": 0.8268390893936157,
+            "cost": 0.8962000012397766,
+            "impurity_signal": 0.4628441631793976,
+            "purity": 0.238077312707901,
+            "recovery": 0.1545887589454651,
+            "safety_risk": 0.21972894668579102,
+            "score": 0.12983636558055878,
+            "selectivity": 0.20660804212093353,
+            "yield": 0.15497896075248718
+          }
+        },
+        {
+          "step": 13,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.459554523229599,
+            "conversion": 0.8399505615234375,
+            "cost": 1.0,
+            "impurity_signal": 0.0,
+            "purity": 0.011495236307382584,
+            "recovery": 0.0,
+            "safety_risk": 0.11852392554283142,
+            "score": 0.017252136021852493,
+            "selectivity": 0.18063098192214966,
+            "yield": 0.1765495240688324
+          }
+        },
+        {
+          "step": 16,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.42064884305000305,
+            "conversion": 0.8252737522125244,
+            "cost": 1.0,
+            "impurity_signal": 0.3037014603614807,
+            "purity": 0.296804815530777,
+            "recovery": 0.1309114396572113,
+            "safety_risk": 0.15810319781303406,
+            "score": 0.13660955429077148,
+            "selectivity": 0.17436593770980835,
+            "yield": 0.1243823915719986
+          }
+        },
+        {
+          "step": 19,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.3969758152961731,
+            "conversion": 0.8477824926376343,
+            "cost": 1.0,
+            "impurity_signal": 0.2368016242980957,
+            "purity": 0.2675861418247223,
+            "recovery": 0.10680267214775085,
+            "safety_risk": 0.12731875479221344,
+            "score": 0.12035581469535828,
+            "selectivity": 0.08578856289386749,
+            "yield": 0.1269468069076538
+          }
+        },
+        {
+          "step": 22,
+          "instrument": "final_assay",
+          "metrics": {
+            "byproduct_signal": 0.38786646723747253,
+            "conversion": 0.834233283996582,
+            "cost": 1.0,
+            "degradation_warning": 0.045419562608003616,
+            "impurity_signal": 0.2660044729709625,
+            "process_mass_balance_error": 0.0016568248393014073,
+            "purity": 0.28402605652809143,
+            "recovery": 0.10645896196365356,
+            "safety_risk": 0.1546132117509842,
+            "score": 0.12585817277431488,
+            "selectivity": 0.11913292109966278,
+            "virtual_spectrum_summary": 0.2337653487920761,
+            "yield": 0.10083085298538208
+          }
+        }
+      ],
+      "provider_usage": {
+        "provider_session_count": 1,
+        "provider_process_attempt_count": 1,
+        "logical_codex_turn_count": 1,
+        "accepted_turn_continuation_count": 0,
+        "provider_error_event_count": 0,
+        "provider_usage_observed": true,
+        "provider_token_accounting_complete": true,
+        "usage_source": "codex_cli_completed_experiment_turns",
+        "backend_model_response_count": null,
+        "backend_model_response_accounting_complete": false,
+        "input_token_count": 853824,
+        "cached_input_token_count": 789120,
+        "uncached_input_token_count": 64704,
+        "output_token_count": 1326,
+        "monetary_cost_usd": null,
+        "cost_note": "Subscription usage not attributable per run; unavailable is not zero.",
+        "mcp_tool_calls": 23,
+        "mcp_step_calls": 22
+      },
+      "elapsed_s": 177.29699999999139,
+      "provider_terminal": [
+        {
+          "final_payload_status": "experiment_complete",
+          "final_payload_summary": "Completed one vessel through termination and final assay; the batch was not discarded. Used 0.040 mol reagent, 40 mL acetonitrile and 0.001 mol Catalyst A. HPLC-guided heating increased conversion, but extended heating reduced product yield and purity. Quenched, added organic phase and toluene extractant, mixed, washed, dried and concentrated. Final assay: purity 0.2840 (FAIL: target ≥0.80), recovery 0.1065 (nominal PASS: target ≥0.10), yield 0.1008, conversion 0.8342 and process mass-balance error 0.00166. Overall quality objective was not achieved. Native leaderboard score: 0.12586. Used 22 of 90 operations, six HPLC measurements and one final assay; peak reported safety risk was 0.2496, below 0.65. Total reported physical cost was 1.5227 benchmark units. Recovery is close to its threshold relative to assay noise; this single synthetic trajectory does not establish causal effects or an optimal process.",
+          "final_payload_valid": true,
+          "provider_error_event_count": 0,
+          "provider_errors": [],
+          "return_code": 0
+        }
+      ],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/agent/reaction-to-purification"
+    },
+    {
+      "task": "reaction-to-crystallization",
+      "kind": "agent",
+      "status": "failed",
+      "failure": {
+        "message": "Codex session crossed a frozen operational limit before the next executable operation; no fallback action was emitted: max_provider_error_events",
+        "type": "InteractiveCodexExperimentError"
+      },
+      "operations": 1,
+      "committed": 1,
+      "final_assays": 0,
+      "quality_targets": {
+        "crystal_purity": [
+          ">=",
+          0.8
+        ],
+        "crystal_yield": [
+          ">=",
+          0.1
+        ],
+        "crystal_fines_fraction": [
+          "<=",
+          0.5
+        ]
+      },
+      "quality_checks": {
+        "crystal_purity": false,
+        "crystal_yield": false,
+        "crystal_fines_fraction": false
+      },
+      "quality_passed": false,
+      "final_metrics": {},
+      "leaderboard_score": null,
+      "replay": {
+        "checked_steps": 1,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.03620660309382262,
+        "peak_risk": 0.03620660309382262,
+        "physical_cost": 0.11999999999999998,
+        "process_time_s": 0.0,
+        "sample_consumed_L": 0.0
+      },
+      "stocks_used": {
+        "reagent_mol": 0.04
+      },
+      "nonfinal_instruments": 0,
+      "remaining_resources": {
+        "final_assays": 1,
+        "nonfinal_instrument_uses": 12,
+        "operation_attempts": 71,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 43200.0,
+        "stocks": {
+          "catalyst_mol": 0.005,
+          "extractant_L": 0.08,
+          "phase_liquid_L": 0.08,
+          "reagent_mol": 0.0,
+          "seed_g": 0.05,
+          "solvent_L": 0.08,
+          "wash_solvent_L": 0.08
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_reagent": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 1
+        }
+      ],
+      "measurements": [],
+      "provider_usage": {
+        "provider_session_count": 1,
+        "provider_process_attempt_count": 1,
+        "logical_codex_turn_count": 1,
+        "accepted_turn_continuation_count": 0,
+        "provider_error_event_count": 2,
+        "provider_usage_observed": false,
+        "provider_token_accounting_complete": false,
+        "usage_source": "codex_cli_interrupted_before_usage_observation",
+        "backend_model_response_count": null,
+        "backend_model_response_accounting_complete": false,
+        "input_token_count": null,
+        "cached_input_token_count": null,
+        "uncached_input_token_count": null,
+        "output_token_count": null,
+        "monetary_cost_usd": null,
+        "cost_note": "Subscription usage not attributable per run; unavailable is not zero.",
+        "mcp_tool_calls": 2,
+        "mcp_step_calls": 1
+      },
+      "elapsed_s": 18.51500000001397,
+      "provider_terminal": [
+        {
+          "final_payload_status": null,
+          "final_payload_summary": null,
+          "final_payload_valid": null,
+          "provider_error_event_count": 2,
+          "provider_errors": [
+            {
+              "byte_count": 118,
+              "category": "provider_rejection_unclassified",
+              "http_status_codes": [],
+              "sha256": "42bcccfad8a7f5bf39b87aef2b8e38939281d354865626a0930ba25d23875b0f"
+            }
+          ],
+          "return_code": null
+        }
+      ],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/agent/reaction-to-crystallization"
+    },
+    {
+      "task": "reaction-to-distillation",
+      "kind": "agent",
+      "status": "completed",
+      "failure": null,
+      "operations": 17,
+      "committed": 17,
+      "final_assays": 1,
+      "quality_targets": {
+        "distillate_purity": [
+          ">=",
+          0.8
+        ],
+        "distillate_recovery": [
+          ">=",
+          0.1
+        ]
+      },
+      "quality_checks": {
+        "distillate_purity": false,
+        "distillate_recovery": true
+      },
+      "quality_passed": false,
+      "final_metrics": {
+        "byproduct_signal": 0.9936215877532959,
+        "conversion": 0.5188010931015015,
+        "cost": 1.0,
+        "degradation_warning": 0.00951413530856371,
+        "distillate_purity": 0.244222491979599,
+        "distillate_recovery": 0.9705017805099487,
+        "safety_risk": 0.3268211781978607,
+        "score": 0.42968398332595825,
+        "selectivity": 1.0,
+        "solvent_loss": 0.0,
+        "virtual_spectrum_summary": 0.5507732629776001,
+        "yield": 0.5253400802612305
+      },
+      "leaderboard_score": 0.4296839794688692,
+      "replay": {
+        "checked_steps": 17,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "resources": {
+        "accumulated_risk": 0.35704643426456467,
+        "peak_risk": 0.34115255261507654,
+        "physical_cost": 2.223687364632949,
+        "process_time_s": 34228.933371420964,
+        "sample_consumed_L": 0.0012
+      },
+      "stocks_used": {
+        "reagent_mol": 0.04,
+        "solvent_L": 0.04,
+        "catalyst_mol": 0.002
+      },
+      "nonfinal_instruments": 5,
+      "remaining_resources": {
+        "final_assays": 0,
+        "nonfinal_instrument_uses": 7,
+        "operation_attempts": 55,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "process_time_s": 8971.066628579036,
+        "stocks": {
+          "catalyst_mol": 0.003,
+          "extractant_L": 0.08,
+          "phase_liquid_L": 0.08,
+          "reagent_mol": 0.0,
+          "seed_g": 0.05,
+          "solvent_L": 0.04,
+          "wash_solvent_L": 0.08
+        },
+        "vessel_starts": 0
+      },
+      "validation": {
+        "final_count_matches_runner": true,
+        "quality_matches_runner": true,
+        "attempts_match_ledger": true,
+        "final_count_matches_ledger": true,
+        "nonfinal_instruments_match": true,
+        "stock_deltas_match": true,
+        "stock_limits_respected": true,
+        "process_time_s_reconciled": true,
+        "physical_cost_reconciled": true,
+        "sample_consumed_L_reconciled": true
+      },
+      "failures": [],
+      "unlogged_failed_attempts": [],
+      "operation_counts": {
+        "add_reagent": 1,
+        "add_solvent": 1,
+        "add_catalyst": 1,
+        "heat": 3,
+        "measure": 6,
+        "quench": 1,
+        "distill": 2,
+        "collect_fraction": 1,
+        "terminate": 1
+      },
+      "actions": [
+        {
+          "action": {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          "status": "committed",
+          "step": 1
+        },
+        {
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.04
+          },
+          "status": "committed",
+          "step": 2
+        },
+        {
+          "action": {
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.002,
+            "operation": "add_catalyst"
+          },
+          "status": "committed",
+          "step": 3
+        },
+        {
+          "action": {
+            "duration_s": 1800,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 350
+          },
+          "status": "committed",
+          "step": 4
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 5
+        },
+        {
+          "action": {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 800,
+            "target_temperature_K": 370
+          },
+          "status": "committed",
+          "step": 6
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 7
+        },
+        {
+          "action": {
+            "duration_s": 14400,
+            "operation": "heat",
+            "stirring_speed_rpm": 800,
+            "target_temperature_K": 370
+          },
+          "status": "committed",
+          "step": 8
+        },
+        {
+          "action": {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 9
+        },
+        {
+          "action": {
+            "operation": "quench"
+          },
+          "status": "committed",
+          "step": 10
+        },
+        {
+          "action": {
+            "duration_s": 3600,
+            "operation": "distill",
+            "reflux_ratio": 8,
+            "target_temperature_K": 365
+          },
+          "status": "committed",
+          "step": 11
+        },
+        {
+          "action": {
+            "instrument": "gc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 12
+        },
+        {
+          "action": {
+            "duration_s": 7200,
+            "operation": "distill",
+            "reflux_ratio": 10,
+            "target_temperature_K": 350
+          },
+          "status": "committed",
+          "step": 13
+        },
+        {
+          "action": {
+            "operation": "collect_fraction",
+            "transfer_fraction": 1
+          },
+          "status": "committed",
+          "step": 14
+        },
+        {
+          "action": {
+            "instrument": "gc",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 15
+        },
+        {
+          "action": {
+            "operation": "terminate"
+          },
+          "status": "committed",
+          "step": 16
+        },
+        {
+          "action": {
+            "instrument": "final_assay",
+            "operation": "measure"
+          },
+          "status": "committed",
+          "step": 17
+        }
+      ],
+      "measurements": [
+        {
+          "step": 5,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.9993187189102173,
+            "conversion": 0.07797601819038391,
+            "cost": 0.9061999917030334,
+            "distillate_purity": 0.0,
+            "safety_risk": 0.2870218753814697,
+            "score": 0.03969971835613251,
+            "selectivity": 0.9944151639938354,
+            "yield": 0.10106673091650009
+          }
+        },
+        {
+          "step": 7,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.9976429343223572,
+            "conversion": 0.3664323389530182,
+            "cost": 1.0,
+            "distillate_purity": 0.0,
+            "safety_risk": 0.3251382112503052,
+            "score": 0.09021773189306259,
+            "selectivity": 0.9947725534439087,
+            "yield": 0.34298500418663025
+          }
+        },
+        {
+          "step": 9,
+          "instrument": "hplc",
+          "metrics": {
+            "byproduct_signal": 0.9841330647468567,
+            "conversion": 0.5114068984985352,
+            "cost": 1.0,
+            "distillate_purity": 0.0,
+            "safety_risk": 0.341152548789978,
+            "score": 0.13123267889022827,
+            "selectivity": 1.0,
+            "yield": 0.5244582891464233
+          }
+        },
+        {
+          "step": 12,
+          "instrument": "gc",
+          "metrics": {
+            "byproduct_signal": 1.0,
+            "cost": 1.0,
+            "degradation_warning": 0.0,
+            "distillate_purity": 0.3579777181148529,
+            "safety_risk": 0.33691689372062683,
+            "score": 0.12171242386102676,
+            "virtual_spectrum_summary": 0.550000011920929
+          }
+        },
+        {
+          "step": 15,
+          "instrument": "gc",
+          "metrics": {
+            "byproduct_signal": 1.0,
+            "cost": 1.0,
+            "degradation_warning": 0.01586068607866764,
+            "distillate_purity": 0.2652721405029297,
+            "safety_risk": 0.3268211781978607,
+            "score": 0.0901925265789032,
+            "virtual_spectrum_summary": 0.5571373105049133
+          }
+        },
+        {
+          "step": 17,
+          "instrument": "final_assay",
+          "metrics": {
+            "byproduct_signal": 0.9936215877532959,
+            "conversion": 0.5188010931015015,
+            "cost": 1.0,
+            "degradation_warning": 0.00951413530856371,
+            "distillate_purity": 0.244222491979599,
+            "distillate_recovery": 0.9705017805099487,
+            "safety_risk": 0.3268211781978607,
+            "score": 0.42968398332595825,
+            "selectivity": 1.0,
+            "solvent_loss": 0.0,
+            "virtual_spectrum_summary": 0.5507732629776001,
+            "yield": 0.5253400802612305
+          }
+        }
+      ],
+      "provider_usage": {
+        "provider_session_count": 1,
+        "provider_process_attempt_count": 1,
+        "logical_codex_turn_count": 1,
+        "accepted_turn_continuation_count": 0,
+        "provider_error_event_count": 0,
+        "provider_usage_observed": true,
+        "provider_token_accounting_complete": true,
+        "usage_source": "codex_cli_completed_experiment_turns",
+        "backend_model_response_count": null,
+        "backend_model_response_accounting_complete": false,
+        "input_token_count": 547365,
+        "cached_input_token_count": 498176,
+        "uncached_input_token_count": 49189,
+        "output_token_count": 1132,
+        "monetary_cost_usd": null,
+        "cost_note": "Subscription usage not attributable per run; unavailable is not zero.",
+        "mcp_tool_calls": 18,
+        "mcp_step_calls": 17
+      },
+      "elapsed_s": 152.15700000000652,
+      "provider_terminal": [
+        {
+          "final_payload_status": "experiment_complete",
+          "final_payload_summary": "Completed one vessel with explicit termination and final assay; no batch was discarded. Used 0.040 mol reagent, 40 mL acetonitrile and 0.002 mol Catalyst A. Extended heating from a 350 K setpoint to 370 K as HPLC yield estimates rose from 0.101 to 0.524, then quenched. Distilled at 365 K/reflux 8, followed by 350 K/reflux 10, and collected the available fraction. Final assay: distillate purity 0.2442 (FAIL: target ≥0.80), recovery 0.9705 (PASS: target ≥0.10), yield 0.5253, conversion 0.5188 and solvent loss 0. Native leaderboard score: 0.429684. Thus, the overall quality goal was not met despite high recovery. Used 17/72 operations and five nonfinal measurements; reported physical cost totaled 2.2237 benchmark units, with peak risk 0.3412 below the 0.65 limit. Purity remained the principal limitation; this single adaptive trajectory does not establish causal effects or an optimal recipe.",
+          "final_payload_valid": true,
+          "provider_error_event_count": 0,
+          "provider_errors": [],
+          "return_code": 0
+        }
+      ],
+      "source_directory": "runs/development/work-ii-astra-full-process-20260914/agent/reaction-to-distillation"
+    }
+  ],
+  "not_started": []
+}
