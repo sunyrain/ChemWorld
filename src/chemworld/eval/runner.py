@@ -116,6 +116,7 @@ def run_agent(
     world_interventions: tuple[dict[str, Any], ...] | list[dict[str, Any]] | None = None,
     safety_limit_override: float | None = None,
     material_information: Mapping[str, Any] | None = None,
+    research_brief: Mapping[str, Any] | None = None,
     campaign_resource_card: (
         Mapping[str, Any] | CampaignResourceCard | None
     ) = None,
@@ -171,6 +172,8 @@ def run_agent(
         env_kwargs["composition"] = copy.deepcopy(dict(composition))
     if material_information is not None:
         env_kwargs["material_information"] = dict(material_information)
+    if research_brief is not None:
+        env_kwargs["research_brief"] = copy.deepcopy(dict(research_brief))
     if campaign_resource_card is not None:
         env_kwargs["campaign_resource_card"] = (
             campaign_resource_card

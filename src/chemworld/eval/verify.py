@@ -215,6 +215,8 @@ def verify_records(
             "seed": int(first["seed"]),
         }
     campaign_resource_card = first.get("campaign_resource_card")
+    if isinstance(first.get("research_brief"), dict):
+        env_kwargs["research_brief"] = dict(first["research_brief"])
     if isinstance(campaign_resource_card, dict):
         env_kwargs["campaign_resource_card"] = dict(campaign_resource_card)
     if world_interventions:

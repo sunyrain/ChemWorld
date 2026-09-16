@@ -1790,6 +1790,11 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
     """Return a structured public observation bundle for tool agents."""
 
     operational = full_process_operational_state(env, info)
+    research = getattr(_base_env(env), "research_brief", None)
+    if research is not None:
+        from chemworld.research_brief import public_research_brief, research_operational_state
+
+        operational = research_operational_state(_base_env(env), info)
     return {
         "mode": "tool_json",
         "task": {
@@ -1810,6 +1815,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info),
         **({"operational_state": operational} if operational else {}),
+        **({"research_brief": public_research_brief(research)} if research is not None else {}),
     }
 
 

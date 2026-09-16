@@ -133,6 +133,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         crystallization_material_family_id: str | None = None,
         full_process_contract_id: str | None = None,
         material_information: Mapping[str, Any] | None = None,
+        research_brief: Mapping[str, Any] | None = None,
         campaign_resource_card: (Mapping[str, Any] | CampaignResourceCard | None) = None,
         scoring_contract_id: str = TASK_DERIVED_SCORING_CONTRACT,
         debug_truth: bool = False,
@@ -155,6 +156,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             else None
         )
         self.task_id = None if self.task_spec is None else self.task_spec.task_id
+        from chemworld.research_brief import normalize_research_brief
+
+        self.research_brief = normalize_research_brief(
+            research_brief, task_id=self.task_id, scoring_contract_id=scoring_contract_id,
+        )
         self.runtime_task_profile_id = (
             self.compiled_composition.runtime_task_profile_id
             if self.compiled_composition is not None

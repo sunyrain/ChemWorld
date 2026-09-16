@@ -207,6 +207,10 @@ class TrajectoryLogger:
                 "observation_noise_mode"
             ),
             "full_process_contract_id": task_info.get("full_process_contract_id"),
+            "research_brief": {
+                key: to_builtin(task_info["research_brief"][key])
+                for key in ("schema_version", "card", "prior_record")
+            } if task_info.get("research_brief") is not None else None,
             "observation_noise_namespace": task_info.get(
                 "observation_noise_namespace"
             ),

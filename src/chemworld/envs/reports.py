@@ -100,6 +100,11 @@ def build_task_info(env: Any) -> dict[str, Any]:
             material_information["dossier_sha256"] = env.material_information_sha256
         payload["material_information"] = material_information
     campaign_resources = env.public_campaign_resource_state(include_card=True)
+    if getattr(env, "research_brief", None) is not None:
+        from chemworld.research_brief import public_research_brief
+
+        payload["research_brief"] = public_research_brief(env.research_brief)
+        payload["description"] = payload["research_brief"]["commission"]
     if campaign_resources is not None:
         payload["campaign_resources"] = campaign_resources
     if env.debug_truth:

@@ -3515,6 +3515,7 @@ def _public_task_contract(task_info: Mapping[str, Any]) -> dict[str, Any]:
     keys = (
         "env_id",
         "full_process_contract_id",
+        "research_brief",
         "task_id",
         "task_contract_hash",
         "composition",
