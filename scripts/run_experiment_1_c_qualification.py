@@ -162,8 +162,7 @@ def _rollback_rows(records: Sequence[Mapping[str, Any]]) -> list[Mapping[str, An
     return [
         row
         for row in records
-        if row.get("transaction_status") == "rolled_back"
-        or row.get("rollback_reason") is not None
+        if row.get("transaction_status") == "rolled_back" or row.get("rollback_reason") is not None
     ]
 
 
@@ -212,9 +211,7 @@ def _execute(
             world_interventions=interventions,
         )
         records = load_jsonl(trajectory)
-        replay = verify_records(
-            records, tolerance=0.0, world_interventions=interventions
-        ).to_dict()
+        replay = verify_records(records, tolerance=0.0, world_interventions=interventions).to_dict()
         if replay.get("verified") is not True:
             raise ValueError("crystallization trajectory failed exact replay")
         rollbacks = _rollback_rows(records)
@@ -265,8 +262,7 @@ def _execute(
         == {scenario.initial_state.metadata["crystallization_material_instance_sha256"]}
         and (
             not interventions
-            or scenario.initial_state.metadata.get("world_family_intervention_hash")
-            in world_hashes
+            or scenario.initial_state.metadata.get("world_family_intervention_hash") in world_hashes
         )
     )
     receipt: dict[str, Any] = {
@@ -395,7 +391,12 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
     output.mkdir(parents=True)
     config = _campaign_config(contract)
     locus = contract["loci"]["entity"]
-    total = 5 * len(locus["cooling_anchors_K"]) * len(locus["solvent_targets"]) * int(locus["independent_replicates"])
+    total = (
+        5
+        * len(locus["cooling_anchors_K"])
+        * len(locus["solvent_targets"])
+        * int(locus["independent_replicates"])
+    )
     progress = Progress(total, event="experiment_1_c_entity_progress")
     reports = []
     for world in _worlds(contract):
@@ -412,12 +413,22 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         seed_mass_g=float(locus["seed_mass_g"]),
                         temperature_K=float(temperature),
                     )
-                    seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], temperature, solvent, replicate)
+                    seed = _stable_seed(
+                        locus["observation_noise_namespace"],
+                        world["world_id"],
+                        temperature,
+                        solvent,
+                        replicate,
+                    )
                     receipt = _execute(
                         contract=contract,
                         config=config,
                         world=world,
-                        query_spec=_query_spec(query_id=f"t{int(temperature)}-s{solvent}-r{replicate}", feature_values=feature_values, phase="entity"),
+                        query_spec=_query_spec(
+                            query_id=f"t{int(temperature)}-s{solvent}-r{replicate}",
+                            feature_values=feature_values,
+                            phase="entity",
+                        ),
                         observation_seed=seed,
                         namespace=str(locus["observation_noise_namespace"]),
                         output_root=world_root,
@@ -430,7 +441,13 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("c_entity_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=ENTITY_SUMMARY_VERSION, contract=contract, locus="entity", reports=reports, planned_executions=total)
+    summary = _five_world_summary(
+        schema_version=ENTITY_SUMMARY_VERSION,
+        contract=contract,
+        locus="entity",
+        reports=reports,
+        planned_executions=total,
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -457,12 +474,19 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                     seed_mass_g=float(locus["seed_mass_g"]),
                     temperature_K=float(temperature),
                 )
-                seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], temperature, replicate)
+                seed = _stable_seed(
+                    locus["observation_noise_namespace"], world["world_id"], temperature, replicate
+                )
                 receipt = _execute(
                     contract=contract,
                     config=config,
                     world=world,
-                    query_spec=_query_spec(query_id=f"t{temperature_index}-r{replicate}", feature_values=feature_values, phase="parametric", axis_b_index=temperature_index),
+                    query_spec=_query_spec(
+                        query_id=f"t{temperature_index}-r{replicate}",
+                        feature_values=feature_values,
+                        phase="parametric",
+                        axis_b_index=temperature_index,
+                    ),
                     observation_seed=seed,
                     namespace=str(locus["observation_noise_namespace"]),
                     output_root=world_root,
@@ -475,9 +499,19 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("c_parametric_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=PARAMETRIC_SUMMARY_VERSION, contract=contract, locus="parametric", reports=reports, planned_executions=total)
-    summary["prior_arms"] = {world["world_id"]: parametric_prior_arms(contract, world) for world in _worlds(contract)}
-    summary["summary_sha256"] = canonical_json_sha256({key: value for key, value in summary.items() if key != "summary_sha256"})
+    summary = _five_world_summary(
+        schema_version=PARAMETRIC_SUMMARY_VERSION,
+        contract=contract,
+        locus="parametric",
+        reports=reports,
+        planned_executions=total,
+    )
+    summary["prior_arms"] = {
+        world["world_id"]: parametric_prior_arms(contract, world) for world in _worlds(contract)
+    }
+    summary["summary_sha256"] = canonical_json_sha256(
+        {key: value for key, value in summary.items() if key != "summary_sha256"}
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -497,7 +531,9 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         world_root.mkdir()
         receipts = []
         for query in design:
-            seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], query["query_id"])
+            seed = _stable_seed(
+                locus["observation_noise_namespace"], world["world_id"], query["query_id"]
+            )
             receipt = _execute(
                 contract=contract,
                 config=config,
@@ -515,9 +551,17 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("c_structural_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=STRUCTURAL_SUMMARY_VERSION, contract=contract, locus="structural", reports=reports, planned_executions=total)
+    summary = _five_world_summary(
+        schema_version=STRUCTURAL_SUMMARY_VERSION,
+        contract=contract,
+        locus="structural",
+        reports=reports,
+        planned_executions=total,
+    )
     summary["prior_arms"] = structural_prior_audit()
-    summary["summary_sha256"] = canonical_json_sha256({key: value for key, value in summary.items() if key != "summary_sha256"})
+    summary["summary_sha256"] = canonical_json_sha256(
+        {key: value for key, value in summary.items() if key != "summary_sha256"}
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -525,7 +569,9 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
-    parser.add_argument("--phase", choices=("canary", "entity", "parametric", "structural"), required=True)
+    parser.add_argument(
+        "--phase", choices=("canary", "entity", "parametric", "structural"), required=True
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     contract_path = args.contract.resolve()

@@ -9,8 +9,8 @@ from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
 
-from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.experiment_1_c_qualification import load_contract
+from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 
 ROOT = Path(__file__).resolve().parents[1]

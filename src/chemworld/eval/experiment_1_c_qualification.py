@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import itertools
 import json
 import math
 from collections import defaultdict
@@ -163,9 +164,7 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
         REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
     )
     parameters = scenario.parameters
-    family = crystallization_material_family(
-        REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY
-    )
+    family = crystallization_material_family(REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY)
     realized = []
     nominal = []
     for index, row in enumerate(family.solvent_profiles):
@@ -202,8 +201,12 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
     scale = np.where(scale > 1.0e-12, scale, 1.0)
     mapping_rows = []
     for action_index, swapped_index in ((1, 3), (3, 1)):
-        own_distance = float(np.linalg.norm((realized[action_index] - nominal_array[action_index]) / scale))
-        swapped_distance = float(np.linalg.norm((realized[action_index] - nominal_array[swapped_index]) / scale))
+        own_distance = float(
+            np.linalg.norm((realized[action_index] - nominal_array[action_index]) / scale)
+        )
+        swapped_distance = float(
+            np.linalg.norm((realized[action_index] - nominal_array[swapped_index]) / scale)
+        )
         mapping_rows.append(
             {
                 "action_index": action_index,
@@ -242,9 +245,7 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
         and scenario.initial_state.metadata.get("crystallization_material_instance_sha256")
         == repeated.initial_state.metadata.get("crystallization_material_instance_sha256")
     )
-    payload["aligned_mapping_not_reversed"] = all(
-        row["own_mapping_closer"] for row in mapping_rows
-    )
+    payload["aligned_mapping_not_reversed"] = all(row["own_mapping_closer"] for row in mapping_rows)
     return payload
 
 
@@ -286,9 +287,7 @@ def entity_prior_audit(contract: Mapping[str, Any]) -> dict[str, Any]:
     }
 
 
-def parametric_prior_arms(
-    contract: Mapping[str, Any], world: Mapping[str, Any]
-) -> dict[str, Any]:
+def parametric_prior_arms(contract: Mapping[str, Any], world: Mapping[str, Any]) -> dict[str, Any]:
     locus = contract["loci"]["parametric"]
     center = float(world_truth_audit(contract, world)["aligned_threshold_center_K"])
     half_width = float(locus["aligned_band_half_width_K"])
@@ -314,8 +313,7 @@ def structural_prior_audit() -> dict[str, Any]:
     arms = build_prior_arms("crystallization_nucleation_growth")
     values = list(arms.values())
     checks = {
-        "three_arms_present": set(arms)
-        == {"opaque", "aligned_nominal", "misindexed_nominal"},
+        "three_arms_present": set(arms) == {"opaque", "aligned_nominal", "misindexed_nominal"},
         "same_public_keys": len({_public_shape(value) for value in values}) == 1,
         "target_is_seed_mediated": all(
             value.get("target") == "seed_mediated_nucleation_growth" for value in values
@@ -429,7 +427,9 @@ def analyze_parametric_world(
                 ),
             }
         )
-    endpoint_effect = abs(float(level_rows[-1]["mean"] or 0.0) - float(level_rows[0]["mean"] or 0.0))
+    endpoint_effect = abs(
+        float(level_rows[-1]["mean"] or 0.0) - float(level_rows[0]["mean"] or 0.0)
+    )
     endpoint_se = math.sqrt(
         float(level_rows[-1]["standard_error"] or 0.0) ** 2
         + float(level_rows[0]["standard_error"] or 0.0) ** 2
@@ -439,7 +439,7 @@ def analyze_parametric_world(
         (float(left["mean"] or 0.0) - float(locus["crossing_level"]))
         * (float(right["mean"] or 0.0) - float(locus["crossing_level"]))
         <= 0.0
-        for left, right in zip(level_rows, level_rows[1:])
+        for left, right in itertools.pairwise(level_rows)
     )
     prior = parametric_prior_arms(contract, world)
     truth = world_truth_audit(contract, world)
@@ -495,9 +495,7 @@ def analyze_structural_world(
             and checks["all_exact_replay"]
         ),
         "Q2_task_accessibility": bool(
-            checks["fixed_query_count"]
-            and checks["main_grid_count"]
-            and checks["validation_count"]
+            checks["fixed_query_count"] and checks["main_grid_count"] and checks["validation_count"]
         ),
         "Q3_public_contract_invariance": bool(
             checks["complete_main_surface"] and checks["complete_validation_surface"]
@@ -514,7 +512,8 @@ def analyze_structural_world(
         ),
         "Q6_budgeted_falsifiability": int(
             contract["loci"]["structural"]["participant_unique_experiment_budget"]
-        ) == 4,
+        )
+        == 4,
         "Q7_behavioral_relevance": bool(
             checks.get("held_out_disagreement")
             and checks.get("low_counterexample_region")
@@ -549,9 +548,7 @@ def _completed(receipts: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]
     return [row for row in receipts if row.get("status") == "completed"]
 
 
-def _public_receipts_ok(
-    receipts: Sequence[Mapping[str, Any]], metrics: Sequence[str]
-) -> bool:
+def _public_receipts_ok(receipts: Sequence[Mapping[str, Any]], metrics: Sequence[str]) -> bool:
     return bool(
         receipts
         and all(not row.get("participant_visible_leakage_matches") for row in receipts)
@@ -642,12 +639,8 @@ def _world_report(
             "attempted": len(receipts),
             "completed": sum(row.get("status") == "completed" for row in receipts),
             "exact_replay": sum(row.get("exact_replay") is True for row in receipts),
-            "physical_failures": sum(
-                row.get("status") == "physical_failure" for row in receipts
-            ),
-            "platform_failures": sum(
-                row.get("status") == "platform_failure" for row in receipts
-            ),
+            "physical_failures": sum(row.get("status") == "physical_failure" for row in receipts),
+            "platform_failures": sum(row.get("status") == "platform_failure" for row in receipts),
         },
         **dict(extra),
     }
@@ -655,9 +648,7 @@ def _world_report(
     return report
 
 
-def _validate_binding(
-    root: Path, payload: object, label: str, errors: list[str]
-) -> None:
+def _validate_binding(root: Path, payload: object, label: str, errors: list[str]) -> None:
     if not isinstance(payload, Mapping):
         errors.append(f"{label} binding is missing")
         return
@@ -674,9 +665,11 @@ def _mapping(value: object) -> Mapping[str, Any]:
 
 def _public_shape(value: Any) -> str:
     if isinstance(value, Mapping):
-        return "{" + ",".join(
-            f"{key}:{_public_shape(item)}" for key, item in sorted(value.items())
-        ) + "}"
+        return (
+            "{"
+            + ",".join(f"{key}:{_public_shape(item)}" for key, item in sorted(value.items()))
+            + "}"
+        )
     if isinstance(value, list):
         return "[" + ",".join(_public_shape(item) for item in value) + "]"
     return "scalar"

@@ -16,23 +16,23 @@ CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_c_qualification_v1.0.1.js
 
 def test_c_contract_freezes_five_distinct_executable_worlds() -> None:
     contract = load_contract(ROOT, CONTRACT_PATH)
-    truths = [
-        world_truth_audit(contract, world)
-        for world in contract["worlds"]["qualification"]
-    ]
+    truths = [world_truth_audit(contract, world) for world in contract["worlds"]["qualification"]]
 
     assert [row["world_id"] for row in truths] == [f"C-W0{i}" for i in range(1, 6)]
     assert all(row["deterministic"] for row in truths)
     assert len({row["truth_sha256"] for row in truths}) == 5
-    assert len(
-        {
-            (
-                row["crystallization_nucleation_multiplier"],
-                row["crystallization_solubility_multiplier"],
-            )
-            for row in truths
-        }
-    ) == 5
+    assert (
+        len(
+            {
+                (
+                    row["crystallization_nucleation_multiplier"],
+                    row["crystallization_solubility_multiplier"],
+                )
+                for row in truths
+            }
+        )
+        == 5
+    )
 
 
 def test_c_entity_prior_is_blind_schema_matched_solvent_swap() -> None:
@@ -49,8 +49,7 @@ def test_c_entity_prior_is_blind_schema_matched_solvent_swap() -> None:
 def test_c_parametric_threshold_generator_varies_and_is_symmetric() -> None:
     contract = load_contract(ROOT, CONTRACT_PATH)
     audits = [
-        parametric_prior_arms(contract, world)
-        for world in contract["worlds"]["qualification"]
+        parametric_prior_arms(contract, world) for world in contract["worlds"]["qualification"]
     ]
 
     assert all(audit["passed"] for audit in audits)
