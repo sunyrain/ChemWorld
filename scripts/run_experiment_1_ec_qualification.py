@@ -27,10 +27,8 @@ from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
 from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     analyze_matched_prior_world,
     rounded_reference_context,
-    select_reference_candidate,
     surface_design,
 )
-from chemworld.eval.work_ii_execution_mode import ExecutionMode, prepare_execution_context
 from chemworld.eval.work_ii_structural_candidate_qualification import (
     analyze_candidate_world as analyze_legacy_structural_world,
 )
@@ -42,12 +40,6 @@ from chemworld.eval.work_ii_structural_candidate_qualification import (
 )
 
 try:
-    from scripts.run_work_ii_electrochemical_matched_prior_qualification import (
-        SOURCE_SUMMARY as PARAMETRIC_SOURCE_SUMMARY,
-    )
-    from scripts.run_work_ii_electrochemical_matched_prior_qualification import (
-        _source_reports as parametric_source_reports,
-    )
     from scripts.run_work_ii_mechanism_oracle_qualification import (
         InMemoryMechanismEvaluator,
     )
@@ -56,12 +48,6 @@ try:
         _execute_query as execute_structural_query,
     )
 except ModuleNotFoundError:
-    from run_work_ii_electrochemical_matched_prior_qualification import (
-        SOURCE_SUMMARY as PARAMETRIC_SOURCE_SUMMARY,
-    )
-    from run_work_ii_electrochemical_matched_prior_qualification import (
-        _source_reports as parametric_source_reports,
-    )
     from run_work_ii_mechanism_oracle_qualification import InMemoryMechanismEvaluator
     from run_work_ii_q1_response_surface import TASK_SPECS
     from run_work_ii_structural_candidate_qualification import (
@@ -337,6 +323,51 @@ def _replay_projection(row: Mapping[str, Any]) -> dict[str, Any]:
     return {key: value for key, value in row.items() if key != "elapsed_s"}
 
 
+def _self_hashed_summary(path: Path) -> dict[str, Any]:
+    value = _load(path)
+    digest = value.get("summary_sha256")
+    payload = {key: item for key, item in value.items() if key != "summary_sha256"}
+    if digest != canonical_json_sha256(payload):
+        raise ValueError(f"source summary self-hash mismatch: {path}")
+    return value
+
+
+def _parametric_frozen_sources(
+    contract: Mapping[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[dict[str, str]]]:
+    bindings = contract["source_assets"]
+    reference_binding = bindings["parametric_reference_summary"]
+    noise_binding = bindings["parametric_noise_summary"]
+    reference_path = ROOT / str(reference_binding["path"])
+    noise_path = ROOT / str(noise_binding["path"])
+    reference = _self_hashed_summary(reference_path)
+    noise = _self_hashed_summary(noise_path)
+    if reference.get("qualification_passed") is not True or noise.get("q2_authorized") is not True:
+        raise ValueError("frozen parametric source summaries are not qualified for design reuse")
+    reference_worlds = reference.get("worlds")
+    noise_worlds = noise.get("worlds")
+    if not isinstance(reference_worlds, list) or not isinstance(noise_worlds, list):
+        raise ValueError("frozen parametric source summaries lack world rows")
+    reference_worlds = sorted(reference_worlds, key=lambda row: int(row["world_seed"]))
+    noise_worlds = sorted(noise_worlds, key=lambda row: int(row["world_seed"]))
+    expected = list(range(5))
+    if [int(row["world_seed"]) for row in reference_worlds] != expected:
+        raise ValueError("frozen parametric reference worlds changed")
+    if [int(row["world_seed"]) for row in noise_worlds] != expected:
+        raise ValueError("frozen parametric noise worlds changed")
+    return (
+        reference_worlds,
+        noise_worlds,
+        [
+            {
+                "path": reference_binding["path"],
+                "sha256": reference_binding["sha256"],
+            },
+            {"path": noise_binding["path"], "sha256": noise_binding["sha256"]},
+        ],
+    )
+
+
 def _five_world_summary(
     *,
     schema_version: str,
@@ -397,21 +428,23 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
     if output.exists():
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
-    source_summary = _load(PARAMETRIC_SOURCE_SUMMARY)
-    execution_context = prepare_execution_context(ROOT, mode=ExecutionMode.DEVELOPMENT)
-    sources, _ = parametric_source_reports(
-        source_summary,
-        execution_context=execution_context,
-    )
+    references, noise_sources, source_bindings = _parametric_frozen_sources(contract)
     spec = TASK_SPECS[contract["task"]["task_id"]]
     config = _load(ROOT / str(spec["config"]))
     reports: list[dict[str, Any]] = []
     progress = Progress(5 * 121, event="experiment_1_ec_parametric_progress")
-    for world, source in zip(contract["worlds"]["qualification"], sources, strict=True):
+    for world, reference, noise_source in zip(
+        contract["worlds"]["qualification"],
+        references,
+        noise_sources,
+        strict=True,
+    ):
         world_root = output / world["world_id"]
         world_root.mkdir()
-        selected = select_reference_candidate(source)
+        selected = reference["reference_selection"]
         reference_context = rounded_reference_context(selected["vector"])
+        if reference_context != reference["reference_context"]:
+            raise ValueError(f"frozen reference context drifted for {world['world_id']}")
         design = surface_design(reference_context)
         primary = InMemoryMechanismEvaluator(
             task_id=contract["task"]["task_id"],
@@ -452,7 +485,7 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
             primary.close()
             replay.close()
         write_json_atomic(world_root / "surface-rows.json", rows)
-        sigma = float(source["analysis"]["validation_noise"]["sigma"] or 0.0)
+        sigma = float(noise_source["analysis"]["validation_noise"]["sigma"] or 0.0)
         legacy = analyze_matched_prior_world(
             rows,
             validation_sigma=sigma,
@@ -491,10 +524,7 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         reports=reports,
         planned_executions=5 * 121,
     )
-    summary["source_summary"] = {
-        "path": PARAMETRIC_SOURCE_SUMMARY.relative_to(ROOT).as_posix(),
-        "sha256": file_sha256(PARAMETRIC_SOURCE_SUMMARY),
-    }
+    summary["source_summaries"] = source_bindings
     summary["summary_sha256"] = canonical_json_sha256(
         {key: value for key, value in summary.items() if key != "summary_sha256"}
     )

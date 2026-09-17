@@ -96,6 +96,22 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         for key, expected in expected_task.items():
             if task.get(key) != expected:
                 errors.append(f"task.{key} changed")
+    source_assets = contract.get("source_assets")
+    if not isinstance(source_assets, Mapping):
+        errors.append("source_assets bindings are missing")
+    else:
+        _validate_binding(
+            root,
+            source_assets.get("parametric_reference_summary"),
+            "parametric_reference_summary",
+            errors,
+        )
+        _validate_binding(
+            root,
+            source_assets.get("parametric_noise_summary"),
+            "parametric_noise_summary",
+            errors,
+        )
     worlds = contract.get("worlds")
     rows = worlds.get("qualification") if isinstance(worlds, Mapping) else None
     if not isinstance(rows, list) or len(rows) != 5:
