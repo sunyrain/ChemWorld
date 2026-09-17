@@ -50,10 +50,12 @@ _ELECTROCHEMICAL_TASK_ID = "electrochemical-conversion"
 _CRYSTALLIZATION_TASK_ID = "reaction-to-crystallization"
 _DISTILLATION_TASK_ID = "reaction-to-distillation"
 _PARTITION_TASK_ID = "partition-discovery"
+_FLOW_TASK_ID = "flow-reaction-optimization"
 _REACTION_SAFETY_TASK_ID = "reaction-safety-constrained"
 _GENERIC_REACTION_PRIOR_TASK_IDS = frozenset(
     {
         _DISTILLATION_TASK_ID,
+        _FLOW_TASK_ID,
         _REACTION_SAFETY_TASK_ID,
     }
 )
@@ -62,6 +64,7 @@ _CONTROLLED_MATERIAL_FIELDS_BY_TASK = {
     _ELECTROCHEMICAL_TASK_ID: _CONTROLLED_MATERIAL_FIELDS,
     _CRYSTALLIZATION_TASK_ID: ("catalyst", "solvent"),
     _DISTILLATION_TASK_ID: ("catalyst", "solvent"),
+    _FLOW_TASK_ID: ("catalyst", "solvent"),
     _PARTITION_TASK_ID: ("solvent", "extractant"),
     _REACTION_SAFETY_TASK_ID: ("catalyst", "solvent"),
 }

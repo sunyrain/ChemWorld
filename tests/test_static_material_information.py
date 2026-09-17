@@ -300,12 +300,19 @@ def test_unit_vector_task_context_exposes_audited_nominal_dossier() -> None:
     assert agent.manifest()["material_information_sha256"]
 
 
-def test_flow_task_rejects_material_mapping_prior_without_a_causal_id_effect() -> None:
-    with pytest.raises(ValueError, match="audited prior task"):
-        normalize_static_material_information_config(
-            {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
-            task_ids=("flow-reaction-optimization",),
-        )
+def test_flow_task_exposes_audited_reaction_material_mapping_prior() -> None:
+    normalized = normalize_static_material_information_config(
+        {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL},
+        task_ids=("flow-reaction-optimization",),
+    )
+
+    assert normalized["mode"] == STATIC_MATERIAL_INFORMATION_NOMINAL
+    dossier = static_material_information_dossier(
+        normalized,
+        task_id="flow-reaction-optimization",
+    )
+    assert dossier is not None
+    assert set(dossier["choices"]) == {"catalyst", "solvent"}
 
 
 @pytest.mark.parametrize(
