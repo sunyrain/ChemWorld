@@ -1,7 +1,9 @@
 # ChemWorld Experiment 1 benchmark convergence report
 
-Date: 2026-09-18  
-Campaign branch: `experiment1-continuous-qualification`  
+Date: 2026-09-18
+
+Campaign branch: `experiment1-continuous-qualification`
+
 Scope: provider-free benchmark authoring, development qualification, replay,
 readiness audit, and confirmation preflight only
 
