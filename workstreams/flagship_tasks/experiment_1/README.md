@@ -7,18 +7,22 @@
 ## 从这里开始
 
 1. 阅读 [`AUTHORITY.md`](AUTHORITY.md)，确认不同问题应以哪一类文件为准；
-2. qualification 的共同科学执行语义见
+2. convergence repair、重跑和停止规则见
+   [`EXPERIMENT_1_BENCHMARK_CONVERGENCE_CHARTER_V1_0.md`](EXPERIMENT_1_BENCHMARK_CONVERGENCE_CHARTER_V1_0.md)，
+   confirmation/challenge 隔离见
+   [`EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md`](EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md)；
+3. qualification 的共同科学执行语义见
    [`EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md`](../EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)；
-3. 当前 105-unit 机器总账见
+4. 当前 105-unit 机器总账见
    [`EXPERIMENT_1_QUALIFICATION_REGISTRY.json`](results/EXPERIMENT_1_QUALIFICATION_REGISTRY.json)；
-4. 七体系可读汇总见
+5. 七体系可读汇总见
    [`EXPERIMENT_1_QUALIFICATION_CAMPAIGN_REPORT.md`](results/EXPERIMENT_1_QUALIFICATION_CAMPAIGN_REPORT.md)；
-5. Participant 候选范围与 repair 优先级见
+6. Participant 候选范围与 repair 优先级见
    [`EXPERIMENT_1_PARTICIPANT_READINESS.md`](results/EXPERIMENT_1_PARTICIPANT_READINESS.md)；
-6. 各体系冻结 note、机器合同与结果位于 `systems/<SYSTEM>/`、
+7. 各体系冻结 note、机器合同与结果位于 `systems/<SYSTEM>/`、
    `configs/benchmark/experiment_1_*` 和 `results/<SYSTEM>/`；
-7. 科学设计背景稿见 [`guidance/README.md`](guidance/README.md)，但不得据此直接开跑；
-8. 旧 Work II 资产与当前依赖边界见 [`LEGACY_INDEX.md`](LEGACY_INDEX.md)。
+8. 科学设计背景稿见 [`guidance/README.md`](guidance/README.md)，但不得据此直接开跑；
+9. 旧 Work II 资产与当前依赖边界见 [`LEGACY_INDEX.md`](LEGACY_INDEX.md)。
 
 ## 当前状态
 

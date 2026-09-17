@@ -10,6 +10,8 @@ Experiment 1 需要一个单一**权威入口**，但不把科学语义、机器
 | --- | --- | --- |
 | 如何协作、开发和冻结 | `AGENTS.md` | 仓库级工作规则，不替代科学规范 |
 | Experiment 1 当前入口和状态 | `workstreams/flagship_tasks/experiment_1/README.md` | 导航和状态，不新增 Gate |
+| Convergence repair、失效、迭代和停止规则 | `experiment_1/EXPERIMENT_1_BENCHMARK_CONVERGENCE_CHARTER_V1_0.md` | 只治理 baseline 后的新版本；不回写历史结果 |
+| Confirmation 与 challenge 隔离 | `experiment_1/EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md` | 定义 participant-ready 的附加证据条件；不改变 Q1–Q8 |
 | qualification 的科学执行语义 | `workstreams/flagship_tasks/EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md` | 冻结用于 development qualification；不是 benchmark release |
 | 体系级问题、单位和停止规则 | `workstreams/flagship_tasks/experiment_1/systems/<SYSTEM>/` | 仅覆盖文件声明的体系与版本 |
 | 精确机器输入 | `configs/benchmark/experiment_1_*` | 路径、digest、World、预算、阈值或 fail-closed audit 的机器合同 |
