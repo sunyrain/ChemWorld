@@ -432,12 +432,15 @@ def _execute_structural(
     cell: Mapping[str, Any],
     law_id: str,
     output_root: Path,
+    world_interventions: list[dict[str, Any]] | None = None,
 ) -> dict[str, Any]:
     actions = _compile_actions(cell)
     observation_seed, namespace, coordinate_hash = _structural_binding(
         world_seed, str(cell["cell_id"])
     )
     interventions = [] if law_id == "deactivating_baseline" else [stable_catalyst_intervention()]
+    if world_interventions is not None:
+        interventions = world_interventions
     law_root = output_root / str(cell["cell_id"]) / law_id
     law_root.mkdir(parents=True, exist_ok=False)
     trajectory = law_root / "trajectory.jsonl"

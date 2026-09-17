@@ -114,7 +114,10 @@ MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
 }
 TOPOLOGY_TASK_TRANSFORMS: dict[str, frozenset[TopologyTransformId]] = {
     **dict.fromkeys(REACTION_MECHANISM_TASKS, frozenset({REVERSIBLE_TARGET_PATHWAY_STRESS})),
-    **dict.fromkeys(CATALYST_DEACTIVATION_MECHANISM_TASKS, frozenset({STABLE_CATALYST_TOPOLOGY})),
+    **dict.fromkeys(
+        CATALYST_DEACTIVATION_MECHANISM_TASKS,
+        frozenset({REVERSIBLE_TARGET_PATHWAY_STRESS, STABLE_CATALYST_TOPOLOGY}),
+    ),
 }
 
 
@@ -923,9 +926,7 @@ def _topology_variant(
             "derived_family_target_reaction_id": forward.reaction_id,
             "derived_family_target_reaction_role": change.reaction_role,
             "derived_family_reverse_rate_constant_s_inv": reverse_rate_constant,
-            "derived_family_reverse_rate_constant_s_inv_at_full_severity": (
-                full_reverse_rate
-            ),
+            "derived_family_reverse_rate_constant_s_inv_at_full_severity": (full_reverse_rate),
         },
     )
 

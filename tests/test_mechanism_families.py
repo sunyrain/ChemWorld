@@ -154,9 +154,7 @@ def test_electrochemical_constitutive_change_is_explicit_and_calibrated() -> Non
     baseline = generator.generate(scenario, 0)
     shifted = generator.generate(scenario, 0, (intervention.to_dict(),))
 
-    assert shifted.compiled_mechanism.mechanism_hash == (
-        baseline.compiled_mechanism.mechanism_hash
-    )
+    assert shifted.compiled_mechanism.mechanism_hash == (baseline.compiled_mechanism.mechanism_hash)
     assert shifted.parameters.domain_parameter(
         "electro_transfer_asymmetry_multiplier"
     ) == pytest.approx(1.32)
@@ -256,14 +254,8 @@ def test_default_rate_law_family_binds_the_primary_competing_pathway(
     metadata = shifted.compiled_mechanism.network.metadata
     assert changed_reactions == [expected_reaction_id]
     assert metadata["derived_family_target_reaction_id"] == expected_reaction_id
-    assert (
-        metadata["derived_family_target_reaction_role"]
-        == "primary_competing_pathway"
-    )
-    assert (
-        metadata["derived_family_transform_id"]
-        == "arrhenius_form_and_scale_stress_v1"
-    )
+    assert metadata["derived_family_target_reaction_role"] == "primary_competing_pathway"
+    assert metadata["derived_family_transform_id"] == "arrhenius_form_and_scale_stress_v1"
     assert shifted.parameters.domain_parameters == base.parameters.domain_parameters
 
 
@@ -281,9 +273,7 @@ def test_rate_law_family_can_declaratively_target_a_primary_product_pathway() ->
         (intervention.to_dict(),),
     )
     assert (
-        shifted.compiled_mechanism.network.metadata[
-            "derived_family_target_reaction_id"
-        ]
+        shifted.compiled_mechanism.network.metadata["derived_family_target_reaction_id"]
         == "target_exothermic"
     )
 
@@ -322,12 +312,9 @@ def test_catalytic_activity_order_pivot_stress_changes_only_target_pathway() -> 
     assert after.rate_law.parameters["A"] == pytest.approx(
         before.rate_law.parameters["A"] * 5.0**0.64
     )
-    scale_ratio = (
-        after.rate_law.parameters["A"] / before.rate_law.parameters["A"]
-    )
+    scale_ratio = after.rate_law.parameters["A"] / before.rate_law.parameters["A"]
     order_delta = (
-        after.rate_law.parameters["activity_order"]
-        - before.rate_law.parameters["activity_order"]
+        after.rate_law.parameters["activity_order"] - before.rate_law.parameters["activity_order"]
     )
     low_activity_multiplier = scale_ratio * 1.6**order_delta
     pivot_multiplier = scale_ratio * 5.0**order_delta
@@ -337,10 +324,7 @@ def test_catalytic_activity_order_pivot_stress_changes_only_target_pathway() -> 
     assert 0.5 < high_activity_multiplier < 1.0
     metadata = shifted.compiled_mechanism.network.metadata
     assert metadata["derived_family_target_reaction_role"] == "primary_target_pathway"
-    assert (
-        metadata["derived_family_transform_id"]
-        == "catalytic_activity_order_pivot_stress_v1"
-    )
+    assert metadata["derived_family_transform_id"] == "catalytic_activity_order_pivot_stress_v1"
     assert metadata["derived_family_catalyst_activity_pivot"] == pytest.approx(5.0)
     assert shifted.parameters.domain_parameters == baseline.parameters.domain_parameters
 
@@ -415,10 +399,7 @@ def test_reversible_target_topology_change_is_explicit_and_calibrated() -> None:
     metadata = shifted.compiled_mechanism.network.metadata
     assert metadata["derived_family_target_reaction_id"] == "target_formation"
     assert metadata["derived_family_target_reaction_role"] == "primary_target_pathway"
-    assert (
-        metadata["derived_family_transform_id"]
-        == "reversible_target_pathway_stress_v1"
-    )
+    assert metadata["derived_family_transform_id"] == "reversible_target_pathway_stress_v1"
 
 
 def test_topology_change_contract_round_trips() -> None:
@@ -502,19 +483,25 @@ def test_topology_transforms_are_task_specific() -> None:
             0,
             (stable_payload,),
         )
-    with pytest.raises(ValueError, match="does not expose topology transform"):
-        DefaultScenarioGenerator().generate(
-            get_scenario("reaction-safety"),
-            0,
-            (_intervention("topology_family"),),
-        )
+    safety_reversible = DefaultScenarioGenerator().generate(
+        get_scenario("reaction-safety"),
+        0,
+        (_intervention("topology_family"),),
+    )
+    assert safety_reversible.compiled_mechanism.network.reactions[-1].reaction_id == (
+        "family_reverse_channel"
+    )
 
 
 def test_rate_law_role_resolution_is_independent_of_reaction_declaration_order() -> None:
-    compiled = DefaultScenarioGenerator().generate(
-        get_scenario("reaction-to-crystallization"),
-        0,
-    ).compiled_mechanism
+    compiled = (
+        DefaultScenarioGenerator()
+        .generate(
+            get_scenario("reaction-to-crystallization"),
+            0,
+        )
+        .compiled_mechanism
+    )
     reordered_network = replace(
         compiled.network,
         reactions=tuple(reversed(compiled.network.reactions)),
@@ -524,7 +511,4 @@ def test_rate_law_role_resolution_is_independent_of_reaction_declaration_order()
         reordered,
         MechanismFamilyIntervention("rate_law_family", 0.8),
     )
-    assert (
-        shifted.network.metadata["derived_family_target_reaction_id"]
-        == "side_formation"
-    )
+    assert shifted.network.metadata["derived_family_target_reaction_id"] == "side_formation"
