@@ -126,6 +126,18 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
             "trajectory remains an Agent-controlled probe.",
         ),
         _axis(
+            "reaction-to-crystallization",
+            "crystallization.population-regime",
+            "primary-nucleation versus seed-growth regime",
+            "domain_parameter",
+            (
+                "crystallization_nucleation_multiplier",
+                "crystallization_growth_multiplier",
+            ),
+            "Moves primary nucleation and crystal growth in opposite directions while retaining "
+            "the same mass-conserving population-balance equations.",
+        ),
+        _axis(
             "reaction-to-distillation",
             "distillation.relative-volatility",
             "relative volatility",
@@ -245,6 +257,10 @@ def apply_axis_interventions(
             catalyst_effects[:, 1:] /= factor**0.25
             solvent_effects[:, 0] *= factor
             solvent_effects[:, 1:] /= factor**0.25
+        elif intervention.axis_id == "crystallization.population-regime":
+            factor = exp(log(4.0) * intervention.severity)
+            domain["crystallization_nucleation_multiplier"] *= factor
+            domain["crystallization_growth_multiplier"] /= factor
         elif intervention.axis_id == "equilibrium.acid-base-constants":
             metadata = dict(state.metadata)
             metadata["hidden_equilibrium_pka"] = float(

@@ -48,11 +48,29 @@ def _run_midpoint_recipe(
 
 
 def test_serious_tasks_declare_two_executable_world_axes() -> None:
-    assert len(WORLD_AXIS_REGISTRY) == 12
+    assert len(WORLD_AXIS_REGISTRY) == 13
     for task_id in SERIOUS_TASK_IDS:
         axes = axes_for_task(task_id)
-        assert len(axes) == 2
+        expected = 3 if task_id == "reaction-to-crystallization" else 2
+        assert len(axes) == expected
         assert all(len(axis.modes) == 4 for axis in axes)
+
+
+def test_crystallization_population_regime_moves_nucleation_and_growth_oppositely() -> None:
+    scenario = get_scenario("reaction-to-crystallization")
+    generator = DefaultScenarioGenerator()
+    baseline = generator.generate(scenario, 0)
+    primary = generator.generate(
+        scenario,
+        0,
+        (_intervention("crystallization.population-regime", severity=1.0),),
+    )
+    assert primary.parameters.domain_parameter("crystallization_nucleation_multiplier") > (
+        baseline.parameters.domain_parameter("crystallization_nucleation_multiplier")
+    )
+    assert primary.parameters.domain_parameter("crystallization_growth_multiplier") < (
+        baseline.parameters.domain_parameter("crystallization_growth_multiplier")
+    )
 
 
 @pytest.mark.parametrize(

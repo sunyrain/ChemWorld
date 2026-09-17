@@ -312,7 +312,11 @@ class ChemWorldCrystallizationServices:
                 * nucleation_multiplier
             ),
             primary_nucleation_exponent=2.0,
-            growth_coefficient_m_s=2.0e-8 * growth_multiplier,
+            growth_coefficient_m_s=(
+                2.0e-8
+                * self.world.domain_parameter("crystallization_growth_multiplier")
+                * growth_multiplier
+            ),
             growth_exponent=1.0,
             crystal_density_kg_m3=1200.0,
             target_molecular_weight_kg_mol=target_molecular_weight,

@@ -176,12 +176,16 @@ def _execute(
     namespace: str,
     output_root: Path,
     extra: Mapping[str, Any],
+    additional_world_interventions: Sequence[Mapping[str, Any]] = (),
 ) -> dict[str, Any]:
     query = compile_evaluator_truth_query(config, query_spec)
     execution_root = output_root / str(query["query_id"])
     execution_root.mkdir(parents=True, exist_ok=False)
     trajectory = execution_root / "trajectory.jsonl"
-    interventions = [dict(item) for item in world["world_interventions"]]
+    interventions = [
+        *(dict(item) for item in world["world_interventions"]),
+        *(dict(item) for item in additional_world_interventions),
+    ]
     records: list[dict[str, Any]] = []
     replay: dict[str, Any] | None = None
     metrics: dict[str, float] | None = None
