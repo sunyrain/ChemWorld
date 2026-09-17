@@ -1,7 +1,8 @@
 # Experiment 1 RX qualification specification v1.0.1
 
-状态：**FROZEN FOR PROVIDER-FREE DEVELOPMENT QUALIFICATION**  
-Participant：**未授权**  
+状态：**FROZEN FOR PROVIDER-FREE DEVELOPMENT QUALIFICATION**
+
+Participant：**未授权**
 Formal benchmark：**未授权**
 
 ## 1. Scope
