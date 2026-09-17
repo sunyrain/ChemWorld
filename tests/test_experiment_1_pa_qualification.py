@@ -78,4 +78,3 @@ def test_pa_structural_prior_arms_are_symmetric_and_blind() -> None:
     assert arms["schema_matched"] is True
     assert arms["text_template_matched"] is True
     assert arms["leakage_tokens"] == []
-

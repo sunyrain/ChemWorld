@@ -2,7 +2,8 @@
 
 状态：**FROZEN FOR PROVIDER-FREE DEVELOPMENT QUALIFICATION**
 
-Participant：**未授权**  
+Participant：**未授权**
+
 Formal benchmark：**未授权**
 
 ## 1. Scope and corrected observation contract
@@ -98,4 +99,3 @@ guidance v0.3 中包含 mixed linear/power truth 和手写 `K*` 的表格是 aut
 Provider calls 固定为 0。Scientific failure 完成 denominator、保留并继续；platform failure
 停止受影响 block，修复后从 unit 0 重跑并保留旧 attempt。同一 campaign 不因结果修改 World、
 pair、ratio、threshold 或 gate。Participant 与 formal benchmark 始终未授权。
-
