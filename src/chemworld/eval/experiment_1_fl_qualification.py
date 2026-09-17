@@ -188,12 +188,9 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
     payload["truth_sha256"] = canonical_json_sha256(payload)
     payload["deterministic"] = bool(
         scenario.parameters.world_id == repeated.parameters.world_id
-        and scenario.compiled_mechanism.mechanism_hash
-        == repeated.compiled_mechanism.mechanism_hash
+        and scenario.compiled_mechanism.mechanism_hash == repeated.compiled_mechanism.mechanism_hash
     )
-    payload["aligned_mapping_not_reversed"] = all(
-        row["own_mapping_closer"] for row in mapping_rows
-    )
+    payload["aligned_mapping_not_reversed"] = all(row["own_mapping_closer"] for row in mapping_rows)
     return payload
 
 
@@ -371,8 +368,7 @@ def analyze_parametric_world(
                 "temperature_K": temperature,
                 "metric_results": metrics,
                 "passed": bool(
-                    len(low) == len(high) == int(locus["independent_replicates"])
-                    and passing
+                    len(low) == len(high) == int(locus["independent_replicates"]) and passing
                 ),
             }
         )
@@ -396,7 +392,8 @@ def analyze_parametric_world(
         "Q4_prior_symmetry": prior["passed"],
         "Q5_identifiability": all(row["passed"] for row in temperature_reports),
         "Q6_budgeted_falsifiability": int(locus["participant_unique_experiment_budget"]) == 4,
-        "Q7_behavioral_relevance": geometry_bound and any(
+        "Q7_behavioral_relevance": geometry_bound
+        and any(
             any(
                 metric["signed_effect"] >= float(locus["minimum_residence_effect"])
                 for metric in row["metric_results"]
@@ -459,7 +456,8 @@ def analyze_structural_world(
         ),
         "Q6_budgeted_falsifiability": int(
             contract["loci"]["structural"]["participant_unique_experiment_budget"]
-        ) == 4,
+        )
+        == 4,
         "Q7_behavioral_relevance": bool(
             checks.get("duration_accumulation_signature")
             and checks["mechanism_adds_one_reverse_reaction"]
@@ -494,9 +492,7 @@ def _completed(receipts: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]
     return [row for row in receipts if row.get("status") == "completed"]
 
 
-def _public_receipts_ok(
-    receipts: Sequence[Mapping[str, Any]], metrics: Sequence[str]
-) -> bool:
+def _public_receipts_ok(receipts: Sequence[Mapping[str, Any]], metrics: Sequence[str]) -> bool:
     return bool(
         receipts
         and all(not row.get("participant_visible_leakage_matches") for row in receipts)
@@ -552,9 +548,7 @@ def _signed_group_metric_contrasts(
     for row in rows:
         signed = float(row["right_mean"] or 0.0) - float(row["left_mean"] or 0.0)
         row["signed_effect"] = signed
-        row["signal_to_noise_ratio"] = signed / max(
-            float(row["standard_error"] or 0.0), 1.0e-12
-        )
+        row["signal_to_noise_ratio"] = signed / max(float(row["standard_error"] or 0.0), 1.0e-12)
     return rows
 
 
@@ -603,12 +597,8 @@ def _world_report(
             "attempted": len(receipts),
             "completed": sum(row.get("status") == "completed" for row in receipts),
             "exact_replay": sum(row.get("exact_replay") is True for row in receipts),
-            "physical_failures": sum(
-                row.get("status") == "physical_failure" for row in receipts
-            ),
-            "platform_failures": sum(
-                row.get("status") == "platform_failure" for row in receipts
-            ),
+            "physical_failures": sum(row.get("status") == "physical_failure" for row in receipts),
+            "platform_failures": sum(row.get("status") == "platform_failure" for row in receipts),
         },
         **dict(extra),
     }
@@ -638,9 +628,11 @@ def _mapping(value: object) -> Mapping[str, Any]:
 
 def _public_shape(value: Any) -> str:
     if isinstance(value, Mapping):
-        return "{" + ",".join(
-            f"{key}:{_public_shape(item)}" for key, item in sorted(value.items())
-        ) + "}"
+        return (
+            "{"
+            + ",".join(f"{key}:{_public_shape(item)}" for key, item in sorted(value.items()))
+            + "}"
+        )
     if isinstance(value, list):
         return "[" + ",".join(_public_shape(item) for item in value) + "]"
     return type(value).__name__

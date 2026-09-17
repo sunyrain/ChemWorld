@@ -16,24 +16,24 @@ CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_fl_qualification_v1.0.1.j
 
 def test_fl_contract_freezes_five_distinct_executable_worlds() -> None:
     contract = load_contract(ROOT, CONTRACT_PATH)
-    truths = [
-        world_truth_audit(contract, world)
-        for world in contract["worlds"]["qualification"]
-    ]
+    truths = [world_truth_audit(contract, world) for world in contract["worlds"]["qualification"]]
 
     assert [row["world_id"] for row in truths] == [f"FL-W0{i}" for i in range(1, 6)]
     assert all(row["deterministic"] for row in truths)
     assert len({row["truth_sha256"] for row in truths}) == 5
-    assert len(
-        {
-            (
-                row["flow_rate_multiplier"],
-                row["flow_residence_multiplier"],
-                row["flow_boundary_ua_multiplier"],
-            )
-            for row in truths
-        }
-    ) == 5
+    assert (
+        len(
+            {
+                (
+                    row["flow_rate_multiplier"],
+                    row["flow_residence_multiplier"],
+                    row["flow_boundary_ua_multiplier"],
+                )
+                for row in truths
+            }
+        )
+        == 5
+    )
 
 
 def test_fl_entity_prior_is_blind_schema_matched_catalyst_swap() -> None:

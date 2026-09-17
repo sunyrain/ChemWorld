@@ -127,14 +127,11 @@ def _final_safety(records: Sequence[Mapping[str, Any]]) -> bool:
     rows = [
         row
         for row in records
-        if row.get("transaction_status") == "committed"
-        and row.get("instrument") == "final_assay"
+        if row.get("transaction_status") == "committed" and row.get("instrument") == "final_assay"
     ]
     if len(rows) != 1 or not isinstance(rows[0].get("observation"), Mapping):
         raise ValueError("flow trajectory lacks one final assay")
-    return float(rows[0]["observation"]["safety_risk"]) < float(
-        get_task(TASK_ID).safety_limit
-    )
+    return float(rows[0]["observation"]["safety_risk"]) < float(get_task(TASK_ID).safety_limit)
 
 
 def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
@@ -263,9 +260,7 @@ def _execute(
                     "non-constitution execution failure: "
                     f"operation={first.get('operation_type')} reason={first.get('rollback_reason')}"
                 )
-        replay = verify_records(
-            records, tolerance=0.0, world_interventions=interventions
-        ).to_dict()
+        replay = verify_records(records, tolerance=0.0, world_interventions=interventions).to_dict()
         if replay.get("verified") is not True:
             raise ValueError("flow trajectory failed exact replay")
         leakage = _visible_leakage_matches(records)
@@ -286,9 +281,7 @@ def _execute(
         else "completed"
     )
     mechanism_hashes = {
-        str(row["mechanism_hash"])
-        for row in records
-        if isinstance(row.get("mechanism_hash"), str)
+        str(row["mechanism_hash"]) for row in records if isinstance(row.get("mechanism_hash"), str)
     }
     world_hashes = {
         str(row["world_family_intervention_hash"])
@@ -308,8 +301,7 @@ def _execute(
         and mechanism_hashes == {scenario.compiled_mechanism.mechanism_hash}
         and (
             not base_interventions
-            or scenario.initial_state.metadata.get("world_family_intervention_hash")
-            in world_hashes
+            or scenario.initial_state.metadata.get("world_family_intervention_hash") in world_hashes
         )
         and (
             structural_law_id != "reversible_target_pathway"
@@ -317,8 +309,20 @@ def _execute(
             in mechanism_family_hashes
         )
     )
-    flow_rate = float(next(action["flow_rate_mL_min"] for action in actions if action["operation"] == "set_flow_rate"))
-    residence = float(next(action["residence_time_s"] for action in actions if action["operation"] == "set_flow_rate"))
+    flow_rate = float(
+        next(
+            action["flow_rate_mL_min"]
+            for action in actions
+            if action["operation"] == "set_flow_rate"
+        )
+    )
+    residence = float(
+        next(
+            action["residence_time_s"]
+            for action in actions
+            if action["operation"] == "set_flow_rate"
+        )
+    )
     direct_noise_key = ObservationNoiseCoordinate(
         namespace=namespace,
         base_observation_seed=observation_seed,
@@ -357,7 +361,9 @@ def _execute(
         ),
         "direct_noise_key_sha256": direct_noise_key,
         "mechanism_hash": next(iter(mechanism_hashes)) if len(mechanism_hashes) == 1 else None,
-        "world_family_intervention_hash": next(iter(world_hashes)) if len(world_hashes) == 1 else None,
+        "world_family_intervention_hash": next(iter(world_hashes))
+        if len(world_hashes) == 1
+        else None,
         "mechanism_family_intervention_hash": (
             next(iter(mechanism_family_hashes)) if len(mechanism_family_hashes) == 1 else None
         ),
@@ -464,7 +470,12 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
     locus = contract["loci"]["entity"]
-    total = 5 * len(locus["residence_anchors_s"]) * len(locus["catalyst_targets"]) * int(locus["independent_replicates"])
+    total = (
+        5
+        * len(locus["residence_anchors_s"])
+        * len(locus["catalyst_targets"])
+        * int(locus["independent_replicates"])
+    )
     progress = Progress(total, event="experiment_1_fl_entity_progress")
     reports = []
     for world in _worlds(contract):
@@ -483,7 +494,13 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         residence_time_s=float(residence),
                         temperature_K=float(locus["temperature_K"]),
                     )
-                    seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], residence, catalyst, replicate)
+                    seed = _stable_seed(
+                        locus["observation_noise_namespace"],
+                        world["world_id"],
+                        residence,
+                        catalyst,
+                        replicate,
+                    )
                     receipt = _execute(
                         world=world,
                         execution_id=f"tau-{int(residence)}-c{catalyst}-r{replicate}",
@@ -491,7 +508,11 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         observation_seed=seed,
                         namespace=str(locus["observation_noise_namespace"]),
                         output_root=world_root,
-                        extra={"residence_time_s": float(residence), "catalyst": int(catalyst), "replicate": replicate},
+                        extra={
+                            "residence_time_s": float(residence),
+                            "catalyst": int(catalyst),
+                            "replicate": replicate,
+                        },
                     )
                     receipts.append(receipt)
                     progress.update(world_id=str(world["world_id"]), status=str(receipt["status"]))
@@ -500,7 +521,13 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("fl_entity_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=ENTITY_SUMMARY_VERSION, contract=contract, locus="entity", reports=reports, planned_executions=total)
+    summary = _five_world_summary(
+        schema_version=ENTITY_SUMMARY_VERSION,
+        contract=contract,
+        locus="entity",
+        reports=reports,
+        planned_executions=total,
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -510,7 +537,12 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
     locus = contract["loci"]["parametric"]
-    total = 5 * len(locus["temperature_levels_K"]) * len(locus["residence_levels_s"]) * int(locus["independent_replicates"])
+    total = (
+        5
+        * len(locus["temperature_levels_K"])
+        * len(locus["residence_levels_s"])
+        * int(locus["independent_replicates"])
+    )
     progress = Progress(total, event="experiment_1_fl_parametric_progress")
     reports = []
     for world in _worlds(contract):
@@ -529,7 +561,13 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         residence_time_s=float(residence),
                         temperature_K=float(temperature),
                     )
-                    seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], temperature, residence, replicate)
+                    seed = _stable_seed(
+                        locus["observation_noise_namespace"],
+                        world["world_id"],
+                        temperature,
+                        residence,
+                        replicate,
+                    )
                     receipt = _execute(
                         world=world,
                         execution_id=f"t{temperature_index}-tau{time_index}-r{replicate}",
@@ -537,7 +575,13 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         observation_seed=seed,
                         namespace=str(locus["observation_noise_namespace"]),
                         output_root=world_root,
-                        extra={"temperature_K": float(temperature), "residence_time_s": float(residence), "temperature_index": temperature_index, "time_index": time_index, "replicate": replicate},
+                        extra={
+                            "temperature_K": float(temperature),
+                            "residence_time_s": float(residence),
+                            "temperature_index": temperature_index,
+                            "time_index": time_index,
+                            "replicate": replicate,
+                        },
                     )
                     receipts.append(receipt)
                     progress.update(world_id=str(world["world_id"]), status=str(receipt["status"]))
@@ -546,9 +590,17 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("fl_parametric_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=PARAMETRIC_SUMMARY_VERSION, contract=contract, locus="parametric", reports=reports, planned_executions=total)
+    summary = _five_world_summary(
+        schema_version=PARAMETRIC_SUMMARY_VERSION,
+        contract=contract,
+        locus="parametric",
+        reports=reports,
+        planned_executions=total,
+    )
     summary["prior_arms"] = parametric_prior_arms(contract)
-    summary["summary_sha256"] = canonical_json_sha256({key: value for key, value in summary.items() if key != "summary_sha256"})
+    summary["summary_sha256"] = canonical_json_sha256(
+        {key: value for key, value in summary.items() if key != "summary_sha256"}
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -578,7 +630,9 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                     residence_time_s=float(residence),
                     temperature_K=float(temperature),
                 )
-                seed = _stable_seed(locus["observation_noise_namespace"], world["world_id"], cell_id)
+                seed = _stable_seed(
+                    locus["observation_noise_namespace"], world["world_id"], cell_id
+                )
                 for law_id in ("baseline", "reversible_target_pathway"):
                     receipt = _execute(
                         world=world,
@@ -587,25 +641,46 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         observation_seed=seed,
                         namespace=str(locus["observation_noise_namespace"]),
                         output_root=world_root,
-                        extra={"cell_id": cell_id, "temperature_K": float(temperature), "time_s": float(residence), "residence_time_s": float(residence), "temperature_index": temperature_index, "time_index": time_index},
+                        extra={
+                            "cell_id": cell_id,
+                            "temperature_K": float(temperature),
+                            "time_s": float(residence),
+                            "residence_time_s": float(residence),
+                            "temperature_index": temperature_index,
+                            "time_index": time_index,
+                        },
                         structural_law_id=law_id,
                     )
                     receipts.append(receipt)
                     progress.update(world_id=str(world["world_id"]), status=str(receipt["status"]))
         baseline_hashes = {row["mechanism_hash"] for row in receipts if row["law_id"] == "baseline"}
-        reversible_hashes = {row["mechanism_hash"] for row in receipts if row["law_id"] == "reversible_target_pathway"}
+        reversible_hashes = {
+            row["mechanism_hash"]
+            for row in receipts
+            if row["law_id"] == "reversible_target_pathway"
+        }
         mechanism["execution_mechanism_binding_matches"] = bool(
             baseline_hashes == {mechanism["baseline_mechanism_hash"]}
             and reversible_hashes == {mechanism["reversible_mechanism_hash"]}
         )
         write_json_atomic(world_root / "receipts.json", receipts)
-        report = analyze_structural_world(contract, world=world, receipts=receipts, mechanism_audit=mechanism)
+        report = analyze_structural_world(
+            contract, world=world, receipts=receipts, mechanism_audit=mechanism
+        )
         write_json_atomic(world_root / "world-report.json", report)
         reports.append(report)
         _emit_world("fl_structural_world_complete", reports, report)
-    summary = _five_world_summary(schema_version=STRUCTURAL_SUMMARY_VERSION, contract=contract, locus="structural", reports=reports, planned_executions=total)
+    summary = _five_world_summary(
+        schema_version=STRUCTURAL_SUMMARY_VERSION,
+        contract=contract,
+        locus="structural",
+        reports=reports,
+        planned_executions=total,
+    )
     summary["prior_arms"] = structural_prior_arms(contract)
-    summary["summary_sha256"] = canonical_json_sha256({key: value for key, value in summary.items() if key != "summary_sha256"})
+    summary["summary_sha256"] = canonical_json_sha256(
+        {key: value for key, value in summary.items() if key != "summary_sha256"}
+    )
     write_json_atomic(output / "summary.json", summary)
     return summary
 
@@ -613,7 +688,9 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
-    parser.add_argument("--phase", choices=("canary", "entity", "parametric", "structural"), required=True)
+    parser.add_argument(
+        "--phase", choices=("canary", "entity", "parametric", "structural"), required=True
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     contract_path = args.contract.resolve()

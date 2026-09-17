@@ -291,9 +291,7 @@ def test_unit_vector_task_context_exposes_audited_nominal_dossier() -> None:
 
     interface = agent.public_context([])["experiment_interface"]
 
-    assert interface["parameterization"] == (
-        "unit_vector_with_public_physical_coordinate_schema"
-    )
+    assert interface["parameterization"] == ("unit_vector_with_public_physical_coordinate_schema")
     assert interface["material_information"]["contract_version"] == (
         REACTION_STATIC_MATERIAL_INFORMATION_VERSION
     )
@@ -424,9 +422,7 @@ def test_crystallization_nominal_dossier_is_anonymous_partial_and_audited() -> N
     )
 
     assert dossier is not None
-    assert dossier["contract_version"] == (
-        CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION
-    )
+    assert dossier["contract_version"] == (CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION)
     assert set(dossier["choices"]) == {"catalyst", "solvent"}
     assert len(dossier["choices"]["catalyst"]) == 4
     assert len(dossier["choices"]["solvent"]) == 4
@@ -440,12 +436,8 @@ def test_crystallization_nominal_dossier_is_anonymous_partial_and_audited() -> N
         "optimal_recipe",
     ):
         assert private_term not in serialized
-    catalyst_fields = set(
-        dossier["choices"]["catalyst"][0]["nominal_properties"]
-    )
-    solvent_fields = set(
-        dossier["choices"]["solvent"][0]["nominal_properties"]
-    )
+    catalyst_fields = set(dossier["choices"]["catalyst"][0]["nominal_properties"])
+    solvent_fields = set(dossier["choices"]["solvent"][0]["nominal_properties"])
     assert {
         "reference_panel_activity_geomean",
         "reference_panel_activity_floor",
@@ -482,9 +474,7 @@ def test_crystallization_nominal_protocol_reaches_the_participant_context() -> N
             )
         ).read_text(encoding="utf-8")
     )
-    protocol["material_information"] = {
-        "mode": STATIC_MATERIAL_INFORMATION_NOMINAL
-    }
+    protocol["material_information"] = {"mode": STATIC_MATERIAL_INFORMATION_NOMINAL}
     validate_static_optimization_protocol(protocol)
     agent = build_static_optimization_agent(
         protocol,
@@ -494,9 +484,7 @@ def test_crystallization_nominal_protocol_reaches_the_participant_context() -> N
         client=_DeterministicStaticMockClient(),
     )
 
-    material_information = agent.public_context([])["experiment_interface"][
-        "material_information"
-    ]
+    material_information = agent.public_context([])["experiment_interface"]["material_information"]
     assert material_information["contract_version"] == (
         CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION
     )
@@ -674,8 +662,9 @@ def test_world_geometry_and_material_residuals_are_reproducible_and_seeded() -> 
     )
 
 
-def test_material_family_profiles_are_deeply_immutable_and_instance_fingerprint_is_private(
-) -> None:
+def test_material_family_profiles_are_deeply_immutable_and_instance_fingerprint_is_private() -> (
+    None
+):
     family = electrochemical_material_family(NOMINAL_PRIOR_MATERIAL_FAMILY)
     with pytest.raises(TypeError):
         family.electrolyte_profiles[0]["electrolyte_conductivity_S_m"] = 1.0
@@ -696,8 +685,7 @@ def test_material_family_qualification_report_matches_frozen_family() -> None:
     root = Path(__file__).resolve().parents[1]
     report = json.loads(
         (
-            root
-            / "workstreams/flagship_tasks/reports/"
+            root / "workstreams/flagship_tasks/reports/"
             "static-s0-material-family-v2-qualification-v0.3.json"
         ).read_text(encoding="utf-8")
     )
@@ -719,9 +707,7 @@ def test_material_family_qualification_report_matches_frozen_family() -> None:
         "refinement": "bounded_gaussian_around_pair_incumbent",
         "observation_noise": "keyed_local_simulation",
     }
-    assert report["qualification_pass"] is all(
-        report["summary"]["qualification_checks"].values()
-    )
+    assert report["qualification_pass"] is all(report["summary"]["qualification_checks"].values())
     assert set(report["source_contract_sha256"]) == {
         "scripts/qualify_electrochemical_material_family.py",
         "src/chemworld/runtime/electrochemical_services.py",
