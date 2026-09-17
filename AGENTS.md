@@ -12,6 +12,10 @@ The retired task matrix, superseded evidence plan and editorial handoffs are ava
 history. Any retained claim or story file exists only for a frozen evidence consumer; it does not
 authorize new work or define the current story.
 Work II remains separate and is governed by `workstreams/flagship_tasks/WORK_II_TODOLIST.md`.
+For Experiment 1, start at `workstreams/flagship_tasks/experiment_1/README.md`. Files labelled
+guidance, historical, legacy, or archive are provenance only; they do not authorize execution or
+override the current Experiment 1 authority map. Do not move or silently edit a frozen file whose
+path and digest are bound by a machine contract.
 
 ## Lightweight execution
 
