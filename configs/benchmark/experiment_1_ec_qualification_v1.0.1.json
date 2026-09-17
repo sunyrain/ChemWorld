@@ -60,10 +60,23 @@
       "nuisance_anchor_count": 2,
       "categories_per_anchor": 4,
       "independent_replicates": 3,
+      "category_order_by_anchor": [[0, 1, 2, 3], [0, 1, 2, 3]],
+      "nuisance_design": {
+        "algorithm": "sha256_hash_uniform_complement_v1",
+        "namespace": "experiment-1-v1.0.1-ec-entity-anchors",
+        "lower_bound": 0.15,
+        "upper_bound": 0.85,
+        "round_decimal_places": 9
+      },
       "gate_endpoint_id": "transport_efficiency",
       "support_endpoint_ids": ["ohmic_efficiency"],
       "minimum_absolute_separation": 0.05,
       "minimum_signal_to_noise_ratio": 2.0,
+      "behavioral_policy": {
+        "policy_id": "nominal_transport_index_argmax_within_transposed_pair",
+        "nominal_transport_index": "conductivity_times_diffusivity_divided_by_diffusion_layer",
+        "minimum_observed_endpoint_consequence": 0.05
+      },
       "participant_unique_experiment_budget": 4,
       "observation_noise_namespace": "experiment-1-v1.0.1-ec-entity"
     },
