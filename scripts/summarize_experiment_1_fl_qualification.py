@@ -46,6 +46,9 @@ def build_registry(
     canary_path: Path,
     locus_paths: Mapping[str, Path],
 ) -> tuple[dict[str, Any], dict[str, Any]]:
+    fixed_hardware = (
+        contract.get("schema_version") == "chemworld-experiment-1-fl-qualification-contract-1.1.0"
+    )
     contract_sha256 = canonical_json_sha256(contract)
     canary = _load(canary_path)
     _validate_self_hash(canary, "summary_sha256", "FL canary summary")
@@ -134,7 +137,11 @@ def build_registry(
         failed = sorted(world_id for world_id, passed in truth_match.items() if not passed)
         raise ValueError(f"cross-locus FL truth mismatch: {failed}")
     registry: dict[str, Any] = {
-        "schema_version": REGISTRY_VERSION,
+        "schema_version": (
+            "chemworld-experiment-1-fl-qualification-registry-1.1.0"
+            if fixed_hardware
+            else REGISTRY_VERSION
+        ),
         "formal_result": False,
         "provider_call_count": 0,
         "contract_sha256": contract_sha256,
@@ -144,7 +151,11 @@ def build_registry(
     registry["registry_sha256"] = canonical_json_sha256(registry)
     all_qualified = all(row["status"] == "qualified" for row in rows)
     summary = {
-        "schema_version": SUMMARY_VERSION,
+        "schema_version": (
+            "chemworld-experiment-1-fl-qualification-summary-1.1.0"
+            if fixed_hardware
+            else SUMMARY_VERSION
+        ),
         "formal_result": False,
         "provider_call_count": 0,
         "contract_sha256": contract_sha256,
@@ -178,7 +189,11 @@ def build_registry(
 def render_markdown(registry: Mapping[str, Any], summary: Mapping[str, Any]) -> str:
     by_unit = {row["unit_id"]: row for row in registry["rows"]}
     lines = [
-        "# Experiment 1 FL qualification v1.0.1 — development result",
+        (
+            "# Experiment 1 FL qualification v1.1.0 — development result"
+            if summary["schema_version"].endswith("1.1.0")
+            else "# Experiment 1 FL qualification v1.0.1 — development result"
+        ),
         "",
         "| World | Entity | Parametric | Structural |",
         "| --- | --- | --- | --- |",

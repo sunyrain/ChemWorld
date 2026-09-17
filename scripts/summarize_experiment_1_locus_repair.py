@@ -12,12 +12,14 @@ from typing import Any
 from chemworld.eval.experiment_1_c_qualification import load_contract as load_c_contract
 from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.experiment_1_pa_qualification import load_contract as load_pa_contract
+from chemworld.eval.experiment_1_rx_qualification import load_contract as load_rx_contract
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256, write_json_atomic
 
 ROOT = Path(__file__).resolve().parents[1]
 LOADERS: dict[str, Callable[[Path, Path], dict[str, Any]]] = {
     "C": load_c_contract,
     "PA": load_pa_contract,
+    "RX": load_rx_contract,
 }
 
 
