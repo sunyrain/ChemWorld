@@ -1,6 +1,6 @@
 # Experiment 1 EC qualification repair note v1.0.2
 
-状态：**candidate repair design，等待人工科学审阅；不授权执行。**
+状态：**已批准并冻结用于 v1.0.2 continuous development qualification；不授权 Participant。**
 
 日期：2026-09-17。父协议为 `Experiment 1 EC qualification v1.0.1`。本 note 只处理 v1.0.1 已完成 qualification 中的四个科学失败单元：
 
@@ -166,7 +166,7 @@ Carry-forward 不得复制或重新标记旧结果。v1.0.2 应输出一个 comp
 
 ## 8. Proposed machine artifacts（尚未创建）
 
-人工接受本 note 后，下一步才允许创建：
+本 note 已在 continuous campaign 启动时获得人工接受，下一步允许创建：
 
 - `configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json`；
 - 新版本 repair evaluator/runner/summary adapter；
@@ -176,13 +176,13 @@ Carry-forward 不得复制或重新标记旧结果。v1.0.2 应输出一个 comp
 
 manifest 必须在执行前冻结 repair mappings、query groups、noise namespaces、denominators、stop rules 和所有 source bindings。
 
-## 9. 当前决策门
+## 9. 冻结决定
 
-在创建或冻结 manifest 前，需要人工确认：
+项目负责人在 2026-09-17 启动 continuous development qualification campaign，接受：
 
 1. 接受五个 World 使用五种预注册、近似平衡的两行 transposition；
 2. 接受 Structural noisy validation 从中电位统一移动到低电位，hypothesis family 与 Gate 不变；
 3. 接受 entity/structural 各自五个 World 整块重跑，而不是只重跑四个失败单元；
 4. 接受 EC-P 仅在机器兼容性审计通过时通过 composite manifest carry forward。
 
-在这四项确认前，状态保持 `candidate`，不得实现或执行 v1.0.2。
+上述四项现已冻结。实现必须逐项编码进 v1.0.2 machine manifest；任何偏离都需要新版本 note，不能在运行中静默修改。

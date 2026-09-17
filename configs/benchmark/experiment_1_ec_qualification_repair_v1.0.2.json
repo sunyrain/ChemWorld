@@ -1,0 +1,179 @@
+{
+  "schema_version": "chemworld-experiment-1-ec-qualification-repair-contract-1.0.2",
+  "contract_id": "experiment-1-ec-five-world-qualification-repair-v1.0.2",
+  "status": "development_frozen_before_execution",
+  "development_only": true,
+  "participant_provider_calls": 0,
+  "participant_execution_authorized": false,
+  "formal_benchmark_execution_authorized": false,
+  "parent_contract": {
+    "path": "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json",
+    "sha256": "7f6ebfe6fbee597552ea8f10e3f269f1733197c2ec82bb0cff82b0a14f77588e"
+  },
+  "specification": {
+    "path": "workstreams/flagship_tasks/EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md",
+    "sha256": "9da61438d3f3a1b6dae37d190d2c166a1c0c802504907cee61e91167484f890c"
+  },
+  "repair_note": {
+    "path": "workstreams/flagship_tasks/experiment_1/systems/EC/QUALIFICATION_REPAIR_NOTE_V1_0_2.md",
+    "sha256": "ec747ec4f8f0f4093d6a554e0ba2ba66fc4d3e855db25935deb97ea466c2a88c"
+  },
+  "task": {
+    "system_id": "EC",
+    "task_id": "electrochemical-conversion",
+    "world_split": "public-test",
+    "objective": "balanced",
+    "electrochemical_material_family_id": "nominal-prior-latent-v2",
+    "electrochemical_workflow_mode": "autonomous_open_v1",
+    "scoring_contract_id": "electrochemical-s0-balanced-efficiency-v2",
+    "campaign_config": {
+      "path": "configs/benchmark/work_ii_campaign_pilot.json",
+      "sha256": "447e0acf6e76cd3ef63064af8e004a9c546f365e7bb3fdaed184c2846c8ef1ed"
+    }
+  },
+  "source_assets": {
+    "parametric_reference_summary": {
+      "path": "workstreams/flagship_tasks/reports/work-ii-electrochemical-matched-prior-qualification-20260811.json",
+      "sha256": "c266efc7718e702bcbcac3575b11f690eacb6ec215694e563be9666c699aa108"
+    },
+    "parametric_noise_summary": {
+      "path": "workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811.json",
+      "sha256": "e4980df6986c7a8f80c75709cecade4d51528c8b789f3f70cc6514b434ed4824"
+    }
+  },
+  "parent_result": {
+    "root": "runs/development/experiment-1-ec-v1.0.1-941110e",
+    "registry": {
+      "path": "runs/development/experiment-1-ec-v1.0.1-941110e/final/registry.json",
+      "sha256": "f320b54836bd018e7940df98c5e906a755baf940ce5080a7cc7c2f4700df1ff1",
+      "self_sha256": "ad3b0a7c7f2561375bdd99372f277d0d678014c32d2bdc86fc88b3ea84675b26"
+    },
+    "summary": {
+      "path": "runs/development/experiment-1-ec-v1.0.1-941110e/final/summary.json",
+      "sha256": "ccc29884d24e3a3622d05c7f108d5c9b4de7123f35924ba436fb5f0b66b90c06",
+      "self_sha256": "e5a0939f4f93723af6110de1ea249f2b4257108d982e349c8d6c9e2543090f90"
+    }
+  },
+  "carry_forward_compatibility": {
+    "locus": "parametric",
+    "required_truth_match_with_repair_worlds": true,
+    "source_code_bindings": [
+      {
+        "path": "src/chemworld/eval/experiment_1_ec_qualification.py",
+        "sha256": "dd390eda8d21860d76a720376c70d32f21eefc812f93d16cd71461238021f75d"
+      },
+      {
+        "path": "scripts/run_experiment_1_ec_qualification.py",
+        "sha256": "4dc90c77a19e9ce79d9d2e42b03f23c78358ed6eae7a4c238b12556dceff82c3"
+      },
+      {
+        "path": "src/chemworld/eval/work_ii_electrochemical_matched_prior_qualification.py",
+        "sha256": "902a2f6176243e131c4bb51bab4427f956d132cf16204389cfcb37d843ac184f"
+      },
+      {
+        "path": "scripts/run_work_ii_mechanism_oracle_qualification.py",
+        "sha256": "e1ced95d630f16852efa71ef82ac8d0ef1f773c53005604a090f5dee3e337598"
+      },
+      {
+        "path": "scripts/run_work_ii_q1_response_surface.py",
+        "sha256": "2691634c690f180765a45275a528d61de3cf05b88be81090c846361d7d8987c7"
+      }
+    ]
+  },
+  "arms": {
+    "machine_ids": ["opaque", "aligned", "misspecified"],
+    "legacy_aliases": {
+      "aligned_nominal": "aligned",
+      "misindexed_nominal": "misspecified"
+    }
+  },
+  "worlds": {
+    "canary": {
+      "world_id": "EC-W00",
+      "world_seed": 900000,
+      "formal_denominator": false
+    },
+    "qualification": [
+      {"world_id": "EC-W01", "world_seed": 0, "authoring_role": "central_reference"},
+      {"world_id": "EC-W02", "world_seed": 1, "authoring_role": "quantitative_shift"},
+      {"world_id": "EC-W03", "world_seed": 2, "authoring_role": "alternate_response_regime_candidate"},
+      {"world_id": "EC-W04", "world_seed": 3, "authoring_role": "strong_coupling_candidate"},
+      {"world_id": "EC-W05", "world_seed": 4, "authoring_role": "boundary_robustness_candidate"}
+    ]
+  },
+  "common_gates": [
+    "Q1_world_integrity",
+    "Q2_task_accessibility",
+    "Q3_public_contract_invariance",
+    "Q4_prior_symmetry",
+    "Q5_identifiability",
+    "Q6_budgeted_falsifiability",
+    "Q7_behavioral_relevance",
+    "Q8_noise_robustness"
+  ],
+  "loci": {
+    "entity": {
+      "implementation_readiness": "A",
+      "target_field": "electrolyte_profile",
+      "canary_descriptor_permutation": [3, 1, 2, 0],
+      "descriptor_permutation_by_world": {
+        "EC-W01": [3, 1, 2, 0],
+        "EC-W02": [2, 1, 0, 3],
+        "EC-W03": [0, 3, 2, 1],
+        "EC-W04": [0, 1, 3, 2],
+        "EC-W05": [0, 2, 1, 3]
+      },
+      "nuisance_anchor_count": 2,
+      "categories_per_anchor": 4,
+      "independent_replicates": 3,
+      "category_order_by_anchor": [[0, 1, 2, 3], [0, 1, 2, 3]],
+      "nuisance_design": {
+        "algorithm": "sha256_hash_uniform_complement_v1",
+        "namespace": "experiment-1-v1.0.1-ec-entity-anchors",
+        "lower_bound": 0.15,
+        "upper_bound": 0.85,
+        "round_decimal_places": 9
+      },
+      "gate_endpoint_id": "transport_efficiency",
+      "support_endpoint_ids": ["ohmic_efficiency"],
+      "minimum_absolute_separation": 0.05,
+      "minimum_signal_to_noise_ratio": 2.0,
+      "behavioral_policy": {
+        "policy_id": "nominal_transport_index_argmax_within_transposed_pair",
+        "nominal_transport_index": "conductivity_times_diffusivity_divided_by_diffusion_layer",
+        "minimum_observed_endpoint_consequence": 0.05
+      },
+      "participant_unique_experiment_budget": 4,
+      "observation_noise_namespace": "experiment-1-v1.0.2-ec-entity-repair"
+    },
+    "structural": {
+      "implementation_readiness": "A",
+      "candidate_id": "electrochemical_transport",
+      "target": "current_transport_limitation",
+      "grid_levels": 3,
+      "validation_groups": [[0, 0], [0, 1], [0, 2]],
+      "validation_replicates": 3,
+      "effect_floor": 0.03,
+      "noise_multiplier": 6.0,
+      "minimum_disagreement_fraction": 0.4,
+      "participant_unique_experiment_budget": 4
+    }
+  },
+  "repair_scope": {
+    "rerun_loci": ["entity", "structural"],
+    "planned_scientific_executions": 210,
+    "carry_forward_loci": ["parametric"],
+    "world_truth_change": false,
+    "gate_change": false,
+    "participant_budget_change": false
+  },
+  "execution": {
+    "exact_replay_required": true,
+    "overwrite_forbidden": true,
+    "platform_failure_policy": "stop_repair_and_restart_affected_block_from_unit_zero",
+    "scientific_failure_policy": "complete_frozen_denominator_retain_failure_and_continue_campaign",
+    "post_failure_redesign_in_same_campaign_forbidden": true,
+    "participant_execution_authorized": false,
+    "formal_benchmark_execution_authorized": false
+  }
+}
