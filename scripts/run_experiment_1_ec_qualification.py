@@ -7,6 +7,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+from time import perf_counter
 from typing import Any
 
 from chemworld.eval.experiment_1_ec_qualification import (
@@ -25,6 +26,39 @@ ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = ROOT / "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json"
 CANARY_SUMMARY_VERSION = "chemworld-experiment-1-ec-canary-summary-1.0.1"
 ENTITY_SUMMARY_VERSION = "chemworld-experiment-1-ec-entity-summary-1.0.1"
+
+
+class Progress:
+    def __init__(self, total: int) -> None:
+        self.total = total
+        self.completed = 0
+        self.started = perf_counter()
+        self.last_emit = self.started
+
+    def update(self, *, world_id: str, status: str) -> None:
+        self.completed += 1
+        now = perf_counter()
+        if self.completed % 4 != 0 and now - self.last_emit < 30.0:
+            return
+        elapsed = now - self.started
+        rate = self.completed / elapsed if elapsed else 0.0
+        print(
+            json.dumps(
+                {
+                    "event": "experiment_1_ec_entity_progress",
+                    "world_id": world_id,
+                    "last_execution_status": status,
+                    "completed": self.completed,
+                    "total": self.total,
+                    "throughput_executions_per_minute": round(rate * 60.0, 2),
+                    "eta_s": round((self.total - self.completed) / rate, 1) if rate else None,
+                    "elapsed_s": round(elapsed, 1),
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+        self.last_emit = now
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -173,6 +207,7 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
     reports = []
     all_receipts = []
     execution_index = 0
+    progress = Progress(5 * len(schedule) * replicates)
     for world in contract["worlds"]["qualification"]:
         world_root = output / world["world_id"]
         world_root.mkdir()
@@ -191,6 +226,7 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                 receipts.append(receipt)
                 all_receipts.append(receipt)
                 execution_index += 1
+                progress.update(world_id=world["world_id"], status=str(receipt["status"]))
         write_json_atomic(world_root / "receipts.json", receipts)
         report = analyze_entity_world(
             contract,
