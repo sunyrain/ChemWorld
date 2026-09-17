@@ -31,7 +31,7 @@ child is not a scalar rescaling of total crystallization speed.
 - non-benchmark public-test seeds: `301, 302, 303`;
 - no Experiment 1 formal World IDs or formal-world intervention manifests are used for selection;
 - public design per law: `2 seed masses x 2 cooling endpoints x 2 durations = 8` cells;
-- seed mass: `0.000001 g` and `0.015 g`;
+- seed mass: `0.001 g` and `0.015 g`;
 - cooling endpoint: `310 K` and `270 K`;
 - crystallization duration: `3600 s` and `10800 s`;
 - paired laws use identical action plans and keyed observation coordinates;
@@ -50,3 +50,10 @@ The candidate must pass all three calibration Worlds. Per World it must show:
 
 If the candidate fails any calibration World, C-S remains failed-development for this iteration.
 Formal C-W01..W05 will not be run and thresholds will not be reduced.
+
+## Pre-execution correction
+
+Commit `9c63a43` specified `0.000001 g`, which the frozen public recipe validator rejected before
+any chemistry execution because the legal lower bound is `0.001 g`. The rejected attempt is kept at
+`runs/development/experiment-1-c-s-authoring-v1.1.0-9c63a43`. This note corrects only that invalid
+coordinate to the public lower bound; no scientific outcome or qualification result was observed.

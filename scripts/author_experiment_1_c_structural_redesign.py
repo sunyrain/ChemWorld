@@ -41,9 +41,9 @@ NOTE = (
     ROOT / "workstreams/flagship_tasks/experiment_1/systems/C/"
     "STRUCTURAL_REDESIGN_AUTHORING_NOTE_V1_1_0.md"
 )
-NOTE_SHA256 = "93abb007f1a2d636aacaeb4dfe9c71777bc842c1a0e5d8002290f9b9c680628e"
+NOTE_SHA256 = "77920e389bfc98ddbd97f31d6df7822ca0e23634736a30348342f5f12f12b5cb"
 CALIBRATION_SEEDS = (301, 302, 303)
-SEED_LEVELS_G = (0.000001, 0.015)
+SEED_LEVELS_G = (0.001, 0.015)
 TEMPERATURE_LEVELS_K = (310.0, 270.0)
 DURATION_LEVELS_S = (3600.0, 10800.0)
 LAW_IDS = ("seed_growth_parent", "primary_nucleation_dominated")
