@@ -15,14 +15,12 @@ from chemworld.eval.experiment_1_pa_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json"
+REPAIR_CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_pa_parametric_repair_v1.0.2.json"
 
 
 def test_pa_contract_freezes_five_distinct_executable_worlds() -> None:
     contract = load_contract(ROOT, CONTRACT_PATH)
-    truths = [
-        world_truth_audit(contract, world)
-        for world in contract["worlds"]["qualification"]
-    ]
+    truths = [world_truth_audit(contract, world) for world in contract["worlds"]["qualification"]]
 
     assert [row["world_id"] for row in truths] == [f"PA-W0{i}" for i in range(1, 6)]
     assert all(row["deterministic"] for row in truths)
@@ -78,3 +76,18 @@ def test_pa_structural_prior_arms_are_symmetric_and_blind() -> None:
     assert arms["schema_matched"] is True
     assert arms["text_template_matched"] is True
     assert arms["leakage_tokens"] == []
+
+
+def test_pa_parametric_repair_overlay_preserves_truth_and_freezes_budget_points() -> None:
+    baseline = load_contract(ROOT, CONTRACT_PATH)
+    repaired = load_contract(ROOT, REPAIR_CONTRACT_PATH)
+
+    assert repaired["schema_version"].endswith("1.0.2")
+    assert repaired["worlds"] == baseline["worlds"]
+    assert repaired["loci"]["entity"] == baseline["loci"]["entity"]
+    assert repaired["loci"]["structural"] == baseline["loci"]["structural"]
+    assert repaired["loci"]["parametric"]["participant_point_ids"] == [
+        "low_ratio",
+        "reference",
+        "mid_high_ratio",
+    ]

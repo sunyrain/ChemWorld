@@ -13,6 +13,7 @@ from typing import Any
 
 import numpy as np
 
+from chemworld.eval.experiment_1_contracts import load_contract_document
 from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_structural_candidate_qualification import (
@@ -28,6 +29,8 @@ from chemworld.world.crystallization_material_family import (
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 CONTRACT_VERSION = "chemworld-experiment-1-c-qualification-contract-1.0.1"
+REPAIR_CONTRACT_VERSION = "chemworld-experiment-1-c-qualification-contract-1.0.2"
+CONTRACT_VERSIONS = (CONTRACT_VERSION, REPAIR_CONTRACT_VERSION)
 ENTITY_REPORT_VERSION = "chemworld-experiment-1-c-entity-world-report-1.0.1"
 PARAMETRIC_REPORT_VERSION = "chemworld-experiment-1-c-parametric-world-report-1.0.1"
 STRUCTURAL_REPORT_VERSION = "chemworld-experiment-1-c-structural-world-report-1.0.1"
@@ -50,9 +53,7 @@ class Experiment1CQualificationError(ValueError):
 
 
 def load_contract(root: Path, path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise Experiment1CQualificationError("C qualification contract must be an object")
+    value = load_contract_document(root, path)
     errors = validate_contract(root, value)
     if errors:
         raise Experiment1CQualificationError("; ".join(errors))
@@ -62,13 +63,14 @@ def load_contract(root: Path, path: Path) -> dict[str, Any]:
 def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
     expected_flags = {
-        "schema_version": CONTRACT_VERSION,
         "status": "development_frozen_before_execution",
         "development_only": True,
         "participant_provider_calls": 0,
         "participant_execution_authorized": False,
         "formal_benchmark_execution_authorized": False,
     }
+    if contract.get("schema_version") not in CONTRACT_VERSIONS:
+        errors.append("contract.schema_version changed")
     for key, expected in expected_flags.items():
         if contract.get(key) != expected:
             errors.append(f"contract.{key} changed")
@@ -289,6 +291,31 @@ def entity_prior_audit(contract: Mapping[str, Any]) -> dict[str, Any]:
 
 def parametric_prior_arms(contract: Mapping[str, Any], world: Mapping[str, Any]) -> dict[str, Any]:
     locus = contract["loci"]["parametric"]
+    if locus.get("question_id") == "cooling_response_gain_310_to_270_K":
+        center = float(locus["aligned_effect_centers_by_world"][str(world["world_id"])])
+        false_center = center * float(locus["misspecified_center_factor"])
+        half_width = float(locus["relative_band_half_width"])
+        common = {
+            "target": "cooling_response_gain_310_to_270_K",
+            "metric": locus["threshold_metric"],
+            "seed_mass_g": locus["seed_mass_g"],
+            "scope": "fixed upstream composition and solvent context",
+        }
+        arms = {
+            "aligned": {
+                **common,
+                "effect_band": [center * (1.0 - half_width), center * (1.0 + half_width)],
+            },
+            "misspecified": {
+                **common,
+                "effect_band": [
+                    false_center * (1.0 - half_width),
+                    false_center * (1.0 + half_width),
+                ],
+            },
+            "opaque": {**common, "effect_band": ["withheld", "withheld"]},
+        }
+        return _prior_arm_audit(arms)
     center = float(world_truth_audit(contract, world)["aligned_threshold_center_K"])
     half_width = float(locus["aligned_band_half_width_K"])
     shift = float(locus["misspecified_shift_K"])
@@ -444,14 +471,36 @@ def analyze_parametric_world(
     prior = parametric_prior_arms(contract, world)
     truth = world_truth_audit(contract, world)
     fixed_context_hashes = {row.get("fixed_context_sha256") for row in completed}
+    response_gain_question = locus.get("question_id") == "cooling_response_gain_310_to_270_K"
+    aligned_band: list[float] | None = None
+    misspecified_band: list[float] | None = None
+    if response_gain_question:
+        aligned_center = float(locus["aligned_effect_centers_by_world"][str(world["world_id"])])
+        false_center = aligned_center * float(locus["misspecified_center_factor"])
+        relative_half_width = float(locus["relative_band_half_width"])
+        aligned_band = [
+            aligned_center * (1.0 - relative_half_width),
+            aligned_center * (1.0 + relative_half_width),
+        ]
+        misspecified_band = [
+            false_center * (1.0 - relative_half_width),
+            false_center * (1.0 + relative_half_width),
+        ]
+        identifiability = bool(
+            aligned_band[0] <= endpoint_effect <= aligned_band[1]
+            and not misspecified_band[0] <= endpoint_effect <= misspecified_band[1]
+            and abs(aligned_center - false_center) >= float(locus["minimum_prior_center_gap"])
+        )
+    else:
+        identifiability = bool(
+            crossing and endpoint_effect >= float(locus["minimum_endpoint_effect"])
+        )
     gates = {
         "Q1_world_integrity": _integrity(receipts, expected) and truth["deterministic"],
         "Q2_task_accessibility": len({row.get("action_plan_sha256") for row in completed}) == 3,
         "Q3_public_contract_invariance": _public_receipts_ok(completed, locus["direct_metrics"]),
         "Q4_prior_symmetry": prior["passed"],
-        "Q5_identifiability": bool(
-            crossing and endpoint_effect >= float(locus["minimum_endpoint_effect"])
-        ),
+        "Q5_identifiability": identifiability,
         "Q6_budgeted_falsifiability": int(locus["participant_unique_experiment_budget"]) == 3,
         "Q7_behavioral_relevance": bool(endpoint_effect >= float(locus["minimum_endpoint_effect"])),
         "Q8_noise_robustness": bool(
@@ -473,6 +522,8 @@ def analyze_parametric_world(
             "endpoint_effect": endpoint_effect,
             "endpoint_signal_to_noise_ratio": endpoint_snr,
             "crossing_detected": crossing,
+            "aligned_effect_band": aligned_band,
+            "misspecified_effect_band": misspecified_band,
         },
     )
 
@@ -690,7 +741,9 @@ def _public_text(value: Any) -> list[str]:
 
 __all__ = [
     "CONTRACT_VERSION",
+    "CONTRACT_VERSIONS",
     "EXPECTED_WORLD_IDS",
+    "REPAIR_CONTRACT_VERSION",
     "Experiment1CQualificationError",
     "analyze_entity_world",
     "analyze_parametric_world",

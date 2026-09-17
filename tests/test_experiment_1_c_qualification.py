@@ -12,6 +12,7 @@ from chemworld.eval.experiment_1_c_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_c_qualification_v1.0.1.json"
+REPAIR_CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_c_parametric_repair_v1.0.2.json"
 
 
 def test_c_contract_freezes_five_distinct_executable_worlds() -> None:
@@ -63,3 +64,18 @@ def test_c_structural_prior_uses_seed_mediated_candidate() -> None:
     assert audit["passed"] is True
     assert audit["checks"]["same_public_keys"] is True
     assert audit["checks"]["target_is_seed_mediated"] is True
+
+
+def test_c_parametric_repair_overlay_uses_response_gain_without_changing_worlds() -> None:
+    baseline = load_contract(ROOT, CONTRACT_PATH)
+    repaired = load_contract(ROOT, REPAIR_CONTRACT_PATH)
+    audits = [
+        parametric_prior_arms(repaired, world) for world in repaired["worlds"]["qualification"]
+    ]
+
+    assert repaired["schema_version"].endswith("1.0.2")
+    assert repaired["worlds"] == baseline["worlds"]
+    assert repaired["loci"]["entity"] == baseline["loci"]["entity"]
+    assert repaired["loci"]["structural"] == baseline["loci"]["structural"]
+    assert repaired["loci"]["parametric"]["question_id"] == ("cooling_response_gain_310_to_270_K")
+    assert all(audit["passed"] for audit in audits)

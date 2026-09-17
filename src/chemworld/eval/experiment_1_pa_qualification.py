@@ -12,6 +12,7 @@ from typing import Any
 
 import numpy as np
 
+from chemworld.eval.experiment_1_contracts import load_contract_document
 from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.materials import (
@@ -26,6 +27,8 @@ from chemworld.world.phase_kernel import (
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 CONTRACT_VERSION = "chemworld-experiment-1-pa-qualification-contract-1.0.1"
+REPAIR_CONTRACT_VERSION = "chemworld-experiment-1-pa-qualification-contract-1.0.2"
+CONTRACT_VERSIONS = (CONTRACT_VERSION, REPAIR_CONTRACT_VERSION)
 ENTITY_REPORT_VERSION = "chemworld-experiment-1-pa-entity-world-report-1.0.1"
 PARAMETRIC_REPORT_VERSION = "chemworld-experiment-1-pa-parametric-world-report-1.0.1"
 STRUCTURAL_REPORT_VERSION = "chemworld-experiment-1-pa-structural-world-report-1.0.1"
@@ -48,9 +51,7 @@ class Experiment1PAQualificationError(ValueError):
 
 
 def load_contract(root: Path, path: Path) -> dict[str, Any]:
-    value = json.loads(path.read_text(encoding="utf-8"))
-    if not isinstance(value, dict):
-        raise Experiment1PAQualificationError("PA qualification contract must be an object")
+    value = load_contract_document(root, path)
     errors = validate_contract(root, value)
     if errors:
         raise Experiment1PAQualificationError("; ".join(errors))
@@ -59,7 +60,7 @@ def load_contract(root: Path, path: Path) -> dict[str, Any]:
 
 def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
-    if contract.get("schema_version") != CONTRACT_VERSION:
+    if contract.get("schema_version") not in CONTRACT_VERSIONS:
         errors.append("contract schema version changed")
     if contract.get("status") != "development_frozen_before_execution":
         errors.append("contract is not frozen before execution")
@@ -147,13 +148,9 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
         "world_family_intervention_hash": scenario.initial_state.metadata.get(
             "world_family_intervention_hash"
         ),
-        "partition_coefficient_multiplier": float(
-            domain["partition_coefficient_multiplier"]
-        ),
+        "partition_coefficient_multiplier": float(domain["partition_coefficient_multiplier"]),
         "partition_coefficient_exponent": float(domain["partition_coefficient_exponent"]),
-        "partition_phase_volume_multiplier": float(
-            domain["partition_phase_volume_multiplier"]
-        ),
+        "partition_phase_volume_multiplier": float(domain["partition_phase_volume_multiplier"]),
         "mechanism_hash": scenario.compiled_mechanism.mechanism_hash,
     }
     truth["truth_sha256"] = canonical_json_sha256(truth)
@@ -237,23 +234,19 @@ def analyze_entity_world(
         right_rows = grouped.get((int(solvent), right), [])
         left_values = [float(row["measurement"]["product_in_organic"]) for row in left_rows]
         right_values = [float(row["measurement"]["product_in_organic"]) for row in right_rows]
-        if len(left_values) != int(locus["independent_replicates"]) or len(
-            right_values
-        ) != int(locus["independent_replicates"]):
+        if len(left_values) != int(locus["independent_replicates"]) or len(right_values) != int(
+            locus["independent_replicates"]
+        ):
             comparisons.append({"solvent": solvent, "complete": False})
             continue
         signed_gap = fmean(right_values) - fmean(left_values)
         separation = abs(signed_gap)
         standard_error = math.sqrt(
-            variance(left_values) / len(left_values)
-            + variance(right_values) / len(right_values)
+            variance(left_values) / len(left_values) + variance(right_values) / len(right_values)
         )
         snr = separation / max(standard_error, 1.0e-12)
         mapping_consistent = signed_gap * expected_sign > 0.0
-        passed = bool(
-            mapping_consistent
-            and separation >= float(locus["minimum_mean_separation"])
-        )
+        passed = bool(mapping_consistent and separation >= float(locus["minimum_mean_separation"]))
         if passed:
             resolving += 1
         if passed and snr >= float(locus["minimum_signal_to_noise_ratio"]):
@@ -281,7 +274,9 @@ def analyze_entity_world(
             truth["deterministic"] and common["complete_denominator"] and common["all_exact_replay"]
         ),
         "Q2_task_accessibility": bool(common["all_measurements_public_and_finite"]),
-        "Q3_public_contract_invariance": bool(common["public_contract_invariant"] and common["leakage_free"]),
+        "Q3_public_contract_invariance": bool(
+            common["public_contract_invariant"] and common["leakage_free"]
+        ),
         "Q4_prior_symmetry": bool(prior["passed"]),
         "Q5_identifiability": resolving >= int(locus["minimum_resolving_anchors"]),
         "Q6_budgeted_falsifiability": bool(
@@ -308,9 +303,7 @@ def analyze_entity_world(
     )
 
 
-def true_parametric_k_star(
-    contract: Mapping[str, Any], world: Mapping[str, Any]
-) -> dict[str, Any]:
+def true_parametric_k_star(contract: Mapping[str, Any], world: Mapping[str, Any]) -> dict[str, Any]:
     truth = world_truth_audit(contract, world)
     locus = contract["loci"]["parametric"]
     observations = []
@@ -395,8 +388,7 @@ def analyze_parametric_world(
                 "organic_fraction": float(row["measurement"]["product_in_organic"]),
                 "aqueous_fraction": float(row["measurement"]["product_in_aqueous"]),
                 "organic_volume_L": float(row["extractant_volume_L"]),
-                "aqueous_volume_L": float(row["solvent_volume_L"])
-                + float(row["aqueous_volume_L"]),
+                "aqueous_volume_L": float(row["solvent_volume_L"]) + float(row["aqueous_volume_L"]),
             }
         )
     fit = fit_effective_k(observations) if observations else {"k_star": math.nan, "rmse": math.inf}
@@ -428,9 +420,7 @@ def analyze_parametric_world(
         aligned_prediction = true_k * v_org / (true_k * v_org + v_aq)
         false_prediction = false_k * v_org / (false_k * v_org + v_aq)
         consequence = abs(aligned_prediction - false_prediction)
-        standard_error = (
-            math.sqrt(variance(values) / len(values)) if len(values) >= 2 else math.inf
-        )
+        standard_error = math.sqrt(variance(values) / len(values)) if len(values) >= 2 else math.inf
         is_counterexample = consequence >= float(locus["minimum_prediction_gap"])
         is_robust = is_counterexample and consequence / max(standard_error, 1.0e-12) >= float(
             locus["minimum_signal_to_noise_ratio"]
@@ -452,24 +442,48 @@ def analyze_parametric_world(
         )
     denominators = _denominators(receipts, expected)
     common = _common_receipt_checks(receipts, expected)
-    end_counterexamples = sum(
-        bool(row["counterexample"]) for row in (point_reports[0], point_reports[-1])
-    ) if len(point_reports) == 5 else 0
+    participant_point_ids = locus.get("participant_point_ids")
+    budget_point_reports = (
+        [row for row in point_reports if row["point_id"] in set(participant_point_ids)]
+        if isinstance(participant_point_ids, list)
+        else []
+    )
+    budget_counterexamples = sum(bool(row["counterexample"]) for row in budget_point_reports)
+    budget_robust_counterexamples = sum(
+        bool(row["noise_robust_counterexample"]) for row in budget_point_reports
+    )
+    end_counterexamples = (
+        sum(bool(row["counterexample"]) for row in (point_reports[0], point_reports[-1]))
+        if len(point_reports) == 5
+        else 0
+    )
+    if budget_point_reports:
+        budgeted_falsifiability = bool(
+            len(budget_point_reports) == int(locus["participant_unique_experiment_budget"])
+            and budget_counterexamples >= int(locus.get("minimum_budget_counterexample_points", 2))
+            and budget_robust_counterexamples
+            >= int(locus.get("minimum_budget_robust_counterexample_points", 2))
+        )
+    else:
+        budgeted_falsifiability = bool(
+            int(locus["participant_unique_experiment_budget"]) >= 3
+            and counterexamples >= int(locus["minimum_counterexample_points"])
+            and end_counterexamples == 2
+        )
     gates = {
         "Q1_world_integrity": bool(
             truth["deterministic"] and common["complete_denominator"] and common["all_exact_replay"]
         ),
         "Q2_task_accessibility": bool(common["all_measurements_public_and_finite"]),
-        "Q3_public_contract_invariance": bool(common["public_contract_invariant"] and common["leakage_free"]),
+        "Q3_public_contract_invariance": bool(
+            common["public_contract_invariant"] and common["leakage_free"]
+        ),
         "Q4_prior_symmetry": bool(relative_half_width == float(locus["relative_band_half_width"])),
         "Q5_identifiability": bool(aligned_contains_fit and not false_contains_fit),
-        "Q6_budgeted_falsifiability": bool(
-            int(locus["participant_unique_experiment_budget"]) >= 3
-            and counterexamples >= int(locus["minimum_counterexample_points"])
-            and end_counterexamples == 2
-        ),
+        "Q6_budgeted_falsifiability": budgeted_falsifiability,
         "Q7_behavioral_relevance": counterexamples >= int(locus["minimum_counterexample_points"]),
-        "Q8_noise_robustness": robust_counterexamples >= int(locus["minimum_robust_counterexample_points"]),
+        "Q8_noise_robustness": robust_counterexamples
+        >= int(locus["minimum_robust_counterexample_points"]),
     }
     return _world_report(
         schema_version=PARAMETRIC_REPORT_VERSION,
@@ -481,12 +495,19 @@ def analyze_parametric_world(
         extra={
             "truth_audit": truth,
             "private_authoring_target": private,
-            "aligned_prior": {"k_star_band": aligned_band, "relative_half_width": relative_half_width},
-            "misspecified_prior": {"k_star_band": false_band, "relative_half_width": relative_half_width},
+            "aligned_prior": {
+                "k_star_band": aligned_band,
+                "relative_half_width": relative_half_width,
+            },
+            "misspecified_prior": {
+                "k_star_band": false_band,
+                "relative_half_width": relative_half_width,
+            },
             "public_fit": fit,
             "aligned_contains_fit": aligned_contains_fit,
             "misspecified_contains_fit": false_contains_fit,
             "phase_point_reports": point_reports,
+            "participant_budget_point_reports": budget_point_reports,
         },
     )
 
@@ -551,7 +572,7 @@ def analyze_structural_world(
             "pairs": pair_rows,
         }
     slope_report = _structural_slope_report(pairs, float(locus["minimum_slope_deviation"]))
-    budget_pairs = set(str(value) for value in locus["participant_pair_ids"])
+    budget_pairs = {str(value) for value in locus["participant_pair_ids"]}
     budget_support = sum(
         any(
             row["pair_id"] in budget_pairs and row["absolute_gap"] >= effect_gate
@@ -567,22 +588,26 @@ def analyze_structural_world(
         and len({row.get("observation_seed") for row in laws.values()}) == 1
         for laws in pairs.values()
     )
-    structural_binding = all(
-        row.get("law_binding_verified") is True for row in receipts
-    )
+    structural_binding = all(row.get("law_binding_verified") is True for row in receipts)
     resolving_metrics = sum(
         count >= int(locus["minimum_supporting_pair_count_per_metric"])
         for count in support_by_metric.values()
     )
     gates = {
         "Q1_world_integrity": bool(
-            truth["deterministic"] and common["complete_denominator"] and common["all_exact_replay"]
+            truth["deterministic"]
+            and common["complete_denominator"]
+            and common["all_exact_replay"]
             and structural_binding
         ),
         "Q2_task_accessibility": bool(common["all_measurements_public_and_finite"]),
-        "Q3_public_contract_invariance": bool(common["public_contract_invariant"] and common["leakage_free"]),
+        "Q3_public_contract_invariance": bool(
+            common["public_contract_invariant"] and common["leakage_free"]
+        ),
         "Q4_prior_symmetry": bool(
-            prior["schema_matched"] and prior["text_template_matched"] and not prior["leakage_tokens"]
+            prior["schema_matched"]
+            and prior["text_template_matched"]
+            and not prior["leakage_tokens"]
         ),
         "Q5_identifiability": bool(
             resolving_metrics >= int(locus["minimum_resolving_metric_count"])
@@ -592,7 +617,8 @@ def analyze_structural_world(
             len(budget_pairs) <= int(locus["participant_unique_experiment_budget"])
             and budget_support >= int(locus["minimum_budget_supporting_metric_count"])
         ),
-        "Q7_behavioral_relevance": resolving_metrics >= int(locus["minimum_resolving_metric_count"]),
+        "Q7_behavioral_relevance": resolving_metrics
+        >= int(locus["minimum_resolving_metric_count"]),
         "Q8_noise_robustness": bool(
             common["all_exact_replay"] and paired_actions and slope_report["slope_signature_passed"]
         ),
@@ -658,9 +684,7 @@ def _structural_slope_report(
     }
 
 
-def _common_receipt_checks(
-    receipts: Sequence[Mapping[str, Any]], expected: int
-) -> dict[str, bool]:
+def _common_receipt_checks(receipts: Sequence[Mapping[str, Any]], expected: int) -> dict[str, bool]:
     completed = [row for row in receipts if row.get("status") == "completed"]
     contract_hashes = {row.get("task_contract_hash") for row in completed}
     return {

@@ -1,0 +1,26 @@
+{
+  "schema_version": "chemworld-experiment-1-pa-qualification-contract-1.0.2",
+  "contract_id": "experiment-1-pa-parametric-repair-v1.0.2",
+  "extends": {
+    "path": "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json",
+    "sha256": "14c5d3fcc388d97db3f92732529dcef21d316891da1b32b02ccfc562e5154c52"
+  },
+  "overrides": {
+    "system_specification": {
+      "path": "workstreams/flagship_tasks/experiment_1/systems/PA/PARAMETRIC_REPAIR_NOTE_V1_0_2.md",
+      "sha256": "ec86bfaa8d6df53a921cf18b4d2bdfbc692ed9bb538429a4f4d228fbd24939e3"
+    },
+    "loci": {
+      "parametric": {
+        "participant_point_ids": [
+          "low_ratio",
+          "reference",
+          "mid_high_ratio"
+        ],
+        "minimum_budget_counterexample_points": 2,
+        "minimum_budget_robust_counterexample_points": 2,
+        "observation_noise_namespace": "experiment-1-v1.0.2-pa-parametric-observation"
+      }
+    }
+  }
+}
