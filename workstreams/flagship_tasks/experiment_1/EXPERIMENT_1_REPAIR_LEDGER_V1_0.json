@@ -7,17 +7,17 @@
     {"block":"EC-E","baseline_version":"v1.0.2","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.2","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"EC-P","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"EC-S","baseline_version":"v1.0.2","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.2","iteration":0,"rerun_scope":"confirmation W01-W05"},
-    {"block":"RX-E","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05"},
+    {"block":"RX-E","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"failed-development","decision":"calibration selected the unchanged C1-C2 transposition; no formal rerun because W02 aligned-prior fidelity remains invalid","evidence_sha256":"fbfafd6f0f39ac12ab1d7182bbe39d89a2a0f778e5f9d5c1bdffd6ce82630623"},
     {"block":"RX-P","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"RX-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"PA-E","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
-    {"block":"PA-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05"},
+    {"block":"PA-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"qualified-development","qualified_worlds":5,"composite_registry_sha256":"f8eabe596c5d53cc00aedab7038b122d56057658a93cf6a44653a5dbc75fe759"},
     {"block":"PA-S","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"FL-E","baseline_version":"v1.0.1","baseline_status":"failed","category":"system-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"FL-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"system-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"FL-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"system-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"C-E","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
-    {"block":"C-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05"},
+    {"block":"C-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"qualified-development","qualified_worlds":5,"composite_registry_sha256":"2f7377733d6e53f2203aa4d9f5b1c6e0ba4632ae2ca0f57cc81816776b4a5371"},
     {"block":"C-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"P-E","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"P-P","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
@@ -26,5 +26,39 @@
     {"block":"D-P","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"D-S","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"}
   ],
-  "events": []
+  "events": [
+    {
+      "phase": "Phase 1",
+      "block": "PA-P",
+      "version": "v1.0.2",
+      "failure_diagnosis": "Q6 used fixed qualification endpoints rather than a legal three-unique-experiment participant design",
+      "changed_object": "parametric budgeted-falsification discriminator",
+      "scientific_reason": "evaluate the same frozen response relation using a realizable low/reference/mid-high design",
+      "affected_units": ["PA-W01:parametric", "PA-W02:parametric", "PA-W03:parametric", "PA-W04:parametric", "PA-W05:parametric"],
+      "rerun_scope": "all five PA parametric Worlds",
+      "result": "5/5 qualified-development; 75/75 primary executions and exact replays"
+    },
+    {
+      "phase": "Phase 1",
+      "block": "C-P",
+      "version": "v1.0.2",
+      "failure_diagnosis": "the absolute yield-crossing claim did not represent the strong cooling response present in every World",
+      "changed_object": "parametric prior estimand and discriminator",
+      "scientific_reason": "use the preregistered cooling-response contrast deltaY40 while preserving Worlds, PBM physics, budget, and noise gates",
+      "affected_units": ["C-W01:parametric", "C-W02:parametric", "C-W03:parametric", "C-W04:parametric", "C-W05:parametric"],
+      "rerun_scope": "all five C parametric Worlds",
+      "result": "5/5 qualified-development; 45/45 primary executions and exact replays"
+    },
+    {
+      "phase": "Phase 1",
+      "block": "RX-E",
+      "version": "v1.0.2-authoring",
+      "failure_diagnosis": "candidate pair selection alone does not repair the formal-world aligned-prior fidelity failure",
+      "changed_object": "none in the formal benchmark; calibration only",
+      "scientific_reason": "all six global transpositions were outcome-completely compared on five non-benchmark calibration Worlds without changing thresholds",
+      "affected_units": [],
+      "rerun_scope": "120 calibration executions outside the benchmark denominator",
+      "result": "the only 5/5 calibration pair was the unchanged C1-C2 pair; formal W01-W05 rerun was not performed"
+    }
+  ]
 }
