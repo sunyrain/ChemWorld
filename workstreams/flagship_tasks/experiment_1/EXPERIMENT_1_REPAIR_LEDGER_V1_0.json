@@ -18,7 +18,7 @@
     {"block":"FL-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"system-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"C-E","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"C-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"qualified-development","qualified_worlds":5,"composite_registry_sha256":"2f7377733d6e53f2203aa4d9f5b1c6e0ba4632ae2ca0f57cc81816776b4a5371"},
-    {"block":"C-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
+    {"block":"C-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"calibration only; formal W01-W05 not authorized","current_status":"failed-development","decision":"candidate rejected because only 1/3 calibration Worlds changed the preregistered task decision","evidence_sha256":"13e07aac027b7a1a2135bde286694b949ae97930d28dd0795377d88adec2b401"},
     {"block":"P-E","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"P-P","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
     {"block":"P-S","baseline_version":"v1.0.1-readiness","baseline_status":"readiness-blocked","category":"first-build","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
@@ -59,6 +59,17 @@
       "affected_units": [],
       "rerun_scope": "120 calibration executions outside the benchmark denominator",
       "result": "the only 5/5 calibration pair was the unchanged C1-C2 pair; formal W01-W05 rerun was not performed"
+    },
+    {
+      "phase": "Phase 2",
+      "block": "C-S",
+      "version": "v1.1.0-authoring",
+      "failure_diagnosis": "the executable population-regime fork was observable but did not robustly alter the preregistered yield-optimal task decision",
+      "changed_object": "crystallization private population regime on non-benchmark calibration Worlds",
+      "scientific_reason": "compare seed-growth and primary-nucleation-dominated regimes without weakening public effect, interaction, or decision gates",
+      "affected_units": [],
+      "rerun_scope": "48 calibration executions outside the benchmark denominator after a documented transport restart",
+      "result": "1/3 calibration Worlds passed all gates; candidate rejected and formal W01-W05 rerun was not performed"
     }
   ]
 }
