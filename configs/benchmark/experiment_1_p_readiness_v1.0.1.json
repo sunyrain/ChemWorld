@@ -1,0 +1,69 @@
+{
+  "schema_version": "chemworld-experiment-1-readiness-audit-contract-1.0.1",
+  "contract_id": "experiment-1-p-readiness-audit-v1.0.1",
+  "status": "development_frozen_before_execution",
+  "development_only": true,
+  "participant_provider_calls": 0,
+  "participant_execution_authorized": false,
+  "formal_benchmark_execution_authorized": false,
+  "system_id": "P",
+  "task_id": "reaction-to-purification",
+  "specification": {
+    "path": "workstreams/flagship_tasks/EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md",
+    "sha256": "9da61438d3f3a1b6dae37d190d2c166a1c0c802504907cee61e91167484f890c"
+  },
+  "system_specification": {
+    "path": "workstreams/flagship_tasks/experiment_1/systems/P/QUALIFICATION_READINESS_SPEC_V1_0_1.md",
+    "sha256": "ac5960c0c3ca132dcc8229b340ee0e931798e4d3b18ffcd338733d9bc415eae9"
+  },
+  "smoke_runner": {
+    "path": "scripts/audit_environment_consistency.py",
+    "sha256": "40c6f15defa8c2dce12e1f2adbc5552e056e67576e51ecd8661ad1a0354b59ee",
+    "max_steps": 24
+  },
+  "readiness_runner": {
+    "path": "scripts/run_experiment_1_readiness_audit.py",
+    "sha256": "ce8cdbbc0b1a9ee714edfe0e1ffbba31c2af960607c31ae7bcebfdb36b6861fb"
+  },
+  "worlds": [
+    {"world_id": "P-W01", "world_seed": 0},
+    {"world_id": "P-W02", "world_seed": 1},
+    {"world_id": "P-W03", "world_seed": 2},
+    {"world_id": "P-W04", "world_seed": 3},
+    {"world_id": "P-W05", "world_seed": 4}
+  ],
+  "common_gates": [
+    "Q1_world_integrity",
+    "Q2_task_accessibility",
+    "Q3_public_contract_invariance",
+    "Q4_prior_symmetry",
+    "Q5_identifiability",
+    "Q6_budgeted_falsifiability",
+    "Q7_behavioral_relevance",
+    "Q8_noise_robustness"
+  ],
+  "loci": {
+    "entity": {
+      "target": "purification_extractant_dossier_mapping",
+      "readiness": "B",
+      "frozen_blockers": ["five_world_truth_absent", "task_specific_extractant_dossier_absent", "misindex_generator_absent"]
+    },
+    "parametric": {
+      "target": "reference_product_impurity_separation_factor_s_star",
+      "readiness": "B",
+      "frozen_blockers": ["five_world_truth_absent", "s_star_truth_oracle_absent", "matched_band_generator_absent"]
+    },
+    "structural": {
+      "target": "constant_k_vs_composition_coupled_distribution",
+      "readiness": "C",
+      "frozen_blockers": ["five_world_truth_absent", "constant_k_private_family_absent", "matched_family_fork_absent"]
+    }
+  },
+  "execution": {
+    "smoke_runs_per_world": 1,
+    "provider_calls": 0,
+    "qualification_denominator_authorized": false,
+    "fail_closed_on_missing_prerequisite": true,
+    "overwrite_forbidden": true
+  }
+}
