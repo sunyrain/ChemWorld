@@ -7,54 +7,65 @@
 ## 从这里开始
 
 1. 阅读 [`AUTHORITY.md`](AUTHORITY.md)，确认不同问题应以哪一类文件为准；
-2. 当前 development qualification 的科学执行语义见 [`EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md`](../EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)；
-3. EC 本轮问题、单位和停止规则见 [`EXPERIMENT_1_EC_QUALIFICATION_V1_0_1_NOTE.md`](../EXPERIMENT_1_EC_QUALIFICATION_V1_0_1_NOTE.md)；
-4. 精确机器输入见 [`experiment_1_ec_qualification_v1.0.1.json`](../../../configs/benchmark/experiment_1_ec_qualification_v1.0.1.json)；
-5. 已完成结果见 [`experiment-1-ec-qualification-v1.0.1-20260917.md`](../reports/experiment-1-ec-qualification-v1.0.1-20260917.md)；
-6. 科学设计背景稿见 [`guidance/README.md`](guidance/README.md)，但不得据此直接开跑；
-7. 旧 Work II 资产与当前依赖边界见 [`LEGACY_INDEX.md`](LEGACY_INDEX.md)。
+2. qualification 的共同科学执行语义见
+   [`EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md`](../EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)；
+3. 当前 105-unit 机器总账见
+   [`EXPERIMENT_1_QUALIFICATION_REGISTRY.json`](results/EXPERIMENT_1_QUALIFICATION_REGISTRY.json)；
+4. 七体系可读汇总见
+   [`EXPERIMENT_1_QUALIFICATION_CAMPAIGN_REPORT.md`](results/EXPERIMENT_1_QUALIFICATION_CAMPAIGN_REPORT.md)；
+5. Participant 候选范围与 repair 优先级见
+   [`EXPERIMENT_1_PARTICIPANT_READINESS.md`](results/EXPERIMENT_1_PARTICIPANT_READINESS.md)；
+6. 各体系冻结 note、机器合同与结果位于 `systems/<SYSTEM>/`、
+   `configs/benchmark/experiment_1_*` 和 `results/<SYSTEM>/`；
+7. 科学设计背景稿见 [`guidance/README.md`](guidance/README.md)，但不得据此直接开跑；
+8. 旧 Work II 资产与当前依赖边界见 [`LEGACY_INDEX.md`](LEGACY_INDEX.md)。
 
 ## 当前状态
 
-- `EC-W00` canary 已通过；
-- `EC-W01..W05 × entity/parametric/structural` 的 15/15 原子单元均已完成；
-- 11/15 `qualified`，4/15 `failed`；
-- `EC-P` 为 5/5 `five_world_qualified`；
-- `EC-E` 和 `EC-S` 各为 3/5，失败集中在 W01/W04；
-- 0 Participant/provider calls；
-- EC 整体、Participant development 和正式 benchmark execution 均未获授权。
+连续 campaign 已覆盖 `7 systems × 5 Worlds × 3 prior loci = 105` 个原子单元：
+
+| System | Qualified | Failed | 结果性质 |
+| --- | ---: | ---: | --- |
+| EC | 15 | 0 | 完整 qualification |
+| RX | 8 | 7 | 完整 qualification |
+| PA | 11 | 4 | 完整 qualification |
+| FL | 0 | 15 | 完整 qualification |
+| C | 7 | 8 | 完整 qualification |
+| P | 0 | 15 | fail-closed readiness audit；5/5 smoke 通过 |
+| D | 0 | 15 | fail-closed readiness audit；5/5 smoke 通过 |
+
+总计 `41 qualified / 64 failed / 0 pending / 0 N/A`。EC 是唯一 15/15
+通过的完整体系；当前 seven-system campaign 使用 0 Participant/provider calls。
+
+P/D 的 failure 表示五个 distinct private Worlds、prior generator 或目标 private-physics
+family 尚未冻结，不表示公开任务环境不可运行。其 smoke 的任务合同、轨迹校验、hash 覆盖和
+public-leakage audit 均通过。
 
 “执行完成”不等于“Gate 全部通过”。通过单元不能抵消失败单元。
 
 ## 当前执行链
 
 ```text
-minimum execution spec（科学执行语义）
+minimum execution spec（共同科学执行语义）
         ↓
-EC qualification note（本轮问题与停止规则）
+system note + machine contract（体系级冻结）
         ↓
-machine contract（路径、hash、World、预算、阈值）
+provider-free runner / evaluator / exact replay 或 fail-closed readiness audit
         ↓
-runner / evaluator / exact replay
+15-row system registry
         ↓
-machine registry + human-readable report
+105-row global registry + campaign report
 ```
 
-服务器上的 development evidence 根目录为：
-
-```text
-runs/development/experiment-1-ec-v1.0.1-941110e/
-```
-
-`runs/` 是未纳入 Git 的 development evidence；可读报告和代码保存在仓库中。不要用缺少本地 `runs/` 目录解释为服务器证据丢失。
+服务器上的 raw development evidence 保留在 `runs/development/experiment-1-*`。`runs/` 不纳入
+Git；Git 中保存冻结合同、runner/evaluator、system registry、summary 与全局 registry。不要用
+本地缺少 `runs/` 解释为服务器证据丢失。
 
 ## 当前下一道门
 
-Authority/navigation cleanup 已于 2026-09-17 获得人工接受。下一项科学工作是审阅 [`systems/EC/QUALIFICATION_REPAIR_NOTE_V1_0_2.md`](systems/EC/QUALIFICATION_REPAIR_NOTE_V1_0_2.md) 中针对以下四个失败原子单元提出的 repair design：
+当前阶段从“建立失败地图”切换到“分块 repair”。任何 repair 都必须：保留旧失败、使用新版本
+note/config/evidence namespace、在重跑前冻结，并只重跑受影响 block。不得降低 Q1–Q8 阈值或
+用 Participant 表现反向选择 World。
 
-- `EC-W01:entity`；
-- `EC-W04:entity`；
-- `EC-W01:structural`；
-- `EC-W04:structural`。
-
-该 repair note 当前仍是 candidate，不授权执行。在 repair note 和新 manifest 冻结前，不得重跑受影响 block；在 EC 三个 locus 全部 five-world qualified 前，不得启动 EC Participant。
+虽然 EC 15/15 已通过，它仍只是 Participant-ready candidate；正式 Participant 或 benchmark
+execution 需要独立 release/participant manifest，本入口不提供自动授权。

@@ -1,6 +1,6 @@
 # Experiment 1 Continuous Development Qualification Campaign Plan
 
-状态：**ACTIVE — provider-free development qualification；Participant 未授权。**
+状态：**QUALIFICATION MAP COMPLETE — repair planning；Participant 未授权。**
 
 启动日期：2026-09-17。执行顺序：`EC repair → RX → PA → FL → C → P → D`。
 
@@ -109,3 +109,18 @@ A/B/C 是初始 authoring readiness，必须由真实代码与依赖 audit 复�
 3. `EXPERIMENT_1_PARTICIPANT_READINESS.md`。
 
 本 campaign 不创建 Participant run，不生成论文结论，不自行发布 benchmark release。
+
+## 9. Completed campaign snapshot
+
+当前冻结总账覆盖全部 105 个 atomic units：`41 qualified / 64 failed / 0 pending / 0 N/A`。
+
+- EC：15/15；
+- RX：8/15；
+- PA：11/15；
+- FL：0/15；
+- C：7/15；
+- P：0/15，属于 fail-closed readiness audit，5/5 task smoke 通过；
+- D：0/15，属于 fail-closed readiness audit，5/5 task smoke 通过。
+
+后续工作进入 versioned repair campaign。旧失败与 raw evidence 保留；任何新设计必须事前冻结，
+只重跑受影响 block，并重新生成 system/global registry。
