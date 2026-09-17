@@ -9,7 +9,7 @@
     {"block":"EC-S","baseline_version":"v1.0.2","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.2","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"RX-E","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"failed-development","decision":"calibration selected the unchanged C1-C2 transposition; no formal rerun because W02 aligned-prior fidelity remains invalid","evidence_sha256":"fbfafd6f0f39ac12ab1d7182bbe39d89a2a0f778e5f9d5c1bdffd6ce82630623"},
     {"block":"RX-P","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
-    {"block":"RX-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05"},
+    {"block":"RX-S","baseline_version":"v1.0.1","baseline_status":"failed","category":"structural-redesign","target_version":"v1.1.0","iteration":1,"rerun_scope":"development W01-W05","current_status":"qualified-development","qualified_worlds":5,"composite_registry_sha256":"1462c593baf89857b3c15d796d1f32afdc7938d2ba4efad0fe9a2ed6e2112bb7","primary_summary_sha256":"a89d944db3d2e5b1087ee679efadd28a0e778c39c09ce3b9f59f1a94e286da51","replay_summary_sha256":"a89d944db3d2e5b1087ee679efadd28a0e778c39c09ce3b9f59f1a94e286da51"},
     {"block":"PA-E","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
     {"block":"PA-P","baseline_version":"v1.0.1","baseline_status":"failed","category":"local-repair","target_version":"v1.0.2","iteration":1,"rerun_scope":"development W01-W05","current_status":"qualified-development","qualified_worlds":5,"composite_registry_sha256":"f8eabe596c5d53cc00aedab7038b122d56057658a93cf6a44653a5dbc75fe759"},
     {"block":"PA-S","baseline_version":"v1.0.1","baseline_status":"qualified-development","category":"confirmation-only","target_version":"v1.0.1","iteration":0,"rerun_scope":"confirmation W01-W05"},
@@ -59,6 +59,17 @@
       "affected_units": [],
       "rerun_scope": "120 calibration executions outside the benchmark denominator",
       "result": "the only 5/5 calibration pair was the unchanged C1-C2 pair; formal W01-W05 rerun was not performed"
+    },
+    {
+      "phase": "Phase 2",
+      "block": "RX-S",
+      "version": "v1.1.0",
+      "failure_diagnosis": "the stable-catalyst versus cumulative-deactivation fork was not identifiable and did not alter a task decision within budget",
+      "changed_object": "structural private-law family and preregistered discriminator",
+      "scientific_reason": "replace the weak fork with an executable irreversible versus reversible target-pathway comparison that changes temperature/time/stopping strategy and cannot be absorbed by one scalar rate refit",
+      "affected_units": ["RX-W01:structural", "RX-W02:structural", "RX-W03:structural", "RX-W04:structural", "RX-W05:structural"],
+      "rerun_scope": "all five RX structural Worlds; 270 primary plus 270 independent replay executions",
+      "result": "5/5 qualified-development; primary and replay summary/report hashes matched exactly"
     },
     {
       "phase": "Phase 2",
