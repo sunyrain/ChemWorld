@@ -6,6 +6,8 @@ from pathlib import Path
 from chemworld.eval.experiment_1_ec_qualification import (
     EXPECTED_COMMON_GATES,
     analyze_entity_world,
+    analyze_parametric_world,
+    analyze_structural_world,
     entity_prior_audit,
     load_contract,
     private_world_audit,
@@ -87,3 +89,100 @@ def test_entity_analysis_requires_all_eight_gates() -> None:
 
 def test_contract_is_valid_json() -> None:
     assert isinstance(json.loads(CONTRACT_PATH.read_text(encoding="utf-8")), dict)
+
+
+def test_parametric_adapter_requires_replay_and_maps_all_common_gates() -> None:
+    rows = [
+        {
+            "status": "completed",
+            "exact_replay": {"verified": True},
+        }
+        for _ in range(121)
+    ]
+    analysis = {
+        "checks": {
+            "safe_fit_count": True,
+            "safe_held_out_count": True,
+            "aligned_score_normalized_mae": True,
+            "qualified_reflection_exists": True,
+        },
+        "platform_failure_count": 0,
+        "physical_failure_count": 0,
+        "prior_matching": {"passed": True},
+        "leakage_audit": {"passed": True},
+        "blind_identification": {"identified_aligned_law": True},
+        "selected_reflection": {
+            "blind_error_margin": 0.10,
+            "disagreement_fraction": 0.50,
+            "checks": {
+                "held_out_disagreement": True,
+                "blind_identification_margin": True,
+                "low_side_falsification_region": True,
+                "high_side_falsification_region": True,
+                "representatives_separated": True,
+            },
+        },
+    }
+
+    report = analyze_parametric_world(
+        _contract(),
+        world_id="EC-W01",
+        world_seed=0,
+        rows=rows,
+        analysis=analysis,
+        source_truth_sha256="truth",
+    )
+
+    assert report["status"] == "qualified"
+    assert all(report["gates"].values())
+    assert report["denominators"]["exact_replay"] == 121
+
+
+def test_structural_adapter_maps_thresholded_topology_and_noise_gates() -> None:
+    rows = [
+        {"status": "completed", "exact_replay": True}
+        for _ in range(18)
+    ]
+    analysis = {
+        "checks": {
+            "zero_platform_failures": True,
+            "main_grid_count": True,
+            "complete_main_surface": True,
+            "complete_validation_surface": True,
+            "axis_b_effect": True,
+        },
+        "model_qualification": {
+            "checks": {
+                "prior_schema_matched": True,
+                "prior_word_count_matched": True,
+                "held_out_disagreement": True,
+                "blind_identification": True,
+                "low_counterexample_region": True,
+                "high_counterexample_region": True,
+            }
+        },
+        "effects": {
+            "topology_signature": {
+                "passed": True,
+                "value": 0.10,
+                "sigma_observed": 0.01,
+            }
+        },
+        "prior_arms": {
+            "aligned_nominal": {"claim": "Current limitation is measurable."},
+            "misindexed_nominal": {"claim": "Current limitation stays approximately stable."},
+        },
+    }
+
+    report = analyze_structural_world(
+        _contract(),
+        world_id="EC-W01",
+        world_seed=0,
+        rows=rows,
+        analysis=analysis,
+        truth_sha256="truth",
+    )
+
+    assert report["status"] == "qualified"
+    assert all(report["gates"].values())
+    assert report["denominators"]["exact_replay"] == 18

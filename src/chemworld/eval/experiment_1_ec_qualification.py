@@ -22,6 +22,12 @@ from chemworld.world.parameters import load_chemworld_parameters
 
 CONTRACT_VERSION = "chemworld-experiment-1-ec-qualification-contract-1.0.1"
 REPORT_VERSION = "chemworld-experiment-1-ec-entity-world-report-1.0.1"
+PARAMETRIC_REPORT_VERSION = (
+    "chemworld-experiment-1-ec-parametric-world-report-1.0.1"
+)
+STRUCTURAL_REPORT_VERSION = (
+    "chemworld-experiment-1-ec-structural-world-report-1.0.1"
+)
 EXPECTED_WORLD_IDS = tuple(f"EC-W0{index}" for index in range(1, 6))
 EXPECTED_WORLD_SEEDS = tuple(range(5))
 EXPECTED_COMMON_GATES = (
@@ -364,6 +370,200 @@ def analyze_entity_world(
         "gates": gates,
         "failures": failures,
         "status": "qualified" if not failures else "failed",
+    }
+    report["report_sha256"] = canonical_json_sha256(report)
+    return report
+
+
+def analyze_parametric_world(
+    contract: Mapping[str, Any],
+    *,
+    world_id: str,
+    world_seed: int,
+    rows: Sequence[Mapping[str, Any]],
+    analysis: Mapping[str, Any],
+    source_truth_sha256: str,
+) -> dict[str, Any]:
+    """Map the frozen EC matched-prior surface into the v1.0.1 Q1-Q8 registry."""
+    locus = contract["loci"]["parametric"]
+    selected = analysis.get("selected_reflection")
+    reflection = selected if isinstance(selected, Mapping) else {}
+    reflection_checks = reflection.get("checks")
+    reflection_checks = reflection_checks if isinstance(reflection_checks, Mapping) else {}
+    checks = analysis.get("checks")
+    checks = checks if isinstance(checks, Mapping) else {}
+    prior_matching = analysis.get("prior_matching")
+    prior_matching = prior_matching if isinstance(prior_matching, Mapping) else {}
+    leakage = analysis.get("leakage_audit")
+    leakage = leakage if isinstance(leakage, Mapping) else {}
+    blind = analysis.get("blind_identification")
+    blind = blind if isinstance(blind, Mapping) else {}
+    replayed = sum(
+        isinstance(row.get("exact_replay"), Mapping)
+        and row["exact_replay"].get("verified") is True
+        for row in rows
+    )
+    classified = sum(
+        row.get("status") in {"completed", "physical_failure"} for row in rows
+    )
+    expected = len(locus["grid_coordinates"]) ** 2
+    gates = {
+        "Q1_world_integrity": (
+            len(rows) == expected
+            and classified == expected
+            and replayed == expected
+            and int(analysis.get("platform_failure_count", -1)) == 0
+        ),
+        "Q2_task_accessibility": bool(
+            checks.get("safe_fit_count") and checks.get("safe_held_out_count")
+        ),
+        "Q3_public_contract_invariance": bool(leakage.get("passed")),
+        "Q4_prior_symmetry": bool(prior_matching.get("passed")),
+        "Q5_identifiability": bool(
+            checks.get("aligned_score_normalized_mae")
+            and checks.get("qualified_reflection_exists")
+            and reflection_checks.get("held_out_disagreement")
+            and reflection_checks.get("blind_identification_margin")
+        ),
+        "Q6_budgeted_falsifiability": bool(
+            int(locus["participant_unique_experiment_budget"]) >= 4
+            and reflection_checks.get("low_side_falsification_region")
+            and reflection_checks.get("high_side_falsification_region")
+            and reflection_checks.get("representatives_separated")
+        ),
+        "Q7_behavioral_relevance": bool(
+            blind.get("identified_aligned_law")
+            and float(reflection.get("blind_error_margin", 0.0))
+            >= float(locus["minimum_blind_error_margin"])
+        ),
+        "Q8_noise_robustness": bool(
+            reflection_checks.get("held_out_disagreement")
+            and float(reflection.get("disagreement_fraction", 0.0))
+            >= float(locus["minimum_disagreement_fraction"])
+        ),
+    }
+    failures = [gate for gate in EXPECTED_COMMON_GATES if not gates[gate]]
+    report: dict[str, Any] = {
+        "schema_version": PARAMETRIC_REPORT_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "system_id": "EC",
+        "world_id": world_id,
+        "world_seed": world_seed,
+        "prior_locus": "parametric",
+        "source_truth_sha256": source_truth_sha256,
+        "denominators": {
+            "planned": expected,
+            "attempted": len(rows),
+            "classified": classified,
+            "exact_replay": replayed,
+            "platform_failures": int(analysis.get("platform_failure_count", 0)),
+            "physical_failures": int(analysis.get("physical_failure_count", 0)),
+        },
+        "gates": gates,
+        "failures": failures,
+        "status": "qualified" if not failures else "failed",
+        "legacy_analysis": dict(analysis),
+    }
+    report["report_sha256"] = canonical_json_sha256(report)
+    return report
+
+
+def analyze_structural_world(
+    contract: Mapping[str, Any],
+    *,
+    world_id: str,
+    world_seed: int,
+    rows: Sequence[Mapping[str, Any]],
+    analysis: Mapping[str, Any],
+    truth_sha256: str,
+) -> dict[str, Any]:
+    """Map the frozen EC transport candidate into the v1.0.1 Q1-Q8 registry."""
+    locus = contract["loci"]["structural"]
+    checks = analysis.get("checks")
+    checks = checks if isinstance(checks, Mapping) else {}
+    model = analysis.get("model_qualification")
+    model = model if isinstance(model, Mapping) else {}
+    model_checks = model.get("checks")
+    model_checks = model_checks if isinstance(model_checks, Mapping) else {}
+    effects = analysis.get("effects")
+    effects = effects if isinstance(effects, Mapping) else {}
+    topology = effects.get("topology_signature")
+    topology = topology if isinstance(topology, Mapping) else {}
+    priors = analysis.get("prior_arms")
+    priors = priors if isinstance(priors, Mapping) else {}
+    aligned = priors.get("aligned_nominal")
+    misspecified = priors.get("misindexed_nominal")
+    prior_text = " ".join(
+        (*_public_text(aligned), *_public_text(misspecified))
+    ).lower()
+    leakage = [token for token in FORBIDDEN_PUBLIC_TOKENS if token in prior_text]
+    expected = int(locus["grid_levels"]) ** 2 + 3 * int(locus["validation_replicates"])
+    replayed = sum(row.get("exact_replay") is True for row in rows)
+    classified = sum(
+        row.get("status") in {"completed", "physical_failure"} for row in rows
+    )
+    gates = {
+        "Q1_world_integrity": bool(
+            len(rows) == expected
+            and classified == expected
+            and replayed == expected
+            and checks.get("zero_platform_failures")
+        ),
+        "Q2_task_accessibility": bool(
+            checks.get("main_grid_count") and checks.get("complete_main_surface")
+        ),
+        "Q3_public_contract_invariance": not leakage,
+        "Q4_prior_symmetry": bool(
+            model_checks.get("prior_schema_matched")
+            and model_checks.get("prior_word_count_matched")
+        ),
+        "Q5_identifiability": bool(
+            model_checks.get("held_out_disagreement")
+            and model_checks.get("blind_identification")
+        ),
+        "Q6_budgeted_falsifiability": bool(
+            int(locus["participant_unique_experiment_budget"]) >= 4
+            and model_checks.get("low_counterexample_region")
+            and model_checks.get("high_counterexample_region")
+        ),
+        "Q7_behavioral_relevance": bool(
+            checks.get("axis_b_effect") and topology.get("passed")
+        ),
+        "Q8_noise_robustness": bool(
+            checks.get("complete_validation_surface")
+            and topology.get("passed")
+            and float(topology.get("value", 0.0))
+            >= max(
+                float(locus["effect_floor"]),
+                float(locus["noise_multiplier"])
+                * float(topology.get("sigma_observed", math.inf)),
+            )
+        ),
+    }
+    failures = [gate for gate in EXPECTED_COMMON_GATES if not gates[gate]]
+    report: dict[str, Any] = {
+        "schema_version": STRUCTURAL_REPORT_VERSION,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "system_id": "EC",
+        "world_id": world_id,
+        "world_seed": world_seed,
+        "prior_locus": "structural",
+        "truth_sha256": truth_sha256,
+        "prior_leakage_tokens": leakage,
+        "denominators": {
+            "planned": expected,
+            "attempted": len(rows),
+            "classified": classified,
+            "exact_replay": replayed,
+            "platform_failures": sum(row.get("status") == "platform_failure" for row in rows),
+            "physical_failures": sum(row.get("status") == "physical_failure" for row in rows),
+        },
+        "gates": gates,
+        "failures": failures,
+        "status": "qualified" if not failures else "failed",
+        "legacy_analysis": dict(analysis),
     }
     report["report_sha256"] = canonical_json_sha256(report)
     return report

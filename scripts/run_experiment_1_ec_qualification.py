@@ -6,12 +6,15 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+from collections.abc import Mapping
 from pathlib import Path
 from time import perf_counter
 from typing import Any
 
 from chemworld.eval.experiment_1_ec_qualification import (
     analyze_entity_world,
+    analyze_parametric_world,
+    analyze_structural_world,
     entity_prior_audit,
     load_contract,
     private_world_audit,
@@ -21,16 +24,62 @@ from chemworld.eval.work_ii_ae_prior_qualification_v02 import (
     build_blind_policy_schedule,
     execute_one,
 )
+from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
+    analyze_matched_prior_world,
+    rounded_reference_context,
+    select_reference_candidate,
+    surface_design,
+)
+from chemworld.eval.work_ii_execution_mode import ExecutionMode, prepare_execution_context
+from chemworld.eval.work_ii_structural_candidate_qualification import (
+    analyze_candidate_world as analyze_legacy_structural_world,
+)
+from chemworld.eval.work_ii_structural_candidate_qualification import (
+    candidate_specs as structural_candidate_specs,
+)
+from chemworld.eval.work_ii_structural_candidate_qualification import (
+    registered_queries as structural_registered_queries,
+)
+
+try:
+    from scripts.run_work_ii_electrochemical_matched_prior_qualification import (
+        SOURCE_SUMMARY as PARAMETRIC_SOURCE_SUMMARY,
+    )
+    from scripts.run_work_ii_electrochemical_matched_prior_qualification import (
+        _source_reports as parametric_source_reports,
+    )
+    from scripts.run_work_ii_mechanism_oracle_qualification import (
+        InMemoryMechanismEvaluator,
+    )
+    from scripts.run_work_ii_q1_response_surface import TASK_SPECS
+    from scripts.run_work_ii_structural_candidate_qualification import (
+        _execute_query as execute_structural_query,
+    )
+except ModuleNotFoundError:
+    from run_work_ii_electrochemical_matched_prior_qualification import (
+        SOURCE_SUMMARY as PARAMETRIC_SOURCE_SUMMARY,
+    )
+    from run_work_ii_electrochemical_matched_prior_qualification import (
+        _source_reports as parametric_source_reports,
+    )
+    from run_work_ii_mechanism_oracle_qualification import InMemoryMechanismEvaluator
+    from run_work_ii_q1_response_surface import TASK_SPECS
+    from run_work_ii_structural_candidate_qualification import (
+        _execute_query as execute_structural_query,
+    )
 
 ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONTRACT = ROOT / "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json"
 CANARY_SUMMARY_VERSION = "chemworld-experiment-1-ec-canary-summary-1.0.1"
 ENTITY_SUMMARY_VERSION = "chemworld-experiment-1-ec-entity-summary-1.0.1"
+PARAMETRIC_SUMMARY_VERSION = "chemworld-experiment-1-ec-parametric-summary-1.0.1"
+STRUCTURAL_SUMMARY_VERSION = "chemworld-experiment-1-ec-structural-summary-1.0.1"
 
 
 class Progress:
-    def __init__(self, total: int) -> None:
+    def __init__(self, total: int, *, event: str = "experiment_1_ec_entity_progress") -> None:
         self.total = total
+        self.event = event
         self.completed = 0
         self.started = perf_counter()
         self.last_emit = self.started
@@ -45,7 +94,7 @@ class Progress:
         print(
             json.dumps(
                 {
-                    "event": "experiment_1_ec_entity_progress",
+                    "event": self.event,
                     "world_id": world_id,
                     "last_execution_status": status,
                     "completed": self.completed,
@@ -284,19 +333,256 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
     return summary
 
 
+def _replay_projection(row: Mapping[str, Any]) -> dict[str, Any]:
+    return {key: value for key, value in row.items() if key != "elapsed_s"}
+
+
+def _five_world_summary(
+    *,
+    schema_version: str,
+    contract: Mapping[str, Any],
+    locus: str,
+    reports: list[Mapping[str, Any]],
+    planned_executions: int,
+) -> dict[str, Any]:
+    summary: dict[str, Any] = {
+        "schema_version": schema_version,
+        "formal_result": False,
+        "provider_call_count": 0,
+        "contract_sha256": canonical_json_sha256(contract),
+        "prior_locus": locus,
+        "denominators": {
+            "worlds": 5,
+            "planned_executions": planned_executions,
+            "attempted_executions": sum(
+                int(report["denominators"]["attempted"]) for report in reports
+            ),
+            "classified_executions": sum(
+                int(
+                    report["denominators"].get(
+                        "classified", report["denominators"].get("completed", 0)
+                    )
+                )
+                for report in reports
+            ),
+            "exact_replays": sum(
+                int(report["denominators"]["exact_replay"]) for report in reports
+            ),
+            "platform_failures": sum(
+                int(report["denominators"].get("platform_failures", 0))
+                for report in reports
+            ),
+            "physical_failures": sum(
+                int(report["denominators"].get("physical_failures", 0))
+                for report in reports
+            ),
+        },
+        "worlds": [
+            {
+                "world_id": report["world_id"],
+                "world_seed": report["world_seed"],
+                "status": report["status"],
+                "failures": report["failures"],
+                "report_sha256": report["report_sha256"],
+            }
+            for report in reports
+        ],
+        "five_world_qualified": all(report["status"] == "qualified" for report in reports),
+    }
+    summary["summary_sha256"] = canonical_json_sha256(summary)
+    return summary
+
+
+def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
+    if output.exists():
+        raise FileExistsError(f"refusing to overwrite {output}")
+    output.mkdir(parents=True)
+    source_summary = _load(PARAMETRIC_SOURCE_SUMMARY)
+    execution_context = prepare_execution_context(ROOT, mode=ExecutionMode.DEVELOPMENT)
+    sources, _ = parametric_source_reports(
+        source_summary,
+        execution_context=execution_context,
+    )
+    spec = TASK_SPECS[contract["task"]["task_id"]]
+    config = _load(ROOT / str(spec["config"]))
+    reports: list[dict[str, Any]] = []
+    progress = Progress(5 * 121, event="experiment_1_ec_parametric_progress")
+    for world, source in zip(contract["worlds"]["qualification"], sources, strict=True):
+        world_root = output / world["world_id"]
+        world_root.mkdir()
+        selected = select_reference_candidate(source)
+        reference_context = rounded_reference_context(selected["vector"])
+        design = surface_design(reference_context)
+        primary = InMemoryMechanismEvaluator(
+            task_id=contract["task"]["task_id"],
+            config=config,
+            spec=spec,
+            world_seed=int(world["world_seed"]),
+        )
+        replay = InMemoryMechanismEvaluator(
+            task_id=contract["task"]["task_id"],
+            config=config,
+            spec=spec,
+            world_seed=int(world["world_seed"]),
+        )
+        rows = []
+        try:
+            for design_row in design:
+                extra = {key: value for key, value in design_row.items() if key != "vector"}
+                observed = primary.evaluate(
+                    design_row["vector"],
+                    phase="experiment_1_ec_parametric_surface",
+                    extra=extra,
+                )
+                repeated = replay.evaluate(
+                    design_row["vector"],
+                    phase="experiment_1_ec_parametric_surface",
+                    extra=extra,
+                )
+                observed_hash = canonical_json_sha256(_replay_projection(observed))
+                repeated_hash = canonical_json_sha256(_replay_projection(repeated))
+                observed["exact_replay"] = {
+                    "verified": observed_hash == repeated_hash,
+                    "primary_sha256": observed_hash,
+                    "replay_sha256": repeated_hash,
+                }
+                rows.append(observed)
+                progress.update(world_id=world["world_id"], status=str(observed["status"]))
+        finally:
+            primary.close()
+            replay.close()
+        write_json_atomic(world_root / "surface-rows.json", rows)
+        sigma = float(source["analysis"]["validation_noise"]["sigma"] or 0.0)
+        legacy = analyze_matched_prior_world(
+            rows,
+            validation_sigma=sigma,
+            reference_context=reference_context,
+            world_token=f"{contract['task']['task_id']}:{world['world_seed']}",
+        )
+        private = private_world_audit(contract, world_seed=int(world["world_seed"]))
+        report = analyze_parametric_world(
+            contract,
+            world_id=str(world["world_id"]),
+            world_seed=int(world["world_seed"]),
+            rows=rows,
+            analysis=legacy,
+            source_truth_sha256=str(private["truth_sha256"]),
+        )
+        write_json_atomic(world_root / "world-report.json", report)
+        reports.append(report)
+        print(
+            json.dumps(
+                {
+                    "event": "parametric_world_complete",
+                    "world_id": world["world_id"],
+                    "completed_worlds": len(reports),
+                    "total_worlds": 5,
+                    "status": report["status"],
+                    "failures": report["failures"],
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+    summary = _five_world_summary(
+        schema_version=PARAMETRIC_SUMMARY_VERSION,
+        contract=contract,
+        locus="parametric",
+        reports=reports,
+        planned_executions=5 * 121,
+    )
+    summary["source_summary"] = {
+        "path": PARAMETRIC_SOURCE_SUMMARY.relative_to(ROOT).as_posix(),
+        "sha256": file_sha256(PARAMETRIC_SOURCE_SUMMARY),
+    }
+    summary["summary_sha256"] = canonical_json_sha256(
+        {key: value for key, value in summary.items() if key != "summary_sha256"}
+    )
+    write_json_atomic(output / "summary.json", summary)
+    return summary
+
+
+def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
+    if output.exists():
+        raise FileExistsError(f"refusing to overwrite {output}")
+    output.mkdir(parents=True)
+    candidate_id = str(contract["loci"]["structural"]["candidate_id"])
+    candidate = structural_candidate_specs()[candidate_id]
+    config = _load(ROOT / str(candidate["config"]))
+    design = structural_registered_queries(candidate_id)
+    reports: list[dict[str, Any]] = []
+    progress = Progress(5 * len(design), event="experiment_1_ec_structural_progress")
+    for world in contract["worlds"]["qualification"]:
+        world_root = output / world["world_id"]
+        world_root.mkdir()
+        rows = []
+        for query in design:
+            row = execute_structural_query(
+                candidate_id=candidate_id,
+                config=config,
+                world_seed=int(world["world_seed"]),
+                query_spec=query,
+                output_root=world_root,
+            )
+            rows.append(row)
+            progress.update(world_id=world["world_id"], status=str(row["status"]))
+        write_json_atomic(world_root / "rows.json", rows)
+        legacy = analyze_legacy_structural_world(candidate_id, rows)
+        private = private_world_audit(contract, world_seed=int(world["world_seed"]))
+        report = analyze_structural_world(
+            contract,
+            world_id=str(world["world_id"]),
+            world_seed=int(world["world_seed"]),
+            rows=rows,
+            analysis=legacy,
+            truth_sha256=str(private["truth_sha256"]),
+        )
+        write_json_atomic(world_root / "world-report.json", report)
+        reports.append(report)
+        print(
+            json.dumps(
+                {
+                    "event": "structural_world_complete",
+                    "world_id": world["world_id"],
+                    "completed_worlds": len(reports),
+                    "total_worlds": 5,
+                    "status": report["status"],
+                    "failures": report["failures"],
+                },
+                sort_keys=True,
+            ),
+            flush=True,
+        )
+    summary = _five_world_summary(
+        schema_version=STRUCTURAL_SUMMARY_VERSION,
+        contract=contract,
+        locus="structural",
+        reports=reports,
+        planned_executions=5 * len(design),
+    )
+    write_json_atomic(output / "summary.json", summary)
+    return summary
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--contract", type=Path, default=DEFAULT_CONTRACT)
-    parser.add_argument("--phase", choices=("canary", "entity"), required=True)
+    parser.add_argument(
+        "--phase",
+        choices=("canary", "entity", "parametric", "structural"),
+        required=True,
+    )
     parser.add_argument("--output", type=Path, required=True)
     args = parser.parse_args()
     contract_path = args.contract.resolve()
     contract = load_contract(ROOT, contract_path)
-    summary = (
-        run_canary(contract, args.output.resolve())
-        if args.phase == "canary"
-        else run_entity(contract, args.output.resolve())
-    )
+    runners = {
+        "canary": run_canary,
+        "entity": run_entity,
+        "parametric": run_parametric,
+        "structural": run_structural,
+    }
+    summary = runners[args.phase](contract, args.output.resolve())
     print(
         json.dumps(
             {
