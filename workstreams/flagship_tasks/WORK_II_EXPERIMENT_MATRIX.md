@@ -1,10 +1,15 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
-更新：2026-09-16，W2-118。**当前设计，development模式；新正式样本量、数值预算和科学阈值尚未冻结。**
+更新：2026-09-17，W2-119。**当前设计，development模式；新正式Participant样本量尚未冻结。**
 
 本文件是Paper 2实验设计的唯一入口。[TODO](WORK_II_TODOLIST.md)管理执行，
 [结果索引](WORK_II_PAPER_RESULTS_ZH.md)保存既有结果，[current](../../configs/current.json)解析既有机器证据，
 [作者故事](../../paper/prior_discovery_story_zh.md)组织读者论证。W2-118修复五体系定制资料/观测接口并完成独立验证：当前主响应5/5、局部资料反证5/5、任务筛查4/5；FL窗口未建立，完整自主链尚未验证。历史失败与当前版本分母分开保留，零模型调用，无论文导出；判定见第9.4节。
+
+Experiment 1的七体系/35 Worlds/21格资格化与执行语义以
+[最小执行规范v1.0.1](EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)为唯一入口；本矩阵保留更广的Work II论文问题、九张任务卡、后测与知识价值设计，
+不单独授权Experiment 1运行。两者冲突时，Experiment 1的World、locus、Arm、gate、预算和状态词以v1.0.1为准；
+本轮只启动EC development qualification，不调用Participant。
 
 ## 0. 当前研究问题与总矩阵
 
