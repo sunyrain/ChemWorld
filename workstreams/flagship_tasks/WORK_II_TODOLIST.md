@@ -1,7 +1,7 @@
 # Work II TODO — 先验、实验修正与知识的决策价值
 
 最后更新：2026-09-17。执行者：Codex /root；`codex/experiment1-v1.0.1-ec-qualification`分支，单executor。
-当前任务为W2-119：冻结Experiment 1最小执行规范并运行EC-W00/W01—W05三层provider-free资格化；历史科学实验保持终态，尚未授权Participant或正式benchmark运行。
+W2-119 development qualification已完成：W00通过，15/15原子单元、815/815执行与exact replay完成；EC-P 5/5通过，EC-E/EC-S各3/5，故尚未授权Participant或正式benchmark运行。
 当前完整设计由W2-115统一，W2-116补齐数量/gate/ETA：固定先验三臂，九张体系定制任务卡，同源自由报告、盲测与分析，不默认双任务。每卡一实例的核心为27来源、162＋v模型工作块；建议有限扩展234＋v，具体口径只见矩阵8.4/9.4/9.5节。下述设计演进不覆盖当前边界。
 
 ## 1. 当前任务与唯一入口
@@ -77,11 +77,12 @@ W2-99—101、W2-103及W2-105仅有Astra开发数据；新完整任务的世界�
 
 ## 3. 当前执行清单
 
-Claim: Codex /root — W2-119 — IN PROGRESS（规范与本轮note先冻结；W00及15个EC原子单元尚未产生结果）。
+Claim: Codex /root — W2-119 — DONE (development qualification; scientific repair required)。
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
-| W2-119 | IN PROGRESS | [最小执行规范v1.0.1](EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)与[EC资格化note](EXPERIMENT_1_EC_QUALIFICATION_V1_0_1_NOTE.md)冻结七体系目标、O/A/M、Q1—Q8、W00非正式canary及EC-W01—W05共享世界候选。先通过W00，再完成15个`world × locus` provider-free单元、全失败保留和exact replay；只有5/5 Worlds通过才允许将EC-E/P/S写为five-world qualified。本块不调用Participant、不宣称全21格或正式benchmark通过。 |
+| W2-120 | TODO (scientific repair) | 只处理W2-119的四个失败原子单元：EC-W01/04实体层Q5/Q8与结构层Q5/Q6。事前冻结repair note与新manifest，不降低阈值；核对实体映射/anchors及真实可执行结构错误模型与双侧反证覆盖。共同World、合同、噪声或阈值若变化，相关整块从unit zero重跑；修复前不启动Participant。 |
+| W2-119 | DONE (development qualification) | [最小执行规范v1.0.1](EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md)、[EC资格化note](EXPERIMENT_1_EC_QUALIFICATION_V1_0_1_NOTE.md)与[结果](reports/experiment-1-ec-qualification-v1.0.1-20260917.md)：W00通过；15/15原子单元、815/815计划执行和exact replay完成，零platform/physical/provider failures。EC-P 5/5 five-world-qualified；EC-E与EC-S各3/5，W01/W04共四单元科学失败保留。11/15通过不抵消失败，Participant与正式benchmark仍未授权。 |
 | W2-118 | DONE (development repair) | [修复汇总](reports/work-ii-gate-repair-summary-20260916.md)：新增五卡research_brief/操作状态与日志重放支持，改进早期/浓度/两相/连续流参考覆盖，保持自由机理形式。首块18/23条件完成，PA评估属性错误修复后独立5/5条件、14/14批通过；累计23/28条件、75/89终检、474动作，2接入失败/3上游缺失及零动作导入错误保留。当前15/15三臂入口、5/5主响应及局部档案反证、3/3世界响应、4/5任务筛查；FL可行点0/9。23完整轨迹资源/精确重放通过，零provider/块内重试，39项聚焦测试通过；正式机理先验、完整辨识、K1/Q/K2和评审未就绪，不作为Agent能力结果 |
 | W2-117 | DONE (development screen) | [五体系gate](reports/work-ii-new-system-gates-20260916.md)：15/15旧资料入口尝试，7可构造/8错误，仅PA三臂齐全；8/8多批参考campaign、30/30终检、246动作，资源/精确重放均8/8，123.78秒。事前公开响应筛查0/5、成对世界1/3（EQ）；RX另有时间效应，PA默认/旧S0观测合同不同，FL无示例可行点。保留全部失败，无provider/重试/正式证据。独立核对246动作、30终检、82付费测量、8重放和108链接，Ruff/diff通过；current、矩阵和索引已同步。下一块需逐卡改进选点/观测与先验接入，不能归责Agent或宣称新九卡完整资格通过 |
 | W2-116 | DONE | 矩阵8.4/9.4/9.5节明确核心27来源/162＋v模型块/15来源后物理位，有限扩展234＋v/60物理位；资格/校准、其他支持与实际批次另计。current绑定旧耗时只读复算，串行就绪ETA约14—40/18—60小时，工程/资格另留2—5工作日。六类gate只汇总既有边界，不增加运行阻断/证书。4文档UTF-8、51表格、102本地链接/锚点、历史表/计数/ETA算术及diff核对通过；无新模型、物理实验或稿件导出 |
