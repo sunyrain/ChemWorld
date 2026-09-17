@@ -48,13 +48,13 @@ runs/development/experiment-1-ec-v1.0.1-941110e/
 
 `runs/` 是未纳入 Git 的 development evidence；可读报告和代码保存在仓库中。不要用缺少本地 `runs/` 目录解释为服务器证据丢失。
 
-## 下一道人工门
+## 当前下一道门
 
-当前只允许人工审阅本轮 authority/navigation cleanup。审阅通过后，下一项科学工作是为以下四个失败原子单元事前编写 repair note：
+Authority/navigation cleanup 已于 2026-09-17 获得人工接受。下一项科学工作是审阅 [`systems/EC/QUALIFICATION_REPAIR_NOTE_V1_0_2.md`](systems/EC/QUALIFICATION_REPAIR_NOTE_V1_0_2.md) 中针对以下四个失败原子单元提出的 repair design：
 
 - `EC-W01:entity`；
 - `EC-W04:entity`；
 - `EC-W01:structural`；
 - `EC-W04:structural`。
 
-在 repair note 和新 manifest 冻结前，不得重跑受影响 block；在 EC 三个 locus 全部 five-world qualified 前，不得启动 EC Participant。
+该 repair note 当前仍是 candidate，不授权执行。在 repair note 和新 manifest 冻结前，不得重跑受影响 block；在 EC 三个 locus 全部 five-world qualified 前，不得启动 EC Participant。

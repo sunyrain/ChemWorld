@@ -108,13 +108,22 @@ workstreams/flagship_tasks/experiment_1/
 - final registry/summary 文件 hash 与清理前一致；
 - 没有执行 qualification runner，没有调用 provider，没有产生或覆盖科学 evidence。
 
-## H. Remaining Debt / Stop Point
+## H. Human Review Decision
 
-1. 人工审阅本报告和 authority map；
-2. 审阅通过后，为 `EC-W01/W04 × entity/structural` 编写独立 repair note；
-3. 冻结新 repair manifest 后，仅重跑受影响 block；
-4. EC 全部通过前，不启动 Participant；
-5. EC 全部通过后，再决定是否进行全面 legacy migration；
-6. RX、PA、FL、P、C、D 的 system-specific normative specs、private truth 和机器合同仍需未来独立冻结。
+2026-09-17，项目负责人明确接受：
 
-本任务在人工审阅门停止，不自动进入 repair。
+1. 使用“单一导航入口 + 分层权威”，不强行合成单一规范文件；
+2. v1.0.1 冻结文件继续保留原路径；
+3. 全面 legacy migration 延后到 EC 全部通过之后。
+
+本 cleanup 因此通过人工审阅。该决定只关闭仓库导航清理门，不授权科学 repair 或任何新执行。
+
+## I. Remaining Debt / Stop Point
+
+1. 为 `EC-W01/W04 × entity/structural` 审阅并冻结独立 repair note；
+2. 冻结新 repair manifest 后，仅重跑受影响 block；
+3. EC 全部通过前，不启动 Participant；
+4. EC 全部通过后，再决定是否进行全面 legacy migration；
+5. RX、PA、FL、P、C、D 的 system-specific normative specs、private truth 和机器合同仍需未来独立冻结。
+
+本 cleanup 已在人工审阅门关闭；后续 repair 是独立科学任务。
