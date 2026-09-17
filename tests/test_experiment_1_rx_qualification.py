@@ -12,6 +12,7 @@ from chemworld.eval.experiment_1_rx_qualification import (
 
 ROOT = Path(__file__).resolve().parents[1]
 CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_rx_qualification_v1.0.1.json"
+REPAIR_CONTRACT_PATH = ROOT / "configs/benchmark/experiment_1_rx_structural_repair_v1.1.0.json"
 
 
 def _contract() -> dict:
@@ -50,3 +51,15 @@ def test_rx_entity_and_structural_priors_are_symmetric_and_distinct() -> None:
     assert entity["aligned_sha256"] != entity["misspecified_sha256"]
     assert set(structural["aligned"]) == set(structural["misspecified"])
     assert structural["aligned"]["claim"] != structural["misspecified"]["claim"]
+
+
+def test_rx_v110_freezes_selected_reversible_topology() -> None:
+    contract = load_contract(ROOT, REPAIR_CONTRACT_PATH)
+    structural = contract["loci"]["structural"]
+    priors = structural_prior_arms(contract)
+
+    assert structural["child_law_id"] == "reversible_target_pathway"
+    assert structural["topology_transform_id"] == "reversible_target_pathway_stress_v1"
+    assert structural["topology_severity"] == 0.8
+    assert set(priors["aligned"]) == set(priors["misspecified"])
+    assert priors["aligned"]["claim"] != priors["misspecified"]["claim"]

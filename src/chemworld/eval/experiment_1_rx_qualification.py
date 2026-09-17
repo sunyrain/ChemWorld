@@ -1,4 +1,4 @@
-"""Frozen helpers for Experiment 1 RX qualification v1.0.1."""
+"""Frozen helpers for Experiment 1 RX qualification v1.0.1 and repairs."""
 
 from __future__ import annotations
 
@@ -19,9 +19,12 @@ from chemworld.world.parameters import REACTION_NOMINAL_CATALYST_ACTIVITY_PROFIL
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 CONTRACT_VERSION = "chemworld-experiment-1-rx-qualification-contract-1.0.1"
+CONTRACT_VERSION_V110 = "chemworld-experiment-1-rx-qualification-contract-1.1.0"
+CONTRACT_VERSIONS = (CONTRACT_VERSION, CONTRACT_VERSION_V110)
 ENTITY_REPORT_VERSION = "chemworld-experiment-1-rx-entity-world-report-1.0.1"
 PARAMETRIC_REPORT_VERSION = "chemworld-experiment-1-rx-parametric-world-report-1.0.1"
 STRUCTURAL_REPORT_VERSION = "chemworld-experiment-1-rx-structural-world-report-1.0.1"
+STRUCTURAL_REPORT_VERSION_V110 = "chemworld-experiment-1-rx-structural-world-report-1.1.0"
 EXPECTED_WORLD_IDS = tuple(f"RX-W0{index}" for index in range(1, 6))
 EXPECTED_WORLD_SEEDS = tuple(range(5))
 EXPECTED_ENTITY_PERMUTATION = (0, 2, 1, 3)
@@ -52,7 +55,8 @@ def load_contract(root: Path, path: Path) -> dict[str, Any]:
 
 def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
-    if contract.get("schema_version") != CONTRACT_VERSION:
+    version = contract.get("schema_version")
+    if version not in CONTRACT_VERSIONS:
         errors.append("contract schema version changed")
     if contract.get("status") != "development_frozen_before_execution":
         errors.append("contract is not frozen before execution")
@@ -128,16 +132,28 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         ):
             errors.append("parametric frozen design changed")
         structural = loci.get("structural")
+        expected_child = (
+            "reversible_target_pathway" if version == CONTRACT_VERSION_V110 else "stable_catalyst"
+        )
         if not isinstance(structural, Mapping):
             errors.append("structural locus is missing")
         elif (
             structural.get("parent_law_id") != "deactivating_baseline"
-            or structural.get("child_law_id") != "stable_catalyst"
+            or structural.get("child_law_id") != expected_child
             or structural.get("grid_cells") != 27
             or structural.get("law_count") != 2
             or structural.get("participant_unique_experiment_budget") != 4
         ):
             errors.append("structural frozen design changed")
+        elif version == CONTRACT_VERSION_V110 and (
+            structural.get("topology_transform_id") != "reversible_target_pathway_stress_v1"
+            or structural.get("topology_severity") != 0.8
+            or structural.get("reverse_rate_constant_s_inv_at_full_severity") != 0.000625
+            or structural.get("observation_noise_namespace") != "experiment-1-v1.1.0-rx-structural"
+            or structural.get("calibration_summary_sha256")
+            != "b404f7416218f3a20b592c2e16eb411a346fc96de18d706d0b14222a8689bf63"
+        ):
+            errors.append("RX-S v1.1.0 repair binding changed")
     execution = contract.get("execution")
     if not isinstance(execution, Mapping):
         errors.append("execution policy is missing")
@@ -451,19 +467,36 @@ def analyze_parametric_world(
     )
 
 
-def structural_prior_arms() -> dict[str, Any]:
+def structural_prior_arms(contract: Mapping[str, Any] | None = None) -> dict[str, Any]:
+    reversible = bool(
+        contract is not None and contract.get("schema_version") == CONTRACT_VERSION_V110
+    )
+    schema_version = (
+        "chemworld-rx-structural-prior-1.1.0"
+        if reversible
+        else "chemworld-rx-structural-prior-1.0.1"
+    )
     return {
         "opaque": None,
         "aligned": {
-            "schema_version": "chemworld-rx-structural-prior-1.0.1",
-            "confidence": "moderate",
-            "claim": "Catalyst activity may decline cumulatively with temperature and duration.",
-        },
-        "misspecified": {
-            "schema_version": "chemworld-rx-structural-prior-1.0.1",
+            "schema_version": schema_version,
             "confidence": "moderate",
             "claim": (
-                "Catalyst activity may remain stable cumulatively with temperature and duration."
+                "The target pathway may be effectively irreversible on the public support."
+                if reversible
+                else "Catalyst activity may decline cumulatively with temperature and duration."
+            ),
+        },
+        "misspecified": {
+            "schema_version": schema_version,
+            "confidence": "moderate",
+            "claim": (
+                "The target pathway may have an appreciable reverse channel on the public support."
+                if reversible
+                else (
+                    "Catalyst activity may remain stable cumulatively with temperature "
+                    "and duration."
+                )
             ),
         },
     }
@@ -480,7 +513,8 @@ def analyze_structural_world(
     locus = contract["loci"]["structural"]
     checks = _mapping(analysis.get("checks"))
     mechanism = _mapping(analysis.get("mechanism_audit"))
-    priors = structural_prior_arms()
+    reversible = contract.get("schema_version") == CONTRACT_VERSION_V110
+    priors = structural_prior_arms(contract)
     aligned = _mapping(priors["aligned"])
     misspecified = _mapping(priors["misspecified"])
     leakage_text = " ".join((*_public_text(aligned), *_public_text(misspecified))).lower()
@@ -518,7 +552,14 @@ def analyze_structural_world(
             and checks.get("support_spans_two_catalyst_doses")
         ),
         "Q7_behavioral_relevance": bool(
-            checks.get("mechanism_removes_one_deactivation_reaction")
+            (
+                checks.get("mechanism_adds_one_reverse_reaction")
+                and checks.get("opposite_stoichiometric_channel")
+                and checks.get("execution_mechanism_binding_matches")
+                and checks.get("stopping_decision_changed")
+                if reversible
+                else checks.get("mechanism_removes_one_deactivation_reaction")
+            )
             and checks.get("mechanism_hash_changes")
             and checks.get("at_least_two_direct_metrics_resolve_topology")
         ),
@@ -527,7 +568,9 @@ def analyze_structural_world(
         ),
     }
     return _world_report(
-        schema_version=STRUCTURAL_REPORT_VERSION,
+        schema_version=(
+            STRUCTURAL_REPORT_VERSION_V110 if reversible else STRUCTURAL_REPORT_VERSION
+        ),
         world_id=world_id,
         world_seed=world_seed,
         locus="structural",

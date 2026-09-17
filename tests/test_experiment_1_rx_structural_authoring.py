@@ -51,6 +51,8 @@ def test_reversible_analysis_requires_and_accepts_task_relevant_time_signal() ->
                     "action_plan_sha256": f"action-{cell['cell_id']}",
                     "direct_noise_key_sha256": f"noise-{cell['cell_id']}",
                     "direct_metrics": metrics,
+                    "direct_observed_mask": dict.fromkeys(metrics, True),
+                    "participant_visible_leakage_matches": [],
                 }
             )
     result = _analyze_reversible(

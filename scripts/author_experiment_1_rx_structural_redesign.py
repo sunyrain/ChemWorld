@@ -149,6 +149,26 @@ def _analyze_reversible(
         "fixed_execution_denominator": len(rows) == 54,
         "all_exact_replay": all(row.get("exact_replay") is True for row in rows),
         "zero_platform_failures": not any(row.get("status") == "platform_failure" for row in rows),
+        "all_outcomes_classified": all(
+            row.get("status") in {"completed", "physical_failure", "platform_failure"}
+            for row in rows
+        ),
+        "all_direct_metrics_publicly_observed": all(
+            isinstance(row.get("direct_metrics"), Mapping)
+            and isinstance(row.get("direct_observed_mask"), Mapping)
+            and all(row["direct_observed_mask"].get(metric) is True for metric in DIRECT_METRICS)
+            for row in rows
+            if row.get("status") == "completed"
+        ),
+        "participant_visible_leakage_free": not any(
+            row.get("participant_visible_leakage_matches") for row in rows
+        ),
+        "all_direct_metrics_finite": all(
+            math.isfinite(float(row["direct_metrics"][metric]))
+            for row in rows
+            if row.get("status") == "completed"
+            for metric in DIRECT_METRICS
+        ),
         "at_least_24_completed_pairs": len(completed) >= 24,
         "at_least_18_safe_pairs": len(safe) >= 18,
         "paired_action_plans": all(
@@ -265,6 +285,15 @@ def _analyze_reversible(
         "best_baseline_cell": None if best_baseline is None else best_baseline["cell_id"],
         "best_reversible_cell": (None if best_reversible is None else best_reversible["cell_id"]),
         "mechanism_audit": dict(mechanism),
+        "denominators": {
+            "planned": 54,
+            "attempted": len(rows),
+            "completed": sum(row.get("status") == "completed" for row in rows),
+            "safe_pairs": len(safe),
+            "exact_replay": sum(row.get("exact_replay") is True for row in rows),
+            "physical_failures": sum(row.get("status") == "physical_failure" for row in rows),
+            "platform_failures": sum(row.get("status") == "platform_failure" for row in rows),
+        },
     }
 
 

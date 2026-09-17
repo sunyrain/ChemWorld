@@ -78,6 +78,7 @@ CANARY_SUMMARY_VERSION = "chemworld-experiment-1-rx-canary-summary-1.0.1"
 ENTITY_SUMMARY_VERSION = "chemworld-experiment-1-rx-entity-summary-1.0.1"
 PARAMETRIC_SUMMARY_VERSION = "chemworld-experiment-1-rx-parametric-summary-1.0.1"
 STRUCTURAL_SUMMARY_VERSION = "chemworld-experiment-1-rx-structural-summary-1.0.1"
+STRUCTURAL_SUMMARY_VERSION_V110 = "chemworld-experiment-1-rx-structural-summary-1.1.0"
 
 
 def _load(path: Path) -> dict[str, Any]:
@@ -376,9 +377,11 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
     return summary
 
 
-def _structural_binding(world_seed: int, cell_id: str) -> tuple[int, str, str]:
+def _structural_binding(
+    world_seed: int, cell_id: str, *, binding_version: str = "v1.0.1"
+) -> tuple[int, str, str]:
     digest = hashlib.sha256(
-        f"experiment-1-rx-structural-v1.0.1:{world_seed}:{cell_id}".encode()
+        f"experiment-1-rx-structural-{binding_version}:{world_seed}:{cell_id}".encode()
     ).hexdigest()
     return (
         int(digest[:8], 16) % 2_147_483_647,
@@ -433,10 +436,11 @@ def _execute_structural(
     law_id: str,
     output_root: Path,
     world_interventions: list[dict[str, Any]] | None = None,
+    binding_version: str = "v1.0.1",
 ) -> dict[str, Any]:
     actions = _compile_actions(cell)
     observation_seed, namespace, coordinate_hash = _structural_binding(
-        world_seed, str(cell["cell_id"])
+        world_seed, str(cell["cell_id"]), binding_version=binding_version
     )
     interventions = [] if law_id == "deactivating_baseline" else [stable_catalyst_intervention()]
     if world_interventions is not None:
@@ -563,22 +567,52 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
     design = registered_cells()
+    reversible = (
+        contract.get("schema_version") == "chemworld-experiment-1-rx-qualification-contract-1.1.0"
+    )
+    if reversible:
+        try:
+            from scripts.author_experiment_1_rx_structural_redesign import (
+                _analyze_reversible,
+                _reversible_mechanism_audit,
+                reversible_intervention,
+            )
+        except ModuleNotFoundError:
+            from author_experiment_1_rx_structural_redesign import (
+                _analyze_reversible,
+                _reversible_mechanism_audit,
+                reversible_intervention,
+            )
+        law_ids = ("deactivating_baseline", "reversible_target_pathway")
+    else:
+        law_ids = LAW_IDS
     reports = []
-    progress = Progress(5 * len(design) * len(LAW_IDS), event="experiment_1_rx_structural_progress")
+    progress = Progress(5 * len(design) * len(law_ids), event="experiment_1_rx_structural_progress")
     for world in contract["worlds"]["qualification"]:
         world_id = str(world["world_id"])
         world_seed = int(world["world_seed"])
         world_root = output / world_id
         world_root.mkdir()
-        mechanism = _structural_mechanism_audit(world_seed)
+        mechanism = (
+            _reversible_mechanism_audit(world_seed)
+            if reversible
+            else _structural_mechanism_audit(world_seed)
+        )
         rows = []
         for cell in design:
-            for law_id in LAW_IDS:
+            for law_id in law_ids:
+                interventions = None
+                if reversible:
+                    interventions = (
+                        [] if law_id == "deactivating_baseline" else [reversible_intervention()]
+                    )
                 row = _execute_structural(
                     world_seed=world_seed,
                     cell=cell,
                     law_id=law_id,
                     output_root=world_root,
+                    world_interventions=interventions,
+                    binding_version="v1.1.0" if reversible else "v1.0.1",
                 )
                 rows.append(row)
                 progress.update(world_id=world_id, status=str(row["status"]))
@@ -586,14 +620,25 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         baseline_hashes = {
             row["mechanism_hash"] for row in rows if row["law_id"] == "deactivating_baseline"
         }
-        stable_hashes = {
-            row["mechanism_hash"] for row in rows if row["law_id"] == "stable_catalyst"
+        child_hashes = {
+            row["mechanism_hash"]
+            for row in rows
+            if row["law_id"] == contract["loci"]["structural"]["child_law_id"]
         }
+        expected_child_hash = (
+            mechanism["reversible_mechanism_hash"]
+            if reversible
+            else mechanism["stable_mechanism_hash"]
+        )
         mechanism["execution_mechanism_binding_matches"] = bool(
             baseline_hashes == {mechanism["baseline_mechanism_hash"]}
-            and stable_hashes == {mechanism["stable_mechanism_hash"]}
+            and child_hashes == {expected_child_hash}
         )
-        analysis = analyze_deactivation(rows, mechanism)
+        analysis = (
+            _analyze_reversible(rows, mechanism)
+            if reversible
+            else analyze_deactivation(rows, mechanism)
+        )
         report = analyze_structural_world(
             contract,
             world_id=world_id,
@@ -605,11 +650,13 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         reports.append(report)
         _emit_world("rx_structural_world_complete", reports, report)
     summary = _five_world_summary(
-        schema_version=STRUCTURAL_SUMMARY_VERSION,
+        schema_version=(
+            STRUCTURAL_SUMMARY_VERSION_V110 if reversible else STRUCTURAL_SUMMARY_VERSION
+        ),
         contract=contract,
         locus="structural",
         reports=reports,
-        planned_executions=5 * len(design) * len(LAW_IDS),
+        planned_executions=5 * len(design) * len(law_ids),
     )
     write_json_atomic(output / "summary.json", summary)
     return summary
