@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run the frozen Experiment 1 FL qualification v1.0.1."""
+"""Run the frozen Experiment 1 FL qualification v1.0.1 or fixed-hardware v1.1.0."""
 
 from __future__ import annotations
 
@@ -30,6 +30,10 @@ from chemworld.eval.verify import verify_records
 from chemworld.eval.work_ii_static_topology_q0 import topology_intervention
 from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 from chemworld.tasks import get_task
+from chemworld.world.continuous_flow import (
+    FIXED_FLOW_REACTOR_INNER_DIAMETER_M,
+    FIXED_FLOW_REACTOR_VOLUME_L,
+)
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 try:
@@ -38,11 +42,15 @@ except ModuleNotFoundError:
     from run_experiment_1_ec_qualification import Progress, _five_world_summary
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_CONTRACT = ROOT / "configs/benchmark/experiment_1_fl_qualification_v1.0.1.json"
+DEFAULT_CONTRACT = ROOT / "configs/benchmark/experiment_1_fl_qualification_v1.1.0.json"
 CANARY_SUMMARY_VERSION = "chemworld-experiment-1-fl-canary-summary-1.0.1"
 ENTITY_SUMMARY_VERSION = "chemworld-experiment-1-fl-entity-summary-1.0.1"
 PARAMETRIC_SUMMARY_VERSION = "chemworld-experiment-1-fl-parametric-summary-1.0.1"
 STRUCTURAL_SUMMARY_VERSION = "chemworld-experiment-1-fl-structural-summary-1.0.1"
+CANARY_SUMMARY_VERSION_V110 = "chemworld-experiment-1-fl-canary-summary-1.1.0"
+ENTITY_SUMMARY_VERSION_V110 = "chemworld-experiment-1-fl-entity-summary-1.1.0"
+PARAMETRIC_SUMMARY_VERSION_V110 = "chemworld-experiment-1-fl-parametric-summary-1.1.0"
+STRUCTURAL_SUMMARY_VERSION_V110 = "chemworld-experiment-1-fl-structural-summary-1.1.0"
 TASK_ID = "flow-reaction-optimization"
 DIRECT_METRICS = ("yield", "selectivity", "flow_conversion")
 FORBIDDEN_VISIBLE_TOKENS = (
@@ -59,6 +67,12 @@ def _stable_seed(*parts: object) -> int:
     return int.from_bytes(digest[:8], "big") % 2_147_483_647
 
 
+def _is_v110(contract: Mapping[str, Any]) -> bool:
+    return (
+        contract.get("schema_version") == "chemworld-experiment-1-fl-qualification-contract-1.1.0"
+    )
+
+
 def _actions(
     *,
     solvent: int,
@@ -68,7 +82,13 @@ def _actions(
     flow_rate_mL_min: float,
     residence_time_s: float,
     temperature_K: float,
+    fixed_hardware: bool = False,
 ) -> list[dict[str, Any]]:
+    derived_residence = (
+        FIXED_FLOW_REACTOR_VOLUME_L / (flow_rate_mL_min / 1000.0 / 60.0)
+        if fixed_hardware
+        else residence_time_s
+    )
     return [
         {"operation": "add_solvent", "volume_L": 0.025, "solvent": solvent},
         {"operation": "add_reagent", "amount_mol": reagent_amount_mol},
@@ -80,12 +100,12 @@ def _actions(
         {
             "operation": "set_flow_rate",
             "flow_rate_mL_min": flow_rate_mL_min,
-            "residence_time_s": residence_time_s,
+            "residence_time_s": derived_residence,
         },
         {
             "operation": "run_flow",
             "target_temperature_K": temperature_K,
-            "duration_s": 2.0 * residence_time_s,
+            "duration_s": 2.0 * derived_residence,
         },
         {"operation": "measure", "instrument": "uvvis"},
         {"operation": "terminate"},
@@ -185,16 +205,16 @@ def _flow_configuration(
     flow_rate_mL_min: float,
     residence_time_s: float,
 ) -> dict[str, float]:
-    truth = world_truth_audit({}, world)
-    effective = residence_time_s * float(truth["flow_residence_multiplier"])
-    volume_l = flow_rate_mL_min / 1000.0 / 60.0 * effective
-    area_m2 = math.pi * 0.004**2 / 4.0
+    del world
+    effective = FIXED_FLOW_REACTOR_VOLUME_L / (flow_rate_mL_min / 1000.0 / 60.0)
+    area_m2 = math.pi * FIXED_FLOW_REACTOR_INNER_DIAMETER_M**2 / 4.0
     return {
         "configured_flow_rate_mL_min": flow_rate_mL_min,
-        "configured_residence_time_s": residence_time_s,
+        "requested_residence_time_s": residence_time_s,
+        "configured_residence_time_s": effective,
         "effective_minimum_duration_s": effective,
-        "reactor_volume_L": volume_l,
-        "geometry_length_m": (volume_l / 1000.0) / area_m2,
+        "reactor_volume_L": FIXED_FLOW_REACTOR_VOLUME_L,
+        "geometry_length_m": (FIXED_FLOW_REACTOR_VOLUME_L / 1000.0) / area_m2,
     }
 
 
@@ -427,13 +447,18 @@ def run_canary(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         flow_rate_mL_min=1.2,
         residence_time_s=900.0,
         temperature_K=390.0,
+        fixed_hardware=_is_v110(contract),
     )
     receipt = _execute(
         world=world,
         execution_id="FL-W00-reference",
         actions=actions,
         observation_seed=_stable_seed("experiment-1-fl-canary", world["world_seed"]),
-        namespace="experiment-1-v1.0.1-fl-canary",
+        namespace=(
+            "experiment-1-v1.1.0-fl-canary"
+            if _is_v110(contract)
+            else "experiment-1-v1.0.1-fl-canary"
+        ),
         output_root=output,
         extra={"temperature_K": 390.0, "residence_time_s": 900.0},
     )
@@ -447,7 +472,9 @@ def run_canary(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         and truth["deterministic"] is True
     )
     summary: dict[str, Any] = {
-        "schema_version": CANARY_SUMMARY_VERSION,
+        "schema_version": (
+            CANARY_SUMMARY_VERSION_V110 if _is_v110(contract) else CANARY_SUMMARY_VERSION
+        ),
         "formal_result": False,
         "provider_call_count": 0,
         "world_id": world["world_id"],
@@ -470,9 +497,12 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
     locus = contract["loci"]["entity"]
+    support_values = locus[
+        "flow_rate_anchors_mL_min" if _is_v110(contract) else "residence_anchors_s"
+    ]
     total = (
         5
-        * len(locus["residence_anchors_s"])
+        * len(support_values)
         * len(locus["catalyst_targets"])
         * int(locus["independent_replicates"])
     )
@@ -482,7 +512,13 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         world_root = output / str(world["world_id"])
         world_root.mkdir()
         receipts = []
-        for residence in locus["residence_anchors_s"]:
+        for support_index, support in enumerate(support_values):
+            flow_rate = float(support) if _is_v110(contract) else float(locus["flow_rate_mL_min"])
+            residence = (
+                float(locus["derived_residence_anchors_s"][support_index])
+                if _is_v110(contract)
+                else float(support)
+            )
             for catalyst in locus["catalyst_targets"]:
                 for replicate in range(int(locus["independent_replicates"])):
                     actions = _actions(
@@ -490,9 +526,10 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         catalyst=int(catalyst),
                         reagent_amount_mol=float(locus["reagent_amount_mol"]),
                         catalyst_amount_mol=float(locus["catalyst_amount_mol"]),
-                        flow_rate_mL_min=float(locus["flow_rate_mL_min"]),
+                        flow_rate_mL_min=flow_rate,
                         residence_time_s=float(residence),
                         temperature_K=float(locus["temperature_K"]),
+                        fixed_hardware=_is_v110(contract),
                     )
                     seed = _stable_seed(
                         locus["observation_noise_namespace"],
@@ -510,6 +547,7 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         output_root=world_root,
                         extra={
                             "residence_time_s": float(residence),
+                            "flow_rate_mL_min": flow_rate,
                             "catalyst": int(catalyst),
                             "replicate": replicate,
                         },
@@ -522,7 +560,9 @@ def run_entity(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         reports.append(report)
         _emit_world("fl_entity_world_complete", reports, report)
     summary = _five_world_summary(
-        schema_version=ENTITY_SUMMARY_VERSION,
+        schema_version=(
+            ENTITY_SUMMARY_VERSION_V110 if _is_v110(contract) else ENTITY_SUMMARY_VERSION
+        ),
         contract=contract,
         locus="entity",
         reports=reports,
@@ -537,10 +577,13 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         raise FileExistsError(f"refusing to overwrite {output}")
     output.mkdir(parents=True)
     locus = contract["loci"]["parametric"]
+    support_values = locus[
+        "flow_rate_levels_mL_min" if _is_v110(contract) else "residence_levels_s"
+    ]
     total = (
         5
         * len(locus["temperature_levels_K"])
-        * len(locus["residence_levels_s"])
+        * len(support_values)
         * int(locus["independent_replicates"])
     )
     progress = Progress(total, event="experiment_1_fl_parametric_progress")
@@ -550,16 +593,25 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         world_root.mkdir()
         receipts = []
         for temperature_index, temperature in enumerate(locus["temperature_levels_K"]):
-            for time_index, residence in enumerate(locus["residence_levels_s"]):
+            for time_index, support in enumerate(support_values):
+                flow_rate = (
+                    float(support) if _is_v110(contract) else float(locus["flow_rate_mL_min"])
+                )
+                residence = (
+                    float(locus["derived_residence_levels_s"][time_index])
+                    if _is_v110(contract)
+                    else float(support)
+                )
                 for replicate in range(int(locus["independent_replicates"])):
                     actions = _actions(
                         solvent=int(locus["solvent"]),
                         catalyst=int(locus["catalyst"]),
                         reagent_amount_mol=float(locus["reagent_amount_mol"]),
                         catalyst_amount_mol=float(locus["catalyst_amount_mol"]),
-                        flow_rate_mL_min=float(locus["flow_rate_mL_min"]),
+                        flow_rate_mL_min=flow_rate,
                         residence_time_s=float(residence),
                         temperature_K=float(temperature),
+                        fixed_hardware=_is_v110(contract),
                     )
                     seed = _stable_seed(
                         locus["observation_noise_namespace"],
@@ -578,6 +630,7 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                         extra={
                             "temperature_K": float(temperature),
                             "residence_time_s": float(residence),
+                            "flow_rate_mL_min": flow_rate,
                             "temperature_index": temperature_index,
                             "time_index": time_index,
                             "replicate": replicate,
@@ -591,7 +644,9 @@ def run_parametric(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         reports.append(report)
         _emit_world("fl_parametric_world_complete", reports, report)
     summary = _five_world_summary(
-        schema_version=PARAMETRIC_SUMMARY_VERSION,
+        schema_version=(
+            PARAMETRIC_SUMMARY_VERSION_V110 if _is_v110(contract) else PARAMETRIC_SUMMARY_VERSION
+        ),
         contract=contract,
         locus="parametric",
         reports=reports,
@@ -619,16 +674,28 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         receipts = []
         mechanism = _mechanism_audit(world)
         for temperature_index, temperature in enumerate(locus["temperature_levels_K"]):
-            for time_index, residence in enumerate(locus["residence_levels_s"]):
+            support_values = locus[
+                "flow_rate_levels_mL_min" if _is_v110(contract) else "residence_levels_s"
+            ]
+            for time_index, support in enumerate(support_values):
+                flow_rate = (
+                    float(support) if _is_v110(contract) else float(locus["flow_rate_mL_min"])
+                )
+                residence = (
+                    float(locus["derived_residence_levels_s"][time_index])
+                    if _is_v110(contract)
+                    else float(support)
+                )
                 cell_id = f"temperature-{temperature_index}-time-{time_index}"
                 actions = _actions(
                     solvent=0,
                     catalyst=0,
                     reagent_amount_mol=0.015,
                     catalyst_amount_mol=0.000315,
-                    flow_rate_mL_min=float(locus["flow_rate_mL_min"]),
+                    flow_rate_mL_min=flow_rate,
                     residence_time_s=float(residence),
                     temperature_K=float(temperature),
+                    fixed_hardware=_is_v110(contract),
                 )
                 seed = _stable_seed(
                     locus["observation_noise_namespace"], world["world_id"], cell_id
@@ -646,6 +713,7 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
                             "temperature_K": float(temperature),
                             "time_s": float(residence),
                             "residence_time_s": float(residence),
+                            "flow_rate_mL_min": flow_rate,
                             "temperature_index": temperature_index,
                             "time_index": time_index,
                         },
@@ -671,7 +739,9 @@ def run_structural(contract: dict[str, Any], output: Path) -> dict[str, Any]:
         reports.append(report)
         _emit_world("fl_structural_world_complete", reports, report)
     summary = _five_world_summary(
-        schema_version=STRUCTURAL_SUMMARY_VERSION,
+        schema_version=(
+            STRUCTURAL_SUMMARY_VERSION_V110 if _is_v110(contract) else STRUCTURAL_SUMMARY_VERSION
+        ),
         contract=contract,
         locus="structural",
         reports=reports,

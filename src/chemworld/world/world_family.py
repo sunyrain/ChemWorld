@@ -164,10 +164,12 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
         _axis(
             "flow-reaction-optimization",
             "flow.residence-thermal-boundary",
-            "residence time and thermal boundary",
+            "fixed-reactor thermal boundary",
             "domain_parameter",
-            ("flow_residence_multiplier", "flow_boundary_ua_multiplier"),
-            "Jointly shifts residence calibration and wall heat-transfer strength.",
+            ("flow_boundary_ua_multiplier",),
+            "Spans insulated to strongly heat-coupled walls while reactor volume remains "
+            "fixed and residence time is derived from flow rate; positive severity is the "
+            "weak-boundary direction.",
         ),
         _axis(
             "electrochemical-conversion",
@@ -261,6 +263,10 @@ def apply_axis_interventions(
             factor = exp(log(4.0) * intervention.severity)
             domain["crystallization_nucleation_multiplier"] *= factor
             domain["crystallization_growth_multiplier"] /= factor
+        elif intervention.axis_id == "flow.residence-thermal-boundary":
+            domain["flow_boundary_ua_multiplier"] *= _flow_boundary_multiplier(
+                intervention.mode, intervention.severity
+            )
         elif intervention.axis_id == "equilibrium.acid-base-constants":
             metadata = dict(state.metadata)
             metadata["hidden_equilibrium_pka"] = float(
@@ -311,6 +317,18 @@ def _effect_multiplier(mode: ShiftMode, severity: float) -> float:
 
 def _noise_multiplier(severity: float) -> float:
     return exp(log(3.0) * severity)
+
+
+def _flow_boundary_multiplier(mode: ShiftMode, severity: float) -> float:
+    """Return an audited weak-to-strong wall-coupling span for fixed flow hardware."""
+
+    positive_endpoint = {
+        "interpolation": 0.25,
+        "extrapolation": 0.02,
+        "composition": 0.10,
+        "observation_noise": 0.25,
+    }[mode]
+    return exp(log(positive_endpoint) * severity)
 
 
 def _additive_shift(

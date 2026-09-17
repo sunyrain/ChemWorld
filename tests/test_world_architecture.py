@@ -798,9 +798,7 @@ def test_reagent_charge_does_not_implicitly_add_catalyst() -> None:
     try:
         env.reset(seed=0)
         env.step({"operation": "add_solvent", "volume_L": 0.025, "solvent": 0})
-        _, _, _, _, reagent_info = env.step(
-            {"operation": "add_reagent", "amount_mol": 0.010}
-        )
+        _, _, _, _, reagent_info = env.step({"operation": "add_reagent", "amount_mol": 0.010})
         reagent_state = env.unwrapped._state
 
         assert reagent_info["transaction_status"] == "committed"
@@ -1681,6 +1679,7 @@ def test_runtime_flow_and_electrochemical_setup_use_typed_equipment_ledger() -> 
         assert flow_settings == {
             "flow_rate_mL_min": 1.2,
             "residence_time_s": 900.0,
+            "requested_residence_time_s": 900.0,
             "minimum_run_duration_s": 900.0,
         }
         assert flow_env.unwrapped.constitution.check_state(flow_state).passed

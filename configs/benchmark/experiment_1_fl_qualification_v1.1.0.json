@@ -1,0 +1,123 @@
+{
+  "schema_version": "chemworld-experiment-1-fl-qualification-contract-1.1.0",
+  "status": "development_frozen_before_execution",
+  "development_only": true,
+  "participant_provider_calls": 0,
+  "participant_execution_authorized": false,
+  "formal_benchmark_execution_authorized": false,
+  "specification": {
+    "path": "workstreams/flagship_tasks/EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md",
+    "sha256": "9da61438d3f3a1b6dae37d190d2c166a1c0c802504907cee61e91167484f890c"
+  },
+  "system_specification": {
+    "path": "workstreams/flagship_tasks/experiment_1/systems/FL/QUALIFICATION_SPEC_V1_1_0.md",
+    "sha256": "adfe6248ecfc62a75813e5f68107de095623f0b6c290134456e6c84f26ce7718"
+  },
+  "task": {
+    "system_id": "FL",
+    "task_id": "flow-reaction-optimization",
+    "world_split": "public-test",
+    "objective": "balanced",
+    "truth_family": "fixed_geometry_pfr_parent",
+    "campaign_config": {
+      "path": "configs/benchmark/static_s0_five_task_single_seed_qualification_v0.1_dev.json",
+      "sha256": "b9d15e85cf0dfb484d2e86e6db58fc599284a4a5389fb36561c281950ace745e"
+    }
+  },
+  "hardware": {
+    "reactor_volume_L": 0.018,
+    "internal_diameter_m": 0.004,
+    "residence_derivation": "tau_s=1080/Q_mL_min"
+  },
+  "worlds": {
+    "canary": {
+      "world_id": "FL-W00",
+      "world_seed": 900003,
+      "world_interventions": [],
+      "formal_denominator": false
+    },
+    "qualification": [
+      {"world_id": "FL-W01", "world_seed": 0, "world_interventions": []},
+      {"world_id": "FL-W02", "world_seed": 1, "world_interventions": [{"axis_id": "flow.reaction-kinetics", "mode": "extrapolation", "severity": 0.75}]},
+      {"world_id": "FL-W03", "world_seed": 2, "world_interventions": [{"axis_id": "flow.reaction-kinetics", "mode": "extrapolation", "severity": -0.75}]},
+      {"world_id": "FL-W04", "world_seed": 3, "world_interventions": [{"axis_id": "flow.residence-thermal-boundary", "mode": "extrapolation", "severity": 0.8}]},
+      {"world_id": "FL-W05", "world_seed": 4, "world_interventions": [{"axis_id": "flow.reaction-kinetics", "mode": "extrapolation", "severity": 0.45}, {"axis_id": "flow.residence-thermal-boundary", "mode": "extrapolation", "severity": -0.8}]}
+    ]
+  },
+  "common_gates": [
+    "Q1_world_integrity",
+    "Q2_task_accessibility",
+    "Q3_public_contract_invariance",
+    "Q4_prior_symmetry",
+    "Q5_identifiability",
+    "Q6_budgeted_falsifiability",
+    "Q7_behavioral_relevance",
+    "Q8_noise_robustness"
+  ],
+  "loci": {
+    "entity": {
+      "target_field": "catalyst",
+      "descriptor_permutation": [0, 2, 1, 3],
+      "solvent": 0,
+      "catalyst_targets": [1, 2],
+      "flow_rate_anchors_mL_min": [3.6, 1.2],
+      "derived_residence_anchors_s": [300.0, 900.0],
+      "temperature_K": 390.0,
+      "reagent_amount_mol": 0.015,
+      "catalyst_amount_mol": 0.0003,
+      "independent_replicates": 3,
+      "participant_unique_experiment_budget": 4,
+      "direct_metrics": ["yield", "selectivity", "flow_conversion"],
+      "minimum_mean_support_separation": 0.025,
+      "minimum_single_support_separation": 0.05,
+      "minimum_support_signal_to_noise_ratio": 2.0,
+      "minimum_observed_endpoint_consequence": 0.025,
+      "observation_noise_namespace": "experiment-1-v1.1.0-fl-entity"
+    },
+    "parametric": {
+      "solvent": 0,
+      "catalyst": 1,
+      "reagent_amount_mol": 0.015,
+      "catalyst_amount_mol": 0.0003,
+      "temperature_levels_K": [370.0, 410.0],
+      "flow_rate_levels_mL_min": [2.4, 0.72],
+      "derived_residence_levels_s": [450.0, 1500.0],
+      "independent_replicates": 3,
+      "participant_unique_experiment_budget": 4,
+      "direct_metrics": ["yield", "selectivity", "flow_conversion"],
+      "product_metrics": ["yield", "flow_conversion"],
+      "declared_sigma": {"yield": 0.045, "selectivity": 0.04, "flow_conversion": 0.04},
+      "minimum_residence_effect": 0.05,
+      "minimum_signal_to_noise_ratio": 2.0,
+      "aligned_relation": "slower_flow_longer_residence_nonnegative_product_effect",
+      "misspecified_relation": "slower_flow_longer_residence_negative_product_effect",
+      "observation_noise_namespace": "experiment-1-v1.1.0-fl-parametric"
+    },
+    "structural": {
+      "parent_law_id": "baseline",
+      "child_law_id": "reversible_target_pathway",
+      "temperature_levels_K": [350.0, 390.0, 425.0],
+      "flow_rate_levels_mL_min": [3.6, 1.2, 0.6],
+      "derived_residence_levels_s": [300.0, 900.0, 1800.0],
+      "grid_cells": 9,
+      "law_count": 2,
+      "participant_unique_experiment_budget": 4,
+      "direct_metrics": ["yield", "selectivity", "flow_conversion"],
+      "product_metrics": ["yield", "flow_conversion"],
+      "declared_sigma": {"yield": 0.045, "selectivity": 0.04, "flow_conversion": 0.04},
+      "minimum_resolved_metrics": 2,
+      "minimum_support_manhattan_distance": 2,
+      "minimum_duration_accumulation": {"yield": 0.09, "flow_conversion": 0.08},
+      "observation_noise_namespace": "experiment-1-v1.1.0-fl-structural"
+    }
+  },
+  "execution": {
+    "exact_replay_required": true,
+    "overwrite_forbidden": true,
+    "platform_failure_policy": "stop_affected_block_and_restart_from_unit_zero",
+    "scientific_failure_policy": "complete_frozen_denominator_retain_failure_and_continue_campaign",
+    "post_failure_redesign_in_same_campaign_forbidden": true,
+    "participant_execution_authorized": false,
+    "formal_benchmark_execution_authorized": false
+  }
+}

@@ -260,7 +260,10 @@ def chemworld_operations() -> tuple[Operation, ...]:
         ),
         Operation(
             "set_flow_rate",
-            "Configure continuous-flow residence time",
+            (
+                "Configure fixed-volume continuous-flow rate; residence_time_s is a "
+                "compatibility declaration and physical residence is derived from flow rate"
+            ),
             ("flow_rate_mL_min", "residence_time_s"),
             ("not_terminated",),
         ),

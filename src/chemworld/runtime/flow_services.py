@@ -22,6 +22,10 @@ from chemworld.physchem.pfr_reactors import PFRGeometrySpec, PFRModel
 from chemworld.physchem.reactor_shared import HeatTransferSpec
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.continuous_flow import (
+    FIXED_FLOW_REACTOR_INNER_DIAMETER_M,
+    FIXED_FLOW_REACTOR_VOLUME_L,
+)
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -89,7 +93,7 @@ class ChemWorldFlowServices:
             minimum=0.01,
             maximum=20.0,
         )
-        residence = _bounded_action_float(
+        requested_residence = _bounded_action_float(
             action,
             "residence_time_s",
             600.0,
@@ -101,9 +105,12 @@ class ChemWorldFlowServices:
             "flow_reactor:configuration",
         )
         revision = int(previous_configuration.get("configuration_revision", 0)) + 1
-        minimum_run_duration = residence * self.world.domain_parameter(
-            "flow_residence_multiplier"
-        )
+        volumetric_flow_L_s = flow_rate / 1000.0 / 60.0
+        residence = FIXED_FLOW_REACTOR_VOLUME_L / volumetric_flow_L_s
+        minimum_run_duration = residence
+        inner_diameter_m = FIXED_FLOW_REACTOR_INNER_DIAMETER_M
+        cross_section_area_m2 = pi * inner_diameter_m**2 / 4.0
+        reactor_length_m = (FIXED_FLOW_REACTOR_VOLUME_L / 1000.0) / cross_section_area_m2
         records = {} if state.equipment is None else state.equipment.equipment.copy()
         records["flow_reactor"] = EquipmentRecord(
             equipment_id="flow_reactor",
@@ -113,6 +120,7 @@ class ChemWorldFlowServices:
             settings={
                 "flow_rate_mL_min": flow_rate,
                 "residence_time_s": residence,
+                "requested_residence_time_s": requested_residence,
                 "minimum_run_duration_s": minimum_run_duration,
             },
         )
@@ -126,7 +134,10 @@ class ChemWorldFlowServices:
                 "configuration_revision": revision,
                 "configuration_semantic": "configure_only_no_physical_advance",
                 "configured_feed_signature": _feed_signature(state),
-                "inner_diameter_m": 0.004,
+                "hardware_contract": "fixed_volume_flow_derived_residence_v1",
+                "reactor_volume_L": FIXED_FLOW_REACTOR_VOLUME_L,
+                "reactor_length_m": reactor_length_m,
+                "inner_diameter_m": inner_diameter_m,
                 "roughness_m": 1.0e-6,
                 "fluid_density_kg_m3": 950.0,
                 "fluid_viscosity_Pa_s": 1.2e-3,
@@ -142,9 +153,7 @@ class ChemWorldFlowServices:
         except (RuntimeError, ValueError, KeyError, TypeError):
             maximum_temperature = 470.0
             if state.vessels is not None and state.vessel_id in state.vessels.vessels:
-                maximum_temperature = state.vessels.vessels[
-                    state.vessel_id
-                ].max_temperature_K
+                maximum_temperature = state.vessels.vessels[state.vessel_id].max_temperature_K
             return state.replace(temperature_K=maximum_temperature + 1.0)
 
     def _run_flow(self, state: WorldState, action: dict[str, Any]) -> WorldState:
@@ -165,13 +174,7 @@ class ChemWorldFlowServices:
             or not 0.01 <= configured_flow_rate <= 20.0
         ):
             raise RuntimeError("stored flow configuration is outside its declared domain")
-        residence = float(
-            flow_settings.get(
-                "minimum_run_duration_s",
-                configured_residence
-                * self.world.domain_parameter("flow_residence_multiplier"),
-            )
-        )
+        residence = float(flow_settings.get("minimum_run_duration_s", configured_residence))
         flow_rate = configured_flow_rate
         duration = _bounded_action_float(
             action,
@@ -181,9 +184,7 @@ class ChemWorldFlowServices:
             maximum=14_400.0,
         )
         if duration < residence:
-            raise ValueError(
-                "run_flow duration must reach at least one configured residence time"
-            )
+            raise ValueError("run_flow duration must reach at least one configured residence time")
         target_temperature = _bounded_action_float(
             action,
             "target_temperature_K",
@@ -192,19 +193,16 @@ class ChemWorldFlowServices:
             maximum=430.0,
         )
         volumetric_flow_L_s = flow_rate / 1000.0 / 60.0
-        reactor_volume_L = volumetric_flow_L_s * residence
+        reactor_volume_L = float(configuration["reactor_volume_L"])
         inner_diameter_m = float(configuration["inner_diameter_m"])
-        cross_section_area_m2 = pi * inner_diameter_m**2 / 4.0
         thermal_boundary = TubularHeatTransferBoundarySpec(
             inner_diameter_m=inner_diameter_m,
-            overall_u_W_m2_K=(
-                400.0 * self.world.domain_parameter("flow_boundary_ua_multiplier")
-            ),
+            overall_u_W_m2_K=(400.0 * self.world.domain_parameter("flow_boundary_ua_multiplier")),
             boundary_temperature_K=target_temperature,
             provenance_id="chemworld_tubular_boundary_u_times_wetted_perimeter_v1",
         )
         geometry = PFRGeometrySpec(
-            length_m=(reactor_volume_L / 1000.0) / cross_section_area_m2,
+            length_m=float(configuration["reactor_length_m"]),
             inner_diameter_m=inner_diameter_m,
             roughness_m=float(configuration["roughness_m"]),
             fluid_density_kg_m3=float(configuration["fluid_density_kg_m3"]),
@@ -224,8 +222,7 @@ class ChemWorldFlowServices:
             rate_multiplier=self.world.domain_parameter("flow_rate_multiplier"),
         )
         inlet_concentrations = {
-            species_id: float(state.species_amounts.get(species_id, 0.0))
-            / state.volume_L
+            species_id: float(state.species_amounts.get(species_id, 0.0)) / state.volume_L
             for species_id in model.network.species_ids
         }
         result = model.simulate(
@@ -287,8 +284,7 @@ class ChemWorldFlowServices:
                 float(previous_metrics.get("flow_throughput_mL", 0.0)) + throughput_mL
             ),
             flow_hydraulic_energy_J=(
-                float(previous_metrics.get("flow_hydraulic_energy_J", 0.0))
-                + hydraulic_energy_J
+                float(previous_metrics.get("flow_hydraulic_energy_J", 0.0)) + hydraulic_energy_J
             ),
         )
         ledger = state.ledger.with_updates(

@@ -1,4 +1,4 @@
-"""Frozen helpers for Experiment 1 FL qualification v1.0.1."""
+"""Frozen helpers for Experiment 1 FL qualification v1.0.1 and v1.1.0."""
 
 from __future__ import annotations
 
@@ -16,13 +16,22 @@ from chemworld.eval.experiment_1_ec_qualification import EXPECTED_COMMON_GATES
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_static_topology_q0 import analyze_task
 from chemworld.materials import static_material_information_dossier
+from chemworld.world.continuous_flow import (
+    FIXED_FLOW_REACTOR_INNER_DIAMETER_M,
+    FIXED_FLOW_REACTOR_VOLUME_L,
+)
 from chemworld.world.parameters import REACTION_NOMINAL_CATALYST_ACTIVITY_PROFILES
 from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 CONTRACT_VERSION = "chemworld-experiment-1-fl-qualification-contract-1.0.1"
+CONTRACT_VERSION_V110 = "chemworld-experiment-1-fl-qualification-contract-1.1.0"
+CONTRACT_VERSIONS = (CONTRACT_VERSION, CONTRACT_VERSION_V110)
 ENTITY_REPORT_VERSION = "chemworld-experiment-1-fl-entity-world-report-1.0.1"
 PARAMETRIC_REPORT_VERSION = "chemworld-experiment-1-fl-parametric-world-report-1.0.1"
 STRUCTURAL_REPORT_VERSION = "chemworld-experiment-1-fl-structural-world-report-1.0.1"
+ENTITY_REPORT_VERSION_V110 = "chemworld-experiment-1-fl-entity-world-report-1.1.0"
+PARAMETRIC_REPORT_VERSION_V110 = "chemworld-experiment-1-fl-parametric-world-report-1.1.0"
+STRUCTURAL_REPORT_VERSION_V110 = "chemworld-experiment-1-fl-structural-world-report-1.1.0"
 EXPECTED_WORLD_IDS = tuple(f"FL-W0{index}" for index in range(1, 6))
 EXPECTED_WORLD_SEEDS = tuple(range(5))
 EXPECTED_ENTITY_PERMUTATION = (0, 2, 1, 3)
@@ -54,7 +63,8 @@ def load_contract(root: Path, path: Path) -> dict[str, Any]:
 
 def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
     errors: list[str] = []
-    if contract.get("schema_version") != CONTRACT_VERSION:
+    version = contract.get("schema_version")
+    if version not in CONTRACT_VERSIONS:
         errors.append("contract schema version changed")
     if contract.get("status") != "development_frozen_before_execution":
         errors.append("contract is not frozen before execution")
@@ -74,7 +84,11 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         "task_id": "flow-reaction-optimization",
         "world_split": "public-test",
         "objective": "balanced",
-        "truth_family": "geometry_resolved_pfr_parent",
+        "truth_family": (
+            "fixed_geometry_pfr_parent"
+            if version == CONTRACT_VERSION_V110
+            else "geometry_resolved_pfr_parent"
+        ),
     }
     for key, value in expected_task.items():
         if task.get(key) != value:
@@ -101,29 +115,55 @@ def validate_contract(root: Path, contract: Mapping[str, Any]) -> list[str]:
         errors.append("FL-W00 canary changed")
     if tuple(contract.get("common_gates", ())) != EXPECTED_COMMON_GATES:
         errors.append("Q1-Q8 gate registry changed")
+    if version == CONTRACT_VERSION_V110:
+        hardware = _mapping(contract.get("hardware"))
+        if (
+            hardware.get("reactor_volume_L") != FIXED_FLOW_REACTOR_VOLUME_L
+            or hardware.get("internal_diameter_m") != FIXED_FLOW_REACTOR_INNER_DIAMETER_M
+            or hardware.get("residence_derivation") != "tau_s=1080/Q_mL_min"
+        ):
+            errors.append("FL fixed-hardware contract changed")
     loci = _mapping(contract.get("loci"))
     if set(loci) != {"entity", "parametric", "structural"}:
         errors.append("FL prior loci changed")
     else:
         entity = _mapping(loci["entity"])
+        expected_entity_support = (
+            entity.get("flow_rate_anchors_mL_min") == [3.6, 1.2]
+            and entity.get("derived_residence_anchors_s") == [300.0, 900.0]
+            if version == CONTRACT_VERSION_V110
+            else entity.get("residence_anchors_s") == [300.0, 900.0]
+        )
         if (
             tuple(entity.get("descriptor_permutation", ())) != EXPECTED_ENTITY_PERMUTATION
             or entity.get("catalyst_targets") != [1, 2]
-            or entity.get("residence_anchors_s") != [300.0, 900.0]
+            or not expected_entity_support
             or entity.get("independent_replicates") != 3
         ):
             errors.append("FL entity design changed")
         parametric = _mapping(loci["parametric"])
+        expected_parametric_support = (
+            parametric.get("flow_rate_levels_mL_min") == [2.4, 0.72]
+            and parametric.get("derived_residence_levels_s") == [450.0, 1500.0]
+            if version == CONTRACT_VERSION_V110
+            else parametric.get("residence_levels_s") == [450.0, 1500.0]
+        )
         if (
             parametric.get("temperature_levels_K") != [370.0, 410.0]
-            or parametric.get("residence_levels_s") != [450.0, 1500.0]
+            or not expected_parametric_support
             or parametric.get("independent_replicates") != 3
         ):
             errors.append("FL parametric design changed")
         structural = _mapping(loci["structural"])
+        expected_structural_support = (
+            structural.get("flow_rate_levels_mL_min") == [3.6, 1.2, 0.6]
+            and structural.get("derived_residence_levels_s") == [300.0, 900.0, 1800.0]
+            if version == CONTRACT_VERSION_V110
+            else structural.get("residence_levels_s") == [300.0, 900.0, 1800.0]
+        )
         if (
             structural.get("temperature_levels_K") != [350.0, 390.0, 425.0]
-            or structural.get("residence_levels_s") != [300.0, 900.0, 1800.0]
+            or not expected_structural_support
             or structural.get("grid_cells") != 9
             or structural.get("law_count") != 2
         ):
@@ -182,7 +222,10 @@ def world_truth_audit(contract: Mapping[str, Any], world: Mapping[str, Any]) -> 
         ),
         "flow_rate_multiplier": float(domain["flow_rate_multiplier"]),
         "flow_residence_multiplier": float(domain["flow_residence_multiplier"]),
+        "legacy_unused_flow_residence_multiplier": float(domain["flow_residence_multiplier"]),
         "flow_boundary_ua_multiplier": float(domain["flow_boundary_ua_multiplier"]),
+        "fixed_reactor_volume_L": FIXED_FLOW_REACTOR_VOLUME_L,
+        "fixed_reactor_inner_diameter_m": FIXED_FLOW_REACTOR_INNER_DIAMETER_M,
         "mapping_rows": mapping_rows,
     }
     payload["truth_sha256"] = canonical_json_sha256(payload)
@@ -231,12 +274,25 @@ def entity_prior_audit(contract: Mapping[str, Any]) -> dict[str, Any]:
 
 def parametric_prior_arms(contract: Mapping[str, Any]) -> dict[str, Any]:
     locus = contract["loci"]["parametric"]
+    fixed_hardware = contract.get("schema_version") == CONTRACT_VERSION_V110
     common = {
-        "target": "local_residence_effect_on_public_product_metrics",
+        "target": (
+            "local_flow_derived_residence_effect_on_public_product_metrics"
+            if fixed_hardware
+            else "local_residence_effect_on_public_product_metrics"
+        ),
         "temperature_domain_K": list(locus["temperature_levels_K"]),
-        "residence_domain_s": list(locus["residence_levels_s"]),
-        "scope": "fixed public flow-rate and material context",
+        "residence_domain_s": list(
+            locus["derived_residence_levels_s" if fixed_hardware else "residence_levels_s"]
+        ),
+        "scope": (
+            "fixed reactor hardware and material context"
+            if fixed_hardware
+            else "fixed public flow-rate and material context"
+        ),
     }
+    if fixed_hardware:
+        common["flow_rate_domain_mL_min"] = list(locus["flow_rate_levels_mL_min"])
     arms = {
         "aligned": {**common, "relation": locus["aligned_relation"]},
         "misspecified": {**common, "relation": locus["misspecified_relation"]},
@@ -266,19 +322,20 @@ def analyze_entity_world(
     receipts: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
     locus = contract["loci"]["entity"]
+    fixed_hardware = contract.get("schema_version") == CONTRACT_VERSION_V110
+    support_values = locus["flow_rate_anchors_mL_min" if fixed_hardware else "residence_anchors_s"]
     expected = (
-        len(locus["residence_anchors_s"])
-        * len(locus["catalyst_targets"])
-        * int(locus["independent_replicates"])
+        len(support_values) * len(locus["catalyst_targets"]) * int(locus["independent_replicates"])
     )
     completed = _completed(receipts)
     grouped: dict[tuple[float, int], list[Mapping[str, Any]]] = defaultdict(list)
     for row in completed:
-        grouped[(float(row["residence_time_s"]), int(row["catalyst"]))].append(row)
+        support = row["flow_rate_mL_min"] if fixed_hardware else row["residence_time_s"]
+        grouped[(float(support), int(row["catalyst"]))].append(row)
     anchors = []
-    for residence in locus["residence_anchors_s"]:
-        left = grouped[(float(residence), 1)]
-        right = grouped[(float(residence), 2)]
+    for support_index, support in enumerate(support_values):
+        left = grouped[(float(support), 1)]
+        right = grouped[(float(support), 2)]
         metric_rows = _group_metric_contrasts(left, right, locus["direct_metrics"])
         complete = len(left) == len(right) == int(locus["independent_replicates"])
         mean_gap = fmean(row["absolute_separation"] for row in metric_rows)
@@ -287,7 +344,12 @@ def analyze_entity_world(
         snr = mean_gap / max(rms_se, 1.0e-12)
         anchors.append(
             {
-                "residence_time_s": residence,
+                "residence_time_s": (
+                    locus["derived_residence_anchors_s"][support_index]
+                    if fixed_hardware
+                    else support
+                ),
+                "flow_rate_mL_min": float(support) if fixed_hardware else locus["flow_rate_mL_min"],
                 "metric_results": metric_rows,
                 "mean_support_separation": mean_gap,
                 "maximum_support_separation": max_gap,
@@ -321,7 +383,7 @@ def analyze_entity_world(
         ),
     }
     return _world_report(
-        ENTITY_REPORT_VERSION,
+        ENTITY_REPORT_VERSION_V110 if fixed_hardware else ENTITY_REPORT_VERSION,
         world,
         "entity",
         receipts,
@@ -342,20 +404,23 @@ def analyze_parametric_world(
     receipts: Sequence[Mapping[str, Any]],
 ) -> dict[str, Any]:
     locus = contract["loci"]["parametric"]
+    fixed_hardware = contract.get("schema_version") == CONTRACT_VERSION_V110
+    support_values = locus["flow_rate_levels_mL_min" if fixed_hardware else "residence_levels_s"]
     expected = (
         len(locus["temperature_levels_K"])
-        * len(locus["residence_levels_s"])
+        * len(support_values)
         * int(locus["independent_replicates"])
     )
     completed = _completed(receipts)
     grouped: dict[tuple[float, float], list[Mapping[str, Any]]] = defaultdict(list)
     for row in completed:
-        grouped[(float(row["temperature_K"]), float(row["residence_time_s"]))].append(row)
-    low_residence, high_residence = map(float, locus["residence_levels_s"])
+        support = row["flow_rate_mL_min"] if fixed_hardware else row["residence_time_s"]
+        grouped[(float(row["temperature_K"]), float(support))].append(row)
+    left_support, right_support = map(float, support_values)
     temperature_reports = []
     for temperature in locus["temperature_levels_K"]:
-        low = grouped[(float(temperature), low_residence)]
-        high = grouped[(float(temperature), high_residence)]
+        low = grouped[(float(temperature), left_support)]
+        high = grouped[(float(temperature), right_support)]
         metrics = _signed_group_metric_contrasts(low, high, locus["product_metrics"])
         passing = [
             row
@@ -375,15 +440,34 @@ def analyze_parametric_world(
     prior = parametric_prior_arms(contract)
     truth = world_truth_audit(contract, world)
     geometry = [row.get("flow_configuration") for row in completed]
+    volumes = {
+        float(item["reactor_volume_L"])
+        for item in geometry
+        if isinstance(item, Mapping) and "reactor_volume_L" in item
+    }
+    lengths = {
+        float(item["geometry_length_m"])
+        for item in geometry
+        if isinstance(item, Mapping) and "geometry_length_m" in item
+    }
     geometry_bound = bool(
         geometry
         and all(
             isinstance(item, Mapping)
-            and float(item["configured_flow_rate_mL_min"]) == float(locus["flow_rate_mL_min"])
+            and (
+                math.isclose(
+                    float(item["configured_flow_rate_mL_min"]),
+                    float(row["flow_rate_mL_min"]),
+                )
+                if fixed_hardware
+                else float(item["configured_flow_rate_mL_min"]) == float(locus["flow_rate_mL_min"])
+            )
             and float(item["reactor_volume_L"]) > 0.0
             and float(item["geometry_length_m"]) > 0.0
-            for item in geometry
+            for row, item in zip(completed, geometry, strict=True)
         )
+        and (not fixed_hardware or volumes == {FIXED_FLOW_REACTOR_VOLUME_L})
+        and (not fixed_hardware or len(lengths) == 1)
     )
     gates = {
         "Q1_world_integrity": _integrity(receipts, expected) and truth["deterministic"],
@@ -409,7 +493,7 @@ def analyze_parametric_world(
         ),
     }
     return _world_report(
-        PARAMETRIC_REPORT_VERSION,
+        PARAMETRIC_REPORT_VERSION_V110 if fixed_hardware else PARAMETRIC_REPORT_VERSION,
         world,
         "parametric",
         receipts,
@@ -469,7 +553,11 @@ def analyze_structural_world(
         ),
     }
     return _world_report(
-        STRUCTURAL_REPORT_VERSION,
+        (
+            STRUCTURAL_REPORT_VERSION_V110
+            if contract.get("schema_version") == CONTRACT_VERSION_V110
+            else STRUCTURAL_REPORT_VERSION
+        ),
         world,
         "structural",
         receipts,

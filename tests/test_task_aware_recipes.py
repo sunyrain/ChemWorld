@@ -129,32 +129,33 @@ def test_distillation_recipe_controls_both_stages_independently() -> None:
 
     evaporation_temperature = np.array(reference, copy=True)
     evaporation_temperature[7] = 0.8
-    assert operation(evaporation_temperature, "evaporate")["target_temperature_K"] != (
-        operation(reference, "evaporate")["target_temperature_K"]
+    assert (
+        operation(evaporation_temperature, "evaporate")["target_temperature_K"]
+        != (operation(reference, "evaporate")["target_temperature_K"])
     )
-    assert operation(evaporation_temperature, "distill")["target_temperature_K"] == (
-        operation(reference, "distill")["target_temperature_K"]
+    assert (
+        operation(evaporation_temperature, "distill")["target_temperature_K"]
+        == (operation(reference, "distill")["target_temperature_K"])
     )
 
     distillation_duration = np.array(reference, copy=True)
     distillation_duration[10] = 0.8
-    assert operation(distillation_duration, "distill")["duration_s"] != operation(
-        reference, "distill"
-    )["duration_s"]
-    assert operation(distillation_duration, "evaporate")["duration_s"] == operation(
-        reference, "evaporate"
-    )["duration_s"]
+    assert (
+        operation(distillation_duration, "distill")["duration_s"]
+        != operation(reference, "distill")["duration_s"]
+    )
+    assert (
+        operation(distillation_duration, "evaporate")["duration_s"]
+        == operation(reference, "evaporate")["duration_s"]
+    )
 
 
 def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
-    matrix_path = Path(
-        "workstreams/flagship_tasks/reports/task-design-matrix-v1.json"
-    )
+    matrix_path = Path("workstreams/flagship_tasks/reports/task-design-matrix-v1.json")
     rows = json.loads(matrix_path.read_text(encoding="utf-8"))["tasks"]
     assert len(rows) == 15
     assert all(
-        row["complete_experiment_adapter"]["midpoint_execution_audit"]["status"]
-        == "passed"
+        row["complete_experiment_adapter"]["midpoint_execution_audit"]["status"] == "passed"
         for row in rows
     )
     assert all(
@@ -163,8 +164,7 @@ def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
         for row in rows
     )
     assert all(
-        row["complete_experiment_adapter"]["boundary_execution_audit"]["status"]
-        == "passed"
+        row["complete_experiment_adapter"]["boundary_execution_audit"]["status"] == "passed"
         and row["evaluation_endpoints"]["all_metrics_bound"] is True
         for row in rows
     )
@@ -172,29 +172,26 @@ def test_design_matrix_rows_are_executable_for_all_registered_tasks() -> None:
     # Keep one live generator check in the fast suite; the materialized matrix
     # contains the full 415-case physical execution audit.
     live_row = _task_row(get_task("equilibrium-characterization"))
-    assert (
-        live_row["complete_experiment_adapter"]["boundary_execution_audit"][
-            "status"
-        ]
-        == "passed"
-    )
+    assert live_row["complete_experiment_adapter"]["boundary_execution_audit"]["status"] == "passed"
 
 
-@pytest.mark.parametrize("residence_coordinate", (0.0, 0.25, 0.5, 0.75, 1.0))
+@pytest.mark.parametrize("feed_volume_coordinate", (0.0, 0.25, 0.5, 0.75, 1.0))
 @pytest.mark.parametrize("duration_coordinate", (0.0, 0.5, 1.0))
-def test_flow_recipe_reserves_the_public_residence_multiplier_domain(
-    residence_coordinate: float,
+def test_flow_recipe_uses_fixed_hardware_without_a_dead_residence_coordinate(
+    feed_volume_coordinate: float,
     duration_coordinate: float,
 ) -> None:
     task_info = get_task("flow-reaction-optimization").to_dict()
     vector = np.full(task_recipe_dimension(task_info), 0.5, dtype=float)
-    vector[5] = residence_coordinate
+    vector[5] = feed_volume_coordinate
     vector[7] = duration_coordinate
 
     steps = task_recipe_from_unit_vector(task_info, vector)["steps"]
     setup = next(step for step in steps if step["operation"] == "set_flow_rate")
     run = next(step for step in steps if step["operation"] == "run_flow")
+    charge = next(step for step in steps if step["operation"] == "add_solvent")
 
+    assert charge["volume_L"] == pytest.approx(0.015 + 0.020 * feed_volume_coordinate)
     assert run["duration_s"] >= (setup["residence_time_s"] * FLOW_RECIPE_MAX_RESIDENCE_MULTIPLIER)
     assert run["duration_s"] <= 14_400.0
 

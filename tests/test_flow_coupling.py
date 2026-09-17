@@ -110,16 +110,15 @@ def test_flow_configuration_is_not_a_hidden_experiment() -> None:
         assert settings == {
             "flow_rate_mL_min": 1.2,
             "residence_time_s": 900.0,
+            "requested_residence_time_s": 900.0,
             "minimum_run_duration_s": 900.0,
         }
         assert configuration["configuration_revision"] == 1
-        assert configuration["configuration_semantic"] == (
-            "configure_only_no_physical_advance"
-        )
+        assert configuration["configuration_semantic"] == ("configure_only_no_physical_advance")
         assert len(configuration["configured_feed_signature"]) == 64
-        assert configuration["runtime_provider_id"] == (
-            "chemworld_geometry_resolved_pfr_v2"
-        )
+        assert configuration["runtime_provider_id"] == ("chemworld_geometry_resolved_pfr_v2")
+        assert configuration["hardware_contract"] == ("fixed_volume_flow_derived_residence_v1")
+        assert configuration["reactor_volume_L"] == pytest.approx(0.018)
     finally:
         env.close()
 
@@ -150,9 +149,7 @@ def test_configuration_can_precede_charge_but_feed_changes_require_reconfigurati
     env = _charged_flow_env()
     try:
         _configure(env)
-        _, _, _, _, add_info = env.step(
-            {"operation": "add_reagent", "amount_mol": 0.001}
-        )
+        _, _, _, _, add_info = env.step({"operation": "add_reagent", "amount_mol": 0.001})
         assert add_info["transaction_status"] == "committed"
         before = _physical_snapshot(env.unwrapped._state)
 
@@ -182,9 +179,7 @@ def test_official_flow_runtime_calls_geometry_resolved_pfr_once(monkeypatch: Any
     env = _charged_flow_env()
     try:
         inlet_temperature = env.unwrapped._state.temperature_K
-        initial_charge = deepcopy(
-            env.unwrapped._state.species.initial_amounts_mol
-        )
+        initial_charge = deepcopy(env.unwrapped._state.species.initial_amounts_mol)
         _configure(env)
         info, settings = _run(env)
         state = env.unwrapped._state
@@ -195,17 +190,11 @@ def test_official_flow_runtime_calls_geometry_resolved_pfr_once(monkeypatch: Any
         assert calls[0]["temperature_K"] == pytest.approx(inlet_temperature)
         assert inlet_temperature != pytest.approx(382.0)
         assert len(calls[0]["axial_positions_m"]) == 9
-        assert settings["runtime_provider_id"] == (
-            "chemworld_geometry_resolved_pfr_v2"
-        )
-        assert settings["runtime_adapter_id"] == (
-            "chemworld_geometry_resolved_pfr_v1"
-        )
+        assert settings["runtime_provider_id"] == ("chemworld_geometry_resolved_pfr_v2")
+        assert settings["runtime_adapter_id"] == ("chemworld_geometry_resolved_pfr_v1")
         assert settings["inlet_temperature_K"] == pytest.approx(inlet_temperature)
         assert settings["boundary_temperature_K"] == pytest.approx(382.0)
-        assert settings["geometry"]["volume_L"] == pytest.approx(
-            1.2 / 1000.0 / 60.0 * 900.0
-        )
+        assert settings["geometry"]["volume_L"] == pytest.approx(1.2 / 1000.0 / 60.0 * 900.0)
         assert settings["solver_diagnostic"]["success"] is True
         assert settings["reactor_diagnostic"]["material_balance_closed"] is True
         assert settings["material_balance_error_mol"] < 1.0e-8
@@ -265,22 +254,20 @@ def test_flow_run_requires_fresh_configuration_and_rolls_back_atomically() -> No
 def test_reconfiguration_creates_a_second_traceable_experiment() -> None:
     env = _charged_flow_env()
     try:
-        initial_charge = deepcopy(
-            env.unwrapped._state.species.initial_amounts_mol
-        )
+        initial_charge = deepcopy(env.unwrapped._state.species.initial_amounts_mol)
         _configure(env, residence_time_s=600.0)
         first, _ = _run(env, duration_s=900.0)
         assert first["transaction_status"] == "committed"
         _configure(env, flow_rate_mL_min=0.8, residence_time_s=600.0)
-        second, settings = _run(env, target_temperature_K=370.0, duration_s=900.0)
+        second, settings = _run(env, target_temperature_K=370.0, duration_s=1350.0)
         state = env.unwrapped._state
 
         assert second["transaction_status"] == "committed"
         assert settings["configuration_revision"] == 2
         assert settings["flow_experiment_index"] == 2
         assert state.process.metrics["flow_experiment_count"] == 2.0
-        assert state.process.metrics["flow_campaign_time_s"] == pytest.approx(1800.0)
-        assert state.process.metrics["flow_throughput_mL"] == pytest.approx(30.0)
+        assert state.process.metrics["flow_campaign_time_s"] == pytest.approx(2250.0)
+        assert state.process.metrics["flow_throughput_mL"] == pytest.approx(36.0)
         assert state.species.initial_amounts_mol == initial_charge
     finally:
         env.close()
@@ -314,9 +301,7 @@ def test_flow_runtime_rejects_incomplete_residence_time() -> None:
         info, _ = _run(env, duration_s=899.0)
 
         assert info["transaction_status"] == "validation_failed"
-        assert "payload_bounds:duration_s" in info["world_events"][0]["payload"][
-            "invalid_reasons"
-        ]
+        assert "payload_bounds:duration_s" in info["world_events"][0]["payload"]["invalid_reasons"]
         assert _physical_snapshot(env.unwrapped._state) == before
     finally:
         env.close()
@@ -356,10 +341,11 @@ def test_flow_controls_are_physically_identifiable() -> None:
                 flow_rate_mL_min=flow_rate_mL_min,
                 residence_time_s=residence_time_s,
             )
+            derived_residence = 0.018 * 1000.0 * 60.0 / flow_rate_mL_min
             info, settings = _run(
                 env,
                 target_temperature_K=target_temperature_K,
-                duration_s=max(1800.0, residence_time_s),
+                duration_s=max(2400.0, derived_residence),
             )
             assert info["transaction_status"] == "committed"
             conversion = env.unwrapped._state.process.metrics["flow_conversion"]
@@ -367,20 +353,24 @@ def test_flow_controls_are_physically_identifiable() -> None:
         finally:
             env.close()
 
-    _, short_conversion = experiment(1.2, 300.0, 382.0)
-    _, long_conversion = experiment(1.2, 1200.0, 382.0)
+    short, short_conversion = experiment(1.2, 300.0, 382.0)
+    long, long_conversion = experiment(1.2, 1200.0, 382.0)
     cool, _ = experiment(1.2, 900.0, 330.0)
     hot, _ = experiment(1.2, 900.0, 410.0)
     slow, _ = experiment(0.5, 900.0, 382.0)
     fast, _ = experiment(3.0, 900.0, 382.0)
 
-    assert long_conversion > short_conversion
+    assert long_conversion == pytest.approx(short_conversion)
+    assert long["geometry"]["volume_L"] == pytest.approx(short["geometry"]["volume_L"])
+    assert long["geometry"]["length_m"] == pytest.approx(short["geometry"]["length_m"])
     assert hot["outlet_temperature_K"] > cool["outlet_temperature_K"]
     assert hot["thermal_ledger"]["energy_jacket_J"] != pytest.approx(
         cool["thermal_ledger"]["energy_jacket_J"]
     )
     assert fast["pressure_drop_Pa"] > slow["pressure_drop_Pa"]
     assert fast["reynolds_number"] > slow["reynolds_number"]
+    assert slow["geometry"]["volume_L"] == pytest.approx(fast["geometry"]["volume_L"])
+    assert slow["geometry"]["length_m"] == pytest.approx(fast["geometry"]["length_m"])
 
 
 def test_pfr_fails_on_invalid_feed_and_nonpositive_outlet_pressure() -> None:
