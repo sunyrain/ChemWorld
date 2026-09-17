@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
+from chemworld.eval import work_ii_structural_candidate_qualification as structural
 from chemworld.eval.experiment_1_ec_qualification_repair import (
     EXPECTED_ENTITY_PERMUTATIONS,
+    _structural_model_qualification_repair,
     analyze_entity_repair_world,
     entity_prior_audit_repair,
     load_repair_contract,
@@ -118,3 +120,60 @@ def test_structural_repair_uses_low_potential_for_all_noisy_validation() -> None
         91.0,
         190.0,
     }
+
+
+def test_structural_repair_baseline_check_does_not_require_validation_center() -> None:
+    metrics = (
+        "selective_product_yield",
+        "faradaic_efficiency",
+        "transport_efficiency",
+    )
+
+    def values(axis_a: int, axis_b: int) -> dict[str, float]:
+        potential = float(axis_a - 1)
+        current = float(axis_b - 1)
+        return {
+            "selective_product_yield": 0.65 + 0.04 * potential - 0.12 * current**2,
+            "faradaic_efficiency": 0.70 + 0.03 * potential - 0.10 * current**2,
+            "transport_efficiency": 0.68 + 0.02 * potential - 0.09 * current**2,
+        }
+
+    main = [
+        {"axis_a_index": axis_a, "axis_b_index": axis_b, "metrics": values(axis_a, axis_b)}
+        for axis_a in range(3)
+        for axis_b in range(3)
+    ]
+    groups = ((0, 0), (0, 1), (0, 2))
+    validation = []
+    for group_index, (axis_a, axis_b) in enumerate(groups):
+        for replicate, offset in enumerate((-0.001, 0.0, 0.001), start=1):
+            validation.append(
+                {
+                    "validation_group": group_index,
+                    "replicate": replicate,
+                    "metrics": {
+                        metric: value + offset for metric, value in values(axis_a, axis_b).items()
+                    },
+                }
+            )
+
+    result = _structural_model_qualification_repair(
+        main,
+        validation,
+        sigma=dict.fromkeys(metrics, 0.001),
+        metrics=metrics,
+        aligned_features=structural._electrochemical_aligned_features,
+        misspecified_features=structural._electrochemical_misspecified_features,
+        validation_groups=groups,
+        target_axis="b",
+        candidate_id="electrochemical_transport",
+        effect_floor=0.03,
+        noise_multiplier=6.0,
+        minimum_disagreement_fraction=0.4,
+    )
+
+    assert result["checks"]["baseline_error_matched"] is True
+    assert result["baseline_error_evaluation"] == "direct_prediction_match_at_frozen_center"
+    assert result["baseline_error_gap"] == 0.0
+    assert result["checks"]["low_counterexample_region"] is True
+    assert result["checks"]["high_counterexample_region"] is True

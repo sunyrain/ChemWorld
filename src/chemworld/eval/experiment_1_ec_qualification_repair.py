@@ -8,6 +8,8 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from chemworld.eval import work_ii_structural_candidate_qualification as structural
 from chemworld.eval.experiment_1_ec_qualification import (
     EXPECTED_COMMON_GATES,
@@ -322,7 +324,7 @@ def analyze_structural_candidate_repair(
 
     sigma = structural._validation_sigma(completed_validation, spec["metrics"], groups=groups)
     effects = structural._electrochemical_effects(completed_main, sigma)
-    model = structural._model_qualification(
+    model = _structural_model_qualification_repair(
         completed_main,
         completed_validation,
         sigma=sigma,
@@ -332,6 +334,9 @@ def analyze_structural_candidate_repair(
         validation_groups=groups,
         target_axis="b",
         candidate_id=candidate_id,
+        effect_floor=float(locus["effect_floor"]),
+        noise_multiplier=float(locus["noise_multiplier"]),
+        minimum_disagreement_fraction=float(locus["minimum_disagreement_fraction"]),
     )
     checks.update(
         {
@@ -465,6 +470,134 @@ def validate_parent_parametric_evidence(root: Path, contract: Mapping[str, Any])
         "summary_path": parent["summary"]["path"],
         "parametric_rows": parametric_rows,
         "parent_summary": summary,
+    }
+
+
+def _structural_model_qualification_repair(
+    main: Sequence[Mapping[str, Any]],
+    validation: Sequence[Mapping[str, Any]],
+    *,
+    sigma: Mapping[str, float],
+    metrics: Sequence[str],
+    aligned_features: Any,
+    misspecified_features: Any,
+    validation_groups: Sequence[tuple[int, int]],
+    target_axis: str,
+    candidate_id: str,
+    effect_floor: float,
+    noise_multiplier: float,
+    minimum_disagreement_fraction: float,
+) -> dict[str, Any]:
+    """Evaluate the frozen low-potential design without requiring a validation baseline row."""
+    aligned_models = {
+        metric: structural._fit_model(main, metric, aligned_features) for metric in metrics
+    }
+    misspecified_models = {
+        metric: structural._fit_model(main, metric, misspecified_features) for metric in metrics
+    }
+    baseline = (1, 1)
+    for metric in metrics:
+        aligned_baseline = structural._predict(
+            aligned_models[metric], metric, baseline, aligned_features
+        )
+        misspecified_baseline = structural._predict(
+            misspecified_models[metric], metric, baseline, misspecified_features
+        )
+        misspecified_models[metric]["baseline_offset"] = aligned_baseline - misspecified_baseline
+    baseline_prediction_gap = max(
+        abs(
+            structural._predict(aligned_models[metric], metric, baseline, aligned_features)
+            - structural._predict(
+                misspecified_models[metric], metric, baseline, misspecified_features
+            )
+        )
+        for metric in metrics
+    )
+
+    group_means = structural._validation_group_means(
+        validation,
+        metrics,
+        groups=validation_groups,
+    )
+    comparisons: list[dict[str, Any]] = []
+    aligned_errors: list[float] = []
+    misspecified_errors: list[float] = []
+    for (axis_a, axis_b), observed in group_means.items():
+        for metric in metrics:
+            aligned_prediction = structural._predict(
+                aligned_models[metric], metric, (axis_a, axis_b), aligned_features
+            )
+            misspecified_prediction = structural._predict(
+                misspecified_models[metric],
+                metric,
+                (axis_a, axis_b),
+                misspecified_features,
+            )
+            gate = max(effect_floor, noise_multiplier * float(sigma[metric]))
+            aligned_error = abs(aligned_prediction - float(observed[metric]))
+            misspecified_error = abs(misspecified_prediction - float(observed[metric]))
+            aligned_errors.append(aligned_error)
+            misspecified_errors.append(misspecified_error)
+            comparisons.append(
+                {
+                    "axis_a_index": axis_a,
+                    "axis_b_index": axis_b,
+                    "metric": metric,
+                    "observed_validation_mean": float(observed[metric]),
+                    "aligned_prediction": aligned_prediction,
+                    "misspecified_prediction": misspecified_prediction,
+                    "prediction_difference": abs(aligned_prediction - misspecified_prediction),
+                    "disagreement_gate": gate,
+                    "disagrees": abs(aligned_prediction - misspecified_prediction) >= gate,
+                    "aligned_error": aligned_error,
+                    "misspecified_error": misspecified_error,
+                }
+            )
+    disagreement = [row for row in comparisons if row["disagrees"]]
+    disagreement_fraction = len(disagreement) / len(comparisons)
+    target_index = "axis_a_index" if target_axis == "a" else "axis_b_index"
+    low_support = sum(row[target_index] == 0 for row in disagreement)
+    high_support = sum(row[target_index] == 2 for row in disagreement)
+    aligned_mae = float(np.mean(aligned_errors))
+    misspecified_mae = float(np.mean(misspecified_errors))
+    priors = structural.build_prior_arms(candidate_id)
+    aligned_prior = priors["aligned_nominal"]
+    misspecified_prior = priors["misindexed_nominal"]
+    schema_matched = set(aligned_prior) == set(misspecified_prior)
+    word_counts = {
+        "aligned": len(str(aligned_prior["claim"]).split()),
+        "misspecified": len(str(misspecified_prior["claim"]).split()),
+    }
+    checks = {
+        "baseline_error_matched": baseline_prediction_gap <= 1.0e-12,
+        "held_out_disagreement": (disagreement_fraction >= minimum_disagreement_fraction),
+        "low_counterexample_region": low_support > 0,
+        "high_counterexample_region": high_support > 0,
+        "blind_identification": aligned_mae < misspecified_mae,
+        "prior_schema_matched": schema_matched,
+        "prior_word_count_matched": (
+            abs(word_counts["aligned"] - word_counts["misspecified"]) <= 2
+        ),
+    }
+    return {
+        "passed": all(checks.values()),
+        "checks": checks,
+        "baseline_error_evaluation": "direct_prediction_match_at_frozen_center",
+        "baseline_error_gap": baseline_prediction_gap,
+        "comparison_count": len(comparisons),
+        "disagreement_count": len(disagreement),
+        "disagreement_fraction": disagreement_fraction,
+        "low_counterexample_support": low_support,
+        "high_counterexample_support": high_support,
+        "aligned_validation_mae": aligned_mae,
+        "misspecified_validation_mae": misspecified_mae,
+        "blind_identified_aligned_model": aligned_mae < misspecified_mae,
+        "prior_word_counts": word_counts,
+        "comparisons": comparisons,
+        "model_coefficients": {
+            "aligned": aligned_models,
+            "misspecified": misspecified_models,
+        },
     }
 
 
