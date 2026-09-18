@@ -56,9 +56,14 @@ FORBIDDEN_VISIBLE_TOKENS = (
 MASS_BALANCE_ABSOLUTE_GATE = 1.0e-8
 MINIMUM_PUBLIC_LAW_GAP = 0.02
 MINIMUM_COMPOSITION_INTERACTION = 0.01
+OBSERVATION_NOISE_NAMESPACE = "experiment-1-p-calibration-v1.0.0"
+OBSERVATION_SEED_FORMULA = (
+    "10000 + world_ordinal*1000 + reagent_index*100 + extractant"
+)
 REQUIRED_SOURCE_PATHS = {
     "scripts/run_experiment_1_p_asset_calibration.py",
     "src/chemworld/eval/experiment_1_p_assets.py",
+    "src/chemworld/eval/provenance.py",
     "src/chemworld/runtime/phase_separation_services.py",
     "src/chemworld/world/phase_kernel.py",
     "src/chemworld/world/world_family.py",
@@ -71,7 +76,20 @@ REQUIRED_SOURCE_PATHS = {
     "src/chemworld/eval/verify.py",
     "src/chemworld/eval/work_ii_truth.py",
     "src/chemworld/data/logging.py",
+    "src/chemworld/tasks.py",
 }
+
+
+def _observation_seed(world_id: str, reagent_index: int, extractant: int) -> int:
+    try:
+        world_ordinal = WORLD_IDS.index(world_id) + 1
+    except ValueError as error:
+        raise ValueError(f"P calibration seed requested for unknown World: {world_id}") from error
+    if reagent_index not in range(len(REAGENT_LEVELS_MOL)):
+        raise ValueError("P calibration seed requested for unknown reagent level")
+    if extractant not in EXTRACTANTS:
+        raise ValueError("P calibration seed requested for unknown extractant")
+    return 10_000 + world_ordinal * 1_000 + reagent_index * 100 + extractant
 
 
 def _self_hash(value: Mapping[str, Any], field: str) -> str:
@@ -142,15 +160,22 @@ def load_calibration_contract(path: Path) -> dict[str, Any]:
         raise ValueError("P calibration execution denominator changed")
     if design.get("paired_noise_policy") != "same_cell_same_seed_parent_child":
         raise ValueError("P calibration paired-noise policy changed")
+    if design.get("observation_seed_formula") != OBSERVATION_SEED_FORMULA:
+        raise ValueError("P calibration observation-seed formula changed")
+    if value.get("observation_noise_namespace") != OBSERVATION_NOISE_NAMESPACE:
+        raise ValueError("P calibration observation-noise namespace changed")
     cells = value.get("cells", [])
     if not isinstance(cells, list) or len(cells) != PLANNED_CELLS:
         raise ValueError("P calibration cells have the wrong denominator")
     expected_ids = set()
+    expected_coordinates: set[tuple[str, int]] = set()
     for world_id in WORLD_IDS:
         for reagent_index, reagent_mol in enumerate(REAGENT_LEVELS_MOL):
             for extractant in EXTRACTANTS:
                 cell_id = f"{world_id}-r{reagent_index}-x{extractant}"
+                expected_seed = _observation_seed(world_id, reagent_index, extractant)
                 expected_ids.add(cell_id)
+                expected_coordinates.add((cell_id, expected_seed))
                 matches = [row for row in cells if row.get("cell_id") == cell_id]
                 if len(matches) != 1:
                     raise ValueError(f"P calibration cell coverage changed: {cell_id}")
@@ -164,8 +189,17 @@ def load_calibration_contract(path: Path) -> dict[str, Any]:
                 seed = row.get("observation_seed")
                 if isinstance(seed, bool) or not isinstance(seed, int) or seed < 0:
                     raise ValueError(f"P calibration observation seed invalid: {cell_id}")
+                if seed != expected_seed:
+                    raise ValueError(f"P calibration observation seed changed: {cell_id}")
     if {str(row.get("cell_id")) for row in cells} != expected_ids:
         raise ValueError("P calibration contains an unregistered cell")
+    observed_coordinates = {
+        (str(row.get("cell_id")), int(row.get("observation_seed", -1))) for row in cells
+    }
+    if observed_coordinates != expected_coordinates:
+        raise ValueError("P calibration cell-to-observation-seed mapping changed")
+    if len({coordinate[1] for coordinate in observed_coordinates}) != PLANNED_CELLS:
+        raise ValueError("P calibration observation seeds are not unique")
     gates = value.get("gates", {})
     expected_gates = {
         "public_metrics": list(PUBLIC_METRICS),
@@ -287,21 +321,57 @@ def _truth_binding(
     observed_world_ids = {
         str(row["world_id"]) for row in records if isinstance(row.get("world_id"), str)
     }
-    passed = (
-        instance.parameters.world_id in observed_world_ids
-        and (expected_world_hash is None or expected_world_hash in observed_world_hashes)
-        and (
-            expected_mechanism_hash is None
-            or expected_mechanism_hash in observed_mechanism_hashes
-        )
+    expected_world_hashes = (
+        {expected_world_hash} if isinstance(expected_world_hash, str) else set()
+    )
+    expected_mechanism_hashes = (
+        {expected_mechanism_hash} if isinstance(expected_mechanism_hash, str) else set()
+    )
+    passed = _truth_sets_match(
+        expected_world_id=instance.parameters.world_id,
+        expected_world_hashes=expected_world_hashes,
+        expected_mechanism_hashes=expected_mechanism_hashes,
+        observed_world_ids=observed_world_ids,
+        observed_world_hashes=observed_world_hashes,
+        observed_mechanism_hashes=observed_mechanism_hashes,
     )
     return {
         "passed": passed,
         "private_world_id": instance.parameters.world_id,
         "observed_private_world_ids": sorted(observed_world_ids),
         "expected_world_family_intervention_hash": expected_world_hash,
+        "observed_world_family_intervention_hashes": sorted(observed_world_hashes),
         "expected_mechanism_family_intervention_hash": expected_mechanism_hash,
+        "observed_mechanism_family_intervention_hashes": sorted(
+            observed_mechanism_hashes
+        ),
     }
+
+
+def _truth_sets_match(
+    *,
+    expected_world_id: str,
+    expected_world_hashes: set[str],
+    expected_mechanism_hashes: set[str],
+    observed_world_ids: set[str],
+    observed_world_hashes: set[str],
+    observed_mechanism_hashes: set[str],
+) -> bool:
+    return (
+        observed_world_ids == {expected_world_id}
+        and observed_world_hashes == expected_world_hashes
+        and observed_mechanism_hashes == expected_mechanism_hashes
+    )
+
+
+def _portable_output_path(path: Path, output_root: Path) -> str:
+    try:
+        relative = path.resolve().relative_to(output_root.resolve())
+    except ValueError as error:
+        raise ValueError("P calibration artifact path escapes the output root") from error
+    if relative.is_absolute() or ".." in relative.parts:
+        raise ValueError("P calibration artifact path is not output-relative")
+    return relative.as_posix()
 
 
 def _execute(
@@ -384,7 +454,11 @@ def _execute(
             mass_balance is not None and mass_balance <= MASS_BALANCE_ABSOLUTE_GATE
         ),
         "trajectory": (
-            {"path": str(trajectory), "sha256": file_sha256(trajectory)}
+            {
+                "path": _portable_output_path(trajectory, output),
+                "path_scope": "calibration_output_root",
+                "sha256": file_sha256(trajectory),
+            }
             if trajectory.is_file()
             else None
         ),
