@@ -11,7 +11,11 @@ from scripts.author_experiment_1_c_structural_redesign_v1_2 import (
     _load_machine_contract,
 )
 from scripts.run_experiment_1_p_asset_calibration import (
+    OBSERVATION_NOISE_NAMESPACE,
     PLANNED_EXECUTIONS,
+    _observation_seed,
+    _portable_output_path,
+    _truth_sets_match,
     load_calibration_contract,
 )
 from scripts.run_experiment_1_p_asset_calibration import (
@@ -51,7 +55,7 @@ P_HARNESS_TEST_RECEIPT = (
 def test_c_machine_contract_binds_frozen_design_and_sources() -> None:
     machine, benchmark = _load_machine_contract(C_CONTRACT)
     assert machine["source_binding"]["source_commit"] == (
-        "fcc12119518f3d0187c9308e21aac4e15446d707"
+        "a442824d2a7b2e922547d6f033ecbc54aefd8d44"
     )
     assert machine["scientific_constants"]["surface_saturation_max_loading_ratio"] == 4.0
     assert machine["scientific_constants"]["surface_half_saturation_mol_L"] == 0.010
@@ -66,7 +70,7 @@ def test_p_asset_manifest_is_self_hashed_source_bound_and_world_specific() -> No
     )
     assert manifest["manifest_sha256"] == expected
     assert manifest["source_binding"]["source_commit"] == (
-        "b14f24cf1ed5859d8d58673e4af11f6b3c1d8ab2"
+        "a442824d2a7b2e922547d6f033ecbc54aefd8d44"
     )
     assert all(
         file_sha256(ROOT / row["path"]) == row["sha256"]
@@ -143,6 +147,26 @@ def test_p_calibration_contract_is_frozen_and_fully_bound() -> None:
     contract = load_calibration_contract(P_CALIBRATION_CONTRACT)
     assert contract["design"]["planned_executions"] == PLANNED_EXECUTIONS == 80
     assert len(contract["cells"]) == 40
+    assert contract["observation_noise_namespace"] == OBSERVATION_NOISE_NAMESPACE
+    assert len({row["observation_seed"] for row in contract["cells"]}) == 40
+
+
+def test_p_observation_seed_mapping_is_exact_and_unique() -> None:
+    contract = load_calibration_contract(P_CALIBRATION_CONTRACT)
+    observed = {
+        (row["cell_id"], row["observation_seed"]) for row in contract["cells"]
+    }
+    expected = {
+        (
+            f"{world_id}-r{reagent_index}-x{extractant}",
+            _observation_seed(world_id, reagent_index, extractant),
+        )
+        for world_id in (f"P-W0{index}" for index in range(1, 6))
+        for reagent_index in range(2)
+        for extractant in range(4)
+    }
+    assert observed == expected
+    assert len({seed for _, seed in observed}) == len(observed) == 40
 
 
 def test_p_calibration_harness_test_receipt_is_self_hashed_and_zero_data() -> None:
@@ -158,7 +182,7 @@ def test_p_calibration_harness_test_receipt_is_self_hashed_and_zero_data() -> No
     assert receipt["formal_qualification_execution_count"] == 0
     assert receipt["provider_call_count"] == 0
     assert receipt["checks"]["ruff"]["status"] == "pass"
-    assert receipt["checks"]["pytest"]["passed"] == 98
+    assert receipt["checks"]["pytest"]["passed"] == 103
     assert receipt["checks"]["pytest"]["failed"] == 0
     assert all(
         file_sha256(ROOT / row["path"]) == row["sha256"]
@@ -173,6 +197,10 @@ def test_p_calibration_harness_test_receipt_is_self_hashed_and_zero_data() -> No
         lambda value: value["cells"].__setitem__(1, dict(value["cells"][0])),
         lambda value: value["source_binding"]["files"].pop(),
         lambda value: value["gates"].update(minimum_public_law_gap=0.0),
+        lambda value: value.update(observation_noise_namespace="unfrozen-namespace"),
+        lambda value: value["cells"][1].update(
+            observation_seed=value["cells"][0]["observation_seed"]
+        ),
     ),
 )
 def test_p_calibration_contract_mutations_fail_closed(
@@ -189,6 +217,42 @@ def test_p_calibration_analysis_fails_closed_without_fixed_denominator() -> None
     analysis = analyze_p_calibration([])
     assert analysis["passed"] is False
     assert "fixed_execution_denominator" in analysis["failures"]
+
+
+def test_p_truth_binding_rejects_mixed_ids_and_hashes() -> None:
+    expected = {
+        "expected_world_id": "world-A",
+        "expected_world_hashes": {"world-hash-A"},
+        "expected_mechanism_hashes": {"mechanism-hash-A"},
+    }
+    assert _truth_sets_match(
+        **expected,
+        observed_world_ids={"world-A"},
+        observed_world_hashes={"world-hash-A"},
+        observed_mechanism_hashes={"mechanism-hash-A"},
+    )
+    assert not _truth_sets_match(
+        **expected,
+        observed_world_ids={"world-A", "world-B"},
+        observed_world_hashes={"world-hash-A"},
+        observed_mechanism_hashes={"mechanism-hash-A"},
+    )
+    assert not _truth_sets_match(
+        **expected,
+        observed_world_ids={"world-A"},
+        observed_world_hashes={"world-hash-A", "world-hash-B"},
+        observed_mechanism_hashes={"mechanism-hash-A", "mechanism-hash-B"},
+    )
+
+
+def test_p_trajectory_path_is_output_relative_and_cannot_escape(tmp_path: Path) -> None:
+    output = tmp_path / "calibration-output"
+    trajectory = output / "P-W01-r0-x0" / "constant_K" / "trajectory.jsonl"
+    assert _portable_output_path(trajectory, output) == (
+        "P-W01-r0-x0/constant_K/trajectory.jsonl"
+    )
+    with pytest.raises(ValueError, match="escapes the output root"):
+        _portable_output_path(tmp_path / "outside.jsonl", output)
 
 
 def test_p_asset_contract_has_five_distinct_executable_world_truths() -> None:
