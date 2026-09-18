@@ -844,6 +844,45 @@ def _minimal_snapshot(*, stage: str = "pre_evidence") -> dict[str, Any]:
     }
 
 
+def test_free_research_keeps_lab_and_final_commit_without_typed_checkpoints(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "free-campaign")
+    workspace.publish_belief_checkpoint_contract(
+        {"free_research": True, "snapshot_stages": [], "checkpoint_complete_experiments": []}
+    )
+    server = ChemWorldMCPServer(workspace.root)
+    material = server._call_tool("material_information", {})
+    assert not material.get("isError")
+    state = json.loads(material["content"][0]["text"])["belief_snapshot_submission"]
+    assert state["required_checkpoint_count"] == 0
+    tools = {item["name"]: item for item in server._tool_definitions()}
+    assert "decision_audit" not in tools["step"]["inputSchema"]["required"]
+    early = server._call_tool(
+        "commit_final_recommendation",
+        {"selected_experiment_index": 1, "selection_rationale": "observed best"},
+    )
+    assert early.get("isError")
+    for i in range(1, 13):
+        workspace.publish_campaign_progress(
+            session_id="free-campaign",
+            closed_batch_count=i,
+            completed_experiment_count=i,
+            completed_experiment_index=i,
+            observed_evidence_id=f"experiment-{i}-final-assay",
+            campaign_ended=i == 12,
+        )
+    terminal = server._call_tool(
+        "commit_final_recommendation",
+        {"selected_experiment_index": 7, "selection_rationale": "observed best"},
+    )
+    assert not terminal.get("isError")
+    assert (
+        workspace.final_recommendation_audit("free-campaign")["recommendation"][
+            "selected_experiment_index"
+        ]
+        == 7
+    )
+
+
 def _staged_header(snapshot: dict[str, Any]) -> dict[str, Any]:
     law_summary = dict(snapshot["law_summary"])
     law_summary.pop("metric_laws")

@@ -130,7 +130,8 @@ def serve(audit: Path, limit: int) -> None:
                                 "with +,-,*,/,**; array,log,exp,sqrt,abs,mean,sum,min,max,clip,"
                                 "linspace(start,stop,count),lstsq(design_matrix,target_vector). "
                                 "No variables/files/network/simulator. "
-                                "For an intercept include a ones column in lstsq. At most 8 calls."
+                                "For an intercept include a ones column in lstsq. "
+                                f"At most {limit} calls."
                             ),
                             "inputSchema": {
                                 "type": "object",
@@ -191,8 +192,8 @@ def main() -> None:
     parser.add_argument("--audit", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=8)
     args = parser.parse_args()
-    if not math.isfinite(args.limit) or not 1 <= args.limit <= 8:
-        raise ValueError("tool limit must be 1..8")
+    if not math.isfinite(args.limit) or not 1 <= args.limit <= 256:
+        raise ValueError("tool limit must be 1..256")
     serve(args.audit, args.limit)
 
 

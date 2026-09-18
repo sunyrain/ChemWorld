@@ -150,6 +150,12 @@ def _append_jsonl(path: Path, value: Any) -> None:
 class ChemWorldMCPServer:
     """Minimal, dependency-free MCP server with a deliberately narrow surface."""
 
+    def _free_research(self, descriptor: dict[str, Any]) -> bool:
+        if descriptor.get("session_scope") != "campaign":
+            return False
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        return contract.get("free_research") is True
+
     def __init__(self, workspace: Path) -> None:
         self.root = workspace.resolve(strict=True)
         self.agent = (self.root / "agent").resolve(strict=True)
@@ -353,6 +359,15 @@ class ChemWorldMCPServer:
         }
 
     def _belief_submission_state(self, descriptor: dict[str, Any]) -> dict[str, Any]:
+        if self._free_research(descriptor):
+            return {
+                "protocol": "free_research",
+                "all_checkpoints_committed": True,
+                "required_checkpoint_count": 0,
+                "instruction": (
+                    "Explore freely; scientific questions follow the completed campaign."
+                ),
+            }
         try:
             context = self._belief_stage_context(descriptor)
         except RuntimeError as error:
@@ -1778,7 +1793,7 @@ class ChemWorldMCPServer:
             raise RuntimeError("final recommendation is allowed only after campaign terminal")
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         stages = contract.get("snapshot_stages")
-        if not isinstance(stages, list) or not stages:
+        if not isinstance(stages, list) or (not stages and not self._free_research(descriptor)):
             raise ValueError("checkpoint contract has no snapshot stages")
         session_id = self._leaf(str(descriptor["session_id"]), label="session_id")
         snapshot_root = self.ipc / "sessions" / session_id / "belief_snapshots"
@@ -2051,7 +2066,7 @@ class ChemWorldMCPServer:
         if not isinstance(action, dict) or not isinstance(action.get("operation"), str):
             raise ValueError("action.operation is required")
         decision_audit: dict[str, Any] | None = None
-        if descriptor.get("session_scope") == "campaign":
+        if descriptor.get("session_scope") == "campaign" and not self._free_research(descriptor):
             raw_audit = arguments.get("decision_audit")
             if not isinstance(raw_audit, dict):
                 raise ValueError("campaign step requires decision_audit")
@@ -2694,6 +2709,7 @@ class ChemWorldMCPServer:
     def _tool_definitions(self) -> list[dict[str, Any]]:
         descriptor = self._descriptor()
         campaign = descriptor.get("session_scope") == "campaign"
+        typed_checkpoints = campaign and not self._free_research(descriptor)
         action_readout = descriptor.get("terminal_action_readout_required") is True
         action_contract = self._action_readout_contract() if action_readout else None
         action_prediction_mode = (
@@ -2789,7 +2805,7 @@ class ChemWorldMCPServer:
                 "additionalProperties": False,
             }
         snapshot_schema = (
-            self._staged_belief_snapshot_tool_schema() if campaign else {"type": "object"}
+            self._staged_belief_snapshot_tool_schema() if typed_checkpoints else {"type": "object"}
         )
         read_annotations = {
             "readOnlyHint": True,
@@ -2936,7 +2952,7 @@ class ChemWorldMCPServer:
                     },
                     "required": (
                         ["expected_step", "action", "decision_audit"]
-                        if campaign
+                        if typed_checkpoints
                         else ["expected_step", "action"]
                     ),
                     "additionalProperties": False,

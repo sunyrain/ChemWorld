@@ -3235,6 +3235,17 @@ def _initial_prompt(
             "submit_with": "chemworld_lab.step",
         },
     }
+    if campaign and task_contract.get("free_research_campaign") is True:
+        payload["instruction"] = (
+            "Complete the research campaign for the stated research_goal using public lab tools. "
+            "Choose experiments freely; there are no typed belief checkpoints or required law "
+            "forms. Preserve context across batches and close all 12 planned experiments. "
+            "After campaign terminal, commit one recommended completed experiment and submit "
+            "the short final handoff. Free mechanism reporting and blind prediction follow "
+            "in later turns without further lab access."
+        )
+        payload["belief_checkpoint_contract"] = None
+        payload["recipe_coverage_contract"] = None
     return _canonical_json(payload)
 
 
