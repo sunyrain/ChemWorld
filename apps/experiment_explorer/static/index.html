@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#102725" />
+    <title>ChemWorld · 实验观测台</title>
+    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/viewer.css" />
+    <script type="module" src="/app.mjs"></script>
+  </head>
+  <body>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="ChemWorld 首页"
+        ><span class="brand-mark">C<span>W</span></span
+        ><span>ChemWorld<small>EXPERIMENT OBSERVATORY</small></span></a
+      >
+      <div class="local-indicator">
+        <span class="live-dot"></span>本地工作空间
+      </div>
+      <div class="section-label">按实验类别浏览</div>
+      <nav id="categoryNav" aria-label="实验类别"></nav>
+      <div class="sidebar-note">
+        <span class="section-label">两种回放粒度</span>
+        <p>整组实验 · 比较多轮探索<br />单次实验 · 查看每步输入与输出</p>
+        <p>类别数字为档案条目数；跨类别档案可重复出现。各实验矩阵独立保留。</p>
+      </div>
+      <label class="dropzone" id="dropzone" for="fileInput"
+        ><span class="upload-icon">↥</span><strong>打开本地实验文件</strong
+        ><span>拖入或选择 JSON / JSONL</span><small>仅在本机读取</small></label
+      >
+      <input id="fileInput" type="file" accept=".json,.jsonl" multiple hidden />
+      <footer class="sidebar-footer">
+        CHEMWORLD / LOCAL EXPLORER<span>记录 · 观察 · 重放</span>
+      </footer>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div>
+          <span class="eyebrow">RESEARCH WORKSPACE</span>
+          <h1>实验观测台<span class="version-tag">LOCAL</span></h1>
+        </div>
+        <div class="topbar-actions">
+          <button id="focusWorkspace" class="button secondary">
+            扩展工作区</button
+          ><button id="refresh" class="button secondary">↻ 刷新目录</button>
+        </div>
+      </header>
+      <div id="notice" role="status" aria-live="polite" hidden></div>
+      <section class="overview" aria-label="本地索引统计">
+        <div>
+          <span>当前绑定报告</span><strong id="statReports">—</strong
+          ><small>按证据绑定去重</small>
+        </div>
+        <div>
+          <span>本地实验批次</span><strong id="statRuns">—</strong
+          ><small>完整批次与失败记录</small>
+        </div>
+        <div>
+          <span>可检索轨迹文件</span><strong id="statTrajectories">—</strong
+          ><small>选择后按需读取</small>
+        </div>
+        <div class="index-status">
+          <span class="live-dot"></span>
+          <div>
+            <strong id="indexState">正在建立索引</strong
+            ><small id="indexTime">读取当前证据与本地目录</small>
+          </div>
+        </div>
+      </section>
+      <section class="workspace">
+        <section class="library" aria-label="实验目录">
+          <div class="panel-heading">
+            <h2>实验目录</h2>
+            <span id="resultCount" class="muted">—</span>
+          </div>
+          <label class="search-field"
+            ><span>⌕</span
+            ><input
+              id="search"
+              type="search"
+              placeholder="搜索实验、任务或路径"
+              aria-label="搜索实验"
+          /></label>
+          <div class="filters">
+            <select id="source" aria-label="档案来源">
+              <option value="all">全部来源</option>
+              <option value="report">绑定报告</option>
+              <option value="run">本地记录</option>
+              <option value="import">导入文件</option></select
+            ><select id="mode" aria-label="证据身份">
+              <option value="">全部身份</option>
+              <option value="development">开发</option>
+              <option value="formal">正式</option>
+              <option value="historical">历史</option>
+              <option value="unspecified">未声明</option>
+            </select>
+          </div>
+          <div id="entryList" class="entry-list">
+            <div class="empty">正在索引本地实验…</div>
+          </div>
+          <div class="pagination">
+            <button id="prevEntries" aria-label="上一页实验">←</button
+            ><span id="entryPage">1 / 1</span
+            ><button id="nextEntries" aria-label="下一页实验">→</button>
+          </div>
+        </section>
+        <section class="detail" id="detail" aria-label="实验详情">
+          <div class="welcome">
+            <span class="welcome-cross">＋</span>
+            <h2>选择一个实验，展开完整记录</h2>
+            <p>查看报告、比较条件，或沿着每一步操作重放实验。</p>
+          </div>
+        </section>
+      </section>
+      <footer class="main-footer">
+        <span>本地文件保持原样 · 不调用模型服务</span
+        ><span id="footerStatus">等待选择实验</span>
+      </footer>
+    </main>
+    <dialog id="inspector">
+      <div class="panel-heading">
+        <h2 id="inspectorTitle">记录详情</h2>
+        <button id="closeInspector" class="button secondary">关闭</button>
+      </div>
+      <div id="inspectorBody"></div>
+    </dialog>
+  </body>
+</html>

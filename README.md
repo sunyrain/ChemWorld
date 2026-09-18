@@ -64,6 +64,16 @@ chemworld evaluate --submission runs/<trajectory>.jsonl
 
 Evaluation replays the trajectory and recomputes metrics rather than trusting a score supplied by the agent.
 
+Browse existing experiments and replay local files in the [Experiment Observatory](apps/experiment_explorer/README.md):
+
+```bash
+uv run --no-sync python -m apps.experiment_explorer
+# Open http://127.0.0.1:8890
+```
+
+The local, read-only interface indexes current bound reports and run archives, plots recorded metrics,
+and supports JSON/JSONL import, step playback, resource inspection, and native exact-replay verification.
+
 ## Use the environment
 
 ```python
