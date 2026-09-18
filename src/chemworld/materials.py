@@ -113,11 +113,48 @@ def anonymous_electrochemical_material_catalog() -> dict[str, Any]:
     }
 
 
+def anonymous_partition_material_catalog() -> dict[str, Any]:
+    """Expose independent S/X labels without attaching real solvent identities."""
+    return {
+        "catalog_version": "chemworld-public-partition-materials-1.0",
+        "presentation": "anonymous_material_ids",
+        **{
+            key: [
+                {
+                    "index": index,
+                    "anonymous_material_id": f"{role}-{prefix}{index}",
+                    "display_name": f"{role}-{prefix}{index}",
+                    "identity_kind": f"anonymous_benchmark_{role}",
+                    "reference_status": "no_real_material_identity_claimed",
+                }
+                for index in range(len(SOLVENTS))
+            ]
+            for key, role, prefix in (
+                ("solvents", "solvent", "S"),
+                ("extractants", "extractant", "X"),
+            )
+        },
+        "reagent": {
+            "canonical_id": "limiting_reagent",
+            "display_name": "Anonymous limiting reagent",
+            "identity_kind": "mechanism_role",
+            "reference_status": "mechanism_specific_not_a_real_identity",
+        },
+        "interpretation_policy": (
+            "Solvent S and extractant X are independent benchmark labels, not real "
+            "substance identities. Equal indices across the two fields imply no shared "
+            "identity or property. The catalog provides no material-property estimates."
+        ),
+    }
+
+
 def public_material_catalog(*, task_id: str | None = None) -> dict[str, Any]:
     """Return names, reference status, and interpretation policy for task materials."""
 
     if task_id == _ELECTROCHEMICAL_TASK_ID:
         return anonymous_electrochemical_material_catalog()
+    if task_id == _PARTITION_TASK_ID:
+        return anonymous_partition_material_catalog()
     registry = curated_component_registry()
     solvents: list[dict[str, Any]] = []
     for index, solvent_id in enumerate(SOLVENTS):
@@ -204,7 +241,9 @@ def material_choice_labels(
 
     catalog = public_material_catalog(task_id=task_id)
     key = (
-        "solvents"
+        "extractants"
+        if field == "extractant" and task_id == _PARTITION_TASK_ID
+        else "solvents"
         if field in {"solvent", "extractant"}
         else "catalysts"
         if field == "catalyst"
@@ -223,7 +262,7 @@ def material_choice_labels(
         return {}
     labels: dict[str, str] = {}
     for item in catalog[key]:
-        if task_id == _ELECTROCHEMICAL_TASK_ID:
+        if task_id in {_ELECTROCHEMICAL_TASK_ID, _PARTITION_TASK_ID}:
             labels[str(item["index"])] = str(item["anonymous_material_id"])
             continue
         reference = str(item["reference_status"])

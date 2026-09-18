@@ -883,6 +883,30 @@ def test_free_research_keeps_lab_and_final_commit_without_typed_checkpoints(tmp_
     )
 
 
+def test_knowledge_delivery_does_not_require_an_operating_recommendation(tmp_path: Path) -> None:
+    workspace = _campaign_workspace(tmp_path, "knowledge-campaign")
+    workspace.publish_belief_checkpoint_contract({
+        "free_research": True, "final_recommendation_required": False,
+        "snapshot_stages": [], "checkpoint_complete_experiments": [],
+    })
+    server = ChemWorldMCPServer(workspace.root)
+    initialized = server._dispatch({"jsonrpc": "2.0", "id": 1, "method": "initialize"})
+    assert "commit_final_recommendation" not in initialized["result"]["instructions"]
+    server._terminal_outcome = {"campaign_ended": True}
+    contract = server._status()["final_response_contract"]
+    assert contract["status"] == "campaign_complete"
+    assert contract["final_recommendation_contract"] is None
+    server._terminal_outcome = {"campaign_ended": True}
+    assert "commit_final_recommendation" not in server._status()["instruction"]
+    assert "do not call step again" in server._status()["instruction"]
+    # Ordinary typed protocols cannot disable their required delivery this way.
+    workspace.publish_belief_checkpoint_contract({
+        "final_recommendation_required": False,
+        "snapshot_stages": ["final"], "checkpoint_complete_experiments": [12],
+    })
+    assert server._status()["final_response_contract"]["final_recommendation_contract"]
+
+
 def _staged_header(snapshot: dict[str, Any]) -> dict[str, Any]:
     law_summary = dict(snapshot["law_summary"])
     law_summary.pop("metric_laws")

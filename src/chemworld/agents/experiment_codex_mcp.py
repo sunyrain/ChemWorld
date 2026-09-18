@@ -156,6 +156,12 @@ class ChemWorldMCPServer:
         contract = _read_object(self.reference / "belief_checkpoint_contract.json")
         return contract.get("free_research") is True
 
+    def _knowledge_delivery(self, descriptor: dict[str, Any]) -> bool:
+        if not self._free_research(descriptor):
+            return False
+        contract = _read_object(self.reference / "belief_checkpoint_contract.json")
+        return contract.get("final_recommendation_required") is False
+
     def __init__(self, workspace: Path) -> None:
         self.root = workspace.resolve(strict=True)
         self.agent = (self.root / "agent").resolve(strict=True)
@@ -224,6 +230,8 @@ class ChemWorldMCPServer:
                                 "candidate operations, then rank and commit exactly one selection "
                                 "with commit_final_recommendation, "
                                 if action_readout
+                                else "submit the short research handoff without selecting a batch, "
+                                if self._knowledge_delivery(descriptor)
                                 else "commit exactly one participant-owned completed-batch "
                                 "selection with commit_final_recommendation, "
                             )
@@ -1141,6 +1149,8 @@ class ChemWorldMCPServer:
                     "terminal_action_readout after the checkpoint is committed, then call "
                     "commit_final_recommendation exactly once and submit the final response; "
                     if action_readout
+                    else "submit the short research handoff without selecting a batch; "
+                    if self._knowledge_delivery(descriptor)
                     else "commit_final_recommendation exactly once, then submit the final "
                     "response; "
                 )
@@ -1152,6 +1162,7 @@ class ChemWorldMCPServer:
                 campaign=campaign,
                 terminal_action_readout=action_readout,
                 terminal_prediction_mode=action_prediction_mode,
+                final_recommendation_required=not self._knowledge_delivery(descriptor),
             ),
         }
         if campaign:
@@ -1213,6 +1224,7 @@ class ChemWorldMCPServer:
         campaign: bool,
         terminal_action_readout: bool = False,
         terminal_prediction_mode: str = "full_metrics",
+        final_recommendation_required: bool = True,
     ) -> dict[str, Any]:
         return {
             "format": "json_object_only",
@@ -1246,7 +1258,7 @@ class ChemWorldMCPServer:
                         "committed_before_blind_evaluation": True,
                     }
                 )
-                if campaign
+                if campaign and final_recommendation_required
                 else None
             ),
             "prose_or_markdown_allowed": False,

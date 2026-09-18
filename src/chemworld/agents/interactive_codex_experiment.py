@@ -3239,9 +3239,16 @@ def _initial_prompt(
         payload["instruction"] = (
             "Complete the research campaign for the stated research_goal using public lab tools. "
             "Choose experiments freely; there are no typed belief checkpoints or required law "
-            "forms. Preserve context across batches and close all 12 planned experiments. "
-            "After campaign terminal, commit one recommended completed experiment and submit "
-            "the short final handoff. Free mechanism reporting and blind prediction follow "
+            "forms. Preserve context across batches and close the experiments specified "
+            "by the published campaign budget. "
+            + (
+                "After campaign terminal, submit the short research handoff; no operating "
+                "recommendation is required. "
+                if task_contract.get("final_recommendation_required") is False
+                else "After campaign terminal, commit one recommended completed experiment "
+                "and submit the short final handoff. "
+            )
+            + "Free mechanism reporting and blind prediction follow "
             "in later turns without further lab access."
         )
         payload["belief_checkpoint_contract"] = None

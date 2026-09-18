@@ -9,7 +9,7 @@ from collections import Counter
 from pathlib import Path
 
 from scripts.run_work_ii_astra_single_trial import read, write
-from scripts.run_work_ii_ec_dual_goal_trial import K1, K2, METRICS, summaries
+from scripts.run_work_ii_ec_dual_goal_trial import METRICS, summaries
 
 from chemworld.data.logging import load_jsonl
 
@@ -449,11 +449,13 @@ def append_cell(row, root, out, posttest_root, truth):
         if row["posttest_procedure_amendment"]:
             posttest_folder = folder / "posttest-completion"
         prompt_path = posttest_folder / stage / "prompt.txt"
+        design_path = folder.parent / "design.json"
+        saved_design = read(design_path) if design_path.exists() else {}
         lines += [
             (
                 prompt_path.read_text(encoding="utf-8")
                 if prompt_path.exists()
-                else {"K1": K1, "K2": K2}.get(stage, "该阶段未执行；题目见固定设计。")
+                else saved_design.get(stage, "实际问题未保存；不能用当前代码补写历史输入。")
             ),
             "",
         ]
@@ -681,6 +683,10 @@ def main():
     figures(core_rows, out)
     lines = [
         "# EC 单世界：十二批自由研究、三臂与机理/预测后测",
+        "",
+        "当前设计及前瞻修正见[矩阵第9.8节](../../WORK_II_EXPERIMENT_MATRIX.md)。"
+        "本报告保留历史实验口径；自主组批不是违规，单次低分、窄域小误差或未形成反证"
+        "都不能单独证明系统性失效。",
         "",
         f"模型 GPT-5.6 Sol / medium；开发数据。原协议核心完整链 "
         f"{output['core_complete_chains']}/{planned_core}，"

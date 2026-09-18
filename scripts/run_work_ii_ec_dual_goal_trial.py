@@ -32,6 +32,7 @@ from chemworld.world.operations import operation_contracts
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "electrochemical-conversion"
+PROTOCOL_VERSION = "ec-free-research-development-v2"
 PROVIDER = {
     "id": "chemworld_openai_https",
     "name": "OpenAI",
@@ -84,28 +85,48 @@ K1 = """实验阶段已结束，操作建议已经封存。现在请用中文提
 引用真实批次编号与数值，区分实际观测、外推和猜测；不补做实验，不编造未测信息。
 请充分展开，不必压成短摘要。返回 JSON 的 report 字段。此报告封存后才给预测题。
 """
-K2 = """机理报告和盲预测已经封存，尚未向你反馈任何预测真值。请用中文逐项深入复盘：
-1. 初始资料中，哪些主张被支持、反驳或仍未检验？引用实际批次、测量及比较，并区分
-   没有观察到反证与已有反证却未修正。若没有相应先验，明确说明。
-2. 哪些实验改变了你的判断？哪些决定依赖先验、数据或猜测？可追溯引用证据。
-3. 最重要的竞争机理是什么？现有实验能否区分？列出仍不可识别的因素。
-4. 若多给一次完整实验，你具体会怎么做、测什么？不同结果会怎样改变判断？不执行。
-5. 探索机理与提高操作得分是否冲突？举出本场为主要目标作出的取舍和可能遗漏。
-6. 报告或预测中有哪些证据被省略、压缩或难以利用？哪些预测最不可靠，为什么？
-7. 你对提交的操作建议有什么局限判断？怎样检验它的重复性与可推广范围？
-允许承认不足，勿把事后解释写成当时已经记录的想法。返回 JSON 的 report 字段。
+K2 = """机理报告和盲预测已经封存，尚未反馈预测真值。请用中文回答三点，引用批号，避免重复全文：
+1. 哪条资料或自建规律被支持、反驳或仍未验证？哪些实际证据改变了判断？没有先验可明确说明。
+2. 若再有一次实验，如何区分主要解释与竞争解释？预期不同结果会怎样改变判断？不执行。
+3. 哪些证据未使用、哪些预测或操作建议最不可靠？本场目标是否影响取证选择？允许回答无明显冲突。
+勿把事后解释写成当时已记录的想法。返回 JSON 的 report 字段。
 """
 
 
 def resource_card(batches=12):
+    operations = 30 * batches
     return CampaignResourceCard(
-        card_id=f"ec-free-research-{batches}",
-        operation_attempt_limit=30 * batches,
+        card_id=f"ec-free-research-v2-{batches}",
+        operation_attempt_limit=operations,
         vessel_start_limit=batches,
         final_assay_limit=batches,
         nonfinal_instrument_use_limit=batches,
-        stock_limits={"reagent_mol": 0.04 * batches, "solvent_L": 0.08 * batches},
-        process_time_limit_s=12000 * batches,
+        stock_limits={"reagent_mol": 0.04 * operations, "solvent_L": 0.08 * operations},
+        process_time_limit_s=None,
+    )
+
+
+def planned_units(cell_ids):
+    """Keep the explicitly selected scope; never expand it to a factorial queue."""
+    allowed = {
+        f"{goal}-{locus}-{arm}": (goal, locus, arm)
+        for goal in GOALS
+        for locus in "EPS"
+        for arm in ("Opaque", "Aligned", "MisIndexed")
+    }
+    if not cell_ids or len(set(cell_ids)) != len(cell_ids):
+        raise ValueError("select a nonempty list of unique goal-locus-arm units")
+    if any(cell not in allowed for cell in cell_ids):
+        raise ValueError("unknown goal-locus-arm unit")
+    return [allowed[cell] for cell in cell_ids]
+
+
+def posttest_context_available(receipt):
+    """A valid terminal handoff, not scientific success, permits same-thread questions."""
+    return bool(
+        receipt.get("thread_id")
+        and receipt.get("final_payload_valid") is True
+        and not receipt.get("provider_error_event_count", 0)
     )
 
 
@@ -714,18 +735,26 @@ def run_cell(root, goal, locus, arm, truth, progress):
         result["source_status"] = (
             "completed" if len(result["batches"]) == 12 and not result["failure"] else "failed"
         )
-        if thread_id and result["source_status"] == "completed":
+        result["source_failure"] = result["failure"]
+        result["posttest_status"] = "unavailable"
+        if posttest_context_available(last):
             for stage in ("K1", "Q", "K2"):
                 progress["phase"] = stage
                 turn = posttest(agent, folder, stage, thread_id, progress)
                 result["posttests"][stage] = turn
                 if turn.get("failure"):
-                    result["failure"] = {
+                    result["posttest_failure"] = {
                         "type": "posttest_failure",
                         "stage": stage,
                         "message": turn["failure"],
                     }
+                    result["failure"] = result["failure"] or result["posttest_failure"]
                     break
+            result["posttest_status"] = (
+                "completed"
+                if len(result["posttests"]) == 3 and not result.get("posttest_failure")
+                else "failed"
+            )
             result["prediction_evaluation"] = evaluate_predictions(
                 result["posttests"].get("Q", {}).get("payload"), truth
             )
@@ -763,16 +792,27 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--engineering-only", action="store_true")
+    parser.add_argument(
+        "--units",
+        nargs="+",
+        required=True,
+        help="Explicit ordered cells, e.g. discovery-E-Opaque optimization-E-Opaque",
+    )
     args = parser.parse_args()
+    units = planned_units(args.units)
+    total = len(units)
     root = args.output.resolve()
     root.mkdir(parents=True, exist_ok=True)
     # Commit the actual questions and full recipe table before any physical/provider execution.
     frozen = {
+        "protocol_version": PROTOCOL_VERSION,
+        "units": args.units,
+        "resource_card": resource_card().to_dict(),
         "model": PROVIDER["model"],
         "reasoning_effort": "medium",
         "world": "EC-W01",
-        "source_sessions": 18,
-        "source_batches": 216,
+        "source_sessions": total,
+        "source_batches": 12 * total,
         "queries": queries(),
         "system": SYSTEM,
         "goals": GOALS,
@@ -783,9 +823,8 @@ def main():
     if (root / "design.json").exists() and read(root / "design.json") != frozen:
         raise RuntimeError("existing development block design differs")
     write(root / "design.json", frozen)
-    for locus in "EPS":
-        for arm in ("Opaque", "Aligned", "MisIndexed"):
-            priors(locus, arm)
+    for _, locus, arm in units:
+        priors(locus, arm)
     engineering = root / "engineering"
     if not (engineering / "result.json").exists():
         actions = []
@@ -827,7 +866,7 @@ def main():
             raise RuntimeError(f"blind truth failed: {query['query_id']}")
         truth[query["query_id"]] = record["batches"][0]["metrics"]
     write(root / "truth.json", truth)
-    progress = {"completed": 0, "total": 18, "stage": "starting"}
+    progress = {"completed": 0, "total": total, "stage": "starting"}
     stop = threading.Event()
     started = time.monotonic()
 
@@ -840,7 +879,7 @@ def main():
                     {
                         **progress,
                         "elapsed_s": round(elapsed),
-                        "eta_s": round(elapsed / done * (18 - done)) if done else None,
+                        "eta_s": round(elapsed / done * (total - done)) if done else None,
                     },
                     default=str,
                 ),
@@ -851,39 +890,37 @@ def main():
     thread.start()
     results = []
     try:
-        for goal in GOALS:
-            for locus in "EPS":
-                for arm in ("Opaque", "Aligned", "MisIndexed"):
-                    result = run_cell(root, goal, locus, arm, truth, progress)
-                    results.append(result)
-                    progress["completed"] = len(results)
-                    write(
-                        root / "summary.json",
-                        {
-                            "planned_sources": 18,
-                            "planned_batches": 216,
-                            "attempted_sources": len(results),
-                            "completed_sources": sum(r["status"] == "completed" for r in results),
-                            "results": results,
-                        },
-                    )
-                    print(
-                        json.dumps(
-                            {
-                                "cell": result["cell_id"],
-                                "status": result["status"],
-                                "completed": len(results),
-                                "total": 18,
-                            }
-                        ),
-                        flush=True,
-                    )
-                    if result["failure"] and result["operations"] == 0:
-                        raise RuntimeError("shared pre-action startup failure; stop the block")
-                    if result["failure"] and result["failure"].get("type") == "posttest_failure":
-                        failed_turn = result["posttests"][result["failure"]["stage"]]
-                        if not failed_turn.get("thread_id"):
-                            raise RuntimeError("posttest could not start a turn; stop the block")
+        for goal, locus, arm in units:
+            result = run_cell(root, goal, locus, arm, truth, progress)
+            results.append(result)
+            progress["completed"] = len(results)
+            write(
+                root / "summary.json",
+                {
+                    "planned_sources": total,
+                    "planned_batches": 12 * total,
+                    "attempted_sources": len(results),
+                    "completed_sources": sum(r["status"] == "completed" for r in results),
+                    "results": results,
+                },
+            )
+            print(
+                json.dumps(
+                    {
+                        "cell": result["cell_id"],
+                        "status": result["status"],
+                        "completed": len(results),
+                        "total": total,
+                    }
+                ),
+                flush=True,
+            )
+            if result["source_failure"] and result["operations"] == 0:
+                raise RuntimeError("shared pre-action startup failure; stop the block")
+            if result.get("posttest_failure"):
+                failed_turn = result["posttests"][result["posttest_failure"]["stage"]]
+                if not failed_turn.get("thread_id"):
+                    raise RuntimeError("posttest could not start a turn; stop the block")
     finally:
         stop.set()
         thread.join(timeout=2)

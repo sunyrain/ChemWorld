@@ -88,6 +88,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         payload["composition_request"] = env.compiled_composition.spec.to_dict()
     if env.task_id in {
         "electrochemical-conversion",
+        "partition-discovery",
         "reaction-to-crystallization",
         "reaction-to-distillation",
     }:

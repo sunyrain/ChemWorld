@@ -10,6 +10,7 @@ from examples.demo_dataset_agent_trace_export import build_demo
 
 import chemworld  # noqa: F401
 from chemworld.agent_interface import rl_observation_spec
+from chemworld.agents.interactive_codex_experiment import _material_information_payload
 from chemworld.agents.llm import LLMReplayAgent, ToolUsingLLMStubAgent
 from chemworld.data.datasets import flatten_record
 from chemworld.data.logging import load_jsonl
@@ -22,6 +23,53 @@ from chemworld.wrappers import (
     LLMObservationWrapper,
     RLObservationWrapper,
 )
+
+
+@pytest.mark.parametrize(
+    "mode",
+    [
+        "opaque_codes",
+        "anonymous_nominal_properties",
+        "anonymous_misindexed_properties",
+    ],
+)
+def test_partition_public_surfaces_hide_identity_and_deliver_selected_prior(mode) -> None:
+    material = {"mode": mode}
+    if mode == "anonymous_misindexed_properties":
+        material.update(target_field="extractant", descriptor_permutation=[3, 1, 2, 0])
+    env = gym.make(
+        "ChemWorld", task_id="partition-discovery", seed=0, material_information=material
+    )
+    try:
+        _, info = env.reset(seed=0)
+        base = env.unwrapped
+        task = base.task_info()
+        public = _material_information_payload(task)
+        schemas = [base.action_schema(op) for op in task["allowed_operations"]]
+        surfaces = json.dumps([base.task_prompt(), public, schemas, info]).lower()
+        for forbidden in ("ethanol", "acetonitrile", "toluene", "cas_number", '"formula"'):
+            assert forbidden not in surfaces
+        # Water as the public aqueous phase is legitimate; a material named Water is not.
+        assert '"display_name": "water"' not in surfaces
+        assert public["material_catalog"]["solvents"][0]["display_name"] == "solvent-S0"
+        assert public["material_catalog"]["extractants"][0]["display_name"] == "extractant-X0"
+        for operation, field, prefix in (
+            ("add_solvent", "solvent", "solvent-S"),
+            ("add_extractant", "extractant", "extractant-X"),
+        ):
+            fields = {f["field"]: f for f in base.action_schema(operation)["fields"]}
+            assert fields[field]["choice_labels"] == {str(i): f"{prefix}{i}" for i in range(4)}
+        dossier = public["material_information"]["dossier"]
+        if mode == "opaque_codes":
+            assert dossier is None
+        else:
+            from chemworld.materials import static_material_information_dossier
+
+            assert dossier == static_material_information_dossier(material, task_id=task["task_id"])
+            assert "product_distribution_coefficients" not in json.dumps(dossier)
+        assert "misindexed_properties" not in json.dumps(public)
+    finally:
+        env.close()
 
 
 def test_env_exposes_agent_facing_methods() -> None:
