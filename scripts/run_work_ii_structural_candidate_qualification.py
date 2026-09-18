@@ -41,8 +41,7 @@ DEFAULT_OUTPUT_ROOT = (
     ROOT / "runs/development/work-ii-structural-candidate-qualification-v0.2-20260811"
 )
 DEFAULT_SUMMARY = (
-    ROOT
-    / "workstreams/flagship_tasks/reports/"
+    ROOT / "workstreams/flagship_tasks/reports/"
     "work-ii-structural-candidate-qualification-v0.2-20260811.json"
 )
 DEFAULT_PACKAGE = ROOT / "configs/benchmark/work_ii_structural_candidate_package_v0.2.json"
@@ -109,8 +108,7 @@ def _rollback_rows(records: Sequence[Mapping[str, Any]]) -> list[Mapping[str, An
     return [
         row
         for row in records
-        if row.get("transaction_status") == "rolled_back"
-        or row.get("rollback_reason") is not None
+        if row.get("transaction_status") == "rolled_back" or row.get("rollback_reason") is not None
     ]
 
 
@@ -227,15 +225,28 @@ def _execute_query(
     world_seed: int,
     query_spec: Mapping[str, Any],
     output_root: Path,
+    observation_seed: int | None = None,
+    observation_noise_namespace: str | None = None,
 ) -> dict[str, Any]:
     query = compile_evaluator_truth_query(config, query_spec)
     query_root = output_root / str(query["query_id"])
     query_root.mkdir(parents=True, exist_ok=False)
     trajectory = query_root / "trajectory.jsonl"
-    observation_seed, namespace, coordinate_hash = _observation_binding(
+    default_seed, default_namespace, default_coordinate_hash = _observation_binding(
         candidate_id,
         world_seed,
         str(query["query_id"]),
+    )
+    observation_seed = default_seed if observation_seed is None else int(observation_seed)
+    namespace = (
+        default_namespace
+        if observation_noise_namespace is None
+        else str(observation_noise_namespace)
+    )
+    coordinate_hash = (
+        default_coordinate_hash
+        if observation_noise_namespace is None
+        else canonical_json_sha256({"namespace": namespace, "seed": observation_seed})
     )
     failure: dict[str, str] | None = None
     physical_failure: dict[str, Any] | None = None
@@ -257,12 +268,8 @@ def _execute_query(
             output_path=trajectory,
             budget_override=len(query["action_plan"]),
             episode_mode_override="single_experiment",
-            electrochemical_material_family_id=config.get(
-                "electrochemical_material_family_id"
-            ),
-            crystallization_material_family_id=config.get(
-                "crystallization_material_family_id"
-            ),
+            electrochemical_material_family_id=config.get("electrochemical_material_family_id"),
+            crystallization_material_family_id=config.get("crystallization_material_family_id"),
             electrochemical_workflow_mode=str(query["workflow_mode"]),
             scoring_contract_id=config.get("scoring_contract_id"),
             observation_noise_mode="keyed",
