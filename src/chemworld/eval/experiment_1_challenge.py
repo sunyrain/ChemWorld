@@ -75,7 +75,15 @@ def _entity_probe(report: Mapping[str, Any], rule: Mapping[str, Any]) -> dict[st
     if anchors:
         active_rows = [_mapping(row) for row in anchors]
         active_score = max(
-            (float(row.get("signal_to_noise_ratio", 0.0)) for row in active_rows),
+            (
+                float(
+                    row.get(
+                        "signal_to_noise_ratio",
+                        row.get("support_signal_to_noise_ratio", 0.0),
+                    )
+                )
+                for row in active_rows
+            ),
             default=0.0,
         )
         active_passed = any(row.get("passed") is True for row in active_rows)
@@ -109,13 +117,20 @@ def _reflection_probe(report: Mapping[str, Any], rule: Mapping[str, Any]) -> dic
     checks = _mapping(selected.get("checks"))
     matching = _mapping(analysis.get("prior_matching"))
     priors = _mapping(analysis.get("public_priors"))
-    centres = []
+    contexts = []
     for name in ("supplied_a", "supplied_b"):
         context = _mapping(_mapping(priors.get(name)).get("context_contract"))
-        centre = context.get("coordinate_center")
-        if _finite(centre):
-            centres.append(float(centre))
-    centred = len(centres) == 2 and centres[0] == centres[1]
+        if _finite(context.get("coordinate_center")):
+            centre: Any = {"coordinate_center": float(context["coordinate_center"])}
+        else:
+            centre = _mapping(context.get("approximate_reference_region"))
+        contexts.append(
+            {
+                "centre": centre,
+                "target_controls": list(_sequence(context.get("target_controls"))),
+            }
+        )
+    centred = len(contexts) == 2 and contexts[0] == contexts[1] and bool(contexts[0]["centre"])
     plausible = bool(
         matching.get("passed")
         and checks.get("baseline_utility_matched")
@@ -383,6 +398,7 @@ def build_probe_summary(
     *,
     root: Path,
     evidence_roots: Sequence[Path],
+    source_commit: str | None = None,
 ) -> dict[str, Any]:
     """Evaluate all frozen challenge probes without changing World evidence."""
 
@@ -496,6 +512,7 @@ def build_probe_summary(
         "provider_call_count": 0,
         "participant_execution_authorized": False,
         "confirmation_execution_authorized": False,
+        "source_commit": source_commit or "unbound-test",
         "contract_sha256": canonical_json_sha256(contract),
         "source_registry_sha256": registry.get("registry_sha256"),
         "denominators": {

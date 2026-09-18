@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.eval.experiment_1_challenge import build_probe_summary
-from chemworld.eval.provenance import write_json_atomic
+from chemworld.eval.provenance import git_source_commit, write_json_atomic
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -73,6 +73,7 @@ def main() -> int:
         _load(args.registry.resolve()),
         root=ROOT,
         evidence_roots=[path.resolve() for path in args.evidence_root],
+        source_commit=git_source_commit(ROOT),
     )
     write_json_atomic(output, summary)
     markdown.parent.mkdir(parents=True, exist_ok=True)

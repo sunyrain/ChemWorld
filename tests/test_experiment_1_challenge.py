@@ -51,7 +51,7 @@ def test_entity_probe_requires_paired_conditions() -> None:
                 {"own_mapping_closer": True},
             ]
         },
-        "anchor_results": [{"passed": True, "signal_to_noise_ratio": 4.2}],
+        "anchor_results": [{"passed": True, "support_signal_to_noise_ratio": 4.2}],
     }
     probe = challenge._entity_probe(report, {"minimum_active_snr": 2.0})
 
@@ -59,6 +59,39 @@ def test_entity_probe_requires_paired_conditions() -> None:
     assert probe["default_one_shot_reliably_discriminates"] is False
     assert probe["active_information_passed"] is True
     assert probe["minimum_reliable_unique_condition_cost"] == 2
+
+
+def test_reflection_probe_accepts_rx_reference_region() -> None:
+    context = {
+        "approximate_reference_region": {
+            "reaction_temperature_K": 420.0,
+            "reaction_duration_s": 3300.0,
+        },
+        "target_controls": ["reaction_temperature_K", "reaction_duration_s"],
+    }
+    report = {
+        "legacy_analysis": {
+            "prior_matching": {"passed": True},
+            "public_priors": {
+                "supplied_a": {"context_contract": context},
+                "supplied_b": {"context_contract": context},
+            },
+            "selected_reflection": {
+                "axis": "temperature",
+                "disagreement_fraction": 0.5,
+                "checks": {
+                    "baseline_utility_matched": True,
+                    "low_side_falsification_region": True,
+                    "high_side_falsification_region": True,
+                    "representatives_separated": True,
+                },
+            },
+        }
+    }
+    probe = challenge._reflection_probe(report, {"minimum_active_disagreement_fraction": 0.25})
+
+    assert probe["plausibility_passed"] is True
+    assert probe["active_information_passed"] is True
 
 
 def test_build_probe_summary_preserves_full_denominator_and_fail_closed(
