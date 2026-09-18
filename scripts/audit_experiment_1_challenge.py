@@ -40,11 +40,33 @@ def _gate(rows: list[Mapping[str, Any]], gate: str) -> bool:
     )
 
 
-def build_audit(registry_path: Path) -> dict[str, Any]:
+def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
     registry = _load(registry_path)
+    probes = _load(probes_path)
     rows = registry.get("rows")
     if not isinstance(rows, list) or len(rows) != 105:
         raise ValueError("challenge audit requires the complete 105-unit registry")
+    if probes.get("schema_version") != "chemworld-experiment-1-challenge-probes-1.0":
+        raise ValueError("unexpected challenge probe schema")
+    probe_denominators = probes.get("denominators")
+    if not isinstance(probe_denominators, Mapping) or any(
+        probe_denominators.get(key) != value
+        for key, value in {
+            "planned_world_probe_rows": 50,
+            "attempted_world_probe_rows": 50,
+            "completed_world_probe_rows": 50,
+            "candidate_loci": 10,
+        }.items()
+    ):
+        raise ValueError("challenge probe denominator is incomplete")
+    if probes.get("source_registry_sha256") != registry.get("registry_sha256"):
+        raise ValueError("challenge probes are bound to a different convergence registry")
+    probe_loci = probes.get("loci")
+    if not isinstance(probe_loci, list) or len(probe_loci) != 10:
+        raise ValueError("challenge probes must contain ten locus decisions")
+    probes_by_block = {str(row.get("block")): row for row in probe_loci if isinstance(row, Mapping)}
+    if len(probes_by_block) != 10:
+        raise ValueError("challenge probe block identifiers are incomplete or duplicated")
     loci: list[dict[str, Any]] = []
     systems = ("EC", "RX", "PA", "FL", "C", "P", "D")
     locus_ids = ("entity", "parametric", "structural")
@@ -59,35 +81,34 @@ def build_audit(registry_path: Path) -> dict[str, Any]:
                 row.get("current_status") != "qualified-development" for row in selected
             ):
                 continue
+            block = f"{system}-{locus[0].upper()}"
+            probe = probes_by_block.get(block)
+            if not isinstance(probe, Mapping) or probe.get("world_probe_rows") != 5:
+                raise ValueError(f"missing five-World challenge probe for {block}")
+            probe_checks = probe.get("checks")
+            if not isinstance(probe_checks, Mapping):
+                raise ValueError(f"missing challenge checks for {block}")
+
+            def probe_check(
+                name: str, frozen_checks: Mapping[str, Any] = probe_checks
+            ) -> dict[str, str]:
+                passed = frozen_checks.get(name) is True
+                return {
+                    "status": "passed" if passed else "failed",
+                    "evidence": (
+                        f"five-World frozen challenge probe {probes['challenge_probe_sha256']}"
+                    ),
+                }
+
             checks = {
                 "schema_symmetry": {
                     "status": "passed" if _gate(selected, "Q4_prior_symmetry") else "failed",
                     "evidence": "all five development Q4 gates",
                 },
-                "plausibility": {
-                    "status": "blocked-evidence",
-                    "evidence": "no frozen system-specific false-claim envelope audit is bound",
-                },
-                "non_triviality": {
-                    "status": "blocked-evidence",
-                    "evidence": (
-                        "no frozen default/one-shot cross-World discriminator audit is bound"
-                    ),
-                },
-                "information_choice": {
-                    "status": "blocked-evidence",
-                    "evidence": (
-                        "Q5/Q6 do not by themselves prove that an active choice adds information"
-                    ),
-                },
-                "budget_window": {
-                    "status": "blocked-evidence",
-                    "evidence": (
-                        "all five Q6 gates pass, but the frozen trivial_lower_bound cost is absent"
-                        if _gate(selected, "Q6_budgeted_falsifiability")
-                        else "one or more development Q6 gates fail"
-                    ),
-                },
+                "plausibility": probe_check("plausibility"),
+                "non_triviality": probe_check("non_triviality"),
+                "information_choice": probe_check("information_choice"),
+                "budget_window": probe_check("budget_window"),
                 "consequence": {
                     "status": "passed" if _gate(selected, "Q7_behavioral_relevance") else "failed",
                     "evidence": "all five development Q7 gates",
@@ -102,7 +123,7 @@ def build_audit(registry_path: Path) -> dict[str, Any]:
             eligible = all(value["status"] == "passed" for value in checks.values())
             loci.append(
                 {
-                    "block": f"{system}-{locus[0].upper()}",
+                    "block": block,
                     "system_id": system,
                     "prior_locus": locus,
                     "development_qualified_worlds": 5,
@@ -116,7 +137,7 @@ def build_audit(registry_path: Path) -> dict[str, Any]:
                 }
             )
     audit: dict[str, Any] = {
-        "schema_version": "chemworld-experiment-1-challenge-audit-1.0",
+        "schema_version": "chemworld-experiment-1-challenge-audit-1.1",
         "formal_result": False,
         "provider_call_count": 0,
         "participant_execution_authorized": False,
@@ -124,6 +145,12 @@ def build_audit(registry_path: Path) -> dict[str, Any]:
             "path": _relative(registry_path),
             "file_sha256": file_sha256(registry_path),
             "registry_sha256": registry.get("registry_sha256"),
+        },
+        "source_probes": {
+            "path": _relative(probes_path),
+            "file_sha256": file_sha256(probes_path),
+            "challenge_probe_sha256": probes.get("challenge_probe_sha256"),
+            "source_commit": probes.get("source_commit"),
         },
         "candidate_loci": len(loci),
         "confirmation_eligible_loci": sum(row["confirmation_eligible"] for row in loci),
@@ -138,7 +165,7 @@ def render_markdown(audit: Mapping[str, Any]) -> str:
     lines = [
         "# Experiment 1 challenge audit",
         "",
-        "Status: **fail-closed before confirmation**",
+        "Status: **challenge complete; locus-wise fail-closed**",
         "",
         "The audit covers every locus whose five Worlds are currently "
         "`qualified-development`. A development gate is not silently promoted into "
@@ -167,10 +194,9 @@ def render_markdown(audit: Mapping[str, Any]) -> str:
             f"`{audit['confirmation_eligible_loci']}`; blocked: "
             f"`{audit['confirmation_blocked_loci']}`.",
             "",
-            "The common blockers are missing frozen evidence for false-prior plausibility, "
-            "default/one-shot non-triviality, active information choice, and the lower edge "
-            "of the budget window. Confirmation was therefore not started. This is an "
-            "evidence-readiness result, not proof that all ten scientific questions are bad.",
+            "Challenge decisions are locus-wise. A failed locus remains blocked while passing "
+            "loci may proceed to a separately frozen process-isolated confirmation contract. "
+            "This audit does not itself generate or consume confirmation secret material.",
         ]
     )
     return "\n".join(lines) + "\n"
@@ -179,10 +205,11 @@ def render_markdown(audit: Mapping[str, Any]) -> str:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--registry", type=Path, required=True)
+    parser.add_argument("--probes", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--markdown", type=Path, required=True)
     args = parser.parse_args()
-    audit = build_audit(args.registry.resolve())
+    audit = build_audit(args.registry.resolve(), args.probes.resolve())
     write_json_atomic(args.output.resolve(), audit)
     args.markdown.resolve().write_text(render_markdown(audit), encoding="utf-8")
     print(
