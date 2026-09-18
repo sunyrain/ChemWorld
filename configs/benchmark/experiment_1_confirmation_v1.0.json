@@ -1,0 +1,1465 @@
+{
+  "challenge": {
+    "audit_file_sha256": "5155e50c9e4ffdea8e837943b2f6ac7ce861e5e11be0221f94569337de0e43a6",
+    "audit_path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CHALLENGE_AUDIT_V1_2.json",
+    "audit_sha256": "0f9e74b756cc3bd8f5bf06fa68ca332577d9e8ec0c1a1cfcc2fa3f88fc89ec8f",
+    "challenge_probe_sha256": "71509b9f0c2067d8ab6bde1531520337d4a3b68e6b4d8cee4e7372dbaca53456",
+    "probe_file_sha256": "16cded748678b0c18cf09f690fd45fab69b85bd94ea5c3c18fc5ade494fe314c",
+    "probe_path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CHALLENGE_PROBES_V1_2.json"
+  },
+  "contract_id": "experiment-1-seven-locus-process-isolated-confirmation-v1.0",
+  "contract_sha256": "ff7a044cd787c7c6805e2977e6e2387ca0ea03a9c38fa0afc846d60a6d552460",
+  "convergence_registry": {
+    "file_sha256": "350d2282acf5d0a80c0fadf2f38b05337bc0b205dbc0891c648b221e80bcfcb4",
+    "path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json",
+    "registry_sha256": "f79a912b667d413fe8050955184f24bf99c21d72b9f98cf067e4ffd31e13c588"
+  },
+  "denominators": {
+    "atomic_units": 35,
+    "loci": 7,
+    "missing_row_exclusion_allowed": false,
+    "planned_executions_by_locus": {
+      "C-E": 60,
+      "C-P": 45,
+      "EC-E": 120,
+      "EC-P": 605,
+      "EC-S": 90,
+      "PA-E": 60,
+      "RX-P": 605
+    },
+    "planned_primary_executions": 1585,
+    "planned_tolerance_zero_replays": 1585,
+    "worlds_per_locus": 5
+  },
+  "development_coordinate_contract": {
+    "C-E": {
+      "cooling_anchors_K": [
+        290.0,
+        270.0
+      ],
+      "solvent_targets": [
+        1,
+        3
+      ]
+    },
+    "C-P": {
+      "temperature_levels_K": [
+        310.0,
+        290.0,
+        270.0
+      ]
+    },
+    "EC-E": {
+      "category_order_by_anchor": [
+        [
+          0,
+          1,
+          2,
+          3
+        ],
+        [
+          0,
+          1,
+          2,
+          3
+        ]
+      ],
+      "nuisance_design": {
+        "algorithm": "sha256_hash_uniform_complement_v1",
+        "lower_bound": 0.15,
+        "namespace": "experiment-1-v1.0.1-ec-entity-anchors",
+        "round_decimal_places": 9,
+        "upper_bound": 0.85
+      }
+    },
+    "EC-P": {
+      "current_coordinates": [
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75
+      ],
+      "potential_coordinates": [
+        0.25,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.5,
+        0.55,
+        0.6,
+        0.65,
+        0.7,
+        0.75
+      ]
+    },
+    "EC-S": {
+      "axis_levels": [
+        [
+          0.75,
+          1.05,
+          1.35
+        ],
+        [
+          15.0,
+          91.0,
+          190.0
+        ]
+      ],
+      "axis_names": [
+        "controlled_potential_V",
+        "controlled_current_mA"
+      ],
+      "fixed_context": {
+        "controlled_duration_s": 1800.0,
+        "electrolyte_profile": 0,
+        "probe_current_mA": 90.0,
+        "probe_duration_s": 300.0,
+        "probe_potential_V": 0.8,
+        "reagent_amount_mol": 0.012,
+        "solvent": 0
+      },
+      "validation_groups": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          0,
+          2
+        ]
+      ]
+    },
+    "PA-E": {
+      "extractant_targets": [
+        0,
+        3
+      ],
+      "solvent_anchors": [
+        0,
+        2
+      ]
+    },
+    "RX-P": {
+      "duration_grid_s": [
+        300,
+        900,
+        1500,
+        2100,
+        2700,
+        3300,
+        3900,
+        4500,
+        5100,
+        5700,
+        6300
+      ],
+      "temperature_grid_K": [
+        370,
+        380,
+        390,
+        400,
+        410,
+        420,
+        430,
+        440,
+        450,
+        460,
+        470
+      ]
+    }
+  },
+  "development_coordinate_contract_sha256": "58037df5b78768d9e708d3efcc55d593c9b07b16d8baaaf2ab8af7fda799d9c6",
+  "eligible_loci": [
+    "EC-E",
+    "EC-P",
+    "EC-S",
+    "RX-P",
+    "PA-E",
+    "C-E",
+    "C-P"
+  ],
+  "excluded_loci": [
+    "RX-S",
+    "PA-P",
+    "PA-S"
+  ],
+  "execution": {
+    "all_terminal_rows_retained": true,
+    "confirmation_secret_material_in_git_forbidden": true,
+    "locus_process_count": 7,
+    "output_overwrite_forbidden": true,
+    "resume_forbidden": true,
+    "worker_count": 1
+  },
+  "experiment_note": {
+    "file_sha256": "78a9098a046e35a2b63dd10175c7e092477d83630013fd3da42e5771c05497a6",
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CONFIRMATION_NOTE_V1_0.md"
+  },
+  "formal_result": false,
+  "generator": {
+    "development_coordinate_overlap_forbidden": true,
+    "generator_version": "chemworld-experiment-1-confirmation-coordinate-generator-1.0",
+    "loci": {
+      "C-E": {
+        "cooling_regions_K": [
+          [
+            275.0,
+            285.0
+          ],
+          [
+            295.0,
+            305.0
+          ]
+        ],
+        "coordinate_family": "held-out cooling anchors",
+        "solvent_targets": [
+          1,
+          3
+        ]
+      },
+      "C-P": {
+        "cooling_regions_K": [
+          [
+            306.0,
+            309.0
+          ],
+          [
+            286.0,
+            289.0
+          ],
+          [
+            271.0,
+            274.0
+          ]
+        ],
+        "coordinate_family": "nearby held-out cooling response",
+        "preserved_order": "high-mid-low"
+      },
+      "EC-E": {
+        "coordinate_family": "hash-uniform complementary nuisance anchors",
+        "legal_domain": [
+          0.15,
+          0.85
+        ],
+        "regions": [
+          "lower-complement",
+          "upper-complement"
+        ],
+        "target_categories": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "EC-P": {
+        "axis_points": [
+          11,
+          11
+        ],
+        "coordinate_family": "jittered normalized potential-current surface",
+        "legal_domain": [
+          0.245,
+          0.755
+        ],
+        "regions": [
+          "below-center",
+          "above-center"
+        ]
+      },
+      "EC-S": {
+        "coordinate_family": "three-by-three potential-current surface",
+        "current_regions_mA": [
+          [
+            25.0,
+            55.0
+          ],
+          [
+            105.0,
+            135.0
+          ],
+          [
+            155.0,
+            180.0
+          ]
+        ],
+        "potential_regions_V": [
+          [
+            0.78,
+            0.92
+          ],
+          [
+            1.08,
+            1.2
+          ],
+          [
+            1.25,
+            1.32
+          ]
+        ]
+      },
+      "PA-E": {
+        "confirmation_anchor_domain": [
+          1,
+          3
+        ],
+        "coordinate_family": "held-out solvent anchors",
+        "development_anchors": [
+          0,
+          2
+        ],
+        "legal_solvents": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "RX-P": {
+        "axis_points": [
+          11,
+          11
+        ],
+        "coordinate_family": "interstitial temperature-duration surface",
+        "duration_regions_s": [
+          [
+            450.0,
+            3150.0
+          ],
+          [
+            3450.0,
+            6150.0
+          ]
+        ],
+        "temperature_regions_K": [
+          [
+            372.0,
+            418.0
+          ],
+          [
+            422.0,
+            468.0
+          ]
+        ]
+      }
+    },
+    "minimum_outside_development_regions": 2,
+    "outcome_blind": true,
+    "realized_plan_file_sha256": "24224f936e36952f23455cd7be59215bb42aa1e15a56d6618ee4f14211d28070",
+    "realized_plan_sha256": "b3d28d43ca8282613e9282188f991fb88d73e2266f401f9facd25b5ca30901d6",
+    "same_rule_across_five_worlds": true,
+    "secret_salt_file_sha256": "e30ae449b0f3b0895d407b6810ecc3689ddcd45c9ae6a40db7f5f20e87956f2a"
+  },
+  "implementation_files": [
+    {
+      "file_sha256": "da9043afb0356c10f88930a770b17e67e3b7aa1e819b0feee53a9e9c9f8b7a83",
+      "path": "src/chemworld/eval/experiment_1_confirmation.py"
+    },
+    {
+      "file_sha256": "1cf4ec01e0d0474dce8be784bea9e78c4e179e842a61c1a5a34051950e783d7d",
+      "path": "scripts/freeze_experiment_1_confirmation.py"
+    },
+    {
+      "file_sha256": "0f990a0e66aad8d376c133ed7e7a11c9d003fa1ccf7b8d8726610b288d6ba64a",
+      "path": "scripts/run_experiment_1_confirmation.py"
+    },
+    {
+      "file_sha256": "cc8a14ae23d59e5c5a607a571327f0069f48bab942f12147a144c2e057d27b3c",
+      "path": "scripts/run_experiment_1_confirmation_locus.py"
+    },
+    {
+      "file_sha256": "4f386550c024dcb86d83a0ed77a35a4b324cc304f49ef5cb0071eb6252f40f49",
+      "path": "scripts/run_work_ii_structural_candidate_qualification.py"
+    }
+  ],
+  "noise": {
+    "distinct_from_development": true,
+    "mode": "keyed",
+    "namespace_prefix": "experiment-1-confirmation-v1",
+    "noise_version": "chemworld-experiment-1-confirmation-keyed-noise-1.0",
+    "parametric_overlay": "registered development validation sigma applied with a keyed normal deviate; primary and tolerance-zero replay regenerate the identical deviate",
+    "replicates": {
+      "C-E": 3,
+      "C-P": 3,
+      "EC-E": 3,
+      "EC-P": 1,
+      "EC-S": {
+        "main_grid": 1,
+        "validation": 3
+      },
+      "PA-E": 3,
+      "RX-P": 1
+    },
+    "seed_derivation": "HMAC-SHA256(secret-salt, locus/world/coordinate/replicate)"
+  },
+  "one_shot": true,
+  "process_isolated": true,
+  "protocol": {
+    "file_sha256": "96c7db9fb0d38ff119d8d9cb86facb7fe7e9401ed4a7b9269fdb3bb4c3d8fc13",
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md"
+  },
+  "schema_version": "chemworld-experiment-1-confirmation-contract-1.0",
+  "source_commit": "d04c5c80281cf98949f4b14f11828c2084bbd73b",
+  "source_contracts": {
+    "configs/benchmark/experiment_1_c_parametric_repair_v1.0.2.json": {
+      "file_sha256": "5f0515d8d0153b272de8802a880837b2f7a557ec4db89120674782b69752e6dc",
+      "path": "configs/benchmark/experiment_1_c_parametric_repair_v1.0.2.json",
+      "resolved_sha256": "ae04d15c9240359cc39302631028c624cc8eadc412152a006c2057e288a90d39"
+    },
+    "configs/benchmark/experiment_1_c_qualification_v1.0.1.json": {
+      "file_sha256": "91cf6a78fdb24bf6b7e39f86868747b9aaebcefd1d1ac8a0a4efb72b63b6b56d",
+      "path": "configs/benchmark/experiment_1_c_qualification_v1.0.1.json",
+      "resolved_sha256": "71bed305d2bc4ca06a5205c6387732592a30b962899a5b2e0f641559bc0f5d74"
+    },
+    "configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json": {
+      "file_sha256": "0bc9f23bcd393f70b966e63407b706efeef785eb4e9abd60bfc14ae42906ac39",
+      "path": "configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json",
+      "resolved_sha256": "054c74a8668137808a6cf28ee0881c67c6d5c884dfbd9a3c5cbd515dcfa92059"
+    },
+    "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json": {
+      "file_sha256": "7f6ebfe6fbee597552ea8f10e3f269f1733197c2ec82bb0cff82b0a14f77588e",
+      "path": "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json",
+      "resolved_sha256": "69464a4912ee55cb72b9e418b09a498c396337bb568c24bdcc64a3b4d1e7a186"
+    },
+    "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json": {
+      "file_sha256": "14c5d3fcc388d97db3f92732529dcef21d316891da1b32b02ccfc562e5154c52",
+      "path": "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json",
+      "resolved_sha256": "0f952f9d929c4a6a6cd01daa4136295551ae6175d9c0ff39808e8d16e900669e"
+    },
+    "configs/benchmark/experiment_1_rx_qualification_v1.0.1.json": {
+      "file_sha256": "4cfdcb52e53d68e6d3fe4eebf7a96321329cdc9a28749599b65b84cdb0f900e7",
+      "path": "configs/benchmark/experiment_1_rx_qualification_v1.0.1.json",
+      "resolved_sha256": "72c4c3c4944c06633c403a497ffc87934141082d31f87bcd1a2a28ec9df0d36c"
+    }
+  },
+  "status": "frozen_before_confirmation_execution",
+  "units": [
+    {
+      "block": "EC-E",
+      "development_report": {
+        "file_sha256": "37aa93b205642fd2a508d7d08d5bd49c6f67db29af83aadfbfbfaf542b253346",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/entity/EC-W01/world-report.json",
+        "report_sha256": "59cf0c67ba7ca861fc8e9c8991262635bf50853822f375a85c5b21a9f6905a9f"
+      },
+      "locus_contract_sha256": "a8763644d90e44b8a3580092968efc65c554636a6207e7b51a61561a0fc023ef",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "development_report.prior_audit",
+      "public_prior_sha256": "1f58cc3e48d8b0fa036a923e726e39a38f155f110d22fd39a194a991b28b8985",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "bc67695c3e1c55e737079f6b8cd3dce1c55ef8bd49d3eab6d376fa8d07a76d59",
+      "unit_id": "EC-W01:entity",
+      "world_id": "EC-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "EC-E",
+      "development_report": {
+        "file_sha256": "995dc503d7cbf61d917de4eae58f9a77bcbace0fd8b88603118f56c1b46caffd",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/entity/EC-W02/world-report.json",
+        "report_sha256": "3311cf850035b1e15f4f7fb9df4a774cdc4de1b7abfc4388d0b2b8d1d83cf7f0"
+      },
+      "locus_contract_sha256": "a8763644d90e44b8a3580092968efc65c554636a6207e7b51a61561a0fc023ef",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "development_report.prior_audit",
+      "public_prior_sha256": "5332cbb863e3efcfe472b7bd5ac3cb8b36f71d62a7dcb3560c9cec215680e50c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "21071bd13487e993a374c04509f3b40836e895b6d0872990c15f78a1b61c6cff",
+      "unit_id": "EC-W02:entity",
+      "world_id": "EC-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "EC-E",
+      "development_report": {
+        "file_sha256": "ad0abd8196563ecb206c10f2ebcf4094d795542cffcf2f390847cbc8a974d683",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/entity/EC-W03/world-report.json",
+        "report_sha256": "023fb9448a821a34fdd198fcfb24d2d69cfb2259580b4edaa0cd52a3ccc04ef3"
+      },
+      "locus_contract_sha256": "a8763644d90e44b8a3580092968efc65c554636a6207e7b51a61561a0fc023ef",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "development_report.prior_audit",
+      "public_prior_sha256": "177024333ffa9e489b5dbbef2e3bece47627c54020c7e2604b3c23cb0e035582",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "2576bc2092c9cfb78f928517593a1f905bb749021aad0f252eae16331d692eee",
+      "unit_id": "EC-W03:entity",
+      "world_id": "EC-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "EC-E",
+      "development_report": {
+        "file_sha256": "494f0cdb8e5ca4a8008af0d71ad8ce5698f5caa78e55a128faf233d3604ad6f7",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/entity/EC-W04/world-report.json",
+        "report_sha256": "b847eacd5bf3d335024289b99b64ca3a662a690efa268ef077cb6958b6a25c93"
+      },
+      "locus_contract_sha256": "a8763644d90e44b8a3580092968efc65c554636a6207e7b51a61561a0fc023ef",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "development_report.prior_audit",
+      "public_prior_sha256": "6689f014e14f7795df6bd411a36a7f1be1544a47b72ece5f18e32a5ed2a7d0b7",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "618f1330f3744ebf423c10e09115d84055c7a4967075c5140315d0775da50135",
+      "unit_id": "EC-W04:entity",
+      "world_id": "EC-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "EC-E",
+      "development_report": {
+        "file_sha256": "7f6fdea5d7294fec2914271f7691b9435ca3cfbd0055bc4f837b2fabbc39f163",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/entity/EC-W05/world-report.json",
+        "report_sha256": "1f91ef1d16191fa72912af7435ff60b5a48db1922d1420057f522efe038de6d0"
+      },
+      "locus_contract_sha256": "a8763644d90e44b8a3580092968efc65c554636a6207e7b51a61561a0fc023ef",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "development_report.prior_audit",
+      "public_prior_sha256": "735d77638f7bce1cb83dcab902535eea3a397c629d5f54ba10ecf42301b33a33",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "1340cdad668926e2601678e4fd39b077df98024a1381bc0a22eb8bdec302d470",
+      "unit_id": "EC-W05:entity",
+      "world_id": "EC-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "EC-P",
+      "development_report": {
+        "file_sha256": "91b7470ab30397c5004e6f1c6e8b0d9b0720e4cef640b2ac22c1fd8064b99c6b",
+        "path": "runs/development/experiment-1-ec-v1.0.1-941110e/parametric-restart1/EC-W01/world-report.json",
+        "report_sha256": "06abe0c10696a22a812896954e6c916b965f41d856e5877b51dca22338e9cfbd"
+      },
+      "locus_contract_sha256": "c2e5b063103e23b7b0dd5fb961ffaa875cd914f93358d2bf57655bbd9530fe43",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "5aaaaaaf8255cb467a9fc2215d52b25a730a03a989957548c12298f5e62d4e0a",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "bc67695c3e1c55e737079f6b8cd3dce1c55ef8bd49d3eab6d376fa8d07a76d59",
+      "unit_id": "EC-W01:parametric",
+      "world_id": "EC-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "EC-P",
+      "development_report": {
+        "file_sha256": "b0c79fc657f456fa87c528c26826319c3dce4529468452ec350ac16322451b4f",
+        "path": "runs/development/experiment-1-ec-v1.0.1-941110e/parametric-restart1/EC-W02/world-report.json",
+        "report_sha256": "67e26214ca7475ecf8e40eeb8bcaab19f1f12178f3454c0398dfd1b645e552fc"
+      },
+      "locus_contract_sha256": "c2e5b063103e23b7b0dd5fb961ffaa875cd914f93358d2bf57655bbd9530fe43",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "e00b256d004d76ce825875772b681c83ef700de07e1b12c57997188b575a9757",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "21071bd13487e993a374c04509f3b40836e895b6d0872990c15f78a1b61c6cff",
+      "unit_id": "EC-W02:parametric",
+      "world_id": "EC-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "EC-P",
+      "development_report": {
+        "file_sha256": "0754df436a89fec1d2ba70fa99d0dc0809feac99f81c8d1ad75cef3d1093ce84",
+        "path": "runs/development/experiment-1-ec-v1.0.1-941110e/parametric-restart1/EC-W03/world-report.json",
+        "report_sha256": "943637b879a519f59084e82fc5b09ed3d12a9e6e3a8b2fd98a81d70f97e8f54f"
+      },
+      "locus_contract_sha256": "c2e5b063103e23b7b0dd5fb961ffaa875cd914f93358d2bf57655bbd9530fe43",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "f3dd06edcbee595f62e9342e05a495cce96c64fc2d1ab7fc4756786e41cf7a9f",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "2576bc2092c9cfb78f928517593a1f905bb749021aad0f252eae16331d692eee",
+      "unit_id": "EC-W03:parametric",
+      "world_id": "EC-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "EC-P",
+      "development_report": {
+        "file_sha256": "d71e3c0cbd920a45d51714cb2f6c63af7f165f71176646a6d5de951327933b35",
+        "path": "runs/development/experiment-1-ec-v1.0.1-941110e/parametric-restart1/EC-W04/world-report.json",
+        "report_sha256": "aaa648e496271be7ef38e40e43510daef73b6fa1188204a01059de40db3aea9a"
+      },
+      "locus_contract_sha256": "c2e5b063103e23b7b0dd5fb961ffaa875cd914f93358d2bf57655bbd9530fe43",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "3d9c922149fd5423b836bcb854eca4c61370ff20341dafae7187a6f86a97ca48",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "618f1330f3744ebf423c10e09115d84055c7a4967075c5140315d0775da50135",
+      "unit_id": "EC-W04:parametric",
+      "world_id": "EC-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "EC-P",
+      "development_report": {
+        "file_sha256": "ef69b2f9b691cda997c87b80d602459200578fb5e53048bc9d2d436cc9d40bd9",
+        "path": "runs/development/experiment-1-ec-v1.0.1-941110e/parametric-restart1/EC-W05/world-report.json",
+        "report_sha256": "f121e71d17075de354f7027dd69d2f94c696ced682a10fbad023ab351cbe886f"
+      },
+      "locus_contract_sha256": "c2e5b063103e23b7b0dd5fb961ffaa875cd914f93358d2bf57655bbd9530fe43",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "7dc0550eb28b0bc38a7b03a9ef3eb11498af593a6a6416ee328b26c96e3571ad",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "1340cdad668926e2601678e4fd39b077df98024a1381bc0a22eb8bdec302d470",
+      "unit_id": "EC-W05:parametric",
+      "world_id": "EC-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "EC-S",
+      "development_report": {
+        "file_sha256": "4f756e2ba77335d636d7438e9662b95c46fab4b6ff240e9f2f263fd58031529d",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/structural-recovery1-3e4b7db/EC-W01/world-report.json",
+        "report_sha256": "a72f66776d953ec6f6801680d7f1a14a2e7c2ce75944625b57f45ad4f97a94de"
+      },
+      "locus_contract_sha256": "5fa4774269f62826fabbe684cab7d7c46e640848362451c1a8107c0296172fd7",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "structural",
+      "public_prior_digest_source": "development_report.legacy_analysis.prior_arms",
+      "public_prior_sha256": "1cf32329bf4d51e91cd24a569f07cb6904b14c8710e97812311d6d7a29b6a91c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "bc67695c3e1c55e737079f6b8cd3dce1c55ef8bd49d3eab6d376fa8d07a76d59",
+      "unit_id": "EC-W01:structural",
+      "world_id": "EC-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "EC-S",
+      "development_report": {
+        "file_sha256": "9f5728cfb3f2beb57d4f2b0d8df654491fa2ba902da613f68604ea6c65247c73",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/structural-recovery1-3e4b7db/EC-W02/world-report.json",
+        "report_sha256": "9a6fcabd2b809aa91775a8a7a07392faa72ebcfe434e3c3204554128014fe894"
+      },
+      "locus_contract_sha256": "5fa4774269f62826fabbe684cab7d7c46e640848362451c1a8107c0296172fd7",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "structural",
+      "public_prior_digest_source": "development_report.legacy_analysis.prior_arms",
+      "public_prior_sha256": "1cf32329bf4d51e91cd24a569f07cb6904b14c8710e97812311d6d7a29b6a91c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "21071bd13487e993a374c04509f3b40836e895b6d0872990c15f78a1b61c6cff",
+      "unit_id": "EC-W02:structural",
+      "world_id": "EC-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "EC-S",
+      "development_report": {
+        "file_sha256": "90712af746edfff42e6c66362665bfb1eda3c4b1179a2639d04c17c24c3ed58f",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/structural-recovery1-3e4b7db/EC-W03/world-report.json",
+        "report_sha256": "a76dfa42dd2fce1bc805e022254cc9fa601e6583fbd3e05a7532f9f56260ca25"
+      },
+      "locus_contract_sha256": "5fa4774269f62826fabbe684cab7d7c46e640848362451c1a8107c0296172fd7",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "structural",
+      "public_prior_digest_source": "development_report.legacy_analysis.prior_arms",
+      "public_prior_sha256": "1cf32329bf4d51e91cd24a569f07cb6904b14c8710e97812311d6d7a29b6a91c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "2576bc2092c9cfb78f928517593a1f905bb749021aad0f252eae16331d692eee",
+      "unit_id": "EC-W03:structural",
+      "world_id": "EC-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "EC-S",
+      "development_report": {
+        "file_sha256": "c7284d2600ffd7c87153efe09d68f960d09d88d26ff57dd4dbf96d22c9722a6b",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/structural-recovery1-3e4b7db/EC-W04/world-report.json",
+        "report_sha256": "a3e156e262ce68d89fbbb690d631bb5011b5d5a8db79b908204b5ce5d2c4cca0"
+      },
+      "locus_contract_sha256": "5fa4774269f62826fabbe684cab7d7c46e640848362451c1a8107c0296172fd7",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "structural",
+      "public_prior_digest_source": "development_report.legacy_analysis.prior_arms",
+      "public_prior_sha256": "1cf32329bf4d51e91cd24a569f07cb6904b14c8710e97812311d6d7a29b6a91c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "618f1330f3744ebf423c10e09115d84055c7a4967075c5140315d0775da50135",
+      "unit_id": "EC-W04:structural",
+      "world_id": "EC-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "EC-S",
+      "development_report": {
+        "file_sha256": "b83571dbbe820a312074e823dcb95710d98d1d7dafa9467191c398f83feb948a",
+        "path": "runs/development/experiment-1-ec-v1.0.2-6069d66/structural-recovery1-3e4b7db/EC-W05/world-report.json",
+        "report_sha256": "91a0f37ed8bdecbf536084cc55c6799cb2e1a1940aafe130a3bbd004d3ae4334"
+      },
+      "locus_contract_sha256": "5fa4774269f62826fabbe684cab7d7c46e640848362451c1a8107c0296172fd7",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "structural",
+      "public_prior_digest_source": "development_report.legacy_analysis.prior_arms",
+      "public_prior_sha256": "1cf32329bf4d51e91cd24a569f07cb6904b14c8710e97812311d6d7a29b6a91c",
+      "public_task_contract_sha256": "56631682cc2864b303059f308bdc2bf483640deba74dbd906e680be739e7ae1c",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "EC",
+      "truth_sha256": "1340cdad668926e2601678e4fd39b077df98024a1381bc0a22eb8bdec302d470",
+      "unit_id": "EC-W05:structural",
+      "world_id": "EC-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "RX-P",
+      "development_report": {
+        "file_sha256": "b3c4438452ccaf20dcfb5133943ac8925aa9c758a4ebc6b1c11178b88ef21905",
+        "path": "runs/development/experiment-1-rx-v1.0.1-56da69c/parametric/RX-W01/world-report.json",
+        "report_sha256": "1cce8b5ee6e94edcf09804e939b87ea34c9c6ebdb7a3041d800c7fbd8d3eba5c"
+      },
+      "locus_contract_sha256": "0f237cd0594d581f93d82fc1a9f5fe16cbba80576305e5f25e431d364f8a8f38",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "4353567d22b8cf84eaadf29a123a34fad4ab51d29f26f7891c781c9c6fb3650d",
+      "public_task_contract_sha256": "700cf48ca79227be5f72fa0ee02e0e343d9e8a2f54685f6e565603dd3986b05d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "RX",
+      "truth_sha256": "a2c871e1b0fc008c6f189f57409ac0945c868b4dc7964c627e8f994c99de5081",
+      "unit_id": "RX-W01:parametric",
+      "world_id": "RX-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "RX-P",
+      "development_report": {
+        "file_sha256": "71d960802ac1c30e2f097cdf93e7928c792156993a54c3fed7c487e78985f89c",
+        "path": "runs/development/experiment-1-rx-v1.0.1-56da69c/parametric/RX-W02/world-report.json",
+        "report_sha256": "72dfe8938faa3b59a7c46a2d67499a93032565e309ca60dc8039dfea3ff72a03"
+      },
+      "locus_contract_sha256": "0f237cd0594d581f93d82fc1a9f5fe16cbba80576305e5f25e431d364f8a8f38",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "a06f1a19e4a1fcfcf87963ed9a863fd7d1a486a607eb5f60b0a58448285fc360",
+      "public_task_contract_sha256": "700cf48ca79227be5f72fa0ee02e0e343d9e8a2f54685f6e565603dd3986b05d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "RX",
+      "truth_sha256": "b304ed849c8b022eeca4970ba2c54d51561542215753d225f44462360726e754",
+      "unit_id": "RX-W02:parametric",
+      "world_id": "RX-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "RX-P",
+      "development_report": {
+        "file_sha256": "c15eeb06b398e37a09f56194ff46ae5aec6503dd8bde83bfe799fee3f361fa71",
+        "path": "runs/development/experiment-1-rx-v1.0.1-56da69c/parametric/RX-W03/world-report.json",
+        "report_sha256": "d7a79b380f862e20698bfa06f426c364de04c11e23c759826f3e8deb71641a94"
+      },
+      "locus_contract_sha256": "0f237cd0594d581f93d82fc1a9f5fe16cbba80576305e5f25e431d364f8a8f38",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "2963dbca5d4355891c7e59c0e2f16eaa795277b3284ac50b364fb92ec9c90dec",
+      "public_task_contract_sha256": "700cf48ca79227be5f72fa0ee02e0e343d9e8a2f54685f6e565603dd3986b05d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "RX",
+      "truth_sha256": "4ae1f67e55aaee6bd17d6088c428edc442095bf2340ef33a04d2a13ddc52a854",
+      "unit_id": "RX-W03:parametric",
+      "world_id": "RX-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "RX-P",
+      "development_report": {
+        "file_sha256": "4bb3b1ad486eb3100d51d5228e95e3005e851286dce8c2a4909513ed89a04960",
+        "path": "runs/development/experiment-1-rx-v1.0.1-56da69c/parametric/RX-W04/world-report.json",
+        "report_sha256": "6382d9cb8b5f8f92c0344763743f5f4ebc9e2746e617457670f738ff3ba0e4ac"
+      },
+      "locus_contract_sha256": "0f237cd0594d581f93d82fc1a9f5fe16cbba80576305e5f25e431d364f8a8f38",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "6b7676c8d58a073bc69041fe05ffa354d7f1886157b4df0462a76358a2585afd",
+      "public_task_contract_sha256": "700cf48ca79227be5f72fa0ee02e0e343d9e8a2f54685f6e565603dd3986b05d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "RX",
+      "truth_sha256": "9ffc57b45086b821dc551dc32eb8847b96f7d63c6f9bf29e70773bbc65cff452",
+      "unit_id": "RX-W04:parametric",
+      "world_id": "RX-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "RX-P",
+      "development_report": {
+        "file_sha256": "fc94ed125c6ac140f7c6bcac95fa7c7db4a98b636cd3a8c3e62d0d8b7aa48749",
+        "path": "runs/development/experiment-1-rx-v1.0.1-56da69c/parametric/RX-W05/world-report.json",
+        "report_sha256": "9323170fe7565aff0c4fa713e93c6aa8a976dd1f62c1d3e2d79393a2caaf855a"
+      },
+      "locus_contract_sha256": "0f237cd0594d581f93d82fc1a9f5fe16cbba80576305e5f25e431d364f8a8f38",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "development_report.legacy_analysis.public_priors",
+      "public_prior_sha256": "4958d511176a860cca848aa8529e2c7b02c4377da1d658970dcab704455bf4ca",
+      "public_task_contract_sha256": "700cf48ca79227be5f72fa0ee02e0e343d9e8a2f54685f6e565603dd3986b05d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "RX",
+      "truth_sha256": "0038fab7295599f5df06b095e5ef51b525264f1e66631d70e78211506bc6d02a",
+      "unit_id": "RX-W05:parametric",
+      "world_id": "RX-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "PA-E",
+      "development_report": {
+        "file_sha256": "0ee9d9f708f489f96edcceb43c250b69d3344d73719bf6ad85a04a88ba6bcaa8",
+        "path": "runs/development/experiment-1-pa-v1.0.1-f0776a7/entity/PA-W01/world-report.json",
+        "report_sha256": "eb5ea2815b2bede862230ebac2bd04947df7c732dbb27e2267c2696ea51a0142"
+      },
+      "locus_contract_sha256": "f85ff438c43b1c2a5948d57d32a520add86cc77391de1b19b8d4b83685e4bd57",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "38a0f574e1418162a361754e16be4b22e92c84ad06e1ba33be4e7ed9dc563b91",
+      "public_task_contract_sha256": "812aaca682f242b912cf930254611c3965f97c4571a1721e9d2c2e1daeb11d9d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "PA",
+      "truth_sha256": "cf8fbba710de4e83f0173eff4e0e635f363d9a27457fc57346bba28937d99514",
+      "unit_id": "PA-W01:entity",
+      "world_id": "PA-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "PA-E",
+      "development_report": {
+        "file_sha256": "e4e53dcb0444fb5cdbfccb13cfad7c8f704860129534f067b33632f1bdf8069b",
+        "path": "runs/development/experiment-1-pa-v1.0.1-f0776a7/entity/PA-W02/world-report.json",
+        "report_sha256": "8b81cd239582773a8ea1c9f83a92b034491b8320769b3b7f454deb2743a84824"
+      },
+      "locus_contract_sha256": "f85ff438c43b1c2a5948d57d32a520add86cc77391de1b19b8d4b83685e4bd57",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "38a0f574e1418162a361754e16be4b22e92c84ad06e1ba33be4e7ed9dc563b91",
+      "public_task_contract_sha256": "812aaca682f242b912cf930254611c3965f97c4571a1721e9d2c2e1daeb11d9d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "PA",
+      "truth_sha256": "c1c89ff457d4217d58b71949cc277c8e921e6bfb3312ba273e8d80b897e64c02",
+      "unit_id": "PA-W02:entity",
+      "world_id": "PA-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "PA-E",
+      "development_report": {
+        "file_sha256": "9b605c1e6f6ad2485f8a431c9227ac061afd764c6c2ae1c1b35e8d0146bcc540",
+        "path": "runs/development/experiment-1-pa-v1.0.1-f0776a7/entity/PA-W03/world-report.json",
+        "report_sha256": "1f700e281b982894161ee35f572ccc4b9f2fb8c01c0178f2a20cde0b6ddcd923"
+      },
+      "locus_contract_sha256": "f85ff438c43b1c2a5948d57d32a520add86cc77391de1b19b8d4b83685e4bd57",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "38a0f574e1418162a361754e16be4b22e92c84ad06e1ba33be4e7ed9dc563b91",
+      "public_task_contract_sha256": "812aaca682f242b912cf930254611c3965f97c4571a1721e9d2c2e1daeb11d9d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "PA",
+      "truth_sha256": "e9eab54ad43144b54302ca425811e71f5a04ff56abfb9677958730bf47b00fef",
+      "unit_id": "PA-W03:entity",
+      "world_id": "PA-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "PA-E",
+      "development_report": {
+        "file_sha256": "5a4a0c2bdc1aa7628b08aa92d7daacfd010b913f47b9b1d3091f8038e70126d6",
+        "path": "runs/development/experiment-1-pa-v1.0.1-f0776a7/entity/PA-W04/world-report.json",
+        "report_sha256": "4d737377fa5df395adee83a0e6aa5636c4d3ac34bd075b996d8651578a796f3a"
+      },
+      "locus_contract_sha256": "f85ff438c43b1c2a5948d57d32a520add86cc77391de1b19b8d4b83685e4bd57",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "38a0f574e1418162a361754e16be4b22e92c84ad06e1ba33be4e7ed9dc563b91",
+      "public_task_contract_sha256": "812aaca682f242b912cf930254611c3965f97c4571a1721e9d2c2e1daeb11d9d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "PA",
+      "truth_sha256": "c6910d0a7440cc60124602e9f8658ee7b47b2cc2f2fbfa9ef4c653e8a13503ee",
+      "unit_id": "PA-W04:entity",
+      "world_id": "PA-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "PA-E",
+      "development_report": {
+        "file_sha256": "9993e291c8df435c3ab5fb83b9e36957838d1fb70e7e96ca9a5c91717980a587",
+        "path": "runs/development/experiment-1-pa-v1.0.1-f0776a7/entity/PA-W05/world-report.json",
+        "report_sha256": "479f63afc9c227a7ef72237aaec4f90899d759c0e75f89d84f7256e16a9eb18b"
+      },
+      "locus_contract_sha256": "f85ff438c43b1c2a5948d57d32a520add86cc77391de1b19b8d4b83685e4bd57",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "38a0f574e1418162a361754e16be4b22e92c84ad06e1ba33be4e7ed9dc563b91",
+      "public_task_contract_sha256": "812aaca682f242b912cf930254611c3965f97c4571a1721e9d2c2e1daeb11d9d",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "PA",
+      "truth_sha256": "c2f61b85407bddff42f05204b6978a504a778ad281781290e913179898245739",
+      "unit_id": "PA-W05:entity",
+      "world_id": "PA-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "C-E",
+      "development_report": {
+        "file_sha256": "6a73a145c2ea36077bc20152b93d1b94310bf62ab85bdd2a48b7417aabe44dc1",
+        "path": "runs/development/experiment-1-c-v1.0.1-0bdf840/entity/C-W01/world-report.json",
+        "report_sha256": "f0fba98fb6d7027f520ddd804ceaa148fa87611d4be5118e3ca3cb8ac8563b37"
+      },
+      "locus_contract_sha256": "cebbf328d9b13b46f3b7911ad4d24bcf97c61a7677e6bd70a14d1604904d553c",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "4241e56e266480a7cc8a61678bf9b3a8ab54f486a9ca46929c946e48b1dcc8dc",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "2f93f57baf2acaa53825ebde6fb936f2a3e458e5e4016ba3d14c359ec8cb1eac",
+      "unit_id": "C-W01:entity",
+      "world_id": "C-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "C-E",
+      "development_report": {
+        "file_sha256": "550e0c46816b9ad5934354155916f7d2aec1dfc9ecf48e12f6298d3ef5ff939a",
+        "path": "runs/development/experiment-1-c-v1.0.1-0bdf840/entity/C-W02/world-report.json",
+        "report_sha256": "3f251ca3616ebcd8f81ac436f94b537240a650f67c9ba5bc1d6e1433fc673964"
+      },
+      "locus_contract_sha256": "cebbf328d9b13b46f3b7911ad4d24bcf97c61a7677e6bd70a14d1604904d553c",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "4241e56e266480a7cc8a61678bf9b3a8ab54f486a9ca46929c946e48b1dcc8dc",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "5fe72794e7282af44d63b08ec34d4e7f93a4b6b25669d8a10c04e43876e71e2c",
+      "unit_id": "C-W02:entity",
+      "world_id": "C-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "C-E",
+      "development_report": {
+        "file_sha256": "d42df872c9ed5a4c9a34259b7f0e1771272decf7645f2c8a27dc4ccfde85982f",
+        "path": "runs/development/experiment-1-c-v1.0.1-0bdf840/entity/C-W03/world-report.json",
+        "report_sha256": "7abddf4bf84b59961dcbc582ad116b9c2f7db6415fd15c55340c767be4e8f3e7"
+      },
+      "locus_contract_sha256": "cebbf328d9b13b46f3b7911ad4d24bcf97c61a7677e6bd70a14d1604904d553c",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "4241e56e266480a7cc8a61678bf9b3a8ab54f486a9ca46929c946e48b1dcc8dc",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "55c8955a3263371da6f9069340b1f74f6cd7be873185aaaad8de93be6da4846b",
+      "unit_id": "C-W03:entity",
+      "world_id": "C-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "C-E",
+      "development_report": {
+        "file_sha256": "9a67658d73a1bbab03beb9d0c45169f88d40ff2c5e959619c75185caf2d8c038",
+        "path": "runs/development/experiment-1-c-v1.0.1-0bdf840/entity/C-W04/world-report.json",
+        "report_sha256": "d3d596da8edbdf50833a09de57fe2cd9ae080735928fb62d5c002bb71f827117"
+      },
+      "locus_contract_sha256": "cebbf328d9b13b46f3b7911ad4d24bcf97c61a7677e6bd70a14d1604904d553c",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "4241e56e266480a7cc8a61678bf9b3a8ab54f486a9ca46929c946e48b1dcc8dc",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "3cb9c050f81a5b481e4fce4fb610029902ebf02fd3b83caae33640b09f52a389",
+      "unit_id": "C-W04:entity",
+      "world_id": "C-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "C-E",
+      "development_report": {
+        "file_sha256": "68a9341b27adaa90056cee079015e5374258b3d8284761deae87c19484a13d89",
+        "path": "runs/development/experiment-1-c-v1.0.1-0bdf840/entity/C-W05/world-report.json",
+        "report_sha256": "12ca56c3553803c3efc76e2b9367ea24041a7d1bb534c4d944a69e0fcaf8ff87"
+      },
+      "locus_contract_sha256": "cebbf328d9b13b46f3b7911ad4d24bcf97c61a7677e6bd70a14d1604904d553c",
+      "participant_unique_experiment_budget": 4,
+      "prior_locus": "entity",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "4241e56e266480a7cc8a61678bf9b3a8ab54f486a9ca46929c946e48b1dcc8dc",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "93c64a0744e621b39281f88496e1ba6e2266ecfc6f54ef835169e8eb0e5c0219",
+      "unit_id": "C-W05:entity",
+      "world_id": "C-W05",
+      "world_seed": 4
+    },
+    {
+      "block": "C-P",
+      "development_report": {
+        "file_sha256": "89f7416eacf0298527bd4f2933fe89987c9cce244edf9ce5cf19bf4a207c8e00",
+        "path": "runs/development/experiment-1-c-p-v1.0.2-af60f45/parametric/C-W01/world-report.json",
+        "report_sha256": "35c017f5cd53923b5a8c519635b79c7decd2aca9dfd5d5851df1bec0d52c65bb"
+      },
+      "locus_contract_sha256": "05f8f82c301f46321b2daad5c6d32ed90c4b830fd4d2c55177f61a1a89e06f22",
+      "participant_unique_experiment_budget": 3,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "937ec5d92f6849c27db8ec3608ea3bc3c5ec82614959f28ad49b8db946f8e19f",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "2f93f57baf2acaa53825ebde6fb936f2a3e458e5e4016ba3d14c359ec8cb1eac",
+      "unit_id": "C-W01:parametric",
+      "world_id": "C-W01",
+      "world_seed": 0
+    },
+    {
+      "block": "C-P",
+      "development_report": {
+        "file_sha256": "83c31a1db551f64a03736e4d7851be3a37d66d24b26d6817e3e7acbd2bfc04b6",
+        "path": "runs/development/experiment-1-c-p-v1.0.2-af60f45/parametric/C-W02/world-report.json",
+        "report_sha256": "342d4ef765a1f73f9e3df5987e66c9a418e9532fc49788e5b3a055e69b6e4aa6"
+      },
+      "locus_contract_sha256": "05f8f82c301f46321b2daad5c6d32ed90c4b830fd4d2c55177f61a1a89e06f22",
+      "participant_unique_experiment_budget": 3,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "39278993d07083e3f6b2d4f6d8b40735c9bf1c15c55fa8809084d9f5b905c38a",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "5fe72794e7282af44d63b08ec34d4e7f93a4b6b25669d8a10c04e43876e71e2c",
+      "unit_id": "C-W02:parametric",
+      "world_id": "C-W02",
+      "world_seed": 1
+    },
+    {
+      "block": "C-P",
+      "development_report": {
+        "file_sha256": "81dbf58e1be41a538d57e24502ceda8d724162e610b3ec3b26005fb201be4954",
+        "path": "runs/development/experiment-1-c-p-v1.0.2-af60f45/parametric/C-W03/world-report.json",
+        "report_sha256": "047909508810446ec167eab66e8a69ba9be7d0c19c940a93d2a5eaac61400087"
+      },
+      "locus_contract_sha256": "05f8f82c301f46321b2daad5c6d32ed90c4b830fd4d2c55177f61a1a89e06f22",
+      "participant_unique_experiment_budget": 3,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "bbf62195ad8adbca47059e7fd53b7534c403e049f8627ca1c6d24a9512629d9a",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "55c8955a3263371da6f9069340b1f74f6cd7be873185aaaad8de93be6da4846b",
+      "unit_id": "C-W03:parametric",
+      "world_id": "C-W03",
+      "world_seed": 2
+    },
+    {
+      "block": "C-P",
+      "development_report": {
+        "file_sha256": "55cc317d49db9142417dda07835463d20112a88e05bb15c8ed05872fb3d1faa6",
+        "path": "runs/development/experiment-1-c-p-v1.0.2-af60f45/parametric/C-W04/world-report.json",
+        "report_sha256": "0fadd72ffa20159a2f21ec53a342be7fe625c468bdf0545c55e85e8bc92c5e35"
+      },
+      "locus_contract_sha256": "05f8f82c301f46321b2daad5c6d32ed90c4b830fd4d2c55177f61a1a89e06f22",
+      "participant_unique_experiment_budget": 3,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "eddbacfb76fdc3326494b7932e8756a70b810620efc1255db54e8579c6371a1a",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "3cb9c050f81a5b481e4fce4fb610029902ebf02fd3b83caae33640b09f52a389",
+      "unit_id": "C-W04:parametric",
+      "world_id": "C-W04",
+      "world_seed": 3
+    },
+    {
+      "block": "C-P",
+      "development_report": {
+        "file_sha256": "bc1b5ce1fb6d95fdeb244b168bf59614a6ac720a26d24e849deea571ccb85688",
+        "path": "runs/development/experiment-1-c-p-v1.0.2-af60f45/parametric/C-W05/world-report.json",
+        "report_sha256": "38a9c60550566ec8fb590862e1344b0c33a92210e1e5d056df4066c64b481cac"
+      },
+      "locus_contract_sha256": "05f8f82c301f46321b2daad5c6d32ed90c4b830fd4d2c55177f61a1a89e06f22",
+      "participant_unique_experiment_budget": 3,
+      "prior_locus": "parametric",
+      "public_prior_digest_source": "convergence_registry.prior_hashes",
+      "public_prior_sha256": "af67512051c98eb08d7690a8af230ee7ce0a6541ec05d7e212ecea0d4a77fccd",
+      "public_task_contract_sha256": "d3f3bdfef2c388e96bb53bb39735855fbef8478cc133b7a6a5d6e6c0ea0ce737",
+      "q_thresholds": [
+        "Q1_world_integrity",
+        "Q2_task_accessibility",
+        "Q3_public_contract_invariance",
+        "Q4_prior_symmetry",
+        "Q5_identifiability",
+        "Q6_budgeted_falsifiability",
+        "Q7_behavioral_relevance",
+        "Q8_noise_robustness"
+      ],
+      "system_id": "C",
+      "truth_sha256": "93c64a0744e621b39281f88496e1ba6e2266ecfc6f54ef835169e8eb0e5c0219",
+      "unit_id": "C-W05:parametric",
+      "world_id": "C-W05",
+      "world_seed": 4
+    }
+  ]
+}
