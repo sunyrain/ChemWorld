@@ -46,7 +46,10 @@ def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
     rows = registry.get("rows")
     if not isinstance(rows, list) or len(rows) != 105:
         raise ValueError("challenge audit requires the complete 105-unit registry")
-    if probes.get("schema_version") != "chemworld-experiment-1-challenge-probes-1.0":
+    if probes.get("schema_version") not in {
+        "chemworld-experiment-1-challenge-probes-1.0",
+        "chemworld-experiment-1-challenge-probes-1.1",
+    }:
         raise ValueError("unexpected challenge probe schema")
     probe_denominators = probes.get("denominators")
     if not isinstance(probe_denominators, Mapping) or any(
@@ -68,76 +71,78 @@ def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
     if len(probes_by_block) != 10:
         raise ValueError("challenge probe block identifiers are incomplete or duplicated")
     loci: list[dict[str, Any]] = []
-    systems = ("EC", "RX", "PA", "FL", "C", "P", "D")
-    locus_ids = ("entity", "parametric", "structural")
-    for system in systems:
-        for locus in locus_ids:
-            selected = [
-                row
-                for row in rows
-                if row.get("system_id") == system and row.get("prior_locus") == locus
-            ]
-            if not selected or any(
-                row.get("current_status") != "qualified-development" for row in selected
-            ):
-                continue
-            block = f"{system}-{locus[0].upper()}"
-            probe = probes_by_block.get(block)
-            if not isinstance(probe, Mapping) or probe.get("world_probe_rows") != 5:
-                raise ValueError(f"missing five-World challenge probe for {block}")
-            probe_checks = probe.get("checks")
-            if not isinstance(probe_checks, Mapping):
-                raise ValueError(f"missing challenge checks for {block}")
+    locus_name = {"E": "entity", "P": "parametric", "S": "structural"}
+    expected_blocks = tuple(probes_by_block)
+    for block in expected_blocks:
+        system, short_locus = block.split("-")
+        locus = locus_name[short_locus]
+        selected = [
+            row
+            for row in rows
+            if row.get("system_id") == system and row.get("prior_locus") == locus
+        ]
+        if len(selected) != 5:
+            raise ValueError(f"{block} registry denominator must contain exactly five Worlds")
+        if len({str(row.get("unit_id")) for row in selected}) != 5:
+            raise ValueError(f"{block} registry rows are duplicated")
+        if any(row.get("current_status") != "qualified-development" for row in selected):
+            raise ValueError(f"{block} contains stale or non-qualified registry rows")
+        probe = probes_by_block.get(block)
+        if not isinstance(probe, Mapping) or probe.get("world_probe_rows") != 5:
+            raise ValueError(f"missing five-World challenge probe for {block}")
+        probe_checks = probe.get("checks")
+        if not isinstance(probe_checks, Mapping):
+            raise ValueError(f"missing challenge checks for {block}")
 
-            def probe_check(
-                name: str, frozen_checks: Mapping[str, Any] = probe_checks
-            ) -> dict[str, str]:
-                passed = frozen_checks.get(name) is True
-                return {
-                    "status": "passed" if passed else "failed",
-                    "evidence": (
-                        f"five-World frozen challenge probe {probes['challenge_probe_sha256']}"
-                    ),
-                }
-
-            checks = {
-                "schema_symmetry": {
-                    "status": "passed" if _gate(selected, "Q4_prior_symmetry") else "failed",
-                    "evidence": "all five development Q4 gates",
-                },
-                "plausibility": probe_check("plausibility"),
-                "non_triviality": probe_check("non_triviality"),
-                "information_choice": probe_check("information_choice"),
-                "budget_window": probe_check("budget_window"),
-                "consequence": {
-                    "status": "passed" if _gate(selected, "Q7_behavioral_relevance") else "failed",
-                    "evidence": "all five development Q7 gates",
-                },
-                "leakage": {
-                    "status": "passed"
-                    if _gate(selected, "Q3_public_contract_invariance")
-                    else "failed",
-                    "evidence": "all five development Q3 gates",
-                },
+        def probe_check(
+            name: str, frozen_checks: Mapping[str, Any] = probe_checks
+        ) -> dict[str, str]:
+            passed = frozen_checks.get(name) is True
+            return {
+                "status": "passed" if passed else "failed",
+                "evidence": (
+                    f"five-World frozen challenge probe {probes['challenge_probe_sha256']}"
+                ),
             }
-            eligible = all(value["status"] == "passed" for value in checks.values())
-            loci.append(
-                {
-                    "block": block,
-                    "system_id": system,
-                    "prior_locus": locus,
-                    "development_qualified_worlds": 5,
-                    "checks": checks,
-                    "confirmation_eligible": eligible,
-                    "decision": (
-                        "eligible-for-process-isolated-confirmation"
-                        if eligible
-                        else "confirmation-blocked-fail-closed"
-                    ),
-                }
-            )
+
+        checks = {
+            "schema_symmetry": {
+                "status": "passed" if _gate(selected, "Q4_prior_symmetry") else "failed",
+                "evidence": "all five development Q4 gates",
+            },
+            "plausibility": probe_check("plausibility"),
+            "non_triviality": probe_check("non_triviality"),
+            "information_choice": probe_check("information_choice"),
+            "budget_window": probe_check("budget_window"),
+            "consequence": {
+                "status": "passed" if _gate(selected, "Q7_behavioral_relevance") else "failed",
+                "evidence": "all five development Q7 gates",
+            },
+            "leakage": {
+                "status": "passed"
+                if _gate(selected, "Q3_public_contract_invariance")
+                else "failed",
+                "evidence": "all five development Q3 gates",
+            },
+        }
+        eligible = all(value["status"] == "passed" for value in checks.values())
+        loci.append(
+            {
+                "block": block,
+                "system_id": system,
+                "prior_locus": locus,
+                "development_qualified_worlds": 5,
+                "checks": checks,
+                "confirmation_eligible": eligible,
+                "decision": (
+                    "eligible-for-process-isolated-confirmation"
+                    if eligible
+                    else "confirmation-blocked-fail-closed"
+                ),
+            }
+        )
     audit: dict[str, Any] = {
-        "schema_version": "chemworld-experiment-1-challenge-audit-1.1",
+        "schema_version": "chemworld-experiment-1-challenge-audit-1.2",
         "formal_result": False,
         "provider_call_count": 0,
         "participant_execution_authorized": False,
