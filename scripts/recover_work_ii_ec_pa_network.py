@@ -149,6 +149,15 @@ def recover(root, report, unit, original, folder, design, truth, progress):
     kind = recovery_kind(unit, original, folder)
     if kind is None:
         return None
+    progress.pop("provider_liveness", None)
+    progress.update(
+        stage="network_recovery",
+        phase="source" if kind == "fresh_source" else "posttests",
+        unit=unit["unit_id"],
+        operations=0,
+        batches=0,
+        planned_batches=unit["budget"],
+    )
     output.mkdir(parents=True, exist_ok=False)
     write(output / "design.json", design)
     write(
