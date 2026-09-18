@@ -1,6 +1,6 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-09-19，W2-131。新开发实验与既有正式证据分列；执行状态见[TODO](WORK_II_TODOLIST.md)，当前设计与检查边界见[矩阵9.8节](WORK_II_EXPERIMENT_MATRIX.md)。本次新增固定参考，不产生模型来源。
+更新日期：2026-09-19，W2-132。新开发实验与既有正式证据分列；执行状态见[TODO](WORK_II_TODOLIST.md)，当前设计与检查边界见[矩阵9.9节](WORK_II_EXPERIMENT_MATRIX.md)。[英文五世界矩阵实时结果](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md)单列进行中，不提前计入下表已完成来源。E计划90来源；P/S适用单世界试跑随后。原中文数据保持原状。
 
 | 当前开发结果 | 完成情况 | 可以支持及限制 |
 | --- | --- | --- |

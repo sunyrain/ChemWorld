@@ -1,6 +1,6 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
-更新：2026-09-19，W2-131。**当前设计为development：三臂、每来源12批、12次可分配额外测量、终检另计，自主选择单批或成组实验。EC双目标、PA单目标；均先封存研究，再K1→Q→K2。EC新预测题与PA三臂入口已实现，固定参考通过，见第9.8.4节；未启动新模型来源。PA的24批仅为已完成预算诊断，未改变主预算。新正式Participant样本量尚未冻结。**
+更新：2026-09-19，W2-132。**最新已授权development矩阵：EC双目标、PA单目标，12/24两档预算、各5世界、O/A/M三臂，先E共90来源，再适用体系P/S单世界12批试跑。问题、模型报告和新结果报告统一英文。每来源额外测量与批数相同，终检另计，自主选择单批或成组；K1→Q→K2。新范围见9.9节，替代此前仅准备单世界的排期；旧证据保留。**
 
 本文件是Paper 2实验设计的唯一入口。[TODO](WORK_II_TODOLIST.md)管理执行，
 [结果索引](WORK_II_PAPER_RESULTS_ZH.md)保存既有结果，[current](../../configs/current.json)解析既有机器证据，
@@ -1110,6 +1110,25 @@ W2-129现已完成：[12/24结果及token](reports/work-ii-pa-sol-24-20260918/CO
 三臂只生成一次PA的12题固定参考，后两臂复用；各自沿原会话K1→Q→K2，无新实验或真值反馈，变更会话判为后测故障。各臂结果与总表保留成功、失败和未启动单位。参考故障或首次操作前启动故障停止后续队列；科学低分不触发重跑。完整未来块仍是3来源/36计划来源批/9后测，参考与重放另计；本次PA的3个单批参考不能充作这3个自由来源。
 
 PA原12题的配方与两项决策保持：本轮修执行入口，不据旧模型错误换成更有利的题。三臂实际材料工具回复已核对：匿名目录相同，O无dossier，A/M正确送达、X0/X3互换；同一固定9操作的读数和动作一致，HPLC真值闭合，3条精确重放均通过。真实provider的完整三臂仍未启动，旧身份暴露来源不升级。
+
+### 9.9 W2-132: authorized English five-world budget matrix
+
+The user explicitly selected both EC goals and single-world P/S pilots after E. The [fixed execution note](WORK_II_EC_PA_FIVE_WORLD_NOTE.md) governs this block; [live English results](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md) retain every planned cell and failure. Model: GPT-5.6 Sol / medium; one executor; one source attempt per cell; no result-based retries.
+
+| Stage | System and goals | Worlds | Budgets | Arms | Sources | Planned source batches | Posttests |
+| --- | --- | ---: | --- | ---: | ---: | ---: | ---: |
+| E | EC discovery and score optimization | 5 | 12, 24 | 3 | 60 | 1,080 | 180 |
+| E | PA partition discovery | 5 | 12, 24 | 3 | 30 | 540 | 90 |
+| E total | Both systems | 10 system-worlds | 12, 24 | 3 | 90 | 1,620 | 270 |
+| After E | EC P/S, both goals | W01 | 12 | 3 | 12 | 144 | 36 |
+
+New participant questions and source/report instructions are English; historical Chinese evidence is unchanged. Each budget has a fresh session, budget-matched extra measurements, final assays and operation/stock capacity. Source wall/token/history envelopes scale with budget; process time is recorded without an unintended cap. Autonomous grouped experiments remain allowed.
+
+Use the registered EC five seeds with the physical material family and world-specific E transpositions. PA uses its five seeds plus five executable partition/phase-volume intervention manifests. Do not substitute noise seeds for distinct worlds. Freeze order, question recipes and per-world priors before outcomes; models see only the public laboratory and supplied dossier.
+
+Before sources: 60 public contract/material-tool checks and 120 fixed reference batches/900 operations, with exact replay separately counted. Each system-world reference is reused across arms and budgets. EC uses the new 12 polarity/context conditions; PA retains its 12 conditions and two decisions. Source replay, optional EC recommendation retests and their replays are additional physical costs. K1/Q/K2 remains on the source thread with no truth feedback.
+
+E is estimated at 15–23 hours from historical 10–15 minutes/source; update from observed throughput. EC P/S adds approximately 2–3 hours and starts only after all E cells have terminal states. PA's P/S public-prior definitions require a separate applicability design; they are not automatically relabelled E sources or claimed ready by the historical qualification ledger. Scientific failure continues the frozen denominator; input, startup or replay defects stop the affected execution for diagnosis, with evidence retained.
 
 ## 10. 论文呈现与完成标准
 

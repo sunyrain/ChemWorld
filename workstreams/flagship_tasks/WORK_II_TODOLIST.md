@@ -1,6 +1,7 @@
 # Work II TODO — 先验、实验修正与知识的决策价值
 
 最后更新：2026-09-19。执行者：Codex /root；`main`，单executor。
+当前新增授权W2-132：[英文EC/PA五世界矩阵](WORK_II_EC_PA_FIVE_WORLD_NOTE.md)。E层先跑EC双目标60场、PA单目标30场，共90来源/1,620计划实验位/270后测；预算12/24、五世界、三臂。E完成后接EC-W01、12批、P/S双目标三臂12场；PA P/S需另核对公开资料定义，不沿用有问题的旧结构标签。问题与新结果报告统一英文，单场一次，无失败替换。实时状态从[英文总表](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md)读取。
 Experiment 1当前状态从[权威入口](experiment_1/README.md)读取：105单元为53开发通过、22失败、30准备阻塞；7个先验层可进入独立confirmation但尚未执行。EC为15/15开发通过；W2-119的11/15是旧版本结果，失败保留。该资格总账不等于当前自由Agent十二批试验已完成或正式发布。
 W2-122已完成EC单世界开发试跑：按用户指令收束为E层×机理探索/体系内优化×O/A/M，共6场核心，71/72次终检、72次中途测量、18/18项后测；另保留2场P层探索、24次终检。模型GPT-5.6 Sol / medium。优化Aligned因过程时间耗尽少一批，原失败保留，后测另补齐；其余10场未启动。见[结果](reports/work-ii-ec-sol-20260918/REPORT.md)、[完整评估与耗时](reports/work-ii-ec-sol-20260918/ANALYSIS.md)和[原计划及修订](WORK_II_EC_SOL_DUAL_GOAL_TRIAL_NOTE.md)。旧资格/正式分母不变，其他体系不自动双目标。
 
@@ -85,6 +86,7 @@ W2-99—101、W2-103及W2-105仅有Astra开发数据；新完整任务的世界�
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
+| W2-132 | DOING (authorized development matrix) | [事前说明](WORK_II_EC_PA_FIVE_WORLD_NOTE.md)：英文提示/报告，12/24预算，EC/PA各5世界三臂；EC两目标、PA单目标。E90来源先执行，随后适用EC-P/S单世界12来源；60份实际公开输入及120批共享预测参考先验证，失败与未启动保留。单执行器、Sol medium、无自动重试。 |
 | W2-131 | DONE (development; provider-free) | [固定说明](WORK_II_EC_PA_EXECUTION_UPDATE_NOTE.md)及[结果](reports/work-ii-ec-pa-entry-20260919/REPORT.md)：EC正负域各6题、旧题独立保留；PA显式单臂/三臂、独立会话、共享参考。15/15参考批、99/99操作及15/15精确重放通过，27.594秒；PA实际匿名工具回复与错配、同动作/读数一致；126项功能测试通过。零provider/重试，不启动正式来源、不升级旧暴露数据。 |
 | W2-130 | DONE (development remediation; no new sources) | 统一矩阵9.8节、TODO、故事、结果索引、PA分析/生成器；撤回强制逐测量/逐批反思。PA修匿名S/X目录及标签，并补齐动态task_info的A/M资料送达；EC新版本必须显式列单位，时间只记账、库存匹配操作范围，完整终态来源不按成功与否筛后测，K2精简三问。移除公共提示固定12批残留，旧24批不一致补记；旧身份暴露与不利结果保留。116项定向测试、Ruff、204本地链接及原结果/token对账通过；仅功能测试/旧数据重导出，无新provider来源或正式冻结，准备推送。 |
 | W2-129 | DONE (development; retained unfavorable result) | [24批结果](reports/work-ii-pa-sol-24-20260918/REPORT.md)及[12/24比较](reports/work-ii-pa-sol-24-20260918/COMPARISON.md)：PA-W01/Sol medium，新来源24批/24 HPLC/24终检/240操作，重放误差0、后测3/3、14.43分钟，无重试。覆盖16/16搭配并做混合2×2对照，但MAE 0.11443、区间覆盖9/12、平均宽0.31667，决策2/2；未测加水相条件且出现广泛低估，不能归因于单纯预算不足。模型预写7/8/4/4批脚本，非逐批自适应。新总输入929,019（缓存767,616）、输出13,930；旧总输入1,544,640（缓存1,369,728）、输出15,829，均按累计差分。保留旧公开身份偏差，仅开发描述，不追加更有利来源。 |

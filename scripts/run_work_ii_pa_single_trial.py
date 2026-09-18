@@ -41,7 +41,7 @@ from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "partition-discovery"
-PROTOCOL_VERSION = "pa-free-research-development-v2"
+PROTOCOL_VERSION = "pa-free-research-development-v3-en"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("product_in_organic", "product_in_aqueous")
 GOAL = (
@@ -72,15 +72,23 @@ Later turns request your mechanism, blind predictions and reflection. Do not ans
 Anonymous IDs are independent categories, not ordered numbers or real chemical identities.
 You may use the public calculator to fit your own relationships within its supported operations.
 No particular discovery or high score is required; report uncertainty and unavailable evidence.
+Use English for all research notes, explanations and final reports.
 """
-K1 = """实验已结束。请用中文说明你认为本体系的分配规律是什么，哪些具体批次和测量支持它，
-资料与实验各贡献了什么，以及还有哪些竞争解释或适用范围不能确定。表达形式自由，不要求预定
-方程；不要重抄整张数据表。区分观察、推断与猜测。返回report字段。本报告先封存，再给预测题。"""
-K2 = """机理报告和预测均已封存，尚未反馈真值。请用中文回答三点，引用批号并避免重复全文：
-1. 最可能出错或尚未验证的一条初始资料/自建规律是什么？没有实例先验就说明没有。
-2. 若再给一次实验，你会怎么做、测什么来区分主要解释与替代解释？不同结果怎样改变判断？不执行。
-3. 哪些已有证据未被充分利用，哪些预测最不可靠，报告和预测有无不一致？
-事后反思不冒充当时记录，不修改此前交付。返回report字段。"""
+K1 = """The campaign has ended. Explain in English your account of this system's partition
+behavior, the specific batches and measurements supporting it, the contributions of supplied
+information and experiments, and remaining competing explanations or uncertain scope.
+Your representation is unrestricted; no prescribed equation is required. Do not copy the
+entire data table. Distinguish observations, inference and conjecture. Return the report
+field. This report is sealed before prediction questions are presented."""
+K2 = """Your mechanism report and predictions are sealed, and no truth has been supplied.
+Answer three questions in English, citing batches without repeating the full report:
+1. Which supplied claim or self-developed law is most likely wrong or still untested?
+State explicitly if no instance prior was supplied.
+2. With one more experiment, what would you do and measure to distinguish your leading
+explanation from an alternative? How would different results change your judgment? Do not execute.
+3. Which existing evidence was underused, which predictions are least reliable, and is there
+any inconsistency between the report and predictions? Do not present hindsight as a
+contemporaneous record or modify sealed outputs. Return the report field."""
 
 
 def study_goal(batches=12):
@@ -159,11 +167,12 @@ def arm_material_information(arm):
 
 
 class PAAgent(FreeResearchAgent):
-    def __init__(self, *, arm, batches=12, **kwargs):
+    def __init__(self, *, arm, batches=12, world=None, **kwargs):
         arm_material_information(arm)
         self.arm = arm
         self.batches = batches
-        super().__init__(goal="discovery", **kwargs)
+        self.world = world or {"world_id": "PA-W01", "world_seed": 0, "world_interventions": []}
+        super().__init__(goal="discovery", batches=batches, **kwargs)
         self.belief_checkpoint_contract["final_recommendation_required"] = False
 
     def reset(self, task_info, seed):
@@ -238,16 +247,20 @@ class ReferenceCapture(gym.Wrapper):
         return result
 
 
-def physics(agent, output, *, callback=None, truth=None, arm=None, batches=None):
+def physics(agent, output, *, callback=None, truth=None, arm=None, batches=None, world=None):
     if isinstance(agent, PAAgent):
         if arm is not None and arm != agent.arm:
             raise ValueError("source arm and physical-entry arm differ")
         if batches is not None and batches != agent.batches:
             raise ValueError("source and physical-entry batch budgets differ")
         arm, batches = agent.arm, agent.batches
+        if world is not None and world != agent.world:
+            raise ValueError("source and physical-entry worlds differ")
+        world = agent.world
     else:
         arm = arm or "Opaque"
         batches = 12 if batches is None else batches
+    world = world or {"world_id": "PA-W01", "world_seed": 0, "world_interventions": []}
     operations = 30 * batches
     return run_agent(
         env_id=get_task(TASK).env_id,
@@ -255,7 +268,8 @@ def physics(agent, output, *, callback=None, truth=None, arm=None, batches=None)
         task_id=TASK,
         world_split="public-test",
         objective="balanced",
-        seed=0,
+        seed=world["world_seed"],
+        world_interventions=world.get("world_interventions"),
         agent_seed=0,
         observation_seed=0 if isinstance(agent, PAAgent) else 101,
         budget=operations,
@@ -321,12 +335,16 @@ def question(stage):
     if stage != "Q":
         return {"K1": K1, "K2": K2}[stage]
     return (
-        "基于原研究，预测下列12个独立新批次首次HPLC取样前的真实两相目标物比例，"
-        "分母是各批固定初始目标量。每项给点估计及90%不确定区间，区间针对无噪声物料比例，"
-        "不要求预测随机仪器噪声。不得补实验或修改K1。只预测分相前，不预测选相后终检。"
-        "D1：Q01保留哪一相能留下更多目标物？D2：同用量Q05/Q06哪套有机相目标物更多？"
-        "两题可声明uncertain。共用一段简要依据，不逐题写长文。返回指定JSON。\n"
-        + json.dumps(queries(), ensure_ascii=False)
+        "Using your research, predict the true two-phase target fractions immediately before "
+        "the first HPLC sample in these 12 independent new batches. The denominator is each "
+        "batch's fixed initial target inventory. Give a point estimate and a 90% uncertainty "
+        "interval for each noiseless fraction; do not predict random instrument noise. "
+        "No new experiments or changes to K1 are allowed. Predict before phase removal, "
+        "not the terminal assay after selecting a phase. D1: Which phase should be retained "
+        "in Q01 to keep more target? D2: Under the same material amounts, does Q05 or Q06 "
+        "place more target in the organic phase? Both decisions allow uncertain. Supply "
+        "one shared concise rationale in English, without a long explanation per question. "
+        "Return the required JSON.\n" + json.dumps(queries(), ensure_ascii=False)
     )
 
 
@@ -841,6 +859,21 @@ def concise_report(result, records):
 
 def export(root, out):
     result = read(root / "result.json")
+    if result.get("protocol_version", "").endswith("-en"):
+        from scripts.run_work_ii_ec_pa_matrix import export_source
+
+        design = read(root / "design.json")
+        unit = {
+            "system": "PA",
+            "world": design["world_config"],
+            "goal": "discovery",
+            "locus": "E",
+            "arm": design["arm"],
+            "budget": design["source_batches"],
+            "unit_id": root.name,
+        }
+        export_source(unit, result, root, out, design)
+        return
     out.mkdir(parents=True, exist_ok=True)
     records = (
         load_jsonl(root / "source/trajectory.jsonl")
@@ -948,14 +981,16 @@ def export(root, out):
     (out / "REPORT.md").write_text(report, encoding="utf-8")
 
 
-def execute(root, progress, *, arm, batches=12, reference_run=None):
+def execute(root, progress, *, arm, batches=12, reference_run=None, world=None):
     material = arm_material_information(arm)
+    world = world or {"world_id": "PA-W01", "world_seed": 0, "world_interventions": []}
     root.mkdir(parents=True, exist_ok=False)
     write(
         root / "design.json",
         {
             "model": PROVIDER,
-            "world": "PA-W01",
+            "world": world["world_id"],
+            "world_config": world,
             "protocol_version": PROTOCOL_VERSION,
             "arm": arm,
             "material_information": material,
@@ -975,6 +1010,7 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
     result = {
         "status": "failed",
         "arm": arm,
+        "world": world["world_id"],
         "protocol_version": PROTOCOL_VERSION,
         "development_only": True,
         "formal_result": False,
@@ -1013,9 +1049,19 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
     try:
         if reference_run:
             old_design = read(reference_run / "design.json")
-            saved = read(reference_run / "reference-result.json")
+            saved = read(
+                reference_run / old_design.get("reference_result_file", "reference-result.json")
+            )
             if old_design["queries"] != queries() or not saved.get("passed"):
                 raise ValueError("reference mismatch or failed historical reference")
+            if (
+                old_design.get(
+                    "world_config",
+                    {"world_id": "PA-W01", "world_seed": 0, "world_interventions": []},
+                )
+                != world
+            ):
+                raise ValueError("reference world differs from source world")
             shutil.copyfile(reference_run / "reference.jsonl", root / "reference.jsonl")
             reference_truth = [saved["truth"][q["query_id"]] for q in queries()]
             reference_replay = saved["exact_replay"]
@@ -1029,9 +1075,12 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
                 root / "reference.jsonl",
                 callback=callback,
                 truth=reference_truth,
+                world=world,
             )
             reference_replay = replay_with_progress(
-                load_jsonl(root / "reference.jsonl"), "reference"
+                load_jsonl(root / "reference.jsonl"),
+                "reference",
+                world_interventions=world.get("world_interventions"),
             )
         records = load_jsonl(root / "reference.jsonl")
         measured = [r for r in observations(records) if r["instrument"] == "hplc"]
@@ -1081,6 +1130,7 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
         agent = PAAgent(
             arm=arm,
             batches=batches,
+            world=world,
             home_root=Path(temporary),
             output=folder,
             workspace=Path(temporary) / "laboratory",
@@ -1096,8 +1146,8 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
             provider_process_attempt_limit=1,
             max_initial_prompt_bytes=262144,
             max_tool_output_bytes=131072,
-            history_event_limit=360,
-            history_byte_limit=524288,
+            history_event_limit=30 * batches,
+            history_byte_limit=524288 * batches // 12,
             session_progress_callback=lambda p: progress.update(provider_liveness=p),
         )
         source_failure = None
@@ -1127,7 +1177,9 @@ def execute(root, progress, *, arm, batches=12, reference_run=None):
             "batches": summaries(records),
             "usage": agent.method_resource_usage(),
             "elapsed_s": time.monotonic() - source_started,
-            "exact_replay": replay_with_progress(records, "source"),
+            "exact_replay": replay_with_progress(
+                records, "source", world_interventions=world.get("world_interventions")
+            ),
             "rollbacks": [
                 {"action": r.get("action"), "reason": r.get("rollback_reason")}
                 for r in records
@@ -1237,11 +1289,11 @@ def execute_block(root, report, arms, progress, *, batches=12, reference_run=Non
         write(root / "summary.json", summary)
         write(report / "summary.json", summary)
         lines = [
-            "# PA三臂开发块",
+            "# PA three-arm development block",
             "",
-            "每臂独立会话，共用固定预测参考；成功、失败与未启动均保留。",
+            "Independent source sessions share one prediction reference. All failures remain.",
             "",
-            "| 臂 | 状态 | 来源批数 | 后测 |",
+            "| Arm | Status | Source batches | Posttests |",
             "| --- | --- | ---: | ---: |",
         ]
         for r in rows:
@@ -1252,8 +1304,9 @@ def execute_block(root, report, arms, progress, *, batches=12, reference_run=Non
             )
         lines += [
             "",
-            f"来源完成{summary['source_batches']}/{len(arms) * batches}批；"
-            f"新增参考{summary['new_reference_batches']}批。精确重放成本见各臂，不增加独立来源。",
+            f"Source batches: {summary['source_batches']}/{len(arms) * batches}; "
+            f"new reference batches: {summary['new_reference_batches']}. "
+            "Exact replay costs are recorded per arm, without adding independent sources.",
             "",
         ]
         (report / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")

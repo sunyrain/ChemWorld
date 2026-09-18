@@ -32,7 +32,7 @@ from chemworld.world.operations import operation_contracts
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "electrochemical-conversion"
-PROTOCOL_VERSION = "ec-free-research-development-v3"
+PROTOCOL_VERSION = "ec-free-research-development-v4-en"
 QUERY_VERSION = "ec-polarity-context-v2"
 LEGACY_QUERY_VERSION = "ec-positive-short-v1"
 PROVIDER = {
@@ -71,6 +71,7 @@ current_mA is a nonnegative magnitude cap, not a guaranteed delivered current.
 You can choose materials, conditions, segmented operation, comparisons, and measurements freely.
 Later prediction will cover both potential signs, short/long electrolysis, material changes,
 and current caps, at a fixed stated loading; the actual conditions are withheld until reporting.
+Use English for all research notes, explanations and final reports.
 There are no mandatory belief snapshots, expression templates, or decision-audit fields.
 For every batch explicitly terminate then measure final_assay. A batch ending is not the
 campaign ending: continue with the returned next_state until campaign_ended is true.
@@ -82,19 +83,30 @@ account, then blind prediction, then a retrospective interview. Do not answer th
 Public scores and diagnostics are observations; supplied prior information may be incomplete
 or inaccurate, and observations are authoritative. No particular scientific result is required.
 """
-K1 = """实验阶段已结束，操作建议已经封存。现在请用中文提交完整、独立可读的机理报告。
-请讲清你认为这个世界如何运行：关键变量、作用关系、耦合、可能的方程或过程；哪些实验
-使你形成或修改这个解释；说明解释适用范围、尚不能识别的因素和合理的竞争解释。
-使用你认为最合适的自然语言、数学或伪代码，不要求任何预设模型形式，也不要求确定答案。
-引用真实批次编号与数值，区分实际观测、外推和猜测；不补做实验，不编造未测信息。
-请充分展开，不必压成短摘要。返回 JSON 的 report 字段。此报告封存后才给预测题。
+K1 = """The experimental campaign has ended and the operating recommendation is sealed.
+Submit a complete, self-contained mechanism report in English. Explain how you think this
+world works: important variables, relationships, couplings, possible equations or processes;
+which experiments formed or changed your explanation; its scope, unidentifiable factors,
+and plausible alternatives. Use natural language, mathematics or pseudocode of your choice;
+no prescribed model form or certain answer is required. Cite actual batch numbers and values,
+distinguishing observations, extrapolations and conjectures. Do not perform new experiments
+or invent unmeasured information. Develop your account fully, rather than compressing it
+into a short abstract. Return the JSON report field. Prediction questions follow sealing.
 """
-K2 = """机理报告和盲预测已经封存，尚未反馈预测真值。请用中文回答三点，引用批号，避免重复全文：
-1. 哪条资料或自建规律被支持、反驳或仍未验证？哪些实际证据改变了判断？没有先验可明确说明。
-2. 若再有一次实验，如何区分主要解释与竞争解释？预期不同结果会怎样改变判断？不执行。
-3. 哪些证据未使用、哪些预测或操作建议最不可靠？本场目标是否影响取证选择？允许回答无明显冲突。
-勿把事后解释写成当时已记录的想法。返回 JSON 的 report 字段。
+K2 = """Your mechanism report and predictions are sealed; no prediction truth has been supplied.
+Answer three questions in English, citing batch numbers without repeating your entire report:
+1. Which supplied claims or self-developed laws were supported, contradicted or untested?
+Which actual evidence changed your judgment? State explicitly if no instance prior was supplied.
+2. With one more experiment, how would you distinguish your leading explanation from an
+alternative, and how would different outcomes change your judgment? Do not execute it.
+3. What evidence was unused, and which predictions or recommendations are least reliable?
+Did the assigned goal affect evidence collection? It is acceptable to report no clear conflict.
+Do not present hindsight as thoughts recorded at the time. Return the JSON report field.
 """
+
+
+def source_system(batches=12):
+    return SYSTEM.replace("12", str(batches))
 
 
 def resource_card(batches=12):
@@ -134,7 +146,7 @@ def posttest_context_available(receipt):
     )
 
 
-def priors(locus, arm):
+def priors(locus, arm, *, world_id="EC-W01", world_seed=0):
     material = {"mode": "opaque_codes"}
     prior = None
     if locus == "E":
@@ -144,7 +156,7 @@ def priors(locus, arm):
             contract = read(
                 ROOT / "configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json"
             )
-            permutation = contract["loci"]["entity"]["descriptor_permutation_by_world"]["EC-W01"]
+            permutation = contract["loci"]["entity"]["descriptor_permutation_by_world"][world_id]
             material = {
                 "mode": "anonymous_misindexed_properties",
                 "target_field": "electrolyte_profile",
@@ -156,7 +168,7 @@ def priors(locus, arm):
             / "workstreams/flagship_tasks/reports"
             / "work-ii-electrochemical-matched-prior-qualification-20260811.json"
         )
-        world = next(w for w in data["worlds"] if w["world_seed"] == 0)
+        world = next(w for w in data["worlds"] if w["world_seed"] == world_seed)
         arms = build_public_priors(
             world["selected_reflection"], reference_context=world["reference_context"]
         )
@@ -229,11 +241,13 @@ def queries(version=QUERY_VERSION):
 def prediction_question(query_set):
     public_queries = [{"query_id": q["query_id"], "actions": q["actions"]} for q in query_set]
     return (
-        f"请基于你自己的研究，对以下{len(query_set)}个独立新批次的最终结果逐一盲预测。"
-        "每批从相同初始世界独立开始。对每个指标给出点估计及80%预测区间，"
-        "考虑不确定性；不能补做实验。所有指标沿公共仪器及评分合同。"
-        "题目并未限定你解释机理的形式。不要修改先前报告。"
-        "返回完整predictions及一段共用的简要rationale，不逐题重复操作清单。\n"
+        f"Using your own research, blindly predict the final results of these {len(query_set)} "
+        "independent new batches. Each starts from the same initial world state. For each "
+        "metric give a point estimate and an 80% prediction interval, accounting for "
+        "uncertainty. No additional experiments are allowed. Metrics follow the public "
+        "instrument and scoring contracts. No mechanism form is prescribed. Do not modify "
+        "your sealed report. Return complete predictions and one shared concise rationale "
+        "in English; do not repeat the action lists for every question.\n"
         + json.dumps(public_queries)
     )
 
@@ -255,8 +269,9 @@ def recipe(electrolyte=0, solvent=0, potential=0.9, current=60, duration=1200):
 
 
 class FreeResearchAgent(InteractiveCodexExperimentAgent):
-    def __init__(self, *, goal, home_root, output, **kwargs):
+    def __init__(self, *, goal, home_root, output, batches=12, **kwargs):
         self.goal = goal
+        self.batches = batches
         self.home_root = home_root
         self.output = output
         self.followup_environment = None
@@ -311,9 +326,9 @@ class FreeResearchAgent(InteractiveCodexExperimentAgent):
                 k: operation_contracts()[k].to_dict() for k in task.allowed_operations
             },
             study_budget={
-                "complete_batches": 12,
-                "intermediate_measurements": 12,
-                "final_assays": 12,
+                "complete_batches": self.batches,
+                "intermediate_measurements": self.batches,
+                "final_assays": self.batches,
             },
             posttests=[
                 "free mechanism report",
@@ -324,8 +339,9 @@ class FreeResearchAgent(InteractiveCodexExperimentAgent):
         self._task_contract_manifest = self.workspace.publish_task_contract(self._task_contract)
 
     def _command(self, *, instructions_path, schema_path):
-        instructions_path.write_text(SYSTEM, encoding="utf-8")
-        (self.output / "source-instructions.txt").write_text(SYSTEM, encoding="utf-8")
+        instructions = source_system(self.batches)
+        instructions_path.write_text(instructions, encoding="utf-8")
+        (self.output / "source-instructions.txt").write_text(instructions, encoding="utf-8")
         command = super()._command(instructions_path=instructions_path, schema_path=schema_path)
         command.insert(2, "--ignore-user-config")
         for feature in (
@@ -410,11 +426,14 @@ def physics(
     observation_seed=0,
     callback=None,
     source_envelope=False,
+    source_budget=12,
+    world=None,
 ):
-    operation_budget = 360 if source_envelope else 30 * batches
+    world = world or {"world_id": "EC-W01", "world_seed": 0}
+    operation_budget = 30 * source_budget if source_envelope else 30 * batches
     physical_card = (
         replace(
-            resource_card(),
+            resource_card(source_budget),
             card_id="ec-source-envelope-single-retest",
             vessel_start_limit=1,
             final_assay_limit=1,
@@ -428,7 +447,8 @@ def physics(
         task_id=TASK,
         world_split="public-test",
         objective="balanced",
-        seed=0,
+        seed=world["world_seed"],
+        world_interventions=world.get("world_interventions"),
         agent_seed=0,
         observation_seed=observation_seed,
         budget=operation_budget,
@@ -447,11 +467,11 @@ def physics(
             {
                 "operation_limit": 30 * batches,
                 "complete_experiment_limit": batches,
-                "wall_time_limit_s": 5700,
+                "wall_time_limit_s": 150 * batches,
                 "model_call_limit": 1,
-                "input_token_limit": 8000000,
-                "uncached_input_token_limit": 2000000,
-                "output_token_limit": 128000,
+                "input_token_limit": 8000000 * batches // 12,
+                "uncached_input_token_limit": 2000000 * batches // 12,
+                "output_token_limit": 128000 * batches // 12,
                 "training_environment_step_limit": 0,
             }
             if isinstance(agent, FreeResearchAgent)
@@ -497,7 +517,16 @@ def summaries(records):
     return batches
 
 
-def reference_run(folder, actions, *, batches=1, observation_seed=100, source_envelope=False):
+def reference_run(
+    folder,
+    actions,
+    *,
+    batches=1,
+    observation_seed=100,
+    source_envelope=False,
+    source_budget=12,
+    world=None,
+):
     folder.mkdir(parents=True, exist_ok=False)
     failure = None
 
@@ -518,13 +547,17 @@ def reference_run(folder, actions, *, batches=1, observation_seed=100, source_en
             observation_seed=observation_seed,
             callback=progress,
             source_envelope=source_envelope,
+            source_budget=source_budget,
+            world=world,
         )
     except Exception as exc:
         failure = {"type": type(exc).__name__, "message": str(exc)[:1200]}
     records = (
         load_jsonl(folder / "trajectory.jsonl") if (folder / "trajectory.jsonl").exists() else []
     )
-    replay = replay_with_progress(records, folder.name)
+    replay = replay_with_progress(
+        records, folder.name, world_interventions=(world or {}).get("world_interventions")
+    )
     result = {
         "failure": failure,
         "batches": summaries(records),
@@ -538,7 +571,7 @@ def reference_run(folder, actions, *, batches=1, observation_seed=100, source_en
     return result
 
 
-def replay_with_progress(records, label):
+def replay_with_progress(records, label, *, world_interventions=None):
     if not records:
         return {"verified": False}
     stop = threading.Event()
@@ -561,7 +594,9 @@ def replay_with_progress(records, label):
     thread = threading.Thread(target=heartbeat, daemon=True)
     thread.start()
     try:
-        return verify_records(records, tolerance=0).to_dict()
+        return verify_records(
+            records, tolerance=0, world_interventions=world_interventions
+        ).to_dict()
     finally:
         stop.set()
         thread.join(timeout=2)
@@ -705,6 +740,8 @@ def evaluate_predictions(payload, truth, *, query_set=None):
 
 def run_cell(root, goal, locus, arm, truth, progress):
     design = read(root / "design.json")
+    batches = design.get("batches_per_source", 12)
+    world = design.get("world_config", {"world_id": "EC-W01", "world_seed": 0})
     cell_id = f"{goal}-{locus}-{arm}"
     folder = root / cell_id
     if (folder / "result.json").is_file():
@@ -713,12 +750,14 @@ def run_cell(root, goal, locus, arm, truth, progress):
     write(folder / "attempt.json", {"cell_id": cell_id, "started_epoch": time.time()})
     progress.update(stage=cell_id, phase="source", operations=0, batches=0)
     started = time.monotonic()
-    material, prior = priors(locus, arm)
+    material, prior = priors(locus, arm, world_id=world["world_id"], world_seed=world["world_seed"])
     result = {
         "cell_id": cell_id,
         "goal": goal,
         "locus": locus,
         "arm": arm,
+        "world": world["world_id"],
+        "planned_source_batches": batches,
         "status": "failed",
         "failure": None,
         "posttests": {},
@@ -726,6 +765,7 @@ def run_cell(root, goal, locus, arm, truth, progress):
     with tempfile.TemporaryDirectory(prefix="chemworld-ec-sol-") as temporary:
         agent = FreeResearchAgent(
             goal=goal,
+            batches=batches,
             home_root=Path(temporary),
             output=folder,
             workspace=Path(temporary) / "laboratory",
@@ -733,7 +773,7 @@ def run_cell(root, goal, locus, arm, truth, progress):
             initial_world_model=prior,
             request_timeout_s=1200,
             finalization_timeout_s=300,
-            session_wall_time_limit_s=5400,
+            session_wall_time_limit_s=150 * batches,
             max_recovered_mcp_tool_failures=12,
             max_consecutive_mcp_tool_failures=6,
             max_provider_error_events=0,
@@ -742,8 +782,8 @@ def run_cell(root, goal, locus, arm, truth, progress):
             provider_process_attempt_limit=1,
             max_initial_prompt_bytes=262144,
             max_tool_output_bytes=131072,
-            history_event_limit=360,
-            history_byte_limit=524288,
+            history_event_limit=30 * batches,
+            history_byte_limit=524288 * batches // 12,
             session_progress_callback=lambda payload: progress.update(provider_liveness=payload),
         )
 
@@ -768,7 +808,14 @@ def run_cell(root, goal, locus, arm, truth, progress):
             )
 
         try:
-            physics(agent, folder / "trajectory.jsonl", material=material, callback=callback)
+            physics(
+                agent,
+                folder / "trajectory.jsonl",
+                material=material,
+                callback=callback,
+                batches=batches,
+                world=world,
+            )
         except Exception as exc:
             result["failure"] = {"type": type(exc).__name__, "message": str(exc)[:1600]}
         finally:
@@ -786,8 +833,8 @@ def run_cell(root, goal, locus, arm, truth, progress):
             for i, r in enumerate(records)
             if r.get("transaction_status") != "committed"
         ]
-        result["exact_replay"] = (
-            verify_records(records, tolerance=0).to_dict() if records else {"verified": False}
+        result["exact_replay"] = replay_with_progress(
+            records, cell_id, world_interventions=world.get("world_interventions")
         )
         receipts = agent.provider_receipts()
         write(folder / "source-receipts.json", receipts)
@@ -796,15 +843,17 @@ def run_cell(root, goal, locus, arm, truth, progress):
         result["recommendation"] = last.get("final_recommendation")
         thread_id = last.get("thread_id")
         result["source_status"] = (
-            "completed" if len(result["batches"]) == 12 and not result["failure"] else "failed"
+            "completed" if len(result["batches"]) == batches and not result["failure"] else "failed"
         )
         result["source_failure"] = result["failure"]
         result["posttest_status"] = "unavailable"
+        write(folder / "result.json", result)
         if posttest_context_available(last):
             for stage in ("K1", "Q", "K2"):
                 progress["phase"] = stage
                 turn = posttest(agent, folder, stage, thread_id, progress, design=design)
                 result["posttests"][stage] = turn
+                write(folder / "result.json", result)
                 if turn.get("failure"):
                     result["posttest_failure"] = {
                         "type": "posttest_failure",
@@ -836,6 +885,8 @@ def run_cell(root, goal, locus, arm, truth, progress):
                 actions,
                 observation_seed=101,
                 source_envelope=True,
+                source_budget=batches,
+                world=world,
             )
         result["status"] = (
             "completed"
