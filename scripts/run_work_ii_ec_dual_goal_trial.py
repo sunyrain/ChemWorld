@@ -32,7 +32,9 @@ from chemworld.world.operations import operation_contracts
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "electrochemical-conversion"
-PROTOCOL_VERSION = "ec-free-research-development-v2"
+PROTOCOL_VERSION = "ec-free-research-development-v3"
+QUERY_VERSION = "ec-polarity-context-v2"
+LEGACY_QUERY_VERSION = "ec-positive-short-v1"
 PROVIDER = {
     "id": "chemworld_openai_https",
     "name": "OpenAI",
@@ -67,6 +69,8 @@ uses across the campaign plus 12 final assays. Measurements are optional up to t
 Use the public operation and instrument contracts and actual current legal parameter ranges.
 current_mA is a nonnegative magnitude cap, not a guaranteed delivered current.
 You can choose materials, conditions, segmented operation, comparisons, and measurements freely.
+Later prediction will cover both potential signs, short/long electrolysis, material changes,
+and current caps, at a fixed stated loading; the actual conditions are withheld until reporting.
 There are no mandatory belief snapshots, expression templates, or decision-audit fields.
 For every batch explicitly terminate then measure final_assay. A batch ending is not the
 campaign ending: continue with the returned next_state until campaign_ended is true.
@@ -176,7 +180,7 @@ def priors(locus, arm):
     return material, prior
 
 
-def queries():
+def legacy_queries():
     # Outcomes are never used to choose these conditions. Four matched comparisons plus diversity.
     rows = [
         (0, 0, 0.75, 20, 600),
@@ -193,6 +197,45 @@ def queries():
         (3, 1, 0.70, 35, 900),
     ]
     return [{"query_id": f"Q{i:02d}", "actions": recipe(*row)} for i, row in enumerate(rows, 1)]
+
+
+def queries(version=QUERY_VERSION):
+    if version == LEGACY_QUERY_VERSION:
+        return legacy_queries()
+    if version != QUERY_VERSION:
+        raise ValueError(f"unknown EC prediction version: {version}")
+    contexts = [
+        ("short", 0, 0, 100, 600),
+        ("long", 0, 0, 100, 7200),
+        ("electrolyte_1", 1, 0, 100, 7200),
+        ("electrolyte_3", 3, 0, 100, 7200),
+        ("solvent_2", 0, 2, 100, 7200),
+        ("current_cap", 0, 0, 500, 7200),
+    ]
+    result = []
+    for context, electrolyte, solvent, current, duration in contexts:
+        for potential in (-0.8, 0.8):
+            result.append(
+                {
+                    "query_id": f"Q{len(result) + 1:02d}",
+                    "context": context,
+                    "potential_domain": "negative" if potential < 0 else "positive",
+                    "actions": recipe(electrolyte, solvent, potential, current, duration),
+                }
+            )
+    return result
+
+
+def prediction_question(query_set):
+    public_queries = [{"query_id": q["query_id"], "actions": q["actions"]} for q in query_set]
+    return (
+        f"请基于你自己的研究，对以下{len(query_set)}个独立新批次的最终结果逐一盲预测。"
+        "每批从相同初始世界独立开始。对每个指标给出点估计及80%预测区间，"
+        "考虑不确定性；不能补做实验。所有指标沿公共仪器及评分合同。"
+        "题目并未限定你解释机理的形式。不要修改先前报告。"
+        "返回完整predictions及一段共用的简要rationale，不逐题重复操作清单。\n"
+        + json.dumps(public_queries)
+    )
 
 
 def recipe(electrolyte=0, solvent=0, potential=0.9, current=60, duration=1200):
@@ -555,7 +598,7 @@ def schema(stage):
     }
 
 
-def posttest(agent, folder, stage, thread_id, progress):
+def posttest(agent, folder, stage, thread_id, progress, *, design):
     workspace = agent.home_root / "followup"
     workspace.mkdir(exist_ok=True)
     schema_path = workspace / f"{stage}-schema.json"
@@ -568,14 +611,16 @@ def posttest(agent, folder, stage, thread_id, progress):
         "Answer the current question in full; do not rewrite earlier sealed outputs.",
         encoding="utf-8",
     )
-    message = {"K1": K1, "K2": K2}.get(stage)
+    message = design.get(stage)
     if stage == "Q":
-        message = (
+        message = design.get("Q") or (
             "请基于你自己的研究，对以下12个独立新批次的最终结果逐一盲预测。每批从相同初始世界独立开始。"
             "对每个指标给出点估计及80%预测区间，考虑不确定性；不能补做实验。所有指标沿公共仪器及评分合同。"
             "题目并未限定你解释机理的形式。不要修改先前报告。返回完整predictions及rationale。\n"
-            + json.dumps(queries())
+            + json.dumps(design["queries"])
         )
+    if not message:
+        raise ValueError(f"missing saved {stage} prompt")
     audit = folder / f"{stage}-numerics.jsonl"
     command = build_command(
         PROVIDER, schema_path, workspace, audit=audit, thread_id=thread_id, provider_retries=0
@@ -601,14 +646,20 @@ def posttest(agent, folder, stage, thread_id, progress):
     )
     if not result.get("payload"):
         result["failure"] = result.get("failure") or "missing_payload"
+    if result.get("thread_id") != thread_id:
+        result["failure"] = result.get("failure") or "posttest_thread_changed"
     write(folder / stage / "receipt.json", result)
     return result
 
 
-def evaluate_predictions(payload, truth):
+def evaluate_predictions(payload, truth, *, query_set=None):
     rows = payload.get("predictions", []) if isinstance(payload, dict) else []
     ids = [r.get("query_id") for r in rows if isinstance(r, dict)]
-    expected = [q["query_id"] for q in queries()]
+    expected = [q["query_id"] for q in query_set] if query_set is not None else list(truth)
+    if not expected or len(set(expected)) != len(expected) or set(expected) != set(truth):
+        return {"valid": False, "failure": "reference_query_ids_mismatch"}
+    if len(ids) != len(rows) or any(not isinstance(q, str) for q in ids):
+        return {"valid": False, "failure": "invalid_prediction_rows"}
     if sorted(ids) != sorted(expected):
         return {"valid": False, "failure": "query_ids_missing_or_duplicated"}
     by_id = {r["query_id"]: r for r in rows}
@@ -631,17 +682,29 @@ def evaluate_predictions(payload, truth):
                 coverage.append(lower <= target <= upper)
                 widths.append(upper - lower)
             output[metric] = {
-                "n": 12,
-                "mae": sum(errors) / 12,
-                "coverage80": sum(coverage) / 12,
-                "mean_width80": sum(widths) / 12,
+                "n": len(expected),
+                "mae": sum(errors) / len(expected),
+                "coverage80": sum(coverage) / len(expected),
+                "mean_width80": sum(widths) / len(expected),
             }
     except (ValueError, KeyError, TypeError) as exc:
         return {"valid": False, "failure": str(exc)}
-    return {"valid": True, "metrics": output}
+    result = {"valid": True, "metrics": output}
+    if query_set is not None:
+        groups = {}
+        for field in ("potential_domain", "context"):
+            for label in sorted({q[field] for q in query_set if field in q}):
+                subset = [q["query_id"] for q in query_set if q.get(field) == label]
+                groups[f"{field}:{label}"] = evaluate_predictions(
+                    {"predictions": [by_id[q] for q in subset]},
+                    {q: truth[q] for q in subset},
+                )["metrics"]
+        result["groups"] = groups
+    return result
 
 
 def run_cell(root, goal, locus, arm, truth, progress):
+    design = read(root / "design.json")
     cell_id = f"{goal}-{locus}-{arm}"
     folder = root / cell_id
     if (folder / "result.json").is_file():
@@ -740,7 +803,7 @@ def run_cell(root, goal, locus, arm, truth, progress):
         if posttest_context_available(last):
             for stage in ("K1", "Q", "K2"):
                 progress["phase"] = stage
-                turn = posttest(agent, folder, stage, thread_id, progress)
+                turn = posttest(agent, folder, stage, thread_id, progress, design=design)
                 result["posttests"][stage] = turn
                 if turn.get("failure"):
                     result["posttest_failure"] = {
@@ -756,7 +819,9 @@ def run_cell(root, goal, locus, arm, truth, progress):
                 else "failed"
             )
             result["prediction_evaluation"] = evaluate_predictions(
-                result["posttests"].get("Q", {}).get("payload"), truth
+                result["posttests"].get("Q", {}).get("payload"),
+                truth,
+                query_set=design["queries"],
             )
         sessions = agent.home_root / "codex-home" / "sessions"
         if sessions.exists():
@@ -814,6 +879,8 @@ def main():
         "source_sessions": total,
         "source_batches": 12 * total,
         "queries": queries(),
+        "query_version": QUERY_VERSION,
+        "Q": prediction_question(queries()),
         "system": SYSTEM,
         "goals": GOALS,
         "K1": K1,

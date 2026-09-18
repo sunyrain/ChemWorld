@@ -20,6 +20,7 @@ def main():
     parser.add_argument("--cell", required=True)
     args = parser.parse_args()
     root = args.sources.resolve()
+    design = read(root / "design.json")
     summary = read(root / "summary.json")
     if len(summary["results"]) != 18:
         raise RuntimeError("finish the single-executor source queue before posttest completion")
@@ -52,6 +53,7 @@ def main():
             turn = posttest(
                 agent, output, stage, thread_id,
                 {"stage": args.cell, "completed": index, "total": 3},
+                design=design,
             )
             result["posttests"][stage] = turn
             if turn.get("failure") or turn.get("thread_id") != thread_id:
@@ -59,7 +61,8 @@ def main():
                 break
         shutil.copytree(home_root / "codex-home" / "sessions", output / "provider-rollouts")
     result["prediction_evaluation"] = evaluate_predictions(
-        result["posttests"].get("Q", {}).get("payload"), read(root / "truth.json")
+        result["posttests"].get("Q", {}).get("payload"), read(root / "truth.json"),
+        query_set=design["queries"],
     )
     result["elapsed_s"] = time.monotonic() - started
     result["status"] = (

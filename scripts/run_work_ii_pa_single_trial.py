@@ -1,4 +1,4 @@
-"""One PA development source with a chosen batch budget and sealed K1/Q/K2."""
+"""Explicit PA development arms with independent sources and sealed K1/Q/K2."""
 # ruff: noqa: RUF001
 
 from __future__ import annotations
@@ -41,6 +41,8 @@ from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "partition-discovery"
+PROTOCOL_VERSION = "pa-free-research-development-v2"
+ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("product_in_organic", "product_in_aqueous")
 GOAL = (
     "Discover and test a predictive explanation of target partition between the two phases, "
@@ -139,8 +141,27 @@ def queries():
     return [{"query_id": f"Q{i:02d}", "actions": r} for i, r in enumerate(recipes, 1)]
 
 
+def arm_material_information(arm):
+    if arm == "Opaque":
+        return {"mode": "opaque_codes"}
+    if arm == "Aligned":
+        return {"mode": "anonymous_nominal_properties"}
+    if arm == "MisIndexed":
+        entity = read(ROOT / "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json")["loci"][
+            "entity"
+        ]
+        return {
+            "mode": "anonymous_misindexed_properties",
+            "target_field": entity["target_field"],
+            "descriptor_permutation": entity["descriptor_permutation"],
+        }
+    raise ValueError(f"unknown PA prior arm: {arm}")
+
+
 class PAAgent(FreeResearchAgent):
-    def __init__(self, *, batches=12, **kwargs):
+    def __init__(self, *, arm, batches=12, **kwargs):
+        arm_material_information(arm)
+        self.arm = arm
         self.batches = batches
         super().__init__(goal="discovery", **kwargs)
         self.belief_checkpoint_contract["final_recommendation_required"] = False
@@ -217,8 +238,16 @@ class ReferenceCapture(gym.Wrapper):
         return result
 
 
-def physics(agent, output, *, callback=None, truth=None):
-    batches = agent.batches if isinstance(agent, PAAgent) else 12
+def physics(agent, output, *, callback=None, truth=None, arm=None, batches=None):
+    if isinstance(agent, PAAgent):
+        if arm is not None and arm != agent.arm:
+            raise ValueError("source arm and physical-entry arm differ")
+        if batches is not None and batches != agent.batches:
+            raise ValueError("source and physical-entry batch budgets differ")
+        arm, batches = agent.arm, agent.batches
+    else:
+        arm = arm or "Opaque"
+        batches = 12 if batches is None else batches
     operations = 30 * batches
     return run_agent(
         env_id=get_task(TASK).env_id,
@@ -233,7 +262,7 @@ def physics(agent, output, *, callback=None, truth=None):
         budget_override=operations,
         episode_mode_override="campaign",
         campaign_resource_card=resource_card(batches),
-        material_information={"mode": "opaque_codes"},
+        material_information=arm_material_information(arm),
         scoring_contract_id="partition-s0-extraction-efficiency-v3",
         observation_noise_mode="keyed",
         observation_noise_namespace="pa-sol-opaque-20260918-v1",
@@ -301,7 +330,7 @@ def question(stage):
     )
 
 
-def posttest(agent, folder, stage, thread_id, progress):
+def posttest(agent, folder, stage, thread_id, progress, *, design):
     workspace = agent.home_root / "followup"
     workspace.mkdir(exist_ok=True)
     schema_path = workspace / f"{stage}-schema.json"
@@ -332,7 +361,7 @@ def posttest(agent, folder, stage, thread_id, progress):
     ]
     result = launch(
         command,
-        question(stage),
+        design[stage],
         workspace,
         agent.followup_environment,
         folder / stage,
@@ -343,6 +372,8 @@ def posttest(agent, folder, stage, thread_id, progress):
     )
     if not result.get("payload"):
         result["failure"] = result.get("failure") or "missing_payload"
+    if result.get("thread_id") != thread_id:
+        result["failure"] = result.get("failure") or "posttest_thread_changed"
     write(folder / stage / "receipt.json", result)
     return result
 
@@ -733,11 +764,12 @@ def concise_report(result, records):
         for t in result.get("posttests", {}).values()
     )
     lines = [
-        f"# PA {planned}批单臂预算诊断",
+        f"# PA {planned}批单臂开发结果",
         "",
         "PA-W01；GPT-5.6 Sol / medium；单来源开发诊断。",
+        f"先验条件：{result.get('arm', '历史单臂；见保存设计')}。",
         "本报告的身份暴露判定来自保留的实际输入；自主编排脚本本身不是协议缺陷。",
-        "检测到真实名称：本轮不能作为严格匿名Opaque。"
+        "检测到真实名称：本轮不能作为严格匿名先验比较。"
         if review["material_identity_exposure"]
         else "未在已检查的材料回复中发现真实名称；这不替代完整实际输入核对。",
         "",
@@ -752,7 +784,8 @@ def concise_report(result, records):
         f"HPLC {sum(r['instrument'] == 'hplc' for r in measured)}次；"
         f"终检{sum(r['instrument'] == 'final_assay' for r in measured)}次。",
         "",
-        f"参考复用：{result.get('reference_reused_from')}；12题旧参考不计新增物理批。"
+        f"参考复用：{result.get('reference_reused_from')}；"
+        f"新增参考{result.get('new_reference_batches', 12)}批，复用部分不计新增。"
         f"本轮新增来源{source.get('completed_batches', 0)}批，来源精确重放另计："
         f"{source.get('exact_replay', {})}。",
         "",
@@ -820,7 +853,7 @@ def export(root, out):
     write(out / "summary.json", result)
     write(out / "model-tools.json", tools)
     lines = [
-        "# PA Opaque单臂开发试跑",
+        f"# PA {result.get('arm', read(root / 'design.json').get('arm', '未记录'))}单臂开发试跑",
         "",
         "开发结果，非正式三臂证据。匿名性检查与实际脚本决策粒度见[结果解释](REPORT.md)。",
         "",
@@ -915,14 +948,17 @@ def export(root, out):
     (out / "REPORT.md").write_text(report, encoding="utf-8")
 
 
-def execute(root, progress, *, batches=12, reference_run=None):
+def execute(root, progress, *, arm, batches=12, reference_run=None):
+    material = arm_material_information(arm)
     root.mkdir(parents=True, exist_ok=False)
     write(
         root / "design.json",
         {
             "model": PROVIDER,
             "world": "PA-W01",
-            "arm": "Opaque",
+            "protocol_version": PROTOCOL_VERSION,
+            "arm": arm,
+            "material_information": material,
             "public_catalog_version": public_material_catalog(task_id=TASK)["catalog_version"],
             "sources": 1,
             "source_batches": batches,
@@ -938,6 +974,8 @@ def execute(root, progress, *, batches=12, reference_run=None):
     )
     result = {
         "status": "failed",
+        "arm": arm,
+        "protocol_version": PROTOCOL_VERSION,
         "development_only": True,
         "formal_result": False,
         "planned_sources": 1,
@@ -1041,6 +1079,7 @@ def execute(root, progress, *, batches=12, reference_run=None):
     source_started = time.monotonic()
     with tempfile.TemporaryDirectory(prefix="chemworld-research-") as temporary:
         agent = PAAgent(
+            arm=arm,
             batches=batches,
             home_root=Path(temporary),
             output=folder,
@@ -1107,7 +1146,9 @@ def execute(root, progress, *, batches=12, reference_run=None):
             for stage in ("K1", "Q", "K2"):
                 progress.pop("provider_liveness", None)
                 progress.update(stage=stage, stage_started=time.monotonic())
-                turn = posttest(agent, folder, stage, thread_id, progress)
+                turn = posttest(
+                    agent, folder, stage, thread_id, progress, design=read(root / "design.json")
+                )
                 result["posttests"][stage] = {
                     k: turn.get(k)
                     for k in (
@@ -1118,6 +1159,7 @@ def execute(root, progress, *, batches=12, reference_run=None):
                         "tool_events",
                         "exit_code",
                         "provider_errors",
+                        "thread_id",
                     )
                 }
                 write(root / "result.json", result)
@@ -1152,6 +1194,112 @@ def execute(root, progress, *, batches=12, reference_run=None):
     write(root / "result.json", result)
 
 
+def execute_block(root, report, arms, progress, *, batches=12, reference_run=None):
+    """Run only explicit arms, with fresh sessions and one shared physical reference."""
+    if not arms or len(set(arms)) != len(arms):
+        raise ValueError("select unique PA arms")
+    materials = {arm: arm_material_information(arm) for arm in arms}
+    root.mkdir(parents=True, exist_ok=False)
+    report.mkdir(parents=True, exist_ok=True)
+    write(
+        root / "design.json",
+        {
+            "protocol_version": PROTOCOL_VERSION,
+            "arms": arms,
+            "material_information": materials,
+            "world": "PA-W01",
+            "model": PROVIDER,
+            "batches_per_source": batches,
+            "queries": queries(),
+            "resources_per_source": resource_card(batches).to_dict(),
+            "system": source_system(batches),
+            "goal": study_goal(batches),
+            "K1": K1,
+            "Q": question("Q"),
+            "K2": K2,
+            "stop_rule": "stop on failed reference or pre-action source failure; no retries",
+        },
+    )
+    rows = [{"arm": arm, "status": "not_started"} for arm in arms]
+
+    def save():
+        summary = {
+            "development_only": True,
+            "formal_result": False,
+            "planned_sources": len(arms),
+            "planned_source_batches": len(arms) * batches,
+            "completed_sources": sum(r["status"] == "completed" for r in rows),
+            "source_batches": sum(r.get("source_batches", 0) for r in rows),
+            "new_reference_batches": sum(r.get("new_reference_batches", 0) for r in rows),
+            "posttests_completed": sum(r.get("posttests_completed", 0) for r in rows),
+            "results": rows,
+        }
+        write(root / "summary.json", summary)
+        write(report / "summary.json", summary)
+        lines = [
+            "# PA三臂开发块",
+            "",
+            "每臂独立会话，共用固定预测参考；成功、失败与未启动均保留。",
+            "",
+            "| 臂 | 状态 | 来源批数 | 后测 |",
+            "| --- | --- | ---: | ---: |",
+        ]
+        for r in rows:
+            label = f"[{r['arm']}]({r['arm']}/REPORT.md)" if r.get("exported") else r["arm"]
+            lines.append(
+                f"| {label} | {r['status']} | {r.get('source_batches', 0)}/{batches} | "
+                f"{r.get('posttests_completed', 0)}/3 |"
+            )
+        lines += [
+            "",
+            f"来源完成{summary['source_batches']}/{len(arms) * batches}批；"
+            f"新增参考{summary['new_reference_batches']}批。精确重放成本见各臂，不增加独立来源。",
+            "",
+        ]
+        (report / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
+
+    def result_row(arm, result):
+        source = result.get("source", {})
+        return {
+            "arm": arm,
+            "status": result["status"],
+            "source_batches": source.get("completed_batches", 0),
+            "new_reference_batches": result.get("reference", {}).get("completed_batches", 0)
+            if result.get("reference_reused_from") is None
+            else 0,
+            "posttests_completed": sum(
+                bool(t.get("payload")) and not t.get("failure")
+                for t in result.get("posttests", {}).values()
+            ),
+            "failure": result.get("failure"),
+            "source_failure": source.get("failure"),
+        }
+
+    save()
+    for index, arm in enumerate(arms):
+        folder = root / arm
+        progress.update(arm=arm, source_index=index + 1, planned_sources=len(arms))
+        try:
+            execute(folder, progress, arm=arm, batches=batches, reference_run=reference_run)
+            result = read(folder / "result.json")
+            rows[index] = result_row(arm, result)
+            save()  # Preserve actual counts even when report export subsequently fails.
+            export(folder, report / arm)
+        except Exception as exc:
+            if (folder / "result.json").exists():
+                rows[index] = result_row(arm, read(folder / "result.json"))
+            rows[index].update(status="failed", execution_error=str(exc))
+            save()
+            raise
+        rows[index]["exported"] = True
+        save()
+        source = result.get("source", {})
+        if not result.get("reference", {}).get("passed") or not source.get("operations"):
+            break
+        if reference_run is None:
+            reference_run = folder
+
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--output", type=Path, required=True)
@@ -1159,10 +1307,15 @@ def main():
     parser.add_argument("--report-only", action="store_true")
     parser.add_argument("--batches", type=int, choices=(12, 24), default=12)
     parser.add_argument("--reference-run", type=Path)
+    selection = parser.add_mutually_exclusive_group()
+    selection.add_argument("--arm", choices=ARMS)
+    selection.add_argument("--arms", choices=ARMS, nargs="+")
     args = parser.parse_args()
     if args.report_only:
         export(args.output.resolve(), args.report.resolve())
         return
+    if not args.arm and not args.arms:
+        parser.error("choose --arm or --arms explicitly for new sources")
     progress = {"stage": "setup", "operations": 0, "batches": 0, "stage_started": time.monotonic()}
     stopped = threading.Event()
 
@@ -1190,13 +1343,25 @@ def main():
     worker = threading.Thread(target=heartbeat, daemon=True)
     worker.start()
     try:
-        execute(
-            args.output.resolve(),
-            progress,
-            batches=args.batches,
-            reference_run=args.reference_run.resolve() if args.reference_run else None,
-        )
-        export(args.output.resolve(), args.report.resolve())
+        reference = args.reference_run.resolve() if args.reference_run else None
+        if args.arms:
+            execute_block(
+                args.output.resolve(),
+                args.report.resolve(),
+                args.arms,
+                progress,
+                batches=args.batches,
+                reference_run=reference,
+            )
+        else:
+            execute(
+                args.output.resolve(),
+                progress,
+                arm=args.arm,
+                batches=args.batches,
+                reference_run=reference,
+            )
+            export(args.output.resolve(), args.report.resolve())
     finally:
         stopped.set()
         worker.join(timeout=2)
