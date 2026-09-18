@@ -18,7 +18,7 @@ Experiment 1 需要一个单一**权威入口**，但不把科学语义、机器
 | 已发生的 raw evidence | 服务器 `runs/development/experiment-1-*` | 结果事实；不是设计授权，不纳入 Git |
 | 体系级可读结果 | `workstreams/flagship_tasks/experiment_1/results/<SYSTEM>/` | 对应 system registry 的可读解释 |
 | 105-unit 当前结果事实 | `workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json` | 区分 development、confirmation、readiness 和 supersession；结果不等于执行授权 |
-| Challenge 与 Participant release 边界 | `results/EXPERIMENT_1_CHALLENGE_AUDIT.*`、`results/EXPERIMENT_1_PARTICIPANT_RELEASE_MANIFEST.md` | challenge 不通过则 confirmation/release fail-closed；不授权运行 |
+| Challenge 与 Participant release 边界 | 当前 decision：`results/EXPERIMENT_1_CHALLENGE_AUDIT_V1_2.*`；历史 audit 与 `results/EXPERIMENT_1_PARTICIPANT_RELEASE_MANIFEST.md` 保留 provenance | challenge 不通过则 confirmation/release fail-closed；不授权运行 |
 | 七体系设计背景 | `workstreams/flagship_tasks/experiment_1/guidance/` | 非 normative；不能直接授权执行 |
 | 旧 Work II 文档、代码和结果 | `WORK_II_*`、旧 configs/reports/modules | provenance、复现或当前显式依赖；不能推导新的 Experiment 1 设计 |
 
@@ -44,5 +44,6 @@ EC v1.0.1 合同绑定以下现有路径和 SHA-256：
 ## 尚未冻结的范围
 
 当前已有 release manifest，但其状态为 withheld，且没有任何 `qualified-confirmed` locus。现有五份设计文档仍是 guidance。
-P/D 的正式 five-World private truth、完整 prior generator 与目标 structural private family 尚未
-冻结；所有体系的 Participant 模型、样本量、正式执行 manifest 和发布版本也仍未授权。
+P 的 first-build 资产与 calibration 合同已冻结，但 calibration/qualification 尚未执行；D 的正式
+five-World private truth、完整 prior generator 与目标 structural private family 尚未冻结。所有体系的
+Participant 模型、样本量、正式执行 manifest 和发布版本也仍未授权。

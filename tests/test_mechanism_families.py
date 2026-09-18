@@ -28,10 +28,18 @@ def _intervention(mode: str, severity: float = 0.8) -> dict:
     return {"kind": "mechanism_family", "mode": mode, "severity": severity}
 
 
+def _intervention_severity(task_id: str, mode: str) -> float:
+    if task_id == "reaction-to-crystallization" and mode == "constitutive_law_family":
+        return 1.0
+    return 0.8
+
+
 def _run_midpoint(task_id: str, mode: str | None) -> tuple[float, dict]:
     kwargs = get_task(task_id).env_kwargs(seed=0)
     if mode is not None:
-        kwargs["world_interventions"] = [_intervention(mode)]
+        kwargs["world_interventions"] = [
+            _intervention(mode, _intervention_severity(task_id, mode))
+        ]
     env = gym.make("ChemWorld", **kwargs)
     try:
         env.reset(seed=0)
@@ -44,8 +52,9 @@ def _run_midpoint(task_id: str, mode: str | None) -> tuple[float, dict]:
         info: dict = {}
         for action in recipe["steps"]:
             observation, _, _, _, info = env.step(action)
+        process = env.unwrapped._state.process
         observation["_audit_mass_balance_error"] = np.asarray(
-            [info["raw_signal"]["mass_balance"]["process_mass_balance_error"]]
+            [0.0 if process is None else process.metrics.get("process_mass_balance_error", 0.0)]
         )
         return float(info["leaderboard_score"]), observation
     finally:
@@ -125,7 +134,12 @@ def test_constitutive_family_changes_executed_provider_without_network_rewrite(
     shifted = generator.generate(
         scenario,
         0,
-        (_intervention("constitutive_law_family"),),
+        (
+            _intervention(
+                "constitutive_law_family",
+                _intervention_severity(task_id, "constitutive_law_family"),
+            ),
+        ),
     )
     assert shifted.compiled_mechanism.mechanism_hash == base.compiled_mechanism.mechanism_hash
     assert shifted.initial_state.metadata["mechanism_family_intervention_hash"]

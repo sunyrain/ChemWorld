@@ -55,7 +55,7 @@ P_HARNESS_TEST_RECEIPT = (
 def test_c_machine_contract_binds_frozen_design_and_sources() -> None:
     machine, benchmark = _load_machine_contract(C_CONTRACT)
     assert machine["source_binding"]["source_commit"] == (
-        "a442824d2a7b2e922547d6f033ecbc54aefd8d44"
+        "f8d6347715829dee6aaea88243d71717e6c97e65"
     )
     assert machine["scientific_constants"]["surface_saturation_max_loading_ratio"] == 4.0
     assert machine["scientific_constants"]["surface_half_saturation_mol_L"] == 0.010

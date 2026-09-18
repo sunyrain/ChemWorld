@@ -4,6 +4,10 @@
 
 本目录给 Experiment 1 提供单一导航入口。现有冻结文件继续保留在原路径，因为 EC v1.0.1 机器合同同时绑定文件路径和 SHA-256。本次导航清理不移动、不复制成第二份权威，也不改变科学语义。
 
+当前合作者综合审阅请首先阅读
+[`COLLABORATOR_REVIEW_SNAPSHOT_2026_09_18.md`](COLLABORATOR_REVIEW_SNAPSHOT_2026_09_18.md)。
+该文件只是集成快照，不替代下列分层权威文件，也不授权正式执行。
+
 ## 从这里开始
 
 1. 阅读 [`AUTHORITY.md`](AUTHORITY.md)，确认不同问题应以哪一类文件为准；
@@ -17,8 +21,10 @@
    [`EXPERIMENT_1_CONVERGENCE_REGISTRY.json`](results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json)；
 5. 本轮完整可读结论见
    [`EXPERIMENT_1_BENCHMARK_CONVERGENCE_REPORT.md`](results/EXPERIMENT_1_BENCHMARK_CONVERGENCE_REPORT.md)，
-   challenge preflight 见
-   [`EXPERIMENT_1_CHALLENGE_AUDIT.md`](results/EXPERIMENT_1_CHALLENGE_AUDIT.md)；
+   当前 challenge decision 见
+   [`EXPERIMENT_1_CHALLENGE_AUDIT_V1_2.md`](results/EXPERIMENT_1_CHALLENGE_AUDIT_V1_2.md)，
+   confirmation preflight 见
+   [`EXPERIMENT_1_CONFIRMATION_PREFLIGHT_V1_0.json`](results/EXPERIMENT_1_CONFIRMATION_PREFLIGHT_V1_0.json)；
 6. Participant release 边界见
    [`EXPERIMENT_1_PARTICIPANT_RELEASE_MANIFEST.md`](results/EXPERIMENT_1_PARTICIPANT_RELEASE_MANIFEST.md)；
 7. 各体系冻结 note、机器合同与结果位于 `systems/<SYSTEM>/`、
@@ -41,9 +47,11 @@
 | D | 0 | 0 | 15 |
 
 总计 `53 qualified-development / 22 failed-development / 30 readiness-blocked`。
-当前 10 个 five-World candidate loci 全部因 challenge evidence 尚未冻结而 fail-closed；
-`qualified-confirmed = 0`，Participant-ready 单元为 0。当前 campaign 使用 0
-Participant/provider calls。
+challenge v1.2 已在 10 个 five-World candidate loci 中确认 7 个可进入 process-isolated
+confirmation：`EC-E / EC-P / EC-S / RX-P / PA-E / C-E / C-P`；`RX-S / PA-P / PA-S`
+继续 fail-closed。confirmation 公共合同和 preflight 已冻结，覆盖 `7 × 5 = 35` 个原子单元，
+但状态仍为 `ready-but-not-executed`，因此 `qualified-confirmed = 0`、Participant-ready 单元为 0。
+当前 campaign 使用 0 Participant/provider calls。
 
 P/D 的 failure 表示五个 distinct private Worlds、prior generator 或目标 private-physics
 family 尚未冻结，不表示公开任务环境不可运行。其 smoke 的任务合同、轨迹校验、hash 覆盖和
@@ -71,9 +79,10 @@ Git；Git 中保存冻结合同、runner/evaluator、system registry、summary �
 
 ## 当前下一道门
 
-当前 development convergence 已完成并保留失败地图。下一道门不是直接跑 Participant，而是先
-补齐 challenge audit 的 plausibility、default/one-shot non-triviality、active information choice
-和 budget lower-bound 证据，再对通过的 locus 运行 one-shot process-isolated confirmation。
+当前 development convergence 与 challenge v1.2 已完成并保留失败地图。release 轨的下一道门是
+在明确授权后，对 7 个 challenge-eligible loci 运行一次 process-isolated confirmation；不是直接跑
+Participant。expansion 轨的下一步则是分别审阅并授权 C-S 的 252 次、P 的 80 次 provider-free
+calibration，不能把尚未执行的 calibration 写成 qualification PASS。
 
-EC、PA 等 five-World PASS 仍只是 development candidate；当前 release manifest 明确 withheld，
-本入口不提供自动授权。
+所有 development PASS 仍只是 candidate；confirmation 尚未执行，当前 release manifest 明确
+withheld，本入口和集成审阅分支都不提供自动授权。
