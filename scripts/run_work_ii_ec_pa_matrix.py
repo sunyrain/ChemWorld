@@ -14,6 +14,7 @@ from pathlib import Path
 import gymnasium as gym
 from scripts import run_work_ii_ec_dual_goal_trial as ec
 from scripts import run_work_ii_pa_single_trial as pa
+from scripts.recover_work_ii_ec_pa_network import effective_row, recover, recovery_kind
 from scripts.run_work_ii_astra_single_trial import read, write
 
 from chemworld.agents.experiment_codex_mcp import ChemWorldMCPServer
@@ -358,7 +359,7 @@ def export_source(unit, result, folder, out, design):
     return row
 
 
-def run(root, report, *, include_ps=False, prepare_only=False):
+def run(root, report, *, include_ps=False, prepare_only=False, recover_network=False):
     planned = units(include_ps=include_ps)
     prompts = {
         s: {
@@ -400,20 +401,42 @@ def run(root, report, *, include_ps=False, prepare_only=False):
     }
     if (root / "summary.json").exists():
         state = read(root / "summary.json")
-        if state["status"] not in ("prepared", "running"):
+        if state["status"] == "stopped" and recover_network:
+            if (
+                not (state.get("failure") or {})
+                .get("message", "")
+                .startswith("source startup/replay failure:")
+            ):
+                raise RuntimeError("this stop is not an eligible source network failure")
+            state.setdefault("runtime_incidents", []).append(state["failure"])
+            state["failure"] = None
+        elif state["status"] not in ("prepared", "running"):
             raise RuntimeError("completed or stopped matrix cannot be automatically restarted")
         state["status"] = "running"
+    if recover_network:
+        amendment = {
+            "authorization": "2026-09-19 user requested network-failure retries",
+            "max_recovery_attempts_per_source": 1,
+            "boundary": "posttests after intact source, or fresh source after zero actions",
+            "original_design_unchanged": True,
+        }
+        if not (root / "network-recovery-amendment.json").exists():
+            write(root / "network-recovery-amendment.json", amendment)
+        state["network_recovery_policy"] = amendment
 
     def save():
         rows = state["results"]
+        effective = [effective_row(r) for r in rows]
         attempted = [r for r in rows if r["status"] in ("completed", "failed")]
-        total_elapsed = sum(r.get("elapsed_s") or 0 for r in attempted)
+        recoveries = [r["network_recovery"] for r in rows if r.get("network_recovery")]
+        successful = [r for r in effective if r["status"] == "completed"]
+        total_elapsed = sum(r.get("elapsed_s") or 0 for r in successful)
         progress.update(
             completed_sources=len(attempted),
             elapsed_s=time.monotonic() - started,
-            sources_per_hour=len(attempted) / total_elapsed * 3600 if total_elapsed else None,
-            eta_s=total_elapsed / len(attempted) * (len(rows) - len(attempted))
-            if attempted
+            sources_per_hour=len(successful) / total_elapsed * 3600 if total_elapsed else None,
+            eta_s=total_elapsed / len(successful) * (len(rows) - len(attempted))
+            if successful
             else None,
         )
         state.update(
@@ -424,16 +447,20 @@ def run(root, report, *, include_ps=False, prepare_only=False):
             planned_sources=len(rows),
             planned_source_batches=sum(r["budget"] for r in rows),
             attempted_sources=len(attempted),
-            completed_sources=sum(r["status"] == "completed" for r in rows),
-            source_batches=sum(r.get("completed_batches", 0) for r in rows),
-            posttests_completed=sum(r.get("posttests_completed", 0) for r in rows),
+            completed_sources=len(successful),
+            first_attempt_completed_sources=sum(r["status"] == "completed" for r in rows),
+            source_batches=sum(r.get("completed_batches", 0) for r in rows)
+            + sum(r["new_source_batches"] for r in recoveries),
+            posttests_completed=sum(r.get("posttests_completed", 0) for r in effective),
             reference_batches=sum(r["completed_batches"] for r in state["references"].values()),
             reference_operations=sum(r["operations"] for r in state["references"].values()),
             extra_verification_operations=sum(
                 i.get("additional_replay_operations", 0)
                 for i in state.get("preparation_incidents", [])
             ),
-            retries=0,
+            retries=len(recoveries),
+            additional_source_attempts=sum(r["new_source_attempts"] for r in recoveries),
+            additional_posttest_attempts=sum(r["new_posttest_attempts"] for r in recoveries),
         )
         write(root / "summary.json", state)
         # Public ledger omits reference answers and material packets until source completion.
@@ -461,6 +488,13 @@ def run(root, report, *, include_ps=False, prepare_only=False):
             "The EC P/S pilot, if enabled, follows all E sources: "
             "12 sources / 144 batches / 36 posttests.",
             "",
+            f"First-attempt completions: {state['first_attempt_completed_sources']}; "
+            f"network recovery attempts: {state['retries']}. "
+            f"Additional source attempts: {state['additional_source_attempts']}; "
+            f"additional posttest attempts: {state['additional_posttest_attempts']}. "
+            "Completion totals above include separately recorded recoveries. "
+            "The table retains first-attempt outcomes.",
+            "",
             "| Unit | Status | Batches | Posttests | English output |",
             "| --- | --- | ---: | ---: | --- |",
         ]
@@ -475,6 +509,15 @@ def run(root, report, *, include_ps=False, prepare_only=False):
                 f"{row.get('completed_batches', 0)}/{row['budget']} | "
                 f"{row.get('posttests_completed', 0)}/3 | {row.get('english_output', '')} |"
             )
+            recovery = row.get("network_recovery")
+            if recovery:
+                restored = recovery["row"]
+                lines.append(
+                    f"| ↳ [Network recovery]({recovery['report_path']}) | "
+                    f"{restored['status']} ({recovery['kind']}) | "
+                    f"{restored['completed_batches']}/{row['budget']} | "
+                    f"{restored['posttests_completed']}/3 | {restored['english_output']} |"
+                )
         lines += [
             "",
             "## Live progress",
@@ -502,6 +545,29 @@ def run(root, report, *, include_ps=False, prepare_only=False):
 
     worker = threading.Thread(target=heartbeat, daemon=True)
     worker.start()
+
+    def repair_network(index, unit, result, folder, source_design):
+        row = state["results"][index]
+        if recover_network and not row.get("network_recovery"):
+            recovery = recover(
+                root,
+                report,
+                unit,
+                result,
+                folder,
+                source_design,
+                state["references"][unit["world"]["world_id"]]["truth"],
+                progress,
+            )
+            if recovery:
+                row["network_recovery"] = recovery
+                save()
+                # Stop only if transport recovery itself failed; scientific invalidity is retained.
+                recovered_result = read(Path(recovery["result_path"]))
+                if recovered_result.get("failure"):
+                    raise RuntimeError(f"network recovery failed: {unit['unit_id']}")
+        return effective_row(row)
+
     try:
         save()
         if not state["entries"]:
@@ -536,6 +602,21 @@ def run(root, report, *, include_ps=False, prepare_only=False):
             state["status"] = "prepared"
             save()
             return state
+        if recover_network:
+            for index, unit in enumerate(planned):
+                row = state["results"][index]
+                if row["status"] != "failed":
+                    continue
+                parent = root / "sources" / unit["unit_id"]
+                folder = (
+                    parent / f"{unit['goal']}-{unit['locus']}-{unit['arm']}"
+                    if unit["system"] == "EC"
+                    else parent
+                )
+                result = read(folder / "result.json")
+                repaired = repair_network(index, unit, result, folder, read(parent / "design.json"))
+                if not repaired["operations"] or not repaired["exact_replay"].get("verified"):
+                    raise RuntimeError(f"source startup/replay failure: {unit['unit_id']}")
         for index, unit in enumerate(planned):
             if state["results"][index]["status"] in ("completed", "failed"):
                 continue
@@ -545,6 +626,7 @@ def run(root, report, *, include_ps=False, prepare_only=False):
                     f"partial source retained; no automatic retry: {unit['unit_id']}"
                 )
             state["results"][index]["status"] = "running"
+            progress.pop("provider_liveness", None)
             progress.update(
                 stage="source",
                 unit=unit["unit_id"],
@@ -592,9 +674,19 @@ def run(root, report, *, include_ps=False, prepare_only=False):
             export_source(unit, result, actual_folder, report / unit["unit_id"], source_design)
             state["results"][index]["exported"] = True
             save()
-            row = state["results"][index]
+            row = repair_network(index, unit, result, actual_folder, source_design)
             if not row["operations"] or not row["exact_replay"].get("verified"):
                 raise RuntimeError(f"source startup/replay failure: {unit['unit_id']}")
+            if recover_network and recovery_kind(unit, result, actual_folder) is None:
+                # A network interruption in a partial physical campaign needs explicit diagnosis.
+                from scripts.recover_work_ii_ec_pa_network import network_failure, source_folder
+
+                if (
+                    result.get("failure")
+                    and network_failure(source_folder(unit, actual_folder) / "source-stdout.jsonl")
+                    and not state["results"][index].get("network_recovery")
+                ):
+                    raise RuntimeError(f"partial source network failure: {unit['unit_id']}")
         state["status"] = "completed"
         progress.update(stage="completed")
         save()
@@ -619,12 +711,14 @@ def main():
     parser.add_argument("--report", type=Path, required=True)
     parser.add_argument("--include-ec-ps", action="store_true")
     parser.add_argument("--prepare-only", action="store_true")
+    parser.add_argument("--recover-network", action="store_true")
     args = parser.parse_args()
     run(
         args.output.resolve(),
         args.report.resolve(),
         include_ps=args.include_ec_ps,
         prepare_only=args.prepare_only,
+        recover_network=args.recover_network,
     )
 
 
