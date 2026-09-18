@@ -1,10 +1,21 @@
 import json
+import subprocess
+from collections.abc import Callable
 from math import log
 from pathlib import Path
 
 import pytest
 from scripts.author_experiment_1_c_structural_redesign_v1_2 import (
+    SCALAR_NULL_FIT_EVALUATIONS,
+    _bounded_scalar_null_optimize,
     _load_machine_contract,
+)
+from scripts.run_experiment_1_p_asset_calibration import (
+    PLANNED_EXECUTIONS,
+    load_calibration_contract,
+)
+from scripts.run_experiment_1_p_asset_calibration import (
+    _analyze as analyze_p_calibration,
 )
 
 from chemworld.eval.experiment_1_p_assets import (
@@ -29,16 +40,22 @@ P_MANIFEST = (
     / "workstreams/flagship_tasks/experiment_1/systems/P/assets/"
     "P_ASSET_MANIFEST_V1_1_1.json"
 )
+P_CALIBRATION_CONTRACT = ROOT / "configs/benchmark/experiment_1_p_calibration_v1.0.0.json"
+P_HARNESS_TEST_RECEIPT = (
+    ROOT
+    / "workstreams/flagship_tasks/experiment_1/systems/P/"
+    "P_CALIBRATION_HARNESS_TEST_RECEIPT_V1_0_0.json"
+)
 
 
 def test_c_machine_contract_binds_frozen_design_and_sources() -> None:
     machine, benchmark = _load_machine_contract(C_CONTRACT)
     assert machine["source_binding"]["source_commit"] == (
-        "f8c4ad96894d863c66f154a275ffce2466602ef0"
+        "fcc12119518f3d0187c9308e21aac4e15446d707"
     )
     assert machine["scientific_constants"]["surface_saturation_max_loading_ratio"] == 4.0
     assert machine["scientific_constants"]["surface_half_saturation_mol_L"] == 0.010
-    assert machine["tournament"]["planned_executions_total"] == 108
+    assert machine["tournament"]["planned_executions_total"] == 252
     assert benchmark["contract_id"] == "experiment-1-c-parametric-repair-v1.0.2"
 
 
@@ -49,7 +66,7 @@ def test_p_asset_manifest_is_self_hashed_source_bound_and_world_specific() -> No
     )
     assert manifest["manifest_sha256"] == expected
     assert manifest["source_binding"]["source_commit"] == (
-        "f8c4ad96894d863c66f154a275ffce2466602ef0"
+        "b14f24cf1ed5859d8d58673e4af11f6b3c1d8ab2"
     )
     assert all(
         file_sha256(ROOT / row["path"]) == row["sha256"]
@@ -63,6 +80,115 @@ def test_p_asset_manifest_is_self_hashed_source_bound_and_world_specific() -> No
     assert centers["P-W02"] != pytest.approx(centers["P-W01"])
     assert centers["P-W03"] != pytest.approx(centers["P-W01"])
     assert centers["P-W05"] != pytest.approx(centers["P-W01"])
+
+
+def test_p_w04_entity_dossier_has_phase_volume_sensitive_allocations() -> None:
+    contract = load_asset_contract(P_CONTRACT)
+    assets = {row["world_id"]: row for row in build_world_assets(contract)}
+    w01 = assets["P-W01"]["entity_dossier"]["aligned"][0]["anchors"][0]
+    w04 = assets["P-W04"]["entity_dossier"]["aligned"][0]["anchors"][0]
+    assert w04["K_product"] == pytest.approx(w01["K_product"])
+    assert w04["product_organic_fraction"] != pytest.approx(
+        w01["product_organic_fraction"]
+    )
+    assert w04["organic_to_aqueous_product_ratio"] != pytest.approx(
+        w01["organic_to_aqueous_product_ratio"]
+    )
+
+
+def test_c_scalar_null_optimizer_is_bounded_continuous_and_deterministic() -> None:
+    first_best, first_scores = _bounded_scalar_null_optimize(
+        lambda value: (value - 3.2) ** 2
+    )
+    second_best, second_scores = _bounded_scalar_null_optimize(
+        lambda value: (value - 3.2) ** 2
+    )
+    assert first_best == second_best
+    assert first_scores == second_scores
+    assert len(first_scores) == SCALAR_NULL_FIT_EVALUATIONS
+    assert 1.0 <= first_best <= 6.0
+    assert first_best == pytest.approx(3.2, abs=0.02)
+
+
+def _write_rehashed_contract(tmp_path: Path, name: str, value: dict) -> Path:
+    value["contract_sha256"] = canonical_json_sha256(
+        {key: item for key, item in value.items() if key != "contract_sha256"}
+    )
+    path = tmp_path / name
+    path.write_text(json.dumps(value, sort_keys=True), encoding="utf-8")
+    return path
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        lambda value: value["tournament"].update(planned_executions_total=251),
+        lambda value: value["gates"].update(world_axis_response_floor=0.004),
+        lambda value: value["decision_rule"].update(primary_objective="score"),
+        lambda value: value["privacy"]["forbidden_tokens"].pop(),
+        lambda value: value["source_binding"]["files"].pop(),
+    ),
+)
+def test_c_machine_contract_mutations_fail_closed(
+    tmp_path: Path, mutation: Callable[[dict], None]
+) -> None:
+    value = json.loads(C_CONTRACT.read_text(encoding="utf-8"))
+    mutation(value)
+    path = _write_rehashed_contract(tmp_path, "mutated-c.json", value)
+    with pytest.raises((ValueError, subprocess.CalledProcessError)):
+        _load_machine_contract(path)
+
+
+def test_p_calibration_contract_is_frozen_and_fully_bound() -> None:
+    contract = load_calibration_contract(P_CALIBRATION_CONTRACT)
+    assert contract["design"]["planned_executions"] == PLANNED_EXECUTIONS == 80
+    assert len(contract["cells"]) == 40
+
+
+def test_p_calibration_harness_test_receipt_is_self_hashed_and_zero_data() -> None:
+    receipt = json.loads(P_HARNESS_TEST_RECEIPT.read_text(encoding="utf-8"))
+    expected = canonical_json_sha256(
+        {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+    )
+    assert receipt["receipt_sha256"] == expected
+    assert receipt["status"] == "pass"
+    assert receipt["boundary"] == "validation_only_no_calibration_data"
+    assert receipt["data_producing_execution_count"] == 0
+    assert receipt["calibration_execution_count"] == 0
+    assert receipt["formal_qualification_execution_count"] == 0
+    assert receipt["provider_call_count"] == 0
+    assert receipt["checks"]["ruff"]["status"] == "pass"
+    assert receipt["checks"]["pytest"]["passed"] == 98
+    assert receipt["checks"]["pytest"]["failed"] == 0
+    assert all(
+        file_sha256(ROOT / row["path"]) == row["sha256"]
+        for row in receipt["artifact_bindings"]
+    )
+
+
+@pytest.mark.parametrize(
+    "mutation",
+    (
+        lambda value: value["design"].update(planned_executions=78),
+        lambda value: value["cells"].__setitem__(1, dict(value["cells"][0])),
+        lambda value: value["source_binding"]["files"].pop(),
+        lambda value: value["gates"].update(minimum_public_law_gap=0.0),
+    ),
+)
+def test_p_calibration_contract_mutations_fail_closed(
+    tmp_path: Path, mutation: Callable[[dict], None]
+) -> None:
+    value = json.loads(P_CALIBRATION_CONTRACT.read_text(encoding="utf-8"))
+    mutation(value)
+    path = _write_rehashed_contract(tmp_path, "mutated-p.json", value)
+    with pytest.raises((ValueError, subprocess.CalledProcessError)):
+        load_calibration_contract(path)
+
+
+def test_p_calibration_analysis_fails_closed_without_fixed_denominator() -> None:
+    analysis = analyze_p_calibration([])
+    assert analysis["passed"] is False
+    assert "fixed_execution_denominator" in analysis["failures"]
 
 
 def test_p_asset_contract_has_five_distinct_executable_world_truths() -> None:

@@ -10,16 +10,26 @@
   },
   "authoring_note": {
     "path": "workstreams/flagship_tasks/experiment_1/systems/C/STRUCTURAL_REDESIGN_AUTHORING_NOTE_V1_2_0.md",
-    "sha256": "887f9cb1f75921391a9723e4d50493a18b78f9a7457468ba5dda7bd9d97aa911"
+    "sha256": "c24d6453c39abb6958559013a18f9b8d9f70fbb623f4adfd712923c9d4bab1ff"
   },
   "source_binding": {
-    "source_commit": "f8c4ad96894d863c66f154a275ffce2466602ef0",
+    "source_commit": "fcc12119518f3d0187c9308e21aac4e15446d707",
     "files": [
-      {"path": "scripts/author_experiment_1_c_structural_redesign_v1_2.py", "sha256": "4e13dd8233e6df16ba709f9c974b8343afa9127019a03a70b503efe5f60df12d"},
+      {"path": "scripts/author_experiment_1_c_structural_redesign_v1_2.py", "sha256": "1b4a751a6f2f093ddff04f2ef827063fc3277f7d7a2e032eae2cadf5ac3a17a5"},
       {"path": "scripts/run_experiment_1_c_qualification.py", "sha256": "34929bfe034e334922f0635b877e5da849963061a2273d92a0b6e3cefdae9e47"},
       {"path": "src/chemworld/physchem/crystallization_units.py", "sha256": "52239ab4f17b8c00aed32d09aa26939ecd1b18376465addeb57acda09e4762d3"},
       {"path": "src/chemworld/runtime/crystallization_services.py", "sha256": "f371afdf2e593bd84060131d9a0f80778a2062b1665fd67f3e1541544e6c97d4"},
-      {"path": "src/chemworld/world/world_family.py", "sha256": "f3fb3eb5bb7abdd9de0a11757ac24cfd1f7e0aa929b5a22e37ac030f32e55a22"}
+      {"path": "src/chemworld/world/world_family.py", "sha256": "f3fb3eb5bb7abdd9de0a11757ac24cfd1f7e0aa929b5a22e37ac030f32e55a22"},
+      {"path": "src/chemworld/world/scenario.py", "sha256": "2706023e4cdd55ee4d48ff238a04b4cb04b6a2364f0992b90dbd3c599ed023ef"},
+      {"path": "src/chemworld/world/crystallization_material_family.py", "sha256": "15b8d127c71fd37dfb6c1670ccd1e667208826e84b7f8dc55343a68155359771"},
+      {"path": "src/chemworld/world/mechanism_family.py", "sha256": "d805d3868b0d8fc6d8e070d604cac72c97e9216b5999c134443e8f69ddded365"},
+      {"path": "src/chemworld/world/instruments.py", "sha256": "b15275561e61bfd4a1e5695db59a29f859a92a0ffcf73e7d52e89184f1138a79"},
+      {"path": "src/chemworld/envs/observation_noise.py", "sha256": "009ae86890d4810cb856ec6df453afb9d80ea4049ae58b7b1d12e89bcd64343f"},
+      {"path": "src/chemworld/envs/chemworld_env.py", "sha256": "59dd5f91725415b5fbc7c752dc7ed98776f787ba762fbf8bba197a966fd30353"},
+      {"path": "src/chemworld/eval/runner.py", "sha256": "a87eeaa1ca4e7ce5f670f17cf76960dea6a63c3c78d0338a9c187c98b99440f0"},
+      {"path": "src/chemworld/eval/verify.py", "sha256": "3f3676f24c708177bf0430feee42c2024bf98439cfe165b2380a0cb020d4ed39"},
+      {"path": "src/chemworld/eval/work_ii_truth.py", "sha256": "b5bba1980a8caaebc71bb0b1942d832686dd7fed5e6e380d54b4b25385bf4fd8"},
+      {"path": "src/chemworld/data/logging.py", "sha256": "1e5550c14429e944f400f060bbfe8b074a40e23fde849f44b886eb9dbe6f6edc"}
     ]
   },
   "scientific_constants": {
@@ -27,7 +37,8 @@
     "surface_saturation_max_loading_ratio_status": "synthetic_authoring_constant",
     "surface_half_saturation_mol_L": 0.010,
     "authoring_valid_loading_ratio_range": [2.0, 6.0],
-    "nonbenchmark_sensitivity_loading_ratios": [2.0, 4.0, 6.0],
+    "authoring_range_rationale_points": [2.0, 4.0, 6.0],
+    "sensitivity_execution_status": "deferred_not_in_denominator",
     "baseline_occlusion_capacity_mol_impurity_per_mol_target": 0.02
   },
   "tournament": {
@@ -36,11 +47,17 @@
     "cooling_endpoints_K": [310.0, 270.0],
     "duration_levels_s": [3600.0, 10800.0],
     "parent_child_executions_per_world": 16,
-    "scalar_null_multipliers": [1.0, 2.0, 4.0, 6.0],
+    "scalar_null_optimizer": {
+      "algorithm": "golden_section_v1",
+      "bounds": [1.0, 6.0],
+      "iterations": 12,
+      "fit_evaluations": 16,
+      "selection_data": "fit_cells_only"
+    },
     "scalar_null_fit_cells": ["s0-t0-d0", "s0-t1-d1", "s1-t0-d1", "s1-t1-d0"],
     "scalar_null_held_out_cells": ["s0-t0-d1", "s0-t1-d0", "s1-t0-d0", "s1-t1-d1"],
-    "planned_executions_per_world": 36,
-    "planned_executions_total": 108,
+    "planned_executions_per_world": 84,
+    "planned_executions_total": 252,
     "selection_rule": "three_of_three_calibration_worlds"
   },
   "gates": {
@@ -80,5 +97,5 @@
       "surface_saturation"
     ]
   },
-  "contract_sha256": "85a299f01e46d9926d0871cdede4e244d7553d312f0b91feee2f87dc73a22fd9"
+  "contract_sha256": "18fa0319ea8bb4efd4e940768ede2db5b19d23d97f7f27f1ea3d15a3eca93853"
 }
