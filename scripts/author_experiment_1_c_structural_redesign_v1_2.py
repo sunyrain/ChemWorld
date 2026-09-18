@@ -61,6 +61,7 @@ PURITY_EFFECT_GATE = 0.01
 PURITY_CONSTRAINT = 0.98
 SURFACE_HALF_SATURATION_MOL_L = 0.010
 SCALAR_NULL_BOUNDS = (1.0, 6.0)
+AUTHORING_VALID_LOADING_RATIO_RANGE = (2.0, 6.0)
 SCALAR_NULL_OPTIMIZER = "golden_section_v1"
 SCALAR_NULL_OPTIMIZER_ITERATIONS = 12
 SCALAR_NULL_FIT_EVALUATIONS = SCALAR_NULL_OPTIMIZER_ITERATIONS + 4
@@ -159,7 +160,7 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("C-S sensitivity execution status changed")
     if tuple(
         float(value) for value in constants.get("authoring_valid_loading_ratio_range", ())
-    ) != SCALAR_NULL_BOUNDS:
+    ) != AUTHORING_VALID_LOADING_RATIO_RANGE:
         raise ValueError("C-S authoring loading-ratio range changed")
     if tuple(
         float(value) for value in constants.get("authoring_range_rationale_points", ())
