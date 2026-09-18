@@ -1,0 +1,44 @@
+{
+  "artifact_bindings": [
+    {
+      "path": "configs/benchmark/experiment_1_c_structural_authoring_v1.2.1.json",
+      "sha256": "81abb1a4dbacc748d766b1d840b74ce92694d552ef577c4598529e39eba52d0d"
+    },
+    {
+      "path": "configs/benchmark/experiment_1_p_calibration_v1.0.0.json",
+      "sha256": "c29e82eabf85f30c23e96c05ec978b0f611e810a6aed41a0619071875abd0d94"
+    },
+    {
+      "path": "workstreams/flagship_tasks/experiment_1/systems/P/assets/P_ASSET_MANIFEST_V1_1_1.json",
+      "sha256": "073ac4a83e7f367447e1f1430f926812d11cadfc4b8a18789131f2ca8569d325"
+    }
+  ],
+  "boundary": "validation_only_no_calibration_data",
+  "calibration_execution_count": 0,
+  "checks": {
+    "pytest": {
+      "duration_seconds": 67.19,
+      "failed": 0,
+      "files": [
+        "tests/test_experiment_1_expansion_assets.py",
+        "tests/test_world_family_axes.py",
+        "tests/test_crystallization_units.py",
+        "tests/test_crystallization_coupling.py",
+        "tests/test_separation_chain_coupling.py"
+      ],
+      "passed": 103,
+      "status": "pass"
+    },
+    "ruff": {
+      "scope": "C/P expansion runners, assets, runtime/world sources and focused tests",
+      "status": "pass"
+    }
+  },
+  "data_producing_execution_count": 0,
+  "formal_qualification_execution_count": 0,
+  "provider_call_count": 0,
+  "receipt_sha256": "fe05c99e68c3b2a696bbfc277b86733a49f38a81af926965a1458db712903324",
+  "schema_version": "chemworld-experiment-1-p-calibration-harness-test-receipt-1.0.0",
+  "status": "pass",
+  "tested_source_commit": "a442824d2a7b2e922547d6f033ecbc54aefd8d44"
+}

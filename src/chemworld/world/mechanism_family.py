@@ -38,6 +38,8 @@ TopologyTransformId = Literal[
 ]
 ConstitutiveTransformId = Literal[
     "partition_power_response_stress_v1",
+    "partition_composition_response_stress_v1",
+    "crystallization_occlusion_response_stress_v1",
     "electrochemical_response_stress_v1",
     "equilibrium_activity_response_stress_v1",
 ]
@@ -48,12 +50,24 @@ CATALYTIC_ACTIVITY_ORDER_PIVOT_STRESS: RateLawTransformId = (
 REVERSIBLE_TARGET_PATHWAY_STRESS: TopologyTransformId = "reversible_target_pathway_stress_v1"
 STABLE_CATALYST_TOPOLOGY: TopologyTransformId = "stable_catalyst_topology_v1"
 PARTITION_POWER_RESPONSE_STRESS: ConstitutiveTransformId = "partition_power_response_stress_v1"
+PARTITION_COMPOSITION_RESPONSE_STRESS: ConstitutiveTransformId = (
+    "partition_composition_response_stress_v1"
+)
+CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS: ConstitutiveTransformId = (
+    "crystallization_occlusion_response_stress_v1"
+)
 ELECTROCHEMICAL_RESPONSE_STRESS: ConstitutiveTransformId = "electrochemical_response_stress_v1"
 EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS: ConstitutiveTransformId = (
     "equilibrium_activity_response_stress_v1"
 )
 CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS: dict[str, frozenset[str]] = {
     PARTITION_POWER_RESPONSE_STRESS: frozenset({"partition_coefficient_exponent_at_full_severity"}),
+    PARTITION_COMPOSITION_RESPONSE_STRESS: frozenset(
+        {"composition_coupling_multiplier_at_full_severity"}
+    ),
+    CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS: frozenset(
+        {"occlusion_law_selector_at_full_severity"}
+    ),
     ELECTROCHEMICAL_RESPONSE_STRESS: frozenset(
         {
             "transfer_asymmetry_multiplier_at_full_severity",
@@ -67,6 +81,8 @@ CONSTITUTIVE_TRANSFORM_CALIBRATION_FIELDS: dict[str, frozenset[str]] = {
 }
 CONSTITUTIVE_TASK_TRANSFORMS: dict[str, ConstitutiveTransformId] = {
     "partition-discovery": PARTITION_POWER_RESPONSE_STRESS,
+    "reaction-to-purification": PARTITION_COMPOSITION_RESPONSE_STRESS,
+    "reaction-to-crystallization": CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS,
     "electrochemical-conversion": ELECTROCHEMICAL_RESPONSE_STRESS,
     "equilibrium-characterization": EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS,
 }
@@ -92,11 +108,13 @@ REACTION_MECHANISM_TASKS = (
     "flow-reaction-optimization",
 )
 CATALYST_DEACTIVATION_MECHANISM_TASKS = ("reaction-safety",)
-PARTITION_MECHANISM_TASKS = ("partition-discovery",)
+PARTITION_MECHANISM_TASKS = ("partition-discovery", "reaction-to-purification")
+CRYSTALLIZATION_CONSTITUTIVE_TASKS = ("reaction-to-crystallization",)
 ELECTROCHEMICAL_MECHANISM_TASKS = ("electrochemical-conversion",)
 EQUILIBRIUM_MECHANISM_TASKS = ("equilibrium-characterization",)
 CONSTITUTIVE_MECHANISM_TASKS = (
     *PARTITION_MECHANISM_TASKS,
+    *CRYSTALLIZATION_CONSTITUTIVE_TASKS,
     *ELECTROCHEMICAL_MECHANISM_TASKS,
     *EQUILIBRIUM_MECHANISM_TASKS,
 )
@@ -110,6 +128,12 @@ MECHANISM_REACHABLE_TASKS = (
 MECHANISM_TASK_MODES: dict[str, tuple[MechanismFamilyMode, ...]] = {
     **dict.fromkeys(CONSTITUTIVE_MECHANISM_TASKS, ("constitutive_law_family",)),
     **dict.fromkeys(REACTION_MECHANISM_TASKS, ("rate_law_family", "topology_family")),
+    "reaction-to-purification": ("constitutive_law_family",),
+    "reaction-to-crystallization": (
+        "rate_law_family",
+        "topology_family",
+        "constitutive_law_family",
+    ),
     **dict.fromkeys(CATALYST_DEACTIVATION_MECHANISM_TASKS, ("topology_family",)),
 }
 TOPOLOGY_TASK_TRANSFORMS: dict[str, frozenset[TopologyTransformId]] = {
@@ -355,6 +379,8 @@ class ConstitutiveLawFamilyChange:
 
     transform_id: ConstitutiveTransformId
     partition_coefficient_exponent_at_full_severity: float | None = None
+    composition_coupling_multiplier_at_full_severity: float | None = None
+    occlusion_law_selector_at_full_severity: float | None = None
     transfer_asymmetry_multiplier_at_full_severity: float | None = None
     selectivity_decay_multiplier_at_full_severity: float | None = None
     standard_potential_multiplier_at_full_severity: float | None = None
@@ -367,6 +393,12 @@ class ConstitutiveLawFamilyChange:
         defaults = {
             PARTITION_POWER_RESPONSE_STRESS: {
                 "partition_coefficient_exponent_at_full_severity": 1.75,
+            },
+            PARTITION_COMPOSITION_RESPONSE_STRESS: {
+                "composition_coupling_multiplier_at_full_severity": 4.0,
+            },
+            CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS: {
+                "occlusion_law_selector_at_full_severity": 2.0,
             },
             ELECTROCHEMICAL_RESPONSE_STRESS: {
                 "transfer_asymmetry_multiplier_at_full_severity": 1.4,
@@ -585,6 +617,21 @@ def apply_mechanism_family_intervention(
             domain_parameters["partition_coefficient_exponent"] = (
                 1.0 + (full_exponent - 1.0) * intervention.severity
             )
+        elif constitutive_change.transform_id == PARTITION_COMPOSITION_RESPONSE_STRESS:
+            full_multiplier = (
+                constitutive_change.composition_coupling_multiplier_at_full_severity
+            )
+            if full_multiplier is None:  # guarded by ConstitutiveLawFamilyChange
+                raise RuntimeError("partition composition calibration was not resolved")
+            # Bound below in private initial-state metadata so adding this new
+            # family does not change the identity of legacy parent Worlds.
+        elif constitutive_change.transform_id == CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS:
+            full_selector = constitutive_change.occlusion_law_selector_at_full_severity
+            if full_selector is None:  # guarded by ConstitutiveLawFamilyChange
+                raise RuntimeError("crystallization occlusion calibration was not resolved")
+            if intervention.severity != 1.0:
+                raise ValueError("crystallization occlusion law fork requires severity 1")
+            # Bound below in private initial-state metadata for the same reason.
         elif constitutive_change.transform_id == ELECTROCHEMICAL_RESPONSE_STRESS:
             transfer = constitutive_change.transfer_asymmetry_multiplier_at_full_severity
             selectivity = constitutive_change.selectivity_decay_multiplier_at_full_severity
@@ -618,6 +665,19 @@ def apply_mechanism_family_intervention(
     if constitutive_change is not None:
         metadata["derived_constitutive_transform_id"] = constitutive_change.transform_id
         metadata["derived_constitutive_calibration"] = constitutive_change.to_dict()
+        if constitutive_change.transform_id == PARTITION_COMPOSITION_RESPONSE_STRESS:
+            full_multiplier = (
+                constitutive_change.composition_coupling_multiplier_at_full_severity
+            )
+            if full_multiplier is None:
+                raise RuntimeError("partition composition calibration was not resolved")
+            metadata["partition_composition_coupling_multiplier"] = (
+                1.0 + (full_multiplier - 1.0) * intervention.severity
+            )
+        elif constitutive_change.transform_id == CRYSTALLIZATION_OCCLUSION_RESPONSE_STRESS:
+            metadata["crystallization_impurity_occlusion_law_id"] = (
+                "surface_saturation_occlusion_v1"
+            )
     if (
         constitutive_change is not None
         and constitutive_change.transform_id == EQUILIBRIUM_ACTIVITY_RESPONSE_STRESS

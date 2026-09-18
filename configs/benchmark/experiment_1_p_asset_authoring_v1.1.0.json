@@ -1,0 +1,48 @@
+{
+  "schema_version": "chemworld-experiment-1-p-asset-authoring-1.1.0",
+  "contract_id": "experiment-1-p-asset-authoring-v1.1.0",
+  "status": "development_authoring_only",
+  "task_id": "reaction-to-purification",
+  "participant_execution_authorized": false,
+  "formal_qualification_authorized": false,
+  "authoring_note": {
+    "path": "workstreams/flagship_tasks/experiment_1/systems/P/ASSET_AUTHORING_NOTE_V1_1_0.md",
+    "sha256": "15755ec19a7db42bbe0e4e3b72a4919e280afa70e7ce25748ee699ff9fdf1be3"
+  },
+  "worlds": [
+    {"world_id":"P-W01","world_seed":0,"role":"central","world_interventions":[]},
+    {"world_id":"P-W02","world_seed":1,"role":"strong_partition","world_interventions":[{"axis_id":"purification.partition-strength","mode":"extrapolation","severity":0.5}]},
+    {"world_id":"P-W03","world_seed":2,"role":"weak_partition","world_interventions":[{"axis_id":"purification.partition-strength","mode":"extrapolation","severity":-0.5}]},
+    {"world_id":"P-W04","world_seed":3,"role":"aqueous_favored_phase_ratio","world_interventions":[{"axis_id":"purification.phase-volume-ratio","mode":"extrapolation","severity":-0.5}]},
+    {"world_id":"P-W05","world_seed":4,"role":"coupled_boundary","world_interventions":[{"axis_id":"purification.partition-strength","mode":"extrapolation","severity":0.25},{"axis_id":"purification.phase-volume-ratio","mode":"extrapolation","severity":0.5}]}
+  ],
+  "entity": {
+    "extractants": ["X0", "X1", "X2", "X3"],
+    "misindex_permutation": [2, 0, 3, 1],
+    "feed_anchors": [
+      {"anchor_id":"product_rich","product_mol":0.012,"impurity_mol":0.002},
+      {"anchor_id":"impurity_rich","product_mol":0.006,"impurity_mol":0.004}
+    ]
+  },
+  "parametric": {
+    "target": "S_star=K_product/K_impurity",
+    "reference_extractant": 2,
+    "reference_product_mol": 0.009,
+    "reference_impurity_mol": 0.003,
+    "log_band_half_width": 0.12,
+    "misspecified_log_shift": 0.55
+  },
+  "structural": {
+    "parent_family": "constant_intrinsic_partition_v1",
+    "child_transform": "partition_composition_response_stress_v1",
+    "composition_coupling_multiplier_at_full_severity": 4.0,
+    "severity": 1.0
+  },
+  "contact_context": {
+    "temperature_K": 298.15,
+    "duration_s": 240.0,
+    "stirring_speed_rpm": 700.0,
+    "organic_volume_L": 0.018,
+    "aqueous_volume_L": 0.030
+  }
+}

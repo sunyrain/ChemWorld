@@ -91,11 +91,13 @@ def partition_split(
     aqueous_volume_L: float,
     coefficient_multiplier: float = 1.0,
     coefficient_exponent: float = 1.0,
+    composition_coupling_multiplier: float = 1.0,
     phase_volume_multiplier: float = 1.0,
 ) -> PartitionSplitResult:
     if (
         coefficient_multiplier <= 0.0
         or coefficient_exponent <= 0.0
+        or composition_coupling_multiplier < 1.0
         or phase_volume_multiplier <= 0.0
     ):
         raise ValueError("partition intervention multipliers must be positive")
@@ -154,6 +156,17 @@ def partition_split(
                 / coefficient_multiplier**0.25
             ),
         )
+    # The parent law (multiplier == 1) is composition independent.  The paired
+    # private family introduces a feed-composition response that cannot be
+    # absorbed by refitting one constant K across two feed anchors.  The
+    # logarithmic form stays positive and is symmetric at equal product and
+    # impurity fractions.
+    feed_total = max(product_mol, 0.0) + max(impurity_mol, 0.0)
+    if feed_total > 0.0 and composition_coupling_multiplier > 1.0:
+        impurity_fraction = max(impurity_mol, 0.0) / feed_total
+        log_strength = float(np.log(composition_coupling_multiplier))
+        partition *= float(np.exp(-log_strength * impurity_fraction))
+        impurity_partition *= float(np.exp(log_strength * impurity_fraction))
     feed = {"product": max(product_mol, 0.0), "impurity": max(impurity_mol, 0.0)}
     if sum(feed.values()) > 0.0:
         distribution_model = DistributionCoefficientModelSpec(

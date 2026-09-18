@@ -270,6 +270,9 @@ class ChemWorldPhaseSeparationServices:
             coefficient_exponent=self.world.domain_parameter(
                 "partition_coefficient_exponent"
             ),
+            composition_coupling_multiplier=float(
+                state.metadata.get("partition_composition_coupling_multiplier", 1.0)
+            ),
             phase_volume_multiplier=self.world.domain_parameter(
                 "partition_phase_volume_multiplier"
             ),

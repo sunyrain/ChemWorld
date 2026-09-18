@@ -63,6 +63,12 @@ FORBIDDEN_VISIBLE_TOKENS = (
     "private_seed",
     "hidden_state",
     "evaluator_truth",
+    "crystallization_impurity_occlusion_law_id",
+    "impurity_occlusion_law_id",
+    "occlusion_law",
+    "linear_supersaturation_transfer_v1",
+    "surface_saturation_occlusion_v1",
+    "surface_saturation",
 )
 
 
@@ -139,8 +145,33 @@ def _final_metrics(records: Sequence[Mapping[str, Any]]) -> dict[str, float]:
     return output
 
 
-def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
-    matches = set()
+def _visible_leakage_audit(records: Sequence[Mapping[str, Any]]) -> dict[str, Any]:
+    findings: list[dict[str, str]] = []
+
+    def inspect(value: object, path: str) -> None:
+        if isinstance(value, Mapping):
+            for key, child in value.items():
+                key_text = str(key)
+                lowered_key = key_text.casefold()
+                for token in FORBIDDEN_VISIBLE_TOKENS:
+                    if token.casefold() in lowered_key:
+                        findings.append(
+                            {
+                                "path": f"{path}.{key_text}",
+                                "token": token,
+                                "location": "key",
+                            }
+                        )
+                inspect(child, f"{path}.{key_text}")
+        elif isinstance(value, Sequence) and not isinstance(value, str | bytes):
+            for index, child in enumerate(value):
+                inspect(child, f"{path}[{index}]")
+        elif isinstance(value, str):
+            lowered_value = value.casefold()
+            for token in FORBIDDEN_VISIBLE_TOKENS:
+                if token.casefold() in lowered_value:
+                    findings.append({"path": path, "token": token, "location": "value"})
+
     for row in records:
         public = {
             key: row.get(key)
@@ -153,9 +184,18 @@ def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
                 "agent_view",
             )
         }
-        rendered = json.dumps(public, sort_keys=True)
-        matches.update(token for token in FORBIDDEN_VISIBLE_TOKENS if token in rendered)
-    return sorted(matches)
+        inspect(public, "participant_visible")
+    findings = sorted(findings, key=lambda row: (row["token"], row["path"], row["location"]))
+    return {
+        "passed": not findings,
+        "forbidden_tokens": list(FORBIDDEN_VISIBLE_TOKENS),
+        "findings": findings,
+        "matched_tokens": sorted({row["token"] for row in findings}),
+    }
+
+
+def _visible_leakage_matches(records: Sequence[Mapping[str, Any]]) -> list[str]:
+    return list(_visible_leakage_audit(records)["matched_tokens"])
 
 
 def _rollback_rows(records: Sequence[Mapping[str, Any]]) -> list[Mapping[str, Any]]:
@@ -192,6 +232,12 @@ def _execute(
     physical_failure: dict[str, Any] | None = None
     platform_failure: dict[str, str] | None = None
     leakage: list[str] = []
+    leakage_audit: dict[str, Any] = {
+        "passed": True,
+        "forbidden_tokens": list(FORBIDDEN_VISIBLE_TOKENS),
+        "findings": [],
+        "matched_tokens": [],
+    }
     safe: bool | None = None
     started = perf_counter()
     try:
@@ -230,13 +276,15 @@ def _execute(
             metrics = _final_metrics(records)
             risk = float(metrics.get("safety_risk", 0.0))
             safe = risk < float(get_task(TASK_ID).safety_limit)
-        leakage = _visible_leakage_matches(records)
+        leakage_audit = _visible_leakage_audit(records)
+        leakage = list(leakage_audit["matched_tokens"])
     except Exception as error:
         platform_failure = {"type": type(error).__name__, "message": str(error)[:1000]}
         if trajectory.is_file() and not records:
             records = load_jsonl(trajectory)
         if records:
-            leakage = _visible_leakage_matches(records)
+            leakage_audit = _visible_leakage_audit(records)
+            leakage = list(leakage_audit["matched_tokens"])
     status = (
         "platform_failure"
         if platform_failure is not None
@@ -305,6 +353,7 @@ def _execute(
             }
         ),
         "participant_visible_leakage_matches": leakage,
+        "participant_visible_leakage_audit": leakage_audit,
         "participant_visible_payload": {"metrics": metrics},
         "trajectory": (
             {"path": trajectory.relative_to(ROOT).as_posix(), "sha256": file_sha256(trajectory)}

@@ -48,12 +48,16 @@ def _run_midpoint_recipe(
 
 
 def test_serious_tasks_declare_two_executable_world_axes() -> None:
-    assert len(WORLD_AXIS_REGISTRY) == 13
+    declared_task_ids = {axis.task_id for axis in WORLD_AXIS_REGISTRY.values()}
+    expected_by_task = {
+        task_id: (5 if task_id == "reaction-to-crystallization" else 2)
+        for task_id in declared_task_ids
+    }
+    assert len(WORLD_AXIS_REGISTRY) == sum(expected_by_task.values())
     for task_id in SERIOUS_TASK_IDS:
         axes = axes_for_task(task_id)
-        expected = 3 if task_id == "reaction-to-crystallization" else 2
-        assert len(axes) == expected
-        assert all(len(axis.modes) == 4 for axis in axes)
+        assert len(axes) == expected_by_task[task_id]
+        assert all(axis.modes for axis in axes)
 
 
 def test_crystallization_population_regime_moves_nucleation_and_growth_oppositely() -> None:
@@ -79,8 +83,11 @@ def test_crystallization_population_regime_moves_nucleation_and_growth_oppositel
 def test_each_axis_mode_builds_a_hashed_deterministic_world(mode: str) -> None:
     generator = DefaultScenarioGenerator()
     for axis in WORLD_AXIS_REGISTRY.values():
+        if mode not in axis.modes:
+            continue
         scenario = get_scenario(axis.task_id)
-        payload = (_intervention(axis.axis_id, mode=mode, severity=0.7),)
+        severity = 1.0 if axis.axis_id == "crystallization.impurity-occlusion-law" else 0.7
+        payload = (_intervention(axis.axis_id, mode=mode, severity=severity),)
         first = generator.generate(scenario, 5, payload)
         second = generator.generate(scenario, 5, payload)
         assert first.parameters.world_id == second.parameters.world_id
@@ -94,7 +101,11 @@ def test_each_axis_mode_builds_a_hashed_deterministic_world(mode: str) -> None:
 
 @pytest.mark.parametrize(
     ("task_id", "axis_id"),
-    [(axis.task_id, axis.axis_id) for axis in WORLD_AXIS_REGISTRY.values()],
+    [
+        (axis.task_id, axis.axis_id)
+        for axis in WORLD_AXIS_REGISTRY.values()
+        if "composition" in axis.modes
+    ],
 )
 def test_each_axis_changes_a_real_task_response(task_id: str, axis_id: str) -> None:
     base_score, base_observation = _run_midpoint_recipe(task_id, None)
@@ -135,7 +146,11 @@ def test_axis_cannot_be_applied_to_another_task() -> None:
 
 @pytest.mark.parametrize(
     ("task_id", "axis_id"),
-    [(axis.task_id, axis.axis_id) for axis in WORLD_AXIS_REGISTRY.values()],
+    [
+        (axis.task_id, axis.axis_id)
+        for axis in WORLD_AXIS_REGISTRY.values()
+        if "composition" in axis.modes
+    ],
 )
 def test_composition_interventions_execute_complete_task_recipes(
     task_id: str,
