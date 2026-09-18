@@ -1,7 +1,11 @@
+import json
 from math import log
 from pathlib import Path
 
 import pytest
+from scripts.author_experiment_1_c_structural_redesign_v1_2 import (
+    _load_machine_contract,
+)
 
 from chemworld.eval.experiment_1_p_assets import (
     build_world_assets,
@@ -10,6 +14,7 @@ from chemworld.eval.experiment_1_p_assets import (
     partition_truth,
     structural_intervention,
 )
+from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.physchem.crystallization_units import (
     CrystallizationKineticsSpec,
     _occlude_impurity,
@@ -18,6 +23,46 @@ from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 ROOT = Path(__file__).resolve().parents[1]
 P_CONTRACT = ROOT / "configs/benchmark/experiment_1_p_asset_authoring_v1.1.0.json"
+C_CONTRACT = ROOT / "configs/benchmark/experiment_1_c_structural_authoring_v1.2.1.json"
+P_MANIFEST = (
+    ROOT
+    / "workstreams/flagship_tasks/experiment_1/systems/P/assets/"
+    "P_ASSET_MANIFEST_V1_1_1.json"
+)
+
+
+def test_c_machine_contract_binds_frozen_design_and_sources() -> None:
+    machine, benchmark = _load_machine_contract(C_CONTRACT)
+    assert machine["source_binding"]["source_commit"] == (
+        "f8c4ad96894d863c66f154a275ffce2466602ef0"
+    )
+    assert machine["scientific_constants"]["surface_saturation_max_loading_ratio"] == 4.0
+    assert machine["scientific_constants"]["surface_half_saturation_mol_L"] == 0.010
+    assert machine["tournament"]["planned_executions_total"] == 108
+    assert benchmark["contract_id"] == "experiment-1-c-parametric-repair-v1.0.2"
+
+
+def test_p_asset_manifest_is_self_hashed_source_bound_and_world_specific() -> None:
+    manifest = json.loads(P_MANIFEST.read_text(encoding="utf-8"))
+    expected = canonical_json_sha256(
+        {key: value for key, value in manifest.items() if key != "manifest_sha256"}
+    )
+    assert manifest["manifest_sha256"] == expected
+    assert manifest["source_binding"]["source_commit"] == (
+        "f8c4ad96894d863c66f154a275ffce2466602ef0"
+    )
+    assert all(
+        file_sha256(ROOT / row["path"]) == row["sha256"]
+        for row in manifest["source_binding"]["files"]
+    )
+    assets = manifest["world_assets"]
+    assert [row["world_id"] for row in assets] == [f"P-W0{i}" for i in range(1, 6)]
+    centers = {
+        row["world_id"]: row["parametric_bands"]["aligned"]["center"] for row in assets
+    }
+    assert centers["P-W02"] != pytest.approx(centers["P-W01"])
+    assert centers["P-W03"] != pytest.approx(centers["P-W01"])
+    assert centers["P-W05"] != pytest.approx(centers["P-W01"])
 
 
 def test_p_asset_contract_has_five_distinct_executable_world_truths() -> None:
