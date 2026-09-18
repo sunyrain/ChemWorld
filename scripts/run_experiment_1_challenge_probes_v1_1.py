@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Run frozen Experiment 1 executable sequential challenge probes v1.1."""
+"""Run frozen Experiment 1 executable sequential challenge probes v1.2."""
 
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ def _load(path: Path) -> dict[str, Any]:
 
 def render_markdown(summary: Mapping[str, Any]) -> str:
     lines = [
-        "# Experiment 1 executable challenge probe result v1.1",
+        "# Experiment 1 executable challenge probe result v1.2",
         "",
-        "Status: **challenge development attempt 2; not confirmation**",
+        "Status: **challenge development attempt 3; not confirmation**",
         "",
         "| Block | Plausibility | Non-triviality | Information choice | Budget window | "
         "Measured costs | Decision |",
@@ -69,10 +69,10 @@ def main() -> int:
     output = args.output.resolve()
     markdown = args.markdown.resolve()
     if output.exists() or markdown.exists():
-        raise FileExistsError("attempt2 outputs are immutable; choose unused output paths")
+        raise FileExistsError("challenge outputs are immutable; choose unused output paths")
     summary = build_probe_summary(
         _load(args.contract.resolve()),
-        _load(args.registry.resolve()),
+        args.registry.resolve(),
         root=ROOT,
         evidence_roots=[path.resolve() for path in args.evidence_root],
         source_commit=git_source_commit(ROOT),

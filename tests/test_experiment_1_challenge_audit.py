@@ -3,12 +3,17 @@ from __future__ import annotations
 import importlib.util
 from pathlib import Path
 
+import pytest
+
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "scripts/audit_experiment_1_challenge.py"
 REGISTRY = (
     ROOT / "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json"
 )
-PROBES = ROOT / "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CHALLENGE_PROBES.json"
+LEGACY_PROBES = (
+    ROOT
+    / "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CHALLENGE_PROBES_V1_1_1.json"
+)
 
 
 def _module():
@@ -19,20 +24,6 @@ def _module():
     return module
 
 
-def test_challenge_audit_is_locus_wise_and_retains_pa_parametric_failure() -> None:
-    audit = _module().build_audit(REGISTRY, PROBES)
-
-    assert audit["candidate_loci"] == 10
-    assert audit["confirmation_eligible_loci"] == 9
-    assert audit["confirmation_blocked_loci"] == 1
-    assert audit["participant_execution_authorized"] is False
-    assert audit["provider_call_count"] == 0
-    pa_parametric = next(row for row in audit["loci"] if row["block"] == "PA-P")
-    assert pa_parametric["confirmation_eligible"] is False
-    assert pa_parametric["checks"]["plausibility"]["status"] == "passed"
-    assert pa_parametric["checks"]["information_choice"]["status"] == "passed"
-    assert pa_parametric["checks"]["non_triviality"]["status"] == "failed"
-    assert pa_parametric["checks"]["budget_window"]["status"] == "failed"
-    assert all(
-        row["confirmation_eligible"] is True for row in audit["loci"] if row["block"] != "PA-P"
-    )
+def test_unrepaired_restart1_is_not_a_current_positive_audit_golden() -> None:
+    with pytest.raises(ValueError, match="exact registry binding"):
+        _module().build_audit(REGISTRY, LEGACY_PROBES)

@@ -28,6 +28,24 @@ def _load(path: Path) -> dict[str, Any]:
     return value
 
 
+def _verify_self_hash(payload: Mapping[str, Any], key: str) -> str:
+    declared = payload.get(key)
+    if not isinstance(declared, str):
+        raise ValueError(f"{key} is missing")
+    unhashed = dict(payload)
+    unhashed.pop(key, None)
+    if canonical_json_sha256(unhashed) != declared:
+        raise ValueError(f"{key} canonical self-hash mismatch")
+    return declared
+
+
+def _bound_path(relative: str) -> Path:
+    path = (ROOT / relative).resolve()
+    if not path.is_relative_to(ROOT):
+        raise ValueError("bound artifact path escapes the repository")
+    return path
+
+
 def _gate(rows: list[Mapping[str, Any]], gate: str) -> bool:
     return bool(
         rows
@@ -43,12 +61,38 @@ def _gate(rows: list[Mapping[str, Any]], gate: str) -> bool:
 def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
     registry = _load(registry_path)
     probes = _load(probes_path)
+    registry_self_hash = _verify_self_hash(registry, "registry_sha256")
+    probe_self_hash = _verify_self_hash(probes, "challenge_probe_sha256")
+    registry_binding = probes.get("source_registry")
+    if not isinstance(registry_binding, Mapping):
+        raise ValueError("challenge probes lack the exact registry binding")
+    if registry_path.resolve() != _bound_path(str(registry_binding.get("path", ""))):
+        raise ValueError("audit registry path differs from the probe binding")
+    if file_sha256(registry_path) != registry_binding.get("file_sha256"):
+        raise ValueError("audit registry file digest differs from the probe binding")
+    if registry_self_hash != registry_binding.get("registry_sha256"):
+        raise ValueError("audit registry self-hash differs from the probe binding")
+    manifest_binding = probes.get("raw_evidence_manifest")
+    if not isinstance(manifest_binding, Mapping):
+        raise ValueError("challenge probes lack a raw manifest binding")
+    manifest_path = _bound_path(str(manifest_binding.get("path", "")))
+    if not manifest_path.is_file() or file_sha256(manifest_path) != manifest_binding.get(
+        "file_sha256"
+    ):
+        raise ValueError("raw evidence manifest file binding mismatch")
+    manifest = _load(manifest_path)
+    manifest_self_hash = _verify_self_hash(manifest, "manifest_sha256")
+    if manifest_self_hash != manifest_binding.get("manifest_sha256"):
+        raise ValueError("raw evidence manifest self-hash binding mismatch")
+    if manifest.get("source_registry_sha256") != registry_self_hash:
+        raise ValueError("raw evidence manifest is stale for the audit registry")
     rows = registry.get("rows")
     if not isinstance(rows, list) or len(rows) != 105:
         raise ValueError("challenge audit requires the complete 105-unit registry")
     if probes.get("schema_version") not in {
         "chemworld-experiment-1-challenge-probes-1.0",
         "chemworld-experiment-1-challenge-probes-1.1",
+        "chemworld-experiment-1-challenge-probes-1.2",
     }:
         raise ValueError("unexpected challenge probe schema")
     probe_denominators = probes.get("denominators")
@@ -62,7 +106,7 @@ def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
         }.items()
     ):
         raise ValueError("challenge probe denominator is incomplete")
-    if probes.get("source_registry_sha256") != registry.get("registry_sha256"):
+    if probes.get("source_registry_sha256") != registry_self_hash:
         raise ValueError("challenge probes are bound to a different convergence registry")
     probe_loci = probes.get("loci")
     if not isinstance(probe_loci, list) or len(probe_loci) != 10:
@@ -149,13 +193,18 @@ def build_audit(registry_path: Path, probes_path: Path) -> dict[str, Any]:
         "source_registry": {
             "path": _relative(registry_path),
             "file_sha256": file_sha256(registry_path),
-            "registry_sha256": registry.get("registry_sha256"),
+            "registry_sha256": registry_self_hash,
         },
         "source_probes": {
             "path": _relative(probes_path),
             "file_sha256": file_sha256(probes_path),
-            "challenge_probe_sha256": probes.get("challenge_probe_sha256"),
+            "challenge_probe_sha256": probe_self_hash,
             "source_commit": probes.get("source_commit"),
+        },
+        "source_manifest": {
+            "path": _relative(manifest_path),
+            "file_sha256": file_sha256(manifest_path),
+            "manifest_sha256": manifest_self_hash,
         },
         "candidate_loci": len(loci),
         "confirmation_eligible_loci": sum(row["confirmation_eligible"] for row in loci),
@@ -216,6 +265,9 @@ def main() -> int:
     args = parser.parse_args()
     audit = build_audit(args.registry.resolve(), args.probes.resolve())
     write_json_atomic(args.output.resolve(), audit)
+    written = _load(args.output.resolve())
+    if _verify_self_hash(written, "audit_sha256") != audit["audit_sha256"]:
+        raise ValueError("written audit self-hash mismatch")
     args.markdown.resolve().write_text(render_markdown(audit), encoding="utf-8")
     print(
         json.dumps(

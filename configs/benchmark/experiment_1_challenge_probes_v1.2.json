@@ -1,0 +1,174 @@
+{
+  "schema_version": "chemworld-experiment-1-challenge-probes-contract-1.2",
+  "contract_id": "experiment-1-ten-locus-executable-challenge-probes-v1.2",
+  "status": "frozen_before_attempt_3_execution",
+  "provider_call_count": 0,
+  "participant_execution_authorized": false,
+  "confirmation_execution_authorized": false,
+  "repair_parent_contract": {
+    "path": "configs/benchmark/experiment_1_challenge_probes_v1.1.1.json",
+    "sha256": "f3f42b8e3ce1123052479894ccd0dfcc2064b7ee13308439bf268526fd8e9860"
+  },
+  "repair_deviation_receipt": {
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CHALLENGE_V1_2_DEVIATION_RECEIPT.md",
+    "sha256": "759638343b1d9a1cd826c2a26bfd10533205fb079e31a34aa1b0d21f6813622d"
+  },
+  "parent_contract": {
+    "path": "configs/benchmark/experiment_1_challenge_probes_v1.0.json",
+    "sha256": "463ea613dc8f6db23a8b52a81e2bbbacf628098233d9168c3393da05f3432b24"
+  },
+  "source_registry": {
+    "path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json",
+    "sha256": "350d2282acf5d0a80c0fadf2f38b05337bc0b205dbc0891c648b221e80bcfcb4",
+    "registry_sha256": "f79a912b667d413fe8050955184f24bf99c21d72b9f98cf067e4ffd31e13c588"
+  },
+  "protocol": {
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md",
+    "sha256": "96c7db9fb0d38ff119d8d9cb86facb7fe7e9401ed4a7b9269fdb3bb4c3d8fc13"
+  },
+  "experiment_note": {
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CHALLENGE_PROBES_NOTE_V1_2.md",
+    "sha256": "13f09fd546d2432579d0377c943ed5dad212203605e3028d2199d206a295c9f1"
+  },
+  "raw_evidence_manifest": {
+    "path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CHALLENGE_RAW_EVIDENCE_MANIFEST_V1_1.json",
+    "sha256": "ec5884b732c68ff2377fe5386030390a9907fcf2cff6d0519ea2a3b0530e8941"
+  },
+  "denominator": {
+    "candidate_loci": 10,
+    "worlds_per_locus": 5,
+    "world_probe_rows": 50,
+    "trivial_lower_bound_unique_conditions": 1
+  },
+  "loci": {
+    "EC-E": {
+      "sequential_family": "entity_sequential_contrast",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 4,
+      "target_field": "target_category",
+      "anchor_field": "nuisance_anchor",
+      "anchor_value": 0,
+      "metric_container": "allowed_metrics",
+      "metric": "transport_efficiency",
+      "reliable_snr": 2.0,
+      "minimum_effect": 0.05,
+      "minimum_information_gain": 2.0
+    },
+    "EC-P": {
+      "sequential_family": "ec_rx_reflection_sequence",
+      "raw_evidence_filename": "surface-rows.json",
+      "participant_budget": 4,
+      "ordered_action_ids": ["p05-i05", "p00-i05", "p10-i05"],
+      "minimum_evidence_margin": 0.05,
+      "minimum_information_gain": 0.05,
+      "noise_multiplier": 3.0,
+      "noise_calibration": {
+        "path": "workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-electrochemical-classified-v0.2-20260811.json",
+        "sha256": "e4980df6986c7a8f80c75709cecade4d51528c8b789f3f70cc6514b434ed4824"
+      }
+    },
+    "EC-S": {
+      "sequential_family": "ec_structural_sequence",
+      "raw_evidence_filename": "rows.json",
+      "participant_budget": 4,
+      "ordered_axis_b_indices": [1, 0, 2],
+      "minimum_standardized_evidence": 1.0,
+      "minimum_noise_replicates": 3,
+      "minimum_information_gain": 1.0,
+      "effect_floor": 0.03,
+      "model_noise_multiplier": 6.0,
+      "minimum_disagreement_fraction": 0.4
+    },
+    "RX-P": {
+      "sequential_family": "ec_rx_reflection_sequence",
+      "raw_evidence_filename": "surface-rows.json",
+      "participant_budget": 4,
+      "ordered_action_ids": ["t420-d3300", "t370-d3300", "t470-d3300"],
+      "minimum_evidence_margin": 0.05,
+      "minimum_information_gain": 0.05,
+      "noise_multiplier": 3.0,
+      "noise_calibration": {
+        "path": "workstreams/flagship_tasks/reports/work-ii-mechanism-oracle-reaction-safety-classified-v0.2-20260811.json",
+        "sha256": "2aee897284fcf7ff17a015cebcc2eaf50296cd3973b5283966b614810ef2bd6e"
+      }
+    },
+    "RX-S": {
+      "sequential_family": "rx_structural_sequence",
+      "raw_evidence_filename": "rows.json",
+      "participant_budget": 4,
+      "ordered_action_ids": [
+        "temperature-1-duration-0-dose-0",
+        "temperature-1-duration-1-dose-0",
+        "temperature-1-duration-2-dose-0"
+      ],
+      "minimum_accumulation": 0.03,
+      "minimum_noise_replicates": 3,
+      "minimum_information_gain": 0.03
+    },
+    "PA-E": {
+      "sequential_family": "entity_sequential_contrast",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 4,
+      "target_field": "extractant",
+      "anchor_field": "solvent",
+      "anchor_value": 0,
+      "metric_container": "measurement",
+      "metric": "product_in_organic",
+      "reliable_snr": 2.0,
+      "minimum_effect": 0.05,
+      "minimum_information_gain": 2.0
+    },
+    "PA-P": {
+      "sequential_family": "pa_parametric_sequence",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 3,
+      "ordered_action_ids": ["reference", "low_ratio", "mid_high_ratio"],
+      "minimum_information_gain": 0.005,
+      "minimum_prediction_gap": 0.05,
+      "minimum_signal_to_noise_ratio": 2.0,
+      "minimum_noise_replicates": 3
+    },
+    "PA-S": {
+      "sequential_family": "pa_structural_sequence",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 4,
+      "ordered_action_ids": [
+        "solvent-0-extractant-0",
+        "solvent-1-extractant-1",
+        "solvent-0-extractant-3",
+        "solvent-2-extractant-0"
+      ],
+      "minimum_slope_deviation": 0.2,
+      "minimum_noise_replicates": 3,
+      "minimum_information_gain": 0.2
+    },
+    "C-E": {
+      "sequential_family": "entity_sequential_contrast",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 4,
+      "target_field": "solvent",
+      "anchor_field": "temperature_K",
+      "anchor_value": 290.0,
+      "metric_container": "metrics",
+      "metric": "crystal_yield",
+      "reliable_snr": 2.0,
+      "minimum_effect": 0.035,
+      "minimum_information_gain": 2.0
+    },
+    "C-P": {
+      "sequential_family": "c_parametric_sequence",
+      "raw_evidence_filename": "receipts.json",
+      "participant_budget": 3,
+      "ordered_temperatures_K": [290.0, 310.0, 270.0],
+      "metric": "crystal_yield",
+      "minimum_snr": 2.0,
+      "minimum_information_gain": 2.0
+    }
+  },
+  "execution": {
+    "read_only_bound_development_evidence": true,
+    "all_missing_malformed_duplicate_nonfinite_rows_fail_closed": true,
+    "overwrite_forbidden": true,
+    "confirmation_secret_material_forbidden": true
+  }
+}

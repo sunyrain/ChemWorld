@@ -1,4 +1,4 @@
-"""Executable sequential challenge probes for Experiment 1 v1.1.
+"""Executable sequential challenge probes for Experiment 1 v1.2.
 
 Unlike the v1.0 development attempt, this module derives default, per-action,
 and stopping decisions from public execution observations.  It never assigns a
@@ -16,6 +16,10 @@ from statistics import fmean, variance
 from typing import Any
 
 from chemworld.eval import experiment_1_challenge as v1
+from chemworld.eval import work_ii_structural_candidate_qualification as structural
+from chemworld.eval.experiment_1_ec_qualification_repair import (
+    _structural_model_qualification_repair,
+)
 from chemworld.eval.provenance import canonical_json_sha256, file_sha256
 from chemworld.eval.work_ii_electrochemical_matched_prior_qualification import (
     predict_quadratic as predict_ec,
@@ -24,7 +28,7 @@ from chemworld.eval.work_ii_matched_prior_qualification import (
     predict_quadratic as predict_rx,
 )
 
-SCHEMA_VERSION = "chemworld-experiment-1-challenge-probes-1.1"
+SCHEMA_VERSION = "chemworld-experiment-1-challenge-probes-1.2"
 EXPECTED_BLOCKS = v1.EXPECTED_BLOCKS
 
 
@@ -81,29 +85,25 @@ def _finish_trace(
 ) -> dict[str, Any]:
     if not steps:
         raise ValueError("sequential probe produced no steps")
-    stopping = next(
-        (int(row["unique_condition_cost"]) for row in steps if row["reliable_falsification"]),
-        None,
-    )
+    stopping_row = next((row for row in steps if row["reliable_falsification"]), None)
+    stopping = int(stopping_row["unique_condition_cost"]) if stopping_row is not None else None
     default_success = bool(steps[0]["reliable_falsification"])
-    best_gain = (
-        max(float(row["information_gain_over_default"]) for row in steps[1:])
-        if len(steps) > 1
-        else 0.0
+    stopping_gain = (
+        float(stopping_row["information_gain_over_default"]) if stopping_row is not None else 0.0
     )
     return {
         "default_action_id": steps[0]["action_id"],
         "default_one_shot_reliably_discriminates": default_success,
         "ordered_policy_steps": steps,
         "minimum_reliable_unique_condition_cost": stopping,
-        "information_choice_gain_over_default": best_gain,
+        "information_choice_gain_over_default_at_stop": stopping_gain,
         "information_gain_estimand": (
             "realized evidence-statistic gain of the selected next unique condition "
             "relative to the frozen default condition"
         ),
         "minimum_information_gain": minimum_information_gain,
         "active_information_passed": bool(
-            best_gain >= minimum_information_gain and stopping is not None
+            stopping_gain >= minimum_information_gain and stopping is not None
         ),
         "budget_window_passed": bool(stopping is not None and 1 < stopping <= budget),
     }
@@ -352,12 +352,27 @@ def _reflection_trace(
 def _ec_structural_trace(
     report: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
-    comparisons = [
-        _mapping(row)
-        for row in _sequence(
-            _mapping(_mapping(report["legacy_analysis"])["model_qualification"])["comparisons"]
-        )
-    ]
+    del report
+    spec = structural.candidate_specs()["electrochemical_transport"]
+    main = [row for row in rows if row.get("phase") == "main_grid"]
+    validation = [row for row in rows if row.get("phase") == "noisy_validation"]
+    groups = ((0, 0), (0, 1), (0, 2))
+    sigma = structural._validation_sigma(validation, spec["metrics"], groups=groups)
+    recomputed = _structural_model_qualification_repair(
+        main,
+        validation,
+        sigma=sigma,
+        metrics=spec["model_metrics"],
+        aligned_features=structural._electrochemical_aligned_features,
+        misspecified_features=structural._electrochemical_misspecified_features,
+        validation_groups=groups,
+        target_axis="b",
+        candidate_id="electrochemical_transport",
+        effect_floor=float(policy["effect_floor"]),
+        noise_multiplier=float(policy["model_noise_multiplier"]),
+        minimum_disagreement_fraction=float(policy["minimum_disagreement_fraction"]),
+    )
+    comparisons = [_mapping(row) for row in _sequence(recomputed["comparisons"])]
     action_levels = [int(value) for value in policy["ordered_axis_b_indices"]]
     steps: list[dict[str, Any]] = []
     best = 0.0
@@ -388,7 +403,14 @@ def _ec_structural_trace(
             and int(row.get("axis_a_index", -1)) == 0
             and int(row.get("axis_b_index", -1)) == level
         ]
-        repeated_noise_supported = len(validation_rows) >= int(policy["minimum_noise_replicates"])
+        noise_coordinates = {
+            str(row.get("observation_coordinate_sha256")) for row in validation_rows
+        }
+        repeated_noise_supported = bool(
+            len(validation_rows) >= int(policy["minimum_noise_replicates"])
+            and len(noise_coordinates) == len(validation_rows)
+            and "None" not in noise_coordinates
+        )
         reliable = bool(
             index > 1
             and best >= float(policy["minimum_standardized_evidence"])
@@ -427,20 +449,36 @@ def _ec_structural_trace(
 def _rx_structural_trace(
     report: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
-    by_key = {(str(row["cell_id"]), str(row["law_id"])): row for row in rows}
+    del report
+    grouped: dict[tuple[str, str], list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if row.get("status") == "completed":
+            grouped[(str(row.get("cell_id")), str(row.get("law_id")))].append(row)
     metrics = ("yield", "conversion", "selectivity")
     action_ids = [str(value) for value in policy["ordered_action_ids"]]
     gaps: list[dict[str, float]] = []
     steps: list[dict[str, Any]] = []
     default_information = 0.0
+    repeated_noise_support: dict[str, int] = {}
+    offline_separability: list[dict[str, Any]] = []
     for index, action_id in enumerate(action_ids, 1):
-        baseline = by_key[(action_id, "deactivating_baseline")]
-        target = by_key[(action_id, "reversible_target_pathway")]
-        gap = {
-            metric: float(target["direct_metrics"][metric])
-            - float(baseline["direct_metrics"][metric])
+        baseline_rows = grouped[(action_id, "deactivating_baseline")]
+        target_rows = grouped[(action_id, "reversible_target_pathway")]
+        if not baseline_rows or not target_rows:
+            raise ValueError("RX-S action lacks one of the frozen candidate families")
+        target_noise_keys = {str(row.get("direct_noise_key_sha256")) for row in target_rows}
+        if "None" in target_noise_keys or len(target_noise_keys) != len(target_rows):
+            raise ValueError("RX-S target observations lack unique raw noise identities")
+        repeated_noise_support[action_id] = len(target_noise_keys)
+        target_means = {
+            metric: fmean(float(row["direct_metrics"][metric]) for row in target_rows)
             for metric in metrics
         }
+        baseline_predictions = {
+            metric: fmean(float(row["direct_metrics"][metric]) for row in baseline_rows)
+            for metric in metrics
+        }
+        gap = {metric: target_means[metric] - baseline_predictions[metric] for metric in metrics}
         gaps.append(gap)
         information = sum(abs(value) for value in gap.values())
         accumulation = (
@@ -448,22 +486,30 @@ def _rx_structural_trace(
             if index > 1
             else 0.0
         )
-        repeated_noise_supported = int(
-            policy.get("observed_noise_replicates_per_condition", 1)
-        ) >= int(policy["minimum_noise_replicates"])
+        repeated_noise_supported = len(target_noise_keys) >= int(policy["minimum_noise_replicates"])
         reliable = bool(
             index > 1
             and accumulation >= float(policy["minimum_accumulation"])
             and repeated_noise_supported
+        )
+        offline_separability.append(
+            {
+                "action_id": action_id,
+                "candidate_prediction_family": "deactivating_baseline",
+                "hidden_observation_family": "reversible_target_pathway",
+                "baseline_prediction": baseline_predictions,
+                "target_mean": target_means,
+                "paired_gap": gap,
+            }
         )
         steps.append(
             _step(
                 index=index,
                 action_id=action_id,
                 observation={
-                    "baseline_receipt": baseline.get("receipt_sha256"),
-                    "target_receipt": target.get("receipt_sha256"),
-                    "paired_gap": gap,
+                    "hidden_world_law": "reversible_target_pathway",
+                    "target_noise_keys": sorted(target_noise_keys),
+                    "target_observed_metrics": target_means,
                 },
                 statistic_before=0.0
                 if index == 1
@@ -484,37 +530,89 @@ def _rx_structural_trace(
         float(policy["minimum_information_gain"]),
     )
     result["repeated_noise_support"] = {
-        "observed_replicates_per_condition": policy.get(
-            "observed_noise_replicates_per_condition", 1
-        ),
+        "observed_replicates_by_condition": repeated_noise_support,
         "required": policy["minimum_noise_replicates"],
+        "derivation": "unique direct_noise_key_sha256 values in hidden-world receipts",
     }
+    result["participant_policy_semantics"] = (
+        "fixed action order; each observation digest contains only the single hidden "
+        "reversible-target-pathway outcome"
+    )
+    result["offline_paired_family_separability"] = offline_separability
     return result
 
 
 def _pa_parametric_trace(
     report: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
-    by_id = {str(row["point_id"]): row for row in _sequence(report["phase_point_reports"])}
+    aligned_band = _sequence(_mapping(report.get("aligned_prior")).get("k_star_band"))
+    false_band = _sequence(_mapping(report.get("misspecified_prior")).get("k_star_band"))
+    if len(aligned_band) != 2 or len(false_band) != 2:
+        raise ValueError("PA-P public prior bands are missing")
+    aligned_k = fmean(float(value) for value in aligned_band)
+    false_k = fmean(float(value) for value in false_band)
+    grouped: dict[str, list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if row.get("status") == "completed":
+            grouped[str(row.get("point_id"))].append(row)
     action_ids = [str(value) for value in policy["ordered_action_ids"]]
-    default_gap = float(by_id[action_ids[0]].get("prediction_gap", 0.0))
     steps: list[dict[str, Any]] = []
+    default_gap = 0.0
     for index, action_id in enumerate(action_ids, 1):
-        row = by_id[action_id]
-        reliable = row.get("noise_robust_counterexample") is True
-        gap = float(row.get("prediction_gap", 0.0))
+        action_rows = grouped[action_id]
+        if len(action_rows) < int(policy["minimum_noise_replicates"]):
+            raise ValueError("PA-P action lacks preregistered repeated-noise support")
+        noise_coordinates = {
+            (str(row.get("observation_noise_namespace")), int(row["observation_seed"]))
+            for row in action_rows
+        }
+        if len(noise_coordinates) != len(action_rows):
+            raise ValueError("PA-P repeated observations do not use unique noise coordinates")
+        allocations = []
+        for row in action_rows:
+            measurement = _mapping(row.get("measurement"))
+            organic = float(measurement["product_in_organic"])
+            aqueous = float(measurement["product_in_aqueous"])
+            allocations.append(organic / max(organic + aqueous, 1.0e-12))
+        observed_mean, standard_error = _mean_se(allocations)
+        exemplar = action_rows[0]
+        organic_volume = float(exemplar["extractant_volume_L"])
+        aqueous_volume = float(exemplar["solvent_volume_L"]) + float(exemplar["aqueous_volume_L"])
+        aligned_prediction = (
+            aligned_k * organic_volume / (aligned_k * organic_volume + aqueous_volume)
+        )
+        false_prediction = false_k * organic_volume / (false_k * organic_volume + aqueous_volume)
+        prediction_gap = abs(aligned_prediction - false_prediction)
+        evidence_margin = abs(false_prediction - observed_mean) - abs(
+            aligned_prediction - observed_mean
+        )
+        signal_to_noise = prediction_gap / max(standard_error, 1.0e-12)
+        reliable = bool(
+            evidence_margin >= float(policy["minimum_prediction_gap"])
+            and prediction_gap >= float(policy["minimum_prediction_gap"])
+            and signal_to_noise >= float(policy["minimum_signal_to_noise_ratio"])
+        )
+        if index == 1:
+            default_gap = prediction_gap
         steps.append(
             _step(
                 index=index,
                 action_id=action_id,
-                observation=dict(row),
+                observation={
+                    "receipt_sha256": [str(row.get("receipt_sha256")) for row in action_rows],
+                    "replicate_count": len(action_rows),
+                    "observed_mean_organic_allocation": observed_mean,
+                    "standard_error": standard_error,
+                },
                 statistic_before=float(steps[-1]["statistic_after"]) if steps else 0.0,
-                statistic_after=max(gap, float(steps[-1]["statistic_after"]) if steps else 0.0),
+                statistic_after=evidence_margin,
                 reliable=reliable,
-                information_gain_over_default=gap - default_gap,
-                stop_reason="noise-robust prior counterexample observed"
-                if reliable
-                else "continue",
+                information_gain_over_default=prediction_gap - default_gap,
+                stop_reason=(
+                    "raw replicated observations reject the false public prior"
+                    if reliable
+                    else "continue"
+                ),
             )
         )
     return _finish_trace(
@@ -527,18 +625,47 @@ def _pa_parametric_trace(
 def _pa_structural_trace(
     report: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
-    by_key = {(str(row["pair_id"]), str(row["law_id"])): row for row in rows}
+    del report
+    grouped: dict[tuple[str, str], list[Mapping[str, Any]]] = defaultdict(list)
+    for row in rows:
+        if row.get("status") == "completed":
+            grouped[(str(row.get("pair_id")), str(row.get("law_id")))].append(row)
     action_ids = [str(value) for value in policy["ordered_action_ids"]]
     points: list[tuple[float, float]] = []
     steps: list[dict[str, Any]] = []
     deviation = 0.0
+    repeated_noise_support: dict[str, int] = {}
+    offline_separability: list[dict[str, Any]] = []
     for index, action_id in enumerate(action_ids, 1):
-        linear = by_key[(action_id, "linear_response")]
-        power = by_key[(action_id, "power_response")]
-        left = linear["measurement"]
-        right = power["measurement"]
-        x = math.log(float(left["product_in_organic"]) / float(left["product_in_aqueous"]))
-        y = math.log(float(right["product_in_organic"]) / float(right["product_in_aqueous"]))
+        linear_rows = grouped[(action_id, "linear_response")]
+        power_rows = grouped[(action_id, "power_response")]
+        if not linear_rows or not power_rows:
+            raise ValueError("PA-S action lacks one of the frozen candidate families")
+        target_noise_keys = {
+            (
+                str(row.get("observation_noise_namespace")),
+                int(row["observation_seed"]),
+            )
+            for row in power_rows
+        }
+        if len(target_noise_keys) != len(power_rows):
+            raise ValueError("PA-S target observations lack unique raw noise identities")
+        repeated_noise_support[action_id] = len(target_noise_keys)
+
+        def mean_log_ratio(action_rows: Sequence[Mapping[str, Any]]) -> float:
+            values = []
+            for row in action_rows:
+                measurement = _mapping(row.get("measurement"))
+                values.append(
+                    math.log(
+                        float(measurement["product_in_organic"])
+                        / float(measurement["product_in_aqueous"])
+                    )
+                )
+            return fmean(values)
+
+        x = mean_log_ratio(linear_rows)
+        y = mean_log_ratio(power_rows)
         points.append((x, y))
         before = deviation
         if len(points) >= 2:
@@ -548,9 +675,7 @@ def _pa_structural_trace(
             if denominator > 0.0:
                 slope = sum((row[0] - x_mean) * (row[1] - y_mean) for row in points) / denominator
                 deviation = abs(slope - 1.0)
-        repeated_noise_supported = int(
-            policy.get("observed_noise_replicates_per_condition", 1)
-        ) >= int(policy["minimum_noise_replicates"])
+        repeated_noise_supported = len(target_noise_keys) >= int(policy["minimum_noise_replicates"])
         reliable = bool(
             len(points) >= 2
             and deviation >= float(policy["minimum_slope_deviation"])
@@ -561,10 +686,9 @@ def _pa_structural_trace(
                 index=index,
                 action_id=action_id,
                 observation={
-                    "linear_receipt": linear.get("receipt_sha256"),
-                    "power_receipt": power.get("receipt_sha256"),
-                    "log_linear_ratio": x,
-                    "log_power_ratio": y,
+                    "hidden_world_law": "power_response",
+                    "target_receipts": sorted(str(row.get("receipt_sha256")) for row in power_rows),
+                    "target_log_partition_ratio": y,
                 },
                 statistic_before=before,
                 statistic_after=deviation,
@@ -575,17 +699,33 @@ def _pa_structural_trace(
                 else "continue",
             )
         )
+        offline_separability.append(
+            {
+                "action_id": action_id,
+                "candidate_prediction_family": "linear_response",
+                "hidden_observation_family": "power_response",
+                "linear_candidate_log_partition_ratio": x,
+                "power_target_log_partition_ratio": y,
+                "absolute_gap": abs(y - x),
+            }
+        )
     result = _finish_trace(
         steps,
         int(policy["participant_budget"]),
         float(policy["minimum_information_gain"]),
     )
     result["repeated_noise_support"] = {
-        "observed_replicates_per_condition": policy.get(
-            "observed_noise_replicates_per_condition", 1
-        ),
+        "observed_replicates_by_condition": repeated_noise_support,
         "required": policy["minimum_noise_replicates"],
+        "derivation": (
+            "unique (observation_noise_namespace, observation_seed) values in hidden-world receipts"
+        ),
     }
+    result["participant_policy_semantics"] = (
+        "fixed action order; each observation digest contains only the single hidden "
+        "power-response outcome"
+    )
+    result["offline_paired_family_separability"] = offline_separability
     return result
 
 
@@ -661,8 +801,9 @@ def validate_contract(contract: Mapping[str, Any], root: Path) -> dict[str, Any]
     if contract.get("schema_version") not in {
         "chemworld-experiment-1-challenge-probes-contract-1.1",
         "chemworld-experiment-1-challenge-probes-contract-1.1.1",
+        "chemworld-experiment-1-challenge-probes-contract-1.2",
     }:
-        raise ValueError("unexpected v1.1 challenge contract schema")
+        raise ValueError("unexpected executable challenge contract schema")
     if contract.get("schema_version") == "chemworld-experiment-1-challenge-probes-contract-1.1.1":
         adapter_binding = _mapping(contract.get("adapter_parent_contract"))
         adapter_path = root / str(adapter_binding.get("path", ""))
@@ -679,6 +820,40 @@ def validate_contract(contract: Mapping[str, Any], root: Path) -> dict[str, Any]
             "sha256"
         ):
             raise ValueError("v1.1.1 deviation receipt binding mismatch")
+    if contract.get("schema_version") == "chemworld-experiment-1-challenge-probes-contract-1.2":
+        repair_binding = _mapping(contract.get("repair_parent_contract"))
+        repair_path = root / str(repair_binding.get("path", ""))
+        if not repair_path.is_file() or file_sha256(repair_path) != repair_binding.get("sha256"):
+            raise ValueError("v1.2 repair parent binding mismatch")
+        repair_parent = _load_json(repair_path)
+        if not isinstance(repair_parent, dict):
+            raise ValueError("v1.2 repair parent must be an object")
+        expected_loci = json.loads(json.dumps(contract.get("loci")))
+        if not isinstance(expected_loci, dict):
+            raise ValueError("v1.2 loci must be an object")
+        for block in ("RX-S", "PA-S"):
+            _mapping(expected_loci.get(block))
+            expected_loci[block]["observed_noise_replicates_per_condition"] = 1
+        for key in (
+            "effect_floor",
+            "model_noise_multiplier",
+            "minimum_disagreement_fraction",
+        ):
+            expected_loci["EC-S"].pop(key, None)
+        for key in (
+            "minimum_prediction_gap",
+            "minimum_signal_to_noise_ratio",
+            "minimum_noise_replicates",
+        ):
+            expected_loci["PA-P"].pop(key, None)
+        if repair_parent.get("loci") != expected_loci:
+            raise ValueError("v1.2 changed more than the declared repair adapter fields")
+        deviation_binding = _mapping(contract.get("repair_deviation_receipt"))
+        deviation_path = root / str(deviation_binding.get("path", ""))
+        if not deviation_path.is_file() or file_sha256(deviation_path) != deviation_binding.get(
+            "sha256"
+        ):
+            raise ValueError("v1.2 deviation receipt binding mismatch")
     parent_binding = _mapping(contract.get("parent_contract"))
     parent_path = root / str(parent_binding.get("path", ""))
     if not parent_path.is_file() or file_sha256(parent_path) != parent_binding.get("sha256"):
@@ -719,6 +894,37 @@ def _load_json(path: Path) -> dict[str, Any] | list[Any]:
     return value
 
 
+def verify_canonical_self_hash(payload: Mapping[str, Any], key: str) -> str:
+    declared = payload.get(key)
+    if not isinstance(declared, str):
+        raise ValueError(f"{key} is missing")
+    unhashed = dict(payload)
+    unhashed.pop(key, None)
+    computed = canonical_json_sha256(unhashed)
+    if declared != computed:
+        raise ValueError(f"{key} canonical self-hash mismatch")
+    return declared
+
+
+def load_bound_registry(
+    contract: Mapping[str, Any], root: Path, registry_path: Path
+) -> dict[str, Any]:
+    binding = _mapping(contract.get("source_registry"))
+    expected = (root / str(binding.get("path", ""))).resolve()
+    actual = registry_path.resolve()
+    if actual != expected:
+        raise ValueError("registry path does not match the exact contract binding")
+    if file_sha256(actual) != binding.get("sha256"):
+        raise ValueError("registry file digest does not match the contract binding")
+    registry = _load_json(actual)
+    if not isinstance(registry, dict):
+        raise ValueError("registry must be an object")
+    declared = verify_canonical_self_hash(registry, "registry_sha256")
+    if declared != binding.get("registry_sha256"):
+        raise ValueError("registry self-hash does not match the contract binding")
+    return registry
+
+
 def validate_raw_artifact(
     raw_path: Path,
     manifest_row: Mapping[str, Any],
@@ -752,19 +958,44 @@ def validate_raw_artifact(
     return raw_rows
 
 
+def validate_report_artifact(
+    report_path: Path,
+    manifest_row: Mapping[str, Any],
+    registry_evidence: Mapping[str, Any],
+    *,
+    relative_path: str,
+) -> dict[str, Any]:
+    if manifest_row.get("report_path") != relative_path:
+        raise ValueError("raw manifest report path mismatch")
+    actual_report_sha = file_sha256(report_path)
+    if manifest_row.get("report_sha256") != registry_evidence.get("sha256"):
+        raise ValueError("manifest report digest disagrees with registry evidence")
+    if actual_report_sha != registry_evidence.get("sha256"):
+        raise ValueError("source report file digest mismatch")
+    if actual_report_sha != manifest_row.get("report_sha256"):
+        raise ValueError("source report digest mismatch against raw manifest")
+    report = _load_json(report_path)
+    if not isinstance(report, dict):
+        raise ValueError("world report must be an object")
+    unhashed = dict(report)
+    self_hash = unhashed.pop("report_sha256", None)
+    if self_hash != registry_evidence.get("report_sha256") or self_hash != canonical_json_sha256(
+        unhashed
+    ):
+        raise ValueError("source report self hash mismatch")
+    return report
+
+
 def build_probe_summary(
     contract: Mapping[str, Any],
-    registry: Mapping[str, Any],
+    registry_path: Path,
     *,
     root: Path,
     evidence_roots: Sequence[Path],
     source_commit: str,
 ) -> dict[str, Any]:
     parent = validate_contract(contract, root)
-    if registry.get("registry_sha256") != _mapping(contract["source_registry"]).get(
-        "registry_sha256"
-    ):
-        raise ValueError("source registry self hash mismatch")
+    registry = load_bound_registry(contract, root, registry_path)
     rows = registry.get("rows")
     if not isinstance(rows, list) or len(rows) != 105:
         raise ValueError("v1.1 challenge requires the complete 105-row registry")
@@ -774,6 +1005,7 @@ def build_probe_summary(
     manifest = _load_json(manifest_path)
     if not isinstance(manifest, dict):
         raise ValueError("raw evidence manifest must be an object")
+    verify_canonical_self_hash(manifest, "manifest_sha256")
     if manifest.get("source_registry_sha256") != registry.get("registry_sha256"):
         raise ValueError("raw evidence manifest is stale for this registry")
     manifest_rows = manifest.get("rows")
@@ -803,17 +1035,13 @@ def build_probe_summary(
             if registry_row.get("current_status") != "qualified-development":
                 raise ValueError("source unit is not qualified-development")
             report_path = v1._resolve_report(relative, evidence_roots)
-            if file_sha256(report_path) != evidence.get("sha256"):
-                raise ValueError("source report file digest mismatch")
-            report = _load_json(report_path)
-            if not isinstance(report, dict):
-                raise ValueError("world report must be an object")
-            unhashed = dict(report)
-            self_hash = unhashed.pop("report_sha256", None)
-            if self_hash != evidence.get("report_sha256") or self_hash != canonical_json_sha256(
-                unhashed
-            ):
-                raise ValueError("source report self hash mismatch")
+            manifest_row = _mapping(manifest_by_unit.get(str(registry_row["unit_id"])))
+            report = validate_report_artifact(
+                report_path,
+                manifest_row,
+                evidence,
+                relative_path=relative,
+            )
             policy = _mapping(policies[block])
             policy = dict(policy)
             calibration_binding = policy.get("noise_calibration")
@@ -836,7 +1064,6 @@ def build_probe_summary(
                     )
                 )
             raw_path = report_path.parent / str(policy["raw_evidence_filename"])
-            manifest_row = _mapping(manifest_by_unit.get(str(registry_row["unit_id"])))
             raw_rows = validate_raw_artifact(raw_path, manifest_row, report_path=relative)
             old_rule = _mapping(parent_rules[block])
             if str(policy["sequential_family"]) == "entity_sequential_contrast" and not isinstance(
@@ -919,13 +1146,24 @@ def build_probe_summary(
     summary: dict[str, Any] = {
         "schema_version": SCHEMA_VERSION,
         "formal_result": False,
-        "evidence_semantics": "challenge-development-attempt-2",
+        "evidence_semantics": "challenge-development-attempt-3",
         "provider_call_count": 0,
         "participant_execution_authorized": False,
         "confirmation_execution_authorized": False,
         "source_commit": source_commit,
         "contract_sha256": canonical_json_sha256(contract),
+        "source_registry_file_sha256": file_sha256(registry_path.resolve()),
         "source_registry_sha256": registry.get("registry_sha256"),
+        "source_registry": {
+            "path": _mapping(contract["source_registry"])["path"],
+            "file_sha256": file_sha256(registry_path.resolve()),
+            "registry_sha256": registry.get("registry_sha256"),
+        },
+        "raw_evidence_manifest": {
+            "path": _mapping(contract["raw_evidence_manifest"])["path"],
+            "file_sha256": file_sha256(manifest_path),
+            "manifest_sha256": manifest["manifest_sha256"],
+        },
         "denominators": {
             "planned_world_probe_rows": 50,
             "attempted_world_probe_rows": len(probe_rows),
