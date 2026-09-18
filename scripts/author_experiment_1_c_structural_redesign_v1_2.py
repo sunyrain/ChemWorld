@@ -22,6 +22,7 @@ from chemworld.world.scenario import DefaultScenarioGenerator, get_scenario
 
 try:
     from scripts.run_experiment_1_c_qualification import (
+        FORBIDDEN_VISIBLE_TOKENS,
         _campaign_config,
         _execute,
         _feature_values,
@@ -30,6 +31,7 @@ try:
     )
 except ModuleNotFoundError:
     from run_experiment_1_c_qualification import (
+        FORBIDDEN_VISIBLE_TOKENS,
         _campaign_config,
         _execute,
         _feature_values,
@@ -58,7 +60,10 @@ EFFECT_GATE = 0.03
 PURITY_EFFECT_GATE = 0.01
 PURITY_CONSTRAINT = 0.98
 SURFACE_HALF_SATURATION_MOL_L = 0.010
-SCALAR_NULL_MULTIPLIERS = (1.0, 2.0, 4.0, 6.0)
+SCALAR_NULL_BOUNDS = (1.0, 6.0)
+SCALAR_NULL_OPTIMIZER = "golden_section_v1"
+SCALAR_NULL_OPTIMIZER_ITERATIONS = 12
+SCALAR_NULL_FIT_EVALUATIONS = SCALAR_NULL_OPTIMIZER_ITERATIONS + 4
 SCALAR_NULL_FIT_CELLS = ("s0-t0-d0", "s0-t1-d1", "s1-t0-d1", "s1-t1-d0")
 SCALAR_NULL_HELD_OUT_CELLS = ("s0-t0-d1", "s0-t1-d0", "s1-t0-d0", "s1-t1-d1")
 SCALAR_NULL_METRICS = (
@@ -75,6 +80,30 @@ DECLARED_FINAL_ASSAY_SIGMA = {
 }
 SCALAR_NULL_MINIMUM_NORMALIZED_RESIDUAL = 2.0
 SCALAR_NULL_MINIMUM_HELD_OUT_CELLS = 2
+WORLD_AXIS_RESPONSE_FLOOR = 0.005
+PLANNED_EXECUTIONS_PER_WORLD = (
+    16
+    + len(SCALAR_NULL_FIT_CELLS) * SCALAR_NULL_FIT_EVALUATIONS
+    + len(SCALAR_NULL_HELD_OUT_CELLS)
+)
+PLANNED_EXECUTIONS_TOTAL = len(CALIBRATION_SEEDS) * PLANNED_EXECUTIONS_PER_WORLD
+C_REQUIRED_SOURCE_PATHS = {
+    "scripts/author_experiment_1_c_structural_redesign_v1_2.py",
+    "scripts/run_experiment_1_c_qualification.py",
+    "src/chemworld/physchem/crystallization_units.py",
+    "src/chemworld/runtime/crystallization_services.py",
+    "src/chemworld/world/world_family.py",
+    "src/chemworld/world/scenario.py",
+    "src/chemworld/world/crystallization_material_family.py",
+    "src/chemworld/world/mechanism_family.py",
+    "src/chemworld/world/instruments.py",
+    "src/chemworld/envs/observation_noise.py",
+    "src/chemworld/envs/chemworld_env.py",
+    "src/chemworld/eval/runner.py",
+    "src/chemworld/eval/verify.py",
+    "src/chemworld/eval/work_ii_truth.py",
+    "src/chemworld/data/logging.py",
+}
 
 
 def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
@@ -102,7 +131,10 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         capture_output=True,
         text=True,
     )
-    for row in binding.get("files", []):
+    source_rows = binding.get("files", [])
+    if {str(row.get("path")) for row in source_rows} != C_REQUIRED_SOURCE_PATHS:
+        raise ValueError("C-S execution source closure changed")
+    for row in source_rows:
         source_path = ROOT / str(row.get("path", ""))
         if not source_path.is_file() or file_sha256(source_path) != row.get("sha256"):
             raise ValueError(f"C-S source binding changed: {row.get('path')}")
@@ -113,29 +145,81 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("runtime surface-saturation coefficient changed")
     if float(constants.get("surface_half_saturation_mol_L")) != SURFACE_HALF_SATURATION_MOL_L:
         raise ValueError("C-S half-saturation constant changed")
+    if constants.get("surface_saturation_max_loading_ratio_status") != (
+        "synthetic_authoring_constant"
+    ):
+        raise ValueError("C-S coefficient provenance label changed")
+    if constants.get("sensitivity_execution_status") != "deferred_not_in_denominator":
+        raise ValueError("C-S sensitivity execution status changed")
     tournament = machine.get("tournament", {})
     if tuple(tournament.get("calibration_seeds", ())) != CALIBRATION_SEEDS:
         raise ValueError("C-S calibration seeds changed")
+    if tuple(float(value) for value in tournament.get("seed_levels_g", ())) != SEED_LEVELS_G:
+        raise ValueError("C-S seed-mass grid changed")
+    frozen_temperatures = tuple(
+        float(value) for value in tournament.get("cooling_endpoints_K", ())
+    )
+    if frozen_temperatures != TEMPERATURE_LEVELS_K:
+        raise ValueError("C-S cooling grid changed")
+    frozen_durations = tuple(
+        float(value) for value in tournament.get("duration_levels_s", ())
+    )
+    if frozen_durations != DURATION_LEVELS_S:
+        raise ValueError("C-S duration grid changed")
     if tuple(tournament.get("scalar_null_fit_cells", ())) != SCALAR_NULL_FIT_CELLS:
         raise ValueError("C-S scalar-null fit cells changed")
     if tuple(tournament.get("scalar_null_held_out_cells", ())) != SCALAR_NULL_HELD_OUT_CELLS:
         raise ValueError("C-S scalar-null held-out cells changed")
-    frozen_multipliers = tuple(
-        float(value) for value in tournament.get("scalar_null_multipliers", ())
-    )
-    if frozen_multipliers != SCALAR_NULL_MULTIPLIERS:
-        raise ValueError("C-S scalar-null multiplier grid changed")
+    optimizer = tournament.get("scalar_null_optimizer", {})
+    if optimizer.get("algorithm") != SCALAR_NULL_OPTIMIZER:
+        raise ValueError("C-S scalar-null optimizer changed")
+    if tuple(float(value) for value in optimizer.get("bounds", ())) != SCALAR_NULL_BOUNDS:
+        raise ValueError("C-S scalar-null optimizer bounds changed")
+    if int(optimizer.get("iterations", -1)) != SCALAR_NULL_OPTIMIZER_ITERATIONS:
+        raise ValueError("C-S scalar-null optimizer iteration count changed")
+    if optimizer.get("selection_data") != "fit_cells_only":
+        raise ValueError("C-S scalar-null optimizer selection partition changed")
+    if int(tournament.get("planned_executions_per_world", -1)) != PLANNED_EXECUTIONS_PER_WORLD:
+        raise ValueError("C-S per-World denominator changed")
+    if int(tournament.get("planned_executions_total", -1)) != PLANNED_EXECUTIONS_TOTAL:
+        raise ValueError("C-S total denominator changed")
+    if tournament.get("selection_rule") != "three_of_three_calibration_worlds":
+        raise ValueError("C-S three-of-three selection rule changed")
     gates = machine.get("gates", {})
     if float(gates.get("purity_effect_gate")) != PURITY_EFFECT_GATE:
         raise ValueError("C-S purity response gate changed")
     if float(gates.get("other_endpoint_effect_gate")) != EFFECT_GATE:
         raise ValueError("C-S endpoint response gate changed")
+    if float(gates.get("world_axis_response_floor")) != WORLD_AXIS_RESPONSE_FLOOR:
+        raise ValueError("C-S world-axis response floor changed")
     frozen_residual_gate = float(gates.get("scalar_null_minimum_normalized_residual"))
     if frozen_residual_gate != SCALAR_NULL_MINIMUM_NORMALIZED_RESIDUAL:
         raise ValueError("C-S scalar-null residual gate changed")
+    if int(gates.get("scalar_null_minimum_resolving_held_out_cells", -1)) != (
+        SCALAR_NULL_MINIMUM_HELD_OUT_CELLS
+    ):
+        raise ValueError("C-S held-out resolving-cell gate changed")
+    if tuple(gates.get("scalar_null_fit_metrics", ())) != SCALAR_NULL_METRICS:
+        raise ValueError("C-S scalar-null fit metrics changed")
+    if gates.get("declared_final_assay_sigma") != DECLARED_FINAL_ASSAY_SIGMA:
+        raise ValueError("C-S declared observation sigmas changed")
     decision = machine.get("decision_rule", {})
     if float(decision.get("purity_constraint")) != PURITY_CONSTRAINT:
         raise ValueError("C-S purity-constrained decision changed")
+    expected_decision = {
+        "purity_constraint": PURITY_CONSTRAINT,
+        "primary_objective": "crystal_yield",
+        "secondary_objective": "crystal_csd_quality",
+        "tertiary_objective": "minimize_crystal_fines_fraction",
+        "fallback_if_infeasible": "maximize_crystal_purity",
+    }
+    if decision != expected_decision:
+        raise ValueError("C-S lexicographic decision rule changed")
+    privacy = machine.get("privacy", {})
+    if privacy.get("structured_key_and_value_audit_required") is not True:
+        raise ValueError("C-S structured privacy audit requirement changed")
+    if tuple(privacy.get("forbidden_tokens", ())) != FORBIDDEN_VISIBLE_TOKENS:
+        raise ValueError("C-S privacy denylist changed")
     benchmark = machine.get("experiment_contract", {})
     benchmark_path = ROOT / str(benchmark.get("path", ""))
     if not benchmark_path.is_file() or file_sha256(benchmark_path) != benchmark.get("sha256"):
@@ -154,8 +238,8 @@ def surface_saturation_intervention() -> dict[str, Any]:
 def scalar_null_intervention(multiplier: float) -> list[dict[str, Any]]:
     if multiplier == 1.0:
         return []
-    if multiplier not in SCALAR_NULL_MULTIPLIERS:
-        raise ValueError("scalar-null multiplier is outside the frozen candidate grid")
+    if not SCALAR_NULL_BOUNDS[0] <= multiplier <= SCALAR_NULL_BOUNDS[1]:
+        raise ValueError("scalar-null multiplier is outside the frozen optimizer bounds")
     return [
         {
             "axis_id": "crystallization.impurity-occlusion-capacity",
@@ -163,6 +247,46 @@ def scalar_null_intervention(multiplier: float) -> list[dict[str, Any]]:
             "severity": (multiplier - 1.0) / 5.0,
         }
     ]
+
+
+def _bounded_scalar_null_optimize(
+    evaluate: Any,
+) -> tuple[float, dict[float, float]]:
+    """Deterministically minimize one fit-only objective on the frozen continuous bound."""
+
+    scores: dict[float, float] = {}
+
+    def score(raw_value: float) -> float:
+        value = float(format(raw_value, ".15g"))
+        if value not in scores:
+            scores[value] = float(evaluate(value))
+        return scores[value]
+
+    lower, upper = SCALAR_NULL_BOUNDS
+    inverse_phi = (5.0**0.5 - 1.0) / 2.0
+    left = upper - inverse_phi * (upper - lower)
+    right = lower + inverse_phi * (upper - lower)
+    score(lower)
+    score(upper)
+    left_score = score(left)
+    right_score = score(right)
+    for _ in range(SCALAR_NULL_OPTIMIZER_ITERATIONS):
+        if left_score <= right_score:
+            upper = right
+            right = left
+            right_score = left_score
+            left = upper - inverse_phi * (upper - lower)
+            left_score = score(left)
+        else:
+            lower = left
+            left = right
+            left_score = right_score
+            right = lower + inverse_phi * (upper - lower)
+            right_score = score(right)
+    best = min(scores, key=lambda value: (scores[value], value))
+    if len(scores) != SCALAR_NULL_FIT_EVALUATIONS:
+        raise RuntimeError("scalar-null optimizer evaluation denominator changed")
+    return best, scores
 
 
 def _design(contract: Mapping[str, Any]) -> list[dict[str, Any]]:
@@ -249,13 +373,20 @@ def _scalar_null_analysis(
                 )
         return sum(value**2 for value in residuals) / len(residuals)
 
+    evaluated_multipliers = sorted(
+        {
+            float(row["scalar_null_multiplier"])
+            for row in scalar_rows
+            if row.get("scalar_null_role") == "fit"
+        }
+    )
     fit_scores = {
-        str(multiplier): normalized_sse(multiplier)
-        for multiplier in SCALAR_NULL_MULTIPLIERS
+        format(multiplier, ".17g"): normalized_sse(multiplier)
+        for multiplier in evaluated_multipliers
     }
     best_multiplier = min(
-        SCALAR_NULL_MULTIPLIERS,
-        key=lambda value: (fit_scores[str(value)], value),
+        evaluated_multipliers,
+        key=lambda value: (fit_scores[format(value, ".17g")], value),
     )
     held_out = []
     resolving_cells = set()
@@ -286,7 +417,13 @@ def _scalar_null_analysis(
     return {
         "fit_cells": list(SCALAR_NULL_FIT_CELLS),
         "held_out_cells": list(SCALAR_NULL_HELD_OUT_CELLS),
-        "candidate_multipliers": list(SCALAR_NULL_MULTIPLIERS),
+        "optimizer": {
+            "algorithm": SCALAR_NULL_OPTIMIZER,
+            "bounds": list(SCALAR_NULL_BOUNDS),
+            "iterations": SCALAR_NULL_OPTIMIZER_ITERATIONS,
+            "evaluated_multipliers": evaluated_multipliers,
+            "fit_only_selection": True,
+        },
         "fit_normalized_mean_squared_error": fit_scores,
         "selected_multiplier": best_multiplier,
         "held_out_reports": held_out,
@@ -336,7 +473,7 @@ def analyze_world(
         "child_hash_deterministic": private_audit.get("child_hash_deterministic") is True,
         "scalar_null_fixed_execution_denominator": (
             len(scalar_rows)
-            == len(SCALAR_NULL_FIT_CELLS) * len(SCALAR_NULL_MULTIPLIERS)
+            == len(SCALAR_NULL_FIT_CELLS) * SCALAR_NULL_FIT_EVALUATIONS
             + len(SCALAR_NULL_HELD_OUT_CELLS)
         ),
         "scalar_null_all_completed": all(
@@ -485,6 +622,7 @@ def analyze_world(
             "purity_constraint": PURITY_CONSTRAINT,
             "primary_objective": "crystal_yield",
             "secondary_objective": "crystal_csd_quality",
+            "tertiary_objective": "minimize_crystal_fines_fraction",
             "fallback_if_infeasible": "maximize_crystal_purity",
         },
         "private_fork_audit": dict(private_audit),
@@ -499,13 +637,7 @@ def run(contract_path: Path, output: Path) -> dict[str, Any]:
     config = _campaign_config(contract)
     design = _design(contract)
     output.mkdir(parents=True)
-    scalar_fit_executions = len(SCALAR_NULL_FIT_CELLS) * len(SCALAR_NULL_MULTIPLIERS)
-    scalar_held_out_executions = len(SCALAR_NULL_HELD_OUT_CELLS)
-    total = len(CALIBRATION_SEEDS) * (
-        len(design) * len(LAW_IDS)
-        + scalar_fit_executions
-        + scalar_held_out_executions
-    )
+    total = PLANNED_EXECUTIONS_TOTAL
     completed = 0
     exact_replays = 0
     worlds = []
@@ -569,11 +701,28 @@ def run(contract_path: Path, output: Path) -> dict[str, Any]:
             if row["law_id"] == "surface_saturation_occlusion"
         }
         scalar_receipts = []
-        for cell_id in SCALAR_NULL_FIT_CELLS:
-            cell = design_by_cell[cell_id]
-            observation_seed = int(child_by_cell[cell_id]["observation_seed"])
-            for multiplier in SCALAR_NULL_MULTIPLIERS:
-                scalar_root = world_root / f"scalar-null-{multiplier:g}"
+        fit_scores: dict[float, float] = {}
+
+        def evaluate_fit_multiplier(
+            raw_multiplier: float,
+            *,
+            fit_scores: dict[float, float] = fit_scores,
+            design_by_cell: dict[str, Any] = design_by_cell,
+            child_by_cell: dict[str, Any] = child_by_cell,
+            world_root: Path = world_root,
+            world: dict[str, Any] = world,
+            scalar_receipts: list[dict[str, Any]] = scalar_receipts,
+        ) -> float:
+            nonlocal completed, exact_replays
+            multiplier = float(format(raw_multiplier, ".15g"))
+            if multiplier in fit_scores:
+                return fit_scores[multiplier]
+            new_rows = []
+            multiplier_slug = format(multiplier, ".15g").replace(".", "p")
+            for cell_id in SCALAR_NULL_FIT_CELLS:
+                cell = design_by_cell[cell_id]
+                observation_seed = int(child_by_cell[cell_id]["observation_seed"])
+                scalar_root = world_root / f"scalar-null-fit-{multiplier_slug}"
                 scalar_root.mkdir(exist_ok=True)
                 receipt = _execute(
                     contract=contract,
@@ -595,27 +744,29 @@ def run(contract_path: Path, output: Path) -> dict[str, Any]:
                     additional_world_interventions=scalar_null_intervention(multiplier),
                 )
                 scalar_receipts.append(receipt)
+                new_rows.append(receipt)
                 completed += 1
                 exact_replays += int(receipt.get("exact_replay") is True)
-        provisional = _scalar_null_analysis(
-            [
-                (
-                    next(
-                        row
-                        for row in receipts
-                        if row["cell_id"] == cell_id
-                        and row["law_id"] == "supersaturation_transfer_parent"
-                    ),
-                    child_by_cell[cell_id],
-                )
-                for cell_id in sorted(child_by_cell)
-            ],
-            scalar_receipts,
+            squared = []
+            for row in new_rows:
+                child = child_by_cell[str(row["cell_id"])]
+                for metric in SCALAR_NULL_METRICS:
+                    residual = (
+                        float(child["metrics"][metric]) - float(row["metrics"][metric])
+                    ) / DECLARED_FINAL_ASSAY_SIGMA[metric]
+                    squared.append(residual**2)
+            fit_scores[multiplier] = sum(squared) / len(squared)
+            return fit_scores[multiplier]
+
+        best_multiplier, optimizer_scores = _bounded_scalar_null_optimize(
+            evaluate_fit_multiplier
         )
-        best_multiplier = float(provisional["selected_multiplier"])
+        if optimizer_scores != fit_scores:
+            raise RuntimeError("scalar-null optimizer and execution scores diverged")
         for cell_id in SCALAR_NULL_HELD_OUT_CELLS:
             cell = design_by_cell[cell_id]
-            scalar_root = world_root / f"scalar-null-{best_multiplier:g}"
+            multiplier_slug = format(best_multiplier, ".15g").replace(".", "p")
+            scalar_root = world_root / f"scalar-null-held-out-{multiplier_slug}"
             scalar_root.mkdir(exist_ok=True)
             receipt = _execute(
                 contract=contract,

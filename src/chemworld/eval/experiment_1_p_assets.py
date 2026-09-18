@@ -79,10 +79,24 @@ def partition_truth(
     )
     product_k = float(result["partition_coefficient"])
     impurity_k = float(result["impurity_partition_coefficient"])
+    organic_product = float(result["organic_product_mol"])
+    aqueous_product = float(result["aqueous_product_mol"])
+    organic_impurity = float(result["organic_impurity_mol"])
+    aqueous_impurity = float(result["aqueous_impurity_mol"])
     return {
         "K_product": product_k,
         "K_impurity": impurity_k,
         "S_star": product_k / impurity_k,
+        "product_in_organic_mol": organic_product,
+        "product_in_aqueous_mol": aqueous_product,
+        "impurity_in_organic_mol": organic_impurity,
+        "impurity_in_aqueous_mol": aqueous_impurity,
+        "product_organic_fraction": organic_product
+        / max(organic_product + aqueous_product, 1.0e-12),
+        "impurity_organic_fraction": organic_impurity
+        / max(organic_impurity + aqueous_impurity, 1.0e-12),
+        "organic_to_aqueous_product_ratio": organic_product
+        / max(aqueous_product, 1.0e-12),
     }
 
 

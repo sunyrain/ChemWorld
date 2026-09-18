@@ -35,6 +35,11 @@ aligned prior for P-W02--P-W05. Aligned and misspecified priors have identical s
 precision. The frozen derangement is `[X2, X0, X3, X1]`; it has no fixed point and is not selected
 from formal outcomes.
 
+Each dossier anchor includes intrinsic `K_product`, `K_impurity` and `S*` together with executable
+public allocation consequences: product/impurity moles in both phases, organic fractions and the
+organic-to-aqueous product ratio. Therefore the phase-volume intervention in P-W04 changes its
+aligned dossier even when intrinsic K is unchanged; P-W04 must not alias P-W01.
+
 ## Parametric asset
 
 P-P targets
