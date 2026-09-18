@@ -113,6 +113,12 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("C-S structural authoring machine-contract schema changed")
     if machine.get("status") != "frozen_before_calibration":
         raise ValueError("C-S structural authoring contract is not frozen")
+    if machine.get("contract_id") != "experiment-1-c-structural-authoring-v1.2.1":
+        raise ValueError("C-S structural authoring contract identity changed")
+    if machine.get("formal_qualification_authorized") is not False:
+        raise ValueError("C-S contract must not authorize formal qualification")
+    if machine.get("participant_execution_authorized") is not False:
+        raise ValueError("C-S contract must not authorize participant execution")
     expected_self_hash = canonical_json_sha256(
         {key: value for key, value in machine.items() if key != "contract_sha256"}
     )
@@ -151,6 +157,16 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("C-S coefficient provenance label changed")
     if constants.get("sensitivity_execution_status") != "deferred_not_in_denominator":
         raise ValueError("C-S sensitivity execution status changed")
+    if tuple(
+        float(value) for value in constants.get("authoring_valid_loading_ratio_range", ())
+    ) != SCALAR_NULL_BOUNDS:
+        raise ValueError("C-S authoring loading-ratio range changed")
+    if tuple(
+        float(value) for value in constants.get("authoring_range_rationale_points", ())
+    ) != (2.0, 4.0, 6.0):
+        raise ValueError("C-S authoring rationale points changed")
+    if float(constants.get("baseline_occlusion_capacity_mol_impurity_per_mol_target")) != 0.02:
+        raise ValueError("C-S baseline occlusion capacity changed")
     tournament = machine.get("tournament", {})
     if tuple(tournament.get("calibration_seeds", ())) != CALIBRATION_SEEDS:
         raise ValueError("C-S calibration seeds changed")
@@ -177,10 +193,14 @@ def _load_machine_contract(path: Path) -> tuple[dict[str, Any], dict[str, Any]]:
         raise ValueError("C-S scalar-null optimizer bounds changed")
     if int(optimizer.get("iterations", -1)) != SCALAR_NULL_OPTIMIZER_ITERATIONS:
         raise ValueError("C-S scalar-null optimizer iteration count changed")
+    if int(optimizer.get("fit_evaluations", -1)) != SCALAR_NULL_FIT_EVALUATIONS:
+        raise ValueError("C-S scalar-null optimizer denominator changed")
     if optimizer.get("selection_data") != "fit_cells_only":
         raise ValueError("C-S scalar-null optimizer selection partition changed")
     if int(tournament.get("planned_executions_per_world", -1)) != PLANNED_EXECUTIONS_PER_WORLD:
         raise ValueError("C-S per-World denominator changed")
+    if int(tournament.get("parent_child_executions_per_world", -1)) != 16:
+        raise ValueError("C-S parent/child denominator changed")
     if int(tournament.get("planned_executions_total", -1)) != PLANNED_EXECUTIONS_TOTAL:
         raise ValueError("C-S total denominator changed")
     if tournament.get("selection_rule") != "three_of_three_calibration_worlds":
