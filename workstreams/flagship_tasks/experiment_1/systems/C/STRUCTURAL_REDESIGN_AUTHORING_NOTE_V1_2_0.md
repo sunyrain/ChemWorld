@@ -28,7 +28,8 @@ third redesign is authorized.
 - no formal C-W01--W05 outcome is used for selection;
 - common paired grid per World and law:
   `seed mass {0.001, 0.015 g} × cooling endpoint {310, 270 K} × duration {3600, 10800 s}`;
-- 16 executions per World, 48 total; each execution requires tolerance-zero replay;
+- 16 parent/child executions per World plus a preregistered constant-capacity scalar-null
+  fit/held-out block; 108 executions total; each execution requires tolerance-zero replay;
 - paired laws use identical public action plans and keyed observation coordinates;
 - public endpoints: crystal yield, HPLC-derived crystal purity/impurity signal, crystal size,
   CSD quality, fines fraction and score.
@@ -49,8 +50,12 @@ Every calibration World must satisfy all of the following:
 5. at least one additional public endpoint with paired gap at least `0.03`;
 6. resolving support in at least two cells separated on two design coordinates;
 7. seed-by-law or cooling-by-law interaction at least the endpoint-specific effect gate, proving
-   that one constant occlusion multiplier cannot absorb the fork;
+   that the raw fork is non-parallel across the grid;
 8. a change in the preregistered purity-constrained seed, cooling or duration decision.
+9. fit the best constant-capacity parent-law multiplier from `{1, 2, 4, 6}` on the frozen cells
+   `s0-t0-d0`, `s0-t1-d1`, `s1-t0-d1`, `s1-t1-d0`, using noise-normalized squared residuals
+   for purity, yield, CSD quality and fines; on the disjoint four held-out cells, at least two
+   cells must retain a residual of at least `2.0` declared final-assay standard deviations.
 
 The candidate is selected only at `3/3` Worlds. A `0/3`, `1/3` or `2/3` outcome is retained as a
 scientific failure. Thresholds, calibration seeds, denominator and decision rule may not be changed
@@ -67,9 +72,16 @@ by only `0.00293`, below the pre-existing world-axis response floor of `0.005`; 
 qualification failure, not calibration evidence. The coefficient is now frozen at `4` and the old
 value is not a result or candidate observation.
 
-The coefficient multiplies the baseline occlusion capacity `0.02 mol impurity / mol target`, so the
+The coefficient `4` is a **synthetic authoring constant**, not an empirical estimate or a result.
+It multiplies the baseline occlusion capacity `0.02 mol impurity / mol target`, so the
 frozen value corresponds to `0.08 mol/mol` before the supersaturation term. The authoring-valid
 dimensionless range was bounded to `[2, 6]` (`0.04--0.12 mol/mol`) to represent moderate surface
 enrichment without permitting impurity uptake to dominate target transfer. Value `4` is the central
 point of that range and passes the unchanged `0.005` platform response floor. No calibration World,
 formal World, threshold or task decision was inspected when making this correction.
+
+The preregistered non-benchmark sensitivity points are `2`, `4` and `6`, corresponding to
+`0.04`, `0.08` and `0.12 mol impurity / mol target` before the supersaturation factor. They span
+the declared moderate-enrichment range and are retained for sensitivity reporting regardless of
+which tournament outcome is observed. The surface half-saturation concentration is frozen at
+`0.010 mol/L`.

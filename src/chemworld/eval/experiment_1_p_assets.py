@@ -86,8 +86,23 @@ def partition_truth(
     }
 
 
-def build_extractant_dossier(contract: Mapping[str, Any]) -> dict[str, Any]:
+def _world_multipliers(world_truth: Mapping[str, Any] | None) -> dict[str, float]:
+    if world_truth is None:
+        return {
+            "coefficient_multiplier": 1.0,
+            "phase_volume_multiplier": 1.0,
+        }
+    return {
+        "coefficient_multiplier": float(world_truth["partition_coefficient_multiplier"]),
+        "phase_volume_multiplier": float(world_truth["partition_phase_volume_multiplier"]),
+    }
+
+
+def build_extractant_dossier(
+    contract: Mapping[str, Any], *, world_truth: Mapping[str, Any] | None = None
+) -> dict[str, Any]:
     anchors = contract["entity"]["feed_anchors"]
+    multipliers = _world_multipliers(world_truth)
     aligned = []
     for extractant, extractant_id in enumerate(EXTRACTANT_IDS):
         aligned.append(
@@ -101,6 +116,7 @@ def build_extractant_dossier(contract: Mapping[str, Any]) -> dict[str, Any]:
                             extractant=extractant,
                             product_mol=float(anchor["product_mol"]),
                             impurity_mol=float(anchor["impurity_mol"]),
+                            **multipliers,
                         ),
                     }
                     for anchor in anchors
@@ -114,6 +130,8 @@ def build_extractant_dossier(contract: Mapping[str, Any]) -> dict[str, Any]:
     ]
     return {
         "schema_version": "chemworld-experiment-1-p-entity-dossier-1.1.0",
+        "world_id": None if world_truth is None else str(world_truth["world_id"]),
+        "private_truth_binding": multipliers,
         "aligned": aligned,
         "misspecified": misspecified,
         "permutation": list(permutation),
@@ -123,14 +141,19 @@ def build_extractant_dossier(contract: Mapping[str, Any]) -> dict[str, Any]:
 
 
 def matched_s_star_bands(
-    contract: Mapping[str, Any], *, signed_shift: float = 1.0
+    contract: Mapping[str, Any],
+    *,
+    world_truth: Mapping[str, Any] | None = None,
+    signed_shift: float = 1.0,
 ) -> dict[str, Any]:
     spec = contract["parametric"]
+    multipliers = _world_multipliers(world_truth)
     truth = partition_truth(
         contract,
         extractant=int(spec["reference_extractant"]),
         product_mol=float(spec["reference_product_mol"]),
         impurity_mol=float(spec["reference_impurity_mol"]),
+        **multipliers,
     )
     center = float(truth["S_star"])
     half_width = float(spec["log_band_half_width"])
@@ -145,6 +168,8 @@ def matched_s_star_bands(
         }
 
     return {
+        "world_id": None if world_truth is None else str(world_truth["world_id"]),
+        "private_truth_binding": multipliers,
         "truth": truth,
         "aligned": band(center),
         "misspecified": band(exp(log(center) + shift)),
@@ -174,9 +199,26 @@ def frozen_world_truths(contract: Mapping[str, Any]) -> list[dict[str, Any]]:
                 "partition_phase_volume_multiplier"
             ),
             "mechanism_hash": instance.compiled_mechanism.mechanism_hash,
+            "world_interventions": [dict(item) for item in world["world_interventions"]],
         }
         payload["truth_sha256"] = canonical_json_sha256(payload)
         rows.append(payload)
+    return rows
+
+
+def build_world_assets(contract: Mapping[str, Any]) -> list[dict[str, Any]]:
+    rows = []
+    for truth in frozen_world_truths(contract):
+        dossier = build_extractant_dossier(contract, world_truth=truth)
+        bands = matched_s_star_bands(contract, world_truth=truth)
+        row: dict[str, Any] = {
+            "world_id": truth["world_id"],
+            "truth": truth,
+            "entity_dossier": dossier,
+            "parametric_bands": bands,
+        }
+        row["asset_sha256"] = canonical_json_sha256(row)
+        rows.append(row)
     return rows
 
 
@@ -198,6 +240,7 @@ def structural_intervention(contract: Mapping[str, Any]) -> dict[str, Any]:
 __all__ = [
     "PAssetAuthoringError",
     "build_extractant_dossier",
+    "build_world_assets",
     "frozen_world_truths",
     "load_asset_contract",
     "matched_s_star_bands",

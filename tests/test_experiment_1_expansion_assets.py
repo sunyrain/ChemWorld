@@ -4,10 +4,9 @@ from pathlib import Path
 import pytest
 
 from chemworld.eval.experiment_1_p_assets import (
-    build_extractant_dossier,
+    build_world_assets,
     frozen_world_truths,
     load_asset_contract,
-    matched_s_star_bands,
     partition_truth,
     structural_intervention,
 )
@@ -33,27 +32,39 @@ def test_p_asset_contract_has_five_distinct_executable_world_truths() -> None:
 
 def test_p_entity_dossier_misindex_is_symmetric_and_has_no_fixed_point() -> None:
     contract = load_asset_contract(P_CONTRACT)
-    dossier = build_extractant_dossier(contract)
-    assert dossier["permutation"] == [2, 0, 3, 1]
-    assert all(index != source for index, source in enumerate(dossier["permutation"]))
-    assert [set(row) for row in dossier["aligned"]] == [
-        set(row) for row in dossier["misspecified"]
-    ]
-    assert dossier["aligned_sha256"] != dossier["misspecified_sha256"]
+    for asset in build_world_assets(contract):
+        dossier = asset["entity_dossier"]
+        assert dossier["world_id"] == asset["world_id"]
+        assert dossier["permutation"] == [2, 0, 3, 1]
+        assert all(index != source for index, source in enumerate(dossier["permutation"]))
+        assert [set(row) for row in dossier["aligned"]] == [
+            set(row) for row in dossier["misspecified"]
+        ]
+        assert dossier["aligned_sha256"] != dossier["misspecified_sha256"]
 
 
 def test_p_s_star_bands_have_equal_log_width_and_shifted_centers() -> None:
     contract = load_asset_contract(P_CONTRACT)
-    bands = matched_s_star_bands(contract)
-    aligned = bands["aligned"]
-    misspecified = bands["misspecified"]
-    assert log(aligned["center"] / aligned["lower"]) == pytest.approx(
-        log(misspecified["center"] / misspecified["lower"])
-    )
-    assert log(aligned["upper"] / aligned["center"]) == pytest.approx(
-        log(misspecified["upper"] / misspecified["center"])
-    )
-    assert aligned["center"] != misspecified["center"]
+    assets = build_world_assets(contract)
+    for asset in assets:
+        bands = asset["parametric_bands"]
+        aligned = bands["aligned"]
+        misspecified = bands["misspecified"]
+        assert bands["world_id"] == asset["world_id"]
+        assert log(aligned["center"] / aligned["lower"]) == pytest.approx(
+            log(misspecified["center"] / misspecified["lower"])
+        )
+        assert log(aligned["upper"] / aligned["center"]) == pytest.approx(
+            log(misspecified["upper"] / misspecified["center"])
+        )
+        assert aligned["center"] != misspecified["center"]
+    centers = {
+        asset["world_id"]: asset["parametric_bands"]["aligned"]["center"]
+        for asset in assets
+    }
+    assert centers["P-W02"] != pytest.approx(centers["P-W01"])
+    assert centers["P-W03"] != pytest.approx(centers["P-W01"])
+    assert centers["P-W05"] != pytest.approx(centers["P-W01"])
 
 
 def test_p_structural_family_is_executable_and_composition_dependent() -> None:
@@ -155,3 +166,62 @@ def test_c_occlusion_axis_switches_executable_private_law_selector() -> None:
         == "surface_saturation_occlusion_v1"
     )
     assert parent.parameters.world_id != child.parameters.world_id
+
+
+@pytest.mark.parametrize(
+    ("mode", "severity"),
+    (("interpolation", 1.0), ("extrapolation", 0.5), ("composition", 1.0)),
+)
+def test_c_occlusion_law_axis_rejects_nonbinary_interventions(
+    mode: str, severity: float
+) -> None:
+    scenario = get_scenario("reaction-to-crystallization")
+    with pytest.raises(ValueError, match=r"does not support|frozen binary axis"):
+        DefaultScenarioGenerator().generate(
+            scenario,
+            401,
+            (
+                {
+                    "axis_id": "crystallization.impurity-occlusion-law",
+                    "mode": mode,
+                    "severity": severity,
+                },
+            ),
+        )
+
+
+def test_c_scalar_null_axis_sets_only_constant_capacity_multiplier() -> None:
+    scenario = get_scenario("reaction-to-crystallization")
+    child = DefaultScenarioGenerator().generate(
+        scenario,
+        401,
+        (
+            {
+                "axis_id": "crystallization.impurity-occlusion-capacity",
+                "mode": "extrapolation",
+                "severity": 0.6,
+            },
+        ),
+    )
+    assert child.initial_state.metadata[
+        "crystallization_impurity_occlusion_capacity_multiplier"
+    ] == pytest.approx(4.0)
+    assert "crystallization_impurity_occlusion_law_id" not in child.initial_state.metadata
+
+
+@pytest.mark.parametrize("severity", (0.25, 0.5, 0.999))
+def test_c_mechanism_occlusion_law_path_rejects_nonbinary_severity(
+    severity: float,
+) -> None:
+    scenario = get_scenario("reaction-to-crystallization")
+    intervention = {
+        "kind": "mechanism_family",
+        "mode": "constitutive_law_family",
+        "severity": severity,
+        "constitutive_law_change": {
+            "transform_id": "crystallization_occlusion_response_stress_v1",
+            "occlusion_law_selector_at_full_severity": 2.0,
+        },
+    }
+    with pytest.raises(ValueError, match="requires severity 1"):
+        DefaultScenarioGenerator().generate(scenario, 401, (intervention,))

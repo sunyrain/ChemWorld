@@ -28,8 +28,10 @@ authored by hand.
 ## Entity asset
 
 P-E uses four anonymous extractants `X0..X3` under the purification workflow's historical
-extractant-index contract. The task-specific dossier is computed at two feed-composition anchors
-using one common contact protocol. Aligned and misspecified priors have identical schema and
+extractant-index contract. The task-specific dossier is computed **separately for every frozen
+World** at two feed-composition anchors using that World's executable partition-strength and
+phase-volume multipliers under one common contact protocol. A shared nominal dossier is not an
+aligned prior for P-W02--P-W05. Aligned and misspecified priors have identical schema and
 precision. The frozen derangement is `[X2, X0, X3, X1]`; it has no fixed point and is not selected
 from formal outcomes.
 
@@ -39,7 +41,10 @@ P-P targets
 
 `S* = K_product / K_impurity`
 
-at the reference extractant/contact context. The oracle is executable, not prompt-authored.
+at the reference extractant/contact context. The oracle is executable, not prompt-authored, and
+its center is recomputed from each World's private domain truth. The coefficient multiplier changes
+product and impurity K with different exponents, so P-W02, P-W03 and P-W05 must not inherit
+P-W01's S* center.
 Aligned and misspecified bands are symmetric in log space with the same half-width. The false
 center is displaced by a preregistered signed log shift; band width, units and rendering remain
 identical. Low/high phase-ratio and product-rich/impurity-rich anchors are reserved for later
@@ -64,3 +69,10 @@ data-producing calibration block, write a separate concise experiment note fixin
 denominators and pass/fail rules. Do not run formal qualification until all assets are hash-bound
 in a new contract. Failures are retained; no gate is weakened and Participant/provider calls remain
 zero.
+
+The asset build emits one self-hashed manifest containing all five private World truths, five
+World-specific dossiers, five World-specific S* band pairs, and parent/child structural anchor
+rows. It binds the source commit and exact runner, runtime, kernel, world-family, contract and note
+file hashes. The calibration harness is intentionally fail-closed: this asset-build commit does not
+ship a calibration contract, so no data can be produced until a later frozen calibration note and
+self-hashed machine contract are added and independently reviewed.
