@@ -48,10 +48,10 @@ def _run_midpoint_recipe(
 
 
 def test_serious_tasks_declare_two_executable_world_axes() -> None:
-    assert len(WORLD_AXIS_REGISTRY) == 13
+    assert len(WORLD_AXIS_REGISTRY) == 16
     for task_id in SERIOUS_TASK_IDS:
         axes = axes_for_task(task_id)
-        expected = 3 if task_id == "reaction-to-crystallization" else 2
+        expected = 4 if task_id == "reaction-to-crystallization" else 2
         assert len(axes) == expected
         assert all(len(axis.modes) == 4 for axis in axes)
 

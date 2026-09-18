@@ -295,6 +295,12 @@ class ChemWorldCrystallizationServices:
             * solubility_multiplier
         )
         dissolution_enthalpy = 20_000.0
+        occlusion_law_id = str(
+            state.metadata.get(
+                "crystallization_impurity_occlusion_law_id",
+                "linear_supersaturation_transfer_v1",
+            )
+        )
         solubility = SolubilityCurveSpec(
             model_id="runtime_vanthoff_material_solubility_v2",
             reference_solubility_mol_L=reference_solubility,
@@ -323,6 +329,8 @@ class ChemWorldCrystallizationServices:
             nucleus_diameter_m=8.0e-6,
             impurity_occlusion_mol_per_mol=0.02 * occlusion_multiplier,
             supersaturation_occlusion_factor=0.5,
+            impurity_occlusion_law_id=occlusion_law_id,
+            impurity_surface_half_saturation_mol_L=0.010,
             fines_threshold_m=20.0e-6,
             provenance_id="chemworld-world-law-v0.2-crystallization-kinetics",
         )
@@ -519,6 +527,7 @@ class ChemWorldCrystallizationServices:
                 "reference_solubility_temperature_K": solubility.reference_temperature_K,
                 "feed_concentration_mol_L": initial_concentration,
                 "kinetics_model_id": kinetics.model_id,
+                "impurity_occlusion_law_id": kinetics.impurity_occlusion_law_id,
                 "seed_target_mol": explicit_seed_target_mol,
                 "effective_seed_target_mol": effective_seed_target_mol,
                 "crystallized_from_solution_mol": cumulative_crystallized,

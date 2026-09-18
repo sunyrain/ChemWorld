@@ -109,6 +109,22 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
             "Changes the effective organic-to-aqueous contact volume ratio.",
         ),
         _axis(
+            "reaction-to-purification",
+            "purification.partition-strength",
+            "downstream distribution-coefficient scale",
+            "domain_parameter",
+            ("partition_coefficient_multiplier",),
+            "Changes the product/impurity partition scale after the upstream reaction.",
+        ),
+        _axis(
+            "reaction-to-purification",
+            "purification.phase-volume-ratio",
+            "downstream phase-volume ratio",
+            "domain_parameter",
+            ("partition_phase_volume_multiplier",),
+            "Changes the effective organic-to-aqueous contact-volume ratio.",
+        ),
+        _axis(
             "reaction-to-crystallization",
             "crystallization.kinetic-profile",
             "primary nucleation-rate scale",
@@ -136,6 +152,15 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
             ),
             "Moves primary nucleation and crystal growth in opposite directions while retaining "
             "the same mass-conserving population-balance equations.",
+        ),
+        _axis(
+            "reaction-to-crystallization",
+            "crystallization.impurity-occlusion-law",
+            "supersaturation transfer versus surface-saturation impurity occlusion",
+            "initial_state",
+            ("crystallization_impurity_occlusion_law_id",),
+            "Switches between two executable impurity-occlusion equations under the same "
+            "public cooling and seeding contract.",
         ),
         _axis(
             "reaction-to-distillation",
@@ -263,6 +288,12 @@ def apply_axis_interventions(
             factor = exp(log(4.0) * intervention.severity)
             domain["crystallization_nucleation_multiplier"] *= factor
             domain["crystallization_growth_multiplier"] /= factor
+        elif intervention.axis_id == "crystallization.impurity-occlusion-law":
+            metadata = dict(state.metadata)
+            metadata["crystallization_impurity_occlusion_law_id"] = (
+                "surface_saturation_occlusion_v1"
+            )
+            state = state.replace(metadata=metadata)
         elif intervention.axis_id == "flow.residence-thermal-boundary":
             domain["flow_boundary_ua_multiplier"] *= _flow_boundary_multiplier(
                 intervention.mode, intervention.severity
