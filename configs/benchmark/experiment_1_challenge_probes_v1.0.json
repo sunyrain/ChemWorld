@@ -1,0 +1,120 @@
+{
+  "schema_version": "chemworld-experiment-1-challenge-probes-contract-1.0",
+  "contract_id": "experiment-1-ten-locus-challenge-probes-v1.0",
+  "status": "frozen_before_probe_execution",
+  "provider_call_count": 0,
+  "participant_execution_authorized": false,
+  "confirmation_execution_authorized": false,
+  "source_registry": {
+    "path": "workstreams/flagship_tasks/experiment_1/results/EXPERIMENT_1_CONVERGENCE_REGISTRY.json",
+    "sha256": "350d2282acf5d0a80c0fadf2f38b05337bc0b205dbc0891c648b221e80bcfcb4",
+    "registry_sha256": "f79a912b667d413fe8050955184f24bf99c21d72b9f98cf067e4ffd31e13c588"
+  },
+  "protocol": {
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CONFIRMATION_PROTOCOL_V1_0.md",
+    "sha256": "96c7db9fb0d38ff119d8d9cb86facb7fe7e9401ed4a7b9269fdb3bb4c3d8fc13"
+  },
+  "experiment_note": {
+    "path": "workstreams/flagship_tasks/experiment_1/EXPERIMENT_1_CHALLENGE_PROBES_NOTE_V1_0.md",
+    "sha256": "873e7931e8e8d93f63ec4100b85e75661475bdf3049e21d7c96e7289a52ef9fb"
+  },
+  "denominator": {
+    "candidate_loci": 10,
+    "worlds_per_locus": 5,
+    "world_probe_rows": 50,
+    "trivial_lower_bound_unique_conditions": 1
+  },
+  "loci": {
+    "EC-E": {
+      "probe_family": "entity_label_exchange",
+      "participant_budget": 4,
+      "minimum_active_snr": 2.0,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json", "sha256": "0bc9f23bcd393f70b966e63407b706efeef785eb4e9abd60bfc14ae42906ac39"}
+      ]
+    },
+    "EC-P": {
+      "probe_family": "centered_directional_reflection",
+      "participant_budget": 4,
+      "minimum_active_disagreement_fraction": 0.25,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_ec_qualification_v1.0.1.json", "sha256": "7f6ebfe6fbee597552ea8f10e3f269f1733197c2ec82bb0cff82b0a14f77588e"}
+      ]
+    },
+    "EC-S": {
+      "probe_family": "ec_structural_two_region_trend",
+      "participant_budget": 4,
+      "minimum_active_disagreement_fraction": 0.4,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_ec_qualification_repair_v1.0.2.json", "sha256": "0bc9f23bcd393f70b966e63407b706efeef785eb4e9abd60bfc14ae42906ac39"}
+      ]
+    },
+    "RX-P": {
+      "probe_family": "centered_directional_reflection",
+      "participant_budget": 4,
+      "minimum_active_disagreement_fraction": 0.25,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_rx_qualification_v1.0.1.json", "sha256": "4cfdcb52e53d68e6d3fe4eebf7a96321329cdc9a28749599b65b84cdb0f900e7"}
+      ]
+    },
+    "RX-S": {
+      "probe_family": "rx_structural_accumulation_trend",
+      "participant_budget": 4,
+      "minimum_supporting_conditions": 2,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_rx_structural_repair_v1.1.0.json", "sha256": "ee7775bb8d7b80d4e603425f9c3c29839f8a8a9b4b5ee8031a3d67de63e1bd2f"}
+      ]
+    },
+    "PA-E": {
+      "probe_family": "entity_label_exchange",
+      "participant_budget": 4,
+      "minimum_active_snr": 2.0,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json", "sha256": "14c5d3fcc388d97db3f92732529dcef21d316891da1b32b02ccfc562e5154c52"}
+      ]
+    },
+    "PA-P": {
+      "probe_family": "pa_numeric_band_reference_default",
+      "participant_budget": 3,
+      "default_point_id": "reference",
+      "minimum_active_prediction_gap": 0.05,
+      "plausible_false_to_aligned_center_ratio": [0.5, 1.6],
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json", "sha256": "14c5d3fcc388d97db3f92732529dcef21d316891da1b32b02ccfc562e5154c52"},
+        {"path": "configs/benchmark/experiment_1_pa_parametric_repair_v1.0.2.json", "sha256": "e3f65792079f293d9e41d26c2bff6810ebba8ae15c859d6726006e4a09f1cf69"}
+      ]
+    },
+    "PA-S": {
+      "probe_family": "pa_structural_slope_trend",
+      "participant_budget": 4,
+      "minimum_slope_deviation": 0.2,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_pa_qualification_v1.0.1.json", "sha256": "14c5d3fcc388d97db3f92732529dcef21d316891da1b32b02ccfc562e5154c52"}
+      ]
+    },
+    "C-E": {
+      "probe_family": "entity_label_exchange",
+      "participant_budget": 4,
+      "minimum_active_snr": 2.0,
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_c_qualification_v1.0.1.json", "sha256": "91cf6a78fdb24bf6b7e39f86868747b9aaebcefd1d1ac8a0a4efb72b63b6b56d"}
+      ]
+    },
+    "C-P": {
+      "probe_family": "c_endpoint_gain_contrast",
+      "participant_budget": 3,
+      "minimum_active_snr": 2.0,
+      "plausible_effect_interval": [0.0, 1.0],
+      "source_contracts": [
+        {"path": "configs/benchmark/experiment_1_c_qualification_v1.0.1.json", "sha256": "91cf6a78fdb24bf6b7e39f86868747b9aaebcefd1d1ac8a0a4efb72b63b6b56d"},
+        {"path": "configs/benchmark/experiment_1_c_parametric_repair_v1.0.2.json", "sha256": "5f0515d8d0153b272de8802a880837b2f7a557ec4db89120674782b69752e6dc"}
+      ]
+    }
+  },
+  "execution": {
+    "read_only_bound_development_evidence": true,
+    "all_missing_or_malformed_rows_fail_closed": true,
+    "overwrite_forbidden": true,
+    "confirmation_secret_material_forbidden": true
+  }
+}
