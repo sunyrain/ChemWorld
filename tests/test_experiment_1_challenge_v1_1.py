@@ -147,3 +147,16 @@ def test_raw_artifact_duplicate_and_malformed_rows_fail_closed(tmp_path: Path) -
         challenge.validate_raw_artifact(
             path, manifest, report_path="runs/example/world-report.json"
         )
+
+
+def test_bound_contract_permutation_rejects_missing_or_mismatched_file(tmp_path: Path) -> None:
+    missing = {"path": "missing.json", "sha256": "0" * 64}
+    with pytest.raises(ValueError, match="missing"):
+        challenge.descriptor_permutation_from_bound_contracts(tmp_path, [missing])
+
+    path = tmp_path / "contract.json"
+    path.write_text(json.dumps({"loci": {"entity": {"descriptor_permutation": [3, 1, 2, 0]}}}))
+    with pytest.raises(ValueError, match="digest mismatch"):
+        challenge.descriptor_permutation_from_bound_contracts(
+            tmp_path, [{"path": "contract.json", "sha256": "0" * 64}]
+        )

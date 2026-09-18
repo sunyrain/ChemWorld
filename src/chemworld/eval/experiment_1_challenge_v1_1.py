@@ -109,11 +109,13 @@ def _finish_trace(
     }
 
 
-def _transposed_pair(report: Mapping[str, Any]) -> tuple[int, int]:
+def _transposed_pair(report: Mapping[str, Any], policy: Mapping[str, Any]) -> tuple[int, int]:
     permutation = report.get("descriptor_permutation")
     if not isinstance(permutation, list):
         prior = _mapping(report.get("prior_audit"))
         permutation = _mapping(prior.get("misspecified")).get("descriptor_permutation")
+    if not isinstance(permutation, list):
+        permutation = policy.get("descriptor_permutation")
     if not isinstance(permutation, list):
         raise ValueError("entity report lacks a descriptor permutation")
     moved = [index for index, value in enumerate(permutation) if index != int(value)]
@@ -122,10 +124,32 @@ def _transposed_pair(report: Mapping[str, Any]) -> tuple[int, int]:
     return moved[0], moved[1]
 
 
+def descriptor_permutation_from_bound_contracts(
+    root: Path, bindings: Sequence[Mapping[str, Any]]
+) -> list[int]:
+    permutations: list[list[int]] = []
+    for binding in bindings:
+        path = root / str(binding.get("path", ""))
+        if not path.is_file():
+            raise ValueError("bound source contract is missing")
+        if file_sha256(path) != binding.get("sha256"):
+            raise ValueError("bound source contract digest mismatch")
+        document = _load_json(path)
+        if not isinstance(document, dict):
+            raise ValueError("bound source contract must be an object")
+        entity = _mapping(_mapping(document.get("loci")).get("entity"))
+        permutation = entity.get("descriptor_permutation")
+        if isinstance(permutation, list):
+            permutations.append([int(value) for value in permutation])
+    if len(permutations) != 1:
+        raise ValueError("exactly one bound entity permutation is required")
+    return permutations[0]
+
+
 def _entity_trace(
     report: Mapping[str, Any], rows: Sequence[Mapping[str, Any]], policy: Mapping[str, Any]
 ) -> dict[str, Any]:
-    first, second = _transposed_pair(report)
+    first, second = _transposed_pair(report, policy)
     target_field = str(policy["target_field"])
     anchor_field = str(policy["anchor_field"])
     anchor_value = policy["anchor_value"]
@@ -634,8 +658,27 @@ TRACE_FAMILIES = {
 
 
 def validate_contract(contract: Mapping[str, Any], root: Path) -> dict[str, Any]:
-    if contract.get("schema_version") != "chemworld-experiment-1-challenge-probes-contract-1.1":
+    if contract.get("schema_version") not in {
+        "chemworld-experiment-1-challenge-probes-contract-1.1",
+        "chemworld-experiment-1-challenge-probes-contract-1.1.1",
+    }:
         raise ValueError("unexpected v1.1 challenge contract schema")
+    if contract.get("schema_version") == "chemworld-experiment-1-challenge-probes-contract-1.1.1":
+        adapter_binding = _mapping(contract.get("adapter_parent_contract"))
+        adapter_path = root / str(adapter_binding.get("path", ""))
+        if not adapter_path.is_file() or file_sha256(adapter_path) != adapter_binding.get("sha256"):
+            raise ValueError("v1.1 adapter parent binding mismatch")
+        adapter_parent = _load_json(adapter_path)
+        if not isinstance(adapter_parent, dict) or adapter_parent.get("loci") != contract.get(
+            "loci"
+        ):
+            raise ValueError("v1.1.1 changed a frozen threshold or sequential policy")
+        deviation_binding = _mapping(contract.get("adapter_deviation_receipt"))
+        deviation_path = root / str(deviation_binding.get("path", ""))
+        if not deviation_path.is_file() or file_sha256(deviation_path) != deviation_binding.get(
+            "sha256"
+        ):
+            raise ValueError("v1.1.1 deviation receipt binding mismatch")
     parent_binding = _mapping(contract.get("parent_contract"))
     parent_path = root / str(parent_binding.get("path", ""))
     if not parent_path.is_file() or file_sha256(parent_path) != parent_binding.get("sha256"):
@@ -796,6 +839,13 @@ def build_probe_summary(
             manifest_row = _mapping(manifest_by_unit.get(str(registry_row["unit_id"])))
             raw_rows = validate_raw_artifact(raw_path, manifest_row, report_path=relative)
             old_rule = _mapping(parent_rules[block])
+            if str(policy["sequential_family"]) == "entity_sequential_contrast" and not isinstance(
+                report.get("descriptor_permutation"), list
+            ):
+                policy["descriptor_permutation"] = descriptor_permutation_from_bound_contracts(
+                    root,
+                    [_mapping(row) for row in _sequence(old_rule.get("source_contracts"))],
+                )
             old_probe = v1.PROBE_FAMILIES[str(old_rule["probe_family"])](report, old_rule)
             family = str(policy["sequential_family"])
             if family == "ec_rx_reflection_sequence":
