@@ -1,13 +1,15 @@
 {
   "additional_posttest_attempts": 6,
   "additional_source_attempts": 1,
-  "attempted_sources": 3,
-  "completed_sources": 3,
+  "attempted_sources": 10,
+  "completed_sources": 9,
   "development_only": true,
-  "extra_verification_operations": 108,
+  "effective_source_batches": 127,
+  "extra_verification_operations": 245,
   "failure": null,
-  "first_attempt_completed_sources": 1,
+  "first_attempt_completed_sources": 7,
   "formal_result": false,
+  "host_recoveries": 0,
   "network_recovery_policy": {
     "authorization": "2026-09-19 user requested network-failure retries",
     "boundary": "posttests after intact source, or fresh source after zero actions",
@@ -16,7 +18,7 @@
   },
   "planned_source_batches": 1764,
   "planned_sources": 102,
-  "posttests_completed": 9,
+  "posttests_completed": 27,
   "preparation_incidents": [
     {
       "additional_replay_operations": 108,
@@ -44,17 +46,13 @@
     }
   ],
   "progress": {
-    "batches": 0,
-    "completed_sources": 3,
-    "elapsed_s": 703.25,
-    "eta_s": 46721.82899999886,
-    "operations": 0,
-    "phase": "K2",
-    "planned_batches": 12,
+    "completed_sources": 10,
+    "elapsed_s": 6.797000000002299,
+    "eta_s": 45889.79422222264,
     "planned_sources": 102,
-    "sources_per_hour": 7.628126030768373,
-    "stage": "source",
-    "unit": "EC-W01-B12-optimization-E-Opaque"
+    "sources_per_hour": 7.2172910254544735,
+    "stage": "verify_host_interruption",
+    "unit": "EC-W01-B24-discovery-E-Opaque"
   },
   "reference_batches": 120,
   "reference_operations": 900,
@@ -1506,10 +1504,423 @@
     {
       "arm": "Opaque",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 436.719000000041,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 84,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "optimization",
       "locus": "E",
-      "status": "running",
+      "operations": 84,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "groups": {
+          "context:current_cap": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.1979648208618164,
+              "mean_width80": 0.48500000000000004,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.21318927153944967,
+              "mean_width80": 0.4,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.27967455804347996,
+              "mean_width80": 0.45499999999999996,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.15578508615493775,
+              "mean_width80": 0.30500000000000005,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.5,
+              "mae": 0.08103216940164566,
+              "mean_width80": 0.21050000000000002,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.22228043794631958,
+              "mean_width80": 0.445,
+              "n": 2
+            }
+          },
+          "context:electrolyte_1": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.0,
+              "mae": 0.5359594118595123,
+              "mean_width80": 0.55,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.5473670899868012,
+              "mean_width80": 0.33499999999999996,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.4339424002170563,
+              "mean_width80": 0.45999999999999996,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.0,
+              "mae": 0.4049789643287659,
+              "mean_width80": 0.27,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.0,
+              "mae": 0.14192740374803542,
+              "mean_width80": 0.055,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.4713365352153778,
+              "mean_width80": 0.44999999999999996,
+              "n": 2
+            }
+          },
+          "context:electrolyte_3": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.0,
+              "mae": 0.503828182220459,
+              "mean_width80": 0.56,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.5476009780168534,
+              "mean_width80": 0.31999999999999995,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.336272052526474,
+              "mean_width80": 0.43999999999999995,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.0,
+              "mae": 0.36540427625179295,
+              "mean_width80": 0.255,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.0,
+              "mae": 0.1046675751209259,
+              "mean_width80": 0.05,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.3636661875247955,
+              "mean_width80": 0.42500000000000004,
+              "n": 2
+            }
+          },
+          "context:long": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.12853513240814207,
+              "mean_width80": 0.44,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.11268358826637269,
+              "mean_width80": 0.425,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.11354359507560732,
+              "mean_width80": 0.43500000000000005,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.055498834848403955,
+              "mean_width80": 0.30500000000000005,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.06476042211055756,
+              "mean_width80": 0.12350000000000001,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.0885435950756073,
+              "mean_width80": 0.46,
+              "n": 2
+            }
+          },
+          "context:short": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.15853513240814207,
+              "mean_width80": 0.48499999999999993,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.1524561381340027,
+              "mean_width80": 0.44000000000000006,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.10375323295593264,
+              "mean_width80": 0.46499999999999997,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.06841611661016941,
+              "mean_width80": 0.31,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.003148337188176811,
+              "mean_width80": 0.0235,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.1202457046508789,
+              "mean_width80": 0.48000000000000004,
+              "n": 2
+            }
+          },
+          "context:solvent_2": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.0,
+              "mae": 0.41853772819042206,
+              "mean_width80": 0.51,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.4176503145694732,
+              "mean_width80": 0.265,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.36428220093250274,
+              "mean_width80": 0.39,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.0,
+              "mae": 0.3263010060787201,
+              "mean_width80": 0.22499999999999998,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.0,
+              "mae": 0.08373568929731845,
+              "mean_width80": 0.044,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.3916763210296631,
+              "mean_width80": 0.36,
+              "n": 2
+            }
+          },
+          "potential_domain:negative": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.5,
+              "mae": 0.3396854887406031,
+              "mean_width80": 0.5666666666666667,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.20570829704403878,
+              "mean_width80": 0.35333333333333333,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.17651007344325384,
+              "mean_width80": 0.4583333333333333,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.1702026181668043,
+              "mean_width80": 0.25833333333333336,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.3333333333333333,
+              "mae": 0.051576164131052794,
+              "mean_width80": 0.05416666666666667,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.18643949429194132,
+              "mean_width80": 0.44333333333333336,
+              "n": 6
+            }
+          },
+          "potential_domain:positive": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.5,
+              "mae": 0.30810131390889484,
+              "mean_width80": 0.44333333333333336,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 0.3333333333333333,
+              "mae": 0.4579408297936121,
+              "mean_width80": 0.375,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.3333333333333333,
+              "mae": 0.3673126064737638,
+              "mean_width80": 0.42333333333333334,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 0.3333333333333333,
+              "mae": 0.288592143257459,
+              "mean_width80": 0.29833333333333334,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.5,
+              "mae": 0.10818103482450048,
+              "mean_width80": 0.11466666666666668,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 0.3333333333333333,
+              "mae": 0.3661434328556061,
+              "mean_width80": 0.43,
+              "n": 6
+            }
+          }
+        },
+        "metrics": {
+          "electrochemical_selectivity": {
+            "coverage80": 0.5,
+            "mae": 0.323893401324749,
+            "mean_width80": 0.505,
+            "n": 12
+          },
+          "energy_efficiency": {
+            "coverage80": 0.4166666666666667,
+            "mae": 0.33182456341882544,
+            "mean_width80": 0.3641666666666667,
+            "n": 12
+          },
+          "faradaic_efficiency": {
+            "coverage80": 0.6666666666666666,
+            "mae": 0.27191133995850886,
+            "mean_width80": 0.44083333333333335,
+            "n": 12
+          },
+          "score": {
+            "coverage80": 0.4166666666666667,
+            "mae": 0.22939738071213167,
+            "mean_width80": 0.2783333333333333,
+            "n": 12
+          },
+          "selective_product_yield": {
+            "coverage80": 0.4166666666666667,
+            "mae": 0.07987859947777663,
+            "mean_width80": 0.08441666666666668,
+            "n": 12
+          },
+          "transport_efficiency": {
+            "coverage80": 0.6666666666666666,
+            "mae": 0.2762914635737737,
+            "mean_width80": 0.4366666666666667,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 1,
+      "retest_operations": 7,
+      "retest_replay": {
+        "checked_steps": 7,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "EC",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 536576,
+            "input": 595804,
+            "output": 3922,
+            "stage": "source",
+            "uncached_input": 59228
+          },
+          {
+            "cached_input": 0,
+            "input": 36006,
+            "output": 4574,
+            "stage": "K1",
+            "uncached_input": 36006
+          },
+          {
+            "cached_input": 0,
+            "input": 42421,
+            "output": 3721,
+            "stage": "Q",
+            "uncached_input": 42421
+          },
+          {
+            "cached_input": 35840,
+            "input": 46055,
+            "output": 1962,
+            "stage": "K2",
+            "uncached_input": 10215
+          }
+        ],
+        "total": {
+          "cached_input": 572416,
+          "input": 720286,
+          "input_plus_output": 734465,
+          "output": 14179,
+          "uncached_input": 147870
+        },
+        "valid": true
+      },
       "unit_id": "EC-W01-B12-optimization-E-Opaque",
       "world": {
         "world_id": "EC-W01",
@@ -1520,10 +1931,423 @@
     {
       "arm": "Aligned",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 390.125,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 73,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "optimization",
       "locus": "E",
-      "status": "not_started",
+      "operations": 73,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "groups": {
+          "context:current_cap": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.0,
+              "mae": 0.20296482086181641,
+              "mean_width80": 0.395,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.01681072846055031,
+              "mean_width80": 0.26999999999999996,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.2196745580434799,
+              "mean_width80": 0.385,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.10578508615493776,
+              "mean_width80": 0.33499999999999996,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.5,
+              "mae": 0.19331549912691115,
+              "mean_width80": 0.37250000000000005,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.04,
+              "mean_width80": 0.27999999999999997,
+              "n": 2
+            }
+          },
+          "context:electrolyte_1": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.040959411859512296,
+              "mean_width80": 0.24999999999999994,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.11236708998680117,
+              "mean_width80": 0.27499999999999997,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.06894240021705625,
+              "mean_width80": 0.265,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.03997896432876588,
+              "mean_width80": 0.22499999999999998,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.01592740374803543,
+              "mean_width80": 0.105,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.03633653521537783,
+              "mean_width80": 0.295,
+              "n": 2
+            }
+          },
+          "context:electrolyte_3": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.09882818222045897,
+              "mean_width80": 0.31000000000000005,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.2876009780168533,
+              "mean_width80": 0.29,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.181272052526474,
+              "mean_width80": 0.285,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.12040427625179292,
+              "mean_width80": 0.225,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.0,
+              "mae": 0.048167575120925905,
+              "mean_width80": 0.0815,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.21866618752479552,
+              "mean_width80": 0.29500000000000004,
+              "n": 2
+            }
+          },
+          "context:long": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.018535132408142085,
+              "mean_width80": 0.18,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.12768358826637266,
+              "mean_width80": 0.21000000000000002,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.04354359507560729,
+              "mean_width80": 0.21000000000000005,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.03549883484840391,
+              "mean_width80": 0.18,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.01013723695278168,
+              "mean_width80": 0.084,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.058543595075607274,
+              "mean_width80": 0.22499999999999998,
+              "n": 2
+            }
+          },
+          "context:short": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.018535132408142085,
+              "mean_width80": 0.19,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.0,
+              "mae": 0.16745613813400267,
+              "mean_width80": 0.215,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.0778515696525574,
+              "mean_width80": 0.21000000000000005,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.030424907818436625,
+              "mean_width80": 0.254,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.0025798832727596164,
+              "mean_width80": 0.0225,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.08024570465087891,
+              "mean_width80": 0.22999999999999998,
+              "n": 2
+            }
+          },
+          "context:solvent_2": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.12146227180957792,
+              "mean_width80": 0.295,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.11265031456947325,
+              "mean_width80": 0.305,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.04428220093250276,
+              "mean_width80": 0.30500000000000005,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.011301006078720088,
+              "mean_width80": 0.245,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.013764310702681543,
+              "mean_width80": 0.101,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.061676321029663084,
+              "mean_width80": 0.33,
+              "n": 2
+            }
+          },
+          "potential_domain:negative": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.09461756606896717,
+              "mean_width80": 0.30166666666666664,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.129408177981774,
+              "mean_width80": 0.22999999999999998,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.08651007344325384,
+              "mean_width80": 0.25333333333333335,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.04903595150013765,
+              "mean_width80": 0.213,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.014258324776776138,
+              "mean_width80": 0.08166666666666668,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.09401268164316812,
+              "mean_width80": 0.25666666666666665,
+              "n": 6
+            }
+          },
+          "potential_domain:positive": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.07247741778691608,
+              "mean_width80": 0.23833333333333337,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.14544810116291043,
+              "mean_width80": 0.2916666666666667,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.6666666666666666,
+              "mae": 0.1253453853726387,
+              "mean_width80": 0.3,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.06542840699354809,
+              "mean_width80": 0.27499999999999997,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.6666666666666666,
+              "mae": 0.08037231153125564,
+              "mean_width80": 0.17383333333333337,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.07114343285560609,
+              "mean_width80": 0.295,
+              "n": 6
+            }
+          }
+        },
+        "metrics": {
+          "electrochemical_selectivity": {
+            "coverage80": 0.8333333333333334,
+            "mae": 0.08354749192794163,
+            "mean_width80": 0.26999999999999996,
+            "n": 12
+          },
+          "energy_efficiency": {
+            "coverage80": 0.5,
+            "mae": 0.13742813957234223,
+            "mean_width80": 0.2608333333333333,
+            "n": 12
+          },
+          "faradaic_efficiency": {
+            "coverage80": 0.75,
+            "mae": 0.10592772940794627,
+            "mean_width80": 0.27666666666666667,
+            "n": 12
+          },
+          "score": {
+            "coverage80": 0.9166666666666666,
+            "mae": 0.05723217924684287,
+            "mean_width80": 0.244,
+            "n": 12
+          },
+          "selective_product_yield": {
+            "coverage80": 0.75,
+            "mae": 0.047315318154015885,
+            "mean_width80": 0.12775,
+            "n": 12
+          },
+          "transport_efficiency": {
+            "coverage80": 0.8333333333333334,
+            "mae": 0.0825780572493871,
+            "mean_width80": 0.2758333333333333,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 1,
+      "retest_operations": 6,
+      "retest_replay": {
+        "checked_steps": 6,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "EC",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 375040,
+            "input": 434782,
+            "output": 2822,
+            "stage": "source",
+            "uncached_input": 59742
+          },
+          {
+            "cached_input": 0,
+            "input": 34788,
+            "output": 4803,
+            "stage": "K1",
+            "uncached_input": 34788
+          },
+          {
+            "cached_input": 0,
+            "input": 41432,
+            "output": 4914,
+            "stage": "Q",
+            "uncached_input": 41432
+          },
+          {
+            "cached_input": 34560,
+            "input": 46259,
+            "output": 2229,
+            "stage": "K2",
+            "uncached_input": 11699
+          }
+        ],
+        "total": {
+          "cached_input": 409600,
+          "input": 557261,
+          "input_plus_output": 572029,
+          "output": 14768,
+          "uncached_input": 147661
+        },
+        "valid": true
+      },
       "unit_id": "EC-W01-B12-optimization-E-Aligned",
       "world": {
         "world_id": "EC-W01",
@@ -1534,10 +2358,423 @@
     {
       "arm": "MisIndexed",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 596.140999999945,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 84,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "optimization",
       "locus": "E",
-      "status": "not_started",
+      "operations": 84,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "groups": {
+          "context:current_cap": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.3135473299026489,
+              "mean_width80": 0.495,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.30928891435265543,
+              "mean_width80": 0.425,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.195,
+              "mean_width80": 0.43999999999999995,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.26878508615493774,
+              "mean_width80": 0.32999999999999996,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.5,
+              "mae": 0.22853216940164567,
+              "mean_width80": 0.34,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.195,
+              "mean_width80": 0.55,
+              "n": 2
+            }
+          },
+          "context:electrolyte_1": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.29685142397880554,
+              "mean_width80": 0.4675,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.2147608721256256,
+              "mean_width80": 0.33499999999999996,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.23349384665489195,
+              "mean_width80": 0.33249999999999996,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.1788800826072693,
+              "mean_width80": 0.24499999999999997,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.04292740374803543,
+              "mean_width80": 0.185,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.183493846654892,
+              "mean_width80": 0.45499999999999996,
+              "n": 2
+            }
+          },
+          "context:electrolyte_3": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.3066830062866211,
+              "mean_width80": 0.51,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.234966841340065,
+              "mean_width80": 0.365,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.2582053291797638,
+              "mean_width80": 0.435,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.19694911611080168,
+              "mean_width80": 0.275,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.041944721698760984,
+              "mean_width80": 0.235,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.2382053291797638,
+              "mean_width80": 0.56,
+              "n": 2
+            }
+          },
+          "context:long": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.3005023622512817,
+              "mean_width80": 0.46,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.1676835882663727,
+              "mean_width80": 0.35,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.2560435950756073,
+              "mean_width80": 0.34500000000000003,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.174986350774765,
+              "mean_width80": 0.22000000000000003,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 0.5,
+              "mae": 0.05526042211055755,
+              "mean_width80": 0.15,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.22854359507560731,
+              "mean_width80": 0.48500000000000004,
+              "n": 2
+            }
+          },
+          "context:short": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.29050236225128173,
+              "mean_width80": 0.47,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.20745613813400265,
+              "mean_width80": 0.35000000000000003,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.5,
+              "mae": 0.21375323295593263,
+              "mean_width80": 0.335,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.017583883389830586,
+              "mean_width80": 0.355,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.0003516628118231894,
+              "mean_width80": 0.036500000000000005,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.1702457046508789,
+              "mean_width80": 0.485,
+              "n": 2
+            }
+          },
+          "context:solvent_2": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.5,
+              "mae": 0.33666603982448573,
+              "mean_width80": 0.5275,
+              "n": 2
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.20326840281486508,
+              "mean_width80": 0.44999999999999996,
+              "n": 2
+            },
+            "faradaic_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.20998044788837433,
+              "mean_width80": 0.47,
+              "n": 2
+            },
+            "score": {
+              "coverage80": 1.0,
+              "mae": 0.15992482352256776,
+              "mean_width80": 0.31,
+              "n": 2
+            },
+            "selective_product_yield": {
+              "coverage80": 1.0,
+              "mae": 0.044235689297318456,
+              "mean_width80": 0.20750000000000002,
+              "n": 2
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.16498043298721313,
+              "mean_width80": 0.615,
+              "n": 2
+            }
+          },
+          "potential_domain:negative": {
+            "electrochemical_selectivity": {
+              "coverage80": 1.0,
+              "mae": 0.5463521554072698,
+              "mean_width80": 0.7666666666666666,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.30107484464844064,
+              "mean_width80": 0.43166666666666664,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.6666666666666666,
+              "mae": 0.3307852207620939,
+              "mean_width80": 0.4266666666666667,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 0.5,
+              "mae": 0.2609222766906023,
+              "mean_width80": 0.2833333333333333,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.06458342397740731,
+              "mean_width80": 0.1325,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 1.0,
+              "mae": 0.2873460149765015,
+              "mean_width80": 0.6566666666666666,
+              "n": 6
+            }
+          },
+          "potential_domain:positive": {
+            "electrochemical_selectivity": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.06856535275777177,
+              "mean_width80": 0.21,
+              "n": 6
+            },
+            "energy_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.14473340769608817,
+              "mean_width80": 0.32666666666666666,
+              "n": 6
+            },
+            "faradaic_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.12470692982276282,
+              "mean_width80": 0.35916666666666663,
+              "n": 6
+            },
+            "score": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.07144750416278839,
+              "mean_width80": 0.295,
+              "n": 6
+            },
+            "selective_product_yield": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.07316726571197311,
+              "mean_width80": 0.25216666666666665,
+              "n": 6
+            },
+            "transport_efficiency": {
+              "coverage80": 0.8333333333333334,
+              "mae": 0.10614362120628358,
+              "mean_width80": 0.3933333333333333,
+              "n": 6
+            }
+          }
+        },
+        "metrics": {
+          "electrochemical_selectivity": {
+            "coverage80": 0.9166666666666666,
+            "mae": 0.30745875408252077,
+            "mean_width80": 0.48833333333333334,
+            "n": 12
+          },
+          "energy_efficiency": {
+            "coverage80": 0.9166666666666666,
+            "mae": 0.2229041261722644,
+            "mean_width80": 0.37916666666666665,
+            "n": 12
+          },
+          "faradaic_efficiency": {
+            "coverage80": 0.75,
+            "mae": 0.22774607529242832,
+            "mean_width80": 0.39291666666666664,
+            "n": 12
+          },
+          "score": {
+            "coverage80": 0.6666666666666666,
+            "mae": 0.16618489042669535,
+            "mean_width80": 0.2891666666666666,
+            "n": 12
+          },
+          "selective_product_yield": {
+            "coverage80": 0.8333333333333334,
+            "mae": 0.06887534484469021,
+            "mean_width80": 0.19233333333333333,
+            "n": 12
+          },
+          "transport_efficiency": {
+            "coverage80": 0.9166666666666666,
+            "mae": 0.19674481809139252,
+            "mean_width80": 0.525,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 1,
+      "retest_operations": 7,
+      "retest_replay": {
+        "checked_steps": 7,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "EC",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 481536,
+            "input": 552223,
+            "output": 4560,
+            "stage": "source",
+            "uncached_input": 70687
+          },
+          {
+            "cached_input": 0,
+            "input": 33825,
+            "output": 4911,
+            "stage": "K1",
+            "uncached_input": 33825
+          },
+          {
+            "cached_input": 84480,
+            "input": 130110,
+            "output": 6524,
+            "stage": "Q",
+            "uncached_input": 45630
+          },
+          {
+            "cached_input": 33664,
+            "input": 47913,
+            "output": 2022,
+            "stage": "K2",
+            "uncached_input": 14249
+          }
+        ],
+        "total": {
+          "cached_input": 599680,
+          "input": 764071,
+          "input_plus_output": 782088,
+          "output": 18017,
+          "uncached_input": 164391
+        },
+        "valid": true
+      },
       "unit_id": "EC-W01-B12-optimization-E-MisIndexed",
       "world": {
         "world_id": "EC-W01",
@@ -1548,10 +2785,320 @@
     {
       "arm": "Opaque",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 548.4370000000345,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 120,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "discovery",
       "locus": "E",
-      "status": "not_started",
+      "operations": 120,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "decisions": {
+          "D1": {
+            "correct": true,
+            "submitted": "aqueous",
+            "truth": "aqueous"
+          },
+          "D2": {
+            "correct": true,
+            "submitted": "Q06",
+            "truth": "Q06"
+          }
+        },
+        "details": [
+          {
+            "absolute_error": 0.038413199043156376,
+            "estimate": 0.16,
+            "lower90": 0.105,
+            "metric": "product_in_organic",
+            "query_id": "Q01",
+            "truth": 0.19841319904315638,
+            "upper90": 0.225
+          },
+          {
+            "absolute_error": 0.059060077218783036,
+            "estimate": 0.417,
+            "lower90": 0.335,
+            "metric": "product_in_organic",
+            "query_id": "Q02",
+            "truth": 0.476060077218783,
+            "upper90": 0.5
+          },
+          {
+            "absolute_error": 0.07326070797039202,
+            "estimate": 0.362,
+            "lower90": 0.275,
+            "metric": "product_in_organic",
+            "query_id": "Q03",
+            "truth": 0.435260707970392,
+            "upper90": 0.455
+          },
+          {
+            "absolute_error": 0.04933309192217472,
+            "estimate": 0.681,
+            "lower90": 0.595,
+            "metric": "product_in_organic",
+            "query_id": "Q04",
+            "truth": 0.7303330919221748,
+            "upper90": 0.755
+          },
+          {
+            "absolute_error": 0.05985719230871395,
+            "estimate": 0.392,
+            "lower90": 0.315,
+            "metric": "product_in_organic",
+            "query_id": "Q05",
+            "truth": 0.45185719230871396,
+            "upper90": 0.475
+          },
+          {
+            "absolute_error": 0.053860920339918406,
+            "estimate": 0.658,
+            "lower90": 0.575,
+            "metric": "product_in_organic",
+            "query_id": "Q06",
+            "truth": 0.7118609203399184,
+            "upper90": 0.735
+          },
+          {
+            "absolute_error": 0.07109503730267652,
+            "estimate": 0.607,
+            "lower90": 0.515,
+            "metric": "product_in_organic",
+            "query_id": "Q07",
+            "truth": 0.6780950373026765,
+            "upper90": 0.69
+          },
+          {
+            "absolute_error": 0.05101711838237932,
+            "estimate": 0.645,
+            "lower90": 0.555,
+            "metric": "product_in_organic",
+            "query_id": "Q08",
+            "truth": 0.6960171183823793,
+            "upper90": 0.725
+          },
+          {
+            "absolute_error": 0.035464864629077,
+            "estimate": 0.384,
+            "lower90": 0.285,
+            "metric": "product_in_organic",
+            "query_id": "Q09",
+            "truth": 0.348535135370923,
+            "upper90": 0.475
+          },
+          {
+            "absolute_error": 0.042010830675321076,
+            "estimate": 0.394,
+            "lower90": 0.315,
+            "metric": "product_in_organic",
+            "query_id": "Q10",
+            "truth": 0.4360108306753211,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.008795960501287614,
+            "estimate": 0.631,
+            "lower90": 0.515,
+            "metric": "product_in_organic",
+            "query_id": "Q11",
+            "truth": 0.6397959605012876,
+            "upper90": 0.72
+          },
+          {
+            "absolute_error": 0.03795297032789091,
+            "estimate": 0.645,
+            "lower90": 0.555,
+            "metric": "product_in_organic",
+            "query_id": "Q12",
+            "truth": 0.6829529703278909,
+            "upper90": 0.725
+          },
+          {
+            "absolute_error": 0.03841319904315643,
+            "estimate": 0.84,
+            "lower90": 0.775,
+            "metric": "product_in_aqueous",
+            "query_id": "Q01",
+            "truth": 0.8015868009568435,
+            "upper90": 0.895
+          },
+          {
+            "absolute_error": 0.059060077218783036,
+            "estimate": 0.583,
+            "lower90": 0.5,
+            "metric": "product_in_aqueous",
+            "query_id": "Q02",
+            "truth": 0.5239399227812169,
+            "upper90": 0.665
+          },
+          {
+            "absolute_error": 0.07326070797039197,
+            "estimate": 0.638,
+            "lower90": 0.545,
+            "metric": "product_in_aqueous",
+            "query_id": "Q03",
+            "truth": 0.564739292029608,
+            "upper90": 0.725
+          },
+          {
+            "absolute_error": 0.04933309192217478,
+            "estimate": 0.319,
+            "lower90": 0.245,
+            "metric": "product_in_aqueous",
+            "query_id": "Q04",
+            "truth": 0.26966690807782523,
+            "upper90": 0.405
+          },
+          {
+            "absolute_error": 0.059857192308714,
+            "estimate": 0.608,
+            "lower90": 0.525,
+            "metric": "product_in_aqueous",
+            "query_id": "Q05",
+            "truth": 0.548142807691286,
+            "upper90": 0.685
+          },
+          {
+            "absolute_error": 0.05386092033991846,
+            "estimate": 0.342,
+            "lower90": 0.265,
+            "metric": "product_in_aqueous",
+            "query_id": "Q06",
+            "truth": 0.28813907966008157,
+            "upper90": 0.425
+          },
+          {
+            "absolute_error": 0.07109503730267652,
+            "estimate": 0.393,
+            "lower90": 0.31,
+            "metric": "product_in_aqueous",
+            "query_id": "Q07",
+            "truth": 0.3219049626973235,
+            "upper90": 0.485
+          },
+          {
+            "absolute_error": 0.05101711838237932,
+            "estimate": 0.355,
+            "lower90": 0.275,
+            "metric": "product_in_aqueous",
+            "query_id": "Q08",
+            "truth": 0.30398288161762066,
+            "upper90": 0.445
+          },
+          {
+            "absolute_error": 0.03546486462907694,
+            "estimate": 0.616,
+            "lower90": 0.525,
+            "metric": "product_in_aqueous",
+            "query_id": "Q09",
+            "truth": 0.6514648646290769,
+            "upper90": 0.715
+          },
+          {
+            "absolute_error": 0.042010830675321076,
+            "estimate": 0.606,
+            "lower90": 0.52,
+            "metric": "product_in_aqueous",
+            "query_id": "Q10",
+            "truth": 0.5639891693246789,
+            "upper90": 0.685
+          },
+          {
+            "absolute_error": 0.008795960501287614,
+            "estimate": 0.369,
+            "lower90": 0.28,
+            "metric": "product_in_aqueous",
+            "query_id": "Q11",
+            "truth": 0.3602040394987124,
+            "upper90": 0.485
+          },
+          {
+            "absolute_error": 0.03795297032789091,
+            "estimate": 0.355,
+            "lower90": 0.275,
+            "metric": "product_in_aqueous",
+            "query_id": "Q12",
+            "truth": 0.31704702967210907,
+            "upper90": 0.445
+          }
+        ],
+        "metrics": {
+          "product_in_aqueous": {
+            "coverage90": 1.0,
+            "interval_score90": 0.16833333333333333,
+            "mae": 0.04834349755181425,
+            "mean_width90": 0.16833333333333333,
+            "n": 12
+          },
+          "product_in_organic": {
+            "coverage90": 1.0,
+            "interval_score90": 0.1683333333333333,
+            "mae": 0.048343497551814246,
+            "mean_width90": 0.1683333333333333,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 0,
+      "retest_operations": 0,
+      "retest_replay": null,
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "PA",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1041536,
+            "input": 1154503,
+            "output": 6336,
+            "stage": "source",
+            "uncached_input": 112967
+          },
+          {
+            "cached_input": 53632,
+            "input": 108942,
+            "output": 3118,
+            "stage": "K1",
+            "uncached_input": 55310
+          },
+          {
+            "cached_input": 59648,
+            "input": 123058,
+            "output": 4008,
+            "stage": "Q",
+            "uncached_input": 63410
+          },
+          {
+            "cached_input": 55040,
+            "input": 64439,
+            "output": 1698,
+            "stage": "K2",
+            "uncached_input": 9399
+          }
+        ],
+        "total": {
+          "cached_input": 1209856,
+          "input": 1450942,
+          "input_plus_output": 1466102,
+          "output": 15160,
+          "uncached_input": 241086
+        },
+        "valid": true
+      },
       "unit_id": "PA-W01-B12-discovery-E-Opaque",
       "world": {
         "world_id": "PA-W01",
@@ -1562,10 +3109,320 @@
     {
       "arm": "Aligned",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 560.875,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 120,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "discovery",
       "locus": "E",
-      "status": "not_started",
+      "operations": 120,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "decisions": {
+          "D1": {
+            "correct": true,
+            "submitted": "aqueous",
+            "truth": "aqueous"
+          },
+          "D2": {
+            "correct": true,
+            "submitted": "Q06",
+            "truth": "Q06"
+          }
+        },
+        "details": [
+          {
+            "absolute_error": 0.016413199043156385,
+            "estimate": 0.182,
+            "lower90": 0.126,
+            "metric": "product_in_organic",
+            "query_id": "Q01",
+            "truth": 0.19841319904315638,
+            "upper90": 0.251
+          },
+          {
+            "absolute_error": 0.021060077218783002,
+            "estimate": 0.455,
+            "lower90": 0.351,
+            "metric": "product_in_organic",
+            "query_id": "Q02",
+            "truth": 0.476060077218783,
+            "upper90": 0.558
+          },
+          {
+            "absolute_error": 0.158260707970392,
+            "estimate": 0.277,
+            "lower90": 0.161,
+            "metric": "product_in_organic",
+            "query_id": "Q03",
+            "truth": 0.435260707970392,
+            "upper90": 0.419
+          },
+          {
+            "absolute_error": 0.1403330919221748,
+            "estimate": 0.59,
+            "lower90": 0.419,
+            "metric": "product_in_organic",
+            "query_id": "Q04",
+            "truth": 0.7303330919221748,
+            "upper90": 0.73
+          },
+          {
+            "absolute_error": 0.02185719230871397,
+            "estimate": 0.43,
+            "lower90": 0.328,
+            "metric": "product_in_organic",
+            "query_id": "Q05",
+            "truth": 0.45185719230871396,
+            "upper90": 0.533
+          },
+          {
+            "absolute_error": 0.1458609203399185,
+            "estimate": 0.566,
+            "lower90": 0.394,
+            "metric": "product_in_organic",
+            "query_id": "Q06",
+            "truth": 0.7118609203399184,
+            "upper90": 0.71
+          },
+          {
+            "absolute_error": 0.019904962697323447,
+            "estimate": 0.698,
+            "lower90": 0.635,
+            "metric": "product_in_organic",
+            "query_id": "Q07",
+            "truth": 0.6780950373026765,
+            "upper90": 0.749
+          },
+          {
+            "absolute_error": 0.07601711838237935,
+            "estimate": 0.62,
+            "lower90": 0.449,
+            "metric": "product_in_organic",
+            "query_id": "Q08",
+            "truth": 0.6960171183823793,
+            "upper90": 0.731
+          },
+          {
+            "absolute_error": 0.035464864629077,
+            "estimate": 0.384,
+            "lower90": 0.275,
+            "metric": "product_in_organic",
+            "query_id": "Q09",
+            "truth": 0.348535135370923,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.008010830675321101,
+            "estimate": 0.428,
+            "lower90": 0.328,
+            "metric": "product_in_organic",
+            "query_id": "Q10",
+            "truth": 0.4360108306753211,
+            "upper90": 0.533
+          },
+          {
+            "absolute_error": 0.08479596050128757,
+            "estimate": 0.555,
+            "lower90": 0.352,
+            "metric": "product_in_organic",
+            "query_id": "Q11",
+            "truth": 0.6397959605012876,
+            "upper90": 0.685
+          },
+          {
+            "absolute_error": 0.07595297032789095,
+            "estimate": 0.607,
+            "lower90": 0.432,
+            "metric": "product_in_organic",
+            "query_id": "Q12",
+            "truth": 0.6829529703278909,
+            "upper90": 0.731
+          },
+          {
+            "absolute_error": 0.016413199043156412,
+            "estimate": 0.818,
+            "lower90": 0.749,
+            "metric": "product_in_aqueous",
+            "query_id": "Q01",
+            "truth": 0.8015868009568435,
+            "upper90": 0.874
+          },
+          {
+            "absolute_error": 0.021060077218783113,
+            "estimate": 0.545,
+            "lower90": 0.442,
+            "metric": "product_in_aqueous",
+            "query_id": "Q02",
+            "truth": 0.5239399227812169,
+            "upper90": 0.649
+          },
+          {
+            "absolute_error": 0.15826070797039193,
+            "estimate": 0.723,
+            "lower90": 0.581,
+            "metric": "product_in_aqueous",
+            "query_id": "Q03",
+            "truth": 0.564739292029608,
+            "upper90": 0.839
+          },
+          {
+            "absolute_error": 0.14033309192217475,
+            "estimate": 0.41,
+            "lower90": 0.27,
+            "metric": "product_in_aqueous",
+            "query_id": "Q04",
+            "truth": 0.26966690807782523,
+            "upper90": 0.581
+          },
+          {
+            "absolute_error": 0.02185719230871397,
+            "estimate": 0.57,
+            "lower90": 0.467,
+            "metric": "product_in_aqueous",
+            "query_id": "Q05",
+            "truth": 0.548142807691286,
+            "upper90": 0.672
+          },
+          {
+            "absolute_error": 0.14586092033991843,
+            "estimate": 0.434,
+            "lower90": 0.29,
+            "metric": "product_in_aqueous",
+            "query_id": "Q06",
+            "truth": 0.28813907966008157,
+            "upper90": 0.606
+          },
+          {
+            "absolute_error": 0.019904962697323503,
+            "estimate": 0.302,
+            "lower90": 0.251,
+            "metric": "product_in_aqueous",
+            "query_id": "Q07",
+            "truth": 0.3219049626973235,
+            "upper90": 0.365
+          },
+          {
+            "absolute_error": 0.07601711838237935,
+            "estimate": 0.38,
+            "lower90": 0.269,
+            "metric": "product_in_aqueous",
+            "query_id": "Q08",
+            "truth": 0.30398288161762066,
+            "upper90": 0.551
+          },
+          {
+            "absolute_error": 0.03546486462907694,
+            "estimate": 0.616,
+            "lower90": 0.52,
+            "metric": "product_in_aqueous",
+            "query_id": "Q09",
+            "truth": 0.6514648646290769,
+            "upper90": 0.725
+          },
+          {
+            "absolute_error": 0.008010830675321046,
+            "estimate": 0.572,
+            "lower90": 0.467,
+            "metric": "product_in_aqueous",
+            "query_id": "Q10",
+            "truth": 0.5639891693246789,
+            "upper90": 0.672
+          },
+          {
+            "absolute_error": 0.08479596050128763,
+            "estimate": 0.445,
+            "lower90": 0.315,
+            "metric": "product_in_aqueous",
+            "query_id": "Q11",
+            "truth": 0.3602040394987124,
+            "upper90": 0.648
+          },
+          {
+            "absolute_error": 0.07595297032789095,
+            "estimate": 0.393,
+            "lower90": 0.269,
+            "metric": "product_in_aqueous",
+            "query_id": "Q12",
+            "truth": 0.31704702967210907,
+            "upper90": 0.568
+          }
+        ],
+        "metrics": {
+          "product_in_aqueous": {
+            "coverage90": 0.75,
+            "interval_score90": 0.2690912003874752,
+            "mae": 0.06699432466803483,
+            "mean_width90": 0.2383333333333333,
+            "n": 12
+          },
+          "product_in_organic": {
+            "coverage90": 0.75,
+            "interval_score90": 0.26909120038747547,
+            "mae": 0.06699432466803483,
+            "mean_width90": 0.2383333333333333,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 0,
+      "retest_operations": 0,
+      "retest_replay": null,
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "PA",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 552832,
+            "input": 587278,
+            "output": 5615,
+            "stage": "source",
+            "uncached_input": 34446
+          },
+          {
+            "cached_input": 94976,
+            "input": 129343,
+            "output": 4513,
+            "stage": "K1",
+            "uncached_input": 34367
+          },
+          {
+            "cached_input": 161536,
+            "input": 206218,
+            "output": 5514,
+            "stage": "Q",
+            "uncached_input": 44682
+          },
+          {
+            "cached_input": 33536,
+            "input": 45346,
+            "output": 1959,
+            "stage": "K2",
+            "uncached_input": 11810
+          }
+        ],
+        "total": {
+          "cached_input": 842880,
+          "input": 968185,
+          "input_plus_output": 985786,
+          "output": 17601,
+          "uncached_input": 125305
+        },
+        "valid": true
+      },
       "unit_id": "PA-W01-B12-discovery-E-Aligned",
       "world": {
         "world_id": "PA-W01",
@@ -1576,10 +3433,320 @@
     {
       "arm": "MisIndexed",
       "budget": 12,
+      "completed_batches": 12,
+      "elapsed_s": 541.109000000055,
+      "english_output": true,
+      "exact_replay": {
+        "checked_steps": 120,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": null,
       "goal": "discovery",
       "locus": "E",
-      "status": "not_started",
+      "operations": 120,
+      "posttests_completed": 3,
+      "prediction_evaluation": {
+        "decisions": {
+          "D1": {
+            "correct": true,
+            "submitted": "aqueous",
+            "truth": "aqueous"
+          },
+          "D2": {
+            "correct": true,
+            "submitted": "Q06",
+            "truth": "Q06"
+          }
+        },
+        "details": [
+          {
+            "absolute_error": 0.03941319904315638,
+            "estimate": 0.159,
+            "lower90": 0.1,
+            "metric": "product_in_organic",
+            "query_id": "Q01",
+            "truth": 0.19841319904315638,
+            "upper90": 0.24
+          },
+          {
+            "absolute_error": 0.06106007721878304,
+            "estimate": 0.415,
+            "lower90": 0.33,
+            "metric": "product_in_organic",
+            "query_id": "Q02",
+            "truth": 0.476060077218783,
+            "upper90": 0.5
+          },
+          {
+            "absolute_error": 0.08526070797039204,
+            "estimate": 0.35,
+            "lower90": 0.26,
+            "metric": "product_in_organic",
+            "query_id": "Q03",
+            "truth": 0.435260707970392,
+            "upper90": 0.45
+          },
+          {
+            "absolute_error": 0.06133309192217473,
+            "estimate": 0.669,
+            "lower90": 0.58,
+            "metric": "product_in_organic",
+            "query_id": "Q04",
+            "truth": 0.7303330919221748,
+            "upper90": 0.75
+          },
+          {
+            "absolute_error": 0.06185719230871395,
+            "estimate": 0.39,
+            "lower90": 0.3,
+            "metric": "product_in_organic",
+            "query_id": "Q05",
+            "truth": 0.45185719230871396,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.06486092033991842,
+            "estimate": 0.647,
+            "lower90": 0.56,
+            "metric": "product_in_organic",
+            "query_id": "Q06",
+            "truth": 0.7118609203399184,
+            "upper90": 0.73
+          },
+          {
+            "absolute_error": 0.06409503730267652,
+            "estimate": 0.614,
+            "lower90": 0.52,
+            "metric": "product_in_organic",
+            "query_id": "Q07",
+            "truth": 0.6780950373026765,
+            "upper90": 0.7
+          },
+          {
+            "absolute_error": 0.06101711838237933,
+            "estimate": 0.635,
+            "lower90": 0.55,
+            "metric": "product_in_organic",
+            "query_id": "Q08",
+            "truth": 0.6960171183823793,
+            "upper90": 0.72
+          },
+          {
+            "absolute_error": 0.01646486462907698,
+            "estimate": 0.365,
+            "lower90": 0.27,
+            "metric": "product_in_organic",
+            "query_id": "Q09",
+            "truth": 0.348535135370923,
+            "upper90": 0.46
+          },
+          {
+            "absolute_error": 0.04601083067532108,
+            "estimate": 0.39,
+            "lower90": 0.3,
+            "metric": "product_in_organic",
+            "query_id": "Q10",
+            "truth": 0.4360108306753211,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.019795960501287624,
+            "estimate": 0.62,
+            "lower90": 0.52,
+            "metric": "product_in_organic",
+            "query_id": "Q11",
+            "truth": 0.6397959605012876,
+            "upper90": 0.7
+          },
+          {
+            "absolute_error": 0.04795297032789092,
+            "estimate": 0.635,
+            "lower90": 0.55,
+            "metric": "product_in_organic",
+            "query_id": "Q12",
+            "truth": 0.6829529703278909,
+            "upper90": 0.72
+          },
+          {
+            "absolute_error": 0.03941319904315643,
+            "estimate": 0.841,
+            "lower90": 0.76,
+            "metric": "product_in_aqueous",
+            "query_id": "Q01",
+            "truth": 0.8015868009568435,
+            "upper90": 0.9
+          },
+          {
+            "absolute_error": 0.06106007721878304,
+            "estimate": 0.585,
+            "lower90": 0.5,
+            "metric": "product_in_aqueous",
+            "query_id": "Q02",
+            "truth": 0.5239399227812169,
+            "upper90": 0.67
+          },
+          {
+            "absolute_error": 0.08526070797039198,
+            "estimate": 0.65,
+            "lower90": 0.55,
+            "metric": "product_in_aqueous",
+            "query_id": "Q03",
+            "truth": 0.564739292029608,
+            "upper90": 0.74
+          },
+          {
+            "absolute_error": 0.06133309192217479,
+            "estimate": 0.331,
+            "lower90": 0.25,
+            "metric": "product_in_aqueous",
+            "query_id": "Q04",
+            "truth": 0.26966690807782523,
+            "upper90": 0.42
+          },
+          {
+            "absolute_error": 0.061857192308714004,
+            "estimate": 0.61,
+            "lower90": 0.52,
+            "metric": "product_in_aqueous",
+            "query_id": "Q05",
+            "truth": 0.548142807691286,
+            "upper90": 0.7
+          },
+          {
+            "absolute_error": 0.06486092033991842,
+            "estimate": 0.353,
+            "lower90": 0.27,
+            "metric": "product_in_aqueous",
+            "query_id": "Q06",
+            "truth": 0.28813907966008157,
+            "upper90": 0.44
+          },
+          {
+            "absolute_error": 0.06409503730267652,
+            "estimate": 0.386,
+            "lower90": 0.3,
+            "metric": "product_in_aqueous",
+            "query_id": "Q07",
+            "truth": 0.3219049626973235,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.06101711838237933,
+            "estimate": 0.365,
+            "lower90": 0.28,
+            "metric": "product_in_aqueous",
+            "query_id": "Q08",
+            "truth": 0.30398288161762066,
+            "upper90": 0.45
+          },
+          {
+            "absolute_error": 0.016464864629076925,
+            "estimate": 0.635,
+            "lower90": 0.54,
+            "metric": "product_in_aqueous",
+            "query_id": "Q09",
+            "truth": 0.6514648646290769,
+            "upper90": 0.73
+          },
+          {
+            "absolute_error": 0.04601083067532108,
+            "estimate": 0.61,
+            "lower90": 0.52,
+            "metric": "product_in_aqueous",
+            "query_id": "Q10",
+            "truth": 0.5639891693246789,
+            "upper90": 0.7
+          },
+          {
+            "absolute_error": 0.019795960501287624,
+            "estimate": 0.38,
+            "lower90": 0.3,
+            "metric": "product_in_aqueous",
+            "query_id": "Q11",
+            "truth": 0.3602040394987124,
+            "upper90": 0.48
+          },
+          {
+            "absolute_error": 0.04795297032789092,
+            "estimate": 0.365,
+            "lower90": 0.28,
+            "metric": "product_in_aqueous",
+            "query_id": "Q12",
+            "truth": 0.31704702967210907,
+            "upper90": 0.45
+          }
+        ],
+        "metrics": {
+          "product_in_aqueous": {
+            "coverage90": 1.0,
+            "interval_score90": 0.17416666666666666,
+            "mae": 0.05242683088514758,
+            "mean_width90": 0.17416666666666666,
+            "n": 12
+          },
+          "product_in_organic": {
+            "coverage90": 1.0,
+            "interval_score90": 0.17416666666666666,
+            "mae": 0.05242683088514758,
+            "mean_width90": 0.17416666666666666,
+            "n": 12
+          }
+        },
+        "valid": true
+      },
+      "retest_batches": 0,
+      "retest_operations": 0,
+      "retest_replay": null,
+      "source_failure": null,
+      "source_status": "completed",
+      "status": "completed",
       "system": "PA",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1078016,
+            "input": 1128148,
+            "output": 5871,
+            "stage": "source",
+            "uncached_input": 50132
+          },
+          {
+            "cached_input": 100224,
+            "input": 147172,
+            "output": 3049,
+            "stage": "K1",
+            "uncached_input": 46948
+          },
+          {
+            "cached_input": 109952,
+            "input": 168029,
+            "output": 4038,
+            "stage": "Q",
+            "uncached_input": 58077
+          },
+          {
+            "cached_input": 49920,
+            "input": 58906,
+            "output": 1495,
+            "stage": "K2",
+            "uncached_input": 8986
+          }
+        ],
+        "total": {
+          "cached_input": 1338112,
+          "input": 1502255,
+          "input_plus_output": 1516708,
+          "output": 14453,
+          "uncached_input": 164143
+        },
+        "valid": true
+      },
       "unit_id": "PA-W01-B12-discovery-E-MisIndexed",
       "world": {
         "world_id": "PA-W01",
@@ -1590,10 +3757,69 @@
     {
       "arm": "Opaque",
       "budget": 24,
+      "completed_batches": 19,
+      "elapsed_s": 303.3145680427551,
+      "english_output": null,
+      "exact_replay": {
+        "checked_steps": 137,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "exported": true,
+      "failure": {
+        "message": "Host restarted during source execution; in-flight simulator/tool processes and terminal provider receipt were lost.",
+        "type": "host_reboot"
+      },
       "goal": "discovery",
+      "interruption": {
+        "additional_replay_operations": 137,
+        "classification": "host_reboot",
+        "disposition": "Retain interrupted attempt; one explicitly authorized fresh source attempt.",
+        "last_durable_operation_time": "2026-09-18T18:59:03.930823+00:00",
+        "last_reported_thread_usage": {
+          "cache_write_input_tokens": 0,
+          "cached_input_tokens": 390272,
+          "input_tokens": 417634,
+          "output_tokens": 4340,
+          "reasoning_output_tokens": 1420,
+          "total_tokens": 421974
+        },
+        "reboot_time": "2026-09-19T03:00:43+08:00",
+        "retained_final_assays": 19,
+        "retained_operations": 137,
+        "source_thread": "01a0b5de-5810-7d82-9b10-06d4613983d4",
+        "token_accounting_complete": false,
+        "usage_caveat": "Last reported cumulative usage is a lower bound; unfinished usage unknown."
+      },
       "locus": "E",
-      "status": "not_started",
+      "operations": 137,
+      "posttests_completed": 0,
+      "prediction_evaluation": null,
+      "retest_batches": 0,
+      "retest_operations": 0,
+      "retest_replay": null,
+      "source_failure": {
+        "message": "Host restarted during source execution; in-flight simulator/tool processes and terminal provider receipt were lost.",
+        "type": "host_reboot"
+      },
+      "source_status": "interrupted",
+      "status": "failed",
       "system": "EC",
+      "token_accounting": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": false,
+        "monetary_cost_usd": null,
+        "stages": [],
+        "total": {
+          "cached_input": 0,
+          "input": 0,
+          "input_plus_output": 0,
+          "output": 0,
+          "uncached_input": 0
+        },
+        "valid": false
+      },
       "unit_id": "EC-W01-B24-discovery-E-Opaque",
       "world": {
         "world_id": "EC-W01",
@@ -3104,9 +5330,29 @@
         "unit": "EC-W01-B12-discovery-E-MisIndexed"
       },
       "type": "RuntimeError"
+    },
+    {
+      "additional_replay_operations": 137,
+      "classification": "host_reboot",
+      "disposition": "Retain interrupted attempt; one explicitly authorized fresh source attempt.",
+      "last_durable_operation_time": "2026-09-18T18:59:03.930823+00:00",
+      "last_reported_thread_usage": {
+        "cache_write_input_tokens": 0,
+        "cached_input_tokens": 390272,
+        "input_tokens": 417634,
+        "output_tokens": 4340,
+        "reasoning_output_tokens": 1420,
+        "total_tokens": 421974
+      },
+      "reboot_time": "2026-09-19T03:00:43+08:00",
+      "retained_final_assays": 19,
+      "retained_operations": 137,
+      "source_thread": "01a0b5de-5810-7d82-9b10-06d4613983d4",
+      "token_accounting_complete": false,
+      "usage_caveat": "Last reported cumulative usage is a lower bound; unfinished usage unknown."
     }
   ],
-  "source_batches": 36,
+  "source_batches": 127,
   "status": "running",
   "version": "ec-pa-five-world-budget-matrix-en-v1"
 }
