@@ -16,14 +16,14 @@ def test_resolve_result_prefers_latest_repair(tmp_path: Path) -> None:
         {"cell_id": cell, "status": "retained_nonconforming"},
     )
     dump(
-        tmp_path / "sources" / cell / "posttest-repair-v9" / "effective-result.json",
+        tmp_path / "sources" / cell / "posttest-repair-v10" / "effective-result.json",
         {"cell_id": cell, "status": "completed", "posttest_chain_sealed": True},
     )
 
     path, result = parallel.resolve_result(tmp_path, cell)
 
     assert path.name == "effective-result.json"
-    assert "posttest-repair-v9" in str(path)
+    assert "posttest-repair-v10" in str(path)
     assert result["status"] == "completed"
 
 
@@ -38,9 +38,9 @@ def test_classify_schedule_allows_only_task_26_repair(tmp_path: Path) -> None:
         },
     )
     dump(
-        tmp_path / "sources" / parallel.TASK_26 / "result.json",
+        tmp_path / "sources" / next(iter(parallel.POSTTEST_REPAIRS)) / "result.json",
         {
-            "cell_id": parallel.TASK_26,
+            "cell_id": next(iter(parallel.POSTTEST_REPAIRS)),
             "status": "retained_nonconforming",
             "source_status": "completed",
             "posttest_chain_sealed": False,
@@ -48,14 +48,17 @@ def test_classify_schedule_allows_only_task_26_repair(tmp_path: Path) -> None:
     )
     schedule = [
         {"cell_id": complete_cell},
-        {"cell_id": parallel.TASK_26},
+        {"cell_id": next(iter(parallel.POSTTEST_REPAIRS))},
         {"cell_id": "cell-new"},
     ]
 
     complete, pending = parallel.classify_schedule(tmp_path, schedule)
 
     assert [row["cell_id"] for row in complete] == [complete_cell]
-    assert [row["cell_id"] for row in pending] == [parallel.TASK_26, "cell-new"]
+    assert [row["cell_id"] for row in pending] == [
+        next(iter(parallel.POSTTEST_REPAIRS)),
+        "cell-new",
+    ]
 
 
 def test_preaction_partial_requires_only_retained_v7_metadata(tmp_path: Path) -> None:

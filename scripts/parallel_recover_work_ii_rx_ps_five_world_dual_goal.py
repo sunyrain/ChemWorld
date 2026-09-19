@@ -25,9 +25,10 @@ if str(ROOT) not in sys.path:
 import scripts.recover_work_ii_rx_ps_five_world_dual_goal as recovery  # noqa: E402
 import scripts.run_work_ii_rx_ps_five_world_dual_goal as campaign  # noqa: E402
 
-RECOVERY_VERSION = "recovery-v9-parallel4"
-TASK_26 = "RX-W03--P--mechanism_discovery--Aligned"
-TASK_26_STAGES = ("Q", "K2")
+RECOVERY_VERSION = "recovery-v10-parallel4-continue"
+POSTTEST_REPAIRS = {
+    "RX-W03--S--mechanism_discovery--Opaque": ("Q", "K2"),
+}
 DEFAULT_WORKERS = 4
 HISTORICAL_MEDIAN_CELL_S = 703.3
 
@@ -49,6 +50,7 @@ def write(path: Path, payload: Any) -> None:
 def result_candidates(root: Path, cell_id: str) -> tuple[Path, ...]:
     folder = root / "sources" / cell_id
     return (
+        folder / "posttest-repair-v10" / "effective-result.json",
         folder / "posttest-repair-v9" / "effective-result.json",
         folder / "posttest-repair-v8" / "effective-result.json",
         folder / "posttest-repair-v7" / "effective-result.json",
@@ -81,7 +83,7 @@ def classify_schedule(
         if result.get("status") == "completed" and result.get("posttest_chain_sealed") is True:
             complete.append(result)
             continue
-        if cell["cell_id"] == TASK_26 and result.get("source_status") == "completed":
+        if cell["cell_id"] in POSTTEST_REPAIRS and result.get("source_status") == "completed":
             pending.append(dict(cell))
             continue
         if is_zero_action_result(result) and source_repair_provenance(
@@ -93,35 +95,43 @@ def classify_schedule(
     return complete, pending
 
 
-def repair_task_26(
+def repair_posttests(
     root: Path,
     cell: Mapping[str, Any],
     config: Mapping[str, Any],
     progress: dict[str, Any],
 ) -> dict[str, Any]:
-    original_folder = root / "sources" / TASK_26
-    original_path = original_folder / "result.json"
-    original = read(original_path)
-    repair = original_folder / "posttest-repair-v9"
+    cell_id = str(cell["cell_id"])
+    original_folder = root / "sources" / cell_id
+    resolved = resolve_result(root, cell_id)
+    if resolved is None:
+        raise RuntimeError(f"posttest repair has no retained result: {cell_id}")
+    original_path, original = resolved
+    source_folder = original_folder
+    if original_path.name == "effective-result.json" and original_path.parent.name.startswith(
+        "source-repair-"
+    ):
+        source_folder = original_path.parent / "sources" / cell_id
+    repair = original_folder / "posttest-repair-v10"
     effective_path = repair / "effective-result.json"
     if effective_path.exists():
         return read(effective_path)
     if repair.exists():
-        raise RuntimeError("incomplete write-once task-26 repair requires inspection")
+        raise RuntimeError(f"incomplete write-once posttest repair requires inspection: {cell_id}")
     if original.get("source_status") != "completed" or len(original.get("batches", [])) != 12:
-        raise RuntimeError("task 26 does not have the required sealed twelve-batch source")
+        raise RuntimeError(f"posttest repair lacks a sealed twelve-batch source: {cell_id}")
     if not original.get("posttests", {}).get("K1", {}).get("payload"):
-        raise RuntimeError("task 26 has no valid K1 to preserve")
+        raise RuntimeError(f"posttest repair has no valid K1 to preserve: {cell_id}")
 
     repair.mkdir(parents=True)
-    receipts = read(original_folder / "source-receipts.json")
+    receipts = read(source_folder / "source-receipts.json")
     thread_id = receipts[-1].get("thread_id") if receipts else None
     if not thread_id:
-        raise RuntimeError("task 26 has no resumable source thread")
+        raise RuntimeError(f"posttest repair has no resumable source thread: {cell_id}")
     manifest = {
         "schema_version": "work-ii-rx-ps-posttest-repair-1.0",
         "recovery_version": RECOVERY_VERSION,
-        "cell_id": TASK_26,
+        "cell_id": cell_id,
         "started_epoch": time.time(),
         "original_result_sha256": recovery.file_sha256(original_path),
         "source_experiments_rerun": False,
@@ -129,17 +139,17 @@ def repair_task_26(
         "question_changed": False,
         "model_changed": False,
         "thread_reused": True,
-        "repair_stages": list(TASK_26_STAGES),
+        "repair_stages": list(POSTTEST_REPAIRS[cell_id]),
         "public_numerics_limit_recovery": recovery.NUMERICS_LIMIT,
     }
     write(repair / "manifest.json", manifest)
     query_rows = campaign.queries(config, str(cell["locus"]))
     repaired: dict[str, dict[str, Any]] = {}
-    agent = recovery._repair_agent(original_folder, original, repair)
+    agent = recovery._repair_agent(source_folder, original, repair)
     try:
-        recovery.restore_session_index(agent, original_folder / "provider-rollouts", thread_id)
-        for stage in TASK_26_STAGES:
-            progress.update(stage=TASK_26, phase=f"{stage}-repair", repair=True)
+        recovery.restore_session_index(agent, source_folder / "provider-rollouts", thread_id)
+        for stage in POSTTEST_REPAIRS[cell_id]:
+            progress.update(stage=cell_id, phase=f"{stage}-repair", repair=True)
             turn = campaign.run_posttest(agent, repair, stage, thread_id, progress, query_rows)
             repaired[stage] = turn
             validation = campaign.validate_posttest_payload(stage, turn.get("payload"), query_rows)
@@ -158,7 +168,7 @@ def repair_task_26(
     write(repair / "turns.json", repaired)
     write(effective_path, effective)
     if effective.get("status") != "completed":
-        raise RuntimeError("task-26 posttest repair did not seal")
+        raise RuntimeError(f"posttest repair did not seal: {cell_id}")
     return effective
 
 
@@ -261,8 +271,8 @@ def run_one(root_text: str, cell: Mapping[str, Any]) -> dict[str, Any]:
         "phase": "parallel-recovery",
         "worker_pid": os.getpid(),
     }
-    if cell["cell_id"] == TASK_26:
-        result = repair_task_26(root, cell, config, progress)
+    if cell["cell_id"] in POSTTEST_REPAIRS:
+        result = repair_posttests(root, cell, config, progress)
     else:
         folder = root / "sources" / str(cell["cell_id"])
         if folder.exists():
@@ -461,7 +471,7 @@ def main() -> None:
 
     complete, pending = classify_schedule(root, validated["schedule"])
     pending_ids = [str(cell["cell_id"]) for cell in pending]
-    if len(complete) != 25 or len(pending) != 35 or pending_ids[0] != TASK_26:
+    if len(complete) != 33 or len(pending) != 27 or pending_ids[0] not in POSTTEST_REPAIRS:
         raise RuntimeError(
             f"unexpected recovery frontier: complete={len(complete)} pending={len(pending)} first={pending_ids[:1]}"
         )
@@ -469,7 +479,7 @@ def main() -> None:
     source_repairs = [
         str(cell["cell_id"])
         for cell in pending
-        if cell["cell_id"] != TASK_26
+        if cell["cell_id"] not in POSTTEST_REPAIRS
         and (root / "sources" / str(cell["cell_id"])).exists()
     ]
     if not all(source_repair_provenance(root / "sources" / cell_id) for cell_id in source_repairs):
@@ -487,12 +497,15 @@ def main() -> None:
         "parallel_workers": DEFAULT_WORKERS,
         "complete_before_start": len(complete),
         "work_items": pending_ids,
-        "task_26_repair_stages": list(TASK_26_STAGES),
+        "posttest_repairs": {
+            cell_id: list(stages) for cell_id, stages in POSTTEST_REPAIRS.items()
+        },
         "retained_zero_action_source_failures": source_repairs,
         "new_source_cells": len(pending) - 1,
         "truth_revealed_before_all_cells_sealed": False,
         "historical_median_cell_s": HISTORICAL_MEDIAN_CELL_S,
-        "initial_source_eta_s": HISTORICAL_MEDIAN_CELL_S * 9,
+        "initial_source_eta_s": HISTORICAL_MEDIAN_CELL_S * 7,
+        "continue_queue_after_cell_failure": True,
     }
     write(recovery_root / "manifest.json", manifest)
 
@@ -549,7 +562,7 @@ def main() -> None:
     for _ in range(DEFAULT_WORKERS):
         submit_next()
     try:
-        while futures and not failures:
+        while futures:
             future = next(as_completed(tuple(futures)))
             cell = futures.pop(future)
             try:
@@ -575,26 +588,39 @@ def main() -> None:
                         "message": str(exc)[:2000],
                     }
                 )
-                for queued in futures:
-                    queued.cancel()
-                break
+                state["failed"] = len(failures)
+                state["last_failed_cell"] = cell["cell_id"]
+                write_summary(
+                    recovery_root,
+                    root,
+                    validated["schedule"],
+                    phase="parallel_sources_and_posttests_with_retained_failures",
+                    completed_work_items=completed_work_items,
+                    failures=failures,
+                )
+                submit_next()
     finally:
         pool.shutdown(wait=True, cancel_futures=True)
         stop.set()
         heartbeat_thread.join(timeout=2)
 
+    attempted = len(completed_work_items) + len(failures)
+    if attempted != len(pending):
+        raise RuntimeError(
+            f"parallel recovery ended without attempting every work item: {attempted}/{len(pending)}"
+        )
     if failures:
         write_summary(
             recovery_root,
             root,
             validated["schedule"],
-            phase="failed_closed_truth_embargoed",
+            phase="all_remaining_cells_attempted_failures_truth_embargoed",
             completed_work_items=completed_work_items,
             failures=failures,
         )
-        raise RuntimeError(f"parallel recovery failed closed: {failures[0]}")
-    if len(completed_work_items) != len(pending):
-        raise RuntimeError("parallel recovery ended without all work items")
+        raise RuntimeError(
+            f"parallel recovery finished the queue with {len(failures)} retained failures"
+        )
     finalize(root, recovery_root, validated["schedule"], config, completed_work_items)
 
 

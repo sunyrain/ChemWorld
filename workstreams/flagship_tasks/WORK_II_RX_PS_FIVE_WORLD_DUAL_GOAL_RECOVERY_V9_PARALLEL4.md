@@ -1,6 +1,8 @@
 # Work II RX-P/S five-world block — recovery v9 after credential refresh
 
-Date: 2026-09-19. Status: authorized four-worker continuation with a newly synchronized Codex login.
+Date: 2026-09-19. Status: retained single-cell posttest failure after reaching 33/60 effective chains.
+
+Launch outcome: the credential refresh succeeded. Task 26 and seven additional cells sealed, bringing the effective block to 33/60. `RX-W03--S--mechanism_discovery--Opaque` completed twelve source experiments plus valid K1 and K2, but Q returned a provider failure with no payload. The v9 coordinator then applied its preregistered fail-closed queue rule. Three other in-flight cells completed and were retained, no truth was generated, and no result was overwritten. At the user's request, v10 replaces whole-queue fail-close with per-cell isolation while keeping the truth embargo.
 
 The user explicitly requested replacing the stale remote Codex login cache with the newly authenticated cache from the Mac. The transfer was atomic, the remote file mode is `600`, local and remote SHA-256 values matched immediately after transfer, and `codex login status` reported ChatGPT authentication. No credential content or digest is stored in this experiment record.
 
