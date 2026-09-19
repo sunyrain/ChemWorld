@@ -1,5 +1,7 @@
 # Published RX source-record synthesis
 
+Historical snapshot. The [final 60-cell RX report](../work-ii-rx-ps-five-world-dual-goal-20260919-final/REPORT.md) is now available. The analysis below retains its original 48-cell scope and pre-release evidence boundary.
+
 Remote snapshot: `25537865465fdaadcee704912305d17d3f84c7bc`.
 
 This analysis reads the published records only. It does not generate, access or estimate the withheld reference truth.

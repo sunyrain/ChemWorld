@@ -1,6 +1,16 @@
 # Paper 2 / Work II 全部结果索引
 
-更新日期：2026-09-19，W2-132。新开发实验与既有正式证据分列；执行状态见[TODO](WORK_II_TODOLIST.md)，当前设计与检查边界见[矩阵9.9节](WORK_II_EXPERIMENT_MATRIX.md)。[英文五世界矩阵实时结果](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md)单列进行中，不提前计入下表已完成来源。E计划90来源；P/S适用单世界试跑随后。原中文数据保持原状。
+Updated 2026-09-20 synchronization. Development results are listed separately from earlier formal evidence. Execution status is tracked in [TODO](WORK_II_TODOLIST.md); saved block designs remain authoritative.
+
+| Current completed or active block | Exact denominator and status | Evidence boundary |
+| --- | --- | --- |
+| [EC/PA five-world E and EC P/S](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md) | 102/102 sources attempted; 1,764/1,764 effective source batches; 101 complete chains; 304/306 posttests. E: 90/90; P: 6/6; S: 5/6 chains. | Original EC-S Q calculator-budget failure retained; it is an execution failure, not a scientific prediction error. [All-E analysis](reports/work-ii-ec-pa-five-world-en-20260919/COMPLETED_BLOCK_ANALYSIS.md). |
+| [RX-P/S five-world dual-goal final block](reports/work-ii-rx-ps-five-world-dual-goal-20260919-final/REPORT.md) | 60/60 chains; 720/720 source batches; 180/180 posttests; 600/600 reference executions; 60/60 recommendation retests. | Truth released only after all source chains were sealed. Earlier platform/provider failures remain recovery evidence; effective completion does not erase them. |
+| [C-E three-arm pilot preparation](reports/work-ii-c-sol-pilot-20260919/REPORT.md) | Fixed 19-batch provider-free preparation in progress; 0/3 model sources started. | Preparation and prior startup failures are development evidence, not agent outcomes. |
+
+The [RX W01/W02 export](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w01-w02/README.md), [W03/W04 export](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w03-w04/README.md), and [local 48-cell synthesis](reports/work-ii-rx-remote-synthesis-20260919/REPORT.md) remain historical snapshots from before final truth release. Use the final 60-cell report for current RX completion and scoring. The old RX-P canary and old EC-P supplemental pilot are ContextOnly where a parameter reference region was supplied; historical Opaque labels do not establish strict P opacity. The current EC-P six-cell block must be assessed against its own saved prompt rather than inheriting either historical classification.
+
+Earlier development blocks:
 
 | 当前开发结果 | 完成情况 | 可以支持及限制 |
 | --- | --- | --- |
