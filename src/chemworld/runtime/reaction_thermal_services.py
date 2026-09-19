@@ -17,10 +17,12 @@ from chemworld.foundation import (
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import SolubilityCurveSpec
 from chemworld.runtime.full_process_contract import (
+    FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     FULL_PROCESS_SEED_CONTRACT,
     FULL_PROCESS_THERMAL_CONTRACT,
     population_active,
     population_settings,
+    seed_provenance_active,
     shrink_population,
 )
 from chemworld.runtime.species import MechanismSpeciesView
@@ -183,8 +185,7 @@ class ChemWorldReactionThermalServices:
                             + float(crystallizer_settings.get("seed_target_mol", 0.0))
                             * (1 - remaining)
                         }
-                        if state.metadata.get("full_process_contract_id")
-                        == FULL_PROCESS_SEED_CONTRACT
+                        if seed_provenance_active(state)
                         else {}
                     ),
                 },
@@ -303,6 +304,7 @@ class ChemWorldReactionThermalServices:
                 in {
                     FULL_PROCESS_THERMAL_CONTRACT,
                     FULL_PROCESS_SEED_CONTRACT,
+                    FULL_PROCESS_FREE_RESEARCH_CONTRACT,
                 }
                 else (state, 0.0)
             )
@@ -311,16 +313,9 @@ class ChemWorldReactionThermalServices:
                 duration_s=duration,
                 target_temperature_K=target_temperature,
                 heat=heat,
-                phase_change_heat_J=(
-                    20000.0 * dissolved
-                    if state.metadata.get("full_process_contract_id") == FULL_PROCESS_SEED_CONTRACT
-                    else 0.0
-                ),
+                phase_change_heat_J=(20000.0 * dissolved if seed_provenance_active(state) else 0.0),
             )
-            if (
-                dissolved > 0
-                and state.metadata.get("full_process_contract_id") != FULL_PROCESS_SEED_CONTRACT
-            ):
+            if dissolved > 0 and not seed_provenance_active(state):
                 energy = 20000.0 * dissolved
                 result = result.replace(
                     ledger=result.ledger.with_updates(

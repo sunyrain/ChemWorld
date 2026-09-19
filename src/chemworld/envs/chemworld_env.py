@@ -67,6 +67,7 @@ from chemworld.runtime import (
 )
 from chemworld.runtime.full_process_contract import (
     FULL_PROCESS_CONTRACT,
+    FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     FULL_PROCESS_POPULATION_CONTRACT,
     FULL_PROCESS_SEED_CONTRACT,
     FULL_PROCESS_TASKS,
@@ -159,7 +160,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         from chemworld.research_brief import normalize_research_brief
 
         self.research_brief = normalize_research_brief(
-            research_brief, task_id=self.task_id, scoring_contract_id=scoring_contract_id,
+            research_brief,
+            task_id=self.task_id,
+            scoring_contract_id=scoring_contract_id,
         )
         self.runtime_task_profile_id = (
             self.compiled_composition.runtime_task_profile_id
@@ -201,6 +204,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             FULL_PROCESS_CONTRACT,
             FULL_PROCESS_POPULATION_CONTRACT,
             FULL_PROCESS_SEED_CONTRACT,
+            FULL_PROCESS_FREE_RESEARCH_CONTRACT,
             FULL_PROCESS_THERMAL_CONTRACT,
         }:
             raise ValueError("unsupported full_process_contract_id")

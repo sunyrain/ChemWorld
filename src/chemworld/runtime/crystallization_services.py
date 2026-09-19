@@ -22,9 +22,9 @@ from chemworld.physchem.crystallization_units import (
 from chemworld.physchem.crystallization_validation import CrystallizationGridCase
 from chemworld.physchem.elements import molecular_weight
 from chemworld.runtime.full_process_contract import (
-    FULL_PROCESS_SEED_CONTRACT,
     population_active,
     population_settings,
+    seed_provenance_active,
 )
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.parameters import ChemWorldParameters
@@ -593,8 +593,7 @@ class ChemWorldCrystallizationServices:
                             "seed_target_mol": explicit_seed_target_mol + transferred_seed,
                             "dissolved_seed_target_mol": dissolved_seed - transferred_seed,
                         }
-                        if state.metadata.get("full_process_contract_id")
-                        == FULL_PROCESS_SEED_CONTRACT
+                        if seed_provenance_active(state)
                         else {}
                     ),
                 },
@@ -718,8 +717,7 @@ class ChemWorldCrystallizationServices:
                             + seed_target_mol
                             - retained_seed_mol
                         }
-                        if state.metadata.get("full_process_contract_id")
-                        == FULL_PROCESS_SEED_CONTRACT
+                        if seed_provenance_active(state)
                         else {}
                     ),
                 },

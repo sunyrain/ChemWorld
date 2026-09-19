@@ -25,6 +25,7 @@ from scripts.run_work_ii_ec_dual_goal_trial import (
 )
 from scripts.run_work_ii_final_diagnostic import build_command, launch
 
+from chemworld.agents.diagnostic_numerics import FOLLOWUP_NUMERICS, NumericsBudget
 from chemworld.agents.interactive_codex_experiment import InteractiveCodexExperimentAgent
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
@@ -41,7 +42,7 @@ from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "partition-discovery"
-PROTOCOL_VERSION = "pa-free-research-development-v3-en"
+PROTOCOL_VERSION = "pa-free-research-development-v4-en"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("product_in_organic", "product_in_aqueous")
 GOAL = (
@@ -349,6 +350,9 @@ def question(stage):
 
 
 def posttest(agent, folder, stage, thread_id, progress, *, design):
+    budget_record = design.get("posttest_numerics")
+    budget = NumericsBudget.from_record(budget_record)
+    budget_options = {"numerics_budget": budget} if budget_record is not None else {}
     workspace = agent.home_root / "followup"
     workspace.mkdir(exist_ok=True)
     schema_path = workspace / f"{stage}-schema.json"
@@ -357,7 +361,12 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
     instructions.write_text(
         "Continue your own research from its actual recorded evidence. No laboratory access, "
         "filesystem, network or new experiments. Only public_numerics.calculate is available "
-        "(8 calls per follow-up). Answer only this question; earlier outputs remain sealed.",
+        + (
+            budget.disclosure() + " Answer only this question; earlier outputs remain sealed."
+            if budget_record is not None
+            else "(8 calls per follow-up). Answer only this question; "
+            "earlier outputs remain sealed."
+        ),
         encoding="utf-8",
     )
     audit = folder / f"{stage}-numerics.jsonl"
@@ -368,6 +377,7 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
         audit=audit,
         thread_id=thread_id,
         provider_retries=0,
+        **budget_options,
     )
     command += [
         "-c",
@@ -387,6 +397,7 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
         True,
         audit,
         dict(progress),
+        **budget_options,
     )
     if not result.get("payload"):
         result["failure"] = result.get("failure") or "missing_payload"
@@ -981,8 +992,20 @@ def export(root, out):
     (out / "REPORT.md").write_text(report, encoding="utf-8")
 
 
-def execute(root, progress, *, arm, batches=12, reference_run=None, world=None):
+def execute(
+    root,
+    progress,
+    *,
+    arm,
+    batches=12,
+    reference_run=None,
+    world=None,
+    numerics_budget=FOLLOWUP_NUMERICS,
+):
     material = arm_material_information(arm)
+    protocol_version = (
+        PROTOCOL_VERSION if numerics_budget is not None else "pa-free-research-development-v3-en"
+    )
     world = world or {"world_id": "PA-W01", "world_seed": 0, "world_interventions": []}
     root.mkdir(parents=True, exist_ok=False)
     write(
@@ -991,7 +1014,12 @@ def execute(root, progress, *, arm, batches=12, reference_run=None, world=None):
             "model": PROVIDER,
             "world": world["world_id"],
             "world_config": world,
-            "protocol_version": PROTOCOL_VERSION,
+            "protocol_version": protocol_version,
+            **(
+                {"posttest_numerics": numerics_budget.to_dict()}
+                if numerics_budget is not None
+                else {}
+            ),
             "arm": arm,
             "material_information": material,
             "public_catalog_version": public_material_catalog(task_id=TASK)["catalog_version"],
@@ -1011,7 +1039,7 @@ def execute(root, progress, *, arm, batches=12, reference_run=None, world=None):
         "status": "failed",
         "arm": arm,
         "world": world["world_id"],
-        "protocol_version": PROTOCOL_VERSION,
+        "protocol_version": protocol_version,
         "development_only": True,
         "formal_result": False,
         "planned_sources": 1,
@@ -1258,6 +1286,7 @@ def execute_block(root, report, arms, progress, *, batches=12, reference_run=Non
         {
             "protocol_version": PROTOCOL_VERSION,
             "arms": arms,
+            "posttest_numerics": FOLLOWUP_NUMERICS.to_dict(),
             "material_information": materials,
             "world": "PA-W01",
             "model": PROVIDER,

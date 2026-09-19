@@ -24,7 +24,11 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE,
     normalize_electrochemical_workflow_mode,
 )
-from chemworld.runtime.full_process_contract import active, population_active
+from chemworld.runtime.full_process_contract import (
+    FULL_PROCESS_FREE_RESEARCH_CONTRACT,
+    active,
+    population_active,
+)
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
 from chemworld.world.operations import (
@@ -397,13 +401,19 @@ class OperationValidator:
         crystal_seeded = bool(crystallizer_settings.get("crystal_seeded", False))
         crystallization_completed = bool(crystallizer_settings.get("execution_history", ()))
         flagship_crystallization = self.task_id == "reaction-to-crystallization"
+        free_crystallization = (
+            state.metadata.get("full_process_contract_id") == FULL_PROCESS_FREE_RESEARCH_CONTRACT
+        )
         current_nonfinal_assay = self._has_current_nonfinal_assay(state)
         if flagship_crystallization and operation_type == "seed_crystals" and not crystal_seeded:
             process_metrics = {} if state.process is None else state.process.metrics
             preconditions["seed_crystals_requires_reaction_advance"] = (
                 float(process_metrics.get("reaction_advance_count", 0.0)) > 0.0
             )
-            preconditions["seed_crystals_requires_current_reaction_assay"] = current_nonfinal_assay
+            if not free_crystallization:
+                preconditions["seed_crystals_requires_current_reaction_assay"] = (
+                    current_nonfinal_assay
+                )
         # A seeded or already-cooled slurry remains a physical batch, not a
         # one-way workflow token.  Task policy and operation-specific
         # preconditions decide which interventions are valid; the existence of
@@ -414,6 +424,7 @@ class OperationValidator:
             and not crystals_filtered
             and flagship_crystallization
             and operation_type == "filter_crystals"
+            and not free_crystallization
         ):
             preconditions["filter_crystals_requires_current_slurry_assay"] = current_nonfinal_assay
         if crystals_filtered:

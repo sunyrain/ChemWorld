@@ -39,7 +39,10 @@ def fixture(tmp_path):
     return folder, home, unit
 
 
-def test_seals_intact_partial_prefix_and_preserves_original_files(tmp_path, monkeypatch):
+@pytest.mark.parametrize("classification", ["host_reboot", "process_exit"])
+def test_seals_intact_partial_prefix_and_preserves_original_files(
+    tmp_path, monkeypatch, classification
+):
     folder, home, unit = fixture(tmp_path)
     before = (folder / "trajectory.jsonl").read_bytes()
     calls = []
@@ -50,7 +53,13 @@ def test_seals_intact_partial_prefix_and_preserves_original_files(tmp_path, monk
 
     monkeypatch.setattr(host.ec, "replay_with_progress", replay)
     monkeypatch.setattr(host.ec, "summaries", lambda records: [])
-    result = host.seal(unit, folder, home, reboot_time="2026-09-19T01:01:00+00:00")
+    result = host.seal(
+        unit,
+        folder,
+        home,
+        reboot_time="2026-09-19T01:01:00+00:00",
+        classification=classification,
+    )
     assert result["source_status"] == "interrupted"
     assert result["operations"] == 1 and result["posttests"] == {}
     assert result["interruption"]["last_reported_thread_usage"] is None
@@ -58,8 +67,23 @@ def test_seals_intact_partial_prefix_and_preserves_original_files(tmp_path, monk
     assert (folder / "trajectory.jsonl").read_bytes() == before
     assert (folder / "workspace/marker").read_text() == "preserved public workspace"
     assert not (folder / "source-receipts.json").exists()
-    assert host.seal(unit, folder, home, reboot_time="2026-09-19T01:01:00+00:00") == result
+    assert (
+        host.seal(
+            unit,
+            folder,
+            home,
+            reboot_time="2026-09-19T01:01:00+00:00",
+            classification=classification,
+        )
+        == result
+    )
     assert calls == [(1, {"world_interventions": []})]
+    if classification == "process_exit":
+        from scripts.recover_work_ii_ec_pa_network import recovery_kind
+
+        assert recovery_kind(unit, result, folder, allow_partial=True) == (
+            "fresh_source_after_process_interruption"
+        )
 
 
 def test_wrong_retained_thread_cannot_be_used(tmp_path):
@@ -85,3 +109,39 @@ def test_failed_replay_cannot_authorize_replacement(tmp_path, monkeypatch):
     with pytest.raises(RuntimeError, match="replay exactly"):
         host.seal(unit, folder, home, reboot_time="2026-09-19T01:01:00+00:00")
     assert not (folder / "result.json").exists()
+
+
+def test_seal_process_lost_posttest_preserves_physics_and_answers(tmp_path, monkeypatch):
+    from scripts import reconcile_work_ii_ec_process_exit as process
+    from scripts.recover_work_ii_ec_pa_network import recovery_kind
+
+    folder, home, unit = fixture(tmp_path)
+    original = {
+        "status": "failed",
+        "source_status": "completed",
+        "operations": 1,
+        "exact_replay": {"verified": True},
+        "posttests": {"K1": {"payload": {"report": "sealed K1"}}},
+        "batches": [{"lifecycle_index": 1, "actions": [{"operation": "terminate"}]}],
+        "recommendation": {"selected_experiment_index": 1},
+    }
+    host.write(folder / "result.json", original)
+    host.write(folder / "source-receipts.json", [{"thread_id": "original"}])
+    (folder / "Q").mkdir()
+    (folder / "Q/stdout.jsonl").write_text(json.dumps({"type": "turn.started"}) + "\n")
+    calls = []
+
+    def retest(path, actions, **kwargs):
+        calls.append((actions, kwargs))
+        return {"exact_replay": {"verified": True}, "batches": [{}]}
+
+    monkeypatch.setattr(process.ec, "reference_run", retest)
+    result = process.seal_posttests(unit, folder, home, "original")
+    assert result["source_status"] == "completed" and result["operations"] == 1
+    assert result["posttests"]["K1"] == original["posttests"]["K1"]
+    assert result["posttests"]["Q"]["failure"] == "process_interrupted"
+    assert host.read(folder / "result-before-process-interruption.json") == original
+    assert recovery_kind(unit, result, folder) == "posttests"
+    assert process.seal_posttests(unit, folder, home, "original") == result
+    assert len(calls) == 1 and calls[0][0] == original["batches"][0]["actions"]
+    assert calls[0][1]["observation_seed"] == 101

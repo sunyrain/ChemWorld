@@ -26,6 +26,7 @@ from scripts.run_work_ii_study_b import (
     _resume_command,
 )
 
+from chemworld.agents.diagnostic_numerics import NumericsBudget
 from chemworld.eval.work_ii_final_diagnostic import (
     ARMS,
     prompt,
@@ -189,7 +190,9 @@ def build_command(
     audit: Path | None = None,
     thread_id: str | None = None,
     provider_retries: int | None = None,
+    numerics_budget: NumericsBudget | None = None,
 ) -> list[str]:
+    budget = numerics_budget or NumericsBudget()
     command = _initial_command(provider, schema_path, workspace)
     disabled = (
         "shell_tool",
@@ -213,7 +216,8 @@ def build_command(
         shutil.copyfile(ROOT / "src/chemworld/agents/diagnostic_numerics.py", server)
         config = {
             "command": sys.executable,
-            "args": [str(server), "--audit", str(audit), "--limit", "8"],
+            "args": [str(server), "--audit", str(audit), "--limit", str(budget.limit)]
+            + (["--budget-feedback"] if budget.on_exhaustion == "continue_answer" else []),
             "cwd": str(workspace),
             "required": True,
             "enabled": True,
@@ -270,7 +274,10 @@ def launch(
     enabled: bool,
     audit: Path,
     progress: dict,
+    *,
+    numerics_budget: NumericsBudget | None = None,
 ) -> dict:
+    budget = numerics_budget or NumericsBudget()
     output.mkdir(parents=True, exist_ok=False)
     (output / "prompt.txt").write_text(message, encoding="utf-8")
     started = time.monotonic()
@@ -337,7 +344,7 @@ def launch(
             attempts = len(audit.read_text(encoding="utf-8").splitlines()) if audit.exists() else 0
             if forbidden.is_set():
                 failure = "forbidden_tool"
-            elif attempts > 8:
+            elif budget.on_exhaustion == "terminate_turn" and attempts > budget.limit:
                 failure = "tool_budget_exceeded"
             elif elapsed >= timeout:
                 failure = "turn_timeout"
@@ -380,6 +387,11 @@ def launch(
     )
     if not failure and (process.returncode or receipt["provider_errors"]):
         receipt["failure"] = "provider_failure"
+    if numerics_budget is not None:
+        receipt["numerics_budget"] = budget.to_dict()
+        receipt["numerics_attempts"] = (
+            len(audit.read_text(encoding="utf-8").splitlines()) if audit.exists() else 0
+        )
     write(output / "receipt.json", receipt)
     return receipt
 

@@ -1,4 +1,4 @@
-"""Two isolated source processes; one owner of the EC/PA matrix ledger."""
+"""Bounded isolated source processes; one owner of the EC/PA matrix ledger."""
 
 from __future__ import annotations
 
@@ -19,6 +19,8 @@ from scripts.recover_work_ii_ec_pa_network import (
     effective_row,
     network_failure,
     recover,
+    recovery_inputs,
+    recovery_kind,
     source_folder,
 )
 from scripts.run_work_ii_astra_single_trial import read, write
@@ -40,9 +42,17 @@ def collect(root, unit):
     _, actual = unit_paths(root, unit)
     row = matrix.source_row(unit, read(actual / "result.json"))
     row["exported"] = True
-    recovered = root / "recoveries" / unit["unit_id"] / "attempt-1/recovery.json"
-    if recovered.exists():
-        rec = read(recovered)
+    records = [
+        read(p)
+        for p in sorted(
+            (root / "recoveries" / unit["unit_id"]).glob("attempt-*/recovery.json"),
+            key=lambda p: int(p.parent.name.split("-")[-1]),
+        )
+    ]
+    if records:
+        rec = records[-1]
+        if len(records) > 1:
+            row["recovery_history"] = records[:-1]
         key = (
             "infrastructure_recovery"
             if rec["kind"].endswith("host_interruption")
@@ -54,7 +64,10 @@ def collect(root, unit):
 
 def next_units(rows, active, slots):
     # All E sources must be terminal before any P/S source is dispatched.
-    e_pending = any(r["locus"] == "E" and r["status"] not in ("completed", "failed") for r in rows)
+    e_pending = any(
+        r["locus"] == "E" and (r["status"] not in ("completed", "failed") or r["unit_id"] in active)
+        for r in rows
+    )
     return [
         r
         for r in rows
@@ -79,9 +92,23 @@ def prepare_owned_directory(folder, *, system="EC"):
         folder.mkdir(parents=True, exist_ok=False)
 
 
-def run_unit(root, report, unit):
+def run_unit(
+    root,
+    report,
+    unit,
+    *,
+    recovery_only=False,
+    allow_partial=False,
+    recovery_attempt=1,
+    allow_usage_limit=False,
+):
+    if recovery_attempt != 1 and not recovery_only:
+        raise ValueError("additional attempts apply only to an explicitly resumed source")
+    if allow_usage_limit and not recovery_only:
+        raise ValueError("quota restoration applies only to explicitly resumed posttests")
     folder, actual = unit_paths(root, unit)
-    prepare_owned_directory(folder, system=unit["system"])
+    if not recovery_only:
+        prepare_owned_directory(folder, system=unit["system"])
     design = read(root / "design.json")
     ref_folder = root / "references" / unit["world"]["world_id"]
     ref_design = read(ref_folder / "design.json")
@@ -97,6 +124,11 @@ def run_unit(root, report, unit):
     }
     started = time.monotonic()
     stop = threading.Event()
+    if recovery_only or unit["system"] == "EC":
+        write_json_atomic(
+            folder / "worker-progress.json",
+            {**progress, "elapsed_s": 0, "updated_epoch": time.time()},
+        )
 
     def heartbeat():
         while not stop.wait(15):
@@ -111,7 +143,25 @@ def run_unit(root, report, unit):
     thread = threading.Thread(target=heartbeat, daemon=True)
     thread.start()
     try:
-        if unit["system"] == "EC":
+        if recovery_only:
+            saved = read(folder / "design.json")
+            result = read(actual / "result.json")
+            latest, latest_folder, posttests = recovery_inputs(
+                root, unit, result, actual, attempt=recovery_attempt
+            )
+            if (
+                recovery_kind(
+                    unit,
+                    latest,
+                    latest_folder,
+                    allow_partial=allow_partial,
+                    posttest_folder=posttests,
+                    allow_usage_limit=allow_usage_limit,
+                )
+                is None
+            ):
+                raise ValueError("existing source has no eligible network recovery")
+        elif unit["system"] == "EC":
             saved = {
                 **design["questions"]["EC"],
                 "queries": design["queries"]["EC"],
@@ -132,6 +182,7 @@ def run_unit(root, report, unit):
             )
         else:
             # PA execute owns creation of its root; do not precreate files inside it.
+            numerics = design["questions"]["PA"].get("posttest_numerics")
             pa.execute(
                 folder,
                 progress,
@@ -139,9 +190,13 @@ def run_unit(root, report, unit):
                 batches=unit["budget"],
                 world=unit["world"],
                 reference_run=root / "references" / unit["world"]["world_id"],
+                numerics_budget=pa.NumericsBudget.from_record(numerics)
+                if numerics is not None
+                else None,
             )
             result, saved = read(folder / "result.json"), read(folder / "design.json")
-        matrix.export_source(unit, result, actual, report / unit["unit_id"], saved)
+        if not recovery_only:
+            matrix.export_source(unit, result, actual, report / unit["unit_id"], saved)
         recovered = recover(
             root,
             report,
@@ -151,6 +206,9 @@ def run_unit(root, report, unit):
             saved,
             reference["truth"],
             progress,
+            allow_partial=allow_partial,
+            **({"attempt": recovery_attempt} if recovery_attempt != 1 else {}),
+            **({"allow_usage_limit": True} if allow_usage_limit else {}),
         )
         row = matrix.source_row(unit, result) if not recovered else recovered["row"]
         reason = None
@@ -194,9 +252,103 @@ def accept_handover(state, reserved):
     state["status"] = "running"
 
 
-def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
-    if workers != 2:
-        raise ValueError("this amendment authorizes exactly two simultaneous sources")
+def next_recovery_attempt(root, unit):
+    """One next attempt for an explicit resume; never an automatic retry loop."""
+    folders = sorted(
+        (root / "recoveries" / unit["unit_id"]).glob("attempt-*"),
+        key=lambda p: int(p.name.split("-")[-1]),
+    )
+    for index, folder in enumerate(folders, 1):
+        if folder.name != f"attempt-{index}" or not (folder / "recovery.json").is_file():
+            raise ValueError(
+                "unfinished or discontinuous recovery must be reconciled before resume"
+            )
+    return len(folders) + 1
+
+
+def resume_recoveries(
+    root,
+    state,
+    *,
+    allow_partial,
+    recovery_attempt=1,
+    next_recovery=False,
+    allow_usage_limit=False,
+):
+    """Validate the diagnosed stop without discarding a failed source or its costs."""
+    if state["status"] != "stopped":
+        raise ValueError("resume requires a stopped coordinator")
+    if any(r["status"] == "running" for r in state["results"]):
+        raise ValueError("unresolved running sources must be reconciled before resume")
+    pending = []
+    for row in state["results"]:
+        if effective_row(row)["status"] != "failed":
+            continue
+        _, actual = unit_paths(root, row)
+        original = read(actual / "result.json")
+        number = next_recovery_attempt(root, row) if next_recovery else recovery_attempt
+        attempt = root / "recoveries" / row["unit_id"] / f"attempt-{number}"
+        if attempt.exists():
+            raise ValueError("recovery attempt already exists; refusing another paid attempt")
+        latest, latest_folder, posttests = recovery_inputs(
+            root, row, original, actual, attempt=number
+        )
+        if (
+            recovery_kind(
+                row,
+                latest,
+                latest_folder,
+                allow_partial=allow_partial,
+                posttest_folder=posttests,
+                allow_usage_limit=allow_usage_limit,
+            )
+            is None
+        ):
+            continue
+        pending.append({**row, "recovery_attempt": number} if next_recovery else row)
+    failure = state.get("failure") or {}
+    if failure.get("unit") not in {r["unit_id"] for r in pending}:
+        raise ValueError("stopped unit is not an eligible network recovery")
+    return pending
+
+
+def source_counts(rows, active):
+    completed = sum(effective_row(r)["status"] == "completed" for r in rows)
+    failed = sum(
+        effective_row(r)["status"] == "failed" and r["unit_id"] not in active for r in rows
+    )
+    return {
+        "completed_sources": completed,
+        "failed_sources": failed,
+        "terminal_sources": completed + failed,
+    }
+
+
+def coordinate(
+    root,
+    report,
+    *,
+    workers,
+    old_executor_pid=None,
+    reserved_unit=None,
+    resume=False,
+    allow_partial=False,
+    recovery_attempt=1,
+    next_recovery=False,
+    allow_usage_limit=False,
+):
+    if not 1 <= workers <= 4:
+        raise ValueError("authorized concurrency is between one and four sources")
+    if resume and (old_executor_pid or reserved_unit):
+        raise ValueError("resume and serial handover are different boundaries")
+    if recovery_attempt != 1 and not resume:
+        raise ValueError("additional recovery requires explicit resume")
+    if next_recovery and (not resume or recovery_attempt != 1):
+        raise ValueError("next recovery requires resume without a fixed attempt override")
+    if allow_usage_limit and not resume:
+        raise ValueError("quota restoration requires an explicit resume")
+    if not resume and (not old_executor_pid or not reserved_unit):
+        raise ValueError("serial handover requires its executor and reserved unit")
     plan = read(root / "design.json")["units"]
     by_id = {u["unit_id"]: u for u in plan}
     active = {}
@@ -205,14 +357,19 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
     baseline = sum(
         effective_row(r)["status"] in ("completed", "failed") for r in initial["results"]
     )
-    old = psutil.Process(old_executor_pid) if psutil.pid_exists(old_executor_pid) else None
+    baseline_completed = source_counts(initial["results"], {})["completed_sources"]
+    old = (
+        psutil.Process(old_executor_pid)
+        if old_executor_pid and psutil.pid_exists(old_executor_pid)
+        else None
+    )
     if old and "scripts.run_work_ii_ec_pa_matrix" not in " ".join(old.cmdline()):
         raise ValueError("old executor PID belongs to a different command")
-    handover_pending = True
+    handover_pending = not resume
     state = None
     halt = None
 
-    def launch(unit):
+    def launch(unit, *, recovery_only=False, attempt=1):
         folder, _ = unit_paths(root, unit)
         # External wrapper logs remain outside the repository.
         import tempfile
@@ -235,6 +392,13 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
             "--unit",
             unit["unit_id"],
         ]
+        if allow_partial:
+            command.append("--retry-partial-network")
+        if recovery_only:
+            command.append("--recover-unit")
+            command.extend(["--recovery-attempt", str(attempt)])
+            if allow_usage_limit:
+                command.append("--resume-after-quota")
         process = subprocess.Popen(
             command,
             cwd=matrix.ROOT,
@@ -251,7 +415,53 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
         }
         print(json.dumps({"launched": unit["unit_id"], "pid": process.pid}), flush=True)
 
-    launch(by_id[reserved_unit])
+    if resume:
+        state = initial
+        pending = resume_recoveries(
+            root,
+            state,
+            allow_partial=allow_partial,
+            recovery_attempt=recovery_attempt,
+            next_recovery=next_recovery,
+            allow_usage_limit=allow_usage_limit,
+        )
+        if len(pending) > workers:
+            raise ValueError("recovery queue exceeds available source slots")
+        state.setdefault("runtime_incidents", []).append(
+            {
+                "classification": "authorized_network_resume",
+                "original_stop": state.get("failure"),
+                "previous_execution": state.get("parallel_execution"),
+                "workers": workers,
+                "authorization": "2026-09-19 user requested network recovery and continuation",
+                "recovery_attempt": recovery_attempt,
+                "recovery_attempts": {
+                    r["unit_id"]: r.get("recovery_attempt", recovery_attempt) for r in pending
+                },
+                "recovery_units": [r["unit_id"] for r in pending],
+                "usage_limit_restoration_authorized": allow_usage_limit,
+            }
+        )
+        baseline -= len(pending)
+        state.update(status="running", failure=None)
+        state["parallel_execution"] = {
+            "workers": workers,
+            "coordinator_pid": os.getpid(),
+            "started_epoch": time.time(),
+            "baseline_terminal_sources": baseline,
+            "baseline_completed_sources": baseline_completed,
+            "source_process_isolation": True,
+            "partial_network_recovery": allow_partial,
+            "authorization": "2026-09-19 user requested further parallelism for 19:00",
+        }
+        for row in pending:
+            launch(
+                by_id[row["unit_id"]],
+                recovery_only=True,
+                attempt=row.get("recovery_attempt", recovery_attempt),
+            )
+    else:
+        launch(by_id[reserved_unit])
     try:
         while True:
             if handover_pending:
@@ -262,7 +472,7 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
                                 "stage": "handover",
                                 "old_executor_pid": old_executor_pid,
                                 "new_source": reserved_unit,
-                                "max_active_sources": 2,
+                                "max_active_sources": workers,
                             }
                         ),
                         flush=True,
@@ -275,8 +485,9 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
                 baseline = sum(
                     effective_row(r)["status"] in ("completed", "failed") for r in state["results"]
                 )
+                baseline_completed = source_counts(state["results"], {})["completed_sources"]
                 state["parallel_execution"] = {
-                    "workers": 2,
+                    "workers": workers,
                     "coordinator_pid": os.getpid(),
                     "started_epoch": time.time(),
                     "authorization": "2026-09-19 user requested moderate parallel execution",
@@ -313,24 +524,31 @@ def coordinate(root, report, *, workers, old_executor_pid, reserved_unit):
             for uid, job in active.items():
                 path = job["folder"] / "worker-progress.json"
                 item = read(path) if path.exists() else {"unit": uid, "stage": "starting"}
+                if item.get("updated_epoch", 0) < job["started_epoch"]:
+                    item = {"unit": uid, "stage": "starting"}
                 live.append({**item, "pid": job["process"].pid})
-            terminal = sum(
-                effective_row(r)["status"] in ("completed", "failed") for r in state["results"]
-            )
+            counts = source_counts(state["results"], active)
+            terminal = counts["terminal_sources"]
             elapsed = time.monotonic() - started
-            delta = terminal - baseline
-            throughput = delta / elapsed * 3600 if delta > 0 else None
+            delta = counts["completed_sources"] - baseline_completed
+            throughput = delta / elapsed * 3600 if delta > 0 and elapsed > 0 else None
             progress = {
-                "stage": "parallel",
+                "stage": "draining_after_failure" if halt else "parallel",
                 "workers": live,
                 "active_sources": len(active),
                 "max_active_sources": workers,
-                "completed_sources": terminal,
+                **counts,
                 "planned_sources": len(plan),
                 "elapsed_s": elapsed,
                 "sources_per_hour": throughput,
-                "eta_s": (len(plan) - terminal) / throughput * 3600 if throughput else None,
+                "throughput_basis": "successful completions in this concurrency segment",
+                "eta_s": (len(plan) - terminal) / throughput * 3600
+                if throughput and not halt
+                else None,
             }
+            if halt:
+                state["failure"] = halt
+                state["status"] = "draining_after_failure"
             if not active:
                 state["status"] = "stopped" if halt else "completed"
                 state["failure"] = halt
@@ -356,11 +574,29 @@ def main():
     parser.add_argument("--workers", type=int, default=2)
     parser.add_argument("--old-executor-pid", type=int)
     parser.add_argument("--reserved-unit")
+    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--recover-unit", action="store_true")
+    parser.add_argument("--retry-partial-network", action="store_true")
+    parser.add_argument("--recovery-attempt", type=int, default=1)
+    parser.add_argument("--resume-next-recovery", action="store_true")
+    parser.add_argument("--resume-after-quota", action="store_true")
     args = parser.parse_args()
+    if args.recovery_attempt < 1:
+        parser.error("recovery attempt must be positive")
+    if args.resume_next_recovery and (args.unit or not args.resume):
+        parser.error("next recovery is a coordinator resume option")
     root, report = args.output.resolve(), args.report.resolve()
     if args.unit:
         unit = next(u for u in read(root / "design.json")["units"] if u["unit_id"] == args.unit)
-        run_unit(root, report, unit)
+        run_unit(
+            root,
+            report,
+            unit,
+            recovery_only=args.recover_unit,
+            allow_partial=args.retry_partial_network,
+            recovery_attempt=args.recovery_attempt,
+            allow_usage_limit=args.resume_after_quota,
+        )
     else:
         coordinate(
             root,
@@ -368,6 +604,11 @@ def main():
             workers=args.workers,
             old_executor_pid=args.old_executor_pid,
             reserved_unit=args.reserved_unit,
+            resume=args.resume,
+            allow_partial=args.retry_partial_network,
+            recovery_attempt=args.recovery_attempt,
+            next_recovery=args.resume_next_recovery,
+            allow_usage_limit=args.resume_after_quota,
         )
 
 

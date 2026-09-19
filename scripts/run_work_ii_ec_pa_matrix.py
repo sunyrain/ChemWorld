@@ -14,7 +14,12 @@ from pathlib import Path
 import gymnasium as gym
 from scripts import run_work_ii_ec_dual_goal_trial as ec
 from scripts import run_work_ii_pa_single_trial as pa
-from scripts.recover_work_ii_ec_pa_network import effective_row, recover, recovery_kind
+from scripts.recover_work_ii_ec_pa_network import (
+    effective_row,
+    recover,
+    recovery_kind,
+    recovery_records,
+)
 from scripts.run_work_ii_astra_single_trial import read, write
 
 from chemworld.agents.experiment_codex_mcp import ChemWorldMCPServer
@@ -365,15 +370,12 @@ def save_matrix_state(root, report, state, progress, *, elapsed_s):
     rows = state["results"]
     effective = [effective_row(r) for r in rows]
     attempted = [r for r in rows if r["status"] in ("completed", "failed")]
-    recoveries = [
-        r.get("infrastructure_recovery") or r.get("network_recovery")
-        for r in rows
-        if r.get("infrastructure_recovery") or r.get("network_recovery")
-    ]
+    recoveries = [recovery for r in rows for recovery in recovery_records(r)]
     successful = [r for r in effective if r["status"] == "completed"]
     total_elapsed = sum(r.get("elapsed_s") or 0 for r in successful)
     progress.update(
-        completed_sources=len(attempted),
+        completed_sources=len(successful),
+        attempted_sources=len(attempted),
         elapsed_s=elapsed_s,
     )
     if not state.get("parallel_execution"):
@@ -465,8 +467,7 @@ def save_matrix_state(root, report, state, progress, *, elapsed_s):
             f"{row.get('completed_batches', 0)}/{row['budget']} | "
             f"{row.get('posttests_completed', 0)}/3 | {row.get('english_output', '')} |"
         )
-        recovery = row.get("infrastructure_recovery") or row.get("network_recovery")
-        if recovery:
+        for recovery in recovery_records(row):
             restored = recovery["row"]
             lines.append(
                 f"| ↳ [Infrastructure recovery]({recovery['report_path']}) | "
@@ -507,6 +508,7 @@ def run(
     prompts = {
         s: {
             "K1": m.K1,
+            "posttest_numerics": ec.FOLLOWUP_NUMERICS.to_dict(),
             "Q": ec.prediction_question(ec.queries()) if s == "EC" else pa.question("Q"),
             "K2": m.K2,
         }

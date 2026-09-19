@@ -28,9 +28,7 @@ STATIC_MATERIAL_INFORMATION_VERSION = "chemworld-static-material-information-1.1
 CRYSTALLIZATION_STATIC_MATERIAL_INFORMATION_VERSION = (
     "chemworld-static-crystallization-material-information-1.0"
 )
-REACTION_STATIC_MATERIAL_INFORMATION_VERSION = (
-    "chemworld-static-reaction-material-information-1.0"
-)
+REACTION_STATIC_MATERIAL_INFORMATION_VERSION = "chemworld-static-reaction-material-information-1.0"
 PARTITION_STATIC_MATERIAL_INFORMATION_VERSION = (
     "chemworld-static-partition-material-information-1.0"
 )
@@ -148,6 +146,40 @@ def anonymous_partition_material_catalog() -> dict[str, Any]:
     }
 
 
+def anonymous_crystallization_material_catalog() -> dict[str, Any]:
+    """Use the same anonymous C/S identities as the crystallization prior dossier."""
+    return {
+        "catalog_version": "chemworld-public-crystallization-materials-1.0",
+        "presentation": "anonymous_material_ids",
+        **{
+            key: [
+                {
+                    "index": index,
+                    "anonymous_material_id": f"{role}-{prefix}{index}",
+                    "display_name": f"{role}-{prefix}{index}",
+                    "identity_kind": f"anonymous_benchmark_{role}",
+                    "reference_status": "no_real_material_identity_claimed",
+                }
+                for index in range(count)
+            ]
+            for key, role, prefix, count in (
+                ("solvents", "solvent", "S", len(SOLVENTS)),
+                ("catalysts", "catalyst", "C", len(CATALYSTS)),
+            )
+        },
+        "reagent": {
+            "canonical_id": "limiting_reagent",
+            "display_name": "Anonymous limiting reagent",
+            "identity_kind": "mechanism_role",
+            "reference_status": "mechanism_specific_not_a_real_identity",
+        },
+        "interpretation_policy": (
+            "Catalyst C and solvent S are benchmark-only identities, not real substances. "
+            "Their action indices reveal no hidden properties or world-specific residuals."
+        ),
+    }
+
+
 def public_material_catalog(*, task_id: str | None = None) -> dict[str, Any]:
     """Return names, reference status, and interpretation policy for task materials."""
 
@@ -155,6 +187,8 @@ def public_material_catalog(*, task_id: str | None = None) -> dict[str, Any]:
         return anonymous_electrochemical_material_catalog()
     if task_id == _PARTITION_TASK_ID:
         return anonymous_partition_material_catalog()
+    if task_id == _CRYSTALLIZATION_TASK_ID:
+        return anonymous_crystallization_material_catalog()
     registry = curated_component_registry()
     solvents: list[dict[str, Any]] = []
     for index, solvent_id in enumerate(SOLVENTS):
@@ -262,7 +296,7 @@ def material_choice_labels(
         return {}
     labels: dict[str, str] = {}
     for item in catalog[key]:
-        if task_id in {_ELECTROCHEMICAL_TASK_ID, _PARTITION_TASK_ID}:
+        if task_id in {_ELECTROCHEMICAL_TASK_ID, _PARTITION_TASK_ID, _CRYSTALLIZATION_TASK_ID}:
             labels[str(item["index"])] = str(item["anonymous_material_id"])
             continue
         reference = str(item["reference_status"])
@@ -316,26 +350,18 @@ def normalize_static_material_information_config(
     if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and (
         len(task_set) != 1 or next(iter(task_set)) not in _AUDITED_NOMINAL_TASK_IDS
     ):
-        raise ValueError(
-            "nominal material properties require exactly one audited prior task"
-        )
-    if mode == STATIC_MATERIAL_INFORMATION_SHUFFLED and task_set != {
-        _ELECTROCHEMICAL_TASK_ID
-    }:
+        raise ValueError("nominal material properties require exactly one audited prior task")
+    if mode == STATIC_MATERIAL_INFORMATION_SHUFFLED and task_set != {_ELECTROCHEMICAL_TASK_ID}:
         raise ValueError(
             "shuffled material properties are frozen only for electrochemical legacy studies"
         )
-    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {
-        _ELECTROCHEMICAL_TASK_ID
-    }:
+    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {_ELECTROCHEMICAL_TASK_ID}:
         family_id = normalize_electrochemical_material_family(material_family_id)
         if family_id != NOMINAL_PRIOR_MATERIAL_FAMILY:
             raise ValueError(
                 "nominal material information requires the nominal-prior material family"
             )
-    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {
-        _CRYSTALLIZATION_TASK_ID
-    }:
+    if mode != STATIC_MATERIAL_INFORMATION_OPAQUE and task_set == {_CRYSTALLIZATION_TASK_ID}:
         family_id = normalize_crystallization_material_family(material_family_id)
         if family_id != REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY:
             raise ValueError(
@@ -353,8 +379,7 @@ def normalize_static_material_information_config(
                 f"{list(controlled_fields)}"
             )
         if not isinstance(raw_permutation, list) or any(
-            isinstance(item, bool) or not isinstance(item, int)
-            for item in raw_permutation
+            isinstance(item, bool) or not isinstance(item, int) for item in raw_permutation
         ):
             raise ValueError(
                 "misindexed material information requires descriptor_permutation "
@@ -363,22 +388,16 @@ def normalize_static_material_information_config(
         expected = list(range(4))
         if sorted(raw_permutation) != expected:
             raise ValueError(
-                "misindexed descriptor_permutation must be a permutation of "
-                f"{expected}"
+                f"misindexed descriptor_permutation must be a permutation of {expected}"
             )
-        moved = [
-            index
-            for index, source in enumerate(raw_permutation)
-            if index != source
-        ]
+        moved = [index for index, source in enumerate(raw_permutation) if index != source]
         if (
             len(moved) != 2
             or raw_permutation[moved[0]] != moved[1]
             or raw_permutation[moved[1]] != moved[0]
         ):
             raise ValueError(
-                "misindexed descriptor_permutation must be exactly one "
-                "two-row transposition"
+                "misindexed descriptor_permutation must be exactly one two-row transposition"
             )
         return {
             "mode": STATIC_MATERIAL_INFORMATION_MISINDEXED,
@@ -393,9 +412,7 @@ def normalize_static_material_information_config(
             )
         return {"mode": str(mode)}
     if raw_target_field is not None:
-        raise ValueError(
-            "target_field is not allowed for anonymous_shuffled_properties"
-        )
+        raise ValueError("target_field is not allowed for anonymous_shuffled_properties")
     if not isinstance(raw_permutation, Mapping) or set(raw_permutation) != set(
         _CONTROLLED_MATERIAL_FIELDS
     ):
@@ -438,16 +455,11 @@ def static_material_information_dossier(
     mode = normalized["mode"]
     if mode == STATIC_MATERIAL_INFORMATION_OPAQUE:
         return None
-    permutations = {
-        field: list(range(4))
-        for field in _CONTROLLED_MATERIAL_FIELDS_BY_TASK[task_id]
-    }
+    permutations = {field: list(range(4)) for field in _CONTROLLED_MATERIAL_FIELDS_BY_TASK[task_id]}
     if mode == STATIC_MATERIAL_INFORMATION_SHUFFLED:
         permutations.update(normalized["descriptor_permutation"])
     elif mode == STATIC_MATERIAL_INFORMATION_MISINDEXED:
-        permutations[normalized["target_field"]] = normalized[
-            "descriptor_permutation"
-        ]
+        permutations[normalized["target_field"]] = normalized["descriptor_permutation"]
     if task_id == _CRYSTALLIZATION_TASK_ID:
         return _crystallization_material_information_dossier(
             material_family_id,
@@ -489,9 +501,7 @@ def static_material_information_dossier(
             }
         )
     solvent_choices = []
-    for action_value, source_index in enumerate(
-        electrochemical_permutations["solvent"]
-    ):
+    for action_value, source_index in enumerate(electrochemical_permutations["solvent"]):
         row = family.solvent_profiles[source_index]
         solvent_choices.append(
             {
@@ -557,9 +567,7 @@ def _positive_geometric_mean(values: Sequence[float]) -> float:
 def _log_variability(values: Sequence[float]) -> float:
     numeric = tuple(float(value) for value in values)
     center = sum(math.log(value) for value in numeric) / len(numeric)
-    return math.sqrt(
-        sum((math.log(value) - center) ** 2 for value in numeric) / len(numeric)
-    )
+    return math.sqrt(sum((math.log(value) - center) ** 2 for value in numeric) / len(numeric))
 
 
 def _reaction_panel_properties(values: Sequence[float]) -> dict[str, float]:
@@ -592,17 +600,13 @@ def _crystallization_material_information_dossier(
             {
                 "action_value": action_value,
                 "anonymous_material_id": f"catalyst-C{action_value}",
-                "nominal_properties": _reaction_panel_properties(
-                    row["reaction_multipliers"]
-                ),
+                "nominal_properties": _reaction_panel_properties(row["reaction_multipliers"]),
             }
         )
     solvent_choices = []
     for action_value, source_index in enumerate(permutations["solvent"]):
         row = family.solvent_profiles[source_index]
-        reaction_properties = _reaction_panel_properties(
-            row["reaction_multipliers"]
-        )
+        reaction_properties = _reaction_panel_properties(row["reaction_multipliers"])
         solvent_choices.append(
             {
                 "action_value": action_value,
@@ -610,13 +614,9 @@ def _crystallization_material_information_dossier(
                 "nominal_properties": {
                     **reaction_properties,
                     "relative_solubility": float(row["solubility_multiplier"]),
-                    "relative_nucleation_tendency": float(
-                        row["nucleation_multiplier"]
-                    ),
+                    "relative_nucleation_tendency": float(row["nucleation_multiplier"]),
                     "relative_crystal_growth": float(row["growth_multiplier"]),
-                    "relative_impurity_occlusion": float(
-                        row["impurity_occlusion_multiplier"]
-                    ),
+                    "relative_impurity_occlusion": float(row["impurity_occlusion_multiplier"]),
                 },
             }
         )

@@ -279,9 +279,9 @@ class ChemWorldObservationKernel:
         )
         truth.update(downstream)
         from chemworld.runtime.full_process_contract import (
-            FULL_PROCESS_SEED_CONTRACT,
             active,
             population_active,
+            seed_provenance_active,
         )
 
         if active(state):
@@ -300,7 +300,7 @@ class ChemWorldObservationKernel:
                     "retained_seed_mol",
                     equipment_settings(state.equipment, "crystallizer").get("seed_target_mol", 0.0),
                 )
-                if state.metadata.get("full_process_contract_id") == FULL_PROCESS_SEED_CONTRACT:
+                if seed_provenance_active(state):
                     # A filtered slurry can be reheated, seeded or cooled again.
                     # Its current solid provenance supersedes the last filter receipt.
                     seed = equipment_settings(state.equipment, "crystallizer").get(

@@ -11,6 +11,7 @@ FULL_PROCESS_CONTRACT = "phase-resolved-process-v1"
 FULL_PROCESS_POPULATION_CONTRACT = "phase-resolved-process-v2"
 FULL_PROCESS_THERMAL_CONTRACT = "phase-resolved-process-v3"
 FULL_PROCESS_SEED_CONTRACT = "phase-resolved-process-v4"
+FULL_PROCESS_FREE_RESEARCH_CONTRACT = "phase-resolved-process-v5"
 FULL_PROCESS_TASKS = frozenset(
     {
         "reaction-to-purification",
@@ -26,6 +27,7 @@ def active(state: WorldState) -> bool:
         FULL_PROCESS_POPULATION_CONTRACT,
         FULL_PROCESS_THERMAL_CONTRACT,
         FULL_PROCESS_SEED_CONTRACT,
+        FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     }
 
 
@@ -34,6 +36,14 @@ def population_active(state: WorldState) -> bool:
         FULL_PROCESS_POPULATION_CONTRACT,
         FULL_PROCESS_THERMAL_CONTRACT,
         FULL_PROCESS_SEED_CONTRACT,
+        FULL_PROCESS_FREE_RESEARCH_CONTRACT,
+    }
+
+
+def seed_provenance_active(state: WorldState) -> bool:
+    return state.metadata.get("full_process_contract_id") in {
+        FULL_PROCESS_SEED_CONTRACT,
+        FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     }
 
 

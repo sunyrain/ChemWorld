@@ -48,12 +48,14 @@ def inspect_interruption(folder, home):
     return records, thread, usage
 
 
-def seal(unit, folder, home, *, reboot_time):
+def seal(unit, folder, home, *, reboot_time, classification="host_reboot"):
+    if classification not in ("host_reboot", "process_exit"):
+        raise ValueError("unsupported infrastructure interruption")
     if unit["system"] != "EC":
         raise ValueError("this diagnosed interruption is an EC source")
     if (folder / "result.json").exists():
         existing = read(folder / "result.json")
-        if existing.get("interruption", {}).get("classification") != "host_reboot":
+        if existing.get("interruption", {}).get("classification") != classification:
             raise ValueError("cannot relabel an existing result as a host interruption")
         return existing
     records, thread, usage = inspect_interruption(folder, home)
@@ -77,13 +79,18 @@ def seal(unit, folder, home, *, reboot_time):
         if not destination.exists():
             shutil.copytree(source, destination)
     failure = {
-        "type": "host_reboot",
-        "message": "Host restarted during source execution; "
-        "in-flight simulator/tool processes and terminal provider receipt were lost.",
+        "type": classification,
+        "message": (
+            "Host restarted during source execution; "
+            if classification == "host_reboot"
+            else "Execution processes disappeared during source execution; "
+        )
+        + "in-flight simulator/tool processes and terminal provider receipt were lost.",
     }
     interruption = {
-        "classification": "host_reboot",
-        "reboot_time": reboot_time,
+        "classification": classification,
+        "boundary": "source",
+        "reboot_time" if classification == "host_reboot" else "detected_time": reboot_time,
         "source_thread": thread,
         "retained_operations": len(records),
         "retained_final_assays": len(batches),
@@ -124,6 +131,9 @@ def seal(unit, folder, home, *, reboot_time):
         "recommendation": None,
         "elapsed_s": last_time.timestamp() - read(folder / "attempt.json")["started_epoch"],
     }
-    write(folder / "host-interruption.json", interruption)
+    name = (
+        "host-interruption.json" if classification == "host_reboot" else "process-interruption.json"
+    )
+    write(folder / name, interruption)
     write(folder / "result.json", result)
     return result

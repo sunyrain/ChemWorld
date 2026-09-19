@@ -10,10 +10,57 @@ import operator
 import sys
 import time
 from collections.abc import Callable
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
+
+
+@dataclass(frozen=True)
+class NumericsBudget:
+    """One saved policy for calculator admission and follow-up completion."""
+
+    limit: int = 8
+    on_exhaustion: str = "terminate_turn"
+
+    def __post_init__(self) -> None:
+        if type(self.limit) is not int or not 1 <= self.limit <= 256:
+            raise ValueError("numerics limit must be an integer in 1..256")
+        if self.on_exhaustion not in {"terminate_turn", "continue_answer"}:
+            raise ValueError("unknown numerics exhaustion policy")
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "version": "public-numerics-budget-v1",
+            "limit": self.limit,
+            "on_exhaustion": self.on_exhaustion,
+        }
+
+    @classmethod
+    def from_record(cls, record: dict[str, Any] | None) -> NumericsBudget:
+        if record is None:
+            return cls()  # Historical designs retain their eight-call hard stop.
+        if record.get("version") != "public-numerics-budget-v1":
+            raise ValueError("unknown saved numerics budget version")
+        return cls(limit=record["limit"], on_exhaustion=record["on_exhaustion"])
+
+    def disclosure(self) -> str:
+        if self.on_exhaustion == "terminate_turn":
+            return (
+                f"This follow-up allows {self.limit} calculator attempts, including invalid "
+                "expressions. Exceeding that allowance terminates the turn."
+            )
+        return (
+            f"This follow-up has {self.limit} public calculator attempts, including invalid "
+            "expressions. Scalar and array calculations share this allowance. Each response "
+            "reports attempts used and remaining. After exhaustion, further calculations are "
+            "rejected; submit your answer using existing evidence without retrying the tool. "
+            "The response deadline still applies."
+        )
+
+
+FOLLOWUP_NUMERICS = NumericsBudget(limit=128, on_exhaustion="continue_answer")
 
 FUNCTIONS: dict[str, Callable[..., Any]] = {
     "array": np.asarray,
@@ -103,7 +150,7 @@ def calculate(expression: str) -> Any:
         return _bounded(visit(tree.body))
 
 
-def serve(audit: Path, limit: int) -> None:
+def serve(audit: Path, limit: int, *, budget_feedback: bool = False) -> None:
     """Serve JSON-line MCP. All attempts are logged, including rejected expressions."""
     count = len(audit.read_text(encoding="utf-8").splitlines()) if audit.exists() else 0
     for line in sys.stdin:
@@ -132,6 +179,13 @@ def serve(audit: Path, limit: int) -> None:
                                 "No variables/files/network/simulator. "
                                 "For an intercept include a ones column in lstsq. "
                                 f"At most {limit} calls."
+                                + (
+                                    " All attempts count, including invalid expressions. "
+                                    "Responses report remaining attempts. Once exhausted, "
+                                    "submit your answer without further calculator calls."
+                                    if budget_feedback
+                                    else ""
+                                )
                             ),
                             "inputSchema": {
                                 "type": "object",
@@ -165,6 +219,18 @@ def serve(audit: Path, limit: int) -> None:
                     RecursionError,
                 ) as error:
                     row.update(status="rejected", error=type(error).__name__)
+                    if budget_feedback and count > limit:
+                        row.update(
+                            error_code="calculation_budget_exhausted",
+                            message="No calculator attempts remain. Submit your answer from "
+                            "existing evidence; do not retry this tool.",
+                        )
+                if budget_feedback:
+                    row["budget"] = {
+                        "limit": limit,
+                        "attempts_used": count,
+                        "remaining": max(0, limit - count),
+                    }
                 row["elapsed_s"] = time.perf_counter() - started
                 audit.parent.mkdir(parents=True, exist_ok=True)
                 with audit.open("a", encoding="utf-8") as handle:
@@ -191,10 +257,11 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--audit", type=Path, required=True)
     parser.add_argument("--limit", type=int, default=8)
+    parser.add_argument("--budget-feedback", action="store_true")
     args = parser.parse_args()
     if not math.isfinite(args.limit) or not 1 <= args.limit <= 256:
         raise ValueError("tool limit must be 1..256")
-    serve(args.audit, args.limit)
+    serve(args.audit, args.limit, budget_feedback=args.budget_feedback)
 
 
 if __name__ == "__main__":

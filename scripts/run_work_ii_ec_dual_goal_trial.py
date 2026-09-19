@@ -18,6 +18,7 @@ from scripts.run_work_ii_astra_single_trial import read, write
 from scripts.run_work_ii_final_diagnostic import build_command, launch
 from scripts.run_work_ii_study_b import _prepare_codex_home
 
+from chemworld.agents.diagnostic_numerics import FOLLOWUP_NUMERICS, NumericsBudget
 from chemworld.agents.interactive_codex_experiment import InteractiveCodexExperimentAgent
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
@@ -32,7 +33,7 @@ from chemworld.world.operations import operation_contracts
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "electrochemical-conversion"
-PROTOCOL_VERSION = "ec-free-research-development-v4-en"
+PROTOCOL_VERSION = "ec-free-research-development-v5-en"
 QUERY_VERSION = "ec-polarity-context-v2"
 LEGACY_QUERY_VERSION = "ec-positive-short-v1"
 PROVIDER = {
@@ -634,6 +635,9 @@ def schema(stage):
 
 
 def posttest(agent, folder, stage, thread_id, progress, *, design):
+    budget_record = design.get("posttest_numerics")
+    budget = NumericsBudget.from_record(budget_record)
+    budget_options = {"numerics_budget": budget} if budget_record is not None else {}
     workspace = agent.home_root / "followup"
     workspace.mkdir(exist_ok=True)
     schema_path = workspace / f"{stage}-schema.json"
@@ -643,7 +647,8 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
         "Continue your own completed research using your existing observations. "
         "No new laboratory experiments or external access. "
         "Only public_numerics.calculate is available. "
-        "Answer the current question in full; do not rewrite earlier sealed outputs.",
+        "Answer the current question in full; do not rewrite earlier sealed outputs."
+        + (" " + budget.disclosure() if budget_record is not None else ""),
         encoding="utf-8",
     )
     message = design.get(stage)
@@ -658,7 +663,13 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
         raise ValueError(f"missing saved {stage} prompt")
     audit = folder / f"{stage}-numerics.jsonl"
     command = build_command(
-        PROVIDER, schema_path, workspace, audit=audit, thread_id=thread_id, provider_retries=0
+        PROVIDER,
+        schema_path,
+        workspace,
+        audit=audit,
+        thread_id=thread_id,
+        provider_retries=0,
+        **budget_options,
     )
     command += [
         "-c",
@@ -678,6 +689,7 @@ def posttest(agent, folder, stage, thread_id, progress, *, design):
         True,
         audit,
         {**progress, "phase": stage},
+        **budget_options,
     )
     if not result.get("payload"):
         result["failure"] = result.get("failure") or "missing_payload"
@@ -922,6 +934,7 @@ def main():
     # Commit the actual questions and full recipe table before any physical/provider execution.
     frozen = {
         "protocol_version": PROTOCOL_VERSION,
+        "posttest_numerics": FOLLOWUP_NUMERICS.to_dict(),
         "units": args.units,
         "resource_card": resource_card().to_dict(),
         "model": PROVIDER["model"],
