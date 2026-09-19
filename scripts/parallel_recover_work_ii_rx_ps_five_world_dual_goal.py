@@ -25,9 +25,17 @@ if str(ROOT) not in sys.path:
 import scripts.recover_work_ii_rx_ps_five_world_dual_goal as recovery  # noqa: E402
 import scripts.run_work_ii_rx_ps_five_world_dual_goal as campaign  # noqa: E402
 
-RECOVERY_VERSION = "recovery-v10-parallel4-continue"
+RECOVERY_VERSION = "recovery-v11-parallel4-transport-repair"
 POSTTEST_REPAIRS = {
-    "RX-W03--S--mechanism_discovery--Opaque": ("Q", "K2"),
+    "RX-W04--S--safety_constrained_optimization--MisIndexed": ("K1", "Q", "K2"),
+    "RX-W05--S--mechanism_discovery--Opaque": ("K1", "Q", "K2"),
+}
+SOURCE_RERUNS = {
+    "RX-W05--S--mechanism_discovery--Aligned",
+    "RX-W05--S--mechanism_discovery--MisIndexed",
+    "RX-W05--S--safety_constrained_optimization--Opaque",
+    "RX-W05--S--safety_constrained_optimization--Aligned",
+    "RX-W05--S--safety_constrained_optimization--MisIndexed",
 }
 DEFAULT_WORKERS = 4
 HISTORICAL_MEDIAN_CELL_S = 703.3
@@ -50,6 +58,8 @@ def write(path: Path, payload: Any) -> None:
 def result_candidates(root: Path, cell_id: str) -> tuple[Path, ...]:
     folder = root / "sources" / cell_id
     return (
+        folder / "posttest-repair-v11" / "effective-result.json",
+        folder / "source-repair-v11" / "effective-result.json",
         folder / "posttest-repair-v10" / "effective-result.json",
         folder / "posttest-repair-v9" / "effective-result.json",
         folder / "posttest-repair-v8" / "effective-result.json",
@@ -86,6 +96,9 @@ def classify_schedule(
         if cell["cell_id"] in POSTTEST_REPAIRS and result.get("source_status") == "completed":
             pending.append(dict(cell))
             continue
+        if cell["cell_id"] in SOURCE_RERUNS and result.get("status") != "completed":
+            pending.append(dict(cell))
+            continue
         if is_zero_action_result(result) and source_repair_provenance(
             root / "sources" / str(cell["cell_id"])
         ):
@@ -112,7 +125,7 @@ def repair_posttests(
         "source-repair-"
     ):
         source_folder = original_path.parent / "sources" / cell_id
-    repair = original_folder / "posttest-repair-v10"
+    repair = original_folder / "posttest-repair-v11"
     effective_path = repair / "effective-result.json"
     if effective_path.exists():
         return read(effective_path)
@@ -120,9 +133,6 @@ def repair_posttests(
         raise RuntimeError(f"incomplete write-once posttest repair requires inspection: {cell_id}")
     if original.get("source_status") != "completed" or len(original.get("batches", [])) != 12:
         raise RuntimeError(f"posttest repair lacks a sealed twelve-batch source: {cell_id}")
-    if not original.get("posttests", {}).get("K1", {}).get("payload"):
-        raise RuntimeError(f"posttest repair has no valid K1 to preserve: {cell_id}")
-
     repair.mkdir(parents=True)
     receipts = read(source_folder / "source-receipts.json")
     thread_id = receipts[-1].get("thread_id") if receipts else None
@@ -191,6 +201,25 @@ def is_zero_action_result(result: Mapping[str, Any]) -> bool:
 
 
 def source_repair_provenance(folder: Path) -> tuple[str, tuple[Path, ...]] | None:
+    if folder.name in SOURCE_RERUNS:
+        resolved = resolve_result(folder.parents[1], folder.name)
+        if resolved is None:
+            return None
+        result_path, result = resolved
+        if result.get("status") == "completed" or result.get("posttest_chain_sealed") is True:
+            return None
+        evidence = tuple(
+            path
+            for path in (
+                folder / "attempt.json",
+                folder / "public-prior-binding.json",
+                result_path,
+            )
+            if path.exists()
+        )
+        if result_path not in evidence:
+            return None
+        return ("v10_provider_transport_failure", evidence)
     if is_preaction_partial(folder):
         return (
             "v7_cli_path_preaction_failure",
@@ -223,7 +252,7 @@ def rerun_preaction_source(
     if provenance is None:
         raise RuntimeError(f"cell is not an eligible pre-action platform failure: {cell_id}")
     provenance_kind, provenance_paths = provenance
-    repair_root = original_folder / "source-repair-v9"
+    repair_root = original_folder / "source-repair-v11"
     if repair_root.exists():
         raise RuntimeError(f"incomplete write-once source repair requires inspection: {cell_id}")
     manifest = {
@@ -236,12 +265,12 @@ def rerun_preaction_source(
             str(path.relative_to(original_folder)): recovery.file_sha256(path)
             for path in provenance_paths
         },
-        "original_operations": 0,
-        "original_batches": 0,
+        "original_operations": int((resolve_result(root, cell_id) or ({}, {}))[1].get("operations") or 0),
+        "original_batches": len((resolve_result(root, cell_id) or ({}, {}))[1].get("batches", [])),
         "frozen_cell_reused": True,
         "deterministic_seeds_reused": True,
         "truth_revealed_to_agent": False,
-        "platform_fix": "newly authenticated local Codex cache securely synchronized to the remote host",
+        "platform_fix": "persistent SSH reverse proxy tunnel restored and verified before relaunch",
     }
     write(repair_root / "manifest.json", manifest)
     result = campaign.run_cell(
@@ -471,7 +500,7 @@ def main() -> None:
 
     complete, pending = classify_schedule(root, validated["schedule"])
     pending_ids = [str(cell["cell_id"]) for cell in pending]
-    if len(complete) != 33 or len(pending) != 27 or pending_ids[0] not in POSTTEST_REPAIRS:
+    if len(complete) != 53 or len(pending) != 7 or set(pending_ids) != POSTTEST_REPAIRS.keys() | SOURCE_RERUNS:
         raise RuntimeError(
             f"unexpected recovery frontier: complete={len(complete)} pending={len(pending)} first={pending_ids[:1]}"
         )
@@ -482,8 +511,10 @@ def main() -> None:
         if cell["cell_id"] not in POSTTEST_REPAIRS
         and (root / "sources" / str(cell["cell_id"])).exists()
     ]
-    if not all(source_repair_provenance(root / "sources" / cell_id) for cell_id in source_repairs):
-        raise RuntimeError("an existing pending source is not a retained zero-action platform failure")
+    if set(source_repairs) != SOURCE_RERUNS or not all(
+        source_repair_provenance(root / "sources" / cell_id) for cell_id in source_repairs
+    ):
+        raise RuntimeError("an existing pending source is not an authorized retained transport failure")
 
     recovery_root = root / RECOVERY_VERSION
     recovery_root.mkdir(parents=True, exist_ok=False)
@@ -500,8 +531,8 @@ def main() -> None:
         "posttest_repairs": {
             cell_id: list(stages) for cell_id, stages in POSTTEST_REPAIRS.items()
         },
-        "retained_zero_action_source_failures": source_repairs,
-        "new_source_cells": len(pending) - 1,
+        "retained_transport_source_failures": source_repairs,
+        "new_source_cells": 0,
         "truth_revealed_before_all_cells_sealed": False,
         "historical_median_cell_s": HISTORICAL_MEDIAN_CELL_S,
         "initial_source_eta_s": HISTORICAL_MEDIAN_CELL_S * 7,
@@ -532,7 +563,7 @@ def main() -> None:
                 json.dumps(
                     {
                         **state,
-                        "effective_tasks": 25 + done,
+                        "effective_tasks": 53 + done,
                         "elapsed_s": round(elapsed),
                         "eta_s": round(eta),
                     }
