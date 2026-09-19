@@ -146,8 +146,31 @@ def _thread_id(folder: Path) -> str:
     return str(thread_id)
 
 
+def source_receipt_folder(root: Path, cell_id: str, preferred: Path) -> Path:
+    """Find the newest durable source receipts without discarding later thread state."""
+    candidates = [preferred]
+    base = root / "recoveries" / cell_id
+    if base.is_dir():
+        for manifest in sorted(base.glob("attempt-*/recovery.json"), reverse=True):
+            record = eq.read(manifest)
+            result_path = Path(record["result_path"])
+            if not result_path.is_absolute():
+                result_path = root / result_path
+            candidates.append(result_path.parent)
+    candidates.append(root / "sources" / cell_id)
+    for folder in candidates:
+        if (folder / "private-provider" / "source-receipts.json").is_file():
+            return folder
+    return preferred
+
+
 def recover_posttests(
-    config: Mapping[str, Any], original: Mapping[str, Any], folder: Path, output: Path
+    config: Mapping[str, Any],
+    original: Mapping[str, Any],
+    folder: Path,
+    output: Path,
+    *,
+    receipt_folder: Path | None = None,
 ) -> dict[str, Any]:
     """Reuse a completed source thread; never rerun its laboratory trajectory."""
     result = copy.deepcopy(dict(original))
@@ -158,11 +181,20 @@ def recover_posttests(
     home.mkdir(parents=True)
     environment = _prepare_codex_home(home, eq.PROVIDER)
     source_sessions = folder / "private-provider" / "home" / "codex-home" / "sessions"
+    receipt_folder = receipt_folder or folder
+    if not source_sessions.is_dir():
+        source_sessions = (
+            receipt_folder / "private-provider" / "home" / "codex-home" / "sessions"
+        )
     if not source_sessions.is_dir():
         raise RuntimeError("completed EQ source has no resumable session store")
     shutil.copytree(source_sessions, home / "codex-home" / "sessions")
+    shutil.copyfile(
+        receipt_folder / "private-provider" / "source-receipts.json",
+        private / "source-receipts.json",
+    )
     agent = SimpleNamespace(home_root=home, followup_environment=environment)
-    thread_id = _thread_id(folder)
+    thread_id = _thread_id(receipt_folder)
     query_rows = eq.queries(config)
     started = time.monotonic()
     for stage in STAGES:
@@ -216,7 +248,8 @@ def recover_one(
     if previous is not None:
         original, result_path = previous
         folder = result_path.parent
-    kind = recovery_kind(original, folder)
+    receipts = source_receipt_folder(root, cell["cell_id"], folder)
+    kind = recovery_kind(original, receipts)
     if kind is None:
         return None
     output = root / "recoveries" / cell["cell_id"] / f"attempt-{attempt:02d}"
@@ -237,7 +270,13 @@ def recover_one(
     )
     if kind == "posttests":
         assert original is not None
-        result = recover_posttests(config, original, folder, output)
+        result = recover_posttests(
+            config,
+            original,
+            folder,
+            output,
+            receipt_folder=receipts,
+        )
         result_path = output / "RESULT.json"
     else:
         progress: dict[str, Any] = {}
@@ -254,6 +293,7 @@ def recover_one(
         "result_path": os.path.relpath(result_path, root),
         "original_preserved": True,
         "truth_revealed_to_agent": False,
+        "source_receipt_folder": os.path.relpath(receipts, root),
         "completed_epoch": time.time(),
     }
     eq.write(output / "recovery.json", record)

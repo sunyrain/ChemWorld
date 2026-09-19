@@ -1,6 +1,6 @@
 # Work II EQ bounded-aqueous-equilibrium experiment note
 
-Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.4 operational freeze prepared after the first complete source exposed a posttest-budget monitor mismatch. One coordinator may use isolated source workers after the canary. The scientific contract was fixed before the first scientific action and remains unchanged.
+Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.5 operational freeze prepared for the single authorized provider-timeout recovery of W01 Opaque K1. One coordinator may use isolated source workers after the canary. The scientific contract was fixed before the first scientific action and remains unchanged.
 
 ## Question and denominator
 
@@ -41,3 +41,5 @@ The first remote canary launch failed before Agent construction because the deta
 Recovery attempt 02 started provider processes without the login-shell proxy and retained uniform pre-action network failures. Attempt 03 used the proxy but the three concurrent NFS-backed laboratory MCP processes exceeded the inherited 30-second startup handshake; all failed before a model response or scientific action. A provider-free timing check showed that even a serial laboratory-MCP module import could exceed 48 seconds. Protocol v1.3 therefore sets an EQ-specific 180-second MCP startup allowance and requires the canary arms to start serially. This changes only host startup tolerance, not any scientific or model budget.
 
 Under v1.3, W01 Opaque completed 12/12 source batches with exact replay and no rollback. Its first K1 turn then exposed a previously inherited outer monitor limit of eight calculator attempts, despite the already frozen MCP calculator limit of 128. The original K1 failure is retained with no payload and no truth exposure. Protocol v1.4 passes the same 128-call, continue-answer budget to the outer monitor and makes recovery select the latest durable complete source rather than the initial zero-operation directory. Recovery therefore resumes K1 on the same source thread without rerunning any physical batch.
+
+The v1.4 K1 recovery used the original source thread and no calculator, but the provider returned no payload before the frozen 1200-second turn timeout. That timeout is retained as a provider failure. Protocol v1.5 makes no budget change: it records the newest posttest session state separately from the older complete-source receipt directory, allowing exactly one provider-timeout retry on the same thread. The complete source remains unchanged and truth remains embargoed.

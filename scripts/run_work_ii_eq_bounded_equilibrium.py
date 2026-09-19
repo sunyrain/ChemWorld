@@ -35,7 +35,7 @@ from chemworld.research_brief import VERSION as RESEARCH_BRIEF_VERSION
 from chemworld.tasks import get_task
 
 CONFIG = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json"
-FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.4.json"
+FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.5.json"
 TASK = "equilibrium-characterization"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("pH_normalized", "acid_dissociation_fraction", "precipitation_signal")

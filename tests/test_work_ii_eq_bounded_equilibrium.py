@@ -250,6 +250,30 @@ def test_latest_recovery_can_select_retained_complete_source(tmp_path: Path) -> 
     assert selected[1] == result_path
 
 
+def test_source_receipts_can_precede_latest_posttest_context(tmp_path: Path) -> None:
+    latest = tmp_path / "recoveries" / "EQ-W01--Opaque" / "attempt-05"
+    source = (
+        tmp_path
+        / "recoveries"
+        / "EQ-W01--Opaque"
+        / "attempt-04"
+        / "execution"
+        / "sources"
+        / "EQ-W01--Opaque"
+    )
+    eq.write(source / "private-provider" / "source-receipts.json", [{"thread_id": "private"}])
+    result_path = source / "RESULT.json"
+    eq.write(result_path, {"status": "retained_nonconforming"})
+    eq.write(
+        source.parents[2] / "recovery.json",
+        {"result_path": str(result_path.relative_to(tmp_path))},
+    )
+
+    assert recovery.source_receipt_folder(
+        tmp_path, "EQ-W01--Opaque", latest
+    ) == source
+
+
 def test_public_export_rejects_private_field_names() -> None:
     with pytest.raises(RuntimeError, match="private field"):
         exporter._assert_public({"thread_id_sha256": "hidden"})
