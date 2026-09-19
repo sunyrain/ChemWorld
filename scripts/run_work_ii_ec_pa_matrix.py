@@ -19,6 +19,7 @@ from scripts.run_work_ii_astra_single_trial import read, write
 
 from chemworld.agents.experiment_codex_mcp import ChemWorldMCPServer
 from chemworld.data.logging import load_jsonl
+from chemworld.eval.provenance import write_json_atomic
 from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 
 VERSION = "ec-pa-five-world-budget-matrix-en-v1"
@@ -360,6 +361,137 @@ def export_source(unit, result, folder, out, design):
     return row
 
 
+def save_matrix_state(root, report, state, progress, *, elapsed_s):
+    rows = state["results"]
+    effective = [effective_row(r) for r in rows]
+    attempted = [r for r in rows if r["status"] in ("completed", "failed")]
+    recoveries = [
+        r.get("infrastructure_recovery") or r.get("network_recovery")
+        for r in rows
+        if r.get("infrastructure_recovery") or r.get("network_recovery")
+    ]
+    successful = [r for r in effective if r["status"] == "completed"]
+    total_elapsed = sum(r.get("elapsed_s") or 0 for r in successful)
+    progress.update(
+        completed_sources=len(attempted),
+        elapsed_s=elapsed_s,
+    )
+    if not state.get("parallel_execution"):
+        progress.update(
+            sources_per_hour=len(successful) / total_elapsed * 3600 if total_elapsed else None,
+            eta_s=total_elapsed / len(successful) * (len(rows) - len(attempted))
+            if successful
+            else None,
+        )
+    state.update(
+        version=VERSION,
+        development_only=True,
+        formal_result=False,
+        progress=dict(progress),
+        planned_sources=len(rows),
+        planned_source_batches=sum(r["budget"] for r in rows),
+        attempted_sources=len(attempted),
+        completed_sources=len(successful),
+        first_attempt_completed_sources=sum(r["status"] == "completed" for r in rows),
+        source_batches=sum(r.get("completed_batches", 0) for r in rows)
+        + sum(r["new_source_batches"] for r in recoveries),
+        effective_source_batches=sum(r.get("completed_batches", 0) for r in effective),
+        posttests_completed=sum(r.get("posttests_completed", 0) for r in effective),
+        reference_batches=sum(r["completed_batches"] for r in state["references"].values()),
+        reference_operations=sum(r["operations"] for r in state["references"].values()),
+        extra_verification_operations=sum(
+            i.get("additional_replay_operations", 0) for i in state.get("preparation_incidents", [])
+        )
+        + sum(
+            r.get("interruption", {}).get("additional_replay_operations", 0)
+            for r in rows
+            if r.get("interruption")
+        ),
+        retries=len(recoveries),
+        host_recoveries=sum(
+            r["kind"] == "fresh_source_after_host_interruption" for r in recoveries
+        ),
+        additional_source_attempts=sum(r["new_source_attempts"] for r in recoveries),
+        additional_posttest_attempts=sum(r["new_posttest_attempts"] for r in recoveries),
+    )
+    write_json_atomic(root / "summary.json", state)
+    # Public ledger omits reference answers and material packets until source completion.
+    public = {k: v for k, v in state.items() if k not in ("references", "entries")}
+    write_json_atomic(report / "summary.json", public)
+    lines = [
+        "# EC and PA: five worlds, two budgets, three prior arms",
+        "",
+        "[Fixed design and preparation incident](../../WORK_II_EC_PA_FIVE_WORLD_NOTE.md).",
+        "",
+        f"Status: **{state['status']}**. Model: GPT-5.6 Sol / medium. English protocol.",
+        "",
+        f"Sources attempted: {len(attempted)}/{len(rows)}; "
+        f"completed: {state['completed_sources']}. "
+        f"Current logical-source batches: {state['effective_source_batches']}/"
+        f"{state['planned_source_batches']}; "
+        f"posttests: {state['posttests_completed']}/{3 * len(rows)}.",
+        f"Physical source final assays across all attempts: {state['source_batches']}. "
+        "Interrupted and replacement attempts are both charged.",
+        "",
+        f"Reference batches: {state['reference_batches']}/120; operations: "
+        f"{state['reference_operations']}/900. "
+        "Exact replay and EC recommendation retests are additional.",
+        "Additional verification operations after preparation corrections: "
+        f"{state['extra_verification_operations']}.",
+        "",
+        "E: 90 sources / 1,620 planned batches / 270 posttests. "
+        "The EC P/S pilot, if enabled, follows all E sources: "
+        "12 sources / 144 batches / 36 posttests.",
+        "",
+        f"First-attempt completions: {state['first_attempt_completed_sources']}; "
+        f"infrastructure recovery attempts: {state['retries']} "
+        f"(host-reboot replacements: {state['host_recoveries']}). "
+        f"Additional source attempts: {state['additional_source_attempts']}; "
+        f"additional posttest attempts: {state['additional_posttest_attempts']}. "
+        "Completion totals above include separately recorded recoveries. "
+        "The table retains first-attempt outcomes.",
+        "",
+        "| Unit | Status | Batches | Posttests | English output |",
+        "| --- | --- | ---: | ---: | --- |",
+    ]
+    for row in rows:
+        label = (
+            f"[{row['unit_id']}]({row['unit_id']}/REPORT.md)"
+            if row.get("exported")
+            else row["unit_id"]
+        )
+        lines.append(
+            f"| {label} | {row['status']} | "
+            f"{row.get('completed_batches', 0)}/{row['budget']} | "
+            f"{row.get('posttests_completed', 0)}/3 | {row.get('english_output', '')} |"
+        )
+        recovery = row.get("infrastructure_recovery") or row.get("network_recovery")
+        if recovery:
+            restored = recovery["row"]
+            lines.append(
+                f"| ↳ [Infrastructure recovery]({recovery['report_path']}) | "
+                f"{restored['status']} ({recovery['kind']}) | "
+                f"{restored['completed_batches']}/{row['budget']} | "
+                f"{restored['posttests_completed']}/3 | {restored['english_output']} |"
+            )
+    lines += [
+        "",
+        "## Live progress",
+        "",
+        "```json",
+        json.dumps(progress, indent=2),
+        "```",
+        "",
+        "All failures remain in the planned denominator. "
+        "No result-based retries or substitutions. "
+        "Single observations per cell do not establish general budget effects.",
+        "",
+    ]
+    if state.get("failure"):
+        lines += ["## Failure", "", str(state["failure"]), ""]
+    (report / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
+
+
 def run(
     root,
     report,
@@ -436,132 +568,7 @@ def run(
         state["network_recovery_policy"] = amendment
 
     def save():
-        rows = state["results"]
-        effective = [effective_row(r) for r in rows]
-        attempted = [r for r in rows if r["status"] in ("completed", "failed")]
-        recoveries = [
-            r.get("infrastructure_recovery") or r.get("network_recovery")
-            for r in rows
-            if r.get("infrastructure_recovery") or r.get("network_recovery")
-        ]
-        successful = [r for r in effective if r["status"] == "completed"]
-        total_elapsed = sum(r.get("elapsed_s") or 0 for r in successful)
-        progress.update(
-            completed_sources=len(attempted),
-            elapsed_s=time.monotonic() - started,
-            sources_per_hour=len(successful) / total_elapsed * 3600 if total_elapsed else None,
-            eta_s=total_elapsed / len(successful) * (len(rows) - len(attempted))
-            if successful
-            else None,
-        )
-        state.update(
-            version=VERSION,
-            development_only=True,
-            formal_result=False,
-            progress=dict(progress),
-            planned_sources=len(rows),
-            planned_source_batches=sum(r["budget"] for r in rows),
-            attempted_sources=len(attempted),
-            completed_sources=len(successful),
-            first_attempt_completed_sources=sum(r["status"] == "completed" for r in rows),
-            source_batches=sum(r.get("completed_batches", 0) for r in rows)
-            + sum(r["new_source_batches"] for r in recoveries),
-            effective_source_batches=sum(r.get("completed_batches", 0) for r in effective),
-            posttests_completed=sum(r.get("posttests_completed", 0) for r in effective),
-            reference_batches=sum(r["completed_batches"] for r in state["references"].values()),
-            reference_operations=sum(r["operations"] for r in state["references"].values()),
-            extra_verification_operations=sum(
-                i.get("additional_replay_operations", 0)
-                for i in state.get("preparation_incidents", [])
-            )
-            + sum(
-                r.get("interruption", {}).get("additional_replay_operations", 0)
-                for r in rows
-                if r.get("interruption")
-            ),
-            retries=len(recoveries),
-            host_recoveries=sum(
-                r["kind"] == "fresh_source_after_host_interruption" for r in recoveries
-            ),
-            additional_source_attempts=sum(r["new_source_attempts"] for r in recoveries),
-            additional_posttest_attempts=sum(r["new_posttest_attempts"] for r in recoveries),
-        )
-        write(root / "summary.json", state)
-        # Public ledger omits reference answers and material packets until source completion.
-        public = {k: v for k, v in state.items() if k not in ("references", "entries")}
-        write(report / "summary.json", public)
-        lines = [
-            "# EC and PA: five worlds, two budgets, three prior arms",
-            "",
-            "[Fixed design and preparation incident](../../WORK_II_EC_PA_FIVE_WORLD_NOTE.md).",
-            "",
-            f"Status: **{state['status']}**. Model: GPT-5.6 Sol / medium. English protocol.",
-            "",
-            f"Sources attempted: {len(attempted)}/{len(rows)}; "
-            f"completed: {state['completed_sources']}. "
-            f"Current logical-source batches: {state['effective_source_batches']}/"
-            f"{state['planned_source_batches']}; "
-            f"posttests: {state['posttests_completed']}/{3 * len(rows)}.",
-            f"Physical source final assays across all attempts: {state['source_batches']}. "
-            "Interrupted and replacement attempts are both charged.",
-            "",
-            f"Reference batches: {state['reference_batches']}/120; operations: "
-            f"{state['reference_operations']}/900. "
-            "Exact replay and EC recommendation retests are additional.",
-            "Additional verification operations after preparation corrections: "
-            f"{state['extra_verification_operations']}.",
-            "",
-            "E: 90 sources / 1,620 planned batches / 270 posttests. "
-            "The EC P/S pilot, if enabled, follows all E sources: "
-            "12 sources / 144 batches / 36 posttests.",
-            "",
-            f"First-attempt completions: {state['first_attempt_completed_sources']}; "
-            f"infrastructure recovery attempts: {state['retries']} "
-            f"(host-reboot replacements: {state['host_recoveries']}). "
-            f"Additional source attempts: {state['additional_source_attempts']}; "
-            f"additional posttest attempts: {state['additional_posttest_attempts']}. "
-            "Completion totals above include separately recorded recoveries. "
-            "The table retains first-attempt outcomes.",
-            "",
-            "| Unit | Status | Batches | Posttests | English output |",
-            "| --- | --- | ---: | ---: | --- |",
-        ]
-        for row in rows:
-            label = (
-                f"[{row['unit_id']}]({row['unit_id']}/REPORT.md)"
-                if row.get("exported")
-                else row["unit_id"]
-            )
-            lines.append(
-                f"| {label} | {row['status']} | "
-                f"{row.get('completed_batches', 0)}/{row['budget']} | "
-                f"{row.get('posttests_completed', 0)}/3 | {row.get('english_output', '')} |"
-            )
-            recovery = row.get("infrastructure_recovery") or row.get("network_recovery")
-            if recovery:
-                restored = recovery["row"]
-                lines.append(
-                    f"| ↳ [Infrastructure recovery]({recovery['report_path']}) | "
-                    f"{restored['status']} ({recovery['kind']}) | "
-                    f"{restored['completed_batches']}/{row['budget']} | "
-                    f"{restored['posttests_completed']}/3 | {restored['english_output']} |"
-                )
-        lines += [
-            "",
-            "## Live progress",
-            "",
-            "```json",
-            json.dumps(progress, indent=2),
-            "```",
-            "",
-            "All failures remain in the planned denominator. "
-            "No result-based retries or substitutions. "
-            "Single observations per cell do not establish general budget effects.",
-            "",
-        ]
-        if state.get("failure"):
-            lines += ["## Failure", "", str(state["failure"]), ""]
-        (report / "REPORT.md").write_text("\n".join(lines), encoding="utf-8")
+        save_matrix_state(root, report, state, progress, elapsed_s=time.monotonic() - started)
 
     stopped = threading.Event()
 
