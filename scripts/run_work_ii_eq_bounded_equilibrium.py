@@ -34,7 +34,7 @@ from chemworld.research_brief import VERSION as RESEARCH_BRIEF_VERSION
 from chemworld.tasks import get_task
 
 CONFIG = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json"
-FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.1.json"
+FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.2.json"
 TASK = "equilibrium-characterization"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("pH_normalized", "acid_dissociation_fraction", "precipitation_signal")
@@ -801,9 +801,7 @@ def run_cell(
         return read(result_path)
     if folder.exists():
         raise RuntimeError(f"incomplete write-once cell requires recovery: {cell['cell_id']}")
-    folder.mkdir(parents=True)
-    private_folder = folder / "private-provider"
-    private_folder.mkdir()
+    private_folder = create_cell_folders(folder)
     prior = public_prior(config, cell["world_id"], cell["arm"])
     write(
         folder / "public-input-binding.json",
@@ -946,6 +944,15 @@ def run_cell(
     result["elapsed_s"] = time.monotonic() - started
     write(result_path, result)
     return result
+
+
+def create_cell_folders(folder: Path) -> Path:
+    """Create every write-once parent required before the provider process can launch."""
+    folder.mkdir(parents=True)
+    private_folder = folder / "private-provider"
+    private_folder.mkdir()
+    (private_folder / "source").mkdir()
+    return private_folder
 
 
 def evaluate_predictions(

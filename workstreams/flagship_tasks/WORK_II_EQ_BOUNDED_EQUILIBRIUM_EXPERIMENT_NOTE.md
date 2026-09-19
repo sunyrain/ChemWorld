@@ -1,6 +1,6 @@
 # Work II EQ bounded-aqueous-equilibrium experiment note
 
-Date: 2026-09-20. Status: v1.1 provider-free gate passed; provider remains sealed until the immutable source and gate bindings are committed in the freeze manifest. One coordinator may use isolated source workers after the canary. This note fixes the whole block before any provider call.
+Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.2 operational freeze prepared after retained zero-call startup failures. One coordinator may use isolated source workers after the canary. This note fixes the whole block before any successful provider launch.
 
 ## Question and denominator
 
@@ -35,3 +35,5 @@ The ignored run directory contains frozen design bindings, raw trajectories, pri
 The v1.1 provider-free run completed 15/15 keyed-noise campaigns, 180/180 batches, and 15/15 exact replays with zero provider calls. All twelve registered checks passed without changing thresholds: the best fixed probe had a 0.17246 minimum adjacent-world pH gap and 6.232 minimum adjacent separation in pooled-noise standard deviations; within-world pH spans were 1.0431--1.5382, acid-dissociation spans were 0.3831--0.6479, and precipitation-signal spans were 0.1530--0.1597. The failed v1 evidence remains retained; v1.1 changes only the Q coordinates under the repair protocol.
 
 The recovery runner preserves every original cell and creates numbered write-once attempts. A complete, exactly replayed source resumes only missing or invalid same-thread K1/Q/K2 turns; a partial source may restart only in an independent recovery directory and is not counted as a new scientific sample. The final exporter selects one complete effective result per frozen cell, publishes the five-repeat truth and blind scores only after all K2 turns seal, and rejects private field names from public JSON.
+
+The first remote canary launch failed before Agent construction because the detached shell did not expose the installed Codex executable. Recovery attempt 01 then failed before provider-process construction because the private source-output parent had not been created. Both attempts recorded zero operations, zero accepted model calls, zero provider-process attempts, and no scientific output. Protocol v1.2 fixes only those launch prerequisites by injecting the already-authorized executable path and pre-creating the private output parent; the original failures remain retained and the next recovery starts from batch 1.

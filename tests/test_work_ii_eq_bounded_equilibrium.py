@@ -174,6 +174,15 @@ def test_interrupted_snapshot_selects_fresh_source_when_no_result(tmp_path: Path
     assert recovery.recovery_kind(snapshot, folder) == "fresh_source"
 
 
+def test_cell_folder_setup_precreates_private_source_output(tmp_path: Path) -> None:
+    folder = tmp_path / "cell"
+
+    private = eq.create_cell_folders(folder)
+
+    assert private == folder / "private-provider"
+    assert (private / "source").is_dir()
+
+
 def test_public_export_rejects_private_field_names() -> None:
     with pytest.raises(RuntimeError, match="private field"):
         exporter._assert_public({"thread_id_sha256": "hidden"})
