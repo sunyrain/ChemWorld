@@ -266,6 +266,7 @@ def source_row(unit, result):
         "exact_replay": source.get("exact_replay", {}),
         "failure": result.get("failure"),
         "source_failure": result.get("source_failure") if is_ec else source.get("failure"),
+        "interruption": result.get("interruption"),
         "prediction_evaluation": result.get("prediction_evaluation"),
         "token_accounting": accounting,
         "elapsed_s": result.get("elapsed_s"),
@@ -359,7 +360,17 @@ def export_source(unit, result, folder, out, design):
     return row
 
 
-def run(root, report, *, include_ps=False, prepare_only=False, recover_network=False):
+def run(
+    root,
+    report,
+    *,
+    include_ps=False,
+    prepare_only=False,
+    recover_network=False,
+    recover_host_unit=None,
+    interrupted_home=None,
+    host_reboot_time=None,
+):
     planned = units(include_ps=include_ps)
     prompts = {
         s: {
@@ -428,7 +439,11 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
         rows = state["results"]
         effective = [effective_row(r) for r in rows]
         attempted = [r for r in rows if r["status"] in ("completed", "failed")]
-        recoveries = [r["network_recovery"] for r in rows if r.get("network_recovery")]
+        recoveries = [
+            r.get("infrastructure_recovery") or r.get("network_recovery")
+            for r in rows
+            if r.get("infrastructure_recovery") or r.get("network_recovery")
+        ]
         successful = [r for r in effective if r["status"] == "completed"]
         total_elapsed = sum(r.get("elapsed_s") or 0 for r in successful)
         progress.update(
@@ -451,14 +466,23 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
             first_attempt_completed_sources=sum(r["status"] == "completed" for r in rows),
             source_batches=sum(r.get("completed_batches", 0) for r in rows)
             + sum(r["new_source_batches"] for r in recoveries),
+            effective_source_batches=sum(r.get("completed_batches", 0) for r in effective),
             posttests_completed=sum(r.get("posttests_completed", 0) for r in effective),
             reference_batches=sum(r["completed_batches"] for r in state["references"].values()),
             reference_operations=sum(r["operations"] for r in state["references"].values()),
             extra_verification_operations=sum(
                 i.get("additional_replay_operations", 0)
                 for i in state.get("preparation_incidents", [])
+            )
+            + sum(
+                r.get("interruption", {}).get("additional_replay_operations", 0)
+                for r in rows
+                if r.get("interruption")
             ),
             retries=len(recoveries),
+            host_recoveries=sum(
+                r["kind"] == "fresh_source_after_host_interruption" for r in recoveries
+            ),
             additional_source_attempts=sum(r["new_source_attempts"] for r in recoveries),
             additional_posttest_attempts=sum(r["new_posttest_attempts"] for r in recoveries),
         )
@@ -475,8 +499,11 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
             "",
             f"Sources attempted: {len(attempted)}/{len(rows)}; "
             f"completed: {state['completed_sources']}. "
-            f"Source batches: {state['source_batches']}/{state['planned_source_batches']}; "
+            f"Current logical-source batches: {state['effective_source_batches']}/"
+            f"{state['planned_source_batches']}; "
             f"posttests: {state['posttests_completed']}/{3 * len(rows)}.",
+            f"Physical source final assays across all attempts: {state['source_batches']}. "
+            "Interrupted and replacement attempts are both charged.",
             "",
             f"Reference batches: {state['reference_batches']}/120; operations: "
             f"{state['reference_operations']}/900. "
@@ -489,7 +516,8 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
             "12 sources / 144 batches / 36 posttests.",
             "",
             f"First-attempt completions: {state['first_attempt_completed_sources']}; "
-            f"network recovery attempts: {state['retries']}. "
+            f"infrastructure recovery attempts: {state['retries']} "
+            f"(host-reboot replacements: {state['host_recoveries']}). "
             f"Additional source attempts: {state['additional_source_attempts']}; "
             f"additional posttest attempts: {state['additional_posttest_attempts']}. "
             "Completion totals above include separately recorded recoveries. "
@@ -509,11 +537,11 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
                 f"{row.get('completed_batches', 0)}/{row['budget']} | "
                 f"{row.get('posttests_completed', 0)}/3 | {row.get('english_output', '')} |"
             )
-            recovery = row.get("network_recovery")
+            recovery = row.get("infrastructure_recovery") or row.get("network_recovery")
             if recovery:
                 restored = recovery["row"]
                 lines.append(
-                    f"| ↳ [Network recovery]({recovery['report_path']}) | "
+                    f"| ↳ [Infrastructure recovery]({recovery['report_path']}) | "
                     f"{restored['status']} ({recovery['kind']}) | "
                     f"{restored['completed_batches']}/{row['budget']} | "
                     f"{restored['posttests_completed']}/3 | {restored['english_output']} |"
@@ -548,7 +576,10 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
 
     def repair_network(index, unit, result, folder, source_design):
         row = state["results"][index]
-        if recover_network and not row.get("network_recovery"):
+        host_restart = unit["unit_id"] == recover_host_unit
+        if (recover_network or host_restart) and not (
+            row.get("network_recovery") or row.get("infrastructure_recovery")
+        ):
             recovery = recover(
                 root,
                 report,
@@ -558,17 +589,42 @@ def run(root, report, *, include_ps=False, prepare_only=False, recover_network=F
                 source_design,
                 state["references"][unit["world"]["world_id"]]["truth"],
                 progress,
+                host_restart=host_restart,
             )
             if recovery:
-                row["network_recovery"] = recovery
+                row["infrastructure_recovery" if host_restart else "network_recovery"] = recovery
                 save()
                 # Stop only if transport recovery itself failed; scientific invalidity is retained.
                 recovered_result = read(Path(recovery["result_path"]))
                 if recovered_result.get("failure"):
-                    raise RuntimeError(f"network recovery failed: {unit['unit_id']}")
+                    raise RuntimeError(f"infrastructure recovery failed: {unit['unit_id']}")
         return effective_row(row)
 
     try:
+        if recover_host_unit:
+            from scripts.seal_work_ii_ec_host_interruption import seal
+
+            if not interrupted_home or not host_reboot_time:
+                raise ValueError(
+                    "host recovery requires the retained home and diagnosed reboot time"
+                )
+            index = next(i for i, u in enumerate(planned) if u["unit_id"] == recover_host_unit)
+            unit = planned[index]
+            parent = root / "sources" / unit["unit_id"]
+            folder = parent / f"{unit['goal']}-{unit['locus']}-{unit['arm']}"
+            progress.update(stage="verify_host_interruption", unit=unit["unit_id"])
+            if not state["results"][index].get("infrastructure_recovery"):
+                if state["results"][index]["status"] not in ("running", "failed"):
+                    raise ValueError("cannot replace a completed or unstarted source")
+                result = seal(unit, folder, interrupted_home, reboot_time=host_reboot_time)
+                state["results"][index] = source_row(unit, result)
+                export_source(
+                    unit, result, folder, report / unit["unit_id"], read(parent / "design.json")
+                )
+                state["results"][index]["exported"] = True
+                state.setdefault("runtime_incidents", []).append(result["interruption"])
+                save()
+                repair_network(index, unit, result, folder, read(parent / "design.json"))
         save()
         if not state["entries"]:
             for system in ("EC", "PA"):
@@ -712,6 +768,9 @@ def main():
     parser.add_argument("--include-ec-ps", action="store_true")
     parser.add_argument("--prepare-only", action="store_true")
     parser.add_argument("--recover-network", action="store_true")
+    parser.add_argument("--recover-host-interruption", dest="recover_host_unit")
+    parser.add_argument("--interrupted-home", type=Path)
+    parser.add_argument("--host-reboot-time")
     args = parser.parse_args()
     run(
         args.output.resolve(),
@@ -719,6 +778,9 @@ def main():
         include_ps=args.include_ec_ps,
         prepare_only=args.prepare_only,
         recover_network=args.recover_network,
+        recover_host_unit=args.recover_host_unit,
+        interrupted_home=args.interrupted_home,
+        host_reboot_time=args.host_reboot_time,
     )
 
 

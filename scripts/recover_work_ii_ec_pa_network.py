@@ -139,20 +139,26 @@ def recover_posttests(unit, original, folder, output, design, truth, progress):
     return result
 
 
-def recover(root, report, unit, original, folder, design, truth, progress):
+def recover(root, report, unit, original, folder, design, truth, progress, *, host_restart=False):
     """One separately recorded recovery per logical source; idempotent after completion."""
     from scripts import run_work_ii_ec_pa_matrix as matrix
 
     output = root / "recoveries" / unit["unit_id"] / "attempt-1"
     if (output / "recovery.json").is_file():
         return read(output / "recovery.json")
-    kind = recovery_kind(unit, original, folder)
+    if host_restart and original.get("interruption", {}).get("classification") != "host_reboot":
+        raise ValueError("host restart requires the diagnosed retained interruption")
+    kind = (
+        "fresh_source_after_host_interruption"
+        if host_restart
+        else recovery_kind(unit, original, folder)
+    )
     if kind is None:
         return None
     progress.pop("provider_liveness", None)
     progress.update(
-        stage="network_recovery",
-        phase="source" if kind == "fresh_source" else "posttests",
+        stage="host_recovery" if host_restart else "network_recovery",
+        phase="posttests" if kind == "posttests" else "source",
         unit=unit["unit_id"],
         operations=0,
         batches=0,
@@ -167,7 +173,11 @@ def recover(root, report, unit, original, folder, design, truth, progress):
             "original_result": str(folder / "result.json"),
             "started_epoch": time.time(),
             "max_recovery_attempts_per_source": 1,
-            "authorization": "2026-09-19 user requested network-failure retries",
+            "authorization": (
+                "2026-09-19 user requested continuation; diagnosed host-reboot amendment"
+                if host_restart
+                else "2026-09-19 user requested network-failure retries"
+            ),
         },
     )
     started = time.monotonic()
@@ -188,7 +198,8 @@ def recover(root, report, unit, original, folder, design, truth, progress):
             reference_run=root / "references" / unit["world"]["world_id"],
         )
         result = read(actual / "result.json")
-    public = report / unit["unit_id"] / "network-recovery"
+    public_name = "host-recovery" if host_restart else "network-recovery"
+    public = report / unit["unit_id"] / public_name
     row = matrix.export_source(unit, result, actual, public, design)
     before = matrix.source_row(unit, original)
     additional = (
@@ -204,14 +215,14 @@ def recover(root, report, unit, original, folder, design, truth, progress):
         "attempt": 1,
         "row": row,
         "result_path": str((output if kind == "posttests" else actual) / "result.json"),
-        "report_path": f"{unit['unit_id']}/network-recovery/REPORT.md",
-        "new_source_attempts": int(kind == "fresh_source"),
-        "new_source_batches": row["completed_batches"] if kind == "fresh_source" else 0,
-        "new_source_operations": row["operations"] if kind == "fresh_source" else 0,
+        "report_path": f"{unit['unit_id']}/{public_name}/REPORT.md",
+        "new_source_attempts": int(kind != "posttests"),
+        "new_source_batches": row["completed_batches"] if kind != "posttests" else 0,
+        "new_source_operations": row["operations"] if kind != "posttests" else 0,
         "new_posttest_attempts": sum(
             bool(result.get("posttests", {}).get(s))
             and (
-                kind == "fresh_source"
+                kind != "posttests"
                 or not original.get("posttests", {}).get(s, {}).get("payload")
                 or bool(original["posttests"][s].get("failure"))
             )
@@ -219,7 +230,7 @@ def recover(root, report, unit, original, folder, design, truth, progress):
         ),
         "additional_reported_usage": additional,
         "failed_attempt_usage_complete": False,
-        "usage_caveat": "Failed transport usage may be missing. Same-thread delta includes any "
+        "usage_caveat": "Interrupted attempt usage may be missing. Same-thread delta includes any "
         "reported failed-turn usage; it is not billed cost. Unknown is not zero.",
         "elapsed_s": time.monotonic() - started,
         "original_status": original["status"],
@@ -228,7 +239,7 @@ def recover(root, report, unit, original, folder, design, truth, progress):
     write(public / "recovery.json", record)
     with (public / "REPORT.md").open("a", encoding="utf-8") as handle:
         handle.write(
-            "\n## Network recovery\n\nOriginal failed attempt is retained separately. "
+            "\n## Infrastructure recovery\n\nOriginal failed attempt is retained separately. "
             f"Mode: {kind}; new source batches: {record['new_source_batches']}. "
             "See [recovery accounting](recovery.json).\n"
         )
@@ -236,4 +247,4 @@ def recover(root, report, unit, original, folder, design, truth, progress):
 
 
 def effective_row(row):
-    return row.get("network_recovery", {}).get("row", row)
+    return (row.get("infrastructure_recovery") or row.get("network_recovery") or {}).get("row", row)
