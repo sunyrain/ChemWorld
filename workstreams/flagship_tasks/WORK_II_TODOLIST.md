@@ -1,10 +1,22 @@
 # Work II TODO — 先验、实验修正与知识的决策价值
 
-最后更新：2026-09-18。执行者：Codex /root；`main`，单executor。
+最后更新：2026-09-19。执行者：Codex /root；`main`，单executor。
 Experiment 1当前状态从[权威入口](experiment_1/README.md)读取：105单元为53开发通过、22失败、30准备阻塞；7个先验层可进入独立confirmation但尚未执行。EC为15/15开发通过；W2-119的11/15是旧版本结果，失败保留。该资格总账不等于当前自由Agent十二批试验已完成或正式发布。
 W2-122已完成EC单世界开发试跑：按用户指令收束为E层×机理探索/体系内优化×O/A/M，共6场核心，71/72次终检、72次中途测量、18/18项后测；另保留2场P层探索、24次终检。模型GPT-5.6 Sol / medium。优化Aligned因过程时间耗尽少一批，原失败保留，后测另补齐；其余10场未启动。见[结果](reports/work-ii-ec-sol-20260918/REPORT.md)、[完整评估与耗时](reports/work-ii-ec-sol-20260918/ANALYSIS.md)和[原计划及修订](WORK_II_EC_SOL_DUAL_GOAL_TRIAL_NOTE.md)。旧资格/正式分母不变，其他体系不自动双目标。
 
-W2-123已整理经验、待修错误和近期顺序，统一维护在[矩阵第9.6节](WORK_II_EXPERIMENT_MATRIX.md)：先修运行边界，再EC-E六场，随后PA-E、RX-P、C-P各三场；合计15来源/180计划批/45后测是分块建议，不是已经启动的队列。保留12次实验、12次额外测量、自由机理和三臂；后测去重复，不强制机制模板或中途检查点。P优先补已有校准，EQ/BC按独立问题扩展，FL/D先处理各自科学/资产缺口。本轮只修设计和过期说明，运行代码修复与新数据仍待办。
+W2-123已整理经验、待修错误和近期顺序，统一维护在[矩阵第9.6节](WORK_II_EXPERIMENT_MATRIX.md)：当时按EC-E六场及PA-E、RX-P、C-P各三场计算为15来源/180计划批/45后测。W2-130将RX-P冻结为探索/优化×strict O/A/M六格后，当前四块分母相应纠正为18来源/216计划批/54后测；这仍是分块建议，不是已经启动的队列。保留12次实验、12次额外测量、自由机理和三臂；后测去重复，不强制机制模板或中途检查点。P优先补已有校准，EQ/BC按独立问题扩展，FL/D先处理各自科学/资产缺口。运行代码修复与新数据仍待办。
+
+W2-127已完成用户授权的RX单臂开发canary：当时名为 `RX-W01 × P × Opaque` 的机理探索与安全约束优化两个独立来源共24/24批、169次来源动作、0回滚，两份建议均通过exact replay和独立复测；2份K1及修复后的2组Q/K2完整。原v4两组Q因继承的数值工具预算过低失败并保留，repair-v3只续接同thread、同一组冻结盲测题，无新增实验或真值反馈。W2-130审计确认该来源收到P层近似参考区域，故历史分析应标为 `ContextOnly`，不能作为 strict P-Opaque 或与未来A/M合并。见[结果](reports/work-ii-rx-p-opaque-dual-goal-canary-20260918/REPORT.md)和[实验说明](WORK_II_RX_P_OPAQUE_DUAL_GOAL_CANARY_NOTE.md)。不自动扩展Aligned/MisIndexed。
+
+W2-128已按用户确认冻结[通用 K1–Q–K2 封存后测协议 v1.0](WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1.md)：K1完整机理报告提示与Q外层提示逐字固定，Q的十二题和任务相关指标逐块预注册，K2固定为七项复盘；同时冻结任务交付→K1→Q→K2顺序、无真值回流、不可覆盖、公共计算预算及平台失败修复边界。协议只前瞻适用，旧EC/RX继续按实际执行版本保存和解释；本项未运行新实验。
+
+W2-129按用户新增要求冻结[通用协议 v1.1](WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md)，在不改变科学问题和封存顺序的前提下，把K1/K2 report、Q rationale、来源交付及其他自由文本统一为英文；v1.0保留历史版本，不静默覆盖。另新增[RX-P任务协议 v1.0](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_0.md)，继承通用v1.1并固定RX-W01/P六格的共同资源、十二道配对预测题、六指标、五重复参考、interval score和分层评价。两份文件均为设计冻结，未启动provider、来源实验或参考真值。
+
+W2-130按用户确认完成目标层信息边界纠正并冻结[RX-P任务协议 v1.1](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_1.md)：Strict P-Opaque只保留公共操作/合法范围/仪器/评分及非P共同背景，明确禁止 `420 K / 3300 s` 参考中心、容差和任何P层方向/窗口/方程；A/M保持结构与信息量匹配，只反转预注册关系。旧RX-P canary和EC-P补充重标为 `ContextOnly`，不进入strict三臂；EC-E与RX-S经代码及agent可见面核对未发现同类泄漏。Q中的420 K仅在K1封存后作为六格共同盲测条件出现，不属于来源先验。本项只修改设计和历史归类，未启动provider、物理实验或参考真值。
+
+W2-131按用户明确授权启动[RX-P/S五世界双目标块 v1.0.1](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_PROTOCOL_V1_0_1.md)：`2 loci × 5 worlds × 3 arms × 2 goals = 60` 个独立source sessions，每场12批，共720 source batches；每场K1/Q/K2，共180 posttests。P profile升级为[五世界v1.2](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_2.md)，新增[RX-S profile v1.0](WORK_II_RX_S_K1_Q_K2_PROFILE_V1_0.md)。真实source均绑定baseline parent；S的reversible child只用于首场前90次provider-free三噪声坐标启动门。v1.0首次门保留：工程路径通过但继承helper把`parent-child`误写为`child-parent`，在0次provider调用时fail-closed；v1.0.1只纠正此符号，条件、重复、阈值和正式设计不变。只有五个world全部通过才放行provider；参考真值在全部60个K2封存前保持隔离。05:47首次正式进程在第16格的0动作provider连接失败处fail-closed；用户随后授权补齐3条不完整后测、另目录重跑第16格并续跑44格。recovery v1首次Q因误设超过程序硬上限的512次计算预算而在MCP初始化时停止；recovery v2修正MCP为256，但外层旧监控仍在超过8次计算时终止，保留15次计算且无最终Q。两次均无实验、无真值；[recovery v3](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V3.md)将MCP和外层监控统一为256并从原source thread恢复，原失败不覆盖。
+
+截至15:20后的[recovery v4–v6记录](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V4_V6.md)，W01/W02共24/24任务、288/288来源批和72/72后测已完整封存；[逐任务可读报告](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w01-w02/README.md)已生成。W03-P机理Opaque在保持原thread、原题和无真值反馈下补齐Q/K2，成为第25条有效整链。第26格Aligned已完成12批、K1和K2，但Q遇provider failure且无payload，因此保留为nonconforming并fail-closed；任务27–60尚未启动。当前有效整链25/60（300/720来源批、75/180后测），物理来源实际完成312/720；reference truth、评价和建议复测仍为0。
 
 ## 1. 当前任务与唯一入口
 
@@ -54,6 +66,10 @@ W2-98仅整理规划。用户随后授权W2-99单次开发试跑：仅GPT-6 Astr
 | 本文件 | 当前执行状态、任务与约束 |
 | [Experiment 1最小执行规范v1.0.1](EXPERIMENT_1_MINIMUM_EXECUTION_SPEC_V1_0_1.md) | 七体系/35 Worlds/21格benchmark的唯一资格化与执行语义；当前只授权EC development qualification |
 | [最终实验矩阵](WORK_II_EXPERIMENT_MATRIX.md) | 新研究的对照、分母、模型覆盖、资源与停止规则 |
+| [通用 K1–Q–K2 封存后测协议 v1.1](WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md) | 后续新数据块的K1/Q/K2提示原文、英文输出、封存顺序、任务插槽、工具预算与失败修复语义；替代未投入前瞻运行的v1.0 |
+| [RX-P/S五世界执行协议 v1.0.1](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_PROTOCOL_V1_0_1.md) | 当前已授权RX块的60来源、720批、180后测、信息边界、S启动门符号纠正、真值隔离、失败与推断语义；v1.0失败保留 |
+| [RX-P任务profile v1.2](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_2.md) | 五世界P层strict O/A/M、十二道预测题、六指标与五重复参考；替代v1.1用于新执行 |
+| [RX-S任务profile v1.0](WORK_II_RX_S_K1_Q_K2_PROFILE_V1_0.md) | 五世界S层结构主张、strict O/A/M、十二道duration×dose×temperature预测题及启动条件 |
 | [作者故事](../../paper/prior_discovery_story_zh.md) | 新论证与写作顺序；标明尚待验证 |
 | [结果索引](WORK_II_PAPER_RESULTS_ZH.md) | 已完成结果及失败的入口，不定义新设计 |
 | [当前绑定](../../configs/current.json) | 已有机器证据的解析入口 |
@@ -79,14 +95,19 @@ W2-99—101、W2-103及W2-105仅有Astra开发数据；新完整任务的世界�
 
 ## 3. 当前执行清单
 
-当前工作：W2-122试跑和W2-123经验收束已完成，原始失败保留；下一项是W2-124实现修复，后续数据块尚未启动。历史资格结果按原版本解释。
+当前工作：W2-131在第26格Q provider failure后安全停止。W01/W02的24条整链及W03-P机理Opaque已有效封存；第26格12批来源、K1、K2保留但Q缺失，未进入有效分母。继续前须只补该格Q并重新校验整链，然后从第27格续跑；不得重跑其12批来源或解封reference truth。W2-127继续作为ContextOnly历史，不并入strict分母；其他体系未因本次授权自动启动。
 
 | ID | 状态 | 工作与完成标准 |
 | --- | --- | --- |
-| W2-123 | DONE (review/design only) | [矩阵第9.6节](WORK_II_EXPERIMENT_MATRIX.md)收束范围、资源、失败后测、工具终态/证据送达、K1/Q/K2、预测覆盖和有限因果诊断；核对七体系当前总账、challenge及P/C资产状态，确定EC→PA-E→RX-P→C-P近期15来源/180批建议。修正旧Astra、未接入/无ETA、固定检查点及FL旧几何说明；区分已修评价器/盲化与仍待实现的预算/后测分支。只读实验与代码，未改冻结合同、未调用provider或物理实验，未推送。 |
-| W2-124 | TODO (implementation) | 按第9.6.1—2节修自由研究入口：显式单位清单、支持12批的辅助预算、失败来源同等后测、独立状态、简洁且完整的终态/错误/已购买观测、精简三问及定制查询。核清笔记/拟合能力与提示一致；保留安全、物理范围、资源账和实际可见证据。只做相关功能/科学验证，真实provider首场计入随后固定块；不重算旧来源或重建全局审计。属于W2-94的近期实现范围。 |
+| W2-131 | RECOVERY STOPPED AT TASK 26 (W01/W02 complete) | [master protocol v1.0.1](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_PROTOCOL_V1_0_1.md)、[P v1.2](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_2.md)、[S v1.0](WORK_II_RX_S_K1_Q_K2_PROFILE_V1_0.md)与机器配置冻结60来源/720批/180后测/600参考。[recovery v1–v3](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V3.md)及[v4–v6](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V4_V6.md)均保留原失败、不改题/模型/信息且无真值反馈。当前25/60整链有效：W01/W02各12/12，另W03-P机理Opaque完成；共300/720有效来源批、75/180封存后测。第26格完成12批、K1、K2但Q provider failure无payload，故nonconforming；34格未启动。W01/W02[24份完整可读报告](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w01-w02/README.md)已保存。全部60条有效K2前reference truth继续隔离。 |
+| W2-130 | DONE (design correction only) | [RX-P任务协议v1.1](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_1.md)冻结 locus-specific opacity：P-Opaque不得含实例参考中心/容差或方向规律，A/M结构匹配且只反转目标关系；旧RX canary与EC-P补充重标ContextOnly，EC-E不受影响。RX-S代码中Opaque为`None`，只读构造验证隐藏结构变更时agent可见task/material payload不变，定向测试4 passed；须在实现中把该检查升级为显式回归。保留v1.0历史，不改旧轨迹；未调用provider、物理实验或参考评价器。 |
+| W2-129 | DONE (design freeze only) | [通用协议v1.1](WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md)将K1/K2 report、Q rationale及其他自由文本统一为英文，保留v1.0历史版本；[RX-P任务协议v1.0](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_0.md)固定RX-W01/P的O/A/M×探索/优化六格、相同十二题和六类配对设计、参考配方、六指标、5个参考重复、MAE/coverage/width/interval score及配对差评价。只做设计和静态核对；旧RX canary不回填、不混入新六格，未调用provider、物理实验或参考评价器。 |
+| W2-128 | DONE (design freeze only) | [通用 K1–Q–K2 封存后测协议 v1.0](WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1.md)冻结逐字K1、固定Q外层＋任务预注册十二题、逐字七问K2，以及交付→K1→Q→K2顺序、无真值回流、不可覆盖、公共计算预算、失败保留与有限修复规则。同步矩阵旧“三问/缩短K1”口径。只前瞻适用；不改写旧EC/RX提示或结果，未调用provider、物理实验或评价器。 |
+| W2-127 | DONE (development ContextOnly canary; retained posttest failures) | [RX-P历史结果](reports/work-ii-rx-p-opaque-dual-goal-canary-20260918/REPORT.md)：单世界、当时命名Opaque但实际收到P层近似参考区域的ContextOnly单臂，两个独立来源共24/24批、169次来源动作、24次HPLC、24次终检、0回滚；2份K1、2次精确重放和2次建议复测完成。原v4两组Q因继承的数值工具预算8而失败并保留；repair-v3续接相同thread和冻结问题，无新增实验/真值反馈，2组Q/K2完整。探索建议复测score 0.438448，优化建议复测score 0.397447；安全区间覆盖仅0.250/0.333。不开启A/M，不形成strict P三臂效应或多世界结论。 |
+| W2-123 | DONE (review/design only) | [矩阵第9.6节](WORK_II_EXPERIMENT_MATRIX.md)收束范围、资源、失败后测、工具终态/证据送达、K1/Q/K2、预测覆盖和有限因果诊断；核对七体系当前总账、challenge及P/C资产状态，当时形成EC→PA-E→RX-P→C-P的15来源/180批建议。W2-130因RX-P双目标六格将当前数字纠正为18来源/216批，旧数仅保留历史。修正旧Astra、未接入/无ETA、固定检查点及FL旧几何说明；区分已修评价器/盲化与仍待实现的预算/后测分支。只读实验与代码，未改冻结合同、未调用provider或物理实验，未推送。 |
+| W2-124 | TODO (implementation) | 按第9.6.1—2节及通用协议v1.1修自由研究入口：显式单位清单、支持12批的辅助预算、失败来源同等后测、独立状态、简洁且完整的终态/错误/已购买观测、固定K1/Q外层、七问K2、英文自由文本及任务预注册查询。RX实现还须逐字段物化其任务协议v1.1的十二题和评分，构造strict P-Opaque而非直接复用带参考区域的旧payload，并增加P-Opaque无目标层实例信息、RX-S Opaque无initial model及隐藏结构变化不影响公共payload的回归测试。核清笔记/拟合能力与提示一致；保留安全、物理范围、资源账和实际可见证据。只做相关功能/科学验证，真实provider首场计入随后固定块；不重算旧来源或重建全局审计。属于W2-94的近期实现范围。 |
 | W2-125 | PLANNED (not started) | W2-124稳定后，按新简短note执行EC-E同世界两目标三臂6来源/72计划批，12额外测量/场及K1/Q/K2；固定平衡查询域和终点，单Sol medium、每条件一次。来源失败不跳过可用后测，不按结果追加P/S；旧W01仅作开发，不能当独立确认。含18后测，共24来源/后测阶段；参考/复测另计。属于W2-95，当前未授权自动扩队。 |
-| W2-126 | PLANNED (staged, not started) | EC后逐卡推进PA-E、RX-P、C-P，各一个开发世界、单定制目标、三臂36计划批/9后测；三块合计9来源/108批，与EC合为15来源/180批。PA评价两相分配与选相，RX评价早期竞争反应/热历史，C评价新增合格晶体和路径；不自动双目标或全先验层。P校准、EQ/BC、FL/D、有限诊断、评审及正式多世界另列按需设计，不隐藏进当前分母。 |
+| W2-126 | PLANNED (staged, not started) | EC后逐卡推进PA-E、RX-P、C-P；RX如获授权须使用[RX-P任务协议v1.1](WORK_II_RX_P_K1_Q_K2_PROFILE_V1_1.md)，其当前冻结设计为同世界探索/优化×strict O/A/M六格，不再沿用旧“单定制目标三臂”计数，也不混入ContextOnly历史canary。连同EC 6、PA 3和C 3，当前近期四块分母为18来源/216计划批/54后测；仍须逐块授权，不是一键队列。PA评价两相分配与选相，RX评价局部温度—时间、热历史和quench，C评价新增合格晶体和路径；不自动扩展其他先验层。P校准、EQ/BC、FL/D、有限诊断、评审及正式多世界另列按需设计。 |
 | W2-122 | DONE (development; retained failure) | [EC Sol结果](reports/work-ii-ec-sol-20260918/REPORT.md)：6场核心71/72终检、72次中途测量、18/18后测；优化Aligned第12批因时间预算耗尽丢弃，原thread补齐三问但不改原失败。保留2场P探索/24批，10场未启动；8条来源重放及8个修正资源复测通过，32次来源/后测turn、576个数值预测。v1–v3接入失败及v4泄漏排除8来源/87终检保留；全轮去重224完成批次、231启动批次。[完整评估](reports/work-ii-ec-sol-20260918/ANALYSIS.md)含逐批结果与耗时：核心61.6分钟、补充19.4分钟，执行日志窗口115.3分钟；明确正电位短时盲测覆盖局限、脚本证据丢失与过度推广案例。实现验证92 passed及Ruff通过；本次只读评估并修正文档乱码/状态，无新实验或正式证据。 |
 | W2-121 | DONE (design only) | 按用户决定更新[矩阵第2.4.1节](WORK_II_EXPERIMENT_MATRIX.md#241-ec已选设计双目标十二次实验充足测量)：EC机理探索/体系内优化独立来源，各12次完整实验、充足测量、同世界同先验同资源；E/P/S分别展开O/A/M。支持/反驳/未验证作为后测与分析，不新增固定机制表或资格门。同步EC来源/批次数口径，旧全局排期标为历史基准；未修改冻结合同、执行配置或结果，未运行模型/物理实验。 |
 | W2-120 | DONE (later development repair) | W2-119的四个失败保留；后续[EC v1.0.2结果](experiment_1/results/EC/v1.0.2/summary.md)已完成E/S整块修复并复用未变P块，当前15/15开发资格通过。此项不再阻断新设计讨论，不代表confirmation或Participant已执行。 |

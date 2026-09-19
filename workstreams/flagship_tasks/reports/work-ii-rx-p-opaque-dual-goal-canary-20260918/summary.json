@@ -1,0 +1,125 @@
+{
+  "schema_version": "work-ii-rx-p-opaque-dual-goal-canary-corrected-summary-0.1",
+  "development_only": true,
+  "task_id": "reaction-safety-constrained",
+  "scenario_id": "reaction-safety",
+  "mechanism_family": "catalyst_deactivation",
+  "world": "RX-W01",
+  "prior_layer": "P",
+  "arm": "Opaque",
+  "model": "gpt-5.6-sol",
+  "reasoning_effort": "medium",
+  "physical_sources": {
+    "planned": 2,
+    "completed": 2,
+    "batches_planned": 24,
+    "batches_completed": 24,
+    "agent_operations": 169,
+    "intermediate_hplc_measurements": 24,
+    "final_assays": 24,
+    "rollbacks": 0,
+    "exact_replays_verified": 2,
+    "recommendation_retests_completed": 2
+  },
+  "integrated_runner_status": {
+    "original_completed_sources": 0,
+    "original_failed_sources": 2,
+    "shared_failure": "Both sources completed physical research and K1, but Q stopped at the inherited public_numerics hard limit of 8 calls.",
+    "original_failures_retained": true,
+    "posttest_repairs_planned": 2,
+    "posttest_repairs_completed": 2,
+    "repair_semantics": "Same thread, same frozen Q and K2, no new experiment, no truth feedback; public_numerics limit raised to 128."
+  },
+  "results": {
+    "discovery": {
+      "source_batches": 12,
+      "source_operations": 85,
+      "selected_batch": 12,
+      "recommendation": {
+        "solvent": 2,
+        "reagent_mol": 0.003,
+        "catalyst": 1,
+        "catalyst_mol": 0.000525,
+        "target_temperature_K": 420,
+        "duration_s": 2200,
+        "stirring_speed_rpm": 400,
+        "quench": true
+      },
+      "observed": {
+        "yield": 0.7216572761535645,
+        "conversion": 0.9442076086997986,
+        "selectivity": 0.765362560749054,
+        "byproduct_signal": 0.2330552190542221,
+        "safety_risk": 0.14908593893051147,
+        "score": 0.4388437867164612
+      },
+      "independent_retest": {
+        "yield": 0.714443564414978,
+        "conversion": 0.9434640407562256,
+        "selectivity": 0.7756190299987793,
+        "byproduct_signal": 0.230552539229393,
+        "safety_risk": 0.14908593893051147,
+        "score": 0.438448041677475
+      },
+      "blind_prediction": {
+        "n_conditions": 12,
+        "metrics": {
+          "yield": {"mae": 0.03161687527100245, "coverage80": 1.0},
+          "conversion": {"mae": 0.010209008773167933, "coverage80": 1.0},
+          "selectivity": {"mae": 0.04226033594210941, "coverage80": 1.0},
+          "byproduct_signal": {"mae": 0.039870041842261957, "coverage80": 1.0},
+          "safety_risk": {"mae": 0.06143739198644956, "coverage80": 0.25},
+          "score": {"mae": 0.009307075212399159, "coverage80": 1.0}
+        }
+      }
+    },
+    "optimization": {
+      "source_batches": 12,
+      "source_operations": 84,
+      "selected_batch": 8,
+      "recommendation": {
+        "solvent": 2,
+        "reagent_mol": 0.003,
+        "catalyst": 1,
+        "catalyst_mol": 0.000525,
+        "target_temperature_K": 408,
+        "duration_s": 2300,
+        "stirring_speed_rpm": 400,
+        "quench": false
+      },
+      "observed": {
+        "yield": 0.7143664360046387,
+        "conversion": 0.9193592071533203,
+        "selectivity": 0.7721360921859741,
+        "byproduct_signal": 0.20839892327785492,
+        "safety_risk": 0.2337639033794403,
+        "score": 0.4002661108970642
+      },
+      "independent_retest": {
+        "yield": 0.701957643032074,
+        "conversion": 0.9227066040039062,
+        "selectivity": 0.7793753147125244,
+        "byproduct_signal": 0.22205659747123718,
+        "safety_risk": 0.2337639033794403,
+        "score": 0.3974471390247345
+      },
+      "blind_prediction": {
+        "n_conditions": 12,
+        "metrics": {
+          "yield": {"mae": 0.05086919587850571, "coverage80": 1.0},
+          "conversion": {"mae": 0.012642657438913981, "coverage80": 1.0},
+          "selectivity": {"mae": 0.049019294520219164, "coverage80": 1.0},
+          "byproduct_signal": {"mae": 0.04345549182593822, "coverage80": 1.0},
+          "safety_risk": {"mae": 0.11862513070305188, "coverage80": 0.3333333333333333},
+          "score": {"mae": 0.04707103690505029, "coverage80": 0.75}
+        }
+      }
+    }
+  },
+  "scope_limits": [
+    "One development world and one opaque prior arm only.",
+    "No Aligned or MisIndexed comparison was run.",
+    "The physical substrate is the qualified reaction-safety/catalyst-deactivation world, not the separate autocatalytic reaction-mechanism task.",
+    "The two goals are independent single-source case studies and do not estimate an average goal effect."
+  ]
+}

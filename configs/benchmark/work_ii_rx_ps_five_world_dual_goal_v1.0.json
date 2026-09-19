@@ -1,0 +1,110 @@
+{
+  "schema_version": "chemworld-work-ii-rx-ps-five-world-dual-goal-1.0",
+  "status": "frozen_before_execution",
+  "task_id": "reaction-safety-constrained",
+  "world_split": "public-test",
+  "objective": "safe",
+  "worlds": [
+    {"world_id": "RX-W01", "world_seed": 0},
+    {"world_id": "RX-W02", "world_seed": 1},
+    {"world_id": "RX-W03", "world_seed": 2},
+    {"world_id": "RX-W04", "world_seed": 3},
+    {"world_id": "RX-W05", "world_seed": 4}
+  ],
+  "loci": ["P", "S"],
+  "arms": ["Opaque", "Aligned", "MisIndexed"],
+  "goals": ["mechanism_discovery", "safety_constrained_optimization"],
+  "counts": {
+    "independent_source_sessions": 60,
+    "source_batches_per_session": 12,
+    "source_batches": 720,
+    "posttests_per_session": 3,
+    "posttests": 180,
+    "model_stages_including_source": 240,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 600
+  },
+  "source_resource_card": {
+    "operation_attempt_limit": 360,
+    "vessel_start_limit": 12,
+    "final_assay_limit": 12,
+    "nonfinal_instrument_use_limit": 12,
+    "reagent_mol": 0.48,
+    "solvent_L": 0.96,
+    "catalyst_mol": 0.06,
+    "process_time_limit_s": 216000,
+    "implicit_quench_time_s": 120
+  },
+  "model_policy": {
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "auth_mode": "chatgpt_subscription_cached_login"
+  },
+  "posttest_protocol": "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md",
+  "profiles": {
+    "P": "workstreams/flagship_tasks/WORK_II_RX_P_K1_Q_K2_PROFILE_V1_2.md",
+    "S": "workstreams/flagship_tasks/WORK_II_RX_S_K1_Q_K2_PROFILE_V1_0.md"
+  },
+  "prior_policy": {
+    "Opaque": "No instance-specific knowledge at the target locus; initial_world_model is null.",
+    "Aligned": "Matched public context and confidence; target-locus claim agrees with the actual baseline world.",
+    "MisIndexed": "Same public context and confidence as Aligned; only the target-locus relation is inverted or competing."
+  },
+  "P_queries": [
+    {"query_id": "Q01", "thermal_history": [[420, 3300]], "quench": false},
+    {"query_id": "Q02", "thermal_history": [[420, 3300]], "quench": true},
+    {"query_id": "Q03", "thermal_history": [[390, 3300]], "quench": false},
+    {"query_id": "Q04", "thermal_history": [[450, 3300]], "quench": false},
+    {"query_id": "Q05", "thermal_history": [[420, 1500]], "quench": false},
+    {"query_id": "Q06", "thermal_history": [[420, 5100]], "quench": false},
+    {"query_id": "Q07", "thermal_history": [[390, 1800], [450, 1800]], "quench": false},
+    {"query_id": "Q08", "thermal_history": [[450, 1800], [390, 1800]], "quench": false},
+    {"query_id": "Q09", "thermal_history": [[440, 1500]], "quench": false},
+    {"query_id": "Q10", "thermal_history": [[440, 1500]], "quench": true},
+    {"query_id": "Q11", "thermal_history": [[370, 5700]], "quench": false},
+    {"query_id": "Q12", "thermal_history": [[460, 6300]], "quench": false}
+  ],
+  "S_queries": [
+    {"query_id": "Q01", "temperature_K": 410, "duration_s": 1800, "catalyst_amount_mol": 0.000120, "quench": false},
+    {"query_id": "Q02", "temperature_K": 410, "duration_s": 14400, "catalyst_amount_mol": 0.000120, "quench": false},
+    {"query_id": "Q03", "temperature_K": 410, "duration_s": 1800, "catalyst_amount_mol": 0.000520, "quench": false},
+    {"query_id": "Q04", "temperature_K": 410, "duration_s": 14400, "catalyst_amount_mol": 0.000520, "quench": false},
+    {"query_id": "Q05", "temperature_K": 350, "duration_s": 7200, "catalyst_amount_mol": 0.000120, "quench": false},
+    {"query_id": "Q06", "temperature_K": 465, "duration_s": 7200, "catalyst_amount_mol": 0.000120, "quench": false},
+    {"query_id": "Q07", "temperature_K": 350, "duration_s": 7200, "catalyst_amount_mol": 0.000520, "quench": false},
+    {"query_id": "Q08", "temperature_K": 465, "duration_s": 7200, "catalyst_amount_mol": 0.000520, "quench": false},
+    {"query_id": "Q09", "temperature_K": 410, "duration_s": 7200, "catalyst_amount_mol": 0.000315, "quench": false},
+    {"query_id": "Q10", "temperature_K": 410, "duration_s": 7200, "catalyst_amount_mol": 0.000315, "quench": true},
+    {"query_id": "Q11", "temperature_K": 350, "duration_s": 14400, "catalyst_amount_mol": 0.000315, "quench": false},
+    {"query_id": "Q12", "temperature_K": 465, "duration_s": 1800, "catalyst_amount_mol": 0.000315, "quench": false}
+  ],
+  "fixed_prediction_recipe": {
+    "solvent": 2,
+    "solvent_volume_L": 0.005,
+    "reagent_amount_mol": 0.003,
+    "catalyst": 1,
+    "stirring_speed_rpm": 400
+  },
+  "prediction_metrics": ["yield", "conversion", "selectivity", "byproduct_signal", "safety_risk", "score"],
+  "execution_order": ["source", "K1", "Q", "K2", "reference_truth_and_scoring", "recommendation_retest"],
+  "S_start_gate": {
+    "ordered_action_ids": [
+      "temperature-1-duration-0-dose-0",
+      "temperature-1-duration-1-dose-0",
+      "temperature-1-duration-2-dose-0"
+    ],
+    "candidate_families": ["deactivating_baseline", "reversible_target_pathway"],
+    "independent_noise_replicates_per_action_and_family": 3,
+    "minimum_accumulation": 0.03,
+    "minimum_information_gain": 0.03,
+    "participant_budget": 4,
+    "require_all_five_worlds_pass": true
+  },
+  "failure_policy": {
+    "overwrite_forbidden": true,
+    "retain_all_failures": true,
+    "scientific_failure": "retain and continue the frozen denominator",
+    "shared_pre_action_platform_failure": "stop the block before further provider sessions",
+    "post_failure_redesign_in_same_block": false
+  }
+}

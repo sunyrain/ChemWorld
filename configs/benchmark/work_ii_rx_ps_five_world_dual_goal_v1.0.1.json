@@ -1,0 +1,29 @@
+{
+  "schema_version": "chemworld-work-ii-rx-ps-five-world-dual-goal-correction-1.0.1",
+  "status": "frozen_before_any_provider_source",
+  "base_config": {
+    "path": "configs/benchmark/work_ii_rx_ps_five_world_dual_goal_v1.0.json",
+    "sha256": "7daa6227c7558bfd4d97c09c4411a0c0620e69314f2f8eb0669745443a8903b8"
+  },
+  "correction_scope": "RX-S provider-free start-gate accumulation estimand only",
+  "failed_predecessor_evidence": "runs/development/work-ii-rx-ps-five-world-dual-goal-20260919-v1",
+  "provider_calls_before_correction": 0,
+  "old_expression": "child_minus_parent_at_duration - child_minus_parent_at_shortest_duration",
+  "corrected_expression": "parent_minus_child_at_duration - parent_minus_child_at_shortest_duration",
+  "scientific_meaning": "growth with duration in the magnitude of the reversible-channel consequence relative to the actual parent",
+  "reason": "The v1.1 RX-S qualification convention and frozen aligned truth both define the observable consequence as parent minus reversible child. The inherited challenge helper accidentally reversed that sign, making a stronger long-duration reversible effect count against the accumulation gate.",
+  "unchanged": [
+    "all 60 source cells",
+    "P and S query sets",
+    "all prior payloads",
+    "source and posttest prompts",
+    "resource budgets",
+    "three gate conditions",
+    "three independent noise repeats",
+    "minimum_accumulation 0.03",
+    "minimum_information_gain 0.03",
+    "participant budget 4",
+    "five-world all-pass rule",
+    "truth embargo and failure policy"
+  ]
+}
