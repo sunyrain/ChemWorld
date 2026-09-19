@@ -183,6 +183,15 @@ def test_cell_folder_setup_precreates_private_source_output(tmp_path: Path) -> N
     assert (private / "source").is_dir()
 
 
+def test_eq_mcp_startup_timeout_is_materials_safe_and_unique() -> None:
+    command = ["codex", "-c", "mcp_servers.chemworld_lab.startup_timeout_sec=30"]
+
+    adjusted = eq.with_eq_mcp_startup_timeout(command)
+
+    assert "mcp_servers.chemworld_lab.startup_timeout_sec=180" in adjusted
+    assert "mcp_servers.chemworld_lab.startup_timeout_sec=30" not in adjusted
+
+
 def test_public_export_rejects_private_field_names() -> None:
     with pytest.raises(RuntimeError, match="private field"):
         exporter._assert_public({"thread_id_sha256": "hidden"})

@@ -1,6 +1,6 @@
 # Work II EQ bounded-aqueous-equilibrium experiment note
 
-Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.2 operational freeze prepared after retained zero-call startup failures. One coordinator may use isolated source workers after the canary. This note fixes the whole block before any successful provider launch.
+Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.3 operational freeze prepared after retained zero-action startup failures. One coordinator may use isolated source workers after the canary. This note fixes the whole block before any successful scientific action.
 
 ## Question and denominator
 
@@ -37,3 +37,5 @@ The v1.1 provider-free run completed 15/15 keyed-noise campaigns, 180/180 batche
 The recovery runner preserves every original cell and creates numbered write-once attempts. A complete, exactly replayed source resumes only missing or invalid same-thread K1/Q/K2 turns; a partial source may restart only in an independent recovery directory and is not counted as a new scientific sample. The final exporter selects one complete effective result per frozen cell, publishes the five-repeat truth and blind scores only after all K2 turns seal, and rejects private field names from public JSON.
 
 The first remote canary launch failed before Agent construction because the detached shell did not expose the installed Codex executable. Recovery attempt 01 then failed before provider-process construction because the private source-output parent had not been created. Both attempts recorded zero operations, zero accepted model calls, zero provider-process attempts, and no scientific output. Protocol v1.2 fixes only those launch prerequisites by injecting the already-authorized executable path and pre-creating the private output parent; the original failures remain retained and the next recovery starts from batch 1.
+
+Recovery attempt 02 started provider processes without the login-shell proxy and retained uniform pre-action network failures. Attempt 03 used the proxy but the three concurrent NFS-backed laboratory MCP processes exceeded the inherited 30-second startup handshake; all failed before a model response or scientific action. A provider-free timing check showed that even a serial laboratory-MCP module import could exceed 48 seconds. Protocol v1.3 therefore sets an EQ-specific 180-second MCP startup allowance and requires the canary arms to start serially. This changes only host startup tolerance, not any scientific or model budget.

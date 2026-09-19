@@ -34,7 +34,7 @@ from chemworld.research_brief import VERSION as RESEARCH_BRIEF_VERSION
 from chemworld.tasks import get_task
 
 CONFIG = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json"
-FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.2.json"
+FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.3.json"
 TASK = "equilibrium-characterization"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("pH_normalized", "acid_dissociation_fraction", "precipitation_signal")
@@ -119,6 +119,26 @@ concentration, volume, staged additions, precipitation regime, and worlds?
 
 Return the JSON report field.
 """
+
+
+def with_eq_mcp_startup_timeout(command: Sequence[str]) -> list[str]:
+    """Allow the Materials NFS-backed MCP import to finish without changing tool budgets."""
+    old = "mcp_servers.chemworld_lab.startup_timeout_sec=30"
+    new = "mcp_servers.chemworld_lab.startup_timeout_sec=180"
+    adjusted = [new if argument == old else argument for argument in command]
+    if adjusted.count(new) != 1:
+        raise RuntimeError("EQ runner could not bind the laboratory MCP startup timeout")
+    return adjusted
+
+
+class EqFreeResearchAgent(provider_shared.RxFreeResearchAgent):
+    def _command(self, *, instructions_path: Path, schema_path: Path) -> list[str]:
+        return with_eq_mcp_startup_timeout(
+            super()._command(
+                instructions_path=instructions_path,
+                schema_path=schema_path,
+            )
+        )
 
 
 def read(path: Path) -> Any:
@@ -828,7 +848,7 @@ def run_cell(
         "posttests": {},
         "posttest_validation": {},
     }
-    agent = provider_shared.RxFreeResearchAgent(
+    agent = EqFreeResearchAgent(
         goal=cell["goal"],
         home_root=private_folder / "home",
         output=private_folder / "source",
