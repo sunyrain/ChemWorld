@@ -1,6 +1,8 @@
 # Work II RX-P/S five-world block — recovery v7 parallel-four execution
 
-Date: 2026-09-19. Status: authorized development recovery; the scientific contract remains frozen.
+Date: 2026-09-19. Status: retained platform failure; the scientific contract remained frozen.
+
+Launch outcome: the detached shell did not inherit the directory containing the Codex CLI. Four workers failed before any model call or physical action; task 26 retained only a new repair manifest, and tasks 27–35 retained only `attempt.json` plus their public-prior bindings. The queue failed closed with 25/60 effective chains, and reference truth remained absent. Recovery continues in v8 with an explicit CLI preflight and PATH plus write-once repairs for these zero-action directories.
 
 ## Question and unchanged coverage
 

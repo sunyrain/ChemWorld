@@ -16,14 +16,14 @@ def test_resolve_result_prefers_latest_repair(tmp_path: Path) -> None:
         {"cell_id": cell, "status": "retained_nonconforming"},
     )
     dump(
-        tmp_path / "sources" / cell / "posttest-repair-v7" / "effective-result.json",
+        tmp_path / "sources" / cell / "posttest-repair-v8" / "effective-result.json",
         {"cell_id": cell, "status": "completed", "posttest_chain_sealed": True},
     )
 
     path, result = parallel.resolve_result(tmp_path, cell)
 
     assert path.name == "effective-result.json"
-    assert "posttest-repair-v7" in str(path)
+    assert "posttest-repair-v8" in str(path)
     assert result["status"] == "completed"
 
 
@@ -56,3 +56,14 @@ def test_classify_schedule_allows_only_task_26_repair(tmp_path: Path) -> None:
 
     assert [row["cell_id"] for row in complete] == [complete_cell]
     assert [row["cell_id"] for row in pending] == [parallel.TASK_26, "cell-new"]
+
+
+def test_preaction_partial_requires_only_retained_v7_metadata(tmp_path: Path) -> None:
+    folder = tmp_path / "sources" / "cell-a"
+    dump(folder / "attempt.json", {})
+    dump(folder / "public-prior-binding.json", {})
+
+    assert parallel.is_preaction_partial(folder) is True
+
+    dump(folder / "trajectory.jsonl", {})
+    assert parallel.is_preaction_partial(folder) is False

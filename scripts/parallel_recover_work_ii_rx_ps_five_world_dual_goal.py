@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
 import scripts.recover_work_ii_rx_ps_five_world_dual_goal as recovery  # noqa: E402
 import scripts.run_work_ii_rx_ps_five_world_dual_goal as campaign  # noqa: E402
 
-RECOVERY_VERSION = "recovery-v7-parallel4"
+RECOVERY_VERSION = "recovery-v8-parallel4"
 TASK_26 = "RX-W03--P--mechanism_discovery--Aligned"
 TASK_26_STAGES = ("Q", "K2")
 DEFAULT_WORKERS = 4
@@ -49,8 +49,10 @@ def write(path: Path, payload: Any) -> None:
 def result_candidates(root: Path, cell_id: str) -> tuple[Path, ...]:
     folder = root / "sources" / cell_id
     return (
+        folder / "posttest-repair-v8" / "effective-result.json",
         folder / "posttest-repair-v7" / "effective-result.json",
         folder / "posttest-repair-v3" / "effective-result.json",
+        folder / "source-repair-v8" / "effective-result.json",
         folder / "source-repair-v3" / "effective-result.json",
         folder / "result.json",
     )
@@ -93,7 +95,7 @@ def repair_task_26(
     original_folder = root / "sources" / TASK_26
     original_path = original_folder / "result.json"
     original = read(original_path)
-    repair = original_folder / "posttest-repair-v7"
+    repair = original_folder / "posttest-repair-v8"
     effective_path = repair / "effective-result.json"
     if effective_path.exists():
         return read(effective_path)
@@ -153,6 +155,61 @@ def repair_task_26(
     return effective
 
 
+def is_preaction_partial(folder: Path) -> bool:
+    if not folder.is_dir():
+        return False
+    return {path.name for path in folder.iterdir()} == {
+        "attempt.json",
+        "public-prior-binding.json",
+    }
+
+
+def rerun_preaction_source(
+    root: Path,
+    cell: Mapping[str, Any],
+    *,
+    validated: Mapping[str, Any],
+    config: Mapping[str, Any],
+    progress: dict[str, Any],
+) -> dict[str, Any]:
+    cell_id = str(cell["cell_id"])
+    original_folder = root / "sources" / cell_id
+    if not is_preaction_partial(original_folder):
+        raise RuntimeError(f"cell is not an eligible pre-action platform failure: {cell_id}")
+    repair_root = original_folder / "source-repair-v8"
+    if repair_root.exists():
+        raise RuntimeError(f"incomplete write-once source repair requires inspection: {cell_id}")
+    manifest = {
+        "schema_version": "work-ii-rx-ps-preaction-source-repair-1.0",
+        "recovery_version": RECOVERY_VERSION,
+        "cell_id": cell_id,
+        "started_epoch": time.time(),
+        "original_attempt_sha256": recovery.file_sha256(original_folder / "attempt.json"),
+        "original_public_prior_binding_sha256": recovery.file_sha256(
+            original_folder / "public-prior-binding.json"
+        ),
+        "original_operations": 0,
+        "original_batches": 0,
+        "frozen_cell_reused": True,
+        "deterministic_seeds_reused": True,
+        "truth_revealed_to_agent": False,
+        "platform_fix": "absolute Codex CLI path added to worker PATH",
+    }
+    write(repair_root / "manifest.json", manifest)
+    result = campaign.run_cell(
+        repair_root,
+        cell,
+        p_package=validated["p_package"],
+        s_contract=validated["s_contract"],
+        config=config,
+        progress=progress,
+    )
+    effective = dict(result)
+    effective["recovery"] = manifest
+    write(repair_root / "effective-result.json", effective)
+    return effective
+
+
 def run_one(root_text: str, cell: Mapping[str, Any]) -> dict[str, Any]:
     started = time.monotonic()
     root = Path(root_text)
@@ -169,16 +226,24 @@ def run_one(root_text: str, cell: Mapping[str, Any]) -> dict[str, Any]:
     if cell["cell_id"] == TASK_26:
         result = repair_task_26(root, cell, config, progress)
     else:
-        if (root / "sources" / str(cell["cell_id"])).exists():
-            raise RuntimeError(f"refusing to overwrite existing cell directory: {cell['cell_id']}")
-        result = campaign.run_cell(
-            root,
-            cell,
-            p_package=validated["p_package"],
-            s_contract=validated["s_contract"],
-            config=config,
-            progress=progress,
-        )
+        folder = root / "sources" / str(cell["cell_id"])
+        if folder.exists():
+            result = rerun_preaction_source(
+                root,
+                cell,
+                validated=validated,
+                config=config,
+                progress=progress,
+            )
+        else:
+            result = campaign.run_cell(
+                root,
+                cell,
+                p_package=validated["p_package"],
+                s_contract=validated["s_contract"],
+                config=config,
+                progress=progress,
+            )
     if result.get("status") != "completed" or result.get("posttest_chain_sealed") is not True:
         raise RuntimeError(f"cell did not seal: {cell['cell_id']}")
     return {
@@ -338,6 +403,9 @@ def main() -> None:
         raise RuntimeError("existing run is not bound to the frozen recovery config")
     if (root / "reference-truth").exists():
         raise RuntimeError("reference truth already exists before parallel recovery")
+    codex_path = shutil.which("codex")
+    if not codex_path:
+        raise RuntimeError("Codex CLI is not available on PATH before recovery launch")
 
     complete, pending = classify_schedule(root, validated["schedule"])
     pending_ids = [str(cell["cell_id"]) for cell in pending]
@@ -346,6 +414,15 @@ def main() -> None:
             f"unexpected recovery frontier: complete={len(complete)} pending={len(pending)} first={pending_ids[:1]}"
         )
 
+    preaction_replays = [
+        str(cell["cell_id"])
+        for cell in pending
+        if cell["cell_id"] != TASK_26
+        and (root / "sources" / str(cell["cell_id"])).exists()
+    ]
+    if not all(is_preaction_partial(root / "sources" / cell_id) for cell_id in preaction_replays):
+        raise RuntimeError("an existing pending source is not a zero-action v7 platform failure")
+
     recovery_root = root / RECOVERY_VERSION
     recovery_root.mkdir(parents=True, exist_ok=False)
     manifest = {
@@ -353,10 +430,12 @@ def main() -> None:
         "recovery_version": RECOVERY_VERSION,
         "started_epoch": time.time(),
         "execution_commit": git_head(),
+        "codex_path": codex_path,
         "parallel_workers": DEFAULT_WORKERS,
         "complete_before_start": len(complete),
         "work_items": pending_ids,
         "task_26_repair_stages": list(TASK_26_STAGES),
+        "retained_v7_preaction_failures": preaction_replays,
         "new_source_cells": len(pending) - 1,
         "truth_revealed_before_all_cells_sealed": False,
         "historical_median_cell_s": HISTORICAL_MEDIAN_CELL_S,
@@ -403,10 +482,23 @@ def main() -> None:
         max_workers=DEFAULT_WORKERS,
         mp_context=multiprocessing.get_context("spawn"),
     )
-    futures = {pool.submit(run_one, str(root), cell): cell for cell in pending}
+    pending_iterator = iter(pending)
+    futures: dict[Any, Mapping[str, Any]] = {}
+
+    def submit_next() -> bool:
+        try:
+            cell = next(pending_iterator)
+        except StopIteration:
+            return False
+        futures[pool.submit(run_one, str(root), cell)] = cell
+        return True
+
+    for _ in range(DEFAULT_WORKERS):
+        submit_next()
     try:
-        for future in as_completed(futures):
-            cell = futures[future]
+        while futures and not failures:
+            future = next(as_completed(tuple(futures)))
+            cell = futures.pop(future)
             try:
                 item = future.result()
                 completed_work_items.append(item)
@@ -421,6 +513,7 @@ def main() -> None:
                     completed_work_items=completed_work_items,
                     failures=failures,
                 )
+                submit_next()
             except Exception as exc:
                 failures.append(
                     {
