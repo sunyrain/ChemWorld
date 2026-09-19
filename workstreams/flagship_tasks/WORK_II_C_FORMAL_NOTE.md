@@ -1,0 +1,35 @@
+# Crystallization: calibration and formal experiment
+
+User authorization: 2026-09-20, optimize crystallization and organize formal experiments. This is a new Work II block; the running C pilot remains unchanged and is not promoted to formal evidence. It does not reopen the historical Experiment 1 qualification programme.
+
+## Development calibration (fixed before execution)
+
+Question: can legal, fully specified interventions distinguish material, seed, cooling history, thermal history, continued growth and upstream loading while covering both acceptable and unacceptable crystal quality?
+
+Use the unchanged full-process v5 and latent crystallization material family. One development world (seed 17), excluded from the five formal worlds. Execute the 24 saved candidate recipes: two candidate pairs for each of six factors. Save all actions before the first operation. Each candidate is executed once and exactly replayed; retain failures and all outcomes. No provider calls. Intermediate measurements are omitted from these reference recipes so their sampling cannot confound matched physical interventions. Final assay definitions match the source task.
+
+Record seed-excluded recovery, purity, bounded size index, fines number fraction, physical time, operation counts, transaction failures and replay error. Reference quality is purity >= 0.80 and fines <= 0.50; recovery >= 0.10 is the feasibility target, not a ceiling. Particle presence is metadata, not an accuracy headline: this task requires isolated crystals for terminal assay, so deliberately adding absent-particle terminal cases would contradict its workflow.
+
+Recipe choice is development, not a hypothesis test on agent performance. Select one complete pair per factor, keeping 12 unique recipes, using calibration outcomes only. Prefer quality-boundary coverage and meaningful effects over saturation. Descriptive effect resolutions are recovery 0.02, purity 0.01, size index 0.005 and fines 0.10. Do not force every metric to respond to every intervention. If calibration does not support the intended coverage, preserve this block and document a new development block before collecting additional calibration data. Never modify a running block or select using agent results.
+
+## Formal design to freeze after calibration
+
+Scope: five worlds (seeds 0-4), E Opaque/Aligned/MisIndexed, one quality-constrained recovery task, budgets 12 and 24, GPT-5.6 Sol / medium, one independent source per cell. This is 30 sources, 540 source batches, 90 K1/Q/K2 stages and 30 recommendation retests. The user was offered a 15-source, 12-batch-only alternative; absent a change, the recommended 30-source scope was explicitly adopted in commentary before freeze. No additional task, model or P/S locus is authorized here. Arm order rotates across worlds; budget order reverses in alternating worlds. Saved schedules never adapt to outcomes.
+
+Keep anonymous materials, actual action mapping and physics identical across arms; MisIndexed exchanges only the S1/S3 dossier entries. All inputs and reports are English. Source budgets are B batches, B shared optional HPLC/particle measurements, B final assays, 60B operation attempts, proportionate stocks and explicit wall/token limits. Retain free sequential/grouped experiment selection and free mechanism forms.
+
+Freeze the selected recipes and all source/posttest prompts before formal validation or provider sources. Validate the frozen 12 recipes and an identical O/A/M instrument probe in each of the five worlds (75 reference batches, replay separately counted). Every world must have a feasible witness, at least three quality-positive and three quality-negative queries, and at least four of six factor pairs with a meaningful effect in at least one metric. Distinct world material instances, actual public anonymity, budget delivery, identical-arm physical/observational results and exact replay are required. If this block fails, retain it, hold formal provider launch, and redesign openly; do not drop failing worlds or silently replace queries.
+
+K1: free explanation grounded in the source experiments. Q: 12 unique fixed conditions; four continuous predictions with 80% intervals and a quality classification. K2: the same three retrospective questions used by this C task. Each stage has 128 calculator attempts, explicit feedback, and a 1,200-second deadline; exhaustion allows final submission. Recommendations and K1 are sealed before Q; no truth flows back to participants. Do not retrofit the separate RX seven-question K2 protocol.
+
+Report continuous error, 80% interval coverage/width and interval score, quality confusion counts/balanced accuracy, and contrast-magnitude errors with resolved/tied directions separated. Report public-data-only constant and nearest-neighbour prediction references from each source's observations; never present an evaluator using query truth as an available agent baseline. Model schema errors, execution failures and scientific mistakes remain separate. No LLM judge is part of this block.
+
+Run one source at a time; seal each stage durably. No automatic science retries, no silent partial-source stitching, no denominator reduction. Intact completed cells are skipped on resume. Infrastructure failures and missing stages remain explicit; a platform fix affecting formal semantics requires the affected qualification block to restart. Old pilot results stay in their own report.
+
+After development and one integrated acceptance pass, commit the execution surface once, bind execution-relevant source/configuration and locked dependencies, and start the fixed formal block from that commit. Keep credentials, raw provider records and local run data out of Git. Individual formal reference outcomes remain in the private run root during execution; public qualification output contains check decisions. Live reporting reads retained trajectories and distinguishes started, completed, sealed and scientifically feasible counts. No global historical release-audit regeneration is required.
+
+## Development outcome before freeze
+
+The fixed 24-candidate calibration completed all 24 executions and exact replays in 1,230 seconds. The selected 12 unique recipes have three quality-positive and nine quality-negative outcomes, two feasibility witnesses with net recovery >=0.10, and six of six factor pairs resolved in at least one metric under the predeclared resolutions. All 24 candidates are retained in the calibration report. No additional calibration candidates or provider calls were used. These are development-world facts, not a claim that formal five-world validation has passed.
+
+One integrated acceptance pass passed 61 tests, including actual public tools at both 12/24 budgets, anonymous dossier swapping, the corrected 24-batch task-card delivery, retesting a source with multiple intermediate measurements, continuous/interval/quality/contrast scoring, live batch reporting, legacy v4 preservation, v5 physics and posttest budgets. No agent result was used to select recipes or change thresholds.

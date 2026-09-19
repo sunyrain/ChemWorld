@@ -1,6 +1,6 @@
 # Work II TODO — 先验、实验修正与知识的决策价值
 
-Current synchronization snapshot (2026-09-20): EC/PA has 102/102 sources attempted, 1,764/1,764 effective source batches, 101 complete chains and 304/306 posttests; one EC-S Q budget failure is retained. RX-P/S has 60/60 complete chains, 720/720 source batches, 180/180 posttests, 600/600 reference executions and 60/60 recommendation retests. C preparation is running; no model source has started. All are development evidence. Earlier progress paragraphs below are dated execution history, not current queue state.
+Current synchronization snapshot (2026-09-20): EC/PA has 102/102 sources attempted, 1,764/1,764 effective source batches, 101 complete chains and 304/306 posttests; one EC-S Q budget failure is retained. RX-P/S has 60/60 complete chains, 720/720 source batches, 180/180 posttests, 600/600 reference executions and 60/60 recommendation retests. C pilot preparation passed 19/19; its original three-arm model sources are running. The new formal C block is in separate development calibration. All are development evidence. Earlier progress paragraphs below are dated execution history, not current queue state.
 
 The two branches independently used W2-127 through W2-131. This merged index prefixes remote RX/protocol entries with `RX/`; original protocol files retain their historical IDs. Each executed block keeps its saved contract: the RX seven-question K2 protocol does not retrospectively replace the EC/PA or already-started C pilot's three-question K2. The current C pilot follows [its fixed note](WORK_II_C_PILOT_NOTE.md). New blocks must choose and record their applicable protocol before execution.
 
@@ -34,6 +34,8 @@ W2-131按用户明确授权启动[RX-P/S五世界双目标块 v1.0.1](WORK_II_RX
 W2-131随后按用户授权经[recovery v9](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V9_PARALLEL4.md)恢复四路执行，并在单格Q provider failure后以[recovery v10](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V10_CONTINUE.md)改为“单格失败保留、队列继续、真值仍封锁”。v10尝试完剩余队列后保留7格网络传输失败；[recovery v11](WORK_II_RX_PS_FIVE_WORLD_DUAL_GOAL_RECOVERY_V11.md)在恢复并验证持久SSH反向代理后，对2格完整source按K1→Q→K2重封后测、对5格中断source从第1批在独立目录重跑，原失败均未覆盖。最终60/60来源、720/720批、180/180后测、600/600参考执行和60/60建议复测完成，失败0；reference truth只在全部60条整链封存后生成。[最终60格报告与白名单JSON](reports/work-ii-rx-ps-five-world-dual-goal-20260919-final/README.md)覆盖完整实验、K1/Q/K2、盲测评分、解封真值和建议复测；早期[W01/W02](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w01-w02/README.md)与[W03/W04](reports/work-ii-rx-ps-five-world-dual-goal-20260919-w03-w04/README.md)继续作为当时的真值解封前快照保留。
 
 ## 1. 当前任务与唯一入口
+
+W2-137：用户2026-09-20授权全面优化结晶并组织正式实验。按[固定说明](WORK_II_C_FORMAL_NOTE.md)与[矩阵9.11节](WORK_II_EXPERIMENT_MATRIX.md)推进：开发世界固定24候选校准、保留全部结果，选12条不同的六因素配对题；正式五世界分别验证正负质量覆盖和因素效应。默认准备12/24预算×E三臂30来源/540批/90后测，用户规模选项仍可调整。新增独立正式入口和连续/区间/质量/配对评分、仅用来源公开观测的参考预测、实时未封存进度；旧预实验原题继续运行，不混入正式分母。当前未冻结、未启动正式provider，校准进行中。
 
 W2-136结晶预实验已获用户授权，按[执行说明](WORK_II_C_PILOT_NOTE.md)推进单世界E三臂、每臂12批/12额外测量/12终检及K1/Q/K2。新增实际C入口，先做19批固定本地参考；查到并修正C真实材料目录泄露，以及旧v4播种/过滤强制化学测量与自由预算冲突。显式v5保留v4物理和晶种来源追踪、放开两项测量顺序；旧v4保持。前期零模型启动失败及7次参考操作保留；新19批块执行中，当前未启动provider。51项相关功能检查及Ruff通过；实时分母见[英文报告](reports/work-ii-c-sol-pilot-20260919/REPORT.md)。
 
