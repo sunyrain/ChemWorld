@@ -160,6 +160,20 @@ def test_freeze_validation_fails_closed_without_manifest(
         eq.validate_freeze(tmp_path, config())
 
 
+def test_nonzero_prefreeze_calls_require_zero_science_repair_evidence() -> None:
+    repair = {
+        "provider_api_request_attempts": 3,
+        "accepted_model_calls": 0,
+        "scientific_actions": 0,
+        "source_batches": 0,
+        "scientific_output_retained": False,
+    }
+
+    assert repair["accepted_model_calls"] == 0
+    assert repair["scientific_actions"] == 0
+    assert repair["source_batches"] == 0
+
+
 def test_interrupted_snapshot_selects_fresh_source_when_no_result(tmp_path: Path) -> None:
     frozen = config()
     cell = eq.validate_design(frozen)["schedule"][0]

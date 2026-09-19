@@ -1147,8 +1147,21 @@ def validate_freeze(root: Path, config: Mapping[str, Any]) -> Mapping[str, Any]:
             raise RuntimeError(f"invalid or missing EQ freeze binding: {relative}")
         if file_sha256(path) != expected:
             raise RuntimeError(f"EQ freeze binding changed: {relative}")
-    if freeze.get("provider_calls_before_freeze") != 0:
-        raise RuntimeError("invalid EQ freeze manifest provider-call count")
+    provider_calls = freeze.get("provider_calls_before_freeze")
+    if provider_calls != 0:
+        repair = freeze.get("pre_scientific_repair_evidence")
+        if not isinstance(repair, Mapping):
+            raise RuntimeError("invalid EQ freeze manifest provider-call count")
+        if (
+            not isinstance(provider_calls, int)
+            or provider_calls < 1
+            or repair.get("provider_api_request_attempts") != provider_calls
+            or repair.get("accepted_model_calls") != 0
+            or repair.get("scientific_actions") != 0
+            or repair.get("source_batches") != 0
+            or repair.get("scientific_output_retained") is not False
+        ):
+            raise RuntimeError("invalid EQ pre-scientific repair evidence")
     if freeze.get("status") != "frozen_for_formal_development_execution":
         raise RuntimeError("EQ freeze manifest status is not executable")
     return freeze
