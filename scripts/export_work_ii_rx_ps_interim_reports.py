@@ -11,6 +11,8 @@ from pathlib import Path
 from typing import Any
 
 RESULT_VERSIONS = (
+    "posttest-repair-v11",
+    "source-repair-v11",
     "posttest-repair-v10",
     "posttest-repair-v9",
     "posttest-repair-v8",

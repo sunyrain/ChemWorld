@@ -16,11 +16,15 @@ def test_resolve_result_prefers_latest_repair(tmp_path: Path) -> None:
         tmp_path / "sources" / cell / "posttest-repair-v10" / "effective-result.json",
         {"status": "completed"},
     )
+    dump(
+        tmp_path / "sources" / cell / "posttest-repair-v11" / "effective-result.json",
+        {"status": "completed-v11"},
+    )
 
     path, result = export.resolve_result(tmp_path, cell)
 
-    assert path.parent.name == "posttest-repair-v10"
-    assert result["status"] == "completed"
+    assert path.parent.name == "posttest-repair-v11"
+    assert result["status"] == "completed-v11"
 
 
 def test_readable_report_excludes_private_provider_fields() -> None:

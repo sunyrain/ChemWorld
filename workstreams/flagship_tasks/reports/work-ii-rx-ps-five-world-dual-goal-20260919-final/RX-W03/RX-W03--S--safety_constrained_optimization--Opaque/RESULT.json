@@ -1,0 +1,1726 @@
+{
+  "cell": {
+    "arm": "Opaque",
+    "cell_id": "RX-W03--S--safety_constrained_optimization--Opaque",
+    "goal": "safety_constrained_optimization",
+    "locus": "S",
+    "operations": 85,
+    "posttest_chain_sealed": true,
+    "source_status": "completed",
+    "status": "completed",
+    "world_id": "RX-W03",
+    "world_seed": 2
+  },
+  "excluded_private_fields": [
+    "credentials",
+    "provider event streams",
+    "provider stderr",
+    "thread identifiers",
+    "token accounting"
+  ],
+  "posttests": {
+    "K1": {
+      "payload": {
+        "report": "Mechanistic report\n\n1. Scope and evidence base\n\nThis report describes only the bounded synthetic reaction world explored in the completed 12-batch campaign. The reagent and catalysts were anonymous benchmark materials, and the named solvents had categorical benchmark effects. Therefore, I do not interpret Catalyst B as any real catalyst or claim that the observed solvent trends predict a real chemical synthesis.\n\nEvery completed batch used 0.040 mol reagent, 0.005 mol catalyst, and 0.080 L solvent. Thus, the evidence principally identifies relative effects of catalyst identity, solvent identity, and thermal history at this fixed composition. All reported terminal values below are final-assay observations, not hidden-state values.\n\n2. Proposed process model\n\nA compact explanation is a thermally activated network with parallel desired and undesired conversion, followed by secondary degradation:\n\nR --kP--> P\nR --kB--> B\nP --kD,P--> D\nB --kD,B--> D\n\nHere R is the public reactant, P the target-product pool, B the ordinary byproduct pool, and D the degradation pool. A minimal kinetic representation would be:\n\ndR/dt = -(kP + kB)R\ndP/dt = kP R - kD,P P\ndB/dt = kB R - kD,B B\n\nwith effective rate constants such as\n\nki = Ai(catalyst, solvent, stirring) exp[-Ei(catalyst, solvent)/(RT)].\n\nThis is a useful structural model, not a fitted or uniquely established law. It accounts for the main observations:\n\n• Conversion rises with thermal exposure and with more active catalyst/solvent combinations.\n• Yield is approximately conversion multiplied by selectivity. For example, batch 12 had conversion 0.8227 and selectivity 0.7233, whose product is close to the measured yield of 0.5894, allowing for assay noise and process proxies.\n• More severe exposure can increase conversion while eroding selectivity and increasing byproduct and degradation signals.\n• Catalyst and solvent do not merely rescale one common rate: they appear to change the balance among desired formation, byproduct formation, and degradation.\n\nThe reactor temperature did not jump instantaneously to its set point. Public state deltas showed an initial temperature increase from roughly 300 K toward the target—for example, +39.63 K for the 340 K treatments in batches 9 and 12. Consequently, the relevant exposure is the time integral of temperature-dependent rates during heat-up and near-target residence, rather than simply target temperature multiplied by duration.\n\n3. Catalyst effects\n\nCatalyst B was the strongest catalyst encountered in the explored region. The comparison is imperfect because the campaign was adaptive rather than factorial, but two observations are particularly informative:\n\n• In acetonitrile, batch 5 used Catalyst B at 335 K for 7200 s and reached conversion 0.9404. Batch 3 used Catalyst C at the higher target of 340 K for the same duration and reached only 0.8817. This supports higher effective activity for Catalyst B, although batch 5 also produced worse byproduct and degradation signals.\n• In ethanol, Catalyst B gave conversion 0.9443 in batch 2 at 350 K for 7200 s, whereas Catalyst C gave 0.8011 in batch 6 at 340 K for 7200 s. Temperature confounds this comparison, but it is consistent with the same activity ordering.\n\nCatalyst B was not universally better in every output. Its high activity could drive the system into a region with substantial secondary chemistry. Batch 5, for example, combined 0.9404 conversion with byproduct signal 0.4361, degradation warning 0.3357, selectivity 0.5572, and score 0.2559. Thus, Catalyst B appears valuable because it enables useful conversion at milder conditions, not because it intrinsically eliminates side reactions.\n\nCatalysts A and D were tested only once each and under distinct conditions. Batch 1 with Catalyst A and water reached conversion 0.6146 and score 0.1919 after two 350 K, 3600 s heat periods. Batch 4 with Catalyst D and toluene reached conversion 0.7034 but only 0.4965 selectivity and score 0.1545 after 330 K for 7200 s. These data are insufficient to separate catalyst weakness from solvent and temperature effects. Any full ranking below Catalyst B would therefore be speculative.\n\n4. Solvent effects and catalyst–solvent coupling\n\nThe evidence supports a real categorical solvent effect within this benchmark world.\n\nWater was the best medium for the optimized Catalyst B procedure. Batches 9 and 12 used water, Catalyst B, 340 K, 7000 s, and 900 rpm. They produced:\n\n• Batch 9: conversion 0.8179, yield 0.5925, selectivity 0.7199, byproduct 0.2351, degradation warning 0.1381, safety risk 0.14935, score 0.33157.\n• Batch 12: conversion 0.8227, yield 0.5894, selectivity 0.7233, byproduct 0.2315, degradation warning 0.1209, safety risk 0.14935, score 0.33164.\n\nTheir close agreement is the strongest replication evidence in the campaign. It indicates that the favorable water/Catalyst B result was not solely an unusually favorable assay fluctuation.\n\nEthanol with Catalyst B could achieve greater conversion, but generally at reduced selectivity and increased degradation. Batch 2 at 350 K for 7200 s gave conversion 0.9443, yield 0.5797, selectivity 0.6061, byproduct 0.3627, degradation warning 0.2399, risk 0.1821, and score 0.2959. At milder conditions, batch 7 at 330 K for 6000 s gave conversion 0.7785, yield 0.5511, selectivity 0.6853, byproduct 0.2487, degradation warning 0.1253, risk 0.1659, and score 0.2950. Batch 8, at 335 K for 6500 s, lay between them: conversion 0.8538, selectivity 0.6637, yield 0.5732, and score 0.3033. This sequence supports a thermal severity tradeoff rather than a simple monotonic benefit from conversion.\n\nAcetonitrile appeared even more conversion-promoting but less clean with Catalyst B. Batch 5 reached conversion 0.9404 at only 335 K, yet its byproduct and degradation signals were the campaign’s largest among the reported Catalyst B trials. This suggests solvent-dependent acceleration of both productive and undesired pathways, or particularly poor stabilization of the desired product under those conditions.\n\nToluene was examined only with Catalyst D, so its independent effect is not identifiable. Likewise, comparisons among solvents cannot be reduced to real-world polarity or boiling-point arguments because the task explicitly defined these as categorical benchmark effects.\n\n5. Thermal exposure and the conversion–selectivity tradeoff\n\nThe Catalyst B/ethanol series gives the clearest severity trend:\n\n• Batch 7, 330 K and 6000 s: X = 0.7785, S = 0.6853, Y = 0.5511, degradation = 0.1253.\n• Batch 8, 335 K and 6500 s: X = 0.8538, S = 0.6637, Y = 0.5732, degradation = 0.1620.\n• Batch 2, 350 K and 7200 s: X = 0.9443, S = 0.6061, Y = 0.5797, degradation = 0.2399.\n\nConversion rose substantially, while selectivity declined and degradation increased. Yield improved only modestly from batch 8 to batch 2, and the safe score fell from 0.3033 to 0.2959. This is consistent with diminishing target formation plus accelerating side reactions at high conversion and temperature.\n\nBatch 1 supplied within-batch time-course evidence. After its first 350 K, 3600 s heat period, HPLC estimated conversion 0.3667, selectivity 0.6330, yield 0.2299, and byproduct signal 0.1257. After a second equal heat period, the final assay gave conversion 0.6146, selectivity 0.5770, yield 0.3560, and byproduct signal 0.2539. Despite instrument differences between the intermediate and final observations, the direction is mechanistically coherent: continued heating consumed more reactant but shifted a growing fraction toward undesired material.\n\nThe water/Catalyst B local search indicated a broad optimum rather than a sharp point:\n\n• Batch 11, 338 K for 7500 s: score 0.32989, risk 0.14943.\n• Batches 9 and 12, 340 K for 7000 s: scores 0.33157 and 0.33164, risk 0.14935.\n• Batch 10, 342 K for 7200 s: score 0.33112, risk 0.15150.\n\nThe score differences are comparable to assay variation. I therefore infer a plateau around 338–342 K and approximately 7000–7500 s, not proof of a uniquely optimal 340 K/7000 s point.\n\n6. Safety-risk model\n\nObserved safety risk behaved more like accumulated operational hazard than like a direct assay channel. Catalyst addition did not visibly raise risk in the explored recipes, whereas solvent/reagent charging established a solvent-dependent baseline and heating added a temperature-, time-, and medium-dependent increment.\n\nWater-based Catalyst B batches 9 and 12 had risk 0.14935 after the 340 K/7000 s heat. The analogous ethanol and acetonitrile regions were generally riskier: batch 2 had risk 0.18206 and batch 5 had risk 0.19837. All 12 completed batches remained below the declared 0.35 limit.\n\nA plausible descriptive relationship is\n\nrisk = rcharge(solvent, amounts) + integral h(T(t), solvent, inventory) dt,\n\nwhere h increases with temperature and may include interaction terms. The evidence does not support a precise functional form. Risk increments were observable for entire operations, not continuously sampled, so Arrhenius, polynomial, threshold, and lookup-table hazard laws remain competing explanations.\n\nWater’s advantage was dual: it produced the highest selectivity with Catalyst B and had a lower accumulated safety risk. That coupling explains why the safe-score optimum was not the maximum-conversion condition.\n\n7. Score behavior\n\nThe exact scoring equation was not exposed and cannot be uniquely reconstructed from 12 observations. Empirically, score favored high yield and selectivity and was reduced by safety risk and undesirable-product signals. Maximum conversion alone was clearly insufficient: batch 2 had conversion 0.9443 but score 0.2959, whereas batch 12 had conversion 0.8227 but score 0.3316 because selectivity was higher, byproduct/degradation signals were lower, and risk was lower.\n\nThe measured cost channel saturated at 1 after catalyst addition in these full-catalyst recipes. Therefore, I cannot identify whether smaller catalyst charges could improve an uncapped cost-sensitive objective. Within the public safe-score observations, the fixed 0.005 mol catalyst charge was effective.\n\n8. Measurement behavior and uncertainty\n\nIntermediate HPLC and final-assay results were directionally consistent but not identical. Examples include:\n\n• Batch 2 HPLC: conversion 0.9449, yield 0.6086, selectivity 0.6152; final assay: 0.9443, 0.5797, and 0.6061.\n• Batch 10 HPLC: conversion 0.8233, yield 0.6221, selectivity 0.7371; final assay: 0.8334, 0.5946, and 0.7125.\n\nNo additional reaction operation occurred between those measurements and termination, so these differences should mainly reflect instrument noise, sampling, and channel-specific calibration rather than genuine reaction progress. This is why I rely more heavily on replicated patterns and large contrasts than on small differences.\n\nBatches 9 and 12 are particularly valuable for estimating repeatability. Their final conversions differed by about 0.0048, selectivities by about 0.0034, yields by about 0.0032, and scores by only 0.000064. Their degradation warnings differed more, 0.1381 versus 0.1209, consistent with the degradation channel’s stated measurement noise and process variability. On that basis, the tiny score ordering among batches 9, 10, 11, and 12 should not be interpreted as a sharply resolved mechanistic ranking.\n\n9. Factors not identified\n\nSeveral quantities cannot be inferred from this campaign:\n\n• Catalyst loading dependence: every completed recipe used 0.005 mol catalyst.\n• Reagent concentration and solvent-volume dependence: all batches used 0.040 mol reagent in 0.080 L initially.\n• A distinct stirring effect: most early batches used 700 rpm and later optimized batches used 900 rpm, but stirring changed together with solvent and thermal conditions.\n• Independent effects of Catalyst A, Catalyst D, and toluene: each appeared in only one substantially confounded experiment.\n• Separate activation energies for desired formation, byproduct formation, and degradation.\n• Whether degradation consumes target product, byproduct, or both.\n• Whether the byproduct and degradation signals correspond to single species or aggregate pools.\n• Behavior outside 330–350 K for the principal comparisons, except that the legal range was wider.\n• Long-time stability after termination and scale-up behavior.\n\n10. Reasonable competing explanations\n\nThe parallel-plus-consecutive kinetic network is not unique. At least four alternatives remain plausible:\n\n1. Two parallel product channels whose apparent selectivity changes with conversion, without actual degradation of P.\n2. Catalyst deactivation or inhibition by product/byproduct, giving diminishing conversion rates and time-varying selectivity.\n3. Solvent-dependent assay response or phase behavior that changes public signals without proportionally changing chemical amounts.\n4. A benchmark transition model based on categorical response surfaces rather than elementary mass-action kinetics.\n\nThe available observations favor a genuine secondary-degradation component because the degradation warning rises strongly with severe Catalyst B conditions, but they do not prove which chemical pool is degrading.\n\n11. Final operating interpretation\n\nWithin the tested domain, the robust operating region is:\n\n• Water, 0.080 L\n• Anonymous reagent, 0.040 mol\n• Catalyst B, 0.005 mol\n• Heat toward approximately 340 K for about 7000 s\n• Stirring at 900 rpm\n• Then terminate and assay\n\nBatch 12 was selected because it had the highest observed final safe score, 0.33164, with safety risk 0.14935, comfortably below the 0.35 limit. Its final assay gave conversion 0.82271, yield 0.58937, selectivity 0.72330, byproduct signal 0.23151, and degradation warning 0.12089. Batch 9 independently replicated the same recipe and obtained score 0.33157, providing the best evidence that this is a stable favorable region.\n\nThe central mechanistic conclusion is that this world rewards moderated conversion rather than maximal conversion. Catalyst B supplies sufficient activity, water biases the network toward the desired channel and lowers operational risk, and a thermal exposure near 340 K for roughly two hours approaches the point where further conversion is offset by selectivity loss, byproduct formation, degradation, and additional hazard."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    },
+    "K2": {
+      "payload": {
+        "report": "1. Assessment of claims in the initial information\n\nThe initial material packet contained almost no substantive chemical hypothesis to test. It explicitly said that there was no task-specific nominal property dossier, that catalysts were anonymous benchmark formulations, and that solvent effects were categorical benchmark effects rather than predictions from real solvent properties. Consequently, the campaign could not confirm claims such as “water should be superior because of polarity” or “Catalyst B has a particular chemical identity”; no such claims were actually supplied. My K1 report respected this boundary and warned against interpreting the benchmark as a named real synthesis.\n\nSeveral operational claims were supported. The declared safety limit was 0.35, and every measured campaign batch stayed below it. The public instrument contracts anticipated channel-specific noise, and the observed HPLC/final-assay discrepancies were consistent with that claim. For example, batch 10 gave HPLC yield/selectivity of 0.6221/0.7371 but final-assay values of 0.5946/0.7125 without intervening reaction time. The close but nonidentical final assays from replicated batches 9 and 12 likewise supported meaningful measurement or process variation.\n\nThe claim that experimental evidence had to be authoritative was strongly borne out: solvent and catalyst behavior could not safely have been inferred from their labels. In particular, acetonitrile with Catalyst B produced high conversion but poor cleanliness in batch 5, while water with the same catalyst gave the best safe-score region in batches 9–12.\n\nOther initial statements remained untested rather than supported. The campaign did not test whether the named-solvent benchmark effects correlate with any curated physical properties. It did not test the full legal temperature domain, loading dependence, long-term stability, or transport limitations. The anonymous identity policy is a definition of the world, not an empirical proposition that these experiments could falsify.\n\nIt is also important to distinguish absence of counterevidence from positive confirmation. Nothing contradicted the declared synthetic-instrument boundary, but the experiments could not independently validate that boundary. Similarly, all batches being below the safety limit does not validate my later proposed risk equation.\n\nOne early working expectation—that pushing conversion upward would improve performance—encountered counterevidence and was revised. Batch 2 reached conversion 0.9443 but scored only 0.2959, whereas batch 12 reached conversion 0.8227 and scored 0.3316. I did change the interpretation toward moderated conversion. A more problematic case is catalyst ranking: K1 called Catalyst B the “strongest catalyst encountered.” The data supported high apparent activity, but simultaneous solvent and temperature changes prevented a clean global ranking. That language was stronger than the design justified, even though K1 later acknowledged the confounding. I did not fully retract the headline ranking after recognizing that limitation.\n\n2. Experiments that formed or changed the interpretation\n\nBatch 1 supplied the first meaningful kinetic clue. After the first 350 K period, HPLC estimated conversion 0.3667, selectivity 0.6330, yield 0.2299, and byproduct 0.1257. Following a second equal heating period, the final assay showed higher conversion, 0.6146, but lower selectivity, 0.5770, and higher byproduct signal, 0.2539. This produced the initial idea of a conversion–selectivity tradeoff and motivated the parallel-plus-secondary-reaction interpretation. Because the two observations used different instruments, it was suggestive rather than decisive.\n\nBatches 2–4 were broad screening experiments. Batch 2 established that high conversion was accessible and that it could coexist with substantial degradation. Batches 3 and 4 widened the qualitative material comparison, but each changed catalyst, solvent, and temperature together. They were useful for locating regimes, not for identifying individual causal effects.\n\nBatches 5 and 6 were the first partial cross-comparisons. Batch 5 showed that Catalyst B in acetonitrile could reach conversion 0.9404 even at 335 K, but with byproduct 0.4361 and degradation warning 0.3357. Batch 6 showed a less aggressive Catalyst C/ethanol outcome. These experiments shifted my view from “find the most active condition” to “use activity at lower severity to preserve selectivity.”\n\nBatches 7 and 8 created the clearest within-material severity sequence when combined with batch 2. Across Catalyst B/ethanol conditions, conversion rose from 0.7785 to 0.8538 to 0.9443 as exposure increased, while selectivity fell from 0.6853 to 0.6637 to 0.6061 and degradation increased. This was the strongest evidence behind K1’s statement that the world rewards moderated rather than maximal conversion.\n\nBatch 9 materially changed the optimization direction. Water with Catalyst B at 340 K for 7000 s gave score 0.33157 at risk 0.14935, markedly better than the ethanol and acetonitrile Catalyst B results. Batches 10 and 11 then tested nearby thermal conditions and suggested a broad local plateau. Batch 12 repeated batch 9 and produced score 0.33164, providing the principal basis for the sealed recommendation.\n\nThe first experimental choices depended heavily on unvalidated guesses. The diagonal screen—Catalyst A/water, B/ethanol, C/acetonitrile, and D/toluene—had no evidence-based pairing rationale and confounded multiple variables. The initial temperatures and durations were also heuristic. Using maximum reagent, solvent, and catalyst charges was motivated by the goal of finding a strong score efficiently, not by established loading laws. Later choices relied progressively more on accumulated data: batches 5–8 tested emerging activity and severity hypotheses, while batches 9–12 were primarily score-directed local optimization.\n\n3. Most important competing explanations\n\nK1 proposed parallel desired and undesired conversion followed by secondary degradation. That remains a useful working model, but it is not uniquely identified.\n\nThe leading alternatives are:\n\n• Pure parallel pathways with temperature-dependent branching, where the desired product is stable and selectivity loss comes entirely from a growing direct byproduct channel.\n• Consecutive degradation of the desired product after its formation, as represented in K1.\n• Catalyst deactivation, product inhibition, or time-dependent catalyst speciation, which could create diminishing productive rates and apparent selectivity changes without direct product degradation.\n• Aggregate assay or phase-response effects. Solvent-dependent response factors, phase behavior, or sampling could alter public yield, byproduct, and degradation channels without matching a simple molecular inventory.\n• A categorical benchmark response surface without an underlying elementary kinetic network. This is especially plausible because the environment explicitly used anonymous benchmark couplings.\n\nThe experiments can distinguish some coarse features. They show that catalyst, solvent, and thermal history interact; a single conversion-only model is inadequate. The ethanol severity sequence supports a divergence between conversion and selectivity. Batch 5 demonstrates that high activity and high undesirable signals can occur together. The water replicate shows that its favorable region is reproducible at the observed precision.\n\nThe experiments cannot establish whether target product is actually consumed. A decisive signature would be target yield decreasing during additional heating while reactant conversion changes little, measured comparably over time. Batch 1 approached this question, but conversion was still changing substantially and the intermediate and final instruments differed. Nor can the existing data cleanly separate catalyst deactivation from substrate depletion, identify reaction orders, estimate distinct activation energies, or decide whether the degradation channel represents one species or an aggregate warning.\n\n4. One additional complete experiment I would choose\n\nI would choose a split-duration experiment at the recommended composition: 0.080 L water, 0.040 mol reagent, 0.005 mol Catalyst B, and 900 rpm. I would heat toward 340 K for 3500 s, take an HPLC measurement, continue at 340 K for another 3500 s, terminate, and perform the required final assay. This would be legal as a complete batch and would probe the recommended region rather than an unrelated extreme.\n\nThe principal diagnostic target would be whether target yield continues rising, plateaus, or begins falling during the second half of the exposure. I would also compare conversion, selectivity, and byproduct directionally, while acknowledging that HPLC and final assay have different noise and calibration.\n\nPossible interpretations would be:\n\n• If conversion and yield both rise while selectivity remains approximately stable, the optimum is mainly conversion-limited and K1 overemphasized consecutive degradation near 340 K.\n• If conversion rises but yield plateaus while byproduct increases, parallel competition or onset of secondary degradation is important.\n• If conversion changes little but yield or selectivity falls and degradation warning rises, that would strongly support consecutive destruction of the target or its conversion into assay-visible undesirable material.\n• If the second observation differs only within expected channel noise, the experiment would indicate a broad kinetic plateau but would not discriminate the mechanisms.\n• If the midpoint already resembles the final performance, a shorter operation might retain score while reducing process time and risk.\n\nIdeally, identical analytical methods would be used at both times, but the campaign contract allowed only a final assay after termination. Therefore, even this best single experiment would remain limited by cross-instrument comparison.\n\n5. Tradeoff between mechanistic identifiability and score optimization\n\nThe campaign favored score optimization after a short exploratory phase. This was appropriate for the stated primary goal, but it materially reduced mechanistic identifiability.\n\nThe clearest sacrifice occurred in batches 9–12. Once water/Catalyst B produced the best score, three remaining batches were spent on a narrow thermal search and one exact replicate. That established local performance and repeatability better than another broad screen would have, but it left catalyst loading, stirring, concentration, and several catalyst–solvent combinations unidentified.\n\nThe reverse tradeoff occurred in batch 1. The second heat period and intermediate HPLC measurement were mechanistically informative, but the resulting batch was unlikely to be optimal after the first low-conversion reading. Batches 3–6 also devoted resources to material comparisons rather than simply repeating the initially strongest condition, although their confounded design limited the information gained.\n\nThe use of maximum catalyst loading throughout was strongly score-driven. It helped find an active operating regime but made the catalyst dependence completely unidentifiable. Likewise, maintaining one reagent amount and one solvent volume simplified optimization yet prevented concentration and scale analysis.\n\nThe local replicate in batch 12 was a deliberate choice to favor confidence in the recommendation over discovering another causal factor. Given that batch 9 was already best, this was defensible for the research goal. It should not be confused with a design optimized for estimating a kinetic model.\n\n6. Underused evidence and weaknesses in the blind predictions\n\nSeveral existing evidence streams were not fully exploited. I did not quantitatively fit the intermediate HPLC and final-assay pairs with their declared noise levels. I used raw spectral summaries only superficially and did not analyze peak areas or assignment consistency across batches. The operation-level temperature changes, risk increments, and process-time contributions could have supported a more explicit thermal-exposure and hazard model. Cost saturated at 1 in the displayed observations, and I did not investigate whether uncapped cost information could be reconstructed from operation deltas. I also did not fit a joint model enforcing mass balance and channel covariance.\n\nThe blind predictions least supported by the campaign are Q06 and Q08, which used 465 K for 7200 s. No campaign experiment approached 465 K, and K1 explicitly limited its interpretation mainly to the 330–350 K region. Q12 at 465 K for 1800 s is similarly extrapolative. Q02 and Q04 at 410 K for 14400 s also extend far beyond both the observed temperature and duration combinations. Their near-complete-conversion and severe-degradation estimates were mechanistic guesses rather than empirically calibrated projections.\n\nQ10 is uniquely uncertain because it includes a quench, an operation never used in the campaign. The sealed prediction assumed that quenching after heating would mostly stop residual chemistry and add little risk. That assumption was not learned from any batch.\n\nCatalyst loading and scale create another major weakness. All campaign batches used 0.005 mol catalyst, 0.040 mol reagent, and 0.080 L solvent, whereas the prediction queries used much smaller absolute inventories and several catalyst-to-reagent ratios. The prediction rationale treated rate as a saturating function of relative catalyst exposure, but the campaign contained no loading series to justify that functional form. The safety predictions were especially fragile because it was unknown whether risk scales with absolute inventory, concentration, temperature, peak state, or some combination.\n\nSeveral intervals were probably too narrow. Q08 assigned conversion 1.000 with an 80% interval of 0.99–1.00 despite being a major temperature and loading extrapolation. Q04 and Q06 similarly placed very high confidence on saturation. The safety intervals for the high-temperature cases may not cover enough scale-model uncertainty. Even the apparently broad yield and selectivity intervals may underrepresent the possibility that the benchmark uses categorical nonlinearities or thresholds outside the observed domain.\n\nThis is partly inconsistent with K1’s explicit scope statement. K1 correctly said that behavior outside the studied region, catalyst loading dependence, and scale-up were unidentified. The blind-prediction rationale repeated that extrapolation uncertainty dominated, but some numerical intervals did not fully honor that warning. The central predictions were permissible conjectures; the confidence implied by several intervals was overstrong.\n\n7. Limitations of the sealed recommendation\n\nBatch 12 was the sample-highest observed result, not a proven global optimum. Its score of 0.33164 exceeded batch 9 by only about 0.000064, far below a meaningful separation given assay and process variability. The recommendation is better described as selecting a replicated favorable region represented by batches 9 and 12.\n\nRepeatability evidence is limited to two nominally identical batches. A stronger test would use several independently prepared replicates, preferably randomized among nearby conditions to separate run-order effects from genuine condition effects. Means, between-batch variance, and prediction intervals should then be reported rather than selecting the single highest replicate.\n\nLocal robustness was sampled only sparsely. Batches 10 and 11 showed that nearby conditions—342 K/7200 s and 338 K/7500 s—gave similar scores, supporting a plateau. A proper robustness test would vary temperature, duration, stirring, catalyst loading, and charge amounts in a small factorial or response-surface design. It would also examine sensitivity to plausible control errors, such as temperature overshoot or timing deviations.\n\nCross-material generalization is not established. The water/Catalyst B result cannot be assumed to transfer to Catalysts A, C, or D because those combinations were not systematically crossed. Nor can it be inferred that water is always superior: its advantage was established only in a narrow Catalyst B regime. Cross-world generalization is even weaker because the catalyst and solvent couplings were benchmark-specific and anonymous.\n\nThe recommendation also says little about economic efficiency. Catalyst was used at its maximum per-operation amount, and the displayed cost was saturated. A lower catalyst loading might retain most of the score at lower physical cost, but that was never tested. Similarly, a shorter residence time might lie on the same broad score plateau.\n\nAccordingly, the sealed operation should be understood as: “the best replicated procedure observed within this 12-batch, fixed-composition campaign.” It has not been shown to be globally optimal, uniquely optimal, optimal under altered resource weights, or portable to another material system or benchmark world."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    },
+    "Q": {
+      "payload": {
+        "predictions": [
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.47,
+                "lower80": 0.3,
+                "upper80": 0.66
+              },
+              "conversion": {
+                "estimate": 0.7,
+                "lower80": 0.45,
+                "upper80": 0.9
+              },
+              "safety_risk": {
+                "estimate": 0.12,
+                "lower80": 0.07,
+                "upper80": 0.2
+              },
+              "score": {
+                "estimate": 0.12,
+                "lower80": 0.05,
+                "upper80": 0.22
+              },
+              "selectivity": {
+                "estimate": 0.48,
+                "lower80": 0.3,
+                "upper80": 0.66
+              },
+              "yield": {
+                "estimate": 0.32,
+                "lower80": 0.17,
+                "upper80": 0.48
+              }
+            },
+            "query_id": "Q01",
+            "rationale": "The low Catalyst B loading limits conversion during the short treatment, but 410 K should still produce substantial reaction. Acetonitrile and the high temperature are expected to favor byproduct formation and reduce selectivity relative to the studied 335 K condition."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.74,
+                "lower80": 0.55,
+                "upper80": 0.91
+              },
+              "conversion": {
+                "estimate": 0.99,
+                "lower80": 0.94,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.4,
+                "lower80": 0.25,
+                "upper80": 0.6
+              },
+              "score": {
+                "estimate": 0.03,
+                "lower80": 0.0,
+                "upper80": 0.09
+              },
+              "selectivity": {
+                "estimate": 0.24,
+                "lower80": 0.08,
+                "upper80": 0.42
+              },
+              "yield": {
+                "estimate": 0.18,
+                "lower80": 0.05,
+                "upper80": 0.34
+              }
+            },
+            "query_id": "Q02",
+            "rationale": "Four hours at 410 K should nearly exhaust the reactant even at low catalyst loading. The long, hot acetonitrile exposure is extrapolated to cause extensive side reaction and degradation, producing low surviving target yield and appreciable safety risk."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.56,
+                "lower80": 0.38,
+                "upper80": 0.74
+              },
+              "conversion": {
+                "estimate": 0.96,
+                "lower80": 0.82,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.15,
+                "lower80": 0.08,
+                "upper80": 0.25
+              },
+              "score": {
+                "estimate": 0.14,
+                "lower80": 0.06,
+                "upper80": 0.25
+              },
+              "selectivity": {
+                "estimate": 0.43,
+                "lower80": 0.25,
+                "upper80": 0.6
+              },
+              "yield": {
+                "estimate": 0.38,
+                "lower80": 0.2,
+                "upper80": 0.55
+              }
+            },
+            "query_id": "Q03",
+            "rationale": "The higher Catalyst B loading should give near-complete conversion in 1800 s at 410 K. Greater catalytic exposure raises target formation relative to Q01, but high-temperature byproduct and degradation pathways prevent a proportionate selectivity gain."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.88,
+                "lower80": 0.7,
+                "upper80": 0.99
+              },
+              "conversion": {
+                "estimate": 0.999,
+                "lower80": 0.98,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.48,
+                "lower80": 0.3,
+                "upper80": 0.7
+              },
+              "score": {
+                "estimate": 0.004,
+                "lower80": 0.0,
+                "upper80": 0.035
+              },
+              "selectivity": {
+                "estimate": 0.1,
+                "lower80": 0.01,
+                "upper80": 0.25
+              },
+              "yield": {
+                "estimate": 0.06,
+                "lower80": 0.0,
+                "upper80": 0.18
+              }
+            },
+            "query_id": "Q04",
+            "rationale": "High catalyst loading and four hours at 410 K should drive essentially complete conversion followed by extensive secondary chemistry. This is predicted to be one of the least selective and least safe batches."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.35,
+                "lower80": 0.2,
+                "upper80": 0.52
+              },
+              "conversion": {
+                "estimate": 0.73,
+                "lower80": 0.52,
+                "upper80": 0.88
+              },
+              "safety_risk": {
+                "estimate": 0.09,
+                "lower80": 0.05,
+                "upper80": 0.16
+              },
+              "score": {
+                "estimate": 0.21,
+                "lower80": 0.11,
+                "upper80": 0.32
+              },
+              "selectivity": {
+                "estimate": 0.6,
+                "lower80": 0.43,
+                "upper80": 0.75
+              },
+              "yield": {
+                "estimate": 0.43,
+                "lower80": 0.27,
+                "upper80": 0.57
+              }
+            },
+            "query_id": "Q05",
+            "rationale": "This is the mildest low-loading condition. Relative to the observed Catalyst B/acetonitrile batch at 335 K, reduced catalyst loading should lower conversion, while the moderate temperature should preserve materially better selectivity than the 410–465 K cases."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.95,
+                "lower80": 0.82,
+                "upper80": 1.0
+              },
+              "conversion": {
+                "estimate": 0.999,
+                "lower80": 0.98,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.58,
+                "lower80": 0.38,
+                "upper80": 0.82
+              },
+              "score": {
+                "estimate": 0.001,
+                "lower80": 0.0,
+                "upper80": 0.012
+              },
+              "selectivity": {
+                "estimate": 0.04,
+                "lower80": 0.0,
+                "upper80": 0.14
+              },
+              "yield": {
+                "estimate": 0.015,
+                "lower80": 0.0,
+                "upper80": 0.07
+              }
+            },
+            "query_id": "Q06",
+            "rationale": "Two hours at 465 K is an extreme extrapolation. Even with low catalyst loading, conversion should saturate, while thermal degradation and byproduct formation should leave very little target and cause a likely safety-limit violation."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.48,
+                "lower80": 0.31,
+                "upper80": 0.67
+              },
+              "conversion": {
+                "estimate": 0.98,
+                "lower80": 0.91,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.12,
+                "lower80": 0.06,
+                "upper80": 0.21
+              },
+              "score": {
+                "estimate": 0.19,
+                "lower80": 0.09,
+                "upper80": 0.3
+              },
+              "selectivity": {
+                "estimate": 0.5,
+                "lower80": 0.32,
+                "upper80": 0.66
+              },
+              "yield": {
+                "estimate": 0.47,
+                "lower80": 0.3,
+                "upper80": 0.61
+              }
+            },
+            "query_id": "Q07",
+            "rationale": "The high Catalyst B loading should give nearly complete conversion at 350 K. Compared with Q05, the gain in conversion is expected to be partly offset by greater byproduct formation and selectivity loss."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.98,
+                "lower80": 0.9,
+                "upper80": 1.0
+              },
+              "conversion": {
+                "estimate": 1.0,
+                "lower80": 0.99,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.66,
+                "lower80": 0.44,
+                "upper80": 0.9
+              },
+              "score": {
+                "estimate": 0.0001,
+                "lower80": 0.0,
+                "upper80": 0.003
+              },
+              "selectivity": {
+                "estimate": 0.015,
+                "lower80": 0.0,
+                "upper80": 0.07
+              },
+              "yield": {
+                "estimate": 0.005,
+                "lower80": 0.0,
+                "upper80": 0.03
+              }
+            },
+            "query_id": "Q08",
+            "rationale": "This combines the highest catalyst loading with the most severe sustained temperature. Reactant exhaustion is virtually certain, but the target is predicted to undergo extensive destruction or be overwhelmed by side products; safety risk is expected to be very high."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.77,
+                "lower80": 0.59,
+                "upper80": 0.93
+              },
+              "conversion": {
+                "estimate": 0.995,
+                "lower80": 0.97,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.31,
+                "lower80": 0.19,
+                "upper80": 0.48
+              },
+              "score": {
+                "estimate": 0.022,
+                "lower80": 0.0,
+                "upper80": 0.075
+              },
+              "selectivity": {
+                "estimate": 0.22,
+                "lower80": 0.08,
+                "upper80": 0.39
+              },
+              "yield": {
+                "estimate": 0.16,
+                "lower80": 0.04,
+                "upper80": 0.31
+              }
+            },
+            "query_id": "Q09",
+            "rationale": "The intermediate catalyst loading and two-hour 410 K exposure should nearly complete conversion. Relative to the campaign's 335 K acetonitrile result, substantial additional byproduct formation and target degradation are expected; the safety estimate lies near the declared limit."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.76,
+                "lower80": 0.58,
+                "upper80": 0.93
+              },
+              "conversion": {
+                "estimate": 0.995,
+                "lower80": 0.97,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.32,
+                "lower80": 0.19,
+                "upper80": 0.5
+              },
+              "score": {
+                "estimate": 0.023,
+                "lower80": 0.0,
+                "upper80": 0.08
+              },
+              "selectivity": {
+                "estimate": 0.23,
+                "lower80": 0.08,
+                "upper80": 0.4
+              },
+              "yield": {
+                "estimate": 0.17,
+                "lower80": 0.04,
+                "upper80": 0.32
+              }
+            },
+            "query_id": "Q10",
+            "rationale": "Quenching occurs only after the full 7200 s heat, so it should not reverse chemistry already completed. I predict results close to Q09, with a small possible benefit from promptly suppressing residual hot-state degradation but a small additional operational-risk contribution."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.57,
+                "lower80": 0.39,
+                "upper80": 0.75
+              },
+              "conversion": {
+                "estimate": 0.99,
+                "lower80": 0.94,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.15,
+                "lower80": 0.08,
+                "upper80": 0.25
+              },
+              "score": {
+                "estimate": 0.13,
+                "lower80": 0.05,
+                "upper80": 0.24
+              },
+              "selectivity": {
+                "estimate": 0.42,
+                "lower80": 0.24,
+                "upper80": 0.59
+              },
+              "yield": {
+                "estimate": 0.39,
+                "lower80": 0.21,
+                "upper80": 0.55
+              }
+            },
+            "query_id": "Q11",
+            "rationale": "At 350 K, the long duration should compensate for the intermediate catalyst loading and nearly exhaust the reactant. It should retain more target than the hotter 410 K cases, although four hours permits meaningful selectivity erosion and degradation."
+          },
+          {
+            "metrics": {
+              "byproduct_signal": {
+                "estimate": 0.82,
+                "lower80": 0.64,
+                "upper80": 0.97
+              },
+              "conversion": {
+                "estimate": 0.995,
+                "lower80": 0.95,
+                "upper80": 1.0
+              },
+              "safety_risk": {
+                "estimate": 0.25,
+                "lower80": 0.14,
+                "upper80": 0.42
+              },
+              "score": {
+                "estimate": 0.012,
+                "lower80": 0.0,
+                "upper80": 0.055
+              },
+              "selectivity": {
+                "estimate": 0.17,
+                "lower80": 0.04,
+                "upper80": 0.34
+              },
+              "yield": {
+                "estimate": 0.11,
+                "lower80": 0.02,
+                "upper80": 0.25
+              }
+            },
+            "query_id": "Q12",
+            "rationale": "The short residence limits total exposure, but 465 K is sufficiently severe that conversion should still approach completion at the intermediate catalyst loading. Strong thermal side chemistry is expected, though less extensive than in the 7200 s treatments at the same temperature."
+          }
+        ],
+        "rationale": "Predictions were extrapolated from the observed Catalyst B/acetonitrile response in batch 5 and the temperature–time trends seen across the Catalyst B campaign. I treated conversion as a saturating function of catalyst exposure, time, and temperature, while selectivity and surviving yield decline once severe thermal exposure promotes parallel byproduct formation and secondary degradation. Yield was constrained to remain broadly consistent with conversion multiplied by selectivity. Safety risk was modeled qualitatively as charge-related baseline risk plus a temperature- and duration-dependent thermal contribution. The query conditions differ substantially from the studied scale, catalyst loading, temperature range, and stirring rate, so the intervals are deliberately wide, especially at 410–465 K. Instrument noise is included conceptually, but extrapolation uncertainty dominates. Quenching in Q10 was assumed to stop residual hot-state chemistry without reversing products already formed."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    }
+  },
+  "prediction_evaluation": {
+    "metrics": {
+      "byproduct_signal": {
+        "empirical_coverage80": 0.48333333333333334,
+        "mae_to_five_repeat_mean": 0.16667678972085317,
+        "mean_interval_score_alpha_0_2": 0.8460743951797486,
+        "mean_width80": 0.3091666666666667,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "conversion": {
+        "empirical_coverage80": 1.0,
+        "mae_to_five_repeat_mean": 0.016434023420015986,
+        "mean_interval_score_alpha_0_2": 0.11333333333333336,
+        "mean_width80": 0.11333333333333336,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "safety_risk": {
+        "empirical_coverage80": 0.5,
+        "mae_to_five_repeat_mean": 0.12420202900966008,
+        "mean_interval_score_alpha_0_2": 0.4120527270436287,
+        "mean_width80": 0.27166666666666667,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "score": {
+        "empirical_coverage80": 0.55,
+        "mae_to_five_repeat_mean": 0.1047009158758757,
+        "mean_interval_score_alpha_0_2": 0.6646794707576434,
+        "mean_width80": 0.11,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "selectivity": {
+        "empirical_coverage80": 0.55,
+        "mae_to_five_repeat_mean": 0.1647633450726668,
+        "mean_interval_score_alpha_0_2": 0.8919257257382075,
+        "mean_width80": 0.2866666666666667,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "yield": {
+        "empirical_coverage80": 0.5833333333333334,
+        "mae_to_five_repeat_mean": 0.16660132681330045,
+        "mean_interval_score_alpha_0_2": 1.0071915763616561,
+        "mean_width80": 0.24666666666666667,
+        "query_count": 12,
+        "reference_observation_count": 60
+      }
+    },
+    "valid": true
+  },
+  "recommendation_retest": {
+    "batches": [
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7000,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 340
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 7,
+        "lifecycle_index": 1,
+        "metrics": {
+          "byproduct_signal": 0.23352693021297455,
+          "conversion": 0.8290382027626038,
+          "cost": 1.0,
+          "degradation_warning": 0.1442202627658844,
+          "safety_risk": 0.14934910833835602,
+          "score": 0.3302055895328522,
+          "selectivity": 0.7304387092590332,
+          "virtual_spectrum_summary": 0.19333893060684204,
+          "yield": 0.5797479748725891
+        },
+        "ordinal": 1
+      }
+    ],
+    "exact_replay": {
+      "checked_steps": 7,
+      "max_abs_error": 0.0,
+      "mismatches": [],
+      "verified": true
+    },
+    "failure": null,
+    "operation_attempts": 7,
+    "rollbacks": []
+  },
+  "recovery": {
+    "deterministic_seeds_reused": true,
+    "effective_result_version": "source-repair-v9",
+    "frozen_cell_reused": true,
+    "original_batches": 0,
+    "original_operations": 0,
+    "platform_fix": "newly authenticated local Codex cache securely synchronized to the remote host",
+    "recovery_version": "recovery-v9-parallel4",
+    "retained_failure_kind": "v7_cli_path_preaction_failure",
+    "truth_revealed_to_agent": false
+  },
+  "reference_truth": {
+    "Q01": [
+      {
+        "byproduct_signal": 0.1918327361345291,
+        "conversion": 0.7023352980613708,
+        "safety_risk": 0.25177526473999023,
+        "score": 0.3246059715747833,
+        "selectivity": 0.734618604183197,
+        "yield": 0.5292416214942932
+      },
+      {
+        "byproduct_signal": 0.18185068666934967,
+        "conversion": 0.722389817237854,
+        "safety_risk": 0.25177526473999023,
+        "score": 0.3325079381465912,
+        "selectivity": 0.7506507039070129,
+        "yield": 0.5339628458023071
+      },
+      {
+        "byproduct_signal": 0.17036478221416473,
+        "conversion": 0.718802809715271,
+        "safety_risk": 0.25177526473999023,
+        "score": 0.323126882314682,
+        "selectivity": 0.7387570142745972,
+        "yield": 0.5188405513763428
+      },
+      {
+        "byproduct_signal": 0.1890541911125183,
+        "conversion": 0.7145231366157532,
+        "safety_risk": 0.25177526473999023,
+        "score": 0.3272362947463989,
+        "selectivity": 0.7477582097053528,
+        "yield": 0.5245581865310669
+      },
+      {
+        "byproduct_signal": 0.19084841012954712,
+        "conversion": 0.7106688618659973,
+        "safety_risk": 0.25177526473999023,
+        "score": 0.3293423056602478,
+        "selectivity": 0.7513502240180969,
+        "yield": 0.5285418629646301
+      }
+    ],
+    "Q02": [
+      {
+        "byproduct_signal": 0.924094021320343,
+        "conversion": 1.0,
+        "safety_risk": 0.2522231340408325,
+        "score": 0.0068028774112463,
+        "selectivity": 0.08101609349250793,
+        "yield": 0.09557314962148666
+      },
+      {
+        "byproduct_signal": 0.9159059524536133,
+        "conversion": 1.0,
+        "safety_risk": 0.2522231340408325,
+        "score": 0.0059679592959582806,
+        "selectivity": 0.09434887021780014,
+        "yield": 0.08515287190675735
+      },
+      {
+        "byproduct_signal": 0.9221839308738708,
+        "conversion": 1.0,
+        "safety_risk": 0.2522231340408325,
+        "score": 0.01241929829120636,
+        "selectivity": 0.1061214879155159,
+        "yield": 0.09392333030700684
+      },
+      {
+        "byproduct_signal": 0.9176710247993469,
+        "conversion": 1.0,
+        "safety_risk": 0.2522231340408325,
+        "score": 0.003702155314385891,
+        "selectivity": 0.07817935943603516,
+        "yield": 0.08959430456161499
+      },
+      {
+        "byproduct_signal": 0.902692437171936,
+        "conversion": 0.9911152720451355,
+        "safety_risk": 0.2522231340408325,
+        "score": 0.003421893110498786,
+        "selectivity": 0.09379071742296219,
+        "yield": 0.08135773986577988
+      }
+    ],
+    "Q03": [
+      {
+        "byproduct_signal": 0.2551269233226776,
+        "conversion": 0.9910399317741394,
+        "safety_risk": 0.2538139224052429,
+        "score": 0.4149196147918701,
+        "selectivity": 0.752513587474823,
+        "yield": 0.7459587454795837
+      },
+      {
+        "byproduct_signal": 0.24052183330059052,
+        "conversion": 0.9797788262367249,
+        "safety_risk": 0.2538139224052429,
+        "score": 0.4117530584335327,
+        "selectivity": 0.7577405571937561,
+        "yield": 0.7375907301902771
+      },
+      {
+        "byproduct_signal": 0.24564307928085327,
+        "conversion": 0.9883307218551636,
+        "safety_risk": 0.2538139224052429,
+        "score": 0.4145411550998688,
+        "selectivity": 0.7555854916572571,
+        "yield": 0.7437699437141418
+      },
+      {
+        "byproduct_signal": 0.23767755925655365,
+        "conversion": 0.9777958989143372,
+        "safety_risk": 0.2538139224052429,
+        "score": 0.41273942589759827,
+        "selectivity": 0.7640228271484375,
+        "yield": 0.7366259694099426
+      },
+      {
+        "byproduct_signal": 0.2404341846704483,
+        "conversion": 0.9832987785339355,
+        "safety_risk": 0.2538139224052429,
+        "score": 0.4095699191093445,
+        "selectivity": 0.7520124316215515,
+        "yield": 0.7348330020904541
+      }
+    ],
+    "Q04": [
+      {
+        "byproduct_signal": 0.9590751528739929,
+        "conversion": 1.0,
+        "safety_risk": 0.25247716903686523,
+        "score": 0.0,
+        "selectivity": 0.07162822782993317,
+        "yield": 0.06966507434844971
+      },
+      {
+        "byproduct_signal": 0.9620283842086792,
+        "conversion": 0.9910508990287781,
+        "safety_risk": 0.25247716903686523,
+        "score": 0.0,
+        "selectivity": 0.07329928129911423,
+        "yield": 0.07645353674888611
+      },
+      {
+        "byproduct_signal": 0.9650617241859436,
+        "conversion": 1.0,
+        "safety_risk": 0.25247716903686523,
+        "score": 0.0,
+        "selectivity": 0.06682784855365753,
+        "yield": 0.06988102197647095
+      },
+      {
+        "byproduct_signal": 0.9593145847320557,
+        "conversion": 0.9919065833091736,
+        "safety_risk": 0.25247716903686523,
+        "score": 0.0,
+        "selectivity": 0.08529055863618851,
+        "yield": 0.08113168925046921
+      },
+      {
+        "byproduct_signal": 0.9539148211479187,
+        "conversion": 0.9949308037757874,
+        "safety_risk": 0.25247716903686523,
+        "score": 0.0,
+        "selectivity": 0.0809759572148323,
+        "yield": 0.06997226178646088
+      }
+    ],
+    "Q05": [
+      {
+        "byproduct_signal": 0.4217212498188019,
+        "conversion": 0.8392408490180969,
+        "safety_risk": 0.14257146418094635,
+        "score": 0.2939283549785614,
+        "selectivity": 0.5215591192245483,
+        "yield": 0.4398791491985321
+      },
+      {
+        "byproduct_signal": 0.4103259742259979,
+        "conversion": 0.8435960412025452,
+        "safety_risk": 0.14257146418094635,
+        "score": 0.28856804966926575,
+        "selectivity": 0.5048903822898865,
+        "yield": 0.4358075261116028
+      },
+      {
+        "byproduct_signal": 0.4022372364997864,
+        "conversion": 0.8392329216003418,
+        "safety_risk": 0.14257146418094635,
+        "score": 0.29708489775657654,
+        "selectivity": 0.5337671041488647,
+        "yield": 0.4401424527168274
+      },
+      {
+        "byproduct_signal": 0.3955991268157959,
+        "conversion": 0.8385742902755737,
+        "safety_risk": 0.14257146418094635,
+        "score": 0.2897779047489166,
+        "selectivity": 0.5105902552604675,
+        "yield": 0.4365251660346985
+      },
+      {
+        "byproduct_signal": 0.413754940032959,
+        "conversion": 0.8544883728027344,
+        "safety_risk": 0.14257146418094635,
+        "score": 0.2871226668357849,
+        "selectivity": 0.515719473361969,
+        "yield": 0.422702819108963
+      }
+    ],
+    "Q06": [
+      {
+        "byproduct_signal": 0.8277587890625,
+        "conversion": 0.9987568855285645,
+        "safety_risk": 0.42614442110061646,
+        "score": 0.0,
+        "selectivity": 0.1940932273864746,
+        "yield": 0.18848258256912231
+      },
+      {
+        "byproduct_signal": 0.8246861696243286,
+        "conversion": 0.9901336431503296,
+        "safety_risk": 0.42614442110061646,
+        "score": 0.0,
+        "selectivity": 0.16827340424060822,
+        "yield": 0.1877082735300064
+      },
+      {
+        "byproduct_signal": 0.8135609030723572,
+        "conversion": 0.9925815463066101,
+        "safety_risk": 0.42614442110061646,
+        "score": 0.0,
+        "selectivity": 0.19532103836536407,
+        "yield": 0.1865035593509674
+      },
+      {
+        "byproduct_signal": 0.8315475583076477,
+        "conversion": 0.9946902990341187,
+        "safety_risk": 0.42614442110061646,
+        "score": 0.0,
+        "selectivity": 0.18938946723937988,
+        "yield": 0.17808209359645844
+      },
+      {
+        "byproduct_signal": 0.819066047668457,
+        "conversion": 1.0,
+        "safety_risk": 0.42614442110061646,
+        "score": 0.0,
+        "selectivity": 0.188352569937706,
+        "yield": 0.1839473843574524
+      }
+    ],
+    "Q07": [
+      {
+        "byproduct_signal": 0.5191718339920044,
+        "conversion": 0.9932615160942078,
+        "safety_risk": 0.14383764564990997,
+        "score": 0.29476094245910645,
+        "selectivity": 0.494983971118927,
+        "yield": 0.4934893548488617
+      },
+      {
+        "byproduct_signal": 0.51826411485672,
+        "conversion": 1.0,
+        "safety_risk": 0.14383764564990997,
+        "score": 0.29392528533935547,
+        "selectivity": 0.4901247024536133,
+        "yield": 0.4927526116371155
+      },
+      {
+        "byproduct_signal": 0.5197834968566895,
+        "conversion": 0.9913206696510315,
+        "safety_risk": 0.14383764564990997,
+        "score": 0.29350745677948,
+        "selectivity": 0.49321725964546204,
+        "yield": 0.4919450283050537
+      },
+      {
+        "byproduct_signal": 0.5114075541496277,
+        "conversion": 0.9970183968544006,
+        "safety_risk": 0.14383764564990997,
+        "score": 0.30135947465896606,
+        "selectivity": 0.4947758913040161,
+        "yield": 0.50917649269104
+      },
+      {
+        "byproduct_signal": 0.511725664138794,
+        "conversion": 0.9910544753074646,
+        "safety_risk": 0.14383764564990997,
+        "score": 0.30123409628868103,
+        "selectivity": 0.5020684599876404,
+        "yield": 0.5057961940765381
+      }
+    ],
+    "Q08": [
+      {
+        "byproduct_signal": 0.8570005893707275,
+        "conversion": 1.0,
+        "safety_risk": 0.42633336782455444,
+        "score": 0.0,
+        "selectivity": 0.1632775068283081,
+        "yield": 0.17843344807624817
+      },
+      {
+        "byproduct_signal": 0.8322266340255737,
+        "conversion": 0.9918726086616516,
+        "safety_risk": 0.42633336782455444,
+        "score": 0.0,
+        "selectivity": 0.1704401820898056,
+        "yield": 0.17656567692756653
+      },
+      {
+        "byproduct_signal": 0.8628571033477783,
+        "conversion": 1.0,
+        "safety_risk": 0.42633336782455444,
+        "score": 0.0,
+        "selectivity": 0.17153963446617126,
+        "yield": 0.17278362810611725
+      },
+      {
+        "byproduct_signal": 0.8564759492874146,
+        "conversion": 1.0,
+        "safety_risk": 0.42633336782455444,
+        "score": 0.0,
+        "selectivity": 0.17423754930496216,
+        "yield": 0.17156781256198883
+      },
+      {
+        "byproduct_signal": 0.8728997111320496,
+        "conversion": 0.9945021867752075,
+        "safety_risk": 0.42633336782455444,
+        "score": 0.0,
+        "selectivity": 0.1708589345216751,
+        "yield": 0.16988667845726013
+      }
+    ],
+    "Q09": [
+      {
+        "byproduct_signal": 0.7083443403244019,
+        "conversion": 1.0,
+        "safety_risk": 0.2528735399246216,
+        "score": 0.13596808910369873,
+        "selectivity": 0.31083381175994873,
+        "yield": 0.29568183422088623
+      },
+      {
+        "byproduct_signal": 0.7132973670959473,
+        "conversion": 0.9803545475006104,
+        "safety_risk": 0.2528735399246216,
+        "score": 0.1315835863351822,
+        "selectivity": 0.30020850896835327,
+        "yield": 0.29627275466918945
+      },
+      {
+        "byproduct_signal": 0.7298688292503357,
+        "conversion": 1.0,
+        "safety_risk": 0.2528735399246216,
+        "score": 0.1276717633008957,
+        "selectivity": 0.2918396294116974,
+        "yield": 0.2868123948574066
+      },
+      {
+        "byproduct_signal": 0.715315043926239,
+        "conversion": 0.9986271262168884,
+        "safety_risk": 0.2528735399246216,
+        "score": 0.13411523401737213,
+        "selectivity": 0.30384108424186707,
+        "yield": 0.29576337337493896
+      },
+      {
+        "byproduct_signal": 0.7310438752174377,
+        "conversion": 0.9874621033668518,
+        "safety_risk": 0.2528735399246216,
+        "score": 0.12771250307559967,
+        "selectivity": 0.29629936814308167,
+        "yield": 0.28726139664649963
+      }
+    ],
+    "Q10": [
+      {
+        "byproduct_signal": 0.7267417311668396,
+        "conversion": 1.0,
+        "safety_risk": 0.1456349939107895,
+        "score": 0.17861919105052948,
+        "selectivity": 0.31237515807151794,
+        "yield": 0.2890550196170807
+      },
+      {
+        "byproduct_signal": 0.7022987008094788,
+        "conversion": 0.9941096305847168,
+        "safety_risk": 0.1456349939107895,
+        "score": 0.1672563999891281,
+        "selectivity": 0.27708104252815247,
+        "yield": 0.2841794490814209
+      },
+      {
+        "byproduct_signal": 0.7206429243087769,
+        "conversion": 0.9958446621894836,
+        "safety_risk": 0.1456349939107895,
+        "score": 0.1736188530921936,
+        "selectivity": 0.28731465339660645,
+        "yield": 0.29325583577156067
+      },
+      {
+        "byproduct_signal": 0.7128735780715942,
+        "conversion": 0.9830922484397888,
+        "safety_risk": 0.1456349939107895,
+        "score": 0.17256978154182434,
+        "selectivity": 0.3049966096878052,
+        "yield": 0.282770037651062
+      },
+      {
+        "byproduct_signal": 0.7024983763694763,
+        "conversion": 0.987788200378418,
+        "safety_risk": 0.1456349939107895,
+        "score": 0.1762147694826126,
+        "selectivity": 0.297669917345047,
+        "yield": 0.29528769850730896
+      }
+    ],
+    "Q11": [
+      {
+        "byproduct_signal": 0.7825586795806885,
+        "conversion": 1.0,
+        "safety_risk": 0.14320693910121918,
+        "score": 0.14524666965007782,
+        "selectivity": 0.25732100009918213,
+        "yield": 0.24394884705543518
+      },
+      {
+        "byproduct_signal": 0.769963264465332,
+        "conversion": 1.0,
+        "safety_risk": 0.14320693910121918,
+        "score": 0.13943861424922943,
+        "selectivity": 0.2425653040409088,
+        "yield": 0.23865102231502533
+      },
+      {
+        "byproduct_signal": 0.7824172377586365,
+        "conversion": 1.0,
+        "safety_risk": 0.14320693910121918,
+        "score": 0.14581024646759033,
+        "selectivity": 0.26224181056022644,
+        "yield": 0.24228228628635406
+      },
+      {
+        "byproduct_signal": 0.7723351120948792,
+        "conversion": 1.0,
+        "safety_risk": 0.14320693910121918,
+        "score": 0.14491133391857147,
+        "selectivity": 0.2560896575450897,
+        "yield": 0.24388009309768677
+      },
+      {
+        "byproduct_signal": 0.7800459265708923,
+        "conversion": 0.9875314831733704,
+        "safety_risk": 0.14320693910121918,
+        "score": 0.13170988857746124,
+        "selectivity": 0.20749320089817047,
+        "yield": 0.2443663775920868
+      }
+    ],
+    "Q12": [
+      {
+        "byproduct_signal": 0.3363848924636841,
+        "conversion": 0.9929147362709045,
+        "safety_risk": 0.42731961607933044,
+        "score": 0.30253684520721436,
+        "selectivity": 0.675479531288147,
+        "yield": 0.6709733009338379
+      },
+      {
+        "byproduct_signal": 0.3156622648239136,
+        "conversion": 0.9900083541870117,
+        "safety_risk": 0.42731961607933044,
+        "score": 0.29974842071533203,
+        "selectivity": 0.6796762347221375,
+        "yield": 0.662105917930603
+      },
+      {
+        "byproduct_signal": 0.3326985538005829,
+        "conversion": 1.0,
+        "safety_risk": 0.42731961607933044,
+        "score": 0.30142873525619507,
+        "selectivity": 0.6646400690078735,
+        "yield": 0.6732063889503479
+      },
+      {
+        "byproduct_signal": 0.32357609272003174,
+        "conversion": 0.9983670115470886,
+        "safety_risk": 0.42731961607933044,
+        "score": 0.29902854561805725,
+        "selectivity": 0.664431095123291,
+        "yield": 0.6677447557449341
+      },
+      {
+        "byproduct_signal": 0.32996565103530884,
+        "conversion": 0.9853628873825073,
+        "safety_risk": 0.42731961607933044,
+        "score": 0.2970679700374603,
+        "selectivity": 0.6722068190574646,
+        "yield": 0.6612344980239868
+      }
+    ]
+  },
+  "schema_version": "work-ii-rx-ps-public-final-cell-1.0",
+  "source": {
+    "batches": [
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 3600,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 350
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "duration_s": 3600,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 350
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 8,
+        "lifecycle_index": 1,
+        "metrics": {
+          "byproduct_signal": 0.25390625,
+          "conversion": 0.6145891547203064,
+          "cost": 1.0,
+          "degradation_warning": 0.03267478570342064,
+          "safety_risk": 0.12495952099561691,
+          "score": 0.1918826401233673,
+          "selectivity": 0.5769528746604919,
+          "virtual_spectrum_summary": 0.1543520838022232,
+          "yield": 0.3560432493686676
+        },
+        "ordinal": 1
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 350
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 15,
+        "lifecycle_index": 2,
+        "metrics": {
+          "byproduct_signal": 0.3626505732536316,
+          "conversion": 0.9442979097366333,
+          "cost": 1.0,
+          "degradation_warning": 0.2398584485054016,
+          "safety_risk": 0.18206150829792023,
+          "score": 0.2958870828151703,
+          "selectivity": 0.6060564517974854,
+          "virtual_spectrum_summary": 0.3073941171169281,
+          "yield": 0.579677164554596
+        },
+        "ordinal": 2
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 2,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 340
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 22,
+        "lifecycle_index": 3,
+        "metrics": {
+          "byproduct_signal": 0.3555196523666382,
+          "conversion": 0.8816861510276794,
+          "cost": 1.0,
+          "degradation_warning": 0.17418721318244934,
+          "safety_risk": 0.19027425348758698,
+          "score": 0.27348214387893677,
+          "selectivity": 0.6198658347129822,
+          "virtual_spectrum_summary": 0.27392005920410156,
+          "yield": 0.5399262309074402
+        },
+        "ordinal": 3
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 3,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 3,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 330
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 29,
+        "lifecycle_index": 4,
+        "metrics": {
+          "byproduct_signal": 0.35176998376846313,
+          "conversion": 0.7034475803375244,
+          "cost": 1.0,
+          "degradation_warning": 0.08927249908447266,
+          "safety_risk": 0.17919285595417023,
+          "score": 0.1545473039150238,
+          "selectivity": 0.49651995301246643,
+          "virtual_spectrum_summary": 0.23364612460136414,
+          "yield": 0.35177335143089294
+        },
+        "ordinal": 4
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 335
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 36,
+        "lifecycle_index": 5,
+        "metrics": {
+          "byproduct_signal": 0.4361453652381897,
+          "conversion": 0.9404471516609192,
+          "cost": 1.0,
+          "degradation_warning": 0.3356746435165405,
+          "safety_risk": 0.1983667016029358,
+          "score": 0.25590285658836365,
+          "selectivity": 0.5572325587272644,
+          "virtual_spectrum_summary": 0.3909335434436798,
+          "yield": 0.529537558555603
+        },
+        "ordinal": 5
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 2,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 340
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 43,
+        "lifecycle_index": 6,
+        "metrics": {
+          "byproduct_signal": 0.3283604681491852,
+          "conversion": 0.8010552525520325,
+          "cost": 1.0,
+          "degradation_warning": 0.06607964634895325,
+          "safety_risk": 0.16034506261348724,
+          "score": 0.24102890491485596,
+          "selectivity": 0.5808834433555603,
+          "virtual_spectrum_summary": 0.21033409237861633,
+          "yield": 0.4696444869041443
+        },
+        "ordinal": 6
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 6000,
+            "operation": "heat",
+            "stirring_speed_rpm": 700,
+            "target_temperature_K": 330
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 50,
+        "lifecycle_index": 7,
+        "metrics": {
+          "byproduct_signal": 0.24869273602962494,
+          "conversion": 0.7784969806671143,
+          "cost": 1.0,
+          "degradation_warning": 0.12532013654708862,
+          "safety_risk": 0.16588062047958374,
+          "score": 0.2949584424495697,
+          "selectivity": 0.6852651238441467,
+          "virtual_spectrum_summary": 0.1931750625371933,
+          "yield": 0.5510968565940857
+        },
+        "ordinal": 7
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 1,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 6500,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 335
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 57,
+        "lifecycle_index": 8,
+        "metrics": {
+          "byproduct_signal": 0.30871665477752686,
+          "conversion": 0.8537523150444031,
+          "cost": 1.0,
+          "degradation_warning": 0.162033349275589,
+          "safety_risk": 0.17182205617427826,
+          "score": 0.30325788259506226,
+          "selectivity": 0.6636902689933777,
+          "virtual_spectrum_summary": 0.24270915985107422,
+          "yield": 0.573199987411499
+        },
+        "ordinal": 8
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7000,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 340
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 64,
+        "lifecycle_index": 9,
+        "metrics": {
+          "byproduct_signal": 0.23507516086101532,
+          "conversion": 0.8179466724395752,
+          "cost": 1.0,
+          "degradation_warning": 0.13807088136672974,
+          "safety_risk": 0.14934910833835602,
+          "score": 0.3315717279911041,
+          "selectivity": 0.7198637127876282,
+          "virtual_spectrum_summary": 0.191423237323761,
+          "yield": 0.5925455689430237
+        },
+        "ordinal": 9
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7200,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 342
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 71,
+        "lifecycle_index": 10,
+        "metrics": {
+          "byproduct_signal": 0.2542746663093567,
+          "conversion": 0.8333945274353027,
+          "cost": 1.0,
+          "degradation_warning": 0.13934928178787231,
+          "safety_risk": 0.15149915218353271,
+          "score": 0.3311244547367096,
+          "selectivity": 0.7125304937362671,
+          "virtual_spectrum_summary": 0.202558234333992,
+          "yield": 0.5945674777030945
+        },
+        "ordinal": 10
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7500,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 338
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 78,
+        "lifecycle_index": 11,
+        "metrics": {
+          "byproduct_signal": 0.24785782396793365,
+          "conversion": 0.8309653997421265,
+          "cost": 1.0,
+          "degradation_warning": 0.1373310387134552,
+          "safety_risk": 0.14943338930606842,
+          "score": 0.329892635345459,
+          "selectivity": 0.7182347774505615,
+          "virtual_spectrum_summary": 0.19812077283859253,
+          "yield": 0.5862060785293579
+        },
+        "ordinal": 11
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 7000,
+            "operation": "heat",
+            "stirring_speed_rpm": 900,
+            "target_temperature_K": 340
+          },
+          {
+            "instrument": "hplc",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 85,
+        "lifecycle_index": 12,
+        "metrics": {
+          "byproduct_signal": 0.23150521516799927,
+          "conversion": 0.8227051496505737,
+          "cost": 1.0,
+          "degradation_warning": 0.12088659405708313,
+          "safety_risk": 0.14934910833835602,
+          "score": 0.33163610100746155,
+          "selectivity": 0.7232962250709534,
+          "virtual_spectrum_summary": 0.1817268431186676,
+          "yield": 0.5893715023994446
+        },
+        "ordinal": 12
+      }
+    ],
+    "exact_replay": {
+      "checked_steps": 85,
+      "max_abs_error": 0.0,
+      "mismatches": [],
+      "verified": true
+    },
+    "recommendation": {
+      "selected_experiment_index": 12,
+      "selection_rationale": "Batch 12 delivered the highest observed public safe score (0.3316) while keeping safety risk (0.1493) well below the 0.35 limit; it also replicated the strong water/Catalyst B, 340 K-target, 7000 s procedure."
+    },
+    "rollbacks": []
+  }
+}
