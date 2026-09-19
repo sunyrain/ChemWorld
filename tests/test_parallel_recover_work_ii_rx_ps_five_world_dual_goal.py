@@ -16,14 +16,14 @@ def test_resolve_result_prefers_latest_repair(tmp_path: Path) -> None:
         {"cell_id": cell, "status": "retained_nonconforming"},
     )
     dump(
-        tmp_path / "sources" / cell / "posttest-repair-v8" / "effective-result.json",
+        tmp_path / "sources" / cell / "posttest-repair-v9" / "effective-result.json",
         {"cell_id": cell, "status": "completed", "posttest_chain_sealed": True},
     )
 
     path, result = parallel.resolve_result(tmp_path, cell)
 
     assert path.name == "effective-result.json"
-    assert "posttest-repair-v8" in str(path)
+    assert "posttest-repair-v9" in str(path)
     assert result["status"] == "completed"
 
 
@@ -67,3 +67,24 @@ def test_preaction_partial_requires_only_retained_v7_metadata(tmp_path: Path) ->
 
     dump(folder / "trajectory.jsonl", {})
     assert parallel.is_preaction_partial(folder) is False
+
+
+def test_v8_zero_action_provider_failure_is_repairable(tmp_path: Path) -> None:
+    folder = tmp_path / "sources" / "cell-a"
+    dump(folder / "attempt.json", {})
+    dump(folder / "public-prior-binding.json", {})
+    dump(
+        folder / "source-repair-v8" / "effective-result.json",
+        {
+            "status": "retained_nonconforming",
+            "source_status": "failed",
+            "operations": 0,
+            "batches": [],
+            "posttest_chain_sealed": False,
+        },
+    )
+
+    kind, paths = parallel.source_repair_provenance(folder)
+
+    assert kind == "v8_old_account_provider_failure"
+    assert paths[-1].name == "effective-result.json"

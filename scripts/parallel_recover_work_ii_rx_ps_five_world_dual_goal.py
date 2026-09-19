@@ -25,7 +25,7 @@ if str(ROOT) not in sys.path:
 import scripts.recover_work_ii_rx_ps_five_world_dual_goal as recovery  # noqa: E402
 import scripts.run_work_ii_rx_ps_five_world_dual_goal as campaign  # noqa: E402
 
-RECOVERY_VERSION = "recovery-v8-parallel4"
+RECOVERY_VERSION = "recovery-v9-parallel4"
 TASK_26 = "RX-W03--P--mechanism_discovery--Aligned"
 TASK_26_STAGES = ("Q", "K2")
 DEFAULT_WORKERS = 4
@@ -49,9 +49,11 @@ def write(path: Path, payload: Any) -> None:
 def result_candidates(root: Path, cell_id: str) -> tuple[Path, ...]:
     folder = root / "sources" / cell_id
     return (
+        folder / "posttest-repair-v9" / "effective-result.json",
         folder / "posttest-repair-v8" / "effective-result.json",
         folder / "posttest-repair-v7" / "effective-result.json",
         folder / "posttest-repair-v3" / "effective-result.json",
+        folder / "source-repair-v9" / "effective-result.json",
         folder / "source-repair-v8" / "effective-result.json",
         folder / "source-repair-v3" / "effective-result.json",
         folder / "result.json",
@@ -82,6 +84,11 @@ def classify_schedule(
         if cell["cell_id"] == TASK_26 and result.get("source_status") == "completed":
             pending.append(dict(cell))
             continue
+        if is_zero_action_result(result) and source_repair_provenance(
+            root / "sources" / str(cell["cell_id"])
+        ):
+            pending.append(dict(cell))
+            continue
         raise RuntimeError(f"unplanned nonconforming cell: {cell['cell_id']}")
     return complete, pending
 
@@ -95,7 +102,7 @@ def repair_task_26(
     original_folder = root / "sources" / TASK_26
     original_path = original_folder / "result.json"
     original = read(original_path)
-    repair = original_folder / "posttest-repair-v8"
+    repair = original_folder / "posttest-repair-v9"
     effective_path = repair / "effective-result.json"
     if effective_path.exists():
         return read(effective_path)
@@ -164,6 +171,34 @@ def is_preaction_partial(folder: Path) -> bool:
     }
 
 
+def is_zero_action_result(result: Mapping[str, Any]) -> bool:
+    return (
+        result.get("status") != "completed"
+        and int(result.get("operations") or 0) == 0
+        and not result.get("batches")
+        and result.get("posttest_chain_sealed") is not True
+    )
+
+
+def source_repair_provenance(folder: Path) -> tuple[str, tuple[Path, ...]] | None:
+    if is_preaction_partial(folder):
+        return (
+            "v7_cli_path_preaction_failure",
+            (folder / "attempt.json", folder / "public-prior-binding.json"),
+        )
+    v8_effective = folder / "source-repair-v8" / "effective-result.json"
+    if v8_effective.exists() and is_zero_action_result(read(v8_effective)):
+        return (
+            "v8_old_account_provider_failure",
+            (
+                folder / "attempt.json",
+                folder / "public-prior-binding.json",
+                v8_effective,
+            ),
+        )
+    return None
+
+
 def rerun_preaction_source(
     root: Path,
     cell: Mapping[str, Any],
@@ -174,9 +209,11 @@ def rerun_preaction_source(
 ) -> dict[str, Any]:
     cell_id = str(cell["cell_id"])
     original_folder = root / "sources" / cell_id
-    if not is_preaction_partial(original_folder):
+    provenance = source_repair_provenance(original_folder)
+    if provenance is None:
         raise RuntimeError(f"cell is not an eligible pre-action platform failure: {cell_id}")
-    repair_root = original_folder / "source-repair-v8"
+    provenance_kind, provenance_paths = provenance
+    repair_root = original_folder / "source-repair-v9"
     if repair_root.exists():
         raise RuntimeError(f"incomplete write-once source repair requires inspection: {cell_id}")
     manifest = {
@@ -184,16 +221,17 @@ def rerun_preaction_source(
         "recovery_version": RECOVERY_VERSION,
         "cell_id": cell_id,
         "started_epoch": time.time(),
-        "original_attempt_sha256": recovery.file_sha256(original_folder / "attempt.json"),
-        "original_public_prior_binding_sha256": recovery.file_sha256(
-            original_folder / "public-prior-binding.json"
-        ),
+        "retained_failure_kind": provenance_kind,
+        "retained_failure_sha256": {
+            str(path.relative_to(original_folder)): recovery.file_sha256(path)
+            for path in provenance_paths
+        },
         "original_operations": 0,
         "original_batches": 0,
         "frozen_cell_reused": True,
         "deterministic_seeds_reused": True,
         "truth_revealed_to_agent": False,
-        "platform_fix": "absolute Codex CLI path added to worker PATH",
+        "platform_fix": "newly authenticated local Codex cache securely synchronized to the remote host",
     }
     write(repair_root / "manifest.json", manifest)
     result = campaign.run_cell(
@@ -406,6 +444,20 @@ def main() -> None:
     codex_path = shutil.which("codex")
     if not codex_path:
         raise RuntimeError("Codex CLI is not available on PATH before recovery launch")
+    login_check = subprocess.run(
+        [codex_path, "login", "status"],
+        cwd=ROOT,
+        capture_output=True,
+        text=True,
+        timeout=30,
+        check=False,
+    )
+    login_output = "\n".join(
+        part.strip() for part in (login_check.stdout, login_check.stderr) if part.strip()
+    )
+    if login_check.returncode != 0 or "Logged in" not in login_output:
+        raise RuntimeError("Codex CLI does not report a valid login before recovery launch")
+    login_status = login_output.splitlines()[0]
 
     complete, pending = classify_schedule(root, validated["schedule"])
     pending_ids = [str(cell["cell_id"]) for cell in pending]
@@ -414,14 +466,14 @@ def main() -> None:
             f"unexpected recovery frontier: complete={len(complete)} pending={len(pending)} first={pending_ids[:1]}"
         )
 
-    preaction_replays = [
+    source_repairs = [
         str(cell["cell_id"])
         for cell in pending
         if cell["cell_id"] != TASK_26
         and (root / "sources" / str(cell["cell_id"])).exists()
     ]
-    if not all(is_preaction_partial(root / "sources" / cell_id) for cell_id in preaction_replays):
-        raise RuntimeError("an existing pending source is not a zero-action v7 platform failure")
+    if not all(source_repair_provenance(root / "sources" / cell_id) for cell_id in source_repairs):
+        raise RuntimeError("an existing pending source is not a retained zero-action platform failure")
 
     recovery_root = root / RECOVERY_VERSION
     recovery_root.mkdir(parents=True, exist_ok=False)
@@ -431,11 +483,12 @@ def main() -> None:
         "started_epoch": time.time(),
         "execution_commit": git_head(),
         "codex_path": codex_path,
+        "login_status": login_status,
         "parallel_workers": DEFAULT_WORKERS,
         "complete_before_start": len(complete),
         "work_items": pending_ids,
         "task_26_repair_stages": list(TASK_26_STAGES),
-        "retained_v7_preaction_failures": preaction_replays,
+        "retained_zero_action_source_failures": source_repairs,
         "new_source_cells": len(pending) - 1,
         "truth_revealed_before_all_cells_sealed": False,
         "historical_median_cell_s": HISTORICAL_MEDIAN_CELL_S,

@@ -1,6 +1,8 @@
 # Work II RX-P/S five-world block — recovery v8 parallel-four execution
 
-Date: 2026-09-19. Status: authorized continuation after a retained pre-action platform failure.
+Date: 2026-09-19. Status: retained old-account provider failure; truth remained embargoed.
+
+Launch outcome: the CLI-path preflight passed, but the remote host still held the previously synchronized Codex account. Task 26 Q returned a provider failure with no payload, and the other three admitted cells stopped at zero operations and zero batches after provider errors. The bounded queue admitted no further tasks. The user then identified the stale account and explicitly authorized synchronization of the newly logged-in Mac credential cache. V9 retains every v8 directory and retries only these zero-action/provider-failed units under the newly verified remote login.
 
 Recovery v7 stopped because the detached worker environment could not locate the Codex CLI. No worker called the model or performed a physical action. Task 26 retains its incomplete `posttest-repair-v7/` manifest; tasks 27–35 retain only their original `attempt.json` and public-prior binding. Those records are not deleted or overwritten.
 
