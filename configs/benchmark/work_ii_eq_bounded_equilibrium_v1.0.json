@@ -1,0 +1,323 @@
+{
+  "schema_version": "chemworld-work-ii-eq-bounded-equilibrium-1.0",
+  "status": "candidate_authoring_provider_sealed",
+  "task_id": "equilibrium-characterization",
+  "world_split": "public-test",
+  "objective": "balanced",
+  "protocol": "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_0.md",
+  "canonical_posttest_protocol": "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md",
+  "task": "bounded_aqueous_equilibrium_characterization",
+  "locus": "effective_acidity_dissociation_concentration_response",
+  "arms": [
+    "Opaque",
+    "Aligned",
+    "MisIndexed"
+  ],
+  "worlds": [
+    {
+      "world_id": "EQ-W01",
+      "world_seed": 0,
+      "world_interventions": [
+        {
+          "axis_id": "equilibrium.acid-base-constants",
+          "mode": "interpolation",
+          "severity": -0.8
+        }
+      ],
+      "private_authoring": {
+        "effective_pka": 4.659404789086824,
+        "aligned_prior": {
+          "effective_pka_interval80": [4.609404789086824, 4.709404789086824],
+          "dilution_delta_pH_normalized": 0.003494987,
+          "dilution_delta_acid_dissociation_fraction": 0.008187416
+        },
+        "misindexed_world_id": "EQ-W05"
+      }
+    },
+    {
+      "world_id": "EQ-W02",
+      "world_seed": 0,
+      "world_interventions": [
+        {
+          "axis_id": "equilibrium.acid-base-constants",
+          "mode": "interpolation",
+          "severity": -0.4
+        }
+      ],
+      "private_authoring": {
+        "effective_pka": 4.839404789086824,
+        "aligned_prior": {
+          "effective_pka_interval80": [4.789404789086824, 4.889404789086824],
+          "dilution_delta_pH_normalized": 0.002559636,
+          "dilution_delta_acid_dissociation_fraction": 0.005805564
+        },
+        "misindexed_world_id": "EQ-W04"
+      }
+    },
+    {
+      "world_id": "EQ-W03",
+      "world_seed": 0,
+      "world_interventions": [],
+      "private_authoring": {
+        "effective_pka": 5.019404789086824,
+        "aligned_prior": {
+          "effective_pka_interval80": [4.969404789086824, 5.069404789086824],
+          "dilution_delta_pH_normalized": 0.001825842,
+          "dilution_delta_acid_dissociation_fraction": 0.004043983
+        },
+        "misindexed_world_id": "EQ-W01"
+      }
+    },
+    {
+      "world_id": "EQ-W04",
+      "world_seed": 0,
+      "world_interventions": [
+        {
+          "axis_id": "equilibrium.acid-base-constants",
+          "mode": "interpolation",
+          "severity": 0.4
+        }
+      ],
+      "private_authoring": {
+        "effective_pka": 5.199404789086824,
+        "aligned_prior": {
+          "effective_pka_interval80": [5.149404789086824, 5.249404789086824],
+          "dilution_delta_pH_normalized": 0.001274981,
+          "dilution_delta_acid_dissociation_fraction": 0.002776281
+        },
+        "misindexed_world_id": "EQ-W02"
+      }
+    },
+    {
+      "world_id": "EQ-W05",
+      "world_seed": 0,
+      "world_interventions": [
+        {
+          "axis_id": "equilibrium.acid-base-constants",
+          "mode": "interpolation",
+          "severity": 0.8
+        }
+      ],
+      "private_authoring": {
+        "effective_pka": 5.379404789086824,
+        "aligned_prior": {
+          "effective_pka_interval80": [5.329404789086824, 5.429404789086824],
+          "dilution_delta_pH_normalized": 0.000875889,
+          "dilution_delta_acid_dissociation_fraction": 0.001884676
+        },
+        "misindexed_world_id": "EQ-W01"
+      }
+    }
+  ],
+  "prior_contract": {
+    "schema_version": "chemworld-eq-effective-acidity-prior-1.0",
+    "scope": "bounded monoprotic effective acidity and dilution response",
+    "anchor": {
+      "acid_total_mol": 0.001,
+      "volume_from_L": 0.018,
+      "volume_to_L": 0.054,
+      "temperature_K": 298.15
+    },
+    "confidence": {
+      "coverage": 0.8,
+      "source_class": "independent bounded archival fit",
+      "qualification": "local effective relationship; not a universal aqueous-chemistry law"
+    },
+    "opaque_policy": "initial_world_model is null; no instance pKa, center, interval, direction, precipitation threshold, best point, recipe, or target-world-calibrated informative region is supplied",
+    "aligned_policy": "the effective-pKa interval and dilution-response claim match the frozen world",
+    "misindexed_policy": "the identical schema, anchor, confidence, wording, and precision carry a pre-registered claim from another frozen world"
+  },
+  "source_resource_card": {
+    "operation_attempt_limit": 180,
+    "vessel_start_limit": 12,
+    "final_assay_limit": 12,
+    "nonfinal_instrument_use_limit": 12,
+    "reagent_mol": 0.24,
+    "solvent_L": 0.72,
+    "process_time_limit_s": null
+  },
+  "prediction_metrics": [
+    "pH_normalized",
+    "acid_dissociation_fraction",
+    "precipitation_signal"
+  ],
+  "excluded_prediction_fields": {
+    "equilibrium_residual": "environment numerical diagnostic, reported separately when useful",
+    "equilibrium_confidence": "environment-derived diagnostic; never Agent uncertainty or a task score"
+  },
+  "queries": [
+    {
+      "query_id": "Q01",
+      "coverage": ["near_domain", "low_loading"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.02},
+        {"operation": "add_reagent", "amount_mol": 0.0003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "coverage": ["concentration_volume_decoupling", "same_concentration_pair"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.04},
+        {"operation": "add_reagent", "amount_mol": 0.0006},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "coverage": ["concentration_volume_decoupling", "fixed_amount_concentrated"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.018},
+        {"operation": "add_reagent", "amount_mol": 0.0012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "coverage": ["concentration_volume_decoupling", "fixed_amount_dilute"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.054},
+        {"operation": "add_reagent", "amount_mol": 0.0012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "coverage": ["two_stage_dosing", "interleaved_accumulation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "coverage": ["two_stage_dosing", "solvent_first_accumulation", "equivalent_explanation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "coverage": ["two_stage_dosing", "reagent_before_final_dilution", "equivalent_explanation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.002},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "coverage": ["dissociation_precipitation_competition", "concentrated"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.015},
+        {"operation": "add_reagent", "amount_mol": 0.012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "coverage": ["dissociation_precipitation_competition", "diluted"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.06},
+        {"operation": "add_reagent", "amount_mol": 0.012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "coverage": ["boundary_extrapolation", "low_volume_low_amount"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.006},
+        {"operation": "add_reagent", "amount_mol": 0.00005},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "coverage": ["boundary_extrapolation", "high_volume_high_amount"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.075},
+        {"operation": "add_reagent", "amount_mol": 0.03},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "coverage": ["interval_calibration", "interior_holdout"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.033},
+        {"operation": "add_reagent", "amount_mol": 0.0045},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    }
+  ],
+  "counts": {
+    "worlds": 5,
+    "independent_source_sessions": 15,
+    "source_batches_per_session": 12,
+    "source_batches": 180,
+    "posttests_per_session": 3,
+    "posttests": 45,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 300
+  },
+  "provider_policy": {
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "provider_retries": 0
+  },
+  "provider_free_gate": {
+    "noise_repeats": 3,
+    "require_exact_replay_fraction": 1.0,
+    "minimum_adjacent_world_pH_gap": 0.08,
+    "minimum_within_world_pH_span": 0.25,
+    "minimum_within_world_dissociation_span": 0.015,
+    "minimum_within_world_precipitation_span": 0.015,
+    "minimum_best_probe_adjacent_separation_sigma": 3.0,
+    "minimum_default_constant_mae_pH_normalized": 0.008,
+    "minimum_one_shot_constant_mae_pH_normalized": 0.006,
+    "maximum_equivalent_path_mean_gap": 0.01,
+    "minimum_misindexed_pka_center_gap": 0.3,
+    "require_all_five_worlds": true,
+    "threshold_policy": "fixed before running the versioned gate; failures are retained and repaired by a new version"
+  },
+  "execution_order": [
+    "provider_free_gate",
+    "source",
+    "K1",
+    "Q",
+    "K2",
+    "reference_truth_and_scoring"
+  ],
+  "truth_embargo": "Reference truth is generated only after all 15 K2 responses are sealed.",
+  "failure_policy": {
+    "write_once": true,
+    "retain_all_failures": true,
+    "retry_is_not_an_independent_scientific_sample": true,
+    "provider_platform_failure": "retain the attempt and recover from the latest legal boundary in a versioned attempt directory",
+    "scientific_failure": "retain and continue the frozen denominator",
+    "post_failure_redesign_in_same_namespace": false
+  }
+}
