@@ -1113,7 +1113,7 @@ PA原12题的配方与两项决策保持：本轮修执行入口，不据旧模�
 
 ### 9.9 W2-132: authorized English five-world budget matrix
 
-The user explicitly selected both EC goals and single-world P/S pilots after E. The [fixed execution note](WORK_II_EC_PA_FIVE_WORLD_NOTE.md) governs this block; [live English results](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md) retain every planned cell and failure. Model: GPT-5.6 Sol / medium; one executor; one source attempt per cell; no result-based retries.
+The user explicitly selected both EC goals and single-world P/S pilots after E. The [fixed execution note](WORK_II_EC_PA_FIVE_WORLD_NOTE.md) governs this block; [live English results](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md) retain every planned cell and failure. Model: GPT-5.6 Sol / medium; one coordinator and up to four isolated source workers under the authorized scheduling amendments; one initial source attempt per cell, with separately retained bounded infrastructure recoveries and no result-based retries.
 
 | Stage | System and goals | Worlds | Budgets | Arms | Sources | Planned source batches | Posttests |
 | --- | --- | ---: | --- | ---: | ---: | ---: | ---: |
@@ -1129,6 +1129,55 @@ Use the registered EC five seeds with the physical material family and world-spe
 Before sources: 60 public contract/material-tool checks and 120 fixed reference batches/900 operations, with exact replay separately counted. Each system-world reference is reused across arms and budgets. EC uses the new 12 polarity/context conditions; PA retains its 12 conditions and two decisions. Source replay, optional EC recommendation retests and their replays are additional physical costs. K1/Q/K2 remains on the source thread with no truth feedback.
 
 E is estimated at 15–23 hours from historical 10–15 minutes/source; update from observed throughput. EC P/S adds approximately 2–3 hours and starts only after all E cells have terminal states. PA's P/S public-prior definitions require a separate applicability design; they are not automatically relabelled E sources or claimed ready by the historical qualification ledger. Scientific failure continues the frozen denominator; input, startup or replay defects stop the affected execution for diagnosis, with evidence retained.
+
+### 9.10 2026-09-19：剩余六体系的执行面核查与推进建议
+
+本节是用户要求的后续设计评估，不是新实验结果或六体系批量启动指令。覆盖 C/P/EQ/BC/FL/D；EC/PA 按 9.9 节继续，RX 沿远端独立协议。旧 9.6 节的先后次序和旧运行快照以本节及实时报告为准；历史资格原件不改写。当前决定依据实际执行面、公共输入和可复用证据，而不是把所有旧发布 gate 再跑一遍。
+
+**已有底座比旧资格状态表显示得更完整。** 通过 `configs/current.json` 的 W2-105 系列绑定核对，[完整流程迭代](reports/work-ii-full-process-iteration-20260915.md)已保留 P 1/8、C 4/24、D 3/8 个联合质量见证；三任务共 8/40，而不是三个流程都尚无可行解。它们证明相应旧实例/合同下存在可行流程，不证明新五世界三臂、十二批和后测已经接好。P/D 的旧“15 准备阻塞”主要涉及私有世界和先验资产，不能解释为模拟器不会纯化或蒸馏。
+
+#### 实际发现的接入差距
+
+| 对象 | 本次代码/接口核查 | 对新实验的处理 |
+| --- | --- | --- |
+| C 在线粒径 | 默认 `reaction-to-crystallization` 只开放 HPLC/终检；`full_process_contract_id` 非空才开放付费 `particle_size`。旧完整流程已实现该仪器 | 新自由流程须显式绑定经核对的完整流程合同；不能仅在提示中写“可测粒径” |
+| C/P/D 指标 | 完整流程处理原投料分母、晶种来源、选相扣样；默认/历史接口不完全相同 | 用实际 agent 合同重核主终点和先验的局部条件。尤其不能直接把旧 C-P 的 ΔY40 数值带入改变了产率分母的合同 |
+| FL 公共说明 | `research_brief.MEASUREMENT_NOTES['FL']` 仍声称设备体积随 Q/τ 变化；执行器已固定 18 mL、内径 4 mm，以 Q 推导 τ | 下一 FL 开发块先修实际送达文本；旧运行不追溯修改。申请的 τ 不得当作独立控制变量 |
+| BC 信息价值 | 终检可返回适用的产率、转化、副产物等宽通道；旧早期/晚期差异只证明时间响应 | 验证中途不同测量/时点能区分终点相近的解释或改变后续动作；若只有终检就足够，不宣称测量规划瓶颈，也不为造失败偷偷删终检信息 |
+| D 库存能力 | `collect_fraction` 转入单个累计 `collected_fraction`，完整流程支持零转移重选；不是任意命名多个样品瓶 | 首版任务写成保留累计接收液、选择是否追加、停止；不承诺未实现的任意留样重混合 |
+| EQ 推断范围 | 可执行有界弱酸/沉淀切片，有 pH/UV/终检；环境 confidence 是原生诊断 | 评价新条件预测、有效参数范围和不确定性，不要求唯一恢复不可辨识常数，不把环境 confidence 当 agent 信心 |
+| 后测计算额度 | 续跑EC/S/优化/A在Q中8次计算成功、后4次被拒；旧工具描述披露了8次上限，旧diagnostic launcher又在超额时终止整轮，K2随之未执行。问题是限额不适配多指标后测并触发整轮终止，不是模型预测错误 | 已修复新设计：K1/Q/K2各128次计算尝试，标量/数组共享，非法表达式计数，返回已用/剩余额度；耗尽仅拒绝计算、允许提交答案。EC v5/PA v4及新矩阵保存并向工具和launcher传递同一策略。旧保存设计缺少新字段时保持8次硬停止，不覆盖原失败；93项定向检查通过，零新增provider调用 |
+
+上述差距是设计/接入工作，不是 Agent 科学失败。六体系初查时未修改在跑EC/PA；其全部进程退出后，按用户指令修复了新设计的后测计算策略。旧块的问题、阈值、保存设计和终态结果保持原样，新体系的 provider 来源尚未启动。
+
+#### 逐体系任务与顺序
+
+| 优先级 / 体系 | 首版定制委托 | 科学增量与后测 | 真正需要补齐的部分 |
+| --- | --- | --- | --- |
+| 第一批：C 结晶 | 在公开化学纯度与细粉约束下，选择可交付的晶体流程，评价扣除晶种的回收；机理报告在实验后给出 | 同终温不同冷却/复热历史，成核—生长与粒径分布；盲测路径对比和已封存推荐的独立复测 | 显式完整流程合同、在线粒径、12批/12测量、英文明示分母、同合同先验/终点核对。优先 E 三臂，P/S另行设计；不强制拆成两个目标 |
+| 第一批：EQ 平衡 | 研究浓度/稀释下的有效平衡规律，给出能被证据支持的范围 | 未见浓度/体积上的 pH、解离、沉淀预测；区别“预测准”与“唯一认定机制” | 单世界可执行参数干预；预选 P 先验的条件/单位/范围，匿名公共材料；固定留出题和等价解释评价 |
+| 第二批：P 纯化 | 在质量约束下最大化实际合格回收，决定反应终止、萃取、选相、洗涤和关闭时机 | 局部纯度/收率改善能否转成最终交付；弃相/再洗涤前的库存预测与不可逆损失 | 已有五世界与常数K/组成耦合资产；80次既定无模型校准仍未运行。先核对同合同组成效应、库存、终检，再选一个先验层；不重新发明已存在的完整流程 |
+| 第二批：BC 表征 | 用12批、12次可分配中途测量选择仪器和时点，给出可检验诊断 | 相似终点下的竞争解释、时点/仪器是否改变可知内容；预测及弃答校准 | 先证明当前信息合同下额外测量有判别价值；若与RX重复，作为RX的测量设计条件，不仅靠换任务名算新机制 |
+| 第三批：FL 连续流 | 在固定设备上给出有证据的可行运行窗口与推荐点 | 流量—实际停留时间—热历史—出口响应；同时报误判可行和错失可行 | 修公共说明；开发覆盖须同时包含可行见证和失败边界。旧0/9筛查和0/15资格失败保留；不能据此推断全域无解，也不降低旧阈值制造通过 |
+| 第三批：D 蒸馏 | 保留合格接收液，决定切段、追加收集、回流和停止 | 单段高纯度与累计库存质量的区别；追加前后质量/回收预测和推荐复测 | 复用已有可行完整流程；补真实差异世界和有条件的挥发度先验。首版不依赖尚未注册的非理想VLE结构族，也不扩写不存在的容器接口 |
+
+C 首版的质量阈值可从已有纯度≥0.80、细粉≤0.50、扣晶种回收≥0.10的开发任务开始核对；只有同一个新合同下的可行性复核后才写入新块。先验只给条件化资料，不限制 agent 的冷却路径、播种量或模型形式。C-P 的资格固定上下游配方是资格测量设计，绝不是未来 agent 必须照做的实验方案。
+
+C的具体任务、E三臂资料、12批流程和六对后测提案见[结晶设计草案](WORK_II_C_CRYSTALLIZATION_DESIGN.md)。第一轮建议一个质量约束下提高净回收的目标，同来源完成自由机理与预测；单世界三臂共3场/36计划来源批/9后测，尚未启动。须明确选择完整流程v4与匿名材料族，并核对组合后的可行性；不将旧C-P/S资格或旧基线见证直接当作该组合的通过证明。
+
+用户随后已授权W2-136结晶预实验，具体版本和状态见[执行说明](WORK_II_C_PILOT_NOTE.md)及[英文结果](reports/work-ii-c-sol-pilot-20260919/REPORT.md)。接入检查发现C材料目录身份泄露，以及v4两项强制测量顺序与12次自由测量预算冲突；新C目录统一匿名，预实验显式采用v5（沿用v4物理与晶种追踪，只取消播种/过滤前的强制测量顺序，保留物理/资源约束）。旧v4及失败不改写。固定19批参考先行，模型仍为Sol medium；12预测位置含9个不同配方和共用对照，不作独立样本计数。
+
+#### 保持轻量的执行安排
+
+- 每个新体系先一个预定世界、一个定制目标、一个适用先验层、O/A/M 各一次；GPT-5.6 Sol / medium，英文。每场12个完整批次、12次额外测量和12次终检；操作/库存容量按流程需要设置，不沿用默认18/24/72的操作数冒充批次数。长物理过程首先记账，不复用造成意外提前截断的全场时间上限。
+- 三臂共享同一物理世界、公开接口、预算、固定预测题；只改变实例资料。Opaque保留必要测量定义；不暴露真实实体名称/臂名。自主单批或成组均可，不强制每批反思。
+- 结束后仍是同会话 K1（自由机理）→ Q（固定盲测）→ K2（三问回顾）。无真值反馈，不追加一套冗长逐题访谈。C/P/D/FL 的推荐在 Q 前封存，再由宿主独立复测；EQ/BC 不强造产品推荐。LLM评审后置且依据明确主张与引用证据，不替代盲测。
+- 第一批建议 C + EQ，共 **6场、72个来源实验、18组后测**；不是本次已启动数量。随后每增加一体系三臂，增加3场/36批/9组后测；若六体系均适用，总上限为18场/216批/54组后测。参考、校准、重放和推荐复测另计。先不铺5世界×12/24预算。
+- 不因 agent 得分低追加预算或挑换世界；首批用于诊断接口、任务可解释性和端到端完成。需要预算比较时，另立事前固定的12/24块，保留首批及失败，不将其混作重复。
+
+开始前只回答四项实质问题：**工具实际给了什么；任务是否有可测/可达答案；三臂是否只改变资料；结果是否能回放和评分。** 复用满足相同合同的旧证据，只补发生变化的边界。旧 confirmation/release 流程仍治理其自身正式发布，不要求为每个开发试跑重建全局hash、证书和审核包。
+
+本轮验证：静态核对六体系实际公开入口，零实验动作/零provider；14项现有功能检查通过，覆盖结晶复溶/冷却/过滤、馏分库存、固定流动设备、弱酸/沉淀和研究委托送达。它们验证具体功能，不等于新三臂完整试跑或科学资格通过。
 
 ## 10. 论文呈现与完成标准
 
