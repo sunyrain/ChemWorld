@@ -1121,6 +1121,39 @@ def write_summary(root: Path, schedule: Sequence[Mapping[str, Any]], phase: str)
     return payload
 
 
+def validate_execution_repair_evidence(
+    provider_calls: Any, repair: Any
+) -> None:
+    if not isinstance(provider_calls, int) or provider_calls < 1 or not isinstance(repair, Mapping):
+        raise RuntimeError("invalid EQ freeze manifest provider-call count")
+    if repair.get("provider_api_turn_attempts") != provider_calls:
+        raise RuntimeError("invalid EQ execution-repair provider count")
+    phase = repair.get("repair_phase")
+    if phase == "pre_scientific":
+        valid = (
+            repair.get("accepted_model_calls") == 0
+            and repair.get("scientific_actions") == 0
+            and repair.get("source_batches") == 0
+            and repair.get("scientific_output_retained") is False
+        )
+    elif phase == "post_source_pre_truth":
+        valid = (
+            repair.get("affected_cells") == ["EQ-W01--Opaque"]
+            and repair.get("accepted_source_model_calls") == 1
+            and repair.get("scientific_actions") == 60
+            and repair.get("source_batches") == 12
+            and repair.get("source_exact_replay") is True
+            and repair.get("completed_posttest_payloads") == 0
+            and repair.get("truth_generated") is False
+            and repair.get("scientific_contract_changed") is False
+            and repair.get("source_rerun_required") is False
+        )
+    else:
+        valid = False
+    if not valid:
+        raise RuntimeError("invalid EQ execution-repair evidence")
+
+
 def validate_freeze(root: Path, config: Mapping[str, Any]) -> Mapping[str, Any]:
     if not FREEZE.exists():
         raise RuntimeError("provider remains sealed: EQ freeze manifest is absent")
@@ -1151,19 +1184,9 @@ def validate_freeze(root: Path, config: Mapping[str, Any]) -> Mapping[str, Any]:
             raise RuntimeError(f"EQ freeze binding changed: {relative}")
     provider_calls = freeze.get("provider_calls_before_freeze")
     if provider_calls != 0:
-        repair = freeze.get("pre_scientific_repair_evidence")
-        if not isinstance(repair, Mapping):
-            raise RuntimeError("invalid EQ freeze manifest provider-call count")
-        if (
-            not isinstance(provider_calls, int)
-            or provider_calls < 1
-            or repair.get("provider_api_request_attempts") != provider_calls
-            or repair.get("accepted_model_calls") != 0
-            or repair.get("scientific_actions") != 0
-            or repair.get("source_batches") != 0
-            or repair.get("scientific_output_retained") is not False
-        ):
-            raise RuntimeError("invalid EQ pre-scientific repair evidence")
+        validate_execution_repair_evidence(
+            provider_calls, freeze.get("execution_repair_evidence")
+        )
     if freeze.get("status") != "frozen_for_formal_development_execution":
         raise RuntimeError("EQ freeze manifest status is not executable")
     return freeze

@@ -160,18 +160,26 @@ def test_freeze_validation_fails_closed_without_manifest(
         eq.validate_freeze(tmp_path, config())
 
 
-def test_nonzero_prefreeze_calls_require_zero_science_repair_evidence() -> None:
+def test_nonzero_prefreeze_calls_accept_exact_post_source_pretruth_evidence() -> None:
     repair = {
-        "provider_api_request_attempts": 3,
-        "accepted_model_calls": 0,
-        "scientific_actions": 0,
-        "source_batches": 0,
-        "scientific_output_retained": False,
+        "repair_phase": "post_source_pre_truth",
+        "provider_api_turn_attempts": 5,
+        "affected_cells": ["EQ-W01--Opaque"],
+        "accepted_source_model_calls": 1,
+        "scientific_actions": 60,
+        "source_batches": 12,
+        "source_exact_replay": True,
+        "completed_posttest_payloads": 0,
+        "truth_generated": False,
+        "scientific_contract_changed": False,
+        "source_rerun_required": False,
     }
 
-    assert repair["accepted_model_calls"] == 0
-    assert repair["scientific_actions"] == 0
-    assert repair["source_batches"] == 0
+    eq.validate_execution_repair_evidence(5, repair)
+    broken = copy.deepcopy(repair)
+    broken["source_rerun_required"] = True
+    with pytest.raises(RuntimeError, match="execution-repair"):
+        eq.validate_execution_repair_evidence(5, broken)
 
 
 def test_interrupted_snapshot_selects_fresh_source_when_no_result(tmp_path: Path) -> None:
