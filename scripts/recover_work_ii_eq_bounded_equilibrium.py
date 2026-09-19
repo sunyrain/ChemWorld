@@ -107,7 +107,9 @@ def recovery_kind(result: Mapping[str, Any] | None, folder: Path) -> str | None:
     return "fresh_source"
 
 
-def latest_recovery(root: Path, cell_id: str) -> tuple[dict[str, Any], Path] | None:
+def latest_recovery(
+    root: Path, cell_id: str, *, completed_only: bool = True
+) -> tuple[dict[str, Any], Path] | None:
     base = root / "recoveries" / cell_id
     if not base.is_dir():
         return None
@@ -118,7 +120,10 @@ def latest_recovery(root: Path, cell_id: str) -> tuple[dict[str, Any], Path] | N
             result_path = root / result_path
         if result_path.is_file():
             result = eq.read(result_path)
-            if result.get("status") == "completed" and result.get("posttest_chain_sealed") is True:
+            if not completed_only or (
+                result.get("status") == "completed"
+                and result.get("posttest_chain_sealed") is True
+            ):
                 return result, result_path
     return None
 
@@ -207,6 +212,10 @@ def recover_one(
     attempt: int,
 ) -> dict[str, Any] | None:
     original, folder = interrupted_snapshot(root, config, cell)
+    previous = latest_recovery(root, cell["cell_id"], completed_only=False)
+    if previous is not None:
+        original, result_path = previous
+        folder = result_path.parent
     kind = recovery_kind(original, folder)
     if kind is None:
         return None

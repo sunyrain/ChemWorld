@@ -1,6 +1,6 @@
 # Work II EQ bounded-aqueous-equilibrium experiment note
 
-Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.3 operational freeze prepared after retained zero-action startup failures. One coordinator may use isolated source workers after the canary. This note fixes the whole block before any successful scientific action.
+Date: 2026-09-20. Status: v1.1 provider-free gate passed; v1.4 operational freeze prepared after the first complete source exposed a posttest-budget monitor mismatch. One coordinator may use isolated source workers after the canary. The scientific contract was fixed before the first scientific action and remains unchanged.
 
 ## Question and denominator
 
@@ -39,3 +39,5 @@ The recovery runner preserves every original cell and creates numbered write-onc
 The first remote canary launch failed before Agent construction because the detached shell did not expose the installed Codex executable. Recovery attempt 01 then failed before provider-process construction because the private source-output parent had not been created. Both attempts recorded zero operations, zero accepted model calls, zero provider-process attempts, and no scientific output. Protocol v1.2 fixes only those launch prerequisites by injecting the already-authorized executable path and pre-creating the private output parent; the original failures remain retained and the next recovery starts from batch 1.
 
 Recovery attempt 02 started provider processes without the login-shell proxy and retained uniform pre-action network failures. Attempt 03 used the proxy but the three concurrent NFS-backed laboratory MCP processes exceeded the inherited 30-second startup handshake; all failed before a model response or scientific action. A provider-free timing check showed that even a serial laboratory-MCP module import could exceed 48 seconds. Protocol v1.3 therefore sets an EQ-specific 180-second MCP startup allowance and requires the canary arms to start serially. This changes only host startup tolerance, not any scientific or model budget.
+
+Under v1.3, W01 Opaque completed 12/12 source batches with exact replay and no rollback. Its first K1 turn then exposed a previously inherited outer monitor limit of eight calculator attempts, despite the already frozen MCP calculator limit of 128. The original K1 failure is retained with no payload and no truth exposure. Protocol v1.4 passes the same 128-call, continue-answer budget to the outer monitor and makes recovery select the latest durable complete source rather than the initial zero-operation directory. Recovery therefore resumes K1 on the same source thread without rerunning any physical batch.

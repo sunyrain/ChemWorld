@@ -206,6 +206,42 @@ def test_eq_mcp_startup_timeout_is_materials_safe_and_unique() -> None:
     assert "mcp_servers.chemworld_lab.startup_timeout_sec=30" not in adjusted
 
 
+def test_latest_recovery_can_select_retained_complete_source(tmp_path: Path) -> None:
+    result_path = (
+        tmp_path
+        / "recoveries"
+        / "EQ-W01--Opaque"
+        / "attempt-04"
+        / "execution"
+        / "sources"
+        / "EQ-W01--Opaque"
+        / "RESULT.json"
+    )
+    eq.write(
+        result_path,
+        {
+            "status": "retained_nonconforming",
+            "source_status": "completed",
+            "posttest_chain_sealed": False,
+        },
+    )
+    eq.write(
+        tmp_path / "recoveries" / "EQ-W01--Opaque" / "attempt-04" / "recovery.json",
+        {
+            "result_path": str(result_path.relative_to(tmp_path)),
+            "status": "retained_nonconforming",
+        },
+    )
+
+    assert recovery.latest_recovery(tmp_path, "EQ-W01--Opaque") is None
+    selected = recovery.latest_recovery(
+        tmp_path, "EQ-W01--Opaque", completed_only=False
+    )
+    assert selected is not None
+    assert selected[0]["source_status"] == "completed"
+    assert selected[1] == result_path
+
+
 def test_public_export_rejects_private_field_names() -> None:
     with pytest.raises(RuntimeError, match="private field"):
         exporter._assert_public({"thread_id_sha256": "hidden"})

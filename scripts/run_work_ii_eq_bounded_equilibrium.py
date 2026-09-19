@@ -25,6 +25,7 @@ if str(ROOT) not in sys.path:
 import scripts.run_work_ii_ec_dual_goal_trial as shared
 import scripts.run_work_ii_rx_p_opaque_dual_goal_canary as provider_shared
 
+from chemworld.agents.diagnostic_numerics import FOLLOWUP_NUMERICS
 from chemworld.campaign_resources import CampaignResourceCard
 from chemworld.data.logging import load_jsonl
 from chemworld.eval.runner import run_agent
@@ -34,7 +35,7 @@ from chemworld.research_brief import VERSION as RESEARCH_BRIEF_VERSION
 from chemworld.tasks import get_task
 
 CONFIG = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json"
-FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.3.json"
+FREEZE = ROOT / "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.4.json"
 TASK = "equilibrium-characterization"
 ARMS = ("Opaque", "Aligned", "MisIndexed")
 METRICS = ("pH_normalized", "acid_dissociation_fraction", "precipitation_signal")
@@ -796,6 +797,7 @@ def run_posttest(
         True,
         audit,
         {**progress, "phase": stage},
+        numerics_budget=FOLLOWUP_NUMERICS,
     )
     write(private_folder / stage / "receipt.json", raw)
     public = {
