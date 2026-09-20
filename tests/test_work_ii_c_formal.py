@@ -47,6 +47,39 @@ def test_recommendation_retest_preserves_source_measurement_envelope(tmp_path):
     assert len(result["batches"]) == 1
 
 
+def test_rejected_duplicate_seed_is_not_part_of_the_physical_retest(tmp_path):
+    actions = c.process(path=[c.pilot.cool(278.15, 120)])
+    seed_position = next(i for i, a in enumerate(actions) if a["operation"] == "seed_crystals")
+    actions.insert(seed_position + 1, copy.deepcopy(actions[seed_position]))
+    source_truth = []
+    trajectory = tmp_path / "source.jsonl"
+    c.physics(
+        c._FrozenTruthReplayAgent(actions),
+        trajectory,
+        world_seed=0,
+        batches=1,
+        truths=source_truth,
+        envelope=12,
+        arm="Opaque",
+        observation_seed=101,
+        callback=None,
+    )
+    records = c.load_jsonl(trajectory)
+    original_bytes = trajectory.read_bytes()
+    recipe = c.pilot.committed_recipe(records, 1)
+    assert len(recipe["excluded_rejected_attempts"]) == 1
+    assert sum(a["operation"] == "seed_crystals" for a in recipe["actions"]) == 1
+    result = c.fixed(tmp_path / "corrected", recipe["actions"], world_seed=0, envelope=12)
+    assert result["passed"] and result["truth"] == source_truth
+    assert trajectory.read_bytes() == original_bytes
+    with pytest.raises(ValueError, match="final assay"):
+        c.pilot.committed_recipe(records[:-1], 1)
+    unknown = copy.deepcopy(records)
+    unknown[0]["transaction_status"] = "unknown"
+    with pytest.raises(ValueError, match="Unknown transaction"):
+        c.pilot.committed_recipe(unknown, 1)
+
+
 def fixture_prediction():
     queries = [{"query_id": f"Q{i:02d}", "pair": c.FACTORS[(i - 1) // 2]} for i in range(1, 13)]
     truth = {
@@ -78,6 +111,41 @@ def fixture_prediction():
         ]
     }
     return queries, truth, payload
+
+
+def test_public_neighbor_baseline_does_not_count_rejected_seed_doses():
+    records = []
+    for batch, dose, value in ((0, 0.05, 0.2), (1, 0.15, 0.8)):
+        base = {"experiment_index": batch, "transaction_status": "committed"}
+        action = {"operation": "seed_crystals", "seed_mass_g": dose}
+        records.append({**base, "action": action})
+        if batch == 0:
+            records.extend(
+                {**base, "action": action, "transaction_status": "validation_failed"}
+                for _ in range(40)
+            )
+        records.append(
+            {
+                **base,
+                "action": {"operation": "measure", "instrument": "final_assay"},
+                "instrument": "final_assay",
+                "observation": dict.fromkeys(c.METRICS, value),
+            }
+        )
+    queries = [
+        {
+            "query_id": "Q01",
+            "actions": [
+                {
+                    "operation": "seed_crystals",
+                    "seed_mass_g": 0.05,
+                }
+            ],
+        }
+    ]
+    result = c.public_baselines(records, queries, {"Q01": dict.fromkeys(c.METRICS, 0.2)})
+    assert result["training_batches"] == 2
+    assert all(v == 0 for v in result["mae"]["public_nearest_neighbor"].values())
 
 
 def test_scoring_separates_resolved_effects_ties_and_quality_classes():
@@ -131,3 +199,13 @@ def test_live_report_does_not_claim_zero_batches_or_erase_failures(tmp_path):
     assert result["sealed_batches"] == 0
     assert result["live_unsealed_batches"] == 1
     assert result["started_sources"] == 1
+    c.write(root / "qualification/result.json", {"status": "running", "worlds": {}})
+    c.write(
+        root / "controller-status.json",
+        {
+            "stage": "qualification",
+            "pid": c.os.getpid(),
+            "process_created": c.psutil.Process().create_time() - 100,
+        },
+    )
+    assert c.export(root, report)["phase"] == "interrupted"

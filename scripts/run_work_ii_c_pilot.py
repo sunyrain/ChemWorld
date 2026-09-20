@@ -309,6 +309,66 @@ def quality(values):
     )
 
 
+def committed_recipe(records, lifecycle_index):
+    """Extract a completed physical recipe; retain rejected attempts as provenance."""
+    if type(lifecycle_index) is not int or lifecycle_index < 1:
+        raise ValueError("Recommendation must identify a completed, 1-based batch")
+    selected = [
+        (step, r)
+        for step, r in enumerate(records, 1)
+        if r.get("experiment_index") == lifecycle_index - 1
+    ]
+    committed, rejected = [], []
+    for step, record in selected:
+        status = record.get("transaction_status")
+        if status == "committed":
+            committed.append(record)
+        elif status in {"validation_failed", "rolled_back"}:
+            rejected.append({"step": step, "action": record["action"], "status": status})
+        else:
+            raise ValueError(f"Unknown transaction status at step {step}: {status}")
+    finals = [r for r in committed if r.get("instrument") == "final_assay"]
+    if len(finals) != 1 or committed[-1] is not finals[0]:
+        raise ValueError("Recommendation recipe must end with one committed final assay")
+    return {
+        "lifecycle_index": lifecycle_index,
+        "actions": [copy.deepcopy(r["action"]) for r in committed],
+        "source_attempts": len(selected),
+        "excluded_rejected_attempts": rejected,
+    }
+
+
+def repair_retest(root, arm):
+    """One authorized provider-free repair; original source/result files are untouched."""
+    folder = root / arm
+    original = read(folder / "result.json")
+    if original.get("recommendation_retest", {}).get("passed"):
+        raise ValueError("An intact recommendation retest must not be repeated")
+    if not original["source"]["exact_replay"].get("verified"):
+        raise ValueError("Source replay must be valid before retest repair")
+    recipe = committed_recipe(
+        load_jsonl(folder / "trajectory.jsonl"),
+        original["recommendation"]["selected_experiment_index"],
+    )
+    result = fixed_run(
+        folder / "recommendation-retest-repair",
+        recipe["actions"],
+        {},
+        arm=arm,
+        observation_seed=303,
+    )
+    repair = {
+        "original_status": original["status"],
+        "original_retest_failure": original["recommendation_retest"].get("failure"),
+        "recipe": recipe,
+        "recommendation_retest": result,
+        "new_provider_calls": 0,
+        "passed": result["passed"],
+    }
+    write(folder / "retest-repair.json", repair)
+    return repair
+
+
 def fixed_run(folder, actions, progress, *, batches=1, arm="Opaque", observation_seed=101):
     folder.mkdir(parents=True, exist_ok=False)
     write(folder / "actions.json", actions)
@@ -744,9 +804,10 @@ def run_source(root, arm, progress):
             (b for b in result["source"]["batches"] if b["lifecycle_index"] == selected), None
         )
         if batch is not None:
+            result["recommendation_recipe"] = committed_recipe(records, selected)
             result["recommendation_retest"] = fixed_run(
                 folder / "recommendation-retest",
-                batch["actions"],
+                result["recommendation_recipe"]["actions"],
                 progress,
                 arm=arm,
                 observation_seed=303,
@@ -802,11 +863,38 @@ def export(root, report):
         else {"arm": arm, "status": "not_started", "posttests": {}}
         for arm in ARMS
     ]
+    original_complete = sum(r["status"] == "completed" for r in results)
+    repairs = []
+    for row in results:
+        repair_path = root / row["arm"] / "retest-repair.json"
+        if repair_path.exists():
+            repair = read(repair_path)
+            repairs.append({"arm": row["arm"], **repair})
+            row["original_status"] = row["status"]
+            row["original_recommendation_retest"] = row.get("recommendation_retest")
+            row["retest_repair"] = repair
+            if repair["passed"]:
+                row["recommendation_retest"] = repair["recommendation_retest"]
+                if (
+                    not row.get("failure")
+                    and len(row.get("source", {}).get("batches", [])) == 12
+                    and row["source"]["exact_replay"].get("verified")
+                    and row.get("prediction_evaluation", {}).get("valid")
+                    and len(row["posttests"]) == 3
+                    and all(
+                        t.get("payload") and not t.get("failure") for t in row["posttests"].values()
+                    )
+                ):
+                    row["status"] = "completed"
     summary = {
         "development_only": True,
         "planned_sources": 3,
         "planned_source_batches": 36,
         "planned_posttests": 9,
+        "original_completed_sources": original_complete,
+        "retest_repairs": repairs,
+        "retest_attempts": sum(bool(r.get("recommendation_retest")) for r in results)
+        + len(repairs),
         "preparation": preparation,
         "completed_sources": sum(r["status"] == "completed" for r in results),
         "completed_batches": sum(len(r.get("source", {}).get("batches", [])) for r in results),
@@ -878,8 +966,14 @@ def export(root, report):
         f"source batches: {summary['completed_batches']}/36; "
         f"posttests: {summary['completed_posttests']}/9.",
         "",
-        "| Arm | Status | Batches | Posttests | Recovery | Purity | Fines | Feasible |",
-        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
+        f"Original complete chains: {original_complete}/3; "
+        f"additional retest attempts: {len(repairs)}. "
+        "Original failures remain in the machine summary; "
+        "repaired results never replace raw records.",
+        "",
+        "| Arm | Status | Batches | Posttests | Recovery | Purity | Fines | "
+        "Quality passes | Recovery target met |",
+        "| --- | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |",
     ]
     for row in results:
         batches = row.get("source", {}).get("batches", [])
@@ -889,12 +983,15 @@ def export(root, report):
         lines.append(
             f"| [{row['arm']}]({row['arm']}.md) | {row['status']} | {len(batches)}/12 | {n}/3 | "
             f"{v.get('crystal_yield', '')} | {v.get('crystal_purity', '')} | "
-            f"{v.get('crystal_fines_fraction', '')} | {quality(v) if v else ''} |"
+            f"{v.get('crystal_fines_fraction', '')} | {quality(v) if v else ''} | "
+            f"{quality(v) and v.get('crystal_yield', 0) >= 0.10 if v else ''} |"
         )
         details = [
             f"# {row['arm']} crystallization pilot",
             "",
             f"Status: {row['status']}; failure: {row.get('failure')}",
+            f"Original status: {row.get('original_status', row['status'])}; "
+            f"retest repair present: {bool(row.get('retest_repair'))}.",
             "",
             "## Source batches",
             "",

@@ -9,6 +9,7 @@ import importlib
 import itertools
 import json
 import math
+import os
 import shutil
 import subprocess
 import sys
@@ -18,6 +19,7 @@ import time
 from pathlib import Path
 
 import gymnasium as gym
+import psutil
 from scripts import run_work_ii_c_pilot as pilot
 from scripts.run_work_ii_final_diagnostic import read, write
 
@@ -593,8 +595,9 @@ def recipe_features(actions):
     ]
 
 
-def public_baselines(batches, queries, truths):
+def public_baselines(records, queries, truths):
     """Fit exclusively to a source's public final observations, never reference outcomes."""
+    batches = pilot.ec.summaries(records)
     eligible = [
         b for b in batches if all(type(b["metrics"].get(m)) in (int, float) for m in METRICS)
     ]
@@ -602,7 +605,10 @@ def public_baselines(batches, queries, truths):
         return {"training_batches": 0, "available": False}
     mean = {m: sum(b["metrics"][m] for b in eligible) / len(eligible) for m in METRICS}
     errors = {name: {m: [] for m in METRICS} for name in ("public_mean", "public_nearest_neighbor")}
-    features = [recipe_features(b["actions"]) for b in eligible]
+    features = [
+        recipe_features(pilot.committed_recipe(records, b["lifecycle_index"])["actions"])
+        for b in eligible
+    ]
     for q in queries:
         feature = recipe_features(q["actions"])
         index = min(
@@ -925,18 +931,17 @@ def source(root, cell, progress):
         result["prediction_evaluation"] = evaluate(
             result["posttests"].get("Q", {}).get("payload"), truth, design["queries"]
         )
-        result["public_baselines"] = public_baselines(
-            result["source"]["batches"], design["queries"], truth
-        )
+        result["public_baselines"] = public_baselines(records, design["queries"], truth)
         selected = (result["recommendation"] or {}).get("selected_experiment_index")
         batch = next(
             (b for b in result["source"]["batches"] if b["lifecycle_index"] == selected), None
         )
         if batch:
             progress["phase"] = "recommendation_retest"
+            result["recommendation_recipe"] = pilot.committed_recipe(records, selected)
             result["recommendation_retest"] = fixed(
                 folder / "recommendation-retest",
-                batch["actions"],
+                result["recommendation_recipe"]["actions"],
                 world_seed=cell["world_seed"],
                 arm=arm,
                 observation_seed=303,
@@ -988,8 +993,18 @@ def _export(root, report):
     design = read(root / "design.json")
     qualification_path = root / "qualification" / "result.json"
     qualification = read(qualification_path) if qualification_path.exists() else {}
+    controller_path = root / "controller-status.json"
+    controller = read(controller_path) if controller_path.exists() else {}
     phase = (
-        "sources"
+        controller["stage"]
+        if controller.get("stage") in {"completed", "ended_with_incomplete_chains"}
+        else "interrupted"
+        if controller.get("stage") == "interrupted"
+        or (
+            controller.get("stage") in {"qualification", "sources"}
+            and not controller_alive(controller)
+        )
+        else "sources"
         if qualification.get("passed")
         else "qualification_failed"
         if qualification.get("status") == "completed"
@@ -1034,6 +1049,11 @@ def _export(root, report):
         rows.append(result)
     summary = {
         "phase": phase,
+        "controller": controller,
+        "retained_prior_attempt": read(root / "prior-attempt.json")
+        if (root / "prior-attempt.json").exists()
+        else None,
+        "qualification_completed_worlds": len(qualification.get("worlds", {})),
         "protocol": design["protocol"],
         "planned_sources": len(rows),
         "started_sources": sum(r["status"] != "not_started" for r in rows),
@@ -1067,6 +1087,15 @@ def _export(root, report):
         "| Cell | Status | Batches | K1/Q/K2 |",
         "| --- | --- | ---: | ---: |",
     ]
+    if summary["retained_prior_attempt"]:
+        prior = summary["retained_prior_attempt"]
+        lines[7:7] = [
+            f"Additional interrupted-attempt consumption: {prior['final_assays']} reference "
+            f"final assays, {prior['operations']} operations, "
+            f"{prior['provider_sources']} model sources. "
+            "These do not count as sealed qualification units.",
+            "",
+        ]
     for row in rows:
         batches = row.get("live_batches", len(row.get("source", {}).get("batches", [])))
         n = sum(bool(t.get("payload")) and not t.get("failure") for t in row["posttests"].values())
@@ -1103,6 +1132,7 @@ def _export(root, report):
                     for k in (
                         "failure",
                         "recommendation",
+                        "recommendation_recipe",
                         "prediction_evaluation",
                         "public_baselines",
                         "tokens",
@@ -1121,6 +1151,146 @@ def _export(root, report):
     ]
     (report / "REPORT.md").write_text("\n".join(lines) + "\n", encoding="utf-8")
     return summary
+
+
+def controller_alive(state):
+    """Check process identity, not a persisted 'running' string or a recycled PID."""
+    try:
+        process = psutil.Process(state["pid"])
+        return process.is_running() and process.create_time() == state["process_created"]
+    except (KeyError, psutil.NoSuchProcess, psutil.AccessDenied):
+        return False
+
+
+def detached_process(command, log):
+    if sys.platform == "win32":
+        # Launch through the OS service: child-tree cleanup can defeat job breakaway.
+        helper = Path(tempfile.mkdtemp(prefix="chemworld-detached-")) / "redirect.py"
+        helper.write_text(
+            "import subprocess,sys\n"
+            "with open(sys.argv[1], 'ab', buffering=0) as log:\n"
+            " result=subprocess.run(sys.argv[2:],stdin=subprocess.DEVNULL,"
+            "stdout=log,stderr=subprocess.STDOUT)\n"
+            "raise SystemExit(result.returncode)\n",
+            encoding="utf-8",
+        )
+        uv = shutil.which("uv")
+        if not uv:
+            raise RuntimeError("Locked-environment launcher uv is unavailable")
+        uv = str(Path(uv).resolve())
+        command = [shutil.which(command[0]) or command[0], *command[1:]]
+        specification = {
+            "command": subprocess.list2cmdline(
+                [uv, "run", "--no-sync", "python", str(helper), str(log.resolve()), *command]
+            ),
+            "cwd": str(ROOT),
+        }
+        powershell = (
+            "$ErrorActionPreference='Stop'; "
+            "$spec=$env:CHEMWORLD_DETACHED_LAUNCH | ConvertFrom-Json; "
+            "$startup=New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly "
+            "-Property @{ShowWindow=[uint16]0}; "
+            "Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments "
+            "@{CommandLine=$spec.command;CurrentDirectory=$spec.cwd;"
+            "ProcessStartupInformation=$startup} | "
+            "Select-Object ProcessId,ReturnValue | ConvertTo-Json -Compress"
+        )
+        reply = subprocess.run(
+            ["powershell", "-NoProfile", "-NonInteractive", "-Command", powershell],
+            env={**os.environ, "CHEMWORLD_DETACHED_LAUNCH": json.dumps(specification)},
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=30,
+        )
+        receipt = json.loads(reply.stdout)
+        if receipt["ReturnValue"] != 0:
+            raise RuntimeError(f"OS process service rejected launch: {receipt}")
+        return psutil.Process(receipt["ProcessId"])
+    options = {
+        "cwd": ROOT,
+        "stdin": subprocess.DEVNULL,
+        "close_fds": True,
+        "start_new_session": True,
+    }
+    with log.open("ab") as output:
+        return subprocess.Popen(command, stdout=output, stderr=output, **options)
+
+
+def launch_pipeline(root, report):
+    verify_frozen(root)
+    if (root / "controller-launch.json").exists() or (root / "qualification").exists():
+        raise ValueError("This attempt already started; diagnose retained data before recovery")
+    command = [
+        "uv",
+        "run",
+        "--no-sync",
+        "python",
+        "-m",
+        "scripts.run_work_ii_c_formal",
+        "--root",
+        str(root),
+        "--report",
+        str(report),
+        "--phase",
+        "pipeline",
+    ]
+    process = detached_process(command, root / "controller.log")
+    receipt = {
+        "pid": process.pid,
+        "process_created": psutil.Process(process.pid).create_time(),
+        "command": command,
+        "launch_method": "windows_process_service" if sys.platform == "win32" else "new_session",
+    }
+    write(root / "controller-launch.json", receipt)
+    print(json.dumps(receipt), flush=True)
+
+
+def pipeline(root, report):
+    verify_frozen(root)
+    state = {
+        "pid": os.getpid(),
+        "process_created": psutil.Process().create_time(),
+        "stage": "qualification",
+        "started_epoch": time.time(),
+    }
+    stop = threading.Event()
+
+    def emit():
+        payload = {**state, "epoch": time.time()}
+        temporary = root / "controller-status.tmp"
+        write(temporary, payload)
+        temporary.replace(root / "controller-status.json")
+        export(root, report)
+        print(json.dumps(payload), flush=True)
+
+    def heartbeat():
+        while not stop.wait(30):
+            emit()
+
+    emit()
+    thread = threading.Thread(target=heartbeat, daemon=True)
+    thread.start()
+    try:
+        qualify(root, report)
+        if not read(root / "qualification/result.json")["passed"]:
+            state["stage"] = "held_after_qualification"
+            return
+        state["stage"] = "sources"
+        run(root, report)
+        summary = export(root, report)
+        state["stage"] = (
+            "completed"
+            if summary["completed_chains"] == summary["planned_sources"]
+            else "ended_with_incomplete_chains"
+        )
+    except BaseException as exc:
+        state.update(stage="interrupted", failure={"type": type(exc).__name__, "message": str(exc)})
+        raise
+    finally:
+        stop.set()
+        thread.join(timeout=10)
+        emit()
 
 
 def runtime_surface():
@@ -1236,6 +1406,8 @@ def main():
             "qualify",
             "run",
             "report",
+            "launch",
+            "pipeline",
         ],
         required=True,
     )
@@ -1257,6 +1429,10 @@ def main():
         qualify(root, report)
     elif args.phase == "run":
         run(root, report)
+    elif args.phase == "launch":
+        launch_pipeline(root, report)
+    elif args.phase == "pipeline":
+        pipeline(root, report)
     else:
         export(root, report)
 
