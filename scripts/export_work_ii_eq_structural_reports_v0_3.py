@@ -141,8 +141,8 @@ def public_result(
             "primary_artifact": "K1",
             "mode": "external_blind_descriptive_audit",
             "participant_candidate_labels_exposed": False,
-            "primary_family_accuracy_authorized": False,
-            "single_composite_score_authorized": False,
+            "primary_family_accuracy_endpoint": None,
+            "single_composite_score_endpoint": None,
         },
         "excluded_material": [
             "authentication material",
