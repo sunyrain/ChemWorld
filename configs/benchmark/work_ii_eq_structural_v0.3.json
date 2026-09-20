@@ -1,0 +1,57 @@
+{
+  "schema_version": "chemworld-work-ii-eq-structural-open-report-0.3",
+  "status": "human_authorized_for_gate_canary_and_full_matrix",
+  "authorized_scope": "EQ-S five worlds, Opaque/Aligned/MisIndexed, twelve source batches, canonical K1/Q/K2 only",
+  "base_scientific_design": {
+    "path": "configs/benchmark/work_ii_eq_structural_v0.2.repair.design.json",
+    "sha256": "70f2bdb6f2207c46e563af5ded5097837cb6f055c70c25bf6f687abcdcb5cfd0"
+  },
+  "canonical_posttest_protocol": {
+    "path": "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md",
+    "sha256": "cacfc67f299fff5ae776528ff2e850ebe9d4b94f803860aff34794dc6ce5dbc2"
+  },
+  "participant_posttest_stages": ["K1", "Q", "K2"],
+  "forbidden_participant_posttests": ["EQS", "closed_set_network_family", "candidate_equation_menu"],
+  "counts": {
+    "worlds": 5,
+    "independent_source_sessions": 15,
+    "source_batches_per_session": 12,
+    "source_batches": 180,
+    "posttest_stages": ["K1", "Q", "K2"],
+    "posttests": 45,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 300
+  },
+  "q_contract": {
+    "status": "reused_after_pre-execution_review",
+    "source": "base_scientific_design.queries",
+    "reason": "The twelve frozen EQ-S conditions already passed the registered response-signal, scale-control, numerical-stability, and parameter-only non-collapse checks. The protocol defect was the additional closed-set participant question, not the numeric Q payload.",
+    "shared_across_arms": true,
+    "adaptation_after_source_forbidden": true
+  },
+  "mechanism_evaluation": {
+    "primary_participant_artifact": "sealed_K1_open_mechanistic_report",
+    "participant_candidate_labels_exposed": false,
+    "evaluation_timing": "after_all_K2_are_sealed_and_truth_embargo_is_released",
+    "status": "descriptive_blind_external_audit_preregistered_no_participant_prompt",
+    "dimensions": [
+      "proposed_species_and_processes",
+      "proposed_reaction_edges_or_equations",
+      "evidence_supported_vs_conjectural_distinction",
+      "coverage_of_true_common_backbone",
+      "treatment_of_aqueous_intermediate_or_competing_networks",
+      "calibration_to_identifiability_limits"
+    ],
+    "primary_family_accuracy_authorized": false,
+    "single_composite_score_authorized": false
+  },
+  "execution_policy": {
+    "provider_free_gate_first": true,
+    "canary": "EQ-S-W01 Opaque/Aligned/MisIndexed, at most three workers",
+    "canary_release_rule": "all three source-K1-Q-K2 chains complete and validate",
+    "remaining": "EQ-S-W02 through EQ-S-W05, at most eight workers with automatic slot refill",
+    "truth_embargo": "all fifteen K2 responses must be sealed before reference truth or external mechanism audit",
+    "automatic_platform_repair": "retain original failure and resume only from the latest legal boundary without changing science"
+  },
+  "supersedes_as_formal_design": "EQ-S v0.2.1 closed-set structural-discrimination pilot; all prior data remain retained"
+}
