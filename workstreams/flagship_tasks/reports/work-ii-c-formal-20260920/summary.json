@@ -2,20 +2,172 @@
   "completed_chains": 0,
   "completed_posttests": 0,
   "controller": {
-    "epoch": 1789870195.3198605,
-    "pid": 47856,
-    "process_created": 1789870132.6051536,
-    "stage": "qualification",
-    "started_epoch": 1789870133.6406674
+    "epoch": 1789873505.6360266,
+    "final_assays": 40,
+    "operations": 646,
+    "previous_controller_state": {
+      "epoch": 1789873496.7741072,
+      "pid": 47856,
+      "process_created": 1789870132.6051536,
+      "stage": "qualification",
+      "started_epoch": 1789870133.6406674
+    },
+    "provider_sources_started": 0,
+    "reason": "Authorized shared-runtime optimization and metric-contract correction; no formal model source started. Preserved all qualification records.",
+    "retained_units": [
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W01\\mapping-Aligned"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W01\\mapping-MisIndexed"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W01\\mapping-Opaque"
+      },
+      {
+        "final_assays": 12,
+        "operations": 201,
+        "sealed": true,
+        "unit": "qualification\\W01\\queries"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W02\\mapping-Aligned"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W02\\mapping-MisIndexed"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W02\\mapping-Opaque"
+      },
+      {
+        "final_assays": 12,
+        "operations": 201,
+        "sealed": true,
+        "unit": "qualification\\W02\\queries"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W03\\mapping-Aligned"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W03\\mapping-MisIndexed"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W03\\mapping-Opaque"
+      },
+      {
+        "final_assays": 0,
+        "operations": 8,
+        "sealed": true,
+        "unit": "qualification\\W03\\queries"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W04\\mapping-Aligned"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W04\\mapping-MisIndexed"
+      },
+      {
+        "final_assays": 1,
+        "operations": 12,
+        "sealed": true,
+        "unit": "qualification\\W04\\mapping-Opaque"
+      },
+      {
+        "final_assays": 0,
+        "operations": 8,
+        "sealed": true,
+        "unit": "qualification\\W04\\queries"
+      },
+      {
+        "final_assays": 4,
+        "operations": 84,
+        "sealed": false,
+        "unit": "qualification\\W05\\queries"
+      }
+    ],
+    "stage": "interrupted"
   },
   "failed_sources": 0,
   "live_unsealed_batches": 0,
-  "phase": "qualification_running",
+  "phase": "interrupted",
   "planned_batches": 540,
   "planned_posttests": 90,
   "planned_sources": 30,
   "protocol": "c-quality-recovery-formal-v1-en",
-  "qualification_completed_worlds": 0,
+  "qualification_completed_worlds": 4,
+  "qualification_world_checks": {
+    "C-W01": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    },
+    "C-W02": {
+      "execution_failure": null,
+      "failed_checks": [
+        "quality_coverage"
+      ],
+      "passed": false
+    },
+    "C-W03": {
+      "execution_failure": {
+        "message": "illegal fixed action: {'duration_s': 14400, 'operation': 'cool_crystallize', 'target_temperature_K': 298.1791666666667}",
+        "type": "ValueError"
+      },
+      "failed_checks": [
+        "exact_execution",
+        "factor_coverage",
+        "feasible_witness",
+        "quality_coverage"
+      ],
+      "passed": false
+    },
+    "C-W04": {
+      "execution_failure": {
+        "message": "illegal fixed action: {'duration_s': 14400, 'operation': 'cool_crystallize', 'target_temperature_K': 298.1791666666667}",
+        "type": "ValueError"
+      },
+      "failed_checks": [
+        "exact_execution",
+        "factor_coverage",
+        "feasible_witness",
+        "quality_coverage"
+      ],
+      "passed": false
+    }
+  },
   "results": [
     {
       "arm": "Opaque",

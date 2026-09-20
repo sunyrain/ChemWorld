@@ -2,6 +2,7 @@
 
 Development pilot; GPT-5.6 Sol / medium. One world, three prior arms, no outcome-based retries.
 Twelve paired prediction slots use nine unique recipes. Shared controls are dependent comparisons, not additional independent scientific samples.
+Metric correction (2026-09-20): the original saved prompts incorrectly described crystal_yield as relative to reactant charge. The simulator reports seed-excluded crystallization-stage recovery relative to target product before separation. Original prompts and outcomes remain preserved; this mismatch limits interpretation of the pilot's quantitative predictions. Future prompts use the simulator's definition.
 
 Preparation batches: 19/19; status: completed; passed: True. Complete chains: 3/3; source batches: 36/36; posttests: 9/9.
 

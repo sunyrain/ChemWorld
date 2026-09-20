@@ -1,9 +1,18 @@
 # Crystallization formal experiment
 
-Phase: qualification_running.
+Phase: interrupted.
 
 Started: 0/30; complete chains: 0/30; failures: 0.
 Sealed batches: 0/540; additional live unsealed batches: 0. Posttests: 0/90.
+
+Qualification world results sealed: 4/5. A sealed failure is not a qualified world.
+
+This interrupted attempt retains 646 reference operations and 40 final assays. Reason: Authorized shared-runtime optimization and metric-contract correction; no formal model source started. Preserved all qualification records.
+
+- C-W01: passed=True; failed checks: none.
+- C-W02: passed=False; failed checks: quality_coverage.
+- C-W03: passed=False; failed checks: exact_execution, factor_coverage, feasible_witness, quality_coverage.
+- C-W04: passed=False; failed checks: exact_execution, factor_coverage, feasible_witness, quality_coverage.
 
 Additional interrupted-attempt consumption: 3 reference final assays, 62 operations, 0 model sources. These do not count as sealed qualification units.
 
