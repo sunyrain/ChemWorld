@@ -58,7 +58,8 @@ Use the current legal ranges and actual thermometer readings. Choose materials, 
 seeding, cooling, holding, reheating/redissolution, recooling and filtration freely.
 The later prediction domain includes material changes, seed doses, cooling/thermal history,
 stopping versus continuing growth, and upstream loading changes. Exact recipes are withheld.
-crystal_yield means seed-excluded recovered product divided by original reactant charge.
+crystal_yield is crystallization-stage recovery: seed-excluded recovered product divided
+by the target product present before separation. It is not overall yield from reactant charge.
 crystal_purity and crystal_fines_fraction are fractions; crystal_size is min(d50/250 um,1),
 a bounded number-weighted size index, not a diameter in micrometres. Fines means below 20 um.
 HPLC consumes a representative sample; particle_size is nondestructive after crystals exist.
@@ -196,7 +197,9 @@ def prediction_question(query_set):
         "specifies all actions, including any intermediate sampling. For each return "
         "query_id, particles_present, quality_feasible, and estimate/lower80/upper80 for "
         "crystal_yield, crystal_purity, crystal_size and crystal_fines_fraction. All metrics "
-        "are 0-1: yield excludes seed and uses original reactant charge; crystal_size is "
+        "are 0-1: crystal_yield is seed-excluded crystallization-stage recovery relative to "
+        "target product present before separation, not overall yield from reactant charge; "
+        "crystal_size is "
         "min(number-weighted d50/250 micrometres,1). If no particles are expected, set "
         "particles_present=false and all three size interval fields to null. quality_feasible "
         "means purity>=0.80 and fines<=0.50 with particles present. Give a concise rationale "
@@ -222,7 +225,10 @@ class CAgent(ec.FreeResearchAgent):
                 "operation_attempts": 720,
             },
             prediction_metrics={
-                "crystal_yield": "seed-excluded/original reactant charge",
+                "crystal_yield": (
+                    "seed-excluded recovered product / target product present before separation; "
+                    "crystallization-stage recovery, not overall yield from reactant charge"
+                ),
                 "crystal_purity": "fraction",
                 "crystal_size": "min(number-weighted d50/250 micrometres,1)",
                 "crystal_fines_fraction": "number fraction below 20 micrometres",
@@ -244,9 +250,10 @@ class CAgent(ec.FreeResearchAgent):
 
 
 class TruthCapture(gym.Wrapper):
-    def __init__(self, env, truths):
+    def __init__(self, env, truths, diagnostics=None):
         super().__init__(env)
         self.truths = truths
+        self.diagnostics = diagnostics
 
     def step(self, action):
         before = None
@@ -259,6 +266,25 @@ class TruthCapture(gym.Wrapper):
         result = self.env.step(action)
         if before is not None and result[4].get("transaction_status") == "committed":
             self.truths.append(before)
+        if (
+            self.diagnostics is not None
+            and action.get("operation") == "cool_crystallize"
+            and result[4].get("transaction_status") == "committed"
+        ):
+            settings = equipment_settings(self.unwrapped._state.equipment, "crystallizer")
+            self.diagnostics.append(
+                {
+                    key: settings[key]
+                    for key in (
+                        "feed_concentration_mol_L",
+                        "reference_solubility_mol_L",
+                        "temperature_history_K",
+                        "maximum_supersaturation_ratio",
+                        "final_supersaturation_ratio",
+                        "csd_total_particle_count",
+                    )
+                }
+            )
         return result
 
 
@@ -959,6 +985,11 @@ def export(root, report):
         "no outcome-based retries.",
         "Twelve paired prediction slots use nine unique recipes. Shared controls are "
         "dependent comparisons, not additional independent scientific samples.",
+        "Metric correction (2026-09-20): the original saved prompts incorrectly described "
+        "crystal_yield as relative to reactant charge. The simulator reports seed-excluded "
+        "crystallization-stage recovery relative to target product before separation. "
+        "Original prompts and outcomes remain preserved; this mismatch limits interpretation "
+        "of the pilot's quantitative predictions. Future prompts use the simulator's definition.",
         "",
         f"Preparation batches: {preparation['completed_batches']}/19; "
         f"status: {preparation['status']}; passed: {preparation['passed']}. "

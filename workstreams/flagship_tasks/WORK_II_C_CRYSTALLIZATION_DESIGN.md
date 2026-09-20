@@ -1,6 +1,12 @@
 # Work II: crystallization research design
 
-Status: user authorized the development pilot on 2026-09-19; execution is governed by the [concise pilot note](WORK_II_C_PILOT_NOTE.md). The [English report](reports/work-ii-c-sol-pilot-20260919/REPORT.md) distinguishes preparation and model sources. This develops the C entry in [the experiment matrix](WORK_II_EXPERIMENT_MATRIX.md), section 9.10, without changing historical qualification or EC/PA results.
+Status: current world/task setting repair is governed by the [2026-09-20 development note](WORK_II_C_WORLD_REDESIGN_NOTE.md) and [its report](reports/work-ii-c-world-redesign-20260920/REPORT.md). The earlier pilot and formal qualification remain historical evidence with their saved contracts. The design below describes the scientific task; its one-world pilot counts and startup checks are historical, not a new execution queue.
+
+Current diagnosis: completing the reference boundary condition removed the illegal-cooling failures. The unchanged twelve-query coverage rules passed four of five planned worlds; W04 still failed because all twelve fines fractions exceeded 0.50. This is a reference-domain failure, not evidence that no legal process can succeed. A separately declared solvent/loading/volume grid investigates accessibility. Do not change the world distribution or weaken the quality target simply to pass a selected reference set.
+
+The separate grid is now complete: 252/252 executions and exact replays, with feasible recipes in all seven worlds. One common S0 / 0.004 mol / 0.020 L / 0.045 g seed recipe reaches recovery 0.2062-0.2958 under the declared long cooling path. The decision is to retain the current world family and redesign the reference coverage, keeping all six scientific contrasts and arm matching. This result does not qualify the old twelve queries or prove that autonomous agents can find the feasible region in twelve batches. See [domain results](reports/work-ii-c-world-redesign-20260920/domain/REPORT.md).
+
+Keep three interpretation limits explicit. First, the objective is **crystallization-stage recovery**, so a large fraction is not necessarily a large mass or high overall reaction yield; retain charge, material and time accounting. Second, purity was near 0.97-1.00 in the first redesign block, so its 0.80 threshold was mostly inactive. Third, number-weighted d50 and the number fraction below 20 micrometres come from the same particle distribution; they are not independent success channels. The study can test recovery/particle-history reasoning without claiming four independent mechanistic constraints. Increasing impurity challenge or adding overall product delivery as a primary objective would be a separate task revision before source launch.
 
 ## 1. Scientific question and primary task
 
@@ -33,7 +39,7 @@ Within public operation bounds the agent can choose anonymous catalyst and solve
 
 Solids and mother liquor form the declared representative analytical slurry group; the interface does not provide arbitrary independent sample bottles. d50 and fines must both be evaluated: a large median alone does not establish an acceptable fine-particle tail. Conditions without crystals require an explicit absence/undefined-size outcome, not a fabricated zero-size prediction.
 
-The net-recovery numerator excludes retained material originating from purchased seed. Use the original reactant-charge denominator specified by the full-process public contract, preserving sample withdrawals and material provenance through dissolution, recooling and filtering. Record seed consumption and cost separately. Verify these definitions in actual final tool responses, rather than inferring them from a historical field name such as `crystal_yield`.
+The net-recovery numerator excludes retained material originating from purchased seed. The simulator's `crystal_yield` denominator is target product present before separation: this is crystallization-stage recovery, not overall yield from reactant charge. Preserve sample withdrawals and material provenance through dissolution, recooling and filtering, and record seed consumption and cost separately. The original pilot brief and operational-state text gave the wrong denominator; saved sessions remain historical and are not silently reinterpreted as correctly specified trials. Future source instructions, task cards, prediction questions and operational-state replies now use the same definition. A high stage recovery does not itself establish high overall reaction-to-product yield.
 
 ## 3. Three prior arms
 
@@ -47,7 +53,7 @@ All arms share physics, actual action-to-material mapping, world residuals, oper
 
 The existing C-E solvent permutation is `[0, 3, 2, 1]`. Dossier values are family-level nominal properties before hidden, fixed world residuals. They are incomplete prior evidence, not an exact world equation or guaranteed ranking at every condition. A locally inaccurate nominal prediction does not by itself prove the agent has identified a label swap.
 
-Start with E only. Old C-P numerical bands cannot be transplanted into a contract with a different recovery denominator, and the old C-S qualification did not establish the proposed structural distinction. Neither is needed to investigate this first C-E task.
+Start with E only. Old C-P numerical bands require checking against the actual metric definition, and the old C-S qualification did not establish the proposed structural distinction. Neither is needed to investigate this first C-E task.
 
 ## 4. Source and follow-up flow
 
@@ -96,7 +102,7 @@ If a later LLM judge is used, ground each mechanism assessment in cited evidence
 
 Before this pilot, answer only four practical questions:
 
-- **Does the actual public interface match the brief?** Check material anonymity, dossier delivery, online particle measurement, units, sampling and final metrics with the chosen v4 + latent-material combination.
+- **Does the actual public interface match the brief?** Check material anonymity, dossier delivery, online particle measurement, units, sampling and final metrics with the chosen v5 + latent-material combination.
 - **Is the task meaningful and feasible?** Run a small predeclared reference block containing a feasible process and the proposed contrasts, using the same physics. Existing full-process references include 4 feasible C candidates out of 24 tested, but do not establish feasibility under this new combined setting.
 - **Do the arms differ only in information?** Compare actual public inputs and replay identical actions in O/A/M; do not alter the physical material mapping for MisIndexed.
 - **Can the full chain finish and be scored?** Check the 12-batch resource card, saved questions, same-thread K1/Q/K2, calculator policy, recommendation extraction, replay and readable failure/accounting output.

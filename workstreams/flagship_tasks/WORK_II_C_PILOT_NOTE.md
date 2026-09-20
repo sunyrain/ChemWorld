@@ -1,5 +1,7 @@
 # C-E crystallization pilot: execution note
 
+Interpretation correction, 2026-09-20: the historical source/Q/task-card prompts incorrectly described crystal_yield as normalized by original reagent charge. The simulator actually uses seed-excluded recovered target product divided by target product present before separation. Thus the Aligned retest's 0.3804089 is crystallization-stage recovery; the two zero-recovery outcomes remain zero. The saved prompts, sessions, measurements and evaluations are preserved. This mismatch limits interpretation of quantitative pilot predictions and the pilot cannot be presented as a correctly specified formal mechanism/prediction benchmark. Future prompts have been corrected without changing the physical definition.
+
 Authorized by the user on 2026-09-19: run the proposed preliminary experiment. Development evidence only; this does not reopen Experiment 1 release qualification or change EC/PA results.
 
 Preparation startup correction: v1 stopped during resource-card construction, before any environment action or provider call, because uncapped process time cannot also specify time-limit reservation allowances. Remove that unused reservation map; native physical time and costs remain in the environment ledger. Keep the startup failure in v1; execute the unchanged 19-reference design in `runs/development/work-ii-c-sol-pilot-20260919-v2`. No scientific result or query was selected or replaced.

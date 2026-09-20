@@ -24,6 +24,10 @@ def test_actual_public_tool_retains_anonymity_and_delivers_budget(arm, budget):
     assert f"with {budget} extra" in system
     assert f"plus {budget} final assays and {60 * budget}" in system
     assert "128 public calculator attempts" in system
+    assert "target product present before separation" in system
+    definition = result["contract"]["prediction_metrics"]["crystal_yield"]
+    assert "target product present before separation" in definition
+    assert "target product present before separation" in c.pilot.prediction_question([])
 
 
 def test_counterfactual_priors_are_only_a_dossier_permutation():

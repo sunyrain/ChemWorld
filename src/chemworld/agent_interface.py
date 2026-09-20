@@ -1824,7 +1824,13 @@ def full_process_operational_state(env: Any, info: dict[str, Any]) -> dict[str, 
         "sampling_contract": (
             "Only the selected liquid phase is depleted. Solid and mother_liquor form one "
             "representative analytical slurry group, including after filtration; they are not "
-            "separately stored bottles. Recovery/yield denominators are original reactant charge."
+            "separately stored bottles. "
+            + (
+                "crystal_yield is seed-excluded recovered target product divided by target "
+                "product present before separation; it is crystallization-stage recovery."
+                if base.task_id == "reaction-to-crystallization"
+                else "Recovery/yield denominators are original reactant charge."
+            )
             if resolved
             else "Current runtime proportionally depletes all inventories during "
             "sampling, including saved phases. It is not isolated receiver sampling."

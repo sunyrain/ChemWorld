@@ -23,6 +23,7 @@ import psutil
 from scripts import run_work_ii_c_pilot as pilot
 from scripts.run_work_ii_final_diagnostic import read, write
 
+from chemworld.agent_interface import full_process_operational_state
 from chemworld.agents.diagnostic_numerics import FOLLOWUP_NUMERICS
 from chemworld.agents.experiment_codex_mcp import ChemWorldMCPServer
 from chemworld.data.logging import load_jsonl
@@ -209,7 +210,17 @@ def calibration_candidates():
 
 
 def physics(
-    agent, output, *, world_seed, arm, batches, observation_seed, callback, truths, envelope=None
+    agent,
+    output,
+    *,
+    world_seed,
+    arm,
+    batches,
+    observation_seed,
+    callback,
+    truths,
+    envelope=None,
+    diagnostics=None,
 ):
     envelope = batches if envelope is None else envelope
     return run_agent(
@@ -232,7 +243,7 @@ def physics(
         observation_noise_namespace=NAMESPACE,
         output_path=output,
         step_callback=callback,
-        env_wrapper=lambda env: pilot.TruthCapture(env, truths),
+        env_wrapper=lambda env: pilot.TruthCapture(env, truths, diagnostics),
         method_resource_limits={
             "operation_limit": 60 * batches,
             "complete_experiment_limit": batches,
@@ -249,12 +260,21 @@ def physics(
 
 
 def fixed(
-    root, actions, *, world_seed=17, arm="Opaque", batches=1, observation_seed=101, envelope=None
+    root,
+    actions,
+    *,
+    world_seed=17,
+    arm="Opaque",
+    batches=1,
+    observation_seed=101,
+    envelope=None,
+    capture_diagnostics=False,
 ):
     root.mkdir(parents=True, exist_ok=False)
     write(root / "actions.json", actions)
     started = time.monotonic()
     truths, failure = [], None
+    diagnostics = [] if capture_diagnostics else None
     progress = {
         "stage": root.name,
         "operations": 0,
@@ -290,6 +310,7 @@ def fixed(
                 callback=callback,
                 truths=truths,
                 envelope=envelope,
+                diagnostics=diagnostics,
             )
         except Exception as exc:
             failure = {"type": type(exc).__name__, "message": str(exc)}
@@ -311,6 +332,8 @@ def fixed(
         result["passed"] = (
             not failure and len(result["batches"]) == batches and replay.get("verified") is True
         )
+        if diagnostics is not None:
+            result["host_diagnostics"] = diagnostics
         write(root / "result.json", result)
         return result
     finally:
@@ -706,12 +729,23 @@ def check_public(arm, seed, batches):
             if reply.get("isError"):
                 raise ValueError("material tool failed")
             payload = json.loads(reply["content"][0]["text"])
+            operational = full_process_operational_state(env.unwrapped, {})
+            metric_texts = (
+                source_system(batches),
+                pilot.prediction_question([]),
+                agent._task_contract["prediction_metrics"]["crystal_yield"],
+                operational["sampling_contract"],
+            )
             return {
                 "payload": payload,
                 "contract": agent._task_contract,
                 "anonymous": pilot.anonymous(payload),
                 "particle_available": "particle_size"
                 in agent._task_contract["instrument_contracts"],
+                "metric_contract_consistent": all(
+                    "target product present before separation" in text for text in metric_texts
+                ),
+                "operational_state": operational,
             }
         finally:
             agent.close()
@@ -741,6 +775,9 @@ def qualify(root, report):
         }
         cov = coverage(references["truth"]) if len(references["truth"]) == 12 else {}
         checks = {
+            "metric_contract_consistent": all(
+                p["metric_contract_consistent"] for p in public.values()
+            ),
             "public_anonymous": all(
                 p["anonymous"] and p["particle_available"] for p in public.values()
             ),
@@ -1054,6 +1091,14 @@ def _export(root, report):
         if (root / "prior-attempt.json").exists()
         else None,
         "qualification_completed_worlds": len(qualification.get("worlds", {})),
+        "qualification_world_checks": {
+            f"C-W{int(key) + 1:02d}": {
+                "passed": world["passed"],
+                "failed_checks": [name for name, passed in world["checks"].items() if not passed],
+                "execution_failure": world["reference"].get("failure"),
+            }
+            for key, world in qualification.get("worlds", {}).items()
+        },
         "protocol": design["protocol"],
         "planned_sources": len(rows),
         "started_sources": sum(r["status"] != "not_started" for r in rows),
@@ -1096,6 +1141,26 @@ def _export(root, report):
             "These do not count as sealed qualification units.",
             "",
         ]
+    details = [
+        f"Qualification world results sealed: {summary['qualification_completed_worlds']}/5. "
+        "A sealed failure is not a qualified world.",
+        "",
+    ]
+    if controller.get("stage") == "interrupted" and "operations" in controller:
+        details.extend(
+            [
+                f"This interrupted attempt retains {controller['operations']} reference operations "
+                f"and {controller['final_assays']} final assays. "
+                f"Reason: {controller.get('reason', '')}",
+                "",
+            ]
+        )
+    for world, result in summary["qualification_world_checks"].items():
+        failed = ", ".join(result["failed_checks"]) or "none"
+        details.append(f"- {world}: passed={result['passed']}; failed checks: {failed}.")
+    if summary["qualification_world_checks"]:
+        details.append("")
+    lines[7:7] = details
     for row in rows:
         batches = row.get("live_batches", len(row.get("source", {}).get("batches", [])))
         n = sum(bool(t.get("payload")) and not t.get("failure") for t in row["posttests"].values())

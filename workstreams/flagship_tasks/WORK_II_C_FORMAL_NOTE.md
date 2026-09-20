@@ -1,5 +1,11 @@
 # Crystallization: calibration and formal experiment
 
+Current follow-on block: the user authorized rapid preparation and real model execution after repair. [Reference v3 and formal launch](WORK_II_C_REFERENCE_V3_NOTE.md) now governs the new block; its 24-batch development acceptance passed. The v1/v2 states and design below remain historical. Do not resume those old saved designs. Current results will be reported separately under `reports/work-ii-c-formal-20260920-v3/`.
+
+Current status, 2026-09-20 — formal launch held. The v2 worker was intentionally stopped before any model source to perform the authorized shared-runtime optimization. Its 646 operations / 40 final assays are preserved, including W01 passing, W02 failing the predeclared quality-coverage minimum, W03/W04 failing legal execution of a fixed cooling target, and partial W05. The earlier v1 adds 62 operations / three assays. Timing improvements do not convert these outcomes into passes. The saved design and release bindings remain historical and must not be silently edited or resumed under changed runtime code. See [shared-runtime note](WORK_II_RUNTIME_OPTIMIZATION_NOTE.md).
+
+Future prompt correction: the existing simulator's crystal_yield divides seed-excluded recovered target product by target product present before separation. It is crystallization-stage recovery, not overall yield relative to original reagent charge. The previous saved pilot/formal prompts used the wrong denominator description. Future source instructions, task cards and Q questions now agree with the simulator; saved prompts and negative outcomes remain unchanged. A subsequent formal block needs a new saved design and freeze after resolving the concrete query-execution/coverage defects.
+
 User authorization: 2026-09-20, optimize crystallization and organize formal experiments. This is a new Work II block; the running C pilot remains unchanged and is not promoted to formal evidence. It does not reopen the historical Experiment 1 qualification programme.
 
 ## Development calibration (fixed before execution)
