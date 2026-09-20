@@ -430,6 +430,63 @@ class ChemWorldObservationKernel:
                 "equilibrium_confidence": 0.0,
             }
 
+        if state.metadata.get("equilibrium_entity_panel_version"):
+            settings = equipment_settings(
+                state.equipment,
+                "batch_reactor",
+                fields=("solvent",),
+            )
+            selector = str(int(settings.get("solvent", 0)))
+            configured_profiles = state.metadata.get("equilibrium_entity_profiles")
+            if not isinstance(configured_profiles, dict) or selector not in configured_profiles:
+                raise ValueError("EQ-E active medium has no registered private profile")
+            profile = configured_profiles[selector]
+            if not isinstance(profile, dict):
+                raise ValueError("EQ-E private profile is malformed")
+            coupled = solve_coupled_weak_acid_precipitation(
+                acid_total_mol=acid_total,
+                volume_L=volume_L,
+                pka=float(state.metadata["equilibrium_entity_base_pka"])
+                + float(profile["pka_shift"]),
+                log10_ksp=float(profile["log10_ksp"]),
+                mechanism_family="direct_free_ion_precipitation",
+                cation_fraction=float(profile["cation_fraction"]),
+                activity_coefficient_ratio=float(
+                    profile["activity_coefficient_ratio"]
+                ),
+            )
+            concentration = acid_total / volume_L
+            identity_signal = max(
+                coupled.acid_dissociation_fraction,
+                coupled.precipitation_signal,
+            )
+            concentration_quality = 1.0 - min(
+                abs(np.log10(max(concentration, 1.0e-12)) - np.log10(0.08)) / 4.0,
+                1.0,
+            )
+            confidence = float(
+                np.clip(
+                    0.55 * (1.0 - min(coupled.equilibrium_residual, 1.0))
+                    + 0.20 * min(identity_signal / 0.08, 1.0)
+                    + 0.25 * concentration_quality,
+                    0.0,
+                    1.0,
+                )
+            )
+            return {
+                "pH_normalized": float(np.clip(coupled.pH / 14.0, 0.0, 1.0)),
+                "acid_dissociation_fraction": float(
+                    np.clip(coupled.acid_dissociation_fraction, 0.0, 1.0)
+                ),
+                "precipitation_signal": float(
+                    np.clip(coupled.precipitation_signal, 0.0, 1.0)
+                ),
+                "equilibrium_residual": float(
+                    np.clip(coupled.equilibrium_residual, 0.0, 1.0)
+                ),
+                "equilibrium_confidence": confidence,
+            }
+
         if state.metadata.get("equilibrium_mechanism_benchmark_version") == "eq-s-v0.2":
             pka = self._hidden_acid_pka(state)
             mechanism_family = str(

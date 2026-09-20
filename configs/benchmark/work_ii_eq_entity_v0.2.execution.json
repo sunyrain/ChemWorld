@@ -1,0 +1,51 @@
+{
+  "schema_version": "chemworld-work-ii-eq-entity-execution-0.2",
+  "status": "human_approved_for_complete_formal_execution",
+  "approval_date": "2026-09-21",
+  "execution_authorized": true,
+  "provider_execution_authorized": true,
+  "base_design": {
+    "path": "configs/benchmark/work_ii_eq_entity_v0.2.design.json",
+    "sha256": "da556c2173d6c76e76b46056e3199b36ca045b7cc31957fe129a433445a27218"
+  },
+  "canonical_posttest_protocol": {
+    "path": "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md",
+    "sha256": "cacfc67f299fff5ae776528ff2e850ebe9d4b94f803860aff34794dc6ce5dbc2"
+  },
+  "formal_design_note": {
+    "path": "workstreams/flagship_tasks/WORK_II_EQ_E_V0_2_FORMAL_DESIGN.md",
+    "sha256": "3a56d37a24674341cab726983269c08e9343b2b1723494f1922f22bc1994e407"
+  },
+  "provider": {
+    "id": "chemworld_openai_https",
+    "name": "OpenAI",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "medium",
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "wire_api": "responses"
+  },
+  "runtime": {
+    "task_id": "equilibrium-characterization",
+    "world_split": "public-test",
+    "objective": "balanced",
+    "posttest_stages": ["K1", "Q", "K2"],
+    "maximum_canary_workers": 3,
+    "maximum_remaining_workers": 8,
+    "truth_embargo": "Reference truth is generated only after all 15 K2 responses are sealed."
+  },
+  "execution_order": [
+    "integrated_provider_free_gate",
+    "immutable_freeze",
+    "EQ-E-W01_three_arm_canary",
+    "remaining_twelve_cells",
+    "reference_truth_and_scoring",
+    "English_report_export"
+  ],
+  "automatic_platform_recovery": {
+    "authorized": true,
+    "retain_original_failure": true,
+    "same_provider_thread_required_after_source": true,
+    "source_experiment_rerun_after_completed_source": false,
+    "scientific_contract_change_allowed": false
+  }
+}
