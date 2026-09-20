@@ -140,7 +140,8 @@ def test_core_action_contract_matches_effective_runtime_semantics() -> None:
         assert field("add_phase", "phase")["choices"] == ["aqueous", "organic"]
         assert field("add_phase", "volume_L")["bounds"] == {"low": 0.0, "high": 0.06}
         assert field("add_extractant", "extractant")["choices"] == [0, 1, 2, 3]
-        assert field("add_extractant", "extractant")["choice_labels"]["3"].startswith("Toluene")
+        # C materials are anonymous even when a generic extraction schema is queried.
+        assert field("add_extractant", "extractant")["choice_labels"]["3"] == "solvent-S3"
         assert field("separate_phase", "target_phase")["choices"] == [
             "aqueous",
             "organic",

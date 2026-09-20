@@ -9,7 +9,9 @@ never latent composition, process-quality summaries, or rate constants.
 from __future__ import annotations
 
 import math
+from contextvars import ContextVar
 from copy import deepcopy
+from functools import wraps
 from typing import Any
 
 import numpy as np
@@ -41,6 +43,50 @@ from chemworld.world.operations import (
 )
 
 PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.2"
+
+# Synchronous public-view builders never execute actions. Reuse the verified
+# resource snapshot only within that read, then discard it even on exceptions.
+# ContextVar isolates concurrent callers; nested calls for another env/state
+# receive their own scope. Nothing is cached by state identity across requests.
+_RESOURCE_READ: ContextVar[tuple[Any, Any, Any, dict[str, Any]] | None] = ContextVar(
+    "chemworld_public_resource_read", default=None
+)
+
+
+def _resource_read(function):
+    @wraps(function)
+    def read(env, *args, **kwargs):
+        base = _base_env(env)
+        ledger = getattr(base, "_campaign_resource_ledger", None)
+        state = getattr(base, "_state", None)
+        active = _RESOURCE_READ.get()
+        if ledger is None or (
+            active is not None and active[0] is base and active[1] is ledger and active[2] is state
+        ):
+            return function(env, *args, **kwargs)
+        token = _RESOURCE_READ.set((base, ledger, state, {}))
+        try:
+            return function(env, *args, **kwargs)
+        finally:
+            _RESOURCE_READ.reset(token)
+
+    return read
+
+
+def _campaign_snapshot(base: Any, ledger: Any) -> dict[str, Any]:
+    active = _RESOURCE_READ.get()
+    if (
+        active is None
+        or active[0] is not base
+        or active[1] is not ledger
+        or active[2] is not getattr(base, "_state", None)
+    ):
+        return ledger.snapshot()
+    cache = active[3]
+    if "snapshot" not in cache:
+        cache["snapshot"] = ledger.snapshot()
+    return cache["snapshot"]
+
 
 FIELD_UNITS: dict[str, str] = {
     "amount_mol": "mol",
@@ -412,12 +458,13 @@ def _locked_recipe_choice(base: Any, operation: str, field: str) -> Any | None:
     state = getattr(base, "_state", None)
     if state is None:
         return None
-    settings = equipment_settings(state.equipment, equipment_id)
+    settings = equipment_settings(state.equipment, equipment_id, fields=(charged_key, field))
     if float(settings.get(charged_key, 0.0)) <= 0.0:
         return None
     return settings.get(field)
 
 
+@_resource_read
 def action_schema(env: Any, operation: str) -> dict[str, Any]:
     """Return the public JSON-friendly schema for one operation."""
 
@@ -538,7 +585,9 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             }
         )
         if state is not None:
-            cell_settings = equipment_settings(state.equipment, "electrochemical_cell")
+            cell_settings = equipment_settings(
+                state.equipment, "electrochemical_cell", fields=("setpoint_history",)
+            )
             setpoint_history = tuple(cell_settings.get("setpoint_history", ()))
             if (
                 len(setpoint_history) == 1
@@ -643,11 +692,12 @@ def validate_action(env: Any, action: dict[str, Any]) -> dict[str, Any]:
     return to_builtin(payload)
 
 
+@_resource_read
 def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[str, Any]]:
     """Return current operation affordances for agents and tool planners."""
 
     base = _base_env(env)
-    valid = set(base.operation_validator.valid_operations(base._state))
+    affordances = base.operation_validator.operation_affordances(base._state)
     allowed = set(getattr(base, "allowed_operations", set(OPERATION_TYPES)))
     actions: list[dict[str, Any]] = []
     operation_types = tuple(getattr(base.operation_validator, "operation_types", OPERATION_TYPES))
@@ -662,7 +712,7 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
             )()
             if not discard_available and not include_invalid:
                 continue
-        affordance = base.operation_validator.operation_affordance(operation, base._state)
+        affordance = affordances[operation]
         validation = affordance.to_dict()
         schema = action_schema(base, operation)
         resource_reasons = list(_campaign_resource_rejection_reasons_for_operation(base, operation))
@@ -670,7 +720,7 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
             _campaign_schema_resource_rejection_reasons(base, operation, schema)
         )
         resource_reasons = list(dict.fromkeys(resource_reasons))
-        is_valid = operation in valid and not resource_reasons
+        is_valid = affordance.is_valid and not resource_reasons
         if resource_reasons:
             validation["preconditions"] = {
                 **validation["preconditions"],
@@ -699,6 +749,7 @@ def available_actions(env: Any, *, include_invalid: bool = False) -> list[dict[s
     return actions
 
 
+@_resource_read
 def resource_blocked_actions(env: Any) -> list[dict[str, Any]]:
     """Return physically valid operations blocked only by campaign resources."""
 
@@ -759,7 +810,7 @@ def _campaign_remaining(base: Any) -> dict[str, Any]:
     ledger = _campaign_ledger(base)
     if ledger is None:
         return {}
-    snapshot = ledger.snapshot()
+    snapshot = _campaign_snapshot(base, ledger)
     state = snapshot.get("state", {})
     remaining = state.get("remaining", {})
     return dict(remaining) if isinstance(remaining, dict) else {}
@@ -774,7 +825,7 @@ def _campaign_duration_capacity_s(
     ledger = _campaign_ledger(base)
     if ledger is None:
         return None, None
-    snapshot = ledger.snapshot()
+    snapshot = _campaign_snapshot(base, ledger)
     state = snapshot.get("state", {})
     if not isinstance(state, dict):
         return None, None
@@ -1485,11 +1536,18 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _recovery_suggestion(env: Any, info: dict[str, Any]) -> str | None:
+def _recovery_suggestion(
+    env: Any,
+    info: dict[str, Any],
+    *,
+    actions: list[dict[str, Any]] | None = None,
+) -> str | None:
     flags = info.get("constraint_flags", {})
     if not flags.get("precondition_failed") and not info.get("error_message"):
         return None
-    options = [entry["operation"] for entry in available_actions(env)]
+    options = [
+        entry["operation"] for entry in (available_actions(env) if actions is None else actions)
+    ]
     if options:
         return "Retry with a currently valid operation such as " + ", ".join(options[:4]) + "."
     return (
@@ -1582,13 +1640,17 @@ def _failure_summary(info: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def _next_action_hints(env: Any, *, limit: int = 5) -> list[str]:
-    return [entry["operation"] for entry in available_actions(env)[:limit]]
-
-
-def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
+@_resource_read
+def lab_report_view(
+    env: Any,
+    observation: dict[str, Any],
+    info: dict[str, Any],
+    *,
+    _actions: list[dict[str, Any]] | None = None,
+) -> dict[str, Any]:
     """Return a compact public lab report for LLMs and students."""
 
+    actions = available_actions(env) if _actions is None else _actions
     summary = spectra_summary(info)
     campaign = campaign_state(env)
     progress = _campaign_progress(campaign)
@@ -1674,7 +1736,7 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
         lines.append("Spectral warnings: " + ", ".join(summary["warnings"]) + ".")
     if failure["resource_rejection_reasons"]:
         lines.append("Resource limits: " + ", ".join(failure["resource_rejection_reasons"]) + ".")
-    recovery = _recovery_suggestion(env, info)
+    recovery = _recovery_suggestion(env, info, actions=actions)
     if recovery is not None:
         lines.append(f"Recovery suggestion: {recovery}")
     if campaign["best_score"] is not None:
@@ -1692,7 +1754,7 @@ def lab_report_view(env: Any, observation: dict[str, Any], info: dict[str, Any])
         "campaign_state": campaign,
         "campaign_progress": progress,
         "failure_summary": failure,
-        "next_action_hints": _next_action_hints(env),
+        "next_action_hints": [entry["operation"] for entry in actions[:5]],
         "recovery_suggestion": recovery,
         "constraint_flags": to_builtin(info.get("constraint_flags", {})),
     }
@@ -1786,9 +1848,11 @@ def full_process_operational_state(env: Any, info: dict[str, Any]) -> dict[str, 
     }
 
 
+@_resource_read
 def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) -> dict[str, Any]:
     """Return a structured public observation bundle for tool agents."""
 
+    actions = available_actions(env)
     operational = full_process_operational_state(env, info)
     research = getattr(_base_env(env), "research_brief", None)
     if research is not None:
@@ -1811,9 +1875,9 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "cost_components": to_builtin(info.get("cost_components", {})),
         "constraints": to_builtin(info.get("constraint_flags", {})),
         "campaign_state": campaign_state(env),
-        "available_actions": available_actions(env),
+        "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
-        "lab_report": lab_report_view(env, observation, info),
+        "lab_report": lab_report_view(env, observation, info, _actions=actions),
         **({"operational_state": operational} if operational else {}),
         **({"research_brief": public_research_brief(research)} if research is not None else {}),
     }
@@ -1839,6 +1903,7 @@ def observation_view(
     raise ValueError("mode must be one of 'rl', 'tool_json', or 'lab_report'")
 
 
+@_resource_read
 def agent_view_bundle(
     env: Any,
     observation: dict[str, Any],
@@ -1846,10 +1911,12 @@ def agent_view_bundle(
 ) -> dict[str, Any]:
     """Return all standard agent-facing views for trajectory export."""
 
+    tool_view = observation_view(env, "tool_json", observation, info)
     return {
         "rl": observation_view(env, "rl", observation, info),
-        "tool_json": observation_view(env, "tool_json", observation, info),
-        "lab_report": observation_view(env, "lab_report", observation, info),
+        "tool_json": tool_view,
+        # Preserve independent returned dictionaries without recomputing views.
+        "lab_report": deepcopy(tool_view["lab_report"]),
     }
 
 

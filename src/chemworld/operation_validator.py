@@ -15,6 +15,7 @@ from chemworld.foundation import (
     instrument_equipment_id,
     selected_phase_id,
 )
+from chemworld.foundation.state_helpers import equipment_setting_truth
 from chemworld.physchem.crystallization_units import (
     DEFAULT_MAXIMUM_COOLING_RATE_K_S,
 )
@@ -217,12 +218,11 @@ class OperationValidator:
         )
 
     def valid_operations(self, state: WorldState) -> tuple[str, ...]:
-        valid: list[str] = []
-        for operation_type in self.operation_types:
-            affordance = self.operation_affordance(operation_type, state)
-            if affordance.is_valid:
-                valid.append(operation_type)
-        return tuple(valid)
+        return tuple(
+            operation
+            for operation in self.operation_types
+            if self._operation_preconditions_pass(operation, state)
+        )
 
     def action_mask(self, state: WorldState) -> tuple[bool, ...]:
         valid = set(self.valid_operations(state))
@@ -274,7 +274,9 @@ class OperationValidator:
         elif operation_type == "seed_crystals" and field == "seed_mass_g":
             cumulative_limit = OPERATION_CUMULATIVE_FIELD_LIMITS[(operation_type, field)]
             charged = float(
-                equipment_settings(state.equipment, "crystallizer").get("crystal_seed_mass_g", 0.0)
+                equipment_settings(
+                    state.equipment, "crystallizer", fields=("crystal_seed_mass_g",)
+                ).get("crystal_seed_mass_g", 0.0)
             )
             dynamic_high = min(dynamic_high, max(cumulative_limit - charged, 0.0))
         elif (
@@ -289,7 +291,9 @@ class OperationValidator:
                 # fail inside the runtime.
                 dynamic_high = min(dynamic_high, state.temperature_K)
         elif operation_type == "run_flow" and field == "duration_s":
-            flow_settings = equipment_settings(state.equipment, "flow_reactor")
+            flow_settings = equipment_settings(
+                state.equipment, "flow_reactor", fields=("minimum_run_duration_s",)
+            )
             minimum_duration = self._float(flow_settings.get("minimum_run_duration_s"))
             if minimum_duration is not None:
                 dynamic_low = max(dynamic_low, minimum_duration)
@@ -321,7 +325,9 @@ class OperationValidator:
                 choice for choice in choices if (choice == "final_assay") == state.terminated
             )
         if operation_type == "set_potential" and field == "electrolyte_profile":
-            settings = equipment_settings(state.equipment, "electrochemical_cell")
+            settings = equipment_settings(
+                state.equipment, "electrochemical_cell", fields=("electrolyte_profile",)
+            )
             locked = settings.get("electrolyte_profile")
             if isinstance(locked, int) and not isinstance(locked, bool):
                 return tuple(choice for choice in choices if choice == locked)
@@ -341,6 +347,10 @@ class OperationValidator:
         operation_type: str,
         state: WorldState,
     ) -> OperationValidation:
+        affordances = self.operation_affordances(state)
+        if operation_type in affordances:
+            return affordances[operation_type]
+        # Preserve diagnostics for callers asking about an unknown operation.
         payload = self._default_payload(operation_type, state)
         preconditions = self._preconditions(
             operation_type,
@@ -348,16 +358,45 @@ class OperationValidator:
             state,
             check_payload=False,
         )
-        invalid_reasons = tuple(key for key, passed in preconditions.items() if not passed)
-        action_mask = tuple(
-            self._operation_preconditions_pass(candidate, state)
-            for candidate in self.operation_types
-        )
+        action_mask = tuple(affordances[op].is_valid for op in self.operation_types)
         valid_operations = tuple(
             operation
             for operation, is_valid in zip(self.operation_types, action_mask, strict=True)
             if is_valid
         )
+        return self._affordance_validation(
+            operation_type, preconditions, valid_operations, action_mask
+        )
+
+    def operation_affordances(self, state: WorldState) -> dict[str, OperationValidation]:
+        """Evaluate each operation once for one synchronous, read-only request.
+
+        No cache survives this call: campaign budgets, mutable configuration,
+        reset and subsequent state transitions are always read afresh.
+        """
+        checks = {
+            op: self._preconditions(
+                op, self._default_payload(op, state), state, check_payload=False
+            )
+            for op in self.operation_types
+        }
+        action_mask = tuple(all(checks[op].values()) for op in self.operation_types)
+        valid_operations = tuple(
+            op for op, valid in zip(self.operation_types, action_mask, strict=True) if valid
+        )
+        return {
+            op: self._affordance_validation(op, checks[op], valid_operations, action_mask)
+            for op in self.operation_types
+        }
+
+    @staticmethod
+    def _affordance_validation(
+        operation_type: str,
+        preconditions: dict[str, bool],
+        valid_operations: tuple[str, ...],
+        action_mask: tuple[bool, ...],
+    ) -> OperationValidation:
+        invalid_reasons = tuple(key for key, passed in preconditions.items() if not passed)
         return OperationValidation(
             operation_type=operation_type,
             is_valid=not invalid_reasons,
@@ -395,11 +434,17 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
-        crystallizer_settings = equipment_settings(state.equipment, "crystallizer")
-        filter_settings = equipment_settings(state.equipment, "crystal_filter")
+        crystallizer_settings = equipment_settings(
+            state.equipment, "crystallizer", fields=("crystal_seeded", "seed_target_mol")
+        )
+        filter_settings = equipment_settings(
+            state.equipment, "crystal_filter", fields=("crystals_filtered",)
+        )
         crystals_filtered = bool(filter_settings.get("crystals_filtered", False))
         crystal_seeded = bool(crystallizer_settings.get("crystal_seeded", False))
-        crystallization_completed = bool(crystallizer_settings.get("execution_history", ()))
+        crystallization_completed = equipment_setting_truth(
+            state.equipment, "crystallizer", "execution_history"
+        )
         flagship_crystallization = self.task_id == "reaction-to-crystallization"
         free_crystallization = (
             state.metadata.get("full_process_contract_id") == FULL_PROCESS_FREE_RESEARCH_CONTRACT
@@ -525,6 +570,7 @@ class OperationValidator:
             settings = equipment_settings(
                 state.equipment,
                 instrument_equipment_id(instrument_id),
+                fields=("use_count", "last_time_s"),
             )
             if int(settings.get("use_count", 0)) <= 0:
                 continue
@@ -541,7 +587,11 @@ class OperationValidator:
         operation_type: str,
         state: WorldState,
     ) -> bool:
-        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        cell = equipment_settings(
+            state.equipment,
+            "electrochemical_cell",
+            fields=("setpoint_history", "electrolysis_history"),
+        )
         setpoint_count = len(tuple(cell.get("setpoint_history", ())))
         electrolysis_count = len(tuple(cell.get("electrolysis_history", ())))
         if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1:
@@ -575,7 +625,9 @@ class OperationValidator:
         return operation_type == "measure"
 
     def _electrochemical_required_instruments(self, state: WorldState) -> tuple[str, ...]:
-        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        cell = equipment_settings(
+            state.equipment, "electrochemical_cell", fields=("electrolysis_history",)
+        )
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if not electrolysis_history:
             return ()
@@ -617,7 +669,9 @@ class OperationValidator:
         return not self._electrochemical_required_instruments(state)
 
     def _electrochemical_outcome_assay_complete(self, state: WorldState) -> bool:
-        cell = equipment_settings(state.equipment, "electrochemical_cell")
+        cell = equipment_settings(
+            state.equipment, "electrochemical_cell", fields=("electrolysis_history",)
+        )
         electrolysis_history = tuple(cell.get("electrolysis_history", ()))
         if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1:
             return bool(electrolysis_history)
@@ -643,6 +697,7 @@ class OperationValidator:
         settings = equipment_settings(
             state.equipment,
             instrument_equipment_id(instrument_id),
+            fields=("use_count", "last_time_s"),
         )
         last_time_s = self._float(settings.get("last_time_s"))
         return (
@@ -714,7 +769,9 @@ class OperationValidator:
         }.get(operation_type)
         if lock_contract is not None and lock_contract[0] in payload:
             locked_field, equipment_id, charged_key = lock_contract
-            settings = equipment_settings(state.equipment, equipment_id)
+            settings = equipment_settings(
+                state.equipment, equipment_id, fields=(locked_field, charged_key)
+            )
             selected = (
                 settings.get(locked_field) if float(settings.get(charged_key, 0.0)) > 0.0 else None
             )
@@ -964,7 +1021,9 @@ class OperationValidator:
                     and not isinstance(profile, bool)
                     and 0 <= profile < len(ELECTROLYTE_PROFILES)
                 )
-                settings = equipment_settings(state.equipment, "electrochemical_cell")
+                settings = equipment_settings(
+                    state.equipment, "electrochemical_cell", fields=("electrolyte_profile",)
+                )
                 locked_profile = settings.get("electrolyte_profile")
                 checks["payload_locked:electrolyte_profile"] = (
                     locked_profile is None or profile == locked_profile
@@ -1010,6 +1069,7 @@ class OperationValidator:
                     equipment_settings(
                         state.equipment,
                         "electrochemical_cell",
+                        fields=("setpoint_history",),
                     ).get("setpoint_history", ())
                 )
                 if (
