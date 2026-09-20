@@ -1,0 +1,60 @@
+{
+  "schema_version": "chemworld-work-ii-eq-bounded-equilibrium-freeze-1.3",
+  "status": "frozen_for_formal_development_execution",
+  "frozen_date": "2026-09-20",
+  "source_commit": "6b70edd19da60aa3700ae6185458eb5a3253c606",
+  "supersedes_freeze": "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.2.json",
+  "repair_scope": "Raise only the EQ laboratory MCP startup allowance from 30 to 180 seconds after provider-free NFS timing exceeded 48 seconds; start canary arms serially.",
+  "config_path": "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json",
+  "config_sha256": "fcb2272943130a80c2ea2d04b1146fe31889f155e31df247813e36b5ebc64b87",
+  "resolved_config_sha256": "699ccd5174b7dc5791f0ffde6dc0ca0ab31593e55081aa8f5d53672fa2eb2ea0",
+  "gate_evidence_namespace": "work-ii-eq-bounded-equilibrium-20260920-v2",
+  "gate_sha256": "d5af8af204680d53efa7bf153d11aa702025a38e4fce25bfc1aa2e984a789123",
+  "provider_calls_before_freeze": 3,
+  "pre_scientific_repair_evidence": {
+    "retained_startup_attempts_per_canary_cell": 4,
+    "provider_process_attempts": 6,
+    "provider_api_request_attempts": 3,
+    "accepted_model_calls": 0,
+    "scientific_actions": 0,
+    "source_batches": 0,
+    "scientific_output_retained": false,
+    "failure_classes": [
+      "launcher_path_missing",
+      "private_output_parent_missing",
+      "login_shell_proxy_missing",
+      "laboratory_mcp_startup_timeout"
+    ]
+  },
+  "formal_denominators": {
+    "source_sessions": 15,
+    "source_batches": 180,
+    "posttests": 45,
+    "reference_executions": 300
+  },
+  "bindings": {
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.0.json": "06dd60e528f16c824f8d39e6d5ee3543c8c1100e65ae1cd4e3afc15aee1d0962",
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json": "fcb2272943130a80c2ea2d04b1146fe31889f155e31df247813e36b5ebc64b87",
+    "scripts/run_work_ii_eq_bounded_equilibrium.py": "551165e6761cd949a033c241eda418156ca5c65e78f96186aef3d7e276b33ac1",
+    "scripts/recover_work_ii_eq_bounded_equilibrium.py": "8e3689c955d517a350de1cc3e88cb04d4a9814226869c2b7df7bbdf593e3ca86",
+    "scripts/export_work_ii_eq_bounded_equilibrium_reports.py": "51ee3f2f9b5d50f19c3b8d3ec58dbffcb668a257b12e67f7d4869ebcad99f77f",
+    "tests/test_work_ii_eq_bounded_equilibrium.py": "c1d51b15a1bb95f5e785a3ddd7f2f4f19800442d8967a85d026aa105e162253f",
+    "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md": "cacfc67f299fff5ae776528ff2e850ebe9d4b94f803860aff34794dc6ce5dbc2",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_EXPERIMENT_NOTE.md": "d1e82001bc2ec0253e128440700d7b933efc60e98a85851a1a4dec2e206351d6",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_0.md": "26f9e4a9d41f4c35aa0c14021ff169d8ed1b6e54142db6b00c2995120d6a224c",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_1.md": "b8981fd59b281ed6e135f3b911df231b8e34c45214a8e8046fce3eebd03cb1d7",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_2.md": "9b9ea08bc20a67fee7d601a54a0092714d9c85e70f24860c4d2d0b426826519a",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_3.md": "53f6ff94e043a530bf8efa813b8eb27492a0edd0f3145b51f7d2bd38a59b536a"
+  },
+  "execution_order": [
+    "provider-free gate",
+    "serial EQ-W01 three-arm canary",
+    "remaining twelve formal cells",
+    "all-fifteen K2 seal check",
+    "five-repeat reference truth",
+    "blind evaluation",
+    "sanitized report export"
+  ],
+  "truth_embargo": "No reference truth generation or score release before all 15 K2 responses are sealed.",
+  "confidence_policy": "equilibrium_confidence is excluded from agent uncertainty and scoring."
+}

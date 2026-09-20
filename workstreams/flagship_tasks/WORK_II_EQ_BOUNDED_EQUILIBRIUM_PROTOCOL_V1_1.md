@@ -1,0 +1,7 @@
+# Work II EQ bounded aqueous equilibrium protocol v1.1
+
+This version inherits v1.0 in full and changes only the twelve held-out Q coordinates. The v1 provider-free gate is retained as a failed development block with zero provider calls: all 180 batches and 15 exact replays completed, but the original grid did not pass its pre-registered within-world response-span and one-shot non-triviality gates.
+
+The v1.1 Q grid expands the already legal loading and volume range to include trace-loading dilution, trace-loading concentration, and high-loading boundary pairs. It retains the same near-domain pair, amount-versus-volume decoupling, three equivalent staged-addition paths, precipitation/dissociation competition, boundary extrapolation, and interior interval-calibration roles. No world, prior, source prompt, metric, budget, denominator, scoring rule, threshold, truth-embargo rule, or provider policy changes. The complete v1.1 provider-free gate must rerun from its first unit in a new evidence namespace before the provider seal may be lifted.
+
+The rerun passed all twelve registered checks with 15/15 campaigns, 180/180 batches, 15/15 exact replays, and zero provider calls. Formal execution is permitted only when the committed freeze manifest matches the v1.0 base config, v1.1 overlay, resolved config digest, runner, recovery runner, exporter, protocols, experiment note, tests, and this exact gate artifact. Any mismatch fails closed before provider launch.

@@ -1,0 +1,151 @@
+{
+  "schema_version": "chemworld-work-ii-eq-bounded-equilibrium-repair-1.1",
+  "status": "candidate_authoring_provider_sealed",
+  "protocol": "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_1.md",
+  "base_config": {
+    "path": "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.0.json",
+    "sha256": "06dd60e528f16c824f8d39e6d5ee3543c8c1100e65ae1cd4e3afc15aee1d0962"
+  },
+  "failed_predecessor_evidence": "runs/development/work-ii-eq-bounded-equilibrium-20260920-v1/provider-free-gate/gate.json",
+  "provider_calls_before_repair": 0,
+  "repair_reason": "The v1 query grid completed 180/180 batches and passed exact replay, world separation, active-information, arm, leakage, equivalence, budget and numeric-stability checks, but its concentration range was too narrow: one-shot constant prediction was competitive and within-world response spans failed the frozen thresholds.",
+  "threshold_changes": [],
+  "unchanged": [
+    "five worlds and all world parameters",
+    "three prior arms and every prior payload",
+    "single characterization task",
+    "source and posttest prompts",
+    "source and posttest budgets",
+    "prediction metrics and scoring",
+    "all provider-free gate thresholds",
+    "truth embargo and failure policy",
+    "formal source and reference denominators"
+  ],
+  "query_replacement": [
+    {
+      "query_id": "Q01",
+      "coverage": ["near_domain", "low_loading"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.02},
+        {"operation": "add_reagent", "amount_mol": 0.0003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "coverage": ["concentration_volume_decoupling", "same_concentration_pair"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.04},
+        {"operation": "add_reagent", "amount_mol": 0.0006},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "coverage": ["concentration_volume_decoupling", "fixed_amount_dilute"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.075},
+        {"operation": "add_reagent", "amount_mol": 0.00001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "coverage": ["concentration_volume_decoupling", "fixed_amount_concentrated"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.006},
+        {"operation": "add_reagent", "amount_mol": 0.00001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "coverage": ["two_stage_dosing", "interleaved_accumulation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "coverage": ["two_stage_dosing", "solvent_first_accumulation", "equivalent_explanation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "add_reagent", "amount_mol": 0.001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "coverage": ["two_stage_dosing", "reagent_before_final_dilution", "equivalent_explanation"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.002},
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "coverage": ["dissociation_precipitation_competition", "dilute_trace_loading"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.075},
+        {"operation": "add_reagent", "amount_mol": 0.000001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "coverage": ["dissociation_precipitation_competition", "concentrated_trace_loading"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.006},
+        {"operation": "add_reagent", "amount_mol": 0.000001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "coverage": ["boundary_extrapolation", "high_concentration_high_amount"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.006},
+        {"operation": "add_reagent", "amount_mol": 0.04},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "coverage": ["boundary_extrapolation", "high_volume_high_amount"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.075},
+        {"operation": "add_reagent", "amount_mol": 0.04},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "coverage": ["interval_calibration", "interior_holdout"],
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.033},
+        {"operation": "add_reagent", "amount_mol": 0.0045},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    }
+  ]
+}

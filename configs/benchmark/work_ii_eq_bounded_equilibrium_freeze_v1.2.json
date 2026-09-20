@@ -1,0 +1,46 @@
+{
+  "schema_version": "chemworld-work-ii-eq-bounded-equilibrium-freeze-1.2",
+  "status": "frozen_for_formal_development_execution",
+  "frozen_date": "2026-09-20",
+  "source_commit": "ca7c248f90940cea0adf4d5a16eb577ae16f7901",
+  "supersedes_freeze": "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v1.1.json",
+  "repair_scope": "Pre-create the private source-output parent; the authenticated Codex executable path is supplied by the remote launcher. No scientific contract changed.",
+  "pre_repair_provider_process_attempts": 0,
+  "pre_repair_accepted_model_calls": 0,
+  "config_path": "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json",
+  "config_sha256": "fcb2272943130a80c2ea2d04b1146fe31889f155e31df247813e36b5ebc64b87",
+  "resolved_config_sha256": "699ccd5174b7dc5791f0ffde6dc0ca0ab31593e55081aa8f5d53672fa2eb2ea0",
+  "gate_evidence_namespace": "work-ii-eq-bounded-equilibrium-20260920-v2",
+  "gate_sha256": "d5af8af204680d53efa7bf153d11aa702025a38e4fce25bfc1aa2e984a789123",
+  "provider_calls_before_freeze": 0,
+  "formal_denominators": {
+    "source_sessions": 15,
+    "source_batches": 180,
+    "posttests": 45,
+    "reference_executions": 300
+  },
+  "bindings": {
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.0.json": "06dd60e528f16c824f8d39e6d5ee3543c8c1100e65ae1cd4e3afc15aee1d0962",
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json": "fcb2272943130a80c2ea2d04b1146fe31889f155e31df247813e36b5ebc64b87",
+    "scripts/run_work_ii_eq_bounded_equilibrium.py": "3bb4cfddc7198dd39d06364b7a9146f550fc117ab00e832b86d95e540486f92a",
+    "scripts/recover_work_ii_eq_bounded_equilibrium.py": "8e3689c955d517a350de1cc3e88cb04d4a9814226869c2b7df7bbdf593e3ca86",
+    "scripts/export_work_ii_eq_bounded_equilibrium_reports.py": "51ee3f2f9b5d50f19c3b8d3ec58dbffcb668a257b12e67f7d4869ebcad99f77f",
+    "tests/test_work_ii_eq_bounded_equilibrium.py": "e24c6fc0ce60b684da8a452d5946a45a4302107016cfe4c57b95fe4517fc0eaf",
+    "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md": "cacfc67f299fff5ae776528ff2e850ebe9d4b94f803860aff34794dc6ce5dbc2",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_EXPERIMENT_NOTE.md": "b1a2b20a01ed73a2499c928e0306433ed1a31cf8c8b8323225db59e6089620b0",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_0.md": "26f9e4a9d41f4c35aa0c14021ff169d8ed1b6e54142db6b00c2995120d6a224c",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_1.md": "b8981fd59b281ed6e135f3b911df231b8e34c45214a8e8046fce3eebd03cb1d7",
+    "workstreams/flagship_tasks/WORK_II_EQ_BOUNDED_EQUILIBRIUM_PROTOCOL_V1_2.md": "9b9ea08bc20a67fee7d601a54a0092714d9c85e70f24860c4d2d0b426826519a"
+  },
+  "execution_order": [
+    "provider-free gate",
+    "EQ-W01 three-arm canary",
+    "remaining twelve formal cells",
+    "all-fifteen K2 seal check",
+    "five-repeat reference truth",
+    "blind evaluation",
+    "sanitized report export"
+  ],
+  "truth_embargo": "No reference truth generation or score release before all 15 K2 responses are sealed.",
+  "confidence_policy": "equilibrium_confidence is excluded from agent uncertainty and scoring."
+}
