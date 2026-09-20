@@ -50,7 +50,13 @@ def _run_midpoint_recipe(
 def test_serious_tasks_declare_two_executable_world_axes() -> None:
     declared_task_ids = {axis.task_id for axis in WORLD_AXIS_REGISTRY.values()}
     expected_by_task = {
-        task_id: (5 if task_id == "reaction-to-crystallization" else 2)
+        task_id: (
+            5
+            if task_id == "reaction-to-crystallization"
+            else 4
+            if task_id == "equilibrium-characterization"
+            else 2
+        )
         for task_id in declared_task_ids
     }
     assert len(WORLD_AXIS_REGISTRY) == sum(expected_by_task.values())
@@ -86,7 +92,15 @@ def test_each_axis_mode_builds_a_hashed_deterministic_world(mode: str) -> None:
         if mode not in axis.modes:
             continue
         scenario = get_scenario(axis.task_id)
-        severity = 1.0 if axis.axis_id == "crystallization.impurity-occlusion-law" else 0.7
+        severity = (
+            1.0
+            if axis.axis_id
+            in {
+                "crystallization.impurity-occlusion-law",
+                "equilibrium.mechanism-benchmark",
+            }
+            else 0.7
+        )
         payload = (_intervention(axis.axis_id, mode=mode, severity=severity),)
         first = generator.generate(scenario, 5, payload)
         second = generator.generate(scenario, 5, payload)

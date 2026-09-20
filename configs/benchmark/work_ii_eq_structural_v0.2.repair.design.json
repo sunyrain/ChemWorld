@@ -1,0 +1,163 @@
+{
+  "schema_version": "chemworld-work-ii-eq-mechanism-structure-repair-design-0.2",
+  "status": "human_approved_for_provider_free_gate",
+  "execution_authorized": true,
+  "provider_execution_authorized": true,
+  "base_config": {
+    "path": "configs/benchmark/work_ii_eq_structural_v0.1.design.json",
+    "sha256": "693b58835bc50012330b3bdcb3be52927b8efa7aa8b745313c2cb5dea2d691af"
+  },
+  "failure_evidence": "workstreams/flagship_tasks/WORK_II_EQ_S_V0_1_NONCOLLAPSE_PREFLIGHT.md",
+  "provider_calls_before_repair": 0,
+  "repair_reason": "The approved beta values 45 and 140 L/mol were absorbed by the registered four-parameter direct-network null on every held-out condition, so the proposed S contrast collapsed toward P.",
+  "threshold_changes": [],
+  "unchanged": [
+    "direct and aqueous-ion-pair reaction equations",
+    "five-world pKa ladder and mechanism-family assignments",
+    "Opaque, Aligned, and MisIndexed public dossier contract",
+    "all twelve Q conditions and their action order",
+    "K1, Q, K2, and EQS definitions",
+    "prediction metrics and structural scorer",
+    "non-collapse threshold, fit/holdout split, and optimizer seed",
+    "source, posttest, and reference denominators",
+    "gate, freeze, canary, and remaining-matrix execution order"
+  ],
+  "private_world_replacement": [
+    {
+      "world_id": "EQ-S-W01",
+      "effective_pka_nuisance": 4.659404789086824,
+      "log10_ksp_nuisance": -5.2,
+      "mechanism_family": "direct_free_ion_precipitation",
+      "aqueous_association_beta_L_per_mol": null,
+      "misindexed_world_id": "EQ-S-W02"
+    },
+    {
+      "world_id": "EQ-S-W02",
+      "effective_pka_nuisance": 4.839404789086824,
+      "log10_ksp_nuisance": -5.2,
+      "mechanism_family": "aqueous_ion_pair_intermediate",
+      "aqueous_association_beta_L_per_mol": 6000.0,
+      "misindexed_world_id": "EQ-S-W01"
+    },
+    {
+      "world_id": "EQ-S-W03",
+      "effective_pka_nuisance": 5.019404789086824,
+      "log10_ksp_nuisance": -5.2,
+      "mechanism_family": "direct_free_ion_precipitation",
+      "aqueous_association_beta_L_per_mol": null,
+      "misindexed_world_id": "EQ-S-W04"
+    },
+    {
+      "world_id": "EQ-S-W04",
+      "effective_pka_nuisance": 5.199404789086824,
+      "log10_ksp_nuisance": -5.2,
+      "mechanism_family": "aqueous_ion_pair_intermediate",
+      "aqueous_association_beta_L_per_mol": 8000.0,
+      "misindexed_world_id": "EQ-S-W03"
+    },
+    {
+      "world_id": "EQ-S-W05",
+      "effective_pka_nuisance": 5.379404789086824,
+      "log10_ksp_nuisance": -5.2,
+      "mechanism_family": "direct_free_ion_precipitation",
+      "aqueous_association_beta_L_per_mol": null,
+      "misindexed_world_id": "EQ-S-W04"
+    }
+  ],
+  "preflight_evidence": {
+    "registered_absolute_error_threshold": 0.018,
+    "required_metrics_per_holdout": 2,
+    "required_holdout_conditions": 3,
+    "EQ-S-W02": {
+      "passing_holdout_conditions": 6,
+      "public_response_spans": [0.2309, 0.1486, 0.0775],
+      "maximum_holdout_errors": [0.04, 0.0207, 0.0482]
+    },
+    "EQ-S-W04": {
+      "passing_holdout_conditions": 4,
+      "public_response_spans": [0.2324, 0.0976, 0.0399],
+      "maximum_holdout_errors": [0.0327, 0.0163, 0.0277]
+    }
+  },
+  "runtime_contract": {
+    "protocol": "workstreams/flagship_tasks/WORK_II_EQ_S_STRUCTURAL_DESIGN_V0_1.md",
+    "task_id": "equilibrium-characterization",
+    "task": "bounded_aqueous_equilibrium_characterization",
+    "world_split": "public-test",
+    "objective": "balanced",
+    "prior_locus": "S",
+    "posttest_stages": ["K1", "Q", "K2", "EQS"],
+    "source_resource_card": {
+      "operation_attempt_limit": 180,
+      "vessel_start_limit": 12,
+      "final_assay_limit": 12,
+      "nonfinal_instrument_use_limit": 12,
+      "reagent_mol": 0.24,
+      "solvent_L": 0.72,
+      "process_time_limit_s": null
+    },
+    "world_interventions": {
+      "EQ-S-W01": [
+        {"axis_id": "equilibrium.acid-base-constants", "mode": "interpolation", "severity": -0.8},
+        {"axis_id": "equilibrium.mechanism-benchmark", "mode": "extrapolation", "severity": 1.0}
+      ],
+      "EQ-S-W02": [
+        {"axis_id": "equilibrium.acid-base-constants", "mode": "interpolation", "severity": -0.4},
+        {"axis_id": "equilibrium.aqueous-ion-pair-network", "mode": "interpolation", "severity": -0.4},
+        {"axis_id": "equilibrium.mechanism-benchmark", "mode": "extrapolation", "severity": 1.0}
+      ],
+      "EQ-S-W03": [
+        {"axis_id": "equilibrium.mechanism-benchmark", "mode": "extrapolation", "severity": 1.0}
+      ],
+      "EQ-S-W04": [
+        {"axis_id": "equilibrium.acid-base-constants", "mode": "interpolation", "severity": 0.4},
+        {"axis_id": "equilibrium.aqueous-ion-pair-network", "mode": "interpolation", "severity": 0.4},
+        {"axis_id": "equilibrium.mechanism-benchmark", "mode": "extrapolation", "severity": 1.0}
+      ],
+      "EQ-S-W05": [
+        {"axis_id": "equilibrium.acid-base-constants", "mode": "interpolation", "severity": 0.8},
+        {"axis_id": "equilibrium.mechanism-benchmark", "mode": "extrapolation", "severity": 1.0}
+      ]
+    },
+    "provider_free_gate": {
+      "noise_repeats": 3,
+      "require_exact_replay_fraction": 1.0,
+      "minimum_pH_normalized_span": 0.08,
+      "minimum_dissociation_span": 0.04,
+      "minimum_precipitation_span": 0.015,
+      "maximum_scale_control_mean_gap": 0.025,
+      "noncollapse_absolute_error_threshold": 0.018,
+      "noncollapse_minimum_metrics": 2,
+      "noncollapse_minimum_holdout_conditions": 3,
+      "direct_null_fit_query_ids": ["Q01", "Q03", "Q04", "Q05", "Q08", "Q10"],
+      "direct_null_holdout_query_ids": ["Q02", "Q06", "Q07", "Q09", "Q11", "Q12"],
+      "direct_null_optimizer_seed": 20260920,
+      "direct_null_bounds": {
+        "effective_pka": [3.0, 7.0],
+        "log10_ksp": [-8.0, -3.0],
+        "precipitating_cation_fraction": [0.01, 0.5],
+        "activity_coefficient_ratio": [0.1, 10.0]
+      }
+    },
+    "truth_embargo": "Reference truth is generated only after all 15 EQS responses are sealed.",
+    "execution_order": [
+      "provider_free_gate",
+      "freeze",
+      "W01_three_arm_canary",
+      "remaining_twelve_cells",
+      "reference_truth_and_scoring"
+    ],
+    "canary": {
+      "world_id": "EQ-S-W01",
+      "arms": ["Opaque", "Aligned", "MisIndexed"],
+      "required_complete_chains": 3,
+      "maximum_workers": 3,
+      "release_remaining_worlds_only_after_pass": true
+    },
+    "full_matrix": {
+      "maximum_workers": 8,
+      "worker_policy": "fixed queue with isolated cell directories and automatic slot refill"
+    }
+  },
+  "formal_provider_free_gate_status": "authorized_not_run"
+}
