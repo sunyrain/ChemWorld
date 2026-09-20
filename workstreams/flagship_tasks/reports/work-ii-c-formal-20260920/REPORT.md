@@ -5,6 +5,8 @@ Phase: qualification_running.
 Started: 0/30; complete chains: 0/30; failures: 0.
 Sealed batches: 0/540; additional live unsealed batches: 0. Posttests: 0/90.
 
+Additional interrupted-attempt consumption: 3 reference final assays, 62 operations, 0 model sources. These do not count as sealed qualification units.
+
 | Cell | Status | Batches | K1/Q/K2 |
 | --- | --- | ---: | ---: |
 | [C-W01-B12-E-Opaque](C-W01-B12-E-Opaque.md) | not_started | 0/12 | 0/3 |
