@@ -154,6 +154,20 @@ def test_eqs_validation_and_scoring_are_fail_closed() -> None:
     assert not eq.validate_posttest("EQS", non_english, ())["valid"]
 
 
+def test_eqs_provider_schema_avoids_unsupported_unique_items_but_validator_enforces_it() -> None:
+    schema = eq.posttest_schema("EQS")
+    assert "uniqueItems" not in schema["properties"]["selected_equation_ids"]
+    assert "uniqueItems" not in schema["properties"]["cited_source_batches"]
+
+    duplicate_equation = valid_eqs()
+    duplicate_equation["selected_equation_ids"].append("acid_dissociation")
+    assert not eq.validate_posttest("EQS", duplicate_equation, ())["valid"]
+
+    duplicate_citation = valid_eqs()
+    duplicate_citation["cited_source_batches"] = [2, 2]
+    assert not eq.validate_posttest("EQS", duplicate_citation, ())["valid"]
+
+
 def test_freeze_fails_closed_before_manifest(
     tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

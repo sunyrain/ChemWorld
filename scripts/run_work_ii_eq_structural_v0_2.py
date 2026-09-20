@@ -29,7 +29,8 @@ from chemworld.physchem.equilibrium_mechanism import (
 )
 
 CONFIG = ROOT / "configs/benchmark/work_ii_eq_structural_v0.2.repair.design.json"
-FREEZE = ROOT / "configs/benchmark/work_ii_eq_structural_freeze_v0.2.json"
+FREEZE = ROOT / "configs/benchmark/work_ii_eq_structural_freeze_v0.2.1.json"
+FAILED_FREEZE = ROOT / "configs/benchmark/work_ii_eq_structural_freeze_v0.2.json"
 TASK = eq_v1.TASK
 ARMS = eq_v1.ARMS
 METRICS = eq_v1.METRICS
@@ -600,7 +601,6 @@ def posttest_schema(stage: str) -> dict[str, Any]:
             "aqueous_intermediate": {"enum": ["absent", "present", "indeterminate"]},
             "selected_equation_ids": {
                 "type": "array",
-                "uniqueItems": True,
                 "minItems": 2,
                 "maxItems": 3,
                 "items": {
@@ -614,7 +614,6 @@ def posttest_schema(stage: str) -> dict[str, Any]:
             "rationale": {"type": "string"},
             "cited_source_batches": {
                 "type": "array",
-                "uniqueItems": True,
                 "minItems": 1,
                 "items": {"type": "integer", "minimum": 1, "maximum": 12},
             },
@@ -642,7 +641,13 @@ def validate_posttest(
     try:
         family = payload["network_family"]
         intermediate = payload["aqueous_intermediate"]
-        equations = set(payload["selected_equation_ids"])
+        equation_rows = payload["selected_equation_ids"]
+        if (
+            not isinstance(equation_rows, list)
+            or len(equation_rows) != len(set(equation_rows))
+        ):
+            raise ValueError("duplicate_or_invalid_equation_ids")
+        equations = set(equation_rows)
         rationale = payload["rationale"]
         cited = payload["cited_source_batches"]
         if not isinstance(rationale, str) or not rationale.strip() or eq_v1._contains_cjk(rationale):
@@ -799,10 +804,13 @@ def create_freeze(root: Path, config: Mapping[str, Any]) -> dict[str, Any]:
         "src/chemworld/runtime/observation_services.py",
         "src/chemworld/world/world_family.py",
         "scripts/run_work_ii_eq_structural_v0_2.py",
+        "scripts/recover_work_ii_eq_structural_v0_2.py",
         "tests/test_work_ii_eq_structural_v0_2.py",
+        "configs/benchmark/work_ii_eq_structural_freeze_v0.2.json",
+        "workstreams/flagship_tasks/WORK_II_EQ_S_V0_2_1_SCHEMA_RECOVERY.md",
     ]
     freeze = {
-        "schema_version": "work-ii-eq-s-freeze-0.2",
+        "schema_version": "work-ii-eq-s-freeze-0.2.1",
         "status": "frozen_for_formal_development_execution",
         "config_path": str(CONFIG.relative_to(ROOT)),
         "config_sha256": file_sha256(CONFIG),
@@ -810,6 +818,8 @@ def create_freeze(root: Path, config: Mapping[str, Any]) -> dict[str, Any]:
         "gate_path": str(gate_path.relative_to(ROOT)),
         "gate_sha256": file_sha256(gate_path),
         "provider_calls_before_freeze": 0,
+        "supersedes_freeze": str(FAILED_FREEZE.relative_to(ROOT)),
+        "repair_scope": "provider JSON-schema compatibility only; scientific contract unchanged",
         "bindings": {relative: file_sha256(ROOT / relative) for relative in bindings},
     }
     write(FREEZE, freeze)
@@ -820,10 +830,96 @@ def bind_v2_runtime(config: Mapping[str, Any]) -> None:
     configure_provider_helpers(config)
 
 
+def effective_result(root: Path, cell: Mapping[str, Any]) -> tuple[dict[str, Any] | None, Path]:
+    original = root / "sources" / cell["cell_id"] / "RESULT.json"
+    if original.is_file():
+        payload = read(original)
+        if payload.get("status") == "completed" and payload.get("posttest_chain_sealed") is True:
+            return payload, original
+    recovery_root = root / "recoveries" / cell["cell_id"]
+    if recovery_root.is_dir():
+        for candidate in sorted(recovery_root.glob("attempt-*/RESULT.json"), reverse=True):
+            payload = read(candidate)
+            if payload.get("status") == "completed" and payload.get("posttest_chain_sealed") is True:
+                return payload, candidate
+    return (read(original), original) if original.is_file() else (None, original)
+
+
+def write_effective_summary(
+    root: Path,
+    schedule: Sequence[Mapping[str, Any]],
+    phase: str,
+) -> dict[str, Any]:
+    resolved = [effective_result(root, cell) for cell in schedule]
+    rows = [(result, path) for result, path in resolved if result is not None]
+    payload = {
+        "schema_version": "work-ii-eq-s-effective-summary-0.2.1",
+        "phase": phase,
+        "planned_sources": 15,
+        "planned_source_batches": 180,
+        "planned_posttests": 60,
+        "attempted_sources": len(rows),
+        "completed_sources": sum(result.get("status") == "completed" for result, _ in rows),
+        "completed_source_batches": sum(len(result.get("batches", [])) for result, _ in rows),
+        "sealed_posttests": sum(len(result.get("posttests", {})) for result, _ in rows),
+        "sealed_posttest_chains": sum(
+            result.get("posttest_chain_sealed") is True for result, _ in rows
+        ),
+        "cells": [
+            {
+                "cell_id": result["cell_id"],
+                "world_id": result["world_id"],
+                "arm": result["arm"],
+                "status": result.get("status"),
+                "source_batches": len(result.get("batches", [])),
+                "posttests": {
+                    stage: result.get("posttest_validation", {}).get(stage, {}).get("valid")
+                    for stage in POSTTEST_STAGES
+                },
+                "effective_result": str(path.relative_to(root)),
+            }
+            for result, path in rows
+        ],
+    }
+    write(root / "effective-summary.json", payload)
+    return payload
+
+
+def write_design_revision(
+    root: Path,
+    config: Mapping[str, Any],
+    validated: Mapping[str, Any],
+    freeze: Mapping[str, Any],
+) -> None:
+    design = {
+        "schema_version": "work-ii-eq-s-run-design-0.2.1",
+        "config_sha256": file_sha256(CONFIG),
+        "resolved_config_sha256": digest(config),
+        "freeze": copy.deepcopy(freeze),
+        "schedule": copy.deepcopy(validated["schedule"]),
+        "query_sha256": validated["query_sha256"],
+        "prior_sha256": copy.deepcopy(validated["prior_sha256"]),
+        "provider": copy.deepcopy(PROVIDER),
+        "system_prompt": SYSTEM,
+        "K1": K1,
+        "Q": Q_PROMPT,
+        "K2": K2,
+        "EQS": EQS,
+        "truth_embargo": config["truth_embargo"],
+        "scientific_contract_changed_from_v0.2": False,
+        "repair": "Removed unsupported JSON-schema uniqueItems keywords; uniqueness remains locally validated.",
+    }
+    path = root / "design-revisions" / "v0.2.1.json"
+    if path.exists() and read(path) != design:
+        raise RuntimeError("existing EQ-S v0.2.1 design revision differs")
+    write(path, design)
+
+
 def finalize_after_sources(root: Path, config: Mapping[str, Any], schedule: Sequence[Mapping[str, Any]]) -> None:
-    results = [read(root / "sources" / cell["cell_id"] / "RESULT.json") for cell in schedule]
+    resolved = [effective_result(root, cell) for cell in schedule]
+    results = [result for result, _ in resolved if result is not None]
     if len(results) != 15 or not all(row.get("posttest_chain_sealed") is True for row in results):
-        eq_v2.write_summary(root, schedule, "truth_embargoed_incomplete_EQS_chain")
+        write_effective_summary(root, schedule, "truth_embargoed_incomplete_EQS_chain")
         raise RuntimeError("not all 15 EQS responses are sealed; truth remains embargoed")
     truth = eq_v1.generate_truth(root, config)
     for result in results:
@@ -846,11 +942,11 @@ def finalize_after_sources(root: Path, config: Mapping[str, Any], schedule: Sequ
             truth[result["world_id"]],
         )
         write(root / "evaluations" / f"{result['cell_id']}.json", numeric)
-    summary = eq_v2.write_summary(root, schedule, "complete")
+    summary = write_effective_summary(root, schedule, "complete")
     write(
         root / "completion.json",
         {
-            "schema_version": "work-ii-eq-s-completion-0.2",
+            "schema_version": "work-ii-eq-s-completion-0.2.1",
             "completed_epoch": time.time(),
             "source_sessions": 15,
             "source_batches": sum(len(row.get("batches", [])) for row in results),
@@ -899,22 +995,28 @@ def main() -> None:
         print(json.dumps(eq_v2.write_summary(root, validated["schedule"], "status")), flush=True)
         return
     freeze = eq_v2.validate_freeze(root, config)
-    eq_v2.write_design(root, config, validated, freeze)
+    write_design_revision(root, config, validated, freeze)
     schedule = validated["schedule"]
     canary = [cell for cell in schedule if cell["world_id"] == "EQ-S-W01"]
     if args.scope == "canary":
         if not 1 <= args.workers <= 3:
             raise ValueError("EQ-S canary workers must be in 1..3")
-        selected = canary
+        selected = [cell for cell in canary if effective_result(root, cell)[0] is None]
     else:
-        canary_results = [root / "sources" / cell["cell_id"] / "RESULT.json" for cell in canary]
-        if not all(path.is_file() and read(path).get("status") == "completed" for path in canary_results):
+        canary_results = [effective_result(root, cell)[0] for cell in canary]
+        if not all(
+            result is not None
+            and result.get("status") == "completed"
+            and result.get("posttest_chain_sealed") is True
+            for result in canary_results
+        ):
             raise RuntimeError("remaining matrix is sealed until all W01 canary chains complete")
         if not 1 <= args.workers <= 8:
             raise ValueError("EQ-S remaining workers must be in 1..8")
         selected = [cell for cell in schedule if cell["world_id"] != "EQ-S-W01"]
-    eq_v2.execute_sources(root, config, selected, workers=args.workers)
-    summary = eq_v2.write_summary(
+    if selected:
+        eq_v2.execute_sources(root, config, selected, workers=args.workers)
+    summary = write_effective_summary(
         root,
         schedule,
         "canary_complete" if args.scope == "canary" else "sources_complete",
