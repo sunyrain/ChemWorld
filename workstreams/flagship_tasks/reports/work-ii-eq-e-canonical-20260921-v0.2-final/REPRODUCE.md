@@ -1,0 +1,3 @@
+# Reproduction
+
+Use the EQ-E v0.2 freeze manifest. Maintain the configured persistent SSH proxy tunnel for background provider access. Run the zero-provider gate, freeze, W01 three-arm canary, and the remaining matrix with at most eight isolated workers. Generate truth only after all 15 K2 responses are sealed, then run this exporter. The ignored run namespace retains trajectories, preflight failures, reference repeats, process material, and provider-private files; this public package excludes authentication, raw model streams, session identifiers, private entity parameters, and usage accounting.
