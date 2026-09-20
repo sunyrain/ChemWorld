@@ -50,6 +50,35 @@ GOALS = {
     )
 }
 
+
+class EqEntityResearchAgent(eq_runtime.EqFreeResearchAgent):
+    """EQ-E source agent with transport-only pre-action recovery."""
+
+    def __init__(self, **kwargs: Any) -> None:
+        runtime = load_config()["execution_overlay"]["runtime"]
+        kwargs["pre_action_restart_limit"] = int(
+            runtime["source_pre_action_restart_limit"]
+        )
+        kwargs["provider_process_attempt_limit"] = (
+            int(runtime["source_pre_action_restart_limit"]) + 1
+        )
+        super().__init__(**kwargs)
+
+    def _model_provider_config_overrides(self) -> list[str]:
+        retries = int(
+            load_config()["execution_overlay"]["runtime"][
+                "provider_request_retry_limit"
+            ]
+        )
+        return [
+            "-c",
+            (
+                f'model_providers.{PROVIDER["id"]}={{name="OpenAI",wire_api="responses",'
+                "requires_openai_auth=true,supports_websockets=false,"
+                f"request_max_retries={retries},stream_max_retries={retries}}}"
+            ),
+        ]
+
 SYSTEM = """You are an autonomous scientist in a simulated bounded aqueous-equilibrium laboratory.
 Use only the supplied chemworld_lab tools and public_numerics calculator. No filesystem, network,
 repository inspection, external retrieval, or hidden-simulator access is allowed. Complete exactly
@@ -166,6 +195,15 @@ def research_brief() -> dict[str, Any]:
 
 def validate_design(config: Mapping[str, Any]) -> dict[str, Any]:
     validated = design_gate.validate_design(config)
+    runtime = config.get("execution_overlay", {}).get("runtime", {})
+    recovery_contract = {
+        "source_pre_action_restart_limit": 2,
+        "provider_request_retry_limit": 2,
+        "posttest_auto_compact_token_limit": 120000,
+        "posttest_auto_compact_token_limit_scope": "total",
+    }
+    if any(runtime.get(key) != value for key, value in recovery_contract.items()):
+        raise ValueError("EQ-E transport-recovery contract drifted")
     if tuple(config.get("posttest_stages", ())) != POSTTEST_STAGES:
         raise ValueError("EQ-E participant chain must be exactly K1/Q/K2")
     if config.get("execution_authorized") is not True:
@@ -212,6 +250,36 @@ def configure_runtime(config: Mapping[str, Any]) -> None:
     eq_runtime.validate_design = validate_design
     eq_runtime.write_summary = write_summary
     eq_runtime.configure_provider_helpers(config)
+    eq_runtime.EqFreeResearchAgent = EqEntityResearchAgent
+    runtime = config["execution_overlay"]["runtime"]
+    retries = int(runtime["provider_request_retry_limit"])
+    compact_limit = int(runtime["posttest_auto_compact_token_limit"])
+    compact_scope = str(runtime["posttest_auto_compact_token_limit_scope"])
+    base_build_command = eq_runtime.provider_shared.build_command
+
+    def build_posttest_command(
+        provider: Mapping[str, Any],
+        schema_path: Path,
+        workspace: Path,
+        **kwargs: Any,
+    ) -> list[str]:
+        # Posttests remain on the source thread. Compaction is enabled only for
+        # the sealed K1/Q/K2 continuation, so it cannot alter source choices or
+        # observations. Provider retries are transport-only and do not create a
+        # second scientific turn.
+        kwargs["provider_retries"] = retries
+        command = base_build_command(provider, schema_path, workspace, **kwargs)
+        command.extend(
+            [
+                "-c",
+                f"model_auto_compact_token_limit={compact_limit}",
+                "-c",
+                f'model_auto_compact_token_limit_scope="{compact_scope}"',
+            ]
+        )
+        return command
+
+    eq_runtime.shared.build_command = build_posttest_command
 
 
 def run_provider_free_gate(root: Path, config: Mapping[str, Any]) -> dict[str, Any]:

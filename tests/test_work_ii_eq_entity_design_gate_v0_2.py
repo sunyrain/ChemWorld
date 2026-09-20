@@ -69,6 +69,11 @@ def test_eq_e_v02_approved_runtime_preserves_the_frozen_design() -> None:
     assert config["execution_authorized"] is True
     assert config["provider_execution_authorized"] is True
     assert config["posttest_stages"] == ["K1", "Q", "K2"]
+    runtime = config["execution_overlay"]["runtime"]
+    assert runtime["source_pre_action_restart_limit"] == 2
+    assert runtime["provider_request_retry_limit"] == 2
+    assert runtime["posttest_auto_compact_token_limit"] == 120000
+    assert runtime["posttest_auto_compact_token_limit_scope"] == "total"
     assert len(validated["schedule"]) == 15
     assert formal.K1 == canonical.K1
     assert formal.Q_PROMPT == canonical.Q_PROMPT
@@ -83,6 +88,35 @@ def test_eq_e_v02_approved_runtime_preserves_the_frozen_design() -> None:
                 "profiles": world["profiles"],
             }
         ]
+
+
+def test_eq_e_transport_recovery_is_bounded_and_posttest_only(tmp_path) -> None:
+    config = formal.load_config()
+    formal.configure_runtime(config)
+
+    agent = object.__new__(formal.EqEntityResearchAgent)
+    source_overrides = agent._model_provider_config_overrides()
+    source_rendered = " ".join(source_overrides)
+    assert "request_max_retries=2" in source_rendered
+    assert "stream_max_retries=2" in source_rendered
+
+    workspace = tmp_path / "followup"
+    workspace.mkdir()
+    schema = workspace / "schema.json"
+    schema.write_text("{}", encoding="utf-8")
+    command = formal.eq_runtime.shared.build_command(
+        formal.PROVIDER,
+        schema,
+        workspace,
+        audit=tmp_path / "numerics.jsonl",
+        thread_id="thread-test",
+        provider_retries=0,
+    )
+    rendered = " ".join(command)
+    assert "model_auto_compact_token_limit=120000" in rendered
+    assert 'model_auto_compact_token_limit_scope="total"' in rendered
+    assert "request_max_retries=2" in rendered
+    assert "stream_max_retries=2" in rendered
 
 
 def test_eq_e_v02_uses_canonical_open_k1_q_k2_contract() -> None:

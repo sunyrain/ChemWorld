@@ -108,3 +108,10 @@ workers with automatic slot refill. Platform recovery preserves the original fai
 same thread only from the latest legal boundary. Reference truth consists of five independent
 keyed-noise repeats per `world x query` (300 executions) and remains embargoed until all fifteen K2
 reports seal.
+
+Transport recovery is frozen separately from the scientific contract. Before the first accepted
+source action, a failed provider connection may be restarted at most twice; after any accepted action,
+the source is never silently replayed. K1/Q/K2 remain same-thread continuations. Their provider client
+uses at most two request/stream retries and the Codex `total`-scope automatic history-compaction
+threshold of 120,000 tokens. This threshold applies only to the posttest continuation, after all source
+actions and observations are sealed, and therefore cannot change experimental selection or physics.

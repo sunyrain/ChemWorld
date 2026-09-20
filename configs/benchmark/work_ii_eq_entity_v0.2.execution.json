@@ -14,7 +14,7 @@
   },
   "formal_design_note": {
     "path": "workstreams/flagship_tasks/WORK_II_EQ_E_V0_2_FORMAL_DESIGN.md",
-    "sha256": "3a56d37a24674341cab726983269c08e9343b2b1723494f1922f22bc1994e407"
+    "sha256": "63fe1b58d46a0454fcdaf431b55b129c0fa82df1f558bfd05a9aebb7e13b9674"
   },
   "provider": {
     "id": "chemworld_openai_https",
@@ -29,6 +29,10 @@
     "world_split": "public-test",
     "objective": "balanced",
     "posttest_stages": ["K1", "Q", "K2"],
+    "source_pre_action_restart_limit": 2,
+    "provider_request_retry_limit": 2,
+    "posttest_auto_compact_token_limit": 120000,
+    "posttest_auto_compact_token_limit_scope": "total",
     "maximum_canary_workers": 3,
     "maximum_remaining_workers": 8,
     "truth_embargo": "Reference truth is generated only after all 15 K2 responses are sealed."
