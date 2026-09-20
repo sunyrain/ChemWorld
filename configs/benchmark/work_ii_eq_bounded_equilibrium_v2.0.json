@@ -1,0 +1,42 @@
+{
+  "schema_version": "chemworld-work-ii-eq-bounded-equilibrium-2.0",
+  "status": "candidate_authoring_provider_sealed",
+  "protocol": "workstreams/flagship_tasks/WORK_II_EQ_CANONICAL_K1_Q_K2_EQS_PROTOCOL_V2_0.md",
+  "base_config": {
+    "path": "configs/benchmark/work_ii_eq_bounded_equilibrium_v1.1.json",
+    "sha256": "fcb2272943130a80c2ea2d04b1146fe31889f155e31df247813e36b5ebc64b87"
+  },
+  "prior_locus": "P",
+  "posttest_stages": ["K1", "Q", "K2", "EQS"],
+  "counts": {
+    "worlds": 5,
+    "independent_source_sessions": 15,
+    "source_batches_per_session": 12,
+    "source_batches": 180,
+    "posttests_per_session": 4,
+    "posttests": 60,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 300
+  },
+  "truth_embargo": "Reference truth is generated only after all 15 EQS responses are sealed.",
+  "execution_order": [
+    "provider_free_gate",
+    "source",
+    "K1",
+    "Q",
+    "K2",
+    "EQS",
+    "reference_truth_and_scoring"
+  ],
+  "canary": {
+    "world_id": "EQ-W01",
+    "arms": ["Opaque", "Aligned", "MisIndexed"],
+    "required_complete_chains": 3,
+    "maximum_workers": 3,
+    "release_remaining_worlds_only_after_pass": true
+  },
+  "full_matrix": {
+    "maximum_workers": 8,
+    "worker_policy": "fixed queue with isolated cell directories and automatic slot refill"
+  }
+}
