@@ -38,7 +38,7 @@ evidence on which they are later judged. We introduce ChemWorld, a programmable 
 for constructing chemical worlds with evaluator-known process laws, persistent experimental
 state, explicit resources, and controllable public information. Composable process and
 observation models, qualified execution, and exact environment replay connect agents'
-scientific claims to the experiments that precede them. Using this framework, we study 225
+scientific claims to the experiments that precede them. Using this framework, we study 240
 autonomous research campaigns across six chemical system families, with opaque, aligned, or
 misindexed prior information and system-specific discovery, characterization, or constrained
 delivery objectives. Agents freely select experiments and formulate mechanisms before
@@ -192,7 +192,7 @@ is not a certificate for every later execution surface.
 
 ## 3.1 System-specific commissions and matched information conditions
 
-The study comprises 225 scheduled research campaigns across six system families and seven
+The study comprises 240 scheduled research campaigns across six system families and eight
 study blocks (Table 2). Every block uses five world instances and three information arms.
 The same physical world, available operations, and withheld-condition questions are used
 across arms within a block. World identities and treatment labels remain evaluator-side.
@@ -217,16 +217,17 @@ parameter-prior label P.
 | EC / E: electrochemistry | Discovery; score optimization | 12, 24 | 60 | 1,080 / 1,080 |
 | PA / E: phase partitioning | Explain phase allocation | 12, 24 | 30 | 540 / 540 |
 | RX / P and S: reaction and thermal processing | Discovery; safety-constrained optimization | 12 | 60 | 720 / 720 |
+| EQ / E: medium identity | Characterize entity-conditioned responses | 12 | 15 | 180 / 180 |
 | EQ / P: bounded equilibrium | Characterize effective responses | 12 | 15 | 180 / 180 |
 | EQ / S: structural equilibrium | Explain response structure | 12 | 15 | 180 / 180 |
 | C / E: crystallization | Deliver crystals under quality constraints | 12, 24 | 30 | 539 / 540 |
 | P / E: purification | Recover product subject to purity | 12 | 15 | 178 / 180 |
-| **Total** | **Six system families** | | **225** | **3,417 / 3,420** |
+| **Total** | **Six system families** | | **240** | **3,597 / 3,600** |
 
 Table 2. Complete selected study scope. Each campaign has one agent realization. One C
-campaign completes eleven of twelve batches. One P campaign uses all twelve vessel starts
+campaign exhausts its solvent stock and discards its twelfth vessel, completing eleven final assays. One P campaign uses all twelve vessel starts
 but discards two vessels, leaving ten final assays. All campaigns have sealed mechanism,
-prediction, and reflection stages; 223 meet the full source-and-assessment specification.
+prediction, and reflection stages; 238 meet the full source-and-assessment specification.
 
 EC agents vary materials, potential, current cap, duration, and legal operation sequences.
 Optimization targets the public balanced-efficiency score; discovery targets an explanatory
@@ -238,7 +239,8 @@ applicable.
 
 PA asks how product is allocated between phases under changes in materials, phase volumes,
 and processing. EQ concerns amount, volume, concentration, staged additions, dissociation,
-and precipitation. Neither imposes an artificial yield-optimization objective. C seeks
+and precipitation. Its entity-prior block fixes a shared reaction topology and varies
+the joint effective-property bundle associated with each medium selector. Neither imposes an artificial yield-optimization objective. C seeks
 seed-excluded crystal recovery subject to purity at least 0.80 and fines fraction at most
 0.50, with particles present. P seeks recovery from the original charge subject to purity
 at least 0.80. C recovery divides recovered product net of seed mass by the target product
@@ -322,7 +324,7 @@ into a common accuracy or calibration score.
 | EC | Six conversion/efficiency responses, including score | Seeded final observation | 80% |
 | PA | Organic and aqueous product fractions | Noiseless pre-sampling fractions | 90% |
 | RX | Yield, conversion, selectivity, byproduct signal, risk, score | Five-observation mean; coverage over observations | 80% |
-| EQ / P and S | Normalized pH, dissociation, precipitation signal | Five-observation mean; coverage over observations | 80% |
+| EQ / E, P and S | Normalized pH, dissociation, precipitation signal | Five-observation mean; coverage over observations | 80% |
 | C | Net recovery, purity, size index, fines fraction | Noiseless pre-assay responses | 80% |
 | P | Purity, original-charge recovery | Seeded final observation | 80% |
 
@@ -432,12 +434,14 @@ ordering. Paired directions and error magnitudes are both needed.
 RX discovery changes ordering across loci. Parameter-prior macro errors for Opaque,
 Aligned, and MisIndexed are 0.10186, 0.05701, and 0.05457; structural-prior errors are
 0.08404, 0.09209, and 0.10159. Bounded EQ/P favors Opaque on macro error (0.01214 versus
-0.04314 and 0.03928), whereas canonical EQ/S means are closer (0.01408, 0.01590, and
+0.04314 and 0.03928). EQ/E also has similar arm means (0.01483, 0.01672, and 0.01460),
+with 80% interval coverage of 84.6%, 85.3%, and 83.1%, respectively. Canonical EQ/S means
+are likewise close (0.01408, 0.01590, and
 0.01345), with different world-level orderings. Information content and query designs
 differ across these studies; comparing them does not isolate a causal advantage of
 one prior locus over another.
 
-![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these readouts with all metric-specific arm means.](figures/integrated-results/priors.pdf){width=100%}
+![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these selected readouts with all metric-specific arm means, including EQ/E.](figures/integrated-results/priors.pdf){width=100%}
 
 These outcomes do not establish that inaccurate information is intrinsically useful.
 A changed dossier can alter both experimental choices and subsequent inference, so
@@ -631,7 +635,9 @@ agents, with all source assessments sealed before reference-truth release. RX's 
 reference executions are separate from 720 source batches and 60 retests.
 
 Each EQ block uses twelve questions and five observations per question, giving 300
-reference executions. Bounded EQ/P examines effective aqueous relationships; canonical
+reference executions. EQ/E crosses three medium identities with three concentrations
+and a matched-concentration scale control, assessing entity contrast and concentration
+and scale transfer under a fixed common topology. Bounded EQ/P examines effective aqueous relationships; canonical
 EQ/S supports response-shape analysis without requiring a named hidden family.
 An instrument's equilibrium diagnostic is not the agent's subjective confidence.
 The bounded study's effective-parameter supplement is additional to K1/Q/K2 and does
@@ -673,9 +679,9 @@ in numerical budgets and deadlines are execution contracts, not scientific findi
 
 ## A.3 Completion, recovery, and exclusions
 
-The primary denominator is 225 scheduled campaigns, not provider attempts. All 675
+The primary denominator is 240 scheduled campaigns, not provider attempts. All 720
 K1/Q/K2 stages and 165 planned recommendation retests in EC, RX, C, and P are complete,
-plus fifteen EQ supplements. Final-assayed source batches total 3,417 of 3,420 planned.
+plus fifteen EQ supplements. Final-assayed source batches total 3,597 of 3,600 planned.
 C's second-world 12-batch Opaque source has eleven final assays. P's fifth-world
 Opaque source starts twelve vessels, discards two, and completes ten final assays.
 Both remain in outcome tables with conformance indicators.
@@ -703,7 +709,7 @@ Historical single-world EC parameter/structural supplements, the closed-set EQ/S
 early C/P development runs, qualification recipes, references, replays, and interrupted
 attempts do not enlarge the denominator. Their records remain separate. Frozen platform
 qualification is also a separate evidence programme. These counts describe execution
-and analysis scope; they are not 225 independent chemistry replications.
+and analysis scope; they are not 240 independent chemistry replications.
 
 ## A.4 Mechanistic interpretation
 

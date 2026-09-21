@@ -1,6 +1,6 @@
 # Experiment inventory: machine-generated snapshot
 
-Observed at 2026-09-21T01:45:39+08:00; remote evidence at `1eda66585df7d8ae922bb251804dec1d3bb3d058`.
+Observed at 2026-09-21T10:32:30+08:00; remote evidence at `6a5ff6fc5f98fc24df1f0b141c3b441c34ebe73f`.
 
 This report reads existing exports only. No provider call, physics execution, runtime checkout or evidence reclassification is performed.
 
@@ -12,6 +12,7 @@ This report reads existing exports only. No provider call, physics execution, ru
 | PA E, discovery, 12/24, five worlds | 30 | 30 | 540 | 90 | 0 |
 | EC P/S single-world supplements | 12 | 11 | 144 | 34 | 0 |
 | RX P/S, two goals, 12, five worlds | 60 | 60 | 720 | 180 | 0 |
+| EQ-E v0.2 entity characterization | 15 | 15 | 180 | 45 | 0 |
 | EQ bounded/P v2, 12, five worlds | 15 | 15 | 180 | 45 | 15 EQS |
 | EQ-S v0.2.1 closed-set pilot | 15 | 15 | 180 | 45 | 15 EQS |
 | EQ-S v0.3 canonical free-mechanism study | 15 | 15 | 180 | 45 | 0 |
@@ -20,7 +21,7 @@ This report reads existing exports only. No provider call, physics execution, ru
 
 P source batches count final-assayed batches. Its separate lifecycle totals are {'discarded': 2, 'final_assayed': 178, 'started': 180}; discarded batches consumed source resources and are not replacement sessions.
 
-The current primary analysis pool contains 225 started sources, 223 complete chains, 3417/3420 source batches, and 675/675 K1/Q/K2 stages. The 15 EQ supplements are additional; C completion issues remain visible.
+The current primary analysis pool contains 240 started sources, 238 complete chains, 3597/3600 source batches, and 720/720 K1/Q/K2 stages. The 15 EQ supplements are additional; C completion issues remain visible.
 
 The four complete primary system cohorts contain 165 sessions, 2,520 source batches and 495 canonical posttest stages, plus 15 EQ-specific supplements. This is a scope subtotal, not a count of all historical research. Qualification recipes, reference repeats, replays, retries and reused source states are different units and are not added to it.
 

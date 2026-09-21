@@ -134,6 +134,12 @@ def load_rows():
             c["world_id"],
             r["prediction_evaluation"]["metrics"],
         )
+    for r in closure["eq_e_canonical_v02"]["cells"]:
+        c = r["cell"]
+        add(
+            c["cell_id"], "EQ", "E", "characterization", 12,
+            c["arm"], c["world_id"], r["prediction_evaluation"]["metrics"],
+        )
     c_retest = {r["id"]: r for r in closure["c_current"]["descriptive"]["retests"]}
     for r in closure["c_current"]["rows"]:
         t = c_retest[r["id"]]
@@ -166,8 +172,9 @@ def load_rows():
             quality_pass=int(t["purity"] >= 0.8),
         )
         rows[-1]["conforming"] = r["source_batches"] == 12
-    assert len(rows) == 225 and len({r["id"] for r in rows}) == 225
-    assert sum(r["conforming"] for r in rows) == 223
+    pool = closure["current_primary_pool"]
+    assert len(rows) == len({r["id"] for r in rows}) == pool["source_slots"]
+    assert sum(r["conforming"] for r in rows) == pool["complete_chains"]
     return rows, closure
 
 

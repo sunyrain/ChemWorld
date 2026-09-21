@@ -1,8 +1,22 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
-Updated 2026-09-21 01:40. **The selected programme is terminal:** EC E 60/60, PA E 30/30, RX P/S 60/60, bounded EQ/P 15/15 and canonical EQ-S v0.3 15/15 chains are complete. C has all 90 posttests and 30 retests, 29 conforming chains, and one retained 11/12 source. P completed all fifteen sources, 45 posttests and fifteen retests at **six-worker maximum concurrency** in 31.34 minutes. Its 180 batch starts produced 178 final assays and two W05/Opaque discards; fourteen chains meet the twelve-final-assay specification. All physics, inventory, resource and replay checks pass; the shortfall is retained, not retried. Total current scope: **225 sources, 223 conforming complete chains, 3,417/3,420 final-assayed source batches and 675/675 K1/Q/K2 stages**, covering six system families. Earlier P matrices remain superseded platform diagnostics, separate from this fresh block. See the [P note](WORK_II_P_PARALLEL_STUDY_NOTE.md), [P results and analysis](reports/work-ii-p-five-world-20260921-v4/ANALYSIS.md), and [closure inventory](reports/work-ii-evidence-closeout-20260921/REPORT.md).
+Updated 2026-09-21 after pulling remote `6a5ff6fc`. **The selected programme is terminal.** The verified current primary pool contains **240 sources, 238 source-and-assessment-conforming chains, 3,597/3,600 final-assayed source batches and 720/720 K1/Q/K2 stages**, covering six system families. All eight study blocks use five worlds and the Opaque / Aligned / MisIndexed arms. E/P/S describe the prior locus, not additional arms; P as a system name means purification.
 
-Budgets, goals and posttest differences remain block-specific. EC/PA and C use their saved 12/24 designs; RX, both EQ studies and P use 12 batches. English prompts and reports, autonomous operations and sealed K1 / Q / K2 are shared principles. RX's seven-question K2 differs from the other blocks. EC P/S supplements and the superseded EQ-S v0.2.1 closed-set pilot are separate historical evidence. Remote canonical EQ-S results are verified at `1eda6658`; no remote runtime merge is required for analysis.
+| System / prior locus | Commission | Batch budgets | Source sessions | Final assays | K1/Q/K2 stages |
+|---|---|---|---:|---:|---:|
+| EC / E | Mechanism discovery; score optimization | 12, 24 | 60 | 1,080/1,080 | 180/180 |
+| PA / E | Phase-allocation mechanism discovery | 12, 24 | 30 | 540/540 | 90/90 |
+| RX / P and S | Mechanism discovery; safety-constrained optimization | 12 | 60 | 720/720 | 180/180 |
+| EQ / E | Entity-conditioned characterization | 12 | 15 | 180/180 | 45/45 |
+| EQ / P | Bounded effective-response characterization | 12 | 15 | 180/180 | 45/45 |
+| EQ / S | Structural response characterization | 12 | 15 | 180/180 | 45/45 |
+| C / E | Crystal recovery under quality constraints | 12, 24 | 30 | 539/540 | 90/90 |
+| P / E | Product recovery subject to purity | 12 | 15 | 178/180 | 45/45 |
+| **Total** | **Six families; eight blocks** | | **240** | **3,597/3,600** | **720/720** |
+
+C-W02/12/Opaque used all 0.96 L of solvent and discarded its twelfth vessel; its eleven valid final assays and all posttests/retest remain. P-W05/Opaque used twelve starts with two legal discards; all posttests/retest remain. These are retained source nonconformances, not missing provider answers, and do not require outcome-selected reruns. All 165 planned recommendation retests are complete; EQ characterization has no operating recommendation. Fifteen bounded-EQ supplementary answers are additional to the canonical stages. The historical EC P/S supplement has one Q/K2 execution failure and is outside the main pool. See the [failure and rerun decisions](reports/work-ii-evidence-closeout-20260921/ANALYSIS.md#failure-disposition-after-remote-integration).
+
+Budgets, goals and posttests remain block-specific. English outputs are requested; retained RX/EQ assessment instructions include Chinese text. Free experimental choice and sealed K1 / Q / K2 are shared, while question counts and calculator envelopes differ. The superseded EQ-S closed-set pilot, old C/P attempts, qualification, reference executions and replays are not independent primary campaigns. The nine-family platform additionally supports D, FL and BC; they have no equivalent completed cohort in this matrix. New EQ-E contributes fifteen sources, not a seventh system family. [Machine inventory](reports/work-ii-evidence-closeout-20260921/REPORT.md), [EQ-E design](WORK_II_EQ_E_V0_2_FORMAL_DESIGN.md), [EQ-E results](reports/work-ii-eq-e-canonical-20260921-v0.2-final/REPORT.md).
 
 本文件是Paper 2实验设计的唯一入口。[TODO](WORK_II_TODOLIST.md)管理执行，
 [结果索引](WORK_II_PAPER_RESULTS_ZH.md)保存既有结果，[current](../../configs/current.json)解析既有机器证据，

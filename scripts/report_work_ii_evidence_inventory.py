@@ -171,6 +171,31 @@ def build(commit, p_summary=None):
     assert len(eq_rows) == eq_index["completion"]["source_sessions"] == 15
     assert eq_index["completion"]["source_batches"] == 180
     assert eq_index["completion"]["posttests"] == 60
+    entity_path = str(REPORTS / "work-ii-eq-e-canonical-20260921-v0.2-final").replace("\\", "/")
+    entity = None
+    if subprocess.check_output(
+        ["git", "ls-tree", "--name-only", commit, entity_path + "/INDEX.json"], cwd=ROOT
+    ).strip():
+        index = remote(commit, entity_path + "/INDEX.json")
+        cells = [
+            remote(commit, entity_path + f"/sources/{r['cell_id']}/RESULT.json")
+            for r in index["cells"]
+        ]
+        assert len(cells) == len({r["cell"]["cell_id"] for r in cells}) == 15
+        assert index["completion"]["source_sessions"] == 15
+        assert index["completion"]["source_batches"] == 180
+        assert index["completion"]["posttests"] == 45
+        for r in cells:
+            assert r["cell"]["status"] == "completed"
+            assert len(r["source"]["batches"]) == 12
+            assert r["source"]["exact_replay"]["verified"]
+            assert r["prediction_evaluation"]["valid"]
+            assert all(r["posttests"][stage]["payload"] for stage in ("K1", "Q", "K2"))
+        entity = {
+            "index": index,
+            "aggregate": remote(commit, entity_path + "/AGGREGATE.json"),
+            "cells": cells,
+        }
     assert len(rx["cells"]) == rx["complete_cells"] == 60
     assert len({r["cell_id"] for r in rx["cells"]}) == 60
     c_rows = []
@@ -334,6 +359,7 @@ def build(commit, p_summary=None):
             "canonical_v03_results_visible_at_remote_commit": canonical is not None,
         },
         "eq_s_canonical_v03": canonical,
+        "eq_e_canonical_v02": entity,
         "c_current": {
             "counts": c_counts,
             "controller": crystal.get("parallel_execution"),
@@ -377,6 +403,18 @@ def build(commit, p_summary=None):
         }.items():
             pool[key] += increment
         data["inputs"].append(canonical_path + "/INDEX.json")
+    if entity:
+        for key, increment in {
+            "source_slots": 15,
+            "started_sources": 15,
+            "complete_chains": 15,
+            "source_batches": 180,
+            "planned_source_batches": 180,
+            "K1_Q_K2_stages": 45,
+            "planned_K1_Q_K2_stages": 45,
+        }.items():
+            pool[key] += increment
+        data["inputs"].append(entity_path + "/INDEX.json")
     if p_summary:
         p = data["p_current"]
         if (p.get("disposition") or {}).get("status") == "superseded_platform_diagnostic":
@@ -427,6 +465,11 @@ def render(data):
         "| PA E, discovery, 12/24, five worlds | 30 | 30 | 540 | 90 | 0 |",
         "| EC P/S single-world supplements | 12 | 11 | 144 | 34 | 0 |",
         "| RX P/S, two goals, 12, five worlds | 60 | 60 | 720 | 180 | 0 |",
+        (
+            "| EQ-E v0.2 entity characterization | 15 | 15 | 180 | 45 | 0 |"
+            if data["eq_e_canonical_v02"]
+            else "| EQ-E entity characterization | 0 | 0 | 0 | 0 | 0 |"
+        ),
         "| EQ bounded/P v2, 12, five worlds | 15 | 15 | 180 | 45 | 15 EQS |",
         "| EQ-S v0.2.1 closed-set pilot | 15 | 15 | 180 | 45 | 15 EQS |",
         (

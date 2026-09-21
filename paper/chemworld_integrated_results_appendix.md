@@ -121,6 +121,14 @@ Each entry is mean absolute error / empirical interval coverage (%), averaged ov
 | Normalized pH | 0.0097 / 87.3 | 0.0200 / 75.7 | 0.0203 / 77.7 |
 | Precipitation signal | 0.0033 / 95.3 | 0.0042 / 95.7 | 0.0078 / 87.3 |
 
+## EQ, E prior: characterization, 12 batches
+
+| Readout | Opaque | Aligned | MisIndexed |
+|---|---:|---:|---:|
+| Dissociation fraction | 0.0128 / 83.7 | 0.0107 / 85.0 | 0.0134 / 79.0 |
+| Normalized pH | 0.0233 / 80.7 | 0.0278 / 79.0 | 0.0202 / 82.0 |
+| Precipitation signal | 0.0084 / 89.3 | 0.0116 / 92.0 | 0.0103 / 88.3 |
+
 ## C, E prior: delivery, 12 batches
 
 | Readout | Opaque | Aligned | MisIndexed |

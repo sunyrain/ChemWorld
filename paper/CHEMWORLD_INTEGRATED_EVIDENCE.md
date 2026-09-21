@@ -10,7 +10,7 @@ bibliography, and bound qualification artifacts are unchanged by this revision.
 - Canonical English source: [chemworld_integrated_manuscript.md](chemworld_integrated_manuscript.md).
 - Chinese abstract and author argument: [prior_discovery_story_zh.md](prior_discovery_story_zh.md).
 - Generated all-metric appendix: [chemworld_integrated_results_appendix.md](chemworld_integrated_results_appendix.md).
-- Generated campaign data: [campaign_metrics.csv](figures/integrated-results/campaign_metrics.csv), 225 campaigns and 1,020 campaign/metric rows.
+- Generated campaign data: [campaign_metrics.csv](figures/integrated-results/campaign_metrics.csv), 240 campaigns and 1,065 campaign/metric rows.
 - Paired goal contrasts and totals: [analysis.json](figures/integrated-results/analysis.json).
 - Five vector figures, with PNG previews: [figure directory](figures/integrated-results).
 - Review PDF: [chemworld-integrated-review.pdf](../output/pdf/chemworld-integrated-review.pdf).
@@ -38,10 +38,16 @@ does not require a globally clean worktree or a new platform certificate.
 
 ## Authoritative inputs
 
+The closure snapshot includes the newly merged EQ-E exports. To regenerate it from the fixed input commit:
+
+```powershell
+uv run --no-sync python -m scripts.report_work_ii_evidence_inventory --remote-commit 6a5ff6fc --p-summary workstreams/flagship_tasks/reports/work-ii-p-five-world-20260921-v4/summary.json --output workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921
+```
+
 The closure snapshot is
 [the current evidence inventory](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/summary.json),
-generated at 2026-09-21 01:45:39 +08:00. It resolves remote EQ evidence at the explicit
-commit `1eda66585df7d8ae922bb251804dec1d3bb3d058`. The rendering script uses this binding,
+generated at 2026-09-21 10:32:30 +08:00. It resolves remote EQ evidence at the explicit
+commit `6a5ff6fc5f98fc24df1f0b141c3b441c34ebe73f`. The rendering script uses this binding,
 not the current tip of a remote branch. RX and EQ reference targets are already released
 in those completed exports; the reanalysis performs no new truth generation.
 
@@ -50,6 +56,7 @@ in those completed exports; the reanalysis performs no new truth generation.
 | Frozen platform qualification | `configs/current.json` → `publication`; composition, deterministic use-case, and agent-instrument reports under `workstreams/arxiv_v1/reports/` |
 | EC / PA | `workstreams/flagship_tasks/reports/work-ii-ec-pa-five-world-en-20260919/completed-block-analysis.json`; all 90 E campaigns, metric means, world pairs, first-attempt sensitivity |
 | RX | `workstreams/flagship_tasks/reports/work-ii-rx-ps-five-world-dual-goal-20260919-final/SUMMARY.json`; all 60 cells, six-response scores and retests |
+| EQ entity prior | Pinned remote `workstreams/flagship_tasks/reports/work-ii-eq-e-canonical-20260921-v0.2-final/`; all fifteen sources, fixed common topology, entity/concentration/scale prediction queries |
 | EQ parameter prior | Pinned remote `workstreams/flagship_tasks/reports/work-ii-eq-bounded-equilibrium-20260920/v2-public/`; index and all fifteen `sources/*/RESULT.json` |
 | EQ structural prior | Pinned remote `workstreams/flagship_tasks/reports/work-ii-eq-s-canonical-20260920-v0.3-final/`; full canonical cells and aggregate embedded in closure snapshot |
 | C | `workstreams/flagship_tasks/reports/work-ii-c-formal-20260920-v3-auto/summary.json`; normalized rows and all retests embedded in closure snapshot |
@@ -61,10 +68,10 @@ study note, and pinned remote RX/EQ protocols. Historical notes do not authorize
 
 ## Evidence boundaries reconciled in this revision
 
-The current pool is 225 scheduled campaigns, 223 protocol-conforming chains, 3,417/3,420
-final-assayed source batches, 675/675 canonical posttests, fifteen additional EQ supplements,
+The current pool is 240 scheduled campaigns, 238 protocol-conforming chains, 3,597/3,600
+final-assayed source batches, 720/720 canonical posttests, fifteen additional EQ supplements,
 and 165 recommendation retests. P's two discards count as consumed vessel starts. C's
-missing batch is not reconstructed or imputed. References, qualification, replay,
+missing assay follows solvent exhaustion and a discarded twelfth vessel; it is not reconstructed or imputed. References, qualification, replay,
 superseded runs, and additional infrastructure attempts are different units.
 
 Two late method checks are important:
@@ -128,9 +135,16 @@ blocks; the present paper does not require reopening completed scientific cells.
 
 The review build contains 20 pages, five vector figures, the protocol appendix, the
 complete all-metric appendix, and nine cited references. The 233-word abstract uses
-observed results. Both new scripts pass Ruff. Retained-data checks confirm 225 unique
-campaigns, 223 conforming sources, 1,020 metric rows, and the eight headline budget
+observed results. Both new scripts pass Ruff. Retained-data checks confirm 240 unique
+campaigns, 238 conforming sources, 1,065 metric rows, and the eight headline budget
 means within displayed rounding. Local document links and cited keys resolve. All
 pages were rendered for visual review; pages changed by the final figure enlargement
 were rechecked. The final LaTeX log has no overflow, missing-character, or unresolved
 reference diagnostics. No experiment execution was part of this verification.
+
+
+## Remote integration and failure disposition
+
+The remote runtime and sanitized exports were merged without rerunning historical scientific cells. EQ-E adds fifteen complete campaigns and forty-five canonical stages, making 240 campaigns across eight blocks in six families. The prior overview figure retains sixteen selected readout panels; the full data and Appendix B additionally contain all three EQ-E metrics. Existing goals, budget comparisons and recommendation outcomes are unchanged.
+
+The failure review distinguishes two source nonconformances (C solvent exhaustion and P discards), two C public-baseline parser omissions (`campaign_resource_rejected` in C-W02/12/Opaque and C-W05/24/MisIndexed), and one historical EC supplement with missing Q/K2. The C baseline omissions are outside the reported agent prediction/retest comparisons; they require deterministic reanalysis only if that baseline is used. No main-matrix model rerun is required. See the [record-level decisions](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/ANALYSIS.md#failure-disposition-after-remote-integration).

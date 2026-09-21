@@ -3,10 +3,10 @@
 This document consolidates the current cohorts. The generated [inventory](REPORT.md)
 and [summary](summary.json) supply the timestamp and exact denominators. P is included
 only to the extent shown there; no anticipated P outcome is treated as observed.
-Remote EQ evidence is read at `1eda6658`, without merging a different runtime into local runs.
+Remote EQ evidence is bound to `6a5ff6fc`. Its code and public exports were merged into main; retained results were not regenerated under the merged runtime.
 
-Final scope, 21 September: 225 sources across six system families, 223 protocol-conforming
-complete chains, 3,417/3,420 final-assayed source batches and all 675 K1/Q/K2 stages, plus
+Final scope, 21 September: 240 sources across six system families, 238 protocol-conforming
+complete chains, 3,597/3,600 final-assayed source batches and all 720 K1/Q/K2 stages, plus
 fifteen EQ-specific supplements. The two nonconforming sources are C's eleven-of-twelve
 source and P W05/Opaque's ten final assays after two discarded vessels. P still used all
 180 batch starts; its two discards are charged and preserved. All current workers have exited.
@@ -15,7 +15,8 @@ source and P W05/Opaque's ten final assays after two discarded vessels. P still 
 
 EC E and PA E provide complete five-world, three-arm, 12/24-batch comparisons. RX provides
 complete five-world P/S-prior and dual-goal comparisons at 12 batches. Bounded EQ/P and
-canonical EQ-S v0.3 each contribute fifteen complete 12-batch sources. They are two studies
+canonical EQ-S v0.3 each contribute fifteen complete 12-batch sources. EQ-E adds fifteen
+complete entity-characterization sources. They are three studies
 within one system family. C supplies all thirty posttest chains and all thirty recommendation
 retests; its single 11/12-batch source remains explicitly nonconforming. P closes the selected
 scope with one goal, three E arms and twelve batches per source.
@@ -90,3 +91,24 @@ Its technical pilot's single K2 503 was repaired on the original thread before t
 Preserve original invalid P data and corrected qualification as engineering evidence.
 Do not rerun completed scientific cells to improve their outcomes. Next work is report/trajectory annotation, figures and an abstract
 grounded in the final observed scope; new systems or models would be a separate study.
+
+
+## Failure disposition after remote integration
+
+This is a retained-data review, not a new data-producing block. No provider or simulator call was made. The main matrix has no unfilled K1/Q/K2 stages and no outstanding recommendation retest. A scientific shortfall is different from lost execution.
+
+| Record | Verified cause and retained evidence | Disposition | Rerun decision |
+|---|---|---|---|
+| C-W02-B12-E-Opaque | Source trajectory used 0.96 L, exactly its solvent cap. Step 145 rejected another 0.02 L; step 158 legally discarded the last vessel for lack of solvent. Eleven final assays, three posttests and the retest are retained; exact replay checks all 158 steps with zero error. | Participant resource-allocation shortfall. The public-baseline parser also fails on `campaign_resource_rejected`; that separate evaluator omission does not erase the agent's results. | No source or posttest rerun. The baseline can be recomputed from retained data if needed for a baseline comparison; it is not used by current headline results. |
+| C-W05-B24-E-MisIndexed baseline | Source has 24 final assays, all posttests and a passing retest. Public-baseline parser rejects the retained resource-rejection transaction at step 378. | Second deterministic baseline omission; source and prediction remain complete. | No agent rerun; fix/recompute that baseline only if used in a baseline comparison. |
+| P-W05-B12-E-Opaque | Twelve starts, two charged legal discards, ten final assays; K1/Q/K2 and retest complete; inventory/resource/replay checks pass. | Participant source nonconformance. | Retain; do not replace after observing the result. |
+| EC-W01-B12-optimization-S-Aligned (historical supplement) | Effective source has 12 assays and K1, but Q reports `tool_budget_exceeded`; K2 was not executed. Old eight-call numerical allowance was insufficient for the attempted calculation sequence. | Posttest execution-design failure, outside the primary E cohort. | Optional Q/K2-only recovery on the original thread, with a prospectively declared revised numerical budget and separate reporting, if this supplement is needed. Do not mix it silently into the old matched contrast or redo the source by default. |
+| Earlier EC/PA, C and EQ transport attempts | Failed attempts and costs remain; effective main-matrix assessment chains are complete. EQ-E index marks all fifteen effective cells original; its report records zero-action proxy preflight failures. | Historical execution incidents, already resolved. | No rerun. |
+| Superseded P pilots and matrices | Actual inventory defects were repaired; the affected qualification block and fresh v4 matrix were rerun from the beginning. Current source/retest conservation and replay pass. | Invalid historical development evidence, excluded from scientific pool. | Preserve old failures; do not rerun the valid successor. |
+| Low purity/recovery, poor fines prediction or interval coverage | Valid observed outcomes across the scheduled arms, with no missing answers. | Scientific results. | Analyze failures and successes together; no selective rerun. |
+
+The previously reported C shortfall is now traced to resource use and a legal discard, not an unexplained stopped session. The source-facing contract is unchanged. The two baseline parser errors are analysis-side limitations: before using that baseline in a new comparison, support rejected resource transactions and recompute only the deterministic baseline. No primary prediction or retest value is affected.
+
+EQ-E now supplies 15 sources, 180 final assays and 45 canonical stages, with all cell-level completion, replay and prediction-validity checks satisfied. Opaque/Aligned/MisIndexed macro MAE is 0.01483/0.01672/0.01460 and 80% coverage is 84.6%/85.3%/83.1%. This supports heterogeneous prior effects rather than a universal aligned advantage. Different E/P/S worlds and questions prevent treating the three EQ blocks as a matched causal comparison of prior loci.
+
+**Recommended closure:** keep the 240-source primary pool, mark its two nonconforming sources, report both all-scheduled and conforming-only sensitivity analyses, and proceed to mechanism/trajectory annotation. No mandatory paid/model rerun is identified. The excluded EC supplement and C baseline are optional local follow-up work with explicit scope, not blockers for the current paper.
