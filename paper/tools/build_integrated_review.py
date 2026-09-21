@@ -161,6 +161,14 @@ def main():
     )
     latex = re.sub(r"\\endhead\s*\\bottomrule\\noalign\{\}\s*\\endlastfoot", "", latex)
     latex = latex.replace("\\end{longtable}", "\\bottomrule\n\\end{tabular}\n\\end{table}")
+    # Keep the manually numbered Markdown caption with its table, including A1/A2.
+    latex = re.sub(
+        r"(\\end\{tabular\})\n\\end\{table\}\n\}\s*\n"
+        r"(Table (?:A)?\d+\. .*?)\n\n",
+        lambda m: m[1] + "\n\\caption*{" + m[2] + "}\n\\end{table}\n}\n\n",
+        latex,
+        flags=re.DOTALL,
+    )
     tex.write_text(latex, encoding="utf-8")
     # Pandoc emits an absolute resource path for figures; compile in this isolated directory.
     for iteration in range(2):

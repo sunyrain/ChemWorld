@@ -489,6 +489,51 @@ def purification_figure(rows):
     save(fig, "purification")
 
 
+def evidence_figure():
+    """Compare sealed C predictions with references fitted to the same public data."""
+    data = read(REPORTS / "work-ii-c-formal-20260920-v3-auto/BASELINE_REANALYSIS.json")
+    rows = data["rows"]
+    assert len(rows) == len({r["id"] for r in rows}) == 30
+    metrics = (
+        ("crystal_yield", "Net crystal recovery"),
+        ("crystal_purity", "Crystal purity"),
+        ("crystal_size", "Particle-size index"),
+        ("crystal_fines_fraction", "Fines fraction"),
+    )
+    fig, axs = plt.subplots(2, 2, figsize=(9.8, 7.0), layout="constrained")
+    for ax, (metric, title) in zip(axs.flat, metrics, strict=True):
+        limit = max(
+            max(r["agent_mae"][metric], r["public_baselines"]["mae"]["public_mean"][metric])
+            for r in rows
+        ) * 1.08
+        ax.plot([0, limit], [0, limit], color="#89979f", ls="--", lw=1, zorder=0)
+        wins = 0
+        for r in rows:
+            x = r["public_baselines"]["mae"]["public_mean"][metric]
+            y = r["agent_mae"][metric]
+            wins += y < x
+            ax.scatter(
+                x, y, c=COLORS[r["arm"]], s=37, alpha=0.85,
+                marker=("o" if r["budget"] == 12 else "^") if r["conforming"] else "x",
+            )
+        ax.set(
+            xlim=(0, limit), ylim=(0, limit), aspect="equal",
+            xlabel="Public-mean MAE", ylabel="Agent MAE",
+            title=f"{title}: agent wins {wins}/30",
+        )
+        ax.ticklabel_format(axis="both", style="plain", useOffset=False)
+    from matplotlib.lines import Line2D
+
+    handles = [
+        Line2D([], [], color=COLORS[a], marker="o", ls="", label=a) for a in ARMS
+    ] + [
+        Line2D([], [], color="#333333", marker=m, ls="", label=label)
+        for m, label in (("o", "12 batches"), ("^", "24 batches"), ("x", "Source shortfall"))
+    ]
+    fig.legend(handles=handles, loc="outside lower center", ncol=3, frameon=False, fontsize=9)
+    save(fig, "evidence")
+
+
 def export(rows, closure):
     flat = []
     for r in rows:
@@ -619,7 +664,8 @@ def main():
     budget_figure(rows)
     prior_figure(rows)
     purification_figure(rows)
-    print("Five figures and complete campaign tables rendered from retained results.")
+    evidence_figure()
+    print("Six figures and complete campaign tables rendered from retained results.")
 
 
 if __name__ == "__main__":

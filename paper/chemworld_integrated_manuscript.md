@@ -31,28 +31,29 @@ draft_status: "Integrated review manuscript; observed six-system development evi
 
 # Abstract
 
-Autonomous scientific discovery requires converting limited experiments into knowledge that
-remains useful under new interventions. Evaluating this ability in real laboratories is
-difficult because the underlying mechanisms are incompletely known and agents choose the
-evidence on which they are later judged. We introduce ChemWorld, a programmable framework
-for constructing chemical worlds with evaluator-known process laws, persistent experimental
-state, explicit resources, and controllable public information. Composable process and
-observation models, qualified execution, and exact environment replay connect agents'
-scientific claims to the experiments that precede them. Using this framework, we study 240
-autonomous research campaigns across six chemical system families, with opaque, aligned, or
-misindexed prior information and system-specific discovery, characterization, or constrained
-delivery objectives. Agents freely select experiments and formulate mechanisms before
-predicting outcomes at withheld conditions. The results expose a separation between useful
-operation and predictive reliability. In electrochemistry, optimization assignments improve
-recommendation retests in 26 of 30 matched comparisons but improve score prediction in only
-14. Increasing the experimental budget substantially reduces prediction error in
-electrochemistry and phase partitioning, while particle-quality prediction and uncertainty
-calibration remain difficult in downstream processing. Prior information has no uniform
-performance ordering across tasks or response variables. These findings support evaluating
-scientific agents through distinct measures of operational quality, predictive accuracy,
-and uncertainty, with mechanistic accounts grounded in recorded evidence. ChemWorld provides
-an experimental basis for investigating how autonomous agents acquire, revise, and use
-scientific knowledge.
+Autonomous scientific discovery requires turning limited experiments into knowledge that
+predicts new interventions. This ability is difficult to evaluate in real laboratories,
+where mechanisms are incompletely known and agents choose their own evidence. We introduce
+ChemWorld, a programmable framework combining evaluator-known process laws, persistent
+experimental state, explicit resources, and independently controlled public information.
+Composable process and observation models and exact environment replay connect scientific
+claims to the experiments that precede them. We use this instrument to study 240 autonomous
+research campaigns across six chemical system families, with system-specific objectives
+and opaque, aligned, or misindexed prior information. Agents freely select experiments and
+formulate mechanisms before predicting withheld conditions. We first show that operational
+achievement and predictive knowledge can diverge: electrochemical optimization improves
+recommendation retests in 26 of 30 matched comparisons but improves score prediction in
+only 14. Larger research budgets reduce prediction error in electrochemistry and phase
+partitioning, while substantial response-specific errors persist in crystallization.
+Prior information helps in some tasks and hurts in others, without a common ordering.
+Finally, comparisons against the agents' own observed data reveal selective extrapolation
+failures: all 30 crystallization purity predictions lose to a public-observation mean,
+whereas net-recovery predictions beat it in 26 campaigns. The low variation of withheld
+purity targets explains the strength of this simple reference. Together, these results
+motivate evaluating autonomous science through the linked but distinct abilities to
+achieve objectives, predict interventions, and express warranted uncertainty. ChemWorld
+provides a controlled basis for investigating how experimental evidence constrains
+scientific accounts.
 
 # 1. Introduction
 
@@ -104,6 +105,13 @@ physical and information controls; a common assessment sequence that preserves a
 experiment selection and unrestricted mechanism expression across scientific commissions;
 and complete selected cohorts showing how operational and predictive outcomes diverge.
 Unfavorable comparisons and incomplete source campaigns remain part of the evidence.
+
+The argument proceeds from what counts as successful research to what might improve
+it. After introducing the instrument and protocol, we compare task achievement with
+prediction (Section 4), examine larger research budgets (Section 5), and test supplied
+prior information (Section 6). We then relate prediction failures to the observations
+and accounts that preceded them (Section 7). This progression separates established
+outcome patterns from hypotheses about why they occur.
 
 # 2. ChemWorld as an experimental instrument
 
@@ -193,7 +201,7 @@ is not a certificate for every later execution surface.
 ## 3.1 System-specific commissions and matched information conditions
 
 The study comprises 240 scheduled research campaigns across six system families and eight
-study blocks (Table 2). Every block uses five world instances and three information arms.
+study blocks (Appendix A.1). Every block uses five world instances and three information arms.
 The same physical world, available operations, and withheld-condition questions are used
 across arms within a block. World identities and treatment labels remain evaluator-side.
 
@@ -212,22 +220,8 @@ concern process relationships. Each E, P, or S study therefore contains Opaque, 
 and MisIndexed arms. The purification system abbreviation P is distinct from the
 parameter-prior label P.
 
-| System / prior locus | Scientific commission | Budgets | Campaigns | Final-assayed batches |
-|---|---|---:|---:|---:|
-| EC / E: electrochemistry | Discovery; score optimization | 12, 24 | 60 | 1,080 / 1,080 |
-| PA / E: phase partitioning | Explain phase allocation | 12, 24 | 30 | 540 / 540 |
-| RX / P and S: reaction and thermal processing | Discovery; safety-constrained optimization | 12 | 60 | 720 / 720 |
-| EQ / E: medium identity | Characterize entity-conditioned responses | 12 | 15 | 180 / 180 |
-| EQ / P: bounded equilibrium | Characterize effective responses | 12 | 15 | 180 / 180 |
-| EQ / S: structural equilibrium | Explain response structure | 12 | 15 | 180 / 180 |
-| C / E: crystallization | Deliver crystals under quality constraints | 12, 24 | 30 | 539 / 540 |
-| P / E: purification | Recover product subject to purity | 12 | 15 | 178 / 180 |
-| **Total** | **Six system families** | | **240** | **3,597 / 3,600** |
-
-Table 2. Complete selected study scope. Each campaign has one agent realization. One C
-campaign exhausts its solvent stock and discards its twelfth vessel, completing eleven final assays. One P campaign uses all twelve vessel starts
-but discards two vessels, leaving ten final assays. All campaigns have sealed mechanism,
-prediction, and reflection stages; 238 meet the full source-and-assessment specification.
+The complete campaign matrix, assay denominators, and source shortfalls are reported
+in Appendix A.1. The following commissions determine what successful research means.
 
 EC agents vary materials, potential, current cap, duration, and legal operation sequences.
 Optimization targets the public balanced-efficiency score; discovery targets an explanatory
@@ -313,24 +307,13 @@ $$
 \left|\hat y_{cqm}-y^{\mathrm{ref}}_{qm}\right|.
 $$
 
-The reference target follows each block's contract (Table 3). RX and EQ compare point
+The reference target follows each block's contract (Table A2). RX and EQ compare point
 predictions to five-repeat means and measure interval coverage across individual
 reference observations. EC and P use fixed seeded reference observations; PA and C use
 underlying pre-sampling response values. These different targets should not be pooled
 into a common accuracy or calibration score.
 
-| System | Prediction responses | Reference target | Interval level |
-|---|---|---|---:|
-| EC | Six conversion/efficiency responses, including score | Seeded final observation | 80% |
-| PA | Organic and aqueous product fractions | Noiseless pre-sampling fractions | 90% |
-| RX | Yield, conversion, selectivity, byproduct signal, risk, score | Five-observation mean; coverage over observations | 80% |
-| EQ / E, P and S | Normalized pH, dissociation, precipitation signal | Five-observation mean; coverage over observations | 80% |
-| C | Net recovery, purity, size index, fines fraction | Noiseless pre-assay responses | 80% |
-| P | Purity, original-charge recovery | Seeded final observation | 80% |
-
-Table 3. Every campaign predicts twelve conditions. PA fractions are complementary,
-and its two decision questions reuse the conditions. Reference repeats reduce
-observation noise but do not add agent sessions.
+Appendix A.2 lists every response, reference target, and nominal interval level.
 
 Campaign metrics receive equal weight within a reported condition. Goal contrasts match
 world, arm, budget, and locus; budget contrasts match world, arm, and goal. All scheduled
@@ -347,9 +330,32 @@ results are not replaced. Two source-budget shortfalls remain explicitly marked 
 summaries. These agent studies are development evidence, distinct from the platform's
 frozen qualification.
 
-# 4. Results
+## 3.5 A sequence of scientific questions
 
-## 4.1 Better operating recommendations do not imply better prediction
+The experimental chapters follow four questions (Table 2). These are complementary
+views of the completed studies, not four new cohorts or a sequence of causal exclusions.
+The same campaigns contribute to multiple analyses, so their evidence is not independent.
+
+| Chapter | Question | Comparison used |
+|---|---|---|
+| 4: Achievement | Does a better procedure imply better prediction? | Matched EC/RX goals; P constrained delivery |
+| 5: Resources | Which errors respond to more research? | EC, PA, C: independent 12/24 sessions |
+| 6: Prior information | When does supplied knowledge help? | Opaque/Aligned/MisIndexed within each block |
+| 7: Evidence use | How do forecasts relate to acquired evidence? | C same-source references; C/EC traces; P paired query |
+
+Table 2. Study logic. The full eight-block matrix is in Appendix A.1. Each chapter
+states its comparison and interpretive limits before motivating the next question.
+
+# 4. Task achievement and predictive knowledge can diverge
+
+Does finding a better operating condition imply learning more useful scientific
+relationships? We first change the assigned objective while preserving the world,
+information arm, budget, and assessment. EC and RX supply this matched goal comparison.
+P then clarifies how to interpret operational achievement when the scientific commission
+itself contains a quality constraint. P is a separate delivery study, not another
+discovery-versus-optimization contrast.
+
+## 4.1 Changing the research objective separates two outcomes
 
 Electrochemistry provides the clearest separation between operational improvement and
 predictive accuracy. Across 30 matched goal comparisons, optimization yields a higher
@@ -375,7 +381,53 @@ measured separately: their relationship changes with the system and assignment.
 
 ![Goal contrasts with the same prediction endpoint. Points compare optimization with discovery in matched conditions; colors denote arms and shapes denote five worlds. Rightward means a better retest, upward means worse score prediction. Each panel contains 30 pairs clustered in five worlds. EC includes two budgets and RX two prior loci; scores and reference targets differ, so magnitudes are not pooled.](figures/integrated-results/goals.pdf){width=100%}
 
-## 4.2 Additional resources improve prediction unevenly
+## 4.2 A useful outcome must satisfy the actual scientific commission
+
+Purification makes the distinction between outcome dimensions concrete. Aligned
+recommendations achieve purity at least 0.80 in three of five worlds, compared with
+none for Opaque or MisIndexed. Yet Aligned's mean original-charge recovery is 0.04455,
+compared with 0.12373 and 0.32105, respectively (Figure 3). The largest recovery is
+not the best delivery under the stated constraint. One Opaque retest has purity
+0.7992, close to the threshold; continuous endpoints are essential alongside
+categorical counts, especially with one noisy retest per recommendation.
+
+Predictive ordering also depends on the response. Aligned has the lowest mean purity
+MAE, while Opaque has the lowest recovery MAE (Table 3). Removing pairs involving the
+nonconforming P source retains the directions of these mean contrasts, with four
+world pairs remaining for comparisons against Opaque.
+
+| Arm | Purity MAE | Recovery MAE | Purity coverage | Recovery coverage | Eligible retests |
+|---|---:|---:|---:|---:|---:|
+| Opaque | 0.22396 | 0.06677 | 51.7% | 56.7% | 0 / 5 |
+| Aligned | 0.18830 | 0.06865 | 53.3% | 51.7% | 3 / 5 |
+| MisIndexed | 0.25078 | 0.07271 | 50.0% | 53.3% | 0 / 5 |
+
+Table 3. Purification prediction and retest outcomes. Nominal coverage is 80%, against
+fixed seeded observations. All fifteen recommendations execute legally; execution
+validity is distinct from meeting the scientific objective.
+
+Across arms and responses, nominal 80% intervals cover only 50.0% to 56.7% of targets.
+Thus even the interpretation of operational success requires multiple responses:
+recovery without sufficient purity does not satisfy this commission, and a qualifying
+recipe does not establish reliable predictions of either response.
+
+![Purification delivery and uncertainty. Left: all fifteen recommendation retests, with the purity threshold dashed. Right: campaign-level interval coverage and arm means; the dashed line is nominal 80%. World markers and arm colors follow Figure 2; a cross marks the source shortfall.](figures/integrated-results/purification.pdf){width=100%}
+
+The goal experiments establish a separation between achievement and prediction, while
+the delivery study shows why achievement must respect the system's constraints. The
+next question is whether a larger research budget narrows these gaps. This motivates a
+complementary comparison rather than a claim that the preceding experiments identified
+the cause of predictive failure.
+
+# 5. More research helps, but does not resolve every prediction failure
+
+We compare independent 12- and 24-batch campaigns in EC, PA, and C, matching world,
+arm, and goal. Each readout has fifteen pairs nested in five worlds. This asks what
+changes when the research envelope expands; it does not force the agent to acquire a
+particular additional set of observations. RX, EQ, and P have no matched 24-batch cohort
+and are not used to answer this question.
+
+## 5.1 Larger budgets improve electrochemical and partition predictions
 
 Increasing the budget from 12 to 24 lowers mean score-prediction MAE by 35.4% for EC
 discovery and 39.3% for EC optimization. PA organic-fraction error falls by 71.3%
@@ -401,6 +453,8 @@ campaign rise from 25 of 30 correct to 30 of 30, while intervals narrow. Coverag
 EC's 24-batch score coverage remains below nominal at 71.7% and 73.9%. Point accuracy
 and uncertainty reliability improve at different rates.
 
+## 5.2 Crystallization retains response-specific errors
+
 Crystallization shows why more resources do not remove every difficulty. Recovery MAE
 decreases from 0.10433 to 0.07937, but fines-fraction MAE remains 0.27000 after 24
 batches, with only 43.9% coverage for nominal 80% intervals. Recommendations meet
@@ -408,6 +462,14 @@ particle and purity criteria in 12 of 15 retests at each budget; ten at each bud
 also reach the initial recovery target of 0.10. Mean retest recovery changes from
 0.42054 to 0.39939. More resources improve several predictions without a corresponding
 improvement in this constrained-delivery endpoint.
+
+The paired conformance sensitivity matters here. Removing C's incomplete 12-batch
+source and its matched 24-batch counterpart reduces the net-recovery MAE change from
+-0.02496 over fifteen pairs to -0.00782 over fourteen. The size-index change reverses
+from -0.00323 to +0.00698. Fines still improve on average in the conforming pairs
+(-0.02549), but remain difficult. All thirty C campaigns have fines coverage below
+nominal 80%. By contrast, the directions of the EC and PA mean budget improvements
+survive removing any one world. These are influence checks, not confidence intervals.
 
 ![Budget contrasts. Thin lines connect the same world and arm across independent 12- and 24-batch sessions; dark diamonds show means. Colors follow Figure 2. The cross marks C's source shortfall. EC panels predict score, PA predicts organic fraction, and C predicts fines fraction; vertical scales differ.](figures/integrated-results/budgets.pdf){width=100%}
 
@@ -417,74 +479,162 @@ whether an agent needed broader coverage, replication, a better model, or better
 of evidence already obtained. Retained histories permit those explanations to be
 examined without treating them as established by the budget contrast itself.
 
-## 4.3 Prior information has no uniform performance ordering
+Budget expansion therefore helps several predictions without producing uniformly
+reliable knowledge. We next examine a different resource: information supplied before
+experimentation. A useful prior could guide both what to investigate and how to explain
+it, but that advantage must be tested within each scientific commission.
 
-The complete arm comparisons have no common ordering (Figure 4). In EC discovery,
-MisIndexed has the lowest mean score-prediction MAE at both budgets: 0.13206 and
-0.07133, compared with Opaque's 0.19534 and 0.12011 and Aligned's 0.19393 and 0.14521.
-It beats Opaque in four of five worlds at each budget. Under EC optimization, Aligned
-instead has the lowest mean error and highest mean recommendation score at both
-budgets; its prediction beats MisIndexed in four of five worlds at each budget.
+# 6. Prior information has conditional value
 
-PA similarly resists a single ranking. Aligned has the lowest mean error at 12 batches,
-whereas MisIndexed has the lowest at 24. At 24, however, Aligned beats each comparator
-in three of five worlds; larger errors in the remaining worlds change the mean
-ordering. Paired directions and error magnitudes are both needed.
+The three-arm studies ask whether a supplied dossier improves autonomous research in
+the same world. Opaque, Aligned, and MisIndexed differ in the dossier under test, while
+the public operations, world physics, and assessment remain fixed within each block.
+Because agents choose their own experiments, these are comparisons of complete research
+processes. They combine any change in evidence acquisition with any change in interpretation.
 
-RX discovery changes ordering across loci. Parameter-prior macro errors for Opaque,
-Aligned, and MisIndexed are 0.10186, 0.05701, and 0.05457; structural-prior errors are
-0.08404, 0.09209, and 0.10159. Bounded EQ/P favors Opaque on macro error (0.01214 versus
-0.04314 and 0.03928). EQ/E also has similar arm means (0.01483, 0.01672, and 0.01460),
-with 80% interval coverage of 84.6%, 85.3%, and 83.1%, respectively. Canonical EQ/S means
-are likewise close (0.01408, 0.01590, and
-0.01345), with different world-level orderings. Information content and query designs
-differ across these studies; comparing them does not isolate a causal advantage of
-one prior locus over another.
+## 6.1 Aligned parameter information helps RX but hurts bounded EQ
 
-![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these selected readouts with all metric-specific arm means, including EQ/E.](figures/integrated-results/priors.pdf){width=100%}
+Two parameter-prior studies illustrate the range of effects (Table 5). In RX discovery,
+Aligned reduces the within-system macro MAE from 0.10186 to 0.05701, beating Opaque in
+four of five worlds. Its mean advantage persists when any one world is removed. RX
+optimization also favors Aligned on mean macro error, with four of five paired wins.
+These results show that the supplied information can help under both commissions.
 
-These outcomes do not establish that inaccurate information is intrinsically useful.
-A changed dossier can alter both experimental choices and subsequent inference, so
-arms acquire different data. With one stochastic realization per condition, the
-observed rankings cannot isolate reasoning conditional on identical evidence or prove
-that a particular supplied false claim was accepted, rejected, or corrected.
+In bounded EQ/P, the ordering reverses: Opaque beats both dossier conditions in every
+world. Aligned provides a true interval for the world's effective pKa, not its complete
+coupled response law. Mean macro MAE rises from 0.01214 under Opaque to 0.04314 under
+Aligned. Mean interval coverage falls from 91.3% to 69.0%, while width narrows from
+0.07448 to 0.04526. MisIndexed likewise has higher error and narrower intervals than
+Opaque. In this block, additional information accompanies less accurate and more
+confident prediction; the endpoint comparison does not establish how that arose.
 
-## 4.4 Quality constraints expose failures hidden by aggregate recovery
+| Study / response | Opaque | Aligned | MisIndexed |
+|---|---:|---:|---:|
+| RX/P discovery / macro | 0.10186 | 0.05701 | 0.05457 |
+| RX/P optimization / macro | 0.13893 | 0.08384 | 0.12967 |
+| EQ/P characterization / macro | 0.01214 | 0.04314 | 0.03928 |
+| EC/E discovery, 24 / score | 0.12011 | 0.14521 | 0.07133 |
+| EC/E optimization, 24 / score | 0.11127 | 0.09961 | 0.11365 |
+| C/E, 24 / net recovery | 0.09107 | 0.06839 | 0.07863 |
+| C/E, 24 / fines fraction | 0.22808 | 0.27737 | 0.30456 |
 
-Purification makes the distinction between outcome dimensions concrete. Aligned
-recommendations achieve purity at least 0.80 in three of five worlds, compared with
-none for Opaque or MisIndexed. Yet Aligned's mean original-charge recovery is 0.04455,
-compared with 0.12373 and 0.32105, respectively (Figure 5). The largest recovery is
-not the best delivery under the stated constraint. One Opaque retest has purity
-0.7992, close to the threshold; continuous endpoints are essential alongside
-categorical counts, especially with one noisy retest per recommendation.
+Table 5. Selected contrasts illustrating conditional prior value. Entries are mean
+MAEs over five worlds; rows have different targets and are not pooled. Appendix A.6
+shows the broader world-level comparisons, and Appendix B includes every response.
 
-Predictive ordering also depends on the response. Aligned has the lowest mean purity
-MAE, while Opaque has the lowest recovery MAE (Table 5). Removing pairs involving the
-nonconforming P source retains the directions of these mean contrasts, with four
-world pairs remaining for comparisons against Opaque.
+## 6.2 Rankings also change with the goal and response
 
-| Arm | Purity MAE | Recovery MAE | Purity coverage | Recovery coverage | Eligible retests |
-|---|---:|---:|---:|---:|---:|
-| Opaque | 0.22396 | 0.06677 | 51.7% | 56.7% | 0 / 5 |
-| Aligned | 0.18830 | 0.06865 | 53.3% | 51.7% | 3 / 5 |
-| MisIndexed | 0.25078 | 0.07271 | 50.0% | 53.3% | 0 / 5 |
+EC's entity-prior study changes ranking across goals. MisIndexed has the lowest mean
+score-prediction MAE under discovery at both budgets, beating Opaque in four of five
+worlds each time. Under optimization, Aligned has the lowest mean score error and
+highest mean recommendation score at both budgets. Thus the observed value of a
+dossier depends on the commission even within the same system.
 
-Table 5. Purification prediction and retest outcomes. Nominal coverage is 80%, against
-fixed seeded observations. All fifteen recommendations execute legally; execution
-validity is distinct from meeting the scientific objective.
+C shows a response-level separation. At 24 batches Aligned has the lowest mean
+net-recovery error, but Opaque has the lowest fines error and beats MisIndexed on
+fines in all five worlds. P similarly favors Aligned for purity prediction and
+Opaque for recovery prediction (Table 3). Averaging these endpoints into one ranking
+would hide what the information actually helps the agent predict.
 
-Across arms and responses, nominal 80% intervals cover only 50.0% to 56.7% of targets.
-The paired-query analysis also finds thirteen of fifteen campaigns incorrectly
-predicting a purity change exceeding the declared small-effect threshold for the
-wash-staging pair. This is a shared error on one registered contrast, not evidence
-that all agents adopted the same mechanism or that wash staging can never matter.
-Together with C's persistent fines errors, it motivates evaluating individual
-responses and interventions in addition to a recommended endpoint.
+Other comparisons are less stable. PA favors Aligned by mean error at 12 batches,
+and MisIndexed at 24; at 24, Aligned nevertheless wins against each comparator in
+three of five worlds because larger errors in the other worlds change the mean.
+EQ/E macro means are 0.01483, 0.01672, and 0.01460 for Opaque, Aligned, and MisIndexed;
+EQ/S means are 0.01408, 0.01590, and 0.01345. Their rankings vary across worlds. Close
+means are not an equivalence test. RX/S also lacks the consistent aligned advantage
+seen in RX/P. The full comparisons preserve these mixed and unfavorable results.
 
-![Purification delivery and uncertainty. Left: all fifteen recommendation retests, with the purity threshold dashed. Right: campaign-level interval coverage and arm means; the dashed line is nominal 80%. World markers and arm colors follow Figure 2; a cross marks the source shortfall.](figures/integrated-results/purification.pdf){width=100%}
+## 6.3 What the information intervention establishes
 
-## 4.5 A trajectory links limited exploration to an overbroad account
+The supported conclusion is conditional value, not that incorrect information is
+intrinsically useful or that parameter priors outperform structural priors. Different
+locus studies can change worlds, dossier content, and query designs. Their cross-study
+contrasts do not isolate the locus itself. Even within a block, one realization per
+cell cannot tell whether a false claim was accepted, rejected, or corrected merely
+from the final ranking.
+
+Neither additional budget nor aligned information guarantees uniformly reliable
+prediction in the completed studies. To examine where the remaining errors arise,
+we now return to the acquired observations and the agent's explicit accounts. This
+analysis is descriptive and does not causally separate acquisition from inference.
+
+# 7. Acquired evidence does not always constrain extrapolation
+
+A prediction error can arise because the agent did not obtain relevant evidence,
+because the evidence permits several explanations, or because its forecast makes poor
+use of available observations. The preceding endpoint contrasts do not distinguish
+these possibilities. We use two complementary analyses: public-data prediction
+references for every C campaign, followed by explicitly selected trajectories linking
+experiments, stated scope, and predictions. No cohort-wide mechanism score is inferred
+from these cases.
+
+## 7.1 Simple references expose selective prediction failures
+
+For each C campaign, we compare the agent with the mean of its own public final-assay
+observations and a nearest-neighbor predictor built from those observations and public
+recipe features. Neither baseline accesses hidden truth during fitting. They reuse the
+agent's acquired data, so a baseline advantage cannot be explained by its receiving
+additional experiments. They do not, however, reproduce the agent's full prior,
+intermediate observations, or computational policy, and are modest empirical references
+rather than strong system-identification methods.
+
+| Response / budget | Agent | Public mean | Nearest neighbor | Agent wins vs mean |
+|---|---:|---:|---:|---:|
+| Net recovery / 12 | 0.10433 | 0.19196 | 0.19000 | 13 / 15 |
+| Net recovery / 24 | 0.07937 | 0.15075 | 0.15617 | 13 / 15 |
+| Purity / 12 | 0.05029 | 0.00475 | 0.00783 | 0 / 15 |
+| Purity / 24 | 0.03679 | 0.00489 | 0.01027 | 0 / 15 |
+| Size index / 12 | 0.07085 | 0.02114 | 0.02520 | 0 / 15 |
+| Size index / 24 | 0.06762 | 0.02577 | 0.02896 | 4 / 15 |
+| Fines fraction / 12 | 0.30999 | 0.31946 | 0.31877 | 9 / 15 |
+| Fines fraction / 24 | 0.27000 | 0.31357 | 0.32975 | 12 / 15 |
+
+Table 6. C prediction MAEs from the same acquired final observations. All thirty
+campaigns are retained, including the eleven-assay source. The repaired parser restores
+two missing baseline evaluations; the other twenty-eight are unchanged. No agent
+predictions or source experiments were rerun.
+
+The contrast is selective (Figure 5). Agents improve over the public mean for net
+recovery in 26 of 30 campaigns, but lose for purity in all thirty and for size in
+26. This does not imply a general inability to use experimental data. Nor does the
+purity baseline demonstrate mechanism discovery: withheld purity varies little,
+with mean within-world query span approximately 0.02442. A near-constant forecast
+is consequently a strong reference for this response.
+
+The signed errors show what goes wrong numerically. Mean source purity is about
+0.985 at both budgets and mean withheld purity is 0.98508, yet mean predictions are
+0.93544 and 0.94893. In total, 335 of 360 purity forecasts are too low. This is a
+query count nested within thirty campaigns and five worlds, not 360 independent
+replications. Size is overpredicted by about 0.065 on average and fines are
+underpredicted by 0.21890 and 0.18274 at the two budgets. These patterns motivate
+examining how the observations constrain extrapolation, without identifying a unique
+psychological or mechanistic cause.
+
+![Same-source empirical references reveal response-specific failures in crystallization. Each panel compares agent MAE with the mean of its own public final observations for all thirty campaigns. Points above the diagonal favor the public mean. Colors denote prior arms; circles and triangles denote 12 and 24 batches. The cross marks the eleven-assay source. Panels have different scales and reuse five worlds.](figures/integrated-results/evidence.pdf){width=100%}
+
+## 7.2 Recognizing the limits of evidence does not ensure calibrated forecasts
+
+Consider the fifth-world, 12-batch MisIndexed C campaign, selected retrospectively
+because it has the largest purity MAE in the 12-batch cohort. All twelve source
+experiments use one solvent and observe purity from 0.97571 to 1.00000, with mean
+0.98731. The sealed mechanism report acknowledges that no other solvent was tested
+and that its superiority remains an interpretation rather than a demonstrated ranking.
+Thus the report explicitly recognizes an important limitation of the evidence.
+
+Nevertheless, the twelve subsequent purity predictions range from 0.84 to 0.94,
+with mean 0.86833. The withheld values range from 0.97508 to 0.99962, with mean
+0.98566. Every point forecast is low; none of the nominal 80% intervals contains
+its target. Agent MAE is 0.11733, compared with 0.00441 for the public mean. The
+retrospective interview still acknowledges high observed purity and the untested
+solvents.
+
+Changed query procedures mean that high source purity alone does not logically force
+high withheld purity. The diagnostic observation is narrower: explicit awareness of
+the source values and their limits does not ensure an empirically competitive,
+calibrated extrapolation. The report and prediction can be compared without asserting
+that the model forgot the data or that writing the report caused information loss.
+
+## 7.3 Sparse exploration can also precede an overbroad account
 
 In one Opaque EC discovery campaign, the first experiment at +1.5 V performs poorly.
 The agent tests -1.5, -0.5, and -2.5 V next, then concentrates remaining experiments at
@@ -507,9 +657,22 @@ campaigns, including successful revision and justified unresolved alternatives.
 What this trace establishes is directly observable: which experiments occurred,
 what the report claimed, and where the predictions failed.
 
-# 5. Discussion
+P offers a related intervention-specific diagnostic: thirteen of fifteen campaigns
+predict a resolvable purity change for the wash-staging pair when the registered
+0.02 small-effect criterion calls for a small change. This is a repeated error on
+one contrast, not evidence that the agents share one false mechanism or that wash
+staging is physically irrelevant in general.
 
-## 5.1 Scientific evaluation needs more than a successful endpoint
+Taken together, these analyses distinguish observable patterns that a final score
+would merge: limited coverage followed by an overbroad claim, explicit recognition
+of evidence limits followed by inaccurate extrapolation, and response-specific errors
+relative to simple summaries of the available data. They motivate a systematic analysis
+of claims and supporting experiments. They do not yet estimate the prevalence of each
+failure mechanism or show that one mechanism caused the endpoint dissociations.
+
+# 8. Discussion
+
+## 8.1 Scientific evaluation needs more than a successful endpoint
 
 The dissociations clarify what operating benchmarks measure. A recommendation tests
 whether an agent can propose a useful procedure. Withheld-condition prediction tests
@@ -525,7 +688,7 @@ particle predictions. A nominal relation can be useful locally without being a
 complete law. Separate physical, informational, and evaluation interfaces preserve
 these distinctions rather than collapse them into one success score.
 
-## 5.2 Evidence acquisition and interpretation need separate explanations
+## 8.2 Evidence acquisition and interpretation need separate explanations
 
 An agent may never perform the intervention needed to challenge a claim. It may
 instead acquire contradictory evidence and omit it, or recognize that observations
@@ -548,7 +711,7 @@ and prediction questions fixed. Separating a prior's influence on experiment
 selection from its influence on inference similarly requires matched-evidence
 interventions. The platform enables these studies, but they are not current results.
 
-## 5.3 Scope and limitations
+## 8.3 Scope and limitations
 
 The physical models are controlled abstractions qualified within finite domains,
 not validated representations of all chemistry. The six studied families share
@@ -569,7 +732,7 @@ complete. We distinguish quantitative findings from illustrative trajectories an
 hypotheses about their causes. The evidence supports separate evaluation dimensions;
 it does not yet establish a universal taxonomy or causal theory of information loss.
 
-# 6. Related work
+# 9. Related work
 
 Autonomous chemistry systems demonstrate tool use, planning, and physical execution
 by language-model agents and robotic laboratories [@boiko2023autonomous;
@@ -594,14 +757,15 @@ information conditions, prediction, calibration, and recommendation retests. The
 empirical contribution lies in the observed relationships and the preserved evidence
 needed to inspect them.
 
-# 7. Conclusion
+# 10. Conclusion
 
 ChemWorld makes the experimental foundations of autonomous scientific claims
 observable and controllable. Across the completed six-system study, better operating
 procedures, more accurate predictions, and reliable uncertainty do not consistently
 emerge together. Additional resources help several prediction tasks, and prior
 information changes outcomes, but neither has a uniform effect across commissions
-and responses. Evaluating scientific agents therefore requires recording what they
+and responses. Same-source empirical references further reveal selective extrapolation
+failures that aggregate task scores obscure. Evaluating scientific agents therefore requires recording what they
 investigated, what they claim, and what their accounts can predict, alongside the
 quality of the procedures they recommend.
 
@@ -619,7 +783,41 @@ distributable materials.
 
 # Appendix A. Protocol detail and evidence handling
 
-## A.1 System-specific predictions
+## A.1 Complete study matrix
+
+| System / prior locus | Scientific commission | Budgets | Campaigns | Final-assayed batches |
+|---|---|---:|---:|---:|
+| EC / E: electrochemistry | Discovery; score optimization | 12, 24 | 60 | 1,080 / 1,080 |
+| PA / E: phase partitioning | Explain phase allocation | 12, 24 | 30 | 540 / 540 |
+| RX / P and S: reaction and thermal processing | Discovery; safety-constrained optimization | 12 | 60 | 720 / 720 |
+| EQ / E: medium identity | Characterize entity-conditioned responses | 12 | 15 | 180 / 180 |
+| EQ / P: bounded equilibrium | Characterize effective responses | 12 | 15 | 180 / 180 |
+| EQ / S: structural equilibrium | Explain response structure | 12 | 15 | 180 / 180 |
+| C / E: crystallization | Deliver crystals under quality constraints | 12, 24 | 30 | 539 / 540 |
+| P / E: purification | Recover product subject to purity | 12 | 15 | 178 / 180 |
+| **Total** | **Six system families** | | **240** | **3,597 / 3,600** |
+
+Table A1. Complete selected study scope. Each campaign has one agent realization. One C
+campaign exhausts its solvent stock and discards its twelfth vessel, completing eleven final assays. One P campaign uses all twelve vessel starts
+but discards two vessels, leaving ten final assays. All campaigns have sealed mechanism,
+prediction, and reflection stages; 238 meet the full source-and-assessment specification.
+
+## A.2 Prediction targets and system-specific questions
+
+| System | Prediction responses | Reference target | Interval level |
+|---|---|---|---:|
+| EC | Six conversion/efficiency responses, including score | Seeded final observation | 80% |
+| PA | Organic and aqueous product fractions | Noiseless pre-sampling fractions | 90% |
+| RX | Yield, conversion, selectivity, byproduct signal, risk, score | Five-observation mean; coverage over observations | 80% |
+| EQ / E, P and S | Normalized pH, dissociation, precipitation signal | Five-observation mean; coverage over observations | 80% |
+| C | Net recovery, purity, size index, fines fraction | Noiseless pre-assay responses | 80% |
+| P | Purity, original-charge recovery | Seeded final observation | 80% |
+
+Table A2. Every campaign predicts twelve conditions. PA fractions are complementary,
+and its two decision questions reuse the conditions. Reference repeats reduce
+observation noise but do not add agent sessions.
+
+
 
 EC's twelve conditions balance positive and negative potential while varying duration,
 materials, and current cap at a stated loading. Its six responses are selective
@@ -659,7 +857,7 @@ Apparent retest threshold crossings can therefore reflect noise. Macro errors we
 system's responses equally; normalized scales do not make responses physically or
 scientifically interchangeable.
 
-## A.2 Language, numerical tools, and stage budgets
+## A.3 Language, numerical tools, and stage budgets
 
 Source briefs and requested reports are English. EC/PA and C/P assessment instructions
 are English; RX and EQ K1/Q/K2 instructions include Chinese text requesting English
@@ -677,7 +875,7 @@ the primary E cohort. The repair is not retroactively attributed to older sessio
 Public calculation uses agent-accessible information, not hidden targets. Differences
 in numerical budgets and deadlines are execution contracts, not scientific findings.
 
-## A.3 Completion, recovery, and exclusions
+## A.4 Completion, recovery, and exclusions
 
 The primary denominator is 240 scheduled campaigns, not provider attempts. All 720
 K1/Q/K2 stages and 165 planned recommendation retests in EC, RX, C, and P are complete,
@@ -711,12 +909,23 @@ attempts do not enlarge the denominator. Their records remain separate. Frozen p
 qualification is also a separate evidence programme. These counts describe execution
 and analysis scope; they are not 240 independent chemistry replications.
 
-## A.4 Mechanistic interpretation
+## A.5 Baseline correction and trace interpretation
 
-The illustrative trace is the second-world, 12-batch Opaque EC discovery campaign;
+The C empirical references use the same source final observations for all three arms.
+A recipe parser originally rejected resource-denial transaction records in two sources.
+The correction preserves those attempts as provenance and excludes them from committed
+physical recipe features. Recomputing all thirty baselines restores the two missing
+evaluations and exactly reproduces the twenty-eight previously available results.
+Original trajectories, truth, model answers, and error records are retained; the
+correction uses no new simulator or provider calls. Unknown transaction statuses
+remain errors. This is an evaluator repair, not a change to a completed experiment.
+
+The EC illustrative trace is the second-world, 12-batch Opaque EC discovery campaign;
 its sparse-positive-coverage counterexamples are first-world, 24-batch Aligned and
 MisIndexed discovery campaigns. They are retrospectively selected examples, not a
-coded prevalence estimate.
+coded prevalence estimate. The additional C case is the fifth-world, 12-batch
+MisIndexed campaign, chosen as the largest purity MAE in the 12-batch cohort.
+Its extreme error illustrates a failure; it is not a representative sampling rule.
 
 A systematic analysis should attach each mechanistic claim to its experimental
 support, contradictory observations, stated domain, and corresponding predictions.
@@ -726,6 +935,10 @@ inconsistency. Evaluator knowledge helps identify discriminating interventions; 
 claim is not wrong merely for using an equivalent representation. Independent review
 can assist this analysis without replacing measured predictions and retests. No
 completed cohort-wide mechanism score or causal compression experiment is implied.
+
+## A.6 Full prior overview
+
+![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these selected readouts with all metric-specific arm means, including EQ/E.](figures/integrated-results/priors.pdf){width=100%}
 
 # References
 

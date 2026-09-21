@@ -12,7 +12,7 @@ bibliography, and bound qualification artifacts are unchanged by this revision.
 - Generated all-metric appendix: [chemworld_integrated_results_appendix.md](chemworld_integrated_results_appendix.md).
 - Generated campaign data: [campaign_metrics.csv](figures/integrated-results/campaign_metrics.csv), 240 campaigns and 1,065 campaign/metric rows.
 - Paired goal contrasts and totals: [analysis.json](figures/integrated-results/analysis.json).
-- Five vector figures, with PNG previews: [figure directory](figures/integrated-results).
+- Six vector figures, with PNG previews: [figure directory](figures/integrated-results).
 - Review PDF: [chemworld-integrated-review.pdf](../output/pdf/chemworld-integrated-review.pdf).
 
 The PDF includes the English source, protocol appendix, generated full metric appendix,
@@ -133,15 +133,42 @@ blocks; the present paper does not require reopening completed scientific cells.
 
 ## Completed verification
 
-The review build contains 20 pages, five vector figures, the protocol appendix, the
-complete all-metric appendix, and nine cited references. The 233-word abstract uses
-observed results. Both new scripts pass Ruff. Retained-data checks confirm 240 unique
-campaigns, 238 conforming sources, 1,065 metric rows, and the eight headline budget
-means within displayed rounding. Local document links and cited keys resolve. All
-pages were rendered for visual review; pages changed by the final figure enlargement
-were rechecked. The final LaTeX log has no overflow, missing-character, or unresolved
-reference diagnostics. No experiment execution was part of this verification.
+The revised review contains 26 pages, six vector figures, the complete protocol/matrix
+appendix, all-metric Appendix B, and nine cited references. The 247-word abstract reports
+observed results. Focused checks reproduce 240 unique campaigns, 238 conforming sources,
+1,065 metric rows, and all eight rows of the C baseline comparison, including both
+references and paired win counts. Local document links and cited keys resolve. The
+rendering and build scripts pass Ruff. Eight table captions are kept with their tables.
+All pages were rendered and visually reviewed, with enlarged inspection of new scientific
+content. The final LaTeX log has no overflow, missing-character, or unresolved-reference
+diagnostics. No experiment execution was part of this verification.
 
+## Chapter organization for collaborative analysis
+
+The English manuscript now separates four experimental chapters. The Chinese author
+narrative explains each chapter's question, design, result, boundary, and transition.
+This is a reorganization and retained-data analysis of the same pool, not four new cohorts.
+
+| Chapter | Evidence and role |
+|---|---|
+| 2: Experimental instrument | Frozen platform construction and qualification; separate from agent denominators |
+| 3: Shared research protocol | Autonomous actions and free-form mechanisms; information conditions; K1/Q/K2 and retests |
+| 4: Achievement versus prediction | Matched EC/RX goal pairs; P as a distinct quality-constrained commission |
+| 5: Research budget | EC/PA/C 12/24 contrasts; both-conforming sensitivity and world influence |
+| 6: Conditional prior value | Within-block three-arm results; positive RX/P, adverse EQ/P, goal/response dependence |
+| 7: Evidence and extrapolation | All thirty C public baselines; signed response bias; selected C/EC traces; P wash contrast |
+
+The complete eight-block matrix and target conventions are in Appendix A.1/A.2. The
+large prior overview is in A.6; full response/arm means remain in Appendix B. Figure 5
+(`evidence.pdf`) is generated from the repaired C baseline JSON, with all thirty sources,
+four responses, both budgets, all arms, and the source shortfall retained. Table 6 also
+reports nearest-neighbor performance; the prose discloses the low variation of withheld
+purity, avoiding a claim that a constant baseline itself demonstrates mechanism recovery.
+
+Chapters reuse campaigns and do not provide successive causal exclusions. The final
+chapter distinguishes numerical regularities and selected trace evidence from untested
+causes. Same-context prediction remains different from report-only knowledge transfer.
+Cohort-wide claim annotation is still unfinished and is not represented as a result.
 
 ## Remote integration and failure disposition
 
@@ -152,7 +179,7 @@ The failure review distinguishes two source nonconformances (C solvent exhaustio
 
 ## Completed detailed analysis, 21 September
 
-[Detailed paired analysis](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md) and its JSON retain 18 budget-metric comparisons, 234 prior contrasts including within-system macro readouts, 16 C baseline comparisons, and both-conforming paired sensitivity. Leave-one-world-out ranges are influence checks, not confidence intervals. [Chinese interpretation](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/INTERPRETATION_ZH.md) distinguishes endpoint findings, one explicitly selected C trace example, and untested mechanism hypotheses. This analysis is subsequent to the current review PDF; the PDF's existing numerical results are unchanged, and it does not yet include the new baseline comparison. No new model/simulator calls or historical evidence promotion occurred.
+[Detailed paired analysis](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md) and its JSON retain 18 budget-metric comparisons, 234 prior contrasts including within-system macro readouts, 16 C baseline comparisons, and both-conforming paired sensitivity. Leave-one-world-out ranges are influence checks, not confidence intervals. [Chinese interpretation](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/INTERPRETATION_ZH.md) distinguishes endpoint findings, one explicitly selected C trace example, and untested mechanism hypotheses. This analysis is now integrated into Chapters 5?7 of the review manuscript and PDF, with the C baseline comparison in Table 6 and Figure 5. The underlying agent results are unchanged. No new model/simulator calls or historical evidence promotion occurred.
 
 ```powershell
 uv run --no-sync python -m scripts.reanalyze_work_ii_c_baselines --root runs/formal/work-ii-c-five-world-20260920-v3-auto --report workstreams/flagship_tasks/reports/work-ii-c-formal-20260920-v3-auto
