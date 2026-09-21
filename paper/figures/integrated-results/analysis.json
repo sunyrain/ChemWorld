@@ -1,0 +1,944 @@
+{
+  "source_snapshot": "2026-09-21T01:45:39+08:00",
+  "remote_commit": "1eda66585df7d8ae922bb251804dec1d3bb3d058",
+  "scope": {
+    "source_slots": 225,
+    "started_sources": 225,
+    "complete_chains": 223,
+    "source_batches": 3417,
+    "planned_source_batches": 3420,
+    "K1_Q_K2_stages": 675,
+    "planned_K1_Q_K2_stages": 675,
+    "additional_EQS_stages": 15,
+    "note": "Six system families; pilot, qualification, references and retries excluded."
+  },
+  "goal_counts": {
+    "EC": {
+      "pairs": 30,
+      "better_retest": 26,
+      "lower_mae": 14,
+      "better_retest_worse_prediction": 13
+    },
+    "RX": {
+      "pairs": 30,
+      "better_retest": 9,
+      "lower_mae": 8,
+      "better_retest_worse_prediction": 5
+    },
+    "RX_macro": {
+      "pairs": 30,
+      "better_retest": 9,
+      "lower_mae": 6,
+      "better_retest_worse_prediction": 5
+    }
+  },
+  "goal_contrasts": {
+    "EC": [
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.038535475730895996,
+        "delta_mae": 0.1410035487016042,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.3555430769920349,
+        "delta_mae": -0.20474918925265467,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.30223017930984497,
+        "delta_mae": -0.08053628842532634,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Opaque",
+        "delta_retest": 0.24519771337509155,
+        "delta_mae": 0.05257758418718972,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Aligned",
+        "delta_retest": 0.29080185294151306,
+        "delta_mae": -0.053289805854360245,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W01",
+        "locus": "E",
+        "budget": 24,
+        "arm": "MisIndexed",
+        "delta_retest": 0.0132523775100708,
+        "delta_mae": 0.15522476430237295,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.12722337245941162,
+        "delta_mae": 0.0023548757870991976,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.0436210036277771,
+        "delta_mae": 0.013080077648162852,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.25908833742141724,
+        "delta_mae": -0.22596225297451017,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Aligned",
+        "delta_retest": 0.21044683456420898,
+        "delta_mae": -0.01110215707371632,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 24,
+        "arm": "MisIndexed",
+        "delta_retest": 0.231856107711792,
+        "delta_mae": -0.00846366194883983,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W02",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Opaque",
+        "delta_retest": 0.24496448040008545,
+        "delta_mae": -0.08309910166263579,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.1973896622657776,
+        "delta_mae": 0.06278434882561365,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.06329154968261719,
+        "delta_mae": 0.18068313890695575,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.24549627304077148,
+        "delta_mae": 0.0006249430539707335,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 24,
+        "arm": "MisIndexed",
+        "delta_retest": 0.3081520199775696,
+        "delta_mae": 0.01670650688807168,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Opaque",
+        "delta_retest": 0.2978340983390808,
+        "delta_mae": -0.08842202943563462,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W03",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Aligned",
+        "delta_retest": 0.09359663724899292,
+        "delta_mae": -0.014569988290468842,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.12580090761184692,
+        "delta_mae": -0.10471684618790944,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.4546014368534088,
+        "delta_mae": -0.08190563579400381,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.27320796251296997,
+        "delta_mae": 0.09689258774121604,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Opaque",
+        "delta_retest": 0.14022189378738403,
+        "delta_mae": -0.06518355667591093,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Aligned",
+        "delta_retest": 0.2689756751060486,
+        "delta_mae": 0.04321281333764394,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W04",
+        "locus": "E",
+        "budget": 24,
+        "arm": "MisIndexed",
+        "delta_retest": -0.2480766773223877,
+        "delta_mae": 0.11457902669906615,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.22745567560195923,
+        "delta_mae": 0.09458995964129766,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.1272653341293335,
+        "delta_mae": 0.16493477068344753,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.015310704708099365,
+        "delta_mae": 0.005982668797175128,
+        "first_attempt": true
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Aligned",
+        "delta_retest": 0.4356609880924225,
+        "delta_mae": -0.1922428303956985,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 24,
+        "arm": "MisIndexed",
+        "delta_retest": -0.06550967693328857,
+        "delta_mae": -0.06644939303398131,
+        "first_attempt": false
+      },
+      {
+        "system": "EC",
+        "world": "EC-W05",
+        "locus": "E",
+        "budget": 24,
+        "arm": "Opaque",
+        "delta_retest": 0.5159947276115417,
+        "delta_mae": 0.1398985864321391,
+        "first_attempt": false
+      }
+    ],
+    "RX": [
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.0397782027721405,
+        "delta_mae": 0.07224999999999998,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.009349644184112549,
+        "delta_mae": 0.038395020167032876,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03408542275428772,
+        "delta_mae": 0.05318831316630045,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.048562124371528625,
+        "delta_mae": 0.015833333333333338,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.018166065216064453,
+        "delta_mae": 0.019466490646203365,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.026019901037216187,
+        "delta_mae": -0.04349818644920985,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.01028519868850708,
+        "delta_mae": -0.049,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.05437770485877991,
+        "delta_mae": 0.006218265354633323,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03613311052322388,
+        "delta_mae": 0.0021728799367944363,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.0608382374048233,
+        "delta_mae": 0.021802314658959716,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.04819314181804657,
+        "delta_mae": 0.005988649853256839,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.021098539233207703,
+        "delta_mae": 0.030800871411959328,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.013473272323608398,
+        "delta_mae": -0.021000000000000033,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.0020986199378967285,
+        "delta_mae": -0.053693419933319095,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.027805298566818237,
+        "delta_mae": 0.04587767720222473,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.013651728630065918,
+        "delta_mae": 0.06561332675615947,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.01229625940322876,
+        "delta_mae": -0.012480133612950646,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.059021949768066406,
+        "delta_mae": -0.0018968002796173195,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.0065916478633880615,
+        "delta_mae": 0.0606454493602117,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.02888515591621399,
+        "delta_mae": -0.01194406702121098,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03695330023765564,
+        "delta_mae": 0.08458963217337925,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.02819979190826416,
+        "delta_mae": 0.06819089149187009,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.014375865459442139,
+        "delta_mae": 0.007595754543940236,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.008166581392288208,
+        "delta_mae": 0.02623335943371056,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.029248058795928955,
+        "delta_mae": 0.010166666666666671,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.01937282085418701,
+        "delta_mae": 0.1796036524772644,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.02610236406326294,
+        "delta_mae": 0.015667976379394537,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.0025579333305358887,
+        "delta_mae": 0.04218735208113987,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.0062761008739471436,
+        "delta_mae": 0.02974068812529243,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.04944756627082825,
+        "delta_mae": -0.025702101399501166,
+        "first_attempt": false
+      }
+    ],
+    "RX_macro": [
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.0397782027721405,
+        "delta_mae": 0.09904057644473181,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.009349644184112549,
+        "delta_mae": 0.017101504302687105,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03408542275428772,
+        "delta_mae": 0.05765694392720858,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.048562124371528625,
+        "delta_mae": 0.013220795482397074,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.018166065216064453,
+        "delta_mae": 0.005738911198245156,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W01",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.026019901037216187,
+        "delta_mae": -0.00810816424422793,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.01028519868850708,
+        "delta_mae": -0.012062483999464246,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.05437770485877991,
+        "delta_mae": 0.024379925542407557,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03613311052322388,
+        "delta_mae": 0.01655323534251915,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.0608382374048233,
+        "delta_mae": 0.02894205411937502,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.04819314181804657,
+        "delta_mae": 0.01854711124105378,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W02",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.021098539233207703,
+        "delta_mae": 0.028707753860288177,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.013473272323608398,
+        "delta_mae": 4.919234249325943e-05,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.0020986199378967285,
+        "delta_mae": -0.05565886045164534,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.027805298566818237,
+        "delta_mae": 0.10123106682300567,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": 0.013651728630065918,
+        "delta_mae": 0.04704477227032186,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.01229625940322876,
+        "delta_mae": -0.0023747368140353137,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W03",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.059021949768066406,
+        "delta_mae": -0.021509974208805294,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.0065916478633880615,
+        "delta_mae": 0.02096162178781298,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.02888515591621399,
+        "delta_mae": 0.009409562342696715,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.03695330023765564,
+        "delta_mae": 0.17758189357651605,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.02819979190826416,
+        "delta_mae": 0.03729445709577868,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": 0.014375865459442139,
+        "delta_mae": 0.04563569881518681,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W04",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.008166581392288208,
+        "delta_mae": 0.030767182816647837,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.029248058795928955,
+        "delta_mae": 0.07735245058933894,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.01937282085418701,
+        "delta_mae": 0.1389405550493134,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "P",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": -0.02610236406326294,
+        "delta_mae": 0.02247544670767254,
+        "first_attempt": true
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Opaque",
+        "delta_retest": -0.0025579333305358887,
+        "delta_mae": 0.014637482040458269,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "Aligned",
+        "delta_retest": -0.0062761008739471436,
+        "delta_mae": 0.06861052524050076,
+        "first_attempt": false
+      },
+      {
+        "system": "RX",
+        "world": "RX-W05",
+        "locus": "S",
+        "budget": 12,
+        "arm": "MisIndexed",
+        "delta_retest": 0.04944756627082825,
+        "delta_mae": -0.07678957436647679,
+        "first_attempt": false
+      }
+    ]
+  },
+  "note": "Retained-data descriptive reanalysis. RX score-only goal comparison added for endpoint alignment; original six-metric macro comparison retained."
+}
