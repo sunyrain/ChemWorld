@@ -4,6 +4,8 @@
 
 后续讨论：[外部故事建议评估与逐世界再分析](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/STORY_REVIEW_ZH.md)新增EQ查询区间反转、C响应反转及完整80组三臂世界比较，供合作者评估；尚未据此替换英文主文。
 
+逐项评估：[发现与假设总目录](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/FINDINGS_AND_HYPOTHESES_ZH.md)将当前结果、历史反例、组合解释、24条假设及16张候选故事卡集中到一个文档；附录保留全部240场的指标，价值判断待作者讨论。
+
 ## 标题、关键词与 TL;DR
 
 **英文标题：** ChemWorld: Controlled Chemical Worlds for Studying Autonomous Scientific Discovery
