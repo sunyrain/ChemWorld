@@ -1,5 +1,9 @@
 # ChemWorld：按科学问题递进的合篇主线
 
+当前写作入口：[ICLR 2027 / NCS Article 双稿](venues/README.md)。两版已分别组织全文，
+纳入 EQ 浓度区间反转和 C 响应分化，共用已核实结果与补充材料。下面保留此前合篇的
+逐章讨论，原英文 review 版和 PDF 未被覆盖。
+
 更新：2026-09-21。与[英文全文](chemworld_integrated_manuscript.md)章节对应。本文件用于作者讨论，说明各章的问题、实验依据、结论和下一章为何必要。完整数据及历史失败另见附录和证据记录。
 
 后续讨论：[外部故事建议评估与逐世界再分析](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/STORY_REVIEW_ZH.md)新增EQ查询区间反转、C响应反转及完整80组三臂世界比较，供合作者评估；尚未据此替换英文主文。

@@ -1,5 +1,11 @@
 # Integrated manuscript: evidence and reproduction
 
+The current venue-specific writing entries are the [ICLR 2027 and NCS Article drafts](venues/README.md),
+prepared on 21 September 2026 from this same retained evidence. They add the explicitly
+exploratory EQ dilution-regime and C joint-response analyses already recorded in the
+world-level analysis. The review manuscript described below remains the earlier
+integrated discussion version; its source and PDF have not been overwritten.
+
 This is the author-facing source index for the 21 September 2026 review manuscript.
 It records retained-data analysis and editorial integration, not a new experiment,
 qualification block, or release freeze. The original first-paper manuscript, exports,
