@@ -2,6 +2,8 @@
 
 更新：2026-09-21。与[英文全文](chemworld_integrated_manuscript.md)章节对应。本文件用于作者讨论，说明各章的问题、实验依据、结论和下一章为何必要。完整数据及历史失败另见附录和证据记录。
 
+后续讨论：[外部故事建议评估与逐世界再分析](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/STORY_REVIEW_ZH.md)新增EQ查询区间反转、C响应反转及完整80组三臂世界比较，供合作者评估；尚未据此替换英文主文。
+
 ## 标题、关键词与 TL;DR
 
 **英文标题：** ChemWorld: Controlled Chemical Worlds for Studying Autonomous Scientific Discovery
