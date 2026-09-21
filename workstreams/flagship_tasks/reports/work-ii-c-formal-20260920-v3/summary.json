@@ -1,0 +1,435 @@
+{
+  "completed_chains": 0,
+  "completed_posttests": 0,
+  "controller": {
+    "epoch": 1789887412.4164484,
+    "pid": 4652,
+    "process_created": 1789887143.8048596,
+    "stage": "ended_with_incomplete_chains",
+    "started_epoch": 1789887144.828806
+  },
+  "failed_sources": 1,
+  "live_unsealed_batches": 0,
+  "phase": "ended_with_incomplete_chains",
+  "planned_batches": 540,
+  "planned_posttests": 90,
+  "planned_sources": 30,
+  "protocol": "c-quality-recovery-formal-v3-en",
+  "qualification_completed_worlds": 5,
+  "qualification_world_checks": {
+    "C-W01": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    },
+    "C-W02": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    },
+    "C-W03": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    },
+    "C-W04": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    },
+    "C-W05": {
+      "execution_failure": null,
+      "failed_checks": [],
+      "passed": true
+    }
+  },
+  "results": [
+    {
+      "arm": "Opaque",
+      "batches_budget": 12,
+      "elapsed_s": 11.406000000002678,
+      "failure": {
+        "message": "Codex session crossed a frozen operational limit before the next executable operation; no fallback action was emitted: max_provider_error_events",
+        "stage": "source",
+        "type": "InteractiveCodexExperimentError"
+      },
+      "id": "C-W01-B12-E-Opaque",
+      "posttests": {},
+      "prediction_evaluation": {
+        "failure": "missing/duplicate/unknown query IDs",
+        "valid": false
+      },
+      "public_baselines": {
+        "available": false,
+        "training_batches": 0
+      },
+      "recommendation": null,
+      "source": {
+        "batches": [],
+        "elapsed_s": 11.406000000002678,
+        "exact_replay": {
+          "verified": false
+        },
+        "operations": 0,
+        "rollbacks": [],
+        "truth": [],
+        "usage": {
+          "accepted_participant_model_call_count": 0,
+          "accepted_provider_session_count": 0,
+          "accepted_turn_continuation_count": 0,
+          "accounting_complete": false,
+          "active_session_elapsed_s": 0.0,
+          "backend_model_response_accounting_complete": false,
+          "backend_model_response_count": null,
+          "cached_input_token_count": 0,
+          "cpu_time_s": 0.0,
+          "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+          "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+          "gpu_time_s": 0.0,
+          "in_flight_model_call_count": 0,
+          "input_cache_hit_ratio": 0.0,
+          "input_token_count": 0,
+          "logical_codex_turn_count": 1,
+          "maximum_consecutive_mcp_tool_failure_count": 0,
+          "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+          "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+          "mcp_tool_failure_taxonomy": {
+            "counts_by_category": {
+              "agent_invalid": 0,
+              "provider_network": 0,
+              "transport_ipc_os": 0,
+              "unclassified": 0
+            },
+            "current_consecutive_counts_by_category": {
+              "agent_invalid": 0,
+              "provider_network": 0,
+              "transport_ipc_os": 0,
+              "unclassified": 0
+            },
+            "current_consecutive_mcp_tool_failure_count": 0,
+            "maximum_consecutive_counts_by_category": {
+              "agent_invalid": 0,
+              "provider_network": 0,
+              "transport_ipc_os": 0,
+              "unclassified": 0
+            },
+            "maximum_consecutive_mcp_tool_failure_count": 0,
+            "recovered_mcp_tool_failure_count": 0,
+            "recovery_episode_taxonomy": {
+              "counts_by_category": {
+                "agent_invalid": 0,
+                "provider_network": 0,
+                "transport_ipc_os": 0,
+                "unclassified": 0
+              },
+              "current_consecutive_counts_by_category": {
+                "agent_invalid": 0,
+                "provider_network": 0,
+                "transport_ipc_os": 0,
+                "unclassified": 0
+              },
+              "current_consecutive_recovery_episode_count": 0,
+              "dependent_batch_cascade_failure_count": 0,
+              "dependent_batch_cascade_group_count": 0,
+              "dependent_batch_cascade_window_ms": 1000.0,
+              "dependent_batch_cascades": [],
+              "duplicate_failure_burst_window_ms": 1000.0,
+              "grouping_basis": "maximal_consecutive_identical_failed_outcomes_without_an_intervening_success_within_the_frozen_duplicate_burst_window_or_dependent_staged_calls_after_an_unaccepted_begin_in_the_same_batch",
+              "maximum_consecutive_counts_by_category": {
+                "agent_invalid": 0,
+                "provider_network": 0,
+                "transport_ipc_os": 0,
+                "unclassified": 0
+              },
+              "maximum_consecutive_recovery_episode_count": 0,
+              "maximum_dependent_batch_cascade_size": 0,
+              "recovery_episode_count": 0,
+              "schema_version": "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2"
+            },
+            "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1"
+          },
+          "model_call_count": 0,
+          "model_provenance": {
+            "completed_session_count": 1,
+            "input_token_accounting_semantics": "cumulative_input_across_the_complete_codex_turn; cache hits are reused input tokens, not generated output",
+            "model_id": "gpt-5.6-sol",
+            "model_snapshot_or_access_date": "2026-07-28",
+            "pricing": {
+              "accounting_complete": false,
+              "auth_source": "https://learn.chatgpt.com/docs/auth",
+              "model_source": "https://developers.openai.com/api/docs/guides/latest-model",
+              "pricing_unavailable_reason": "ChatGPT subscription usage has no attributable per-run USD price"
+            },
+            "private_reasoning_retained": false,
+            "prompt_hash": "6f5fb53d5d83ba5fca989953f2f886874aecb7ebeae795dc42e1ffd1acff266c",
+            "provider": "OpenAI",
+            "provider_base_url": null,
+            "provider_id": "chemworld_openai_https",
+            "request_parameters": {
+              "accepted_turn_continuation_limit": 0,
+              "experiment_tool_transport": "host_owned_stdio_mcp",
+              "forced_notebook": false,
+              "one_thread_per_campaign_cell": true,
+              "one_turn_per_experiment": false,
+              "provider_process_attempt_limit": 1,
+              "reasoning_effort": "medium",
+              "session_scope": "campaign",
+              "workspace_tools": true
+            },
+            "tokenizer_or_provider_usage_source": "codex exec turn.completed"
+          },
+          "monetary_accounting_complete": false,
+          "monetary_cost_usd": 0.0,
+          "output_token_count": 0,
+          "provider_cache_accounting_complete": false,
+          "provider_call_accounting_complete": true,
+          "provider_error_event_count": 2,
+          "provider_process_attempt_count": 1,
+          "provider_session_count": 0,
+          "provider_token_accounting_complete": false,
+          "provider_usage_accounting_complete": false,
+          "provider_usage_observed": false,
+          "provider_usage_pending": false,
+          "recovered_mcp_tool_failure_count": 0,
+          "schema_version": "chemworld-method-resource-usage-0.1",
+          "scientific_compliance_mcp_tool_failure_count": 0,
+          "scientific_compliance_mcp_tool_failure_episode_count": 0,
+          "session_elapsed_s": 11.319,
+          "session_operational_limits": {
+            "max_consecutive_mcp_tool_failures": 6,
+            "max_provider_error_events": 0,
+            "max_recovered_mcp_tool_failures": 12,
+            "mcp_tool_failure_limit_category": "agent_invalid_recovery_episode",
+            "session_wall_time_limit_s": 3600.0
+          },
+          "token_counts_observed": false,
+          "training_environment_step_count": 0,
+          "unattributed_pre_action_process_attempt_count": 0,
+          "uncached_input_token_count": 0,
+          "usage_source": "codex_cli_interrupted_before_usage_observation"
+        }
+      },
+      "status": "failed",
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": false,
+        "monetary_cost_usd": null,
+        "stages": [],
+        "total": {
+          "cached_input": 0,
+          "input": 0,
+          "input_plus_output": 0,
+          "output": 0,
+          "uncached_input": 0
+        },
+        "valid": false
+      }
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 12,
+      "id": "C-W01-B12-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 12,
+      "id": "C-W01-B12-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 24,
+      "id": "C-W01-B24-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 24,
+      "id": "C-W01-B24-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 24,
+      "id": "C-W01-B24-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 24,
+      "id": "C-W02-B24-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 24,
+      "id": "C-W02-B24-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 24,
+      "id": "C-W02-B24-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 12,
+      "id": "C-W02-B12-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 12,
+      "id": "C-W02-B12-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 12,
+      "id": "C-W02-B12-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 12,
+      "id": "C-W03-B12-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 12,
+      "id": "C-W03-B12-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 12,
+      "id": "C-W03-B12-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 24,
+      "id": "C-W03-B24-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 24,
+      "id": "C-W03-B24-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 24,
+      "id": "C-W03-B24-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 24,
+      "id": "C-W04-B24-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 24,
+      "id": "C-W04-B24-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 24,
+      "id": "C-W04-B24-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 12,
+      "id": "C-W04-B12-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 12,
+      "id": "C-W04-B12-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 12,
+      "id": "C-W04-B12-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 12,
+      "id": "C-W05-B12-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 12,
+      "id": "C-W05-B12-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 12,
+      "id": "C-W05-B12-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Aligned",
+      "batches_budget": 24,
+      "id": "C-W05-B24-E-Aligned",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "MisIndexed",
+      "batches_budget": 24,
+      "id": "C-W05-B24-E-MisIndexed",
+      "posttests": {},
+      "status": "not_started"
+    },
+    {
+      "arm": "Opaque",
+      "batches_budget": 24,
+      "id": "C-W05-B24-E-Opaque",
+      "posttests": {},
+      "status": "not_started"
+    }
+  ],
+  "retained_prior_attempt": null,
+  "sealed_batches": 0,
+  "started_sources": 1
+}

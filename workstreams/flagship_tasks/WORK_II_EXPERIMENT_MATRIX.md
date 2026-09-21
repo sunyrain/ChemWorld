@@ -1,8 +1,8 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
-Updated 2026-09-20 synchronization. **Development evidence: EC/PA E-layer 90/90 chains complete; supplemental EC-P/S has 12/12 sources and 11/12 complete chains, with the original EC-S posttest budget failure retained. RX-P/S five-world, two-goal block is complete at 60/60 chains. C-E one-world three-arm pilot is in provider-free preparation.**
+Updated 2026-09-21 01:40. **The selected programme is terminal:** EC E 60/60, PA E 30/30, RX P/S 60/60, bounded EQ/P 15/15 and canonical EQ-S v0.3 15/15 chains are complete. C has all 90 posttests and 30 retests, 29 conforming chains, and one retained 11/12 source. P completed all fifteen sources, 45 posttests and fifteen retests at **six-worker maximum concurrency** in 31.34 minutes. Its 180 batch starts produced 178 final assays and two W05/Opaque discards; fourteen chains meet the twelve-final-assay specification. All physics, inventory, resource and replay checks pass; the shortfall is retained, not retried. Total current scope: **225 sources, 223 conforming complete chains, 3,417/3,420 final-assayed source batches and 675/675 K1/Q/K2 stages**, covering six system families. Earlier P matrices remain superseded platform diagnostics, separate from this fresh block. See the [P note](WORK_II_P_PARALLEL_STUDY_NOTE.md), [P results and analysis](reports/work-ii-p-five-world-20260921-v4/ANALYSIS.md), and [closure inventory](reports/work-ii-evidence-closeout-20260921/REPORT.md).
 
-EC/PA uses its saved 12/24-batch design (Section 9.9); RX uses 12 batches per source under its P v1.2 / S v1.0 profiles; C uses 12 batches under [its pilot note](WORK_II_C_PILOT_NOTE.md). Extra measurement budgets equal source batch budgets, with final assays separate. English prompts and reports, autonomous single or grouped experiments, and K1 then Q then K2 are shared principles. The RX canonical seven-question K2 is block-specific here; it does not rewrite the three-question EC/PA and C designs. Current counts are available in the [EC/PA report](reports/work-ii-ec-pa-five-world-en-20260919/REPORT.md), [final RX report](reports/work-ii-rx-ps-five-world-dual-goal-20260919-final/REPORT.md), and [C preparation report](reports/work-ii-c-sol-pilot-20260919/REPORT.md). Earlier snapshots and all failures remain retained.
+Budgets, goals and posttest differences remain block-specific. EC/PA and C use their saved 12/24 designs; RX, both EQ studies and P use 12 batches. English prompts and reports, autonomous operations and sealed K1 / Q / K2 are shared principles. RX's seven-question K2 differs from the other blocks. EC P/S supplements and the superseded EQ-S v0.2.1 closed-set pilot are separate historical evidence. Remote canonical EQ-S results are verified at `1eda6658`; no remote runtime merge is required for analysis.
 
 本文件是Paper 2实验设计的唯一入口。[TODO](WORK_II_TODOLIST.md)管理执行，
 [结果索引](WORK_II_PAPER_RESULTS_ZH.md)保存既有结果，[current](../../configs/current.json)解析既有机器证据，
@@ -1275,9 +1275,116 @@ W04动作与重放均正常，失败原因为12题全超过细粉上限，不能
 十二条唯一配方保持溶剂、晶种、冷却、复热、继续生长和投料六对干预，采用已确认的可行域。
 两个开发世界24/24批及精确重放通过，质量正/负例分别7/5、5/7，可分辨对照5/6、6/6；
 102项定向功能检查通过。未改物理、质量阈值或来源探索方式。
-新版本单次冻结后，从头执行五世界75批资格验证；全通过才启动五世界×12/24批×E三臂30场，
+新版本单次冻结后，五世界75/75批资格验证及精确重放全部通过，耗时256.109秒；
+质量正/负例依次为6/6、6/6、6/6、6/6、5/7，可分辨对照依次为5/6、5/6、6/6、5/6、6/6。
+正式队列为五世界×12/24批×E三臂30场，
 540来源批、90项后测及30次推荐复测，Sol medium、全英文、单执行器。
+首场首次连接在零操作时失败，原目录完整保留；补充实验进程专用代理后，在独立目录恢复一次，
+已收到模型响应及公共工具调用。恢复沿用逐字相同的冻结设计、源码绑定和已通过的资格结果，
+不重算参考实验，不改变自动重试或科学停止规则。原失败另计，不从历史记录中删除。
+第一次恢复保留4条完整链、3场连接断流失败及23场未启动。用户随后要求优先完成C；
+已复用4条成功链，针对三场中断各作一次完整来源补试，再按冻结顺序执行未启动来源。
+此前中断的8批、270操作及更早的零操作失败均单列，不拼接到新独立来源中；再次断流会暂停队列诊断。
+第二次恢复完成8条完整链（156批、24项后测），随后W02/24/Opaque在18批后连接断流，313操作精确重放通过。
+19:07启动第三次恢复，逐字保留8条成功链，仅补试这条中断来源；模型执行7个操作后于19:08再次断流，未完成新批次。
+截至该次中断仍有22条完整链待完成；历次额外中断消耗累计26批、590操作、6个失败模型来源单列保留。
+用户随后明确要求自动续跑，19:36已启动单执行器常驻队列：网络断流按60/120/240/480/900秒退避自动补试，
+不再每次等待人工重启。失败来源完整归档；后测沿同一会话续问，128次计算器额度跨重试累计，已成功问答不重问。
+冻结设计、模型、评分和资格结果不变，科学失败不触发重跑；P模型实验暂不启动。
+实时状态及下次重试时间见[自动续跑报告](reports/work-ii-c-formal-20260920-v3-auto/REPORT.md)，
+执行规则见[自动恢复修订](WORK_II_C_REFERENCE_V3_NOTE.md#user-authorized-automatic-continuation-2026-09-20)。
+晚间核对发现后测重试目录未清出，以及SSE空闲超时漏分，两项已在恢复程序修复并通过真实启动器测试。
+当前进程已加载旧程序，继续保留其运行；另有串行补后测任务等待主队列正常结束后自动接手，
+复用原来源、原会话和累计计算额度，补齐网络中断的后测与未执行的既定推荐复测。
+W02/12/Opaque仅完成11批的来源缺口保持为结果，不以基础设施修复名义补跑。
+22:56按用户“四并行”授权切换为四个独立执行进程，共用一个协调器与报告。
+旧执行器在无模型子进程的网络退避边界退出，等待中的补后测进程被替代，未打断实验会话。
+首批并行修复4场缺失后测，再按既定顺序领取13场剩余来源；最多4个模型会话同时执行。
+每场内部实验决策与K1/Q/K2保持顺序，冻结科学设置不变；25项定向测试通过。
+此修订替代本节此前的单执行器与“最后串行补后测”安排，实时状态仍使用同一自动报告。
 原正式v1/v2失败和前述开发失败保留，不混入本块成功分母。
+
+### 9.15 后续体系优先级与P初步设计（2026-09-20；设计评估）
+
+用户说明EQ由远程协作者负责；P是下一本地体系。下列设计评估现已进入用户授权的无模型开发gate，
+执行说明以[当前P gate note](WORK_II_P_GATE_NOTE.md)为准；不把历史资格/资产状态升级为新协议通过。
+
+| 下一体系候选 | 对现有研究的增量 | 已有基础及实际缺口 | 当前建议 |
+| --- | --- | --- | --- |
+| P：反应—萃取—纯化 | 从分配认识推进到连续操作、物料损失与停止决策；可与PA形成互补 | 五世界资产已构建，存在单世界合法流程及可行见证；12批共享账本、资料送达、新预测题和全链尚需接入验证 | 优先 |
+| D：反应—分段蒸馏 | 釜底耗竭、切段保存/合并与不可逆污染已有产品 | 有合法切段、保存库存和单世界可行见证；新协议的五套下游规律和三臂资料仍需核对/构建，不能只换噪声种子 | P之后 |
+| FL：固定设备连续流 | 动力学、停留时间、传热/压降耦合下的运行窗口 | 固定几何接口已修；此前指定覆盖没有联合可行点，旧五世界资格也未通过；先定义并验证有意义的可行前沿 | 单独开发后推进 |
+| BC：有限预算表征 | 仪器/样品预算下的信息取得与不确定性 | 局部响应筛查通过；需说明相对RX的独立科学变量，不能仅换任务名重复动力学辨识 | 更适合作为测量预算支持实验，独立主任务待论证 |
+
+P与PA的区别：PA主要研究给定接触条件下的两相去向；P让上游反应组成影响下游分离，
+要求Agent决定保留哪相、是否洗涤/干燥/浓缩/转移，以及何时停止。所有动作均有真实物料后果。
+两者若共享分配机制家族，统计上必须披露共享关系；P不自动构成独立机制家族的再次验证。
+
+**单一主委托。** 在公开纯度门槛和资源限制下，寻找并推荐最终原投料回收率尽可能高的完整流程；
+不另设一套机理探索来源。主指标为最终选定产品的合格回收率，同时报告纯度、目标物量、
+各阶段损失及资源。总体回收率以原始反应物投料为分母，分离阶段保留率另列，不能混用。
+沿用历史80%纯度作为待验证的任务规格；开发先检查是否有稳健可行路径，验证期间不追改门槛。
+不以原生混合score代替此委托，也不要求所有批次都走完整套后处理动作。
+
+**三臂与预算。** 建议先接E层萃取剂属性映射：O仅匿名标识，A提供明确参考条件下的材料属性，
+M使用同格式、同精度且预定的关联错配。仪器、相选择、设备与计费说明保持正确。
+资料中已经给出的关系不计为实验新发现。资产中的五世界dossier仅为接入候选，必须核对
+当前实际操作域与公开返回，不能把资产构建通过当成三臂效应通过。
+试跑先一个世界、Opaque、12个完整批次，12次可分配额外测量及12次终检；
+模型沿用Sol medium、全英文。每步均可根据已有结果调整，也允许模型自主成组提交。
+通过全链检查后再补同世界A/M；多世界不在这一试跑自动启动。
+
+**2026-09-20用户收束：P只做12批预算版本，取消P的24批预算分支。**
+后续完整E层目标矩阵保持五世界、一个定制任务、Opaque/Aligned/MisIndexed三臂，
+每格一次，共15个独立来源、180个来源批次、45项K1/Q/K2后测、15次既定推荐复测。
+每场12次额外测量和12次终检，与12批预算一致；仍用Sol medium、英文提示与报告。
+这里的12是每个agent来源可做的完整实验次数，不是全项目只跑12个来源，也不限制为12个操作。
+P研究的是质量门槛下的反应—萃取—纯化净回收及停止决策，不额外拆成两个目标来源。
+单臂接入预试和无模型参考验证另计，不自动追认为正式来源。
+推进顺序仍先完成C；P目前仅无模型gate通过，真实来源—K1/Q/K2—推荐复测入口待接通。
+
+**后测仍是一条链。** 封存推荐流程→自由机理K1→12道完整流程预测Q→通用K2→独立推荐复测。
+Q的六组成对干预候选为：上游反应终点、萃取剂、相比例、洗涤与不洗涤、等总洗液单次与分次洗涤、
+当前停止与增加浓缩一步。每对控制其余条件；具体配方与阈值须在新数据块开始前固定。
+预测最终纯度、原投料回收率、质量可行性及不确定区间；可从同一答案派生流程排序。
+不能给后者更高纯度就自动判更优；必须同时考虑质量门槛和保留下来的产品量。
+K1/Q/K2采用已经统一的英文通用协议，仅定制体系载荷；明确计算预算和超时，不引入新的访谈轮次。
+
+**先完成三项实际接入检查。**
+
+1. 12批完整执行：原生`reaction-to-purification`为single_experiment，需要研究层显式campaign覆盖；
+   同步初始提示、动态工具合同、跨批资源、终检后下一批和最后推荐，不能只改顶层一句话。
+2. 科学/测量语义：核对原投料分母、当前样品/相、取样损失、弃相记录、转移与总物料账；
+   当前wash实现对有机相处理，不能把水相洗涤包装成相同物理过程。证明至少一条可行路径，
+   以及后处理/停止差异可以通过公开读数识别；同时保留不利与近边界配方。
+3. 三臂公平性与可读结果：匿名材料不泄露，匹配动作的物理和观测一致，A适用范围成立且M可被反驳；
+   精确重放、完整后测和独立推荐复测通过。使用共用执行优化，不重跑旧105单元总账。
+
+历史线索：[完整流程开发报告](reports/work-ii-full-process-iteration-20260915.md)中，
+P模型在干燥、浓缩、再次洗涤区间的公开纯度由42.87%降至30.80%，回收率由12.59%降至4.27%。
+多动作混在一起，不能归因某一步，也不能据单实例声称系统性失效。
+新设计将分别检查：是否取得了关键反证，是否正确总结净收益，能否预测未见条件，
+以及最后行动是否与有证据的解释一致。没有出现断裂时如实报告成功，不事后选失败样本。
+
+**2026-09-20开发执行更新。** V1完成180批，实际发现材料实名泄露、公开生命周期仍写1批，以及
+参考题过于集中在有利稀投料条件。补充固定60批投料量×萃取剂诊断后，V2完成180批；五世界均有
+质量正负样本、可行见证及4/6可分辨干预对，三臂物理一致、正确/错配资料的材料排序对照通过。
+V2独立物料核对器漏读水相目标物标识及设备损失账，不能把该评估器失败写成实际物料消失。
+此外发现旧P目标角色只认有机相，确实漏算保留水相的目标物；已为新协议加入P专用测量适配。
+V3按相同世界、配方、阈值从头验证180批，并额外核对每世界1批水相分支（合计185批），
+**5/5世界、15/15场、5/5水相分支全部通过，含重放耗时291.563秒**，
+见[当前结果](reports/work-ii-p-gate-20260920-v3/REPORT.md)。此前所有根目录及失败均保留。
+
+当前Q候选的前3对用0.040 mol投料、后3对用0.002 mol；萃取剂对改为X0/X2，使A与M的参考回收
+方向相反。其余仍为反应时长、相体积比、洗/不洗、单次/分次洗及停下/继续浓缩。80%纯度门槛
+不变；参考可行见证另要求原投料回收率≥10%。这些是开发选题，不能冒充未选择过的验证集。
+先验核对只证明明确参考条件下的资料一致性及一组可见反例，不宣称任意自主轨迹必能识别完整机理。
+五世界均有4/6组达到2个百分点的区分幅度；分次洗涤和浓缩两组差异较小，作为小效应对照保留，
+不用于声称这两类机理已具备强判别性。
+
+物理执行、共享资源与精确重放使用已有加速层；P新适配层仅在P进程启用，真实来源及其后测也必须
+使用同一测量语义，不能仅在gate里启用。现阶段无provider调用，尚未证明K1/Q/K2真实会话链路，
+也未启动多世界正式来源。结晶冻结源码保持不变。
 
 ## 10. 论文呈现与完成标准
 

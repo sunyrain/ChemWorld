@@ -1,0 +1,3375 @@
+{
+  "batch_accounting": {
+    "discarded": 2,
+    "final_assayed": 178,
+    "started": 180
+  },
+  "complete_chains": 14,
+  "development_only": true,
+  "disposition": null,
+  "extra_source_attempts": {
+    "attempts": 0,
+    "local_startup_attempts": 0,
+    "operations": 0,
+    "source_batches": 0
+  },
+  "historical_reference_batches_reused": 60,
+  "max_workers": 6,
+  "new_reference_batches": 0,
+  "observed_at": "2026-09-21T01:45:03+08:00",
+  "pilot": {
+    "failure": null,
+    "operations": 340,
+    "posttest_repair": {
+      "original_failure": {
+        "message": "provider_failure",
+        "stage": "K2"
+      },
+      "original_result": "D:\\Projects\\ChemWorld\\runs\\development\\work-ii-p-five-world-20260921-v4\\pilot\\attempt-1\\result.json",
+      "remaining_attempt_limit": 5,
+      "root": "D:\\Projects\\ChemWorld\\runs\\development\\work-ii-p-five-world-20260921-v4\\pilot\\attempt-1\\posttest-repair-1"
+    },
+    "posttests": 3,
+    "retest_passed": true,
+    "source_batches": 12,
+    "status": "completed",
+    "tokens": {
+      "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+      "complete": true,
+      "monetary_cost_usd": null,
+      "stages": [
+        {
+          "cached_input": 769920,
+          "input": 833033,
+          "output": 8449,
+          "stage": "source",
+          "uncached_input": 63113
+        },
+        {
+          "cached_input": 0,
+          "input": 43952,
+          "output": 4791,
+          "stage": "K1",
+          "uncached_input": 43952
+        },
+        {
+          "cached_input": 0,
+          "input": 52902,
+          "output": 4012,
+          "stage": "Q",
+          "uncached_input": 52902
+        },
+        {
+          "cached_input": 43776,
+          "input": 57120,
+          "output": 2185,
+          "stage": "K2",
+          "uncached_input": 13344
+        }
+      ],
+      "total": {
+        "cached_input": 813696,
+        "input": 987007,
+        "input_plus_output": 1006444,
+        "output": 19437,
+        "uncached_input": 173311
+      },
+      "valid": true
+    }
+  },
+  "planned_batches": 180,
+  "planned_posttests": 45,
+  "planned_retests": 15,
+  "planned_sources": 15,
+  "posttests": 45,
+  "prior_integration_costs": {
+    "disposition": "All earlier matrix cells remain diagnostic; none replaces a new scientific cell.",
+    "fixed_reference_outputs_unchanged": true,
+    "historical_gate_v3_batches": 185,
+    "new_qualification_batches_before_this_study": 370,
+    "provider_free_driver_regression_batches": 52,
+    "retained_posttests": 51,
+    "retained_provider_source_batches": 204,
+    "retained_retests_executed": 17,
+    "retained_zero_operation_startup_failures": 13,
+    "roots": [
+      "runs/development/work-ii-p-five-world-20260920",
+      "runs/development/work-ii-p-five-world-20260920-v2",
+      "runs/development/work-ii-p-five-world-20260921-v3"
+    ],
+    "superseded_matrix_summary": "workstreams/flagship_tasks/reports/work-ii-p-five-world-20260921-v3/summary.json"
+  },
+  "results": [
+    {
+      "arm": "Opaque",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W01-B12-E-Opaque",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.5,
+            "interval_score80": 0.728092693487803,
+            "mae": 0.1895542593797048,
+            "n": 12,
+            "width80": 0.46166666666666667
+          },
+          "recovery": {
+            "coverage80": 0.5,
+            "interval_score80": 0.4314395740161339,
+            "mae": 0.04491417302240928,
+            "n": 12,
+            "width80": 0.09075833333333333
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.030000000000000027,
+            "resolved": true,
+            "truth_delta": -0.3014100193977356
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.004699999999999999,
+            "resolved": true,
+            "truth_delta": 0.04857732355594635
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.13499999999999995,
+            "resolved": true,
+            "truth_delta": 0.20697447657585144
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.0,
+            "resolved": true,
+            "truth_delta": 0.08709347248077393
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.05999999999999994,
+            "resolved": true,
+            "truth_delta": 0.15744110941886902
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.0049,
+            "resolved": true,
+            "truth_delta": 0.10413327440619469
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.10999999999999993,
+            "resolved": true,
+            "truth_delta": 0.05201077461242676
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.03,
+            "resolved": true,
+            "truth_delta": -0.05157477408647537
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.050000000000000044,
+            "resolved": false,
+            "truth_delta": 0.015034735202789307
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.007000000000000006,
+            "resolved": false,
+            "truth_delta": -0.012023493647575378
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.009999999999999898,
+            "resolved": false,
+            "truth_delta": -0.0035328269004821777
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.00399999999999999,
+            "resolved": false,
+            "truth_delta": -0.006847098469734192
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 2,
+        "selection_rationale": "Batch 2 is the closest observed approach to the required purity constraint: final assay purity 0.7117, higher than every other completed batch, with nonzero recovery 0.0137 and zero reported mass-balance error. No completed batch reached purity 0.80, so selecting the highest-purity observed process is the most defensible constraint-focused recommendation."
+      },
+      "replay": {
+        "checked_steps": 201,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.0052022323943674564,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.7194051146507263,
+          "recovery": 0.008573850616812706,
+          "safety_risk": 0.04768117144703865,
+          "score": 0.2539352476596832,
+          "selectivity": 0.0,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.0004701125144492835
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 86.78099999998813,
+        "K2": 48.51500000001397,
+        "Q": 74.40600000001723,
+        "retest": 0.875,
+        "source": 278.51599999997416
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 723072,
+            "input": 767590,
+            "output": 7529,
+            "stage": "source",
+            "uncached_input": 44518
+          },
+          {
+            "cached_input": 0,
+            "input": 39744,
+            "output": 4599,
+            "stage": "K1",
+            "uncached_input": 39744
+          },
+          {
+            "cached_input": 0,
+            "input": 48502,
+            "output": 3770,
+            "stage": "Q",
+            "uncached_input": 48502
+          },
+          {
+            "cached_input": 39552,
+            "input": 52327,
+            "output": 2426,
+            "stage": "K2",
+            "uncached_input": 12775
+          }
+        ],
+        "total": {
+          "cached_input": 762624,
+          "input": 908163,
+          "input_plus_output": 926487,
+          "output": 18324,
+          "uncached_input": 145539
+        },
+        "valid": true
+      },
+      "world_id": "P-W01"
+    },
+    {
+      "arm": "Aligned",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W01-B12-E-Aligned",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 0.8721789658069611,
+            "mae": 0.19197821696599324,
+            "n": 12,
+            "width80": 0.4041666666666667
+          },
+          "recovery": {
+            "coverage80": 0.5,
+            "interval_score80": 0.38801457401613393,
+            "mae": 0.048982285377879936,
+            "n": 12,
+            "width80": 0.06983333333333333
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.039999999999999925,
+            "resolved": true,
+            "truth_delta": -0.3014100193977356
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.007,
+            "resolved": true,
+            "truth_delta": 0.04857732355594635
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.040000000000000036,
+            "resolved": true,
+            "truth_delta": 0.20697447657585144
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.004,
+            "resolved": true,
+            "truth_delta": 0.08709347248077393
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999993,
+            "resolved": true,
+            "truth_delta": 0.15744110941886902
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.007,
+            "resolved": true,
+            "truth_delta": 0.10413327440619469
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.08999999999999997,
+            "resolved": true,
+            "truth_delta": 0.05201077461242676
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.03,
+            "resolved": true,
+            "truth_delta": -0.05157477408647537
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.039999999999999925,
+            "resolved": false,
+            "truth_delta": 0.015034735202789307
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.008999999999999994,
+            "resolved": false,
+            "truth_delta": -0.012023493647575378
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.0035328269004821777
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0030000000000000027,
+            "resolved": false,
+            "truth_delta": -0.006847098469734192
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 9,
+        "selection_rationale": "Batch 9 gave the highest observed final purity (0.7376) and the highest diagnostic score (0.2627) among completed batches, with measurable recovery (0.0182). Although no tested batch met the purity >= 0.80 target, this was the closest completed process and therefore the strongest evidence-based recommendation."
+      },
+      "replay": {
+        "checked_steps": 248,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.004973432049155235,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.7352002859115601,
+          "recovery": 0.00872951652854681,
+          "safety_risk": 0.04614629969000816,
+          "score": 0.25950247049331665,
+          "selectivity": 0.0,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.0006257783388718963
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 101.43799999999464,
+        "K2": 50.328000000008615,
+        "Q": 63.39100000000326,
+        "retest": 1.125,
+        "source": 257.73399999999674
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 492160,
+            "input": 531386,
+            "output": 6482,
+            "stage": "source",
+            "uncached_input": 39226
+          },
+          {
+            "cached_input": 3456,
+            "input": 39570,
+            "output": 5055,
+            "stage": "K1",
+            "uncached_input": 36114
+          },
+          {
+            "cached_input": 3584,
+            "input": 48784,
+            "output": 2797,
+            "stage": "Q",
+            "uncached_input": 45200
+          },
+          {
+            "cached_input": 39424,
+            "input": 51636,
+            "output": 2205,
+            "stage": "K2",
+            "uncached_input": 12212
+          }
+        ],
+        "total": {
+          "cached_input": 538624,
+          "input": 671376,
+          "input_plus_output": 687915,
+          "output": 16539,
+          "uncached_input": 132752
+        },
+        "valid": true
+      },
+      "world_id": "P-W01"
+    },
+    {
+      "arm": "MisIndexed",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W01-B12-E-MisIndexed",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.8333333333333334,
+            "interval_score80": 0.6228939362366994,
+            "mae": 0.13038759271303813,
+            "n": 12,
+            "width80": 0.39666666666666667
+          },
+          "recovery": {
+            "coverage80": 1,
+            "interval_score80": 0.18566666666666667,
+            "mae": 0.026211617507040503,
+            "n": 12,
+            "width80": 0.18566666666666667
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.07000000000000006,
+            "resolved": true,
+            "truth_delta": -0.3014100193977356
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.04699999999999999,
+            "resolved": true,
+            "truth_delta": 0.04857732355594635
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.050000000000000044,
+            "resolved": true,
+            "truth_delta": 0.20697447657585144
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": -0.015,
+            "resolved": true,
+            "truth_delta": 0.08709347248077393
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.08999999999999997,
+            "resolved": true,
+            "truth_delta": 0.15744110941886902
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.049999999999999996,
+            "resolved": true,
+            "truth_delta": 0.10413327440619469
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.08000000000000007,
+            "resolved": true,
+            "truth_delta": 0.05201077461242676
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.02600000000000001,
+            "resolved": true,
+            "truth_delta": -0.05157477408647537
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.039999999999999925,
+            "resolved": false,
+            "truth_delta": 0.015034735202789307
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.011999999999999997,
+            "resolved": false,
+            "truth_delta": -0.012023493647575378
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": -0.0050000000000000044,
+            "resolved": false,
+            "truth_delta": -0.0035328269004821777
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.006000000000000005,
+            "resolved": false,
+            "truth_delta": -0.006847098469734192
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 12,
+        "selection_rationale": "Selected batch 12 as the strongest completed end-to-end reaction/extraction candidate with nonzero recovery: solvent-S2/catalyst-C1 at 440 K, rapid triple quench, and extractant-X1 without a lossy wash gave the best observed purity among extracted batches while retaining measurable product. No batch reached the 0.80 purity requirement, so this is a best-evidence compromise rather than a specification-passing result."
+      },
+      "replay": {
+        "checked_steps": 141,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.036911528557538986,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.04925698786973953,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6331744194030762,
+          "recovery": 0.08255227655172348,
+          "safety_risk": 0.11123044788837433,
+          "score": 0.24224913120269775,
+          "selectivity": 0.07236458361148834,
+          "virtual_spectrum_summary": 0.020301340147852898,
+          "yield": 0.07444854080677032
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 106.42200000002049,
+        "K2": 55.10899999999674,
+        "Q": 101.875,
+        "retest": 0.7190000000118744,
+        "source": 303.76600000000326
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 961024,
+            "input": 1019774,
+            "output": 9049,
+            "stage": "source",
+            "uncached_input": 58750
+          },
+          {
+            "cached_input": 0,
+            "input": 56967,
+            "output": 5206,
+            "stage": "K1",
+            "uncached_input": 56967
+          },
+          {
+            "cached_input": 3584,
+            "input": 66332,
+            "output": 4292,
+            "stage": "Q",
+            "uncached_input": 62748
+          },
+          {
+            "cached_input": 56832,
+            "input": 70679,
+            "output": 2085,
+            "stage": "K2",
+            "uncached_input": 13847
+          }
+        ],
+        "total": {
+          "cached_input": 1021440,
+          "input": 1213752,
+          "input_plus_output": 1234384,
+          "output": 20632,
+          "uncached_input": 192312
+        },
+        "valid": true
+      },
+      "world_id": "P-W01"
+    },
+    {
+      "arm": "Opaque",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W02-B12-E-Opaque",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 0.632532111008962,
+            "mae": 0.15905755321184792,
+            "n": 12,
+            "width80": 0.39916666666666667
+          },
+          "recovery": {
+            "coverage80": 0.3333333333333333,
+            "interval_score80": 0.5154381094326576,
+            "mae": 0.09348062525937954,
+            "n": 12,
+            "width80": 0.09408333333333332
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999993,
+            "resolved": true,
+            "truth_delta": -0.2917231321334839
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.016,
+            "resolved": true,
+            "truth_delta": 0.06637345999479294
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999993,
+            "resolved": true,
+            "truth_delta": 0.17895978689193726
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.013,
+            "resolved": true,
+            "truth_delta": 0.10975820198655128
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.09999999999999998,
+            "resolved": true,
+            "truth_delta": 0.12720030546188354
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.018,
+            "resolved": true,
+            "truth_delta": 0.12471362203359604
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.07000000000000006,
+            "resolved": true,
+            "truth_delta": 0.056030988693237305
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.062,
+            "resolved": true,
+            "truth_delta": -0.06038907170295715
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.05999999999999994,
+            "resolved": false,
+            "truth_delta": 0.0145760178565979
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.011999999999999997,
+            "resolved": false,
+            "truth_delta": -0.01467140018939972
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.004468858242034912
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.007999999999999993,
+            "resolved": false,
+            "truth_delta": -0.006916731595993042
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 1,
+        "selection_rationale": "Batch 1 is the only completed batch whose authoritative final assay met the required purity threshold (purity 0.8105 >= 0.80). Although recovery was low (0.00115), all higher-recovery batches failed the purity constraint, so batch 1 is the constraint-feasible recommendation."
+      },
+      "replay": {
+        "checked_steps": 172,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.004287270829081535,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.7991536259651184,
+          "recovery": 0.010216018185019493,
+          "safety_risk": 0.04732608422636986,
+          "score": 0.2822577655315399,
+          "selectivity": 2.8328035114100203e-05,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.00211227941326797
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 100.21900000001187,
+        "K2": 46.51500000001397,
+        "Q": 77.81200000000536,
+        "retest": 0.8129999999946449,
+        "source": 229.23399999999674
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1006080,
+            "input": 1068891,
+            "output": 5821,
+            "stage": "source",
+            "uncached_input": 62811
+          },
+          {
+            "cached_input": 3456,
+            "input": 62100,
+            "output": 5201,
+            "stage": "K1",
+            "uncached_input": 58644
+          },
+          {
+            "cached_input": 3584,
+            "input": 71460,
+            "output": 3319,
+            "stage": "Q",
+            "uncached_input": 67876
+          },
+          {
+            "cached_input": 61952,
+            "input": 74834,
+            "output": 1648,
+            "stage": "K2",
+            "uncached_input": 12882
+          }
+        ],
+        "total": {
+          "cached_input": 1075072,
+          "input": 1277285,
+          "input_plus_output": 1293274,
+          "output": 15989,
+          "uncached_input": 202213
+        },
+        "valid": true
+      },
+      "world_id": "P-W02"
+    },
+    {
+      "arm": "Aligned",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W02-B12-E-Aligned",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.8333333333333334,
+            "interval_score80": 0.5875757722059884,
+            "mae": 0.14495760122934978,
+            "n": 12,
+            "width80": 0.32166666666666666
+          },
+          "recovery": {
+            "coverage80": 0.6666666666666666,
+            "interval_score80": 0.25593909290432926,
+            "mae": 0.06481395859271288,
+            "n": 12,
+            "width80": 0.13741666666666666
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.10999999999999999,
+            "resolved": true,
+            "truth_delta": -0.2917231321334839
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.045000000000000005,
+            "resolved": true,
+            "truth_delta": 0.06637345999479294
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999993,
+            "resolved": true,
+            "truth_delta": 0.17895978689193726
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.030000000000000006,
+            "resolved": true,
+            "truth_delta": 0.10975820198655128
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.07999999999999996,
+            "resolved": true,
+            "truth_delta": 0.12720030546188354
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.031,
+            "resolved": true,
+            "truth_delta": 0.12471362203359604
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.050000000000000044,
+            "resolved": true,
+            "truth_delta": 0.056030988693237305
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.035,
+            "resolved": true,
+            "truth_delta": -0.06038907170295715
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.030000000000000027,
+            "resolved": false,
+            "truth_delta": 0.0145760178565979
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.015,
+            "resolved": false,
+            "truth_delta": -0.01467140018939972
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.004468858242034912
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0030000000000000027,
+            "resolved": false,
+            "truth_delta": -0.006916731595993042
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 3,
+        "selection_rationale": "Batch 3 is the completed process with the highest observed final recovery among batches meeting the required final purity >=0.80: final-assay purity 0.81915 and recovery 0.05992. It used solvent-S2, catalyst-C1, 360 K/3600 s reaction, extractant-X2 phase separation, and two 0.04 L organic-phase washes; its qualifying recovery exceeded the other qualifying batch observed."
+      },
+      "replay": {
+        "checked_steps": 194,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.00033435513614676893,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.012679814361035824,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.8225493431091309,
+          "recovery": 0.051890917122364044,
+          "safety_risk": 0.0985225960612297,
+          "score": 0.3008649945259094,
+          "selectivity": 0.041703227907419205,
+          "virtual_spectrum_summary": 0.0001838953176047653,
+          "yield": 0.04378718137741089
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 90.20300000000861,
+        "K2": 56.92200000002049,
+        "Q": 125.31200000000536,
+        "retest": 0.9690000000118744,
+        "source": 299.8280000000086
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 715392,
+            "input": 757269,
+            "output": 8700,
+            "stage": "source",
+            "uncached_input": 41877
+          },
+          {
+            "cached_input": 0,
+            "input": 36690,
+            "output": 4581,
+            "stage": "K1",
+            "uncached_input": 36690
+          },
+          {
+            "cached_input": 0,
+            "input": 45430,
+            "output": 5561,
+            "stage": "Q",
+            "uncached_input": 45430
+          },
+          {
+            "cached_input": 36480,
+            "input": 51046,
+            "output": 2322,
+            "stage": "K2",
+            "uncached_input": 14566
+          }
+        ],
+        "total": {
+          "cached_input": 751872,
+          "input": 890435,
+          "input_plus_output": 911599,
+          "output": 21164,
+          "uncached_input": 138563
+        },
+        "valid": true
+      },
+      "world_id": "P-W02"
+    },
+    {
+      "arm": "MisIndexed",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W02-B12-E-MisIndexed",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.25,
+            "interval_score80": 1.2542745498816172,
+            "mae": 0.26246402343114217,
+            "n": 12,
+            "width80": 0.40499999999999997
+          },
+          "recovery": {
+            "coverage80": 0.08333333333333333,
+            "interval_score80": 1.0085302325089773,
+            "mae": 0.12793375457574924,
+            "n": 12,
+            "width80": 0.058750000000000004
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": 0.15000000000000002,
+            "resolved": true,
+            "truth_delta": -0.2917231321334839
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.034,
+            "resolved": true,
+            "truth_delta": 0.06637345999479294
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999993,
+            "resolved": true,
+            "truth_delta": 0.17895978689193726
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": -0.013000000000000005,
+            "resolved": true,
+            "truth_delta": 0.10975820198655128
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.09999999999999998,
+            "resolved": true,
+            "truth_delta": 0.12720030546188354
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.037000000000000005,
+            "resolved": true,
+            "truth_delta": 0.12471362203359604
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.07000000000000006,
+            "resolved": true,
+            "truth_delta": 0.056030988693237305
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.004,
+            "resolved": true,
+            "truth_delta": -0.06038907170295715
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.07000000000000006,
+            "resolved": false,
+            "truth_delta": 0.0145760178565979
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.0015000000000000005,
+            "resolved": false,
+            "truth_delta": -0.01467140018939972
+          },
+          {
+            "correct": false,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": -0.029999999999999916,
+            "resolved": false,
+            "truth_delta": -0.004468858242034912
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.005000000000000001,
+            "resolved": false,
+            "truth_delta": -0.006916731595993042
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 9,
+        "selection_rationale": "Batch 9 provided the strongest observed final recovery (about 0.242) while retaining the best overall final purity/recovery balance among completed batches (purity about 0.612), with negligible mass-balance error. Although no tested batch reached the 0.80 purity constraint, batch 9 is the most defensible completed-process recommendation from the authoritative final assays."
+      },
+      "replay": {
+        "checked_steps": 177,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.13671183586120605,
+          "conversion": 0.38896530866622925,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.1490572988986969,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6092846393585205,
+          "recovery": 0.232249453663826,
+          "safety_risk": 0.1733512133359909,
+          "score": 0.30681920051574707,
+          "selectivity": 0.5752705931663513,
+          "virtual_spectrum_summary": 0.07519150525331497,
+          "yield": 0.22414571046829224
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 85.79699999999139,
+        "K2": 68.35899999999674,
+        "Q": 92.04699999999139,
+        "retest": 0.7189999999827705,
+        "source": 292.5929999999935
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 716672,
+            "input": 761725,
+            "output": 8932,
+            "stage": "source",
+            "uncached_input": 45053
+          },
+          {
+            "cached_input": 3456,
+            "input": 44411,
+            "output": 4037,
+            "stage": "K1",
+            "uncached_input": 40955
+          },
+          {
+            "cached_input": 3584,
+            "input": 52607,
+            "output": 3256,
+            "stage": "Q",
+            "uncached_input": 49023
+          },
+          {
+            "cached_input": 44288,
+            "input": 55918,
+            "output": 1574,
+            "stage": "K2",
+            "uncached_input": 11630
+          }
+        ],
+        "total": {
+          "cached_input": 768000,
+          "input": 914661,
+          "input_plus_output": 932460,
+          "output": 17799,
+          "uncached_input": 146661
+        },
+        "valid": true
+      },
+      "world_id": "P-W02"
+    },
+    {
+      "arm": "Opaque",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W03-B12-E-Opaque",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.8333333333333334,
+            "interval_score80": 0.5666988218824068,
+            "mae": 0.14632764493425685,
+            "n": 12,
+            "width80": 0.4166666666666667
+          },
+          "recovery": {
+            "coverage80": 0.9166666666666666,
+            "interval_score80": 0.16334962913393974,
+            "mae": 0.053219839854786795,
+            "n": 12,
+            "width80": 0.15358333333333332
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.08000000000000007,
+            "resolved": true,
+            "truth_delta": -0.31628331542015076
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.048999999999999995,
+            "resolved": true,
+            "truth_delta": 0.04283978044986725
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.08999999999999997,
+            "resolved": true,
+            "truth_delta": 0.23128323256969452
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.05399999999999999,
+            "resolved": true,
+            "truth_delta": 0.09988233633339405
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.050000000000000044,
+            "resolved": true,
+            "truth_delta": 0.19276347756385803
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.05,
+            "resolved": true,
+            "truth_delta": 0.12402204796671867
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.020000000000000018,
+            "resolved": true,
+            "truth_delta": 0.03603249788284302
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.03699999999999999,
+            "resolved": true,
+            "truth_delta": -0.07332159578800201
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.040000000000000036,
+            "resolved": false,
+            "truth_delta": 0.012428522109985352
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.015000000000000006,
+            "resolved": false,
+            "truth_delta": -0.01422407478094101
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.002985358238220215
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.00399999999999999,
+            "resolved": false,
+            "truth_delta": -0.006866291165351868
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 8,
+        "selection_rationale": "Batch 8 gave the strongest observed compromise among completed batches: final-assay purity 0.6622, recovery 0.1102, and campaign-high diagnostic score about 0.3059. No tested batch reached the purity constraint of 0.80, so this recommendation is explicitly the best empirical fallback rather than a claim of specification compliance; it used catalyst-C1/solvent-S0 at 410 K for 3600 s followed by aqueous phase formation, extractant-X2, mixing, settling, and selection of the organic material."
+      },
+      "replay": {
+        "checked_steps": 176,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.18683621287345886,
+          "conversion": 0.44725850224494934,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.06781988590955734,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6461834907531738,
+          "recovery": 0.12181862443685532,
+          "safety_risk": 0.10447140783071518,
+          "score": 0.29918450117111206,
+          "selectivity": 0.5334810018539429,
+          "virtual_spectrum_summary": 0.10275992006063461,
+          "yield": 0.2392757087945938
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 71.76600000000326,
+        "K2": 45.90700000000652,
+        "Q": 77.23500000001513,
+        "retest": 0.6559999999881256,
+        "source": 378.7029999999795
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1337216,
+            "input": 1410609,
+            "output": 11072,
+            "stage": "source",
+            "uncached_input": 73393
+          },
+          {
+            "cached_input": 3456,
+            "input": 49130,
+            "output": 3552,
+            "stage": "K1",
+            "uncached_input": 45674
+          },
+          {
+            "cached_input": 0,
+            "input": 56841,
+            "output": 3541,
+            "stage": "Q",
+            "uncached_input": 56841
+          },
+          {
+            "cached_input": 48896,
+            "input": 60437,
+            "output": 1898,
+            "stage": "K2",
+            "uncached_input": 11541
+          }
+        ],
+        "total": {
+          "cached_input": 1389568,
+          "input": 1577017,
+          "input_plus_output": 1597080,
+          "output": 20063,
+          "uncached_input": 187449
+        },
+        "valid": true
+      },
+      "world_id": "P-W03"
+    },
+    {
+      "arm": "Aligned",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W03-B12-E-Aligned",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.5833333333333334,
+            "interval_score80": 0.8554353144764899,
+            "mae": 0.1590579846998056,
+            "n": 12,
+            "width80": 0.29083333333333333
+          },
+          "recovery": {
+            "coverage80": 0.08333333333333333,
+            "interval_score80": 0.8233284956167141,
+            "mae": 0.09604585926855604,
+            "n": 12,
+            "width80": 0.02825
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.020000000000000018,
+            "resolved": true,
+            "truth_delta": -0.31628331542015076
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.017,
+            "resolved": true,
+            "truth_delta": 0.04283978044986725
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.06999999999999995,
+            "resolved": true,
+            "truth_delta": 0.23128323256969452
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.012,
+            "resolved": true,
+            "truth_delta": 0.09988233633339405
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": 0.08999999999999997,
+            "resolved": true,
+            "truth_delta": 0.19276347756385803
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.014,
+            "resolved": true,
+            "truth_delta": 0.12402204796671867
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.020000000000000018,
+            "resolved": true,
+            "truth_delta": 0.03603249788284302
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.009000000000000001,
+            "resolved": true,
+            "truth_delta": -0.07332159578800201
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.030000000000000027,
+            "resolved": false,
+            "truth_delta": 0.012428522109985352
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.0020000000000000018,
+            "resolved": false,
+            "truth_delta": -0.01422407478094101
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.002985358238220215
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.006866291165351868
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 1,
+        "selection_rationale": "Batch 1 was the only completed batch whose final assay satisfied the required purity threshold (purity 0.8177 >= 0.80). Although its measured recovery was effectively zero, all higher-recovery batches failed the hard purity constraint, so batch 1 is the constraint-feasible recommendation."
+      },
+      "replay": {
+        "checked_steps": 184,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.0,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.0021599147003144026,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.8064388632774353,
+          "recovery": 0.001699217245914042,
+          "safety_risk": 0.04014948755502701,
+          "score": 0.28267842531204224,
+          "selectivity": 0.0,
+          "virtual_spectrum_summary": 0.0,
+          "yield": 0.0
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 91.40700000000652,
+        "K2": 54.125,
+        "Q": 92.09399999998277,
+        "retest": 0.875,
+        "source": 326.39100000000326
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1079424,
+            "input": 1128876,
+            "output": 8947,
+            "stage": "source",
+            "uncached_input": 49452
+          },
+          {
+            "cached_input": 0,
+            "input": 47035,
+            "output": 4536,
+            "stage": "K1",
+            "uncached_input": 47035
+          },
+          {
+            "cached_input": 55552,
+            "input": 113861,
+            "output": 4081,
+            "stage": "Q",
+            "uncached_input": 58309
+          },
+          {
+            "cached_input": 46848,
+            "input": 60161,
+            "output": 2200,
+            "stage": "K2",
+            "uncached_input": 13313
+          }
+        ],
+        "total": {
+          "cached_input": 1181824,
+          "input": 1349933,
+          "input_plus_output": 1369697,
+          "output": 19764,
+          "uncached_input": 168109
+        },
+        "valid": true
+      },
+      "world_id": "P-W03"
+    },
+    {
+      "arm": "MisIndexed",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W03-B12-E-MisIndexed",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 1.727644532521566,
+            "mae": 0.3276693561176459,
+            "n": 12,
+            "width80": 0.4683333333333333
+          },
+          "recovery": {
+            "coverage80": 0.5833333333333334,
+            "interval_score80": 0.4498867357422908,
+            "mae": 0.07808752593522271,
+            "n": 12,
+            "width80": 0.09941666666666667
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.040000000000000036,
+            "resolved": true,
+            "truth_delta": -0.31628331542015076
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.0055,
+            "resolved": true,
+            "truth_delta": 0.04283978044986725
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.09,
+            "resolved": true,
+            "truth_delta": 0.23128323256969452
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.002,
+            "resolved": true,
+            "truth_delta": 0.09988233633339405
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.06,
+            "resolved": true,
+            "truth_delta": 0.19276347756385803
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.006999999999999999,
+            "resolved": true,
+            "truth_delta": 0.12402204796671867
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": -0.12,
+            "resolved": true,
+            "truth_delta": 0.03603249788284302
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.07500000000000001,
+            "resolved": true,
+            "truth_delta": -0.07332159578800201
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999999,
+            "resolved": false,
+            "truth_delta": 0.012428522109985352
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.023,
+            "resolved": false,
+            "truth_delta": -0.01422407478094101
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.002985358238220215
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.005999999999999998,
+            "resolved": false,
+            "truth_delta": -0.006866291165351868
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 6,
+        "selection_rationale": "Batch 6 gave the highest observed final recovery (0.384) and the highest observed final purity (0.578) among the screened complete processes, with catalyst-C1/solvent-S2 at 380 K for 7200 s. Although it did not reach the 0.80 purity target, it dominated the tested direct-isolation batches on the stated recovery objective, while the tested X0 extraction and washing sequences sharply reduced recovery and did not improve purity."
+      },
+      "replay": {
+        "checked_steps": 117,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.2708124816417694,
+          "conversion": 0.7157920598983765,
+          "cost": 1.0,
+          "degradation_warning": 0.007042662240564823,
+          "impurity_signal": 0.28315794467926025,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.5723380446434021,
+          "recovery": 0.3809884786605835,
+          "safety_risk": 0.20366595685482025,
+          "score": 0.3607032001018524,
+          "selectivity": 0.5160113573074341,
+          "virtual_spectrum_summary": 0.152116060256958,
+          "yield": 0.37288472056388855
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 86.39099999997416,
+        "K2": 46.905999999988126,
+        "Q": 107.5,
+        "retest": 0.5620000000053551,
+        "source": 177.04699999999139
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 396288,
+            "input": 435075,
+            "output": 5324,
+            "stage": "source",
+            "uncached_input": 38787
+          },
+          {
+            "cached_input": 3456,
+            "input": 35873,
+            "output": 4317,
+            "stage": "K1",
+            "uncached_input": 32417
+          },
+          {
+            "cached_input": 0,
+            "input": 44349,
+            "output": 4933,
+            "stage": "Q",
+            "uncached_input": 44349
+          },
+          {
+            "cached_input": 35712,
+            "input": 49337,
+            "output": 1888,
+            "stage": "K2",
+            "uncached_input": 13625
+          }
+        ],
+        "total": {
+          "cached_input": 435456,
+          "input": 564634,
+          "input_plus_output": 581096,
+          "output": 16462,
+          "uncached_input": 129178
+        },
+        "valid": true
+      },
+      "world_id": "P-W03"
+    },
+    {
+      "arm": "Opaque",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W04-B12-E-Opaque",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 2.3340352217356366,
+            "mae": 0.3357968089481195,
+            "n": 12,
+            "width80": 0.3208333333333333
+          },
+          "recovery": {
+            "coverage80": 0.5833333333333334,
+            "interval_score80": 0.2365811725705862,
+            "mae": 0.04345577077443401,
+            "n": 12,
+            "width80": 0.07375000000000001
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": 0.14,
+            "resolved": true,
+            "truth_delta": -0.36219167709350586
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.027000000000000003,
+            "resolved": true,
+            "truth_delta": 0.04254212975502014
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.09000000000000002,
+            "resolved": true,
+            "truth_delta": 0.24395181238651276
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.012,
+            "resolved": true,
+            "truth_delta": 0.08783927746117115
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": 0.06,
+            "resolved": true,
+            "truth_delta": 0.20757248997688293
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.025,
+            "resolved": true,
+            "truth_delta": 0.10555342212319374
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": -0.07,
+            "resolved": true,
+            "truth_delta": 0.03055703639984131
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.03,
+            "resolved": true,
+            "truth_delta": -0.04841298609972
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": -0.04999999999999999,
+            "resolved": false,
+            "truth_delta": 0.00942903757095337
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.015,
+            "resolved": false,
+            "truth_delta": -0.011229664087295532
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.0049443840980529785
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0030000000000000027,
+            "resolved": false,
+            "truth_delta": -0.006840713322162628
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 7,
+        "selection_rationale": "Batch 7 gave the strongest observed recovery\u2013purity balance among completed batches: final assay recovery 0.2472 and purity 0.6063 after retaining the aqueous phase, clearly outperforming organic-phase workups in recovery. Although no tested batch reached the 0.80 purity target, this is the most defensible completed process for subsequent replay."
+      },
+      "replay": {
+        "checked_steps": 182,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.14153283834457397,
+          "conversion": 0.5530135631561279,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.15387828648090363,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6154771447181702,
+          "recovery": 0.24625951051712036,
+          "safety_risk": 0.13684189319610596,
+          "score": 0.31107428669929504,
+          "selectivity": 0.42895251512527466,
+          "virtual_spectrum_summary": 0.07784305512905121,
+          "yield": 0.2381557673215866
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 83.39100000000326,
+        "K2": 52.921999999991385,
+        "Q": 54.578000000008615,
+        "retest": 0.6870000000053551,
+        "source": 301.5
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1281664,
+            "input": 1344399,
+            "output": 7498,
+            "stage": "source",
+            "uncached_input": 62735
+          },
+          {
+            "cached_input": 3456,
+            "input": 60483,
+            "output": 4336,
+            "stage": "K1",
+            "uncached_input": 57027
+          },
+          {
+            "cached_input": 3584,
+            "input": 68978,
+            "output": 2728,
+            "stage": "Q",
+            "uncached_input": 65394
+          },
+          {
+            "cached_input": 60288,
+            "input": 71761,
+            "output": 2231,
+            "stage": "K2",
+            "uncached_input": 11473
+          }
+        ],
+        "total": {
+          "cached_input": 1348992,
+          "input": 1545621,
+          "input_plus_output": 1562414,
+          "output": 16793,
+          "uncached_input": 196629
+        },
+        "valid": true
+      },
+      "world_id": "P-W04"
+    },
+    {
+      "arm": "Aligned",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W04-B12-E-Aligned",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.3333333333333333,
+            "interval_score80": 1.2693060051401457,
+            "mae": 0.2523264737427235,
+            "n": 12,
+            "width80": 0.4558333333333333
+          },
+          "recovery": {
+            "coverage80": 0.8333333333333334,
+            "interval_score80": 0.16083148582776388,
+            "mae": 0.04495577077443401,
+            "n": 12,
+            "width80": 0.13191666666666665
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": 0.09000000000000002,
+            "resolved": true,
+            "truth_delta": -0.36219167709350586
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.023,
+            "resolved": true,
+            "truth_delta": 0.04254212975502014
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.010000000000000009,
+            "resolved": true,
+            "truth_delta": 0.24395181238651276
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.007000000000000003,
+            "resolved": true,
+            "truth_delta": 0.08783927746117115
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.06000000000000005,
+            "resolved": true,
+            "truth_delta": 0.20757248997688293
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.013999999999999999,
+            "resolved": true,
+            "truth_delta": 0.10555342212319374
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": -0.050000000000000044,
+            "resolved": true,
+            "truth_delta": 0.03055703639984131
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.032,
+            "resolved": true,
+            "truth_delta": -0.04841298609972
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.020000000000000018,
+            "resolved": false,
+            "truth_delta": 0.00942903757095337
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.007999999999999993,
+            "resolved": false,
+            "truth_delta": -0.011229664087295532
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": -0.010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.0049443840980529785
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0040000000000000036,
+            "resolved": false,
+            "truth_delta": -0.006840713322162628
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 6,
+        "selection_rationale": "Selected completed batch 6 because its final assay gave the campaign's strongest observed overall tradeoff (purity 0.5912, recovery 0.0993, score 0.23175) among tested processes. No completed batch reached the required purity threshold of 0.80, so this is explicitly a best-evidence fallback rather than a specification-compliant optimum; it used solvent-S1, catalyst-C1, 360 K/7200 s, extractant-X2, organic-phase retention, drying, and concentration."
+      },
+      "replay": {
+        "checked_steps": 184,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.057015758007764816,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.06936121731996536,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.5851725339889526,
+          "recovery": 0.09598319977521896,
+          "safety_risk": 0.1070600226521492,
+          "score": 0.22880618274211884,
+          "selectivity": 0.08579550683498383,
+          "virtual_spectrum_summary": 0.031358666718006134,
+          "yield": 0.08787946403026581
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 92.20300000000861,
+        "K2": 47.296999999991385,
+        "Q": 75.21799999999348,
+        "retest": 0.7650000000139698,
+        "source": 267.10899999999674
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 617600,
+            "input": 652829,
+            "output": 7860,
+            "stage": "source",
+            "uncached_input": 35229
+          },
+          {
+            "cached_input": 3456,
+            "input": 34240,
+            "output": 4879,
+            "stage": "K1",
+            "uncached_input": 30784
+          },
+          {
+            "cached_input": 3584,
+            "input": 43278,
+            "output": 3966,
+            "stage": "Q",
+            "uncached_input": 39694
+          },
+          {
+            "cached_input": 34048,
+            "input": 47299,
+            "output": 2297,
+            "stage": "K2",
+            "uncached_input": 13251
+          }
+        ],
+        "total": {
+          "cached_input": 658688,
+          "input": 777646,
+          "input_plus_output": 796648,
+          "output": 19002,
+          "uncached_input": 118958
+        },
+        "valid": true
+      },
+      "world_id": "P-W04"
+    },
+    {
+      "arm": "MisIndexed",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W04-B12-E-MisIndexed",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 2.4815352217356366,
+            "mae": 0.4015770299732685,
+            "n": 12,
+            "width80": 0.42666666666666664
+          },
+          "recovery": {
+            "coverage80": 0.08333333333333333,
+            "interval_score80": 0.43886925441523394,
+            "mae": 0.07005141344194611,
+            "n": 12,
+            "width80": 0.049999999999999996
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.019999999999999962,
+            "resolved": true,
+            "truth_delta": -0.36219167709350586
+          },
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.004,
+            "resolved": true,
+            "truth_delta": 0.04254212975502014
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.06,
+            "resolved": true,
+            "truth_delta": 0.24395181238651276
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": -0.001,
+            "resolved": true,
+            "truth_delta": 0.08783927746117115
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.02999999999999997,
+            "resolved": true,
+            "truth_delta": 0.20757248997688293
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.0038,
+            "resolved": true,
+            "truth_delta": 0.10555342212319374
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": -0.24,
+            "resolved": true,
+            "truth_delta": 0.03055703639984131
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.03,
+            "resolved": true,
+            "truth_delta": -0.04841298609972
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": -0.12,
+            "resolved": false,
+            "truth_delta": 0.00942903757095337
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.018,
+            "resolved": false,
+            "truth_delta": -0.011229664087295532
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": -0.010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.0049443840980529785
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0020000000000000018,
+            "resolved": false,
+            "truth_delta": -0.006840713322162628
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 10,
+        "selection_rationale": "Batch 10 was the strongest observed recovery result (final recovery 0.4481) with near-best direct-process purity (0.5947), high conversion (0.8796), negligible mass-balance error, and the highest observed campaign score (0.3957). No completed batch met the required 0.80 purity threshold, so this is the best empirical development lead rather than a specification-compliant process."
+      },
+      "replay": {
+        "checked_steps": 163,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.30056264996528625,
+          "conversion": 0.876780092716217,
+          "cost": 1.0,
+          "degradation_warning": 0.036017805337905884,
+          "impurity_signal": 0.3129080832004547,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.5873496532440186,
+          "recovery": 0.44824784994125366,
+          "safety_risk": 0.2802797555923462,
+          "score": 0.39173272252082825,
+          "selectivity": 0.4961182475090027,
+          "virtual_spectrum_summary": 0.18151746690273285,
+          "yield": 0.4401440918445587
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 80.57800000000861,
+        "K2": 47.312999999994645,
+        "Q": 101.65599999998813,
+        "retest": 0.5150000000139698,
+        "source": 227.98499999998603
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 450688,
+            "input": 525431,
+            "output": 6783,
+            "stage": "source",
+            "uncached_input": 74743
+          },
+          {
+            "cached_input": 0,
+            "input": 39416,
+            "output": 3976,
+            "stage": "K1",
+            "uncached_input": 39416
+          },
+          {
+            "cached_input": 0,
+            "input": 47551,
+            "output": 4481,
+            "stage": "Q",
+            "uncached_input": 47551
+          },
+          {
+            "cached_input": 39296,
+            "input": 52087,
+            "output": 1917,
+            "stage": "K2",
+            "uncached_input": 12791
+          }
+        ],
+        "total": {
+          "cached_input": 489984,
+          "input": 664485,
+          "input_plus_output": 681642,
+          "output": 17157,
+          "uncached_input": 174501
+        },
+        "valid": true
+      },
+      "world_id": "P-W04"
+    },
+    {
+      "arm": "Opaque",
+      "batch_accounting": {
+        "discarded": 2,
+        "discarded_batches": [
+          {
+            "lifecycle_index": 1,
+            "reason": "Irrecoverable empty phases after phase selection removed the reactant-containing liquid."
+          },
+          {
+            "lifecycle_index": 2,
+            "reason": "Extraction constitution failed and organic selection removed product-bearing reactor liquid."
+          }
+        ],
+        "final_assayed": 10,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W05-B12-E-Opaque",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.4166666666666667,
+            "interval_score80": 1.285689281622569,
+            "mae": 0.2890620834628741,
+            "n": 12,
+            "width80": 0.445
+          },
+          "recovery": {
+            "coverage80": 0.5,
+            "interval_score80": 0.6549569318493207,
+            "mae": 0.09880212861299514,
+            "n": 12,
+            "width80": 0.1255
+          }
+        },
+        "pairs": [
+          {
+            "correct": false,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": 0.08000000000000002,
+            "resolved": true,
+            "truth_delta": -0.2557752728462219
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.021,
+            "resolved": true,
+            "truth_delta": 0.08256956189870834
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.11000000000000004,
+            "resolved": true,
+            "truth_delta": 0.15870410203933716
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.017,
+            "resolved": true,
+            "truth_delta": 0.1267126351594925
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": 0.03999999999999998,
+            "resolved": true,
+            "truth_delta": 0.11408957839012146
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.015000000000000003,
+            "resolved": true,
+            "truth_delta": 0.13765115290880203
+          },
+          {
+            "correct": false,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.020000000000000018,
+            "resolved": true,
+            "truth_delta": 0.049324214458465576
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.07099999999999998,
+            "resolved": true,
+            "truth_delta": -0.08654499053955078
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.020000000000000018,
+            "resolved": false,
+            "truth_delta": 0.01398700475692749
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.011999999999999983,
+            "resolved": false,
+            "truth_delta": -0.018689021468162537
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.004409849643707275
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0030000000000000027,
+            "resolved": false,
+            "truth_delta": -0.006973236799240112
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 6,
+        "selection_rationale": "Batch 6 gave the strongest observed recovery-purity compromise among completed batches: final recovery 0.2351 and purity 0.6304, with the highest observed diagnostic score (0.3088). It used catalyst-C1/solvent-S2 at 360 K for 14400 s, followed by one extractant-X0 extraction and retention of the aqueous phase. No completed batch met the 0.80 purity constraint, so this is the evidence-based best available recommendation rather than a claim of specification compliance."
+      },
+      "replay": {
+        "checked_steps": 197,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.12729749083518982,
+          "conversion": 0.8448323011398315,
+          "cost": 1.0,
+          "degradation_warning": 0.028962373733520508,
+          "impurity_signal": 0.13964295387268066,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6243409514427185,
+          "recovery": 0.23177911341190338,
+          "safety_risk": 0.142348974943161,
+          "score": 0.30310341715812683,
+          "selectivity": 0.26151442527770996,
+          "virtual_spectrum_summary": 0.08304668962955475,
+          "yield": 0.22367537021636963
+        }
+      ],
+      "source_batches": 10,
+      "source_validation": {
+        "batch_count": false,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "failed",
+      "timing_s": {
+        "K1": 73.15599999998813,
+        "K2": 56.734000000025844,
+        "Q": 121.5,
+        "retest": 0.7809999999881256,
+        "source": 332.68700000000536
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1459200,
+            "input": 1532009,
+            "output": 10172,
+            "stage": "source",
+            "uncached_input": 72809
+          },
+          {
+            "cached_input": 0,
+            "input": 67369,
+            "output": 3794,
+            "stage": "K1",
+            "uncached_input": 67369
+          },
+          {
+            "cached_input": 0,
+            "input": 75322,
+            "output": 4518,
+            "stage": "Q",
+            "uncached_input": 75322
+          },
+          {
+            "cached_input": 67200,
+            "input": 79895,
+            "output": 2264,
+            "stage": "K2",
+            "uncached_input": 12695
+          }
+        ],
+        "total": {
+          "cached_input": 1526400,
+          "input": 1754595,
+          "input_plus_output": 1775343,
+          "output": 20748,
+          "uncached_input": 228195
+        },
+        "valid": true
+      },
+      "world_id": "P-W05"
+    },
+    {
+      "arm": "Aligned",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W05-B12-E-Aligned",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.5,
+            "interval_score80": 0.9613998202482859,
+            "mae": 0.1931647738814354,
+            "n": 12,
+            "width80": 0.38
+          },
+          "recovery": {
+            "coverage80": 0.5,
+            "interval_score80": 0.5289569318493207,
+            "mae": 0.08846879527966181,
+            "n": 12,
+            "width80": 0.1345
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.38,
+            "resolved": true,
+            "truth_delta": -0.2557752728462219
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.048,
+            "resolved": true,
+            "truth_delta": 0.08256956189870834
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": 0.10999999999999999,
+            "resolved": true,
+            "truth_delta": 0.15870410203933716
+          },
+          {
+            "correct": true,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": 0.037000000000000005,
+            "resolved": true,
+            "truth_delta": 0.1267126351594925
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.12000000000000005,
+            "resolved": true,
+            "truth_delta": 0.11408957839012146
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.03900000000000001,
+            "resolved": true,
+            "truth_delta": 0.13765115290880203
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.11999999999999994,
+            "resolved": true,
+            "truth_delta": 0.049324214458465576
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.06,
+            "resolved": true,
+            "truth_delta": -0.08654499053955078
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.06999999999999995,
+            "resolved": false,
+            "truth_delta": 0.01398700475692749
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.009000000000000008,
+            "resolved": false,
+            "truth_delta": -0.018689021468162537
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.004409849643707275
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": 0.0,
+            "resolved": false,
+            "truth_delta": -0.006973236799240112
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 12,
+        "selection_rationale": "Batch 12 achieved the best observed feasible tradeoff: final purity 0.8108 exceeded the 0.80 constraint while recovery 0.0628 was higher than every other purity-feasible completed batch. It used catalyst-C1, solvent-S2, 355 K for 3600 s, extraction with X2, and one wash."
+      },
+      "replay": {
+        "checked_steps": 194,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.004459276329725981,
+          "conversion": 0.9912196397781372,
+          "cost": 1.0,
+          "degradation_warning": 0.0,
+          "impurity_signal": 0.016804736107587814,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.8074643015861511,
+          "recovery": 0.06445496529340744,
+          "safety_risk": 0.10985392332077026,
+          "score": 0.29872623085975647,
+          "selectivity": 0.0542672760784626,
+          "virtual_spectrum_summary": 0.0024526019115000963,
+          "yield": 0.056351229548454285
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 97.4210000000021,
+        "K2": 52.921999999991385,
+        "Q": 113.28099999998813,
+        "retest": 1.0150000000139698,
+        "source": 244.53099999998813
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 611328,
+            "input": 648617,
+            "output": 6162,
+            "stage": "source",
+            "uncached_input": 37289
+          },
+          {
+            "cached_input": 3456,
+            "input": 36739,
+            "output": 4808,
+            "stage": "K1",
+            "uncached_input": 33283
+          },
+          {
+            "cached_input": 3584,
+            "input": 45706,
+            "output": 4961,
+            "stage": "Q",
+            "uncached_input": 42122
+          },
+          {
+            "cached_input": 36608,
+            "input": 50719,
+            "output": 2196,
+            "stage": "K2",
+            "uncached_input": 14111
+          }
+        ],
+        "total": {
+          "cached_input": 654976,
+          "input": 781781,
+          "input_plus_output": 799908,
+          "output": 18127,
+          "uncached_input": 126805
+        },
+        "valid": true
+      },
+      "world_id": "P-W05"
+    },
+    {
+      "arm": "MisIndexed",
+      "batch_accounting": {
+        "discarded": 0,
+        "discarded_batches": [],
+        "final_assayed": 12,
+        "started": 12
+      },
+      "budget": 12,
+      "failure": null,
+      "id": "P-W05-B12-E-MisIndexed",
+      "posttests": 3,
+      "prediction_evaluation": {
+        "metrics": {
+          "purity": {
+            "coverage80": 0.5833333333333334,
+            "interval_score80": 0.9084017803271611,
+            "mae": 0.13180121392011643,
+            "n": 12,
+            "width80": 0.20833333333333337
+          },
+          "recovery": {
+            "coverage80": 0.9166666666666666,
+            "interval_score80": 0.21312277038892108,
+            "mae": 0.061260016024112705,
+            "n": 12,
+            "width80": 0.17625
+          }
+        },
+        "pairs": [
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "purity",
+            "predicted_delta": -0.04400000000000004,
+            "resolved": true,
+            "truth_delta": -0.2557752728462219
+          },
+          {
+            "correct": true,
+            "factor": "upstream_time",
+            "metric": "recovery",
+            "predicted_delta": 0.09599999999999999,
+            "resolved": true,
+            "truth_delta": 0.08256956189870834
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "purity",
+            "predicted_delta": -0.026000000000000023,
+            "resolved": true,
+            "truth_delta": 0.15870410203933716
+          },
+          {
+            "correct": false,
+            "factor": "extractant",
+            "metric": "recovery",
+            "predicted_delta": -0.04600000000000001,
+            "resolved": true,
+            "truth_delta": 0.1267126351594925
+          },
+          {
+            "correct": false,
+            "factor": "phase_ratio",
+            "metric": "purity",
+            "predicted_delta": -0.08099999999999996,
+            "resolved": true,
+            "truth_delta": 0.11408957839012146
+          },
+          {
+            "correct": true,
+            "factor": "phase_ratio",
+            "metric": "recovery",
+            "predicted_delta": 0.14400000000000002,
+            "resolved": true,
+            "truth_delta": 0.13765115290880203
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "purity",
+            "predicted_delta": 0.07999999999999996,
+            "resolved": true,
+            "truth_delta": 0.049324214458465576
+          },
+          {
+            "correct": true,
+            "factor": "washing",
+            "metric": "recovery",
+            "predicted_delta": -0.07700000000000001,
+            "resolved": true,
+            "truth_delta": -0.08654499053955078
+          },
+          {
+            "correct": false,
+            "factor": "wash_staging",
+            "metric": "purity",
+            "predicted_delta": 0.02100000000000002,
+            "resolved": false,
+            "truth_delta": 0.01398700475692749
+          },
+          {
+            "correct": true,
+            "factor": "wash_staging",
+            "metric": "recovery",
+            "predicted_delta": -0.006000000000000005,
+            "resolved": false,
+            "truth_delta": -0.018689021468162537
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "purity",
+            "predicted_delta": -0.0010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.004409849643707275
+          },
+          {
+            "correct": true,
+            "factor": "concentration",
+            "metric": "recovery",
+            "predicted_delta": -0.0010000000000000009,
+            "resolved": false,
+            "truth_delta": -0.006973236799240112
+          }
+        ],
+        "valid": true
+      },
+      "recommendation": {
+        "selected_experiment_index": 10,
+        "selection_rationale": "Batch 10 gave the highest observed campaign score and the highest measured recovery among the completed batches (about 0.461), with negligible reported mass-balance error. Its purity (about 0.684) did not meet the 0.80 specification, so this is a provisional best observed batch rather than a specification-compliant process; no completed batch met the purity constraint."
+      },
+      "replay": {
+        "checked_steps": 225,
+        "max_abs_error": 0.0,
+        "mismatches": [],
+        "verified": true
+      },
+      "retest_metrics": [
+        {
+          "byproduct_signal": 0.20690515637397766,
+          "conversion": 0.6927419304847717,
+          "cost": 1.0,
+          "degradation_warning": 0.0019780918955802917,
+          "impurity_signal": 0.2192506194114685,
+          "process_mass_balance_error": 0.0,
+          "purity": 0.6765070557594299,
+          "recovery": 0.4612099230289459,
+          "safety_risk": 0.22122953832149506,
+          "score": 0.44043460488319397,
+          "selectivity": 0.6476876735687256,
+          "virtual_spectrum_summary": 0.114687979221344,
+          "yield": 0.453106164932251
+        }
+      ],
+      "source_batches": 12,
+      "source_validation": {
+        "batch_count": true,
+        "exact_replay": true,
+        "execution": true,
+        "inventory": true,
+        "resource_ledger": true
+      },
+      "status": "completed",
+      "timing_s": {
+        "K1": 133.5,
+        "K2": 42.312999999994645,
+        "Q": 204.68700000000536,
+        "retest": 0.5,
+        "source": 379.0940000000119
+      },
+      "tokens": {
+        "basis": "cumulative thread snapshots differenced in source/K1/Q/K2 order",
+        "complete": true,
+        "monetary_cost_usd": null,
+        "stages": [
+          {
+            "cached_input": 1817856,
+            "input": 1915334,
+            "output": 10436,
+            "stage": "source",
+            "uncached_input": 97478
+          },
+          {
+            "cached_input": 3456,
+            "input": 69435,
+            "output": 6550,
+            "stage": "K1",
+            "uncached_input": 65979
+          },
+          {
+            "cached_input": 418688,
+            "input": 506521,
+            "output": 8967,
+            "stage": "Q",
+            "uncached_input": 87833
+          },
+          {
+            "cached_input": 69248,
+            "input": 92322,
+            "output": 1705,
+            "stage": "K2",
+            "uncached_input": 23074
+          }
+        ],
+        "total": {
+          "cached_input": 2309248,
+          "input": 2583612,
+          "input_plus_output": 2611270,
+          "output": 27658,
+          "uncached_input": 274364
+        },
+        "valid": true
+      },
+      "world_id": "P-W05"
+    }
+  ],
+  "retests": 15,
+  "source_batches": 178,
+  "status_counts": {
+    "completed": 14,
+    "failed": 1
+  },
+  "terminal": true
+}

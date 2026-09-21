@@ -1,0 +1,80 @@
+# P accelerated development gate — 2026-09-20
+
+User authorization: run the purification gate using the accelerated runtime and repair observed defects. Development only, zero provider calls; do not modify the running C block's frozen files. This note governs new data, not the historical Experiment 1 qualification contract.
+
+Question: can a twelve-batch autonomous purification commission execute with truthful public contracts, conserved/accounted material and resources, symmetric E-prior delivery, and useful quality/decision contrasts?
+
+Fixed v1 coverage: the five authored P world definitions in `configs/benchmark/experiment_1_p_asset_authoring_v1.1.0.json`, each under Opaque/Aligned/MisIndexed, twelve recipes per campaign: **15 campaigns, 180 batches plus 180 exact replays**. Use full-process v5 and the ordinary accelerated `run_agent` path; no alternative fast physics. Reuse the world/dossier constructors as development inputs, without treating their historical certificate as current qualification. Use anonymous material catalogs; E prior supplies only scoped extractant properties, with the existing fixed permutation [2,0,3,1]. All public language is English.
+
+Reference base: solvent 2 / 0.028 L, reagent 0.002 mol, catalyst 1 / 0.00025 mol, 400 K / 7200 s reaction, quench, water phase 0.012 L, extractant 2 / 0.030 L, mix 240 s / 850 rpm, settle 420 s, one HPLC, retain organic, wash 0.020 L, dry, concentrate 600 s, transfer 0.97, terminate and final assay. This adapts the historical P02 witness while reducing measurements to one extra per batch; that adaptation itself must be tested. No recipe is delivered to future source agents.
+
+Six fixed pairs (other settings identical within a pair): (1) reaction time 1800/7200 s; (2) extractant 1/2, wash 0.018 L; (3) extractant volume 0.012/0.040 L, wash 0.016 L; (4) no wash/0.024 L wash, reaction 6000 s; (5) wash once 0.020 L/twice 0.010 L, extractant volume 0.025 L; (6) stop without concentration/add 600 s concentration, wash 0.022 L, reaction 5400 s. All include the same final transfer. Exact action lists are saved before the first operation.
+
+Shared resources: 12 starts, 12 final assays, 12 extra measurements, 720 operation attempts. Generous explicitly accounted reagent/solvent/catalyst/extractant/wash stocks; simulated time/energy/cost recorded, no extra wall-time performance gate. No forced strategy or hypothesis template. End-of-batch must expose the next batch until the twelfth end.
+
+Hard engineering checks: all actions legal, all 12 batches complete, tolerance-zero exact replay, independently reconstructed campaign ledger, final counts/stock consumption consistent, finite metrics, selected-phase purity and original-reactant-charge recovery agree with independent arithmetic to 1e-9, and removed/retained inventory plus sample losses accounted for. Initial public contract and actual material-information tool must agree; no real material names or private arm/world keys. No source or posttest provider calls are authorized by this gate.
+
+Scientific checks per world: at least one reference with purity >=0.80 and original-charge recovery >=0.10; at least three quality-positive and three quality-negative references (quality means purity >=0.80 and nonzero product); at least four of six paired contrasts resolve a >=0.02 difference in purity or recovery. Include the material comparison and at least one postprocessing comparison. Matching actions across arms must have identical physics and keyed observations. Check the scoped A dossier against its executable generator, M's fixed permutation and matched shape, and whether the selected material contrast is publicly resolved in the direction supported by A rather than M. Report limitations if this does not establish a full noise-calibrated prior discriminator. Distinct worlds require distinct executed private parameters and at least one changed public reference response, not only different hashes.
+
+Stop/repair: a platform exception stops the affected campaign and preserves its prefix; continue independent campaigns to enumerate failures. Negative scientific results remain negative and do not trigger in-block recipe/threshold changes. After closing v1, document any defect and targeted fix in this note before a separate write-once repaired block. A scientific coverage redesign must be labelled a new development design with fixed new coverage before execution. No automatic promotion to formal evidence and no repeat of unrelated historical global gates.
+
+Outputs: ignored raw roots with complete actions, observations, resource receipts and replay; machine summary and English REPORT with exact denominators, every failure, per-world coverage, wall time and operations. Progress every 30 seconds with stage/completed/total/throughput/ETA. K1/Q/K2 and actual provider completion are explicitly outside this provider-free gate; a subsequent model canary is required.
+
+## First result and scoped repair
+
+V1 completed 180/180 batches and 3,045 operations plus exact replay in 297.234 s. All campaigns execute and account resources correctly; all fail anonymous public delivery because P still uses the generic catalog with real solvent identities. A subsequent contract inspection also found the adapter's fallback planned-experiment count was 1 despite a working 12-batch physical campaign. Preserve v1 and its executor snapshot. Its initially limited public-contract check did not catch that fallback; do not retroactively claim it did.
+
+All five worlds have feasible witnesses (7/11/4/9/12), not an infeasible task. Quality-positive/negative counts are 10/2, 12/0, 5/7, 12/0 and 12/0: only W03 has both classes adequately represented. All worlds have four resolved pairs. The first design overconcentrated on a favorable dilute process. Do not change thresholds or physics to make these references pass.
+
+Before a new gate, run a separate fixed **60-batch domain diagnostic**: all five worlds, Opaque only, four extractants times reagent charges 0.002/0.010/0.040 mol, otherwise the base recipe including 0.020 L wash. Twelve batches per world, exact replay and the same resource envelope. This is a descriptive coverage diagnostic, not six-pair qualification or a three-arm result. Preserve all results; no selection changes within the diagnostic. Use it to specify a new common prediction domain before a fresh full gate.
+
+The repair is an opt-in P presentation adapter: anonymous catalogs and action labels, explicit twelve-batch lifecycle, consistent dynamic goal/measurement text and dossier delivery. It runs in the P executor process and restores its hooks afterward; no shared source file or C frozen runtime is modified. Public observations, action bounds, physics, noise and costs are unchanged. Check the initial MCP response and every dynamic public view, not only prompt text. Subsequent new-data roots are separate and retain exact prior outputs.
+
+## Fixed v2, before execution
+
+The domain diagnostic finished 60/60 batches, 1,020 operations and exact replay in 96.844 s. The high-charge 0.040 mol recipes are quality-negative in all five worlds; dilute favorable recipes remain available from v1. The diagnostic is not a paired or three-arm gate. Its first report incorrectly displayed reused pair/arm columns; correct only those derived columns to N/A without repeating physics.
+
+V2 uses all five original worlds and all three arms, **180 batches**, with unchanged quality, recovery, contrast and resource thresholds. Keep the six v1 pairs but set reagent charge to 0.040 mol for Q01–Q06 (first three pairs); keep Q07–Q12 at 0.002 mol. Change the material pair Q03/Q04 to X0/X2. This pair reverses the scoped organic-product-fraction ranking between A and M, unlike the old X1/X2 comparison. These are development coverage choices informed by the retained diagnostic, not independent confirmatory findings. No world physics, native instrument noise, thresholds or prior permutation changes.
+
+Close the checks promised above: independently reconcile target and impurity retained inventory plus itemized discarded inventories and calculated sample losses for every downstream transaction (including final assay before automatic reset), tolerance 1e-9 mol; preserve original reagent charge and unselected phases during sampling. Check actual executed partition parameters, all ten between-world pairs for different parameters and public responses, and all three arms for matched actions/truth/observations.
+
+For prior consistency, evaluate the native partition kernel at all four extractants and both disclosed feed anchors in each world: **40 scoped kernel contacts**, not additional laboratory batches. Compare the six directly generated coefficient/phase-inventory fields to A at 1e-12, and require M's exact fixed permutation and an opposed X0/X2 fraction ranking. Require the complete-process X0/X2 recovery contrast in both latent truth and the single keyed public final assay to exceed 0.02 in A's direction. This is a scoped consistency and qualitative falsification witness, not noise-calibrated whole-mechanism identification. Report that limitation even if it passes. Do not infer full-process purity rankings from a scoped selectivity coefficient.
+
+Store v2 in a fresh root with the executor and public-adapter source snapshots. All failures retain their original outputs. Real model K1/Q/K2 and recommendation retest remain outside this provider-free gate; no model launch in this block.
+
+## V2 diagnosis and fixed v3 repair
+
+V2's inventory evaluator used the scoring role P_org as a physical conservation group and read only state metadata. Mixing transfers the same product to P_aq, and drying/concentration/transfer store their own itemized loss receipts in equipment settings. The corrected evaluator resolves both explicitly declared product aliases and reads each operation's own receipt exactly once. The 1e-9 tolerance and conservation requirement are unchanged.
+
+Inspection also found a real measurement gap: the native P target role only includes P_org, so a retained aqueous receiver's P_aq is omitted from its target assay. This conflicts with the selected-material commission. V3's opt-in P observation adapter includes both declared target aliases for native truth and raw instrument signals, using the same selected-phase rule, original-charge denominator and noise. Reaction kinetics, extraction/washing/downstream physics, recipes and world parameters stay unchanged. Other tasks are unaffected; no frozen C file changes. This measurement fix requires a fresh full development block, not promotion of v2.
+
+V3 repeats the same fixed v2 **15 campaigns / 180 batches** and 40 scoped kernel contacts, and adds **five one-batch aqueous-branch regressions**, one per world, Opaque. Each branch uses the common dilute base through HPLC, retains aqueous, skips washing/drying/concentration/transfer, then terminates and final-assays; same instrument noise and one extra/one final measurement. Require legal completion, exact replay, positive target inventory in the aqueous receiver, purity/recovery agreement with independent arithmetic at 1e-9 and complete inventory/sample accounting. These five branch probes test measurement semantics, not quality feasibility or extra agent trials. Total v3: **185 batches and their exact replays**, zero provider calls. All earlier roots and failures remain unchanged.
+
+## Control decisions and scope
+
+| Observed issue/control | Class / impact | Action and validation |
+| --- | --- | --- |
+| Real identities in anonymous catalog; stale one-batch contract | K0 / semantic | Repair P public readers together; check actual initial MCP response and dynamic views, then rerun the complete block |
+| Reference set lacked quality-negative cases | K0 / design coverage | Retain the negative result; run one fixed domain diagnostic, then fix a common revised set before execution; no relaxed thresholds |
+| Scoring role mistaken for conserved physical inventory; equipment receipts missed | K0 / interpretation | Read both product aliases and each operation's receipt once; keep conservation tolerance and every original failure |
+| Selected aqueous product omitted from assays | K0 / semantic | P-scoped observation fix; new complete block plus five branch regressions; future source, prediction evaluator and retest must use the same adapter |
+| Exact replay, shared stock/sample counts and legal operations | K1 / runtime | Keep on the actual accelerated execution path; no replacement fast physics |
+| Historical global audit/hash/readiness chain | K2 / release only | Not rerun for this development task; bind the smallest current execution surface once at a later formal freeze |
+
+The retained controls cover distinct invariants; no new approval queue, global readiness package or duplicate source inventory is introduced. The executor snapshot is local reproducibility data, not a development launch gate. The remaining provider-bound question is whether the actual autonomous source and English K1/Q/K2/recommendation-retest chain complete with this P adapter; provider-free success cannot answer it.
+
+## Closeout
+
+V3 passed: **5/5 worlds, 15/15 twelve-batch campaigns, 5/5 aqueous branch probes**, 185/185 batches, 3,110 operations and 3,110 exact replay steps, 291.563 seconds including the branch probes. All 2,185 downstream inventory checks passed, including 370 sampling transactions; maximum absolute closure error was 2.30e-18 mol. All ten world pairs differ in executed parameters and public responses. Quality-positive/negative counts are 6/6, 7/5, 4/8, 7/5 and 7/5; feasible witnesses 5/6/4/6/7. Each world resolves four of six intervention pairs. Wash staging and concentration have small effects and remain explicit small-effect controls; passing this gate does not make them strong mechanism-discrimination tests.
+
+All retained blocks together: 605 batches and exact replays, 10,220 operations per execution/replay pass, approximately 976.562 s of recorded block wall time (16 min 17 s, excluding implementation and diagnosis). V1/v2 remain failed blocks, and the 60-batch domain sweep remains diagnostic only. No provider calls, source-agent success claims, global audit regeneration or publication-evidence promotion. Focused acceptance: 11 tests passed, Ruff and diff checks passed.
+
+Decision: **canary_ready**. Next stage is the previously proposed single-world/Opaque/12-batch Sol-medium English source followed by K1/Q/K2 and an independent recommendation retest. It must explicitly use the same P public/measurement adapter throughout execution, prediction truth and replay. That model chain was not launched by this gate task.
+
+Results: [v1](reports/work-ii-p-gate-20260920-v1/REPORT.md), [domain diagnostic](reports/work-ii-p-domain-20260920-v1/REPORT.md), [v2](reports/work-ii-p-gate-20260920-v2/REPORT.md), [accepted development v3](reports/work-ii-p-gate-20260920-v3/REPORT.md).
+
+## Prospective scope update — twelve-batch version only
+
+On 2026-09-20 the user restricts P to the twelve-batch budget version. No P/24-batch branch is planned. Each source receives 12 complete laboratory batches, 12 additional measurements and 12 final assays; operation and inventory allowances follow the P-specific twelve-batch contract. Keep one constrained-recovery/purification commission, E-prior Opaque/Aligned/MisIndexed, Sol medium and English prompts/reports.
+
+The full subsequent E-layer design target is five worlds x three arms x one 12-batch budget x one task: 15 independent sources, 180 source batches, 45 K1/Q/K2 stages and 15 recommendation retests. Provider-free references and the initial single-arm integration pilot are separate costs and do not automatically become formal participant evidence. This scope update does not change the completed gates or authorize extra provider work in this gate block. Finish C first; P still needs its actual source/posttest/retest entry wired and checked before model execution. The next model pilot also uses exactly 12 batches.
