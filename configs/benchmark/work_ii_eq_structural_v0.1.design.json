@@ -1,0 +1,430 @@
+{
+  "schema_version": "chemworld-work-ii-eq-mechanism-structure-design-0.1",
+  "status": "human_approved_then_superseded_after_failed_preflight",
+  "execution_authorized": false,
+  "provider_execution_authorized": false,
+  "design_document": "workstreams/flagship_tasks/WORK_II_EQ_S_STRUCTURAL_DESIGN_V0_1.md",
+  "task_id": "equilibrium-characterization",
+  "task": "bounded_aqueous_equilibrium_characterization",
+  "prior_locus": "S",
+  "structural_axis": "direct_free_ion_precipitation_vs_aqueous_ion_pair_intermediate",
+  "rejected_axis": "endpoint_state_function_vs_within_batch_precipitation_memory",
+  "arms": ["Opaque", "Aligned", "MisIndexed"],
+  "counts_after_approval": {
+    "worlds": 5,
+    "independent_source_sessions": 15,
+    "source_batches_per_session": 12,
+    "source_batches": 180,
+    "posttest_stages": ["K1", "Q", "K2", "EQS"],
+    "posttests": 60,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 300
+  },
+  "common_private_authoring": {
+    "weak_acid_species": "HA",
+    "conjugate_base_species": "A-",
+    "precipitating_cation_species": "M+",
+    "solid_species": "MA(s)",
+    "precipitating_cation_fraction_of_analytical_acid": 0.15,
+    "activity_coefficient_ratio": 1.0,
+    "common_equation_ids": [
+      "acid_dissociation",
+      "free_ion_solid_equilibrium"
+    ],
+    "public_metric_definitions": {
+      "pH_normalized": "pH / 14",
+      "acid_dissociation_fraction": "n_A_minus / n_A_total; preserves the existing EQ free-conjugate-base fraction",
+      "precipitation_signal": "n_MA_solid / n_A_total"
+    }
+  },
+  "private_mechanism_families": {
+    "direct_free_ion_precipitation": {
+      "species_nodes": ["HA(aq)", "H+(aq)", "A-(aq)", "M+(aq)", "MA(s)"],
+      "equation_ids": [
+        "acid_dissociation",
+        "free_ion_solid_equilibrium"
+      ],
+      "equations": [
+        "HA(aq) <=> H+(aq) + A-(aq)",
+        "MA(s) <=> M+(aq) + A-(aq)"
+      ],
+      "aqueous_intermediate_present": false,
+      "truth_label": "direct_free_ion_precipitation"
+    },
+    "aqueous_ion_pair_intermediate": {
+      "species_nodes": ["HA(aq)", "H+(aq)", "A-(aq)", "M+(aq)", "MA(aq)", "MA(s)"],
+      "equation_ids": [
+        "acid_dissociation",
+        "free_ion_solid_equilibrium",
+        "aqueous_ion_pair_association"
+      ],
+      "equations": [
+        "HA(aq) <=> H+(aq) + A-(aq)",
+        "M+(aq) + A-(aq) <=> MA(aq)",
+        "MA(s) <=> M+(aq) + A-(aq)"
+      ],
+      "aqueous_intermediate_present": true,
+      "truth_label": "aqueous_ion_pair_intermediate"
+    }
+  },
+  "worlds": [
+    {
+      "world_id": "EQ-S-W01",
+      "world_seed": 0,
+      "private_authoring": {
+        "effective_pka_nuisance": 4.659404789086824,
+        "log10_ksp_nuisance": -5.2,
+        "mechanism_family": "direct_free_ion_precipitation",
+        "aqueous_association_beta_L_per_mol": null,
+        "misindexed_world_id": "EQ-S-W02"
+      }
+    },
+    {
+      "world_id": "EQ-S-W02",
+      "world_seed": 0,
+      "private_authoring": {
+        "effective_pka_nuisance": 4.839404789086824,
+        "log10_ksp_nuisance": -5.0,
+        "mechanism_family": "aqueous_ion_pair_intermediate",
+        "aqueous_association_beta_L_per_mol": 45.0,
+        "misindexed_world_id": "EQ-S-W01"
+      }
+    },
+    {
+      "world_id": "EQ-S-W03",
+      "world_seed": 0,
+      "private_authoring": {
+        "effective_pka_nuisance": 5.019404789086824,
+        "log10_ksp_nuisance": -4.8,
+        "mechanism_family": "direct_free_ion_precipitation",
+        "aqueous_association_beta_L_per_mol": null,
+        "misindexed_world_id": "EQ-S-W04"
+      }
+    },
+    {
+      "world_id": "EQ-S-W04",
+      "world_seed": 0,
+      "private_authoring": {
+        "effective_pka_nuisance": 5.199404789086824,
+        "log10_ksp_nuisance": -4.6,
+        "mechanism_family": "aqueous_ion_pair_intermediate",
+        "aqueous_association_beta_L_per_mol": 140.0,
+        "misindexed_world_id": "EQ-S-W03"
+      }
+    },
+    {
+      "world_id": "EQ-S-W05",
+      "world_seed": 0,
+      "private_authoring": {
+        "effective_pka_nuisance": 5.379404789086824,
+        "log10_ksp_nuisance": -4.4,
+        "mechanism_family": "direct_free_ion_precipitation",
+        "aqueous_association_beta_L_per_mol": null,
+        "misindexed_world_id": "EQ-S-W04"
+      }
+    }
+  ],
+  "prior_contract": {
+    "schema_version": "chemworld-eq-mechanism-prior-0.1",
+    "semantic_subtype_for_misindexed": "mechanism_misspecification",
+    "opaque_payload": null,
+    "common_fields": {
+      "locus": "S",
+      "scope": "bounded weak-acid/precipitation equilibrium characterization",
+      "acid_step": "HA(aq) <=> H+(aq) + A-(aq)",
+      "solid_step": "M+(aq) + A-(aq) <=> MA(s)",
+      "diagnostic_implication": "three-metric concentration response should follow the stated species graph",
+      "confidence": {
+        "coverage": 0.8,
+        "source_class": "independent bounded mechanism study",
+        "qualification": "local reaction-network claim; not a universal aqueous-chemistry law"
+      }
+    },
+    "family_claims": {
+      "direct_free_ion_precipitation": {
+        "network_family": "direct_free_ion_precipitation",
+        "dissolved_branch": "no_distinct_aqueous_MA_intermediate",
+        "dissolved_branch_equation": "MA(aq) absent from species set",
+        "dissolved_acid_balance": "n_HA + n_A_minus"
+      },
+      "aqueous_ion_pair_intermediate": {
+        "network_family": "aqueous_ion_pair_intermediate",
+        "dissolved_branch": "distinct_aqueous_MA_intermediate",
+        "dissolved_branch_equation": "M+(aq) + A-(aq) <=> MA(aq)",
+        "dissolved_acid_balance": "n_HA + n_A_minus + n_MA_aq"
+      }
+    },
+    "forbidden_public_fields": [
+      "effective_pka",
+      "pka",
+      "ksp",
+      "beta",
+      "association_constant",
+      "activity_coefficient",
+      "numeric_transition",
+      "response_slope",
+      "best_point",
+      "recipe",
+      "query_id",
+      "query_coordinate"
+    ]
+  },
+  "prediction_metrics": [
+    "pH_normalized",
+    "acid_dissociation_fraction",
+    "precipitation_signal"
+  ],
+  "queries": [
+    {
+      "query_id": "Q01",
+      "blocks": ["fixed_volume_concentration_sweep"],
+      "coverage": ["low_concentration_asymptote"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.00001, "analytical_concentration_M": 0.0004166667},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.00001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "blocks": ["fixed_volume_concentration_sweep"],
+      "coverage": ["pre_transition_response"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.0001, "analytical_concentration_M": 0.0041666667},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.0001},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "blocks": ["fixed_volume_concentration_sweep", "constant_concentration_scale_control"],
+      "coverage": ["low_intermediate_response", "middle_scale_anchor"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.0006, "analytical_concentration_M": 0.025},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.0006},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "blocks": ["fixed_volume_concentration_sweep", "fixed_amount_dilution_sweep"],
+      "coverage": ["association_sensitive_response", "middle_dilution_anchor"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.003, "analytical_concentration_M": 0.125},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "blocks": ["fixed_volume_concentration_sweep", "constant_concentration_scale_control"],
+      "coverage": ["high_concentration_response", "large_scale_half_molar_control"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.012, "analytical_concentration_M": 0.5},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.012},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "blocks": ["fixed_volume_concentration_sweep"],
+      "coverage": ["boundary_extrapolation", "very_high_concentration"],
+      "final_state": {"solvent_L": 0.024, "reagent_mol": 0.03, "analytical_concentration_M": 1.25},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.024},
+        {"operation": "add_reagent", "amount_mol": 0.03},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "blocks": ["fixed_amount_dilution_sweep", "constant_concentration_scale_control"],
+      "coverage": ["concentrated_dilution_endpoint", "small_scale_half_molar_control"],
+      "final_state": {"solvent_L": 0.006, "reagent_mol": 0.003, "analytical_concentration_M": 0.5},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.006},
+        {"operation": "add_reagent", "amount_mol": 0.003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "blocks": ["fixed_amount_dilution_sweep"],
+      "coverage": ["near_transition_dilution_endpoint"],
+      "final_state": {"solvent_L": 0.018, "reagent_mol": 0.003, "analytical_concentration_M": 0.1666666667},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.018},
+        {"operation": "add_reagent", "amount_mol": 0.003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "blocks": ["fixed_amount_dilution_sweep"],
+      "coverage": ["diluted_response"],
+      "final_state": {"solvent_L": 0.048, "reagent_mol": 0.003, "analytical_concentration_M": 0.0625},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.048},
+        {"operation": "add_reagent", "amount_mol": 0.003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "blocks": ["fixed_amount_dilution_sweep"],
+      "coverage": ["high_dilution_response"],
+      "final_state": {"solvent_L": 0.075, "reagent_mol": 0.003, "analytical_concentration_M": 0.04},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.075},
+        {"operation": "add_reagent", "amount_mol": 0.003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "blocks": ["constant_concentration_scale_control"],
+      "coverage": ["small_scale_control"],
+      "final_state": {"solvent_L": 0.012, "reagent_mol": 0.0003, "analytical_concentration_M": 0.025},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.012},
+        {"operation": "add_reagent", "amount_mol": 0.0003},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "blocks": ["constant_concentration_scale_control"],
+      "coverage": ["large_scale_control"],
+      "final_state": {"solvent_L": 0.072, "reagent_mol": 0.0018, "analytical_concentration_M": 0.025},
+      "actions": [
+        {"operation": "add_solvent", "solvent": 0, "volume_L": 0.072},
+        {"operation": "add_reagent", "amount_mol": 0.0018},
+        {"operation": "terminate"},
+        {"operation": "measure", "instrument": "final_assay"}
+      ]
+    }
+  ],
+  "eqs_contract": {
+    "network_family_values": [
+      "direct_free_ion_precipitation",
+      "aqueous_ion_pair_intermediate",
+      "indeterminate"
+    ],
+    "aqueous_intermediate_values": ["absent", "present", "indeterminate"],
+    "allowed_equation_ids": [
+      "acid_dissociation",
+      "free_ion_solid_equilibrium",
+      "aqueous_ion_pair_association"
+    ],
+    "required_fields": [
+      "network_family",
+      "aqueous_intermediate",
+      "selected_equation_ids",
+      "rationale",
+      "cited_source_batches"
+    ],
+    "numeric_parameter_estimates_requested": false,
+    "contradictory_topology_policy": "schema_validation_failure"
+  },
+  "structural_scorer": {
+    "llm_judge_in_primary_path": false,
+    "indeterminate_policy": "valid_abstention_not_correct",
+    "truth_equation_sets": {
+      "direct_free_ion_precipitation": [
+        "acid_dissociation",
+        "free_ion_solid_equilibrium"
+      ],
+      "aqueous_ion_pair_intermediate": [
+        "acid_dissociation",
+        "free_ion_solid_equilibrium",
+        "aqueous_ion_pair_association"
+      ]
+    },
+    "numeric_outputs": [
+      "mae",
+      "empirical_coverage80",
+      "mean_interval_width80",
+      "interval_score"
+    ],
+    "topology_outputs": [
+      "network_family_accuracy",
+      "aqueous_intermediate_accuracy",
+      "exact_equation_set_accuracy",
+      "equation_set_jaccard",
+      "abstention_rate"
+    ],
+    "response_shape": {
+      "fixed_volume_query_ids": ["Q01", "Q02", "Q03", "Q04", "Q05", "Q06"],
+      "fixed_amount_dilution_query_ids_in_increasing_inverse_volume": ["Q10", "Q09", "Q04", "Q08", "Q07"],
+      "slope_definition": "adjacent divided difference against log10 analytical concentration",
+      "curvature_definition": "difference between adjacent divided slopes",
+      "outputs": [
+        "concentration_slope_mae",
+        "concentration_curvature_mae",
+        "dilution_slope_mae",
+        "dilution_curvature_mae"
+      ]
+    },
+    "scale_controls": [
+      {"analytical_concentration_M": 0.025, "query_ids": ["Q11", "Q03", "Q12"]},
+      {"analytical_concentration_M": 0.5, "query_ids": ["Q07", "Q05"]}
+    ],
+    "single_weighted_composite_authorized": false
+  },
+  "parameter_only_noncollapse": {
+    "status": "designed_not_run",
+    "null_family": "direct_free_ion_precipitation",
+    "free_null_parameters": [
+      "effective_pka",
+      "log10_ksp",
+      "precipitating_cation_fraction",
+      "activity_coefficient_ratio"
+    ],
+    "fit_query_ids": ["Q01", "Q03", "Q04", "Q05", "Q08", "Q10"],
+    "holdout_query_ids": ["Q02", "Q06", "Q07", "Q09", "Q11", "Q12"],
+    "optimizer_seed": 20260920,
+    "final_assay_noise_scale_per_metric": 0.006,
+    "ion_pair_minimum_holdout_gap": {
+      "absolute_error_threshold": 0.018,
+      "minimum_metrics": 2,
+      "minimum_holdout_conditions": 3
+    }
+  },
+  "planned_provider_free_gate": {
+    "status": "not_run_awaiting_human_approval",
+    "provider_calls_required": 0,
+    "required_checks": 12
+  },
+  "planned_canary": {
+    "status": "not_started_awaiting_gate",
+    "world_id": "EQ-S-W01",
+    "arms": ["Opaque", "Aligned", "MisIndexed"],
+    "required_complete_chains": 3,
+    "maximum_workers": 3
+  },
+  "planned_full_matrix": {
+    "status": "not_started_awaiting_canary",
+    "maximum_workers": 8,
+    "worker_policy": "fixed queue with isolated cell directories and automatic slot refill"
+  },
+  "eq_e_hold": {
+    "bulk_execution_authorized": false,
+    "next_step": "multi_entity_substrate_and_small_provider_free_noncollapse_gate"
+  }
+}

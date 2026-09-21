@@ -1,45 +1,56 @@
-# EQ bounded-equilibrium block — retained execution status
+# EQ bounded-equilibrium block - final execution status
 
 Date: 2026-09-20  
 Evidence class: development  
-Status: blocked at the W01 Opaque K1 boundary; truth remains embargoed
+Status: complete; all public reports and evaluations exported
 
-## Frozen design and provider-free gate
+## Final denominator
 
-The block contains five frozen worlds, three matched prior arms, one characterization task, twelve source batches per independent source, and same-thread K1 → fixed Q → K2 posttests. Its full planned denominator is 15 sources, 180 source batches, 45 posttests, and 300 provider-free reference executions.
+The frozen EQ-P v2 block contains five physical worlds and three information arms (Opaque, Aligned, and MisIndexed), for 15 independent characterization sessions. Every session used twelve source batches followed by the fixed K1 -> Q -> K2 -> EQS sequence.
 
-The v1.1 provider-free gate passed all registered checks with 15/15 campaigns, 180/180 batches, 15/15 exact replays, and zero provider calls. The gate, resolved config, source runner, recovery runner, exporter, tests, canonical posttest protocol, EQ protocols, and experiment note are bound by the current v1.5 freeze manifest. The earlier failed query grid and every remote startup/recovery failure remain retained.
+| Item | Completed | Planned |
+|---|---:|---:|
+| Independent source sessions | 15 | 15 |
+| Source batches | 180 | 180 |
+| Sealed posttests | 60 | 60 |
+| Complete posttest chains | 15 | 15 |
+| Provider-free reference executions | 300 | 300 |
+| Public per-cell reports | 15 | 15 |
 
-## Canary result available now
+All effective results have status `completed`, all 15 posttest chains validate, and the final failure list is empty. Reference truth was generated only after every EQS response was sealed. The environment-derived equilibrium-confidence field was not used as Agent uncertainty or as a score.
 
-| Cell | Source batches | Operations | Rollbacks | Exact replay | K1 | Q | K2 | Effective status |
-|---|---:|---:|---:|---|---|---|---|---|
-| EQ-W01 Opaque | 12/12 | 60 | 0 | passed | no valid payload | not opened | not opened | retained nonconforming |
-| EQ-W01 Aligned | 0/12 | 0 | 0 | not run | not opened | not opened | not opened | sealed |
-| EQ-W01 MisIndexed | 0/12 | 0 | 0 | not run | not opened | not opened | not opened | sealed |
+## Public result package
 
-The complete Opaque source is preserved and will not be rerun. Its first K1 turn exposed a mismatch between the already intended 128-attempt calculator policy and an inherited eight-attempt outer monitor; that failure had no payload. The repaired same-thread K1 turn then reached the fixed 1200-second provider timeout without a payload. The single authorized provider-timeout retry also reached 1200 seconds without a payload. Both timeout turns used zero calculator calls, had no laboratory access, and received no truth or score.
+The complete sanitized package is in [`v2-public`](v2-public/):
 
-## Retained platform chain
+- [`REPORT.md`](v2-public/REPORT.md) is the aggregate report.
+- [`INDEX.json`](v2-public/INDEX.json) records all 15 effective cells and final denominators.
+- [`sources/`](v2-public/sources/) contains each cell's sanitized `RESULT.json` and English `EXPERIMENT_REPORT.md`, including the twelve observed batches, sealed K1/Q/K2/EQS payloads, prediction evaluation, and post-embargo reference truth.
+- [`worlds/`](v2-public/worlds/) provides one index per physical world.
+- [`RECOVERY_AUDIT.json`](v2-public/RECOVERY_AUDIT.json) records the effective retained attempt for every cell.
+- [`audits/`](v2-public/audits/) contains the provider-free gate and runtime-transition evidence.
 
-The audit retains, in separate write-once locations:
+Authentication material, raw provider event streams, session identifiers, private Provider state, and usage accounting are excluded from the package.
 
-1. a detached-shell executable-path failure before Agent construction;
-2. a missing private output-parent failure before provider-process construction;
-3. a login-shell proxy omission causing uniform pre-action network errors;
-4. a 30-second laboratory-MCP startup threshold that failed before a model response or scientific action;
-5. the successful 12-batch Opaque source followed by the outer-monitor K1 failure;
-6. the first same-thread K1 provider timeout; and
-7. the single authorized same-thread K1 provider-timeout retry.
+## Runtime transition
 
-No failed or recovered attempt is counted as a new scientific source. No credential, raw provider event stream, session identifier, or usage accounting is included here.
+The execution changed to the integrated runtime at commit `a80b156619a11e133fd68000e4c2c062f4e1dfcf` only after recovery attempt 01 had stopped and before any attempt 02 Provider call. The transition retained all prior attempts and did not change the scientific contract, world parameters, prompts, model, or scoring.
 
-## Stopping boundary and heartbeat
+The transition audit reports:
 
-The canary cannot pass while W01 Opaque lacks a valid K1/Q/K2 chain. Consequently, W01 Aligned, W01 MisIndexed, the remaining twelve sources, reference truth, scoring, and final report export have not started. This preserves the planned denominator and truth embargo.
+- 39 focused tests passed;
+- 15/15 provider-free gate campaigns and 180/180 batches passed;
+- 15/15 trajectories replayed exactly;
+- the scientific gate payload was exactly equal after excluding elapsed time;
+- Provider calls during validation were zero; and
+- elapsed time fell from 840.40 seconds to 146.01 seconds (about 5.75x faster).
 
-A persistent hourly heartbeat is active in the current Codex task. It inspects only sanitized status, public trajectory counts, sealed result/recovery files, and process liveness. It stays quiet while nothing changes and is forbidden to issue another same-class provider retry, expand the matrix, or generate truth without new authority.
+In the final W02 MisIndexed recovery, the optimized runtime completed all twelve source batches and 72 recorded operations before the unchanged K1/Q/K2/EQS chain. Model-generation time remained the dominant cost of the posttests.
 
-## Decision required
+## Retained recovery history
 
-Continuing requires an explicit amendment because the single authorized provider-timeout retry has been consumed. A valid amendment must state whether to permit another same-thread K1 turn, change the 1200-second posttest timeout, change the model or reasoning effort, or stop the EQ block with the current retained development evidence. No such choice is inferred from the original authorization.
+Earlier startup, transport, timeout, capacity, and interrupted-attempt records remain in the private write-once run namespace. They are not counted as additional scientific samples. The final effective result for each cell is identified in the public recovery audit, while private credentials and raw provider state remain excluded.
+
+## Exporter provenance
+
+The frozen v2 report wrapper contained a rendering-only recursive-dispatch defect discovered after scientific completion. The frozen file was left unchanged. `scripts/export_work_ii_eq_bounded_equilibrium_reports_v2_1.py` fixes only wrapper dispatch by retaining stable references to the legacy renderers; it does not modify source results, sealed responses, predictions, truth, or scores. The regression test is `tests/test_export_work_ii_eq_bounded_equilibrium_reports_v2_1.py`.

@@ -1,0 +1,1154 @@
+{
+  "cell": {
+    "arm": "Opaque",
+    "cell_id": "EQ-W04--Opaque",
+    "goal": "characterization",
+    "operations": 60,
+    "posttest_chain_sealed": true,
+    "source_status": "completed",
+    "status": "completed",
+    "world_id": "EQ-W04"
+  },
+  "effective_origin": "attempt-01",
+  "excluded_private_material": [
+    "authentication material",
+    "raw model event streams",
+    "session identifiers",
+    "usage accounting"
+  ],
+  "posttests": {
+    "EQS": {
+      "payload": {
+        "dissociation_precipitation": {
+          "assessment": "continuous",
+          "competing_explanation": "The apparent continuity may be a saturated or baseline-dominated public proxy that masks a threshold below 0.05 or above 0.80 mol/L; assay noise and a latent solid-phase reservoir are also observationally equivalent within this range.",
+          "supported_range": "Supported only for water at approximately 297.2 K, reagent amounts 0.004–0.032 mol, volumes 0.040–0.080 L, and nominal concentrations 0.05–0.80 mol/L. Within this domain, final dissociation ranged from 0.06192 to 0.07912 and precipitation signal from 0.14663 to 0.15996, without an abrupt coordinated change."
+        },
+        "effective_pka": {
+          "estimate": 5.2,
+          "identifiable": true,
+          "lower80": 5.14,
+          "rationale": "An effective Henderson–Hasselbalch transformation of the 12 paired final-assay pH and dissociation measurements gave a mean apparent pKa of 5.199, with observed values 5.109–5.286 and RMS dispersion 0.048. The interval reflects measurement and batch scatter and identifies only a local effective parameter, not an intrinsic thermodynamic pKa; buffering, activities, precipitation, and processed-observable calibration remain confounded.",
+          "upper80": 5.26
+        },
+        "path_dependence": {
+          "assessment": "indeterminate",
+          "rationale": "No source-campaign experiment held the final amount and volume fixed while changing staged-addition order. Batches 2 and 11 shared 0.300 mol/L, and batches 7 and 12 shared 0.400 mol/L, but each pair differed in both total amount and volume, so they cannot test path dependence. The generally similar final responses support approximate state-based behavior, while intermediate-to-final differences could reflect either instrument noise or relaxation. Reproducible staged-path dependence was therefore neither demonstrated nor excluded."
+        }
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    },
+    "K1": {
+      "payload": {
+        "report": "Mechanistic report\n\n1. Experimental basis\n\nI completed 12 independent water-only batches at approximately 297.2 K. Total reagent loading n was varied over 0.004, 0.012, 0.024, and 0.032 mol, and liquid volume V over 0.040, 0.060, and 0.080 L. The resulting nominal total concentrations C_T = n/V covered 0.050–0.800 mol L⁻¹. No catalyst, cosolvent, heating, deliberate aging period, or pH modifier was used. Every batch received an in-process pH-meter measurement and a post-termination final assay. The final assay is the primary quantitative evidence because its declared noise is lower.\n\nFinal-assay observations were:\n\nBatch | V (L) | n (mol) | C_T (mol L⁻¹) | pH/14 | dissociated fraction α | precipitation proxy | equilibrium residual\n1 | 0.040 | 0.004 | 0.100 | 0.28898 | 0.07559 | 0.15072 | 0.00363\n2 | 0.040 | 0.012 | 0.300 | 0.29305 | 0.07101 | 0.14663 | 0.00239\n3 | 0.040 | 0.024 | 0.600 | 0.29097 | 0.06738 | 0.15795 | 0.00115\n4 | 0.040 | 0.032 | 0.800 | 0.29034 | 0.06794 | 0.15412 | 0\n5 | 0.060 | 0.004 | 0.0667 | 0.28882 | 0.07912 | 0.15763 | 0\n6 | 0.060 | 0.012 | 0.200 | 0.29328 | 0.06192 | 0.15191 | 0\n7 | 0.060 | 0.024 | 0.400 | 0.29362 | 0.06946 | 0.15707 | 0.00199\n8 | 0.060 | 0.032 | 0.533 | 0.29216 | 0.07072 | 0.15233 | 0.00473\n9 | 0.080 | 0.004 | 0.050 | 0.29255 | 0.07329 | 0.15996 | 0\n10 | 0.080 | 0.012 | 0.150 | 0.29283 | 0.06646 | 0.15772 | 0.00995\n11 | 0.080 | 0.024 | 0.300 | 0.29371 | 0.07692 | 0.15781 | 0\n12 | 0.080 | 0.032 | 0.400 | 0.28926 | 0.07436 | 0.15904 | 0.00178\n\nAcross these final assays, mean pH/14 was 0.29163, corresponding to pH 4.0828. The observed pH range was 4.0434–4.1120. Mean α was 0.07118, with range 0.06192–0.07912. Mean precipitation proxy was 0.15524, with range 0.14663–0.15996. The population-scale scatter was 0.00178 for pH/14, 0.00471 for α, and 0.00389 for the precipitation proxy. These are comparable to or smaller than the final assay's declared noise scales of 0.002, 0.006, and 0.006, respectively.\n\n2. Main interpretation\n\nThe simplest effective description is a pH-buffered weak-acid equilibrium accompanied by a nearly invariant precipitation-related background or plateau:\n\nHA ⇌ H⁺ + A⁻\n\nC_T = n/V\n\nα = [A⁻]/([HA] + [A⁻])\n\nα ≈ 1/{1 + 10^(pK_a,eff − pH)}.\n\nUsing each final-assay pH and α pair gives an apparent pK_a,eff with mean 5.199, observed range 5.109–5.286, and RMS dispersion 0.048. Thus the pH and dissociation measurements are mutually compatible with an effective monoprotic Henderson–Hasselbalch relationship near pK_a,eff ≈ 5.20.\n\nThe important qualification is that this does not behave like an isolated, unbuffered weak acid in pure water. An unbuffered weak acid with fixed K_a would generally show a substantial concentration dependence: approximately α ∝ C_T^−1/2 in the low-dissociation limit, together with a noticeable pH shift. Here C_T changed sixteen-fold while both pH and α remained nearly constant. Therefore at least one additional regulating feature is required. The most economical explanation is a latent buffer or proton reservoir that clamps pH near 4.08; once pH is clamped, a fixed effective pK_a naturally gives an almost fixed dissociation fraction near 0.071.\n\nEquivalent physical realizations include a background buffer, a counterion equilibrium, activity-coefficient compensation, or a dissolved/solid reservoir that regulates chemical potentials. The measurements identify the effective relationship but do not distinguish these microscopic implementations.\n\n3. Dependence on loading and dilution\n\nA descriptive least-squares fit against nominal concentration over the tested domain gave:\n\npH/14 ≈ 0.291710 − 0.000246 C_T, R² ≈ 0.001;\n\nα ≈ 0.073552 − 0.007293 C_T, R² ≈ 0.119;\n\nP ≈ 0.155642 − 0.001238 C_T, R² ≈ 0.005,\n\nwhere P is the public precipitation proxy and C_T is in mol L⁻¹. Across the entire 0.05–0.80 mol L⁻¹ interval, these fits imply changes of only about −0.00018 in pH/14, −0.0055 in α, and −0.00093 in P. The pH and precipitation slopes explain essentially none of the observed variance. The weak negative α slope is possible but not compelling: its full-range effect is comparable to one final-assay noise scale and individual batches are non-monotonic.\n\nThe factorial layout also tested total amount and volume separately. For example, batches 2 and 11 both had C_T = 0.300 mol L⁻¹ but used (0.012 mol, 0.040 L) and (0.024 mol, 0.080 L). Their final values were pH/14 = 0.29305 versus 0.29371, α = 0.07101 versus 0.07692, and P = 0.14663 versus 0.15781. Batches 7 and 12 both had C_T = 0.400 mol L⁻¹; their values were 0.29362 versus 0.28926, 0.06946 versus 0.07436, and 0.15707 versus 0.15904. These pairs do not establish exact concentration-only collapse, but their differences are small enough that noise or minor batch effects remain plausible.\n\nAt fixed n = 0.012 mol, dilution from 0.040 to 0.080 L changed P from 0.14663 through 0.15191 to 0.15772, suggesting a possible positive volume effect. That pattern was not reproduced consistently at the other loadings: at n = 0.024 mol, P was 0.15795, 0.15707, and 0.15781 across the same volumes. An additive fit assigned a precipitation change of about +0.0063 across the 0.040 L volume span, but that is only about one declared assay-noise scale. I therefore treat a separate volume effect as tentative, not established.\n\nMy supported local response surface is consequently closer to a plateau than to a strong loading law:\n\npH/14 ≈ 0.2916,\nα ≈ 0.0712,\nP ≈ 0.1552,\n\nwith the observed scatter above, only within the tested aqueous domain.\n\n4. Precipitation coupling\n\nThe precipitation proxy remained near 0.15 rather than increasing systematically with total concentration. This rules against a large, directly resolved precipitation transition inside the tested range. It does not prove that no solid phase exists, because P is a bounded normalized proxy rather than a measured solid mass.\n\nSeveral explanations remain observationally equivalent:\n\n• P may contain an approximately constant baseline unrelated to the amount precipitated.\n• The reporter may already be on a low or saturated plateau before C_T = 0.05 mol L⁻¹.\n• A solid or ion-pair reservoir may hold the relevant dissolved activity nearly constant while total material changes.\n• The precipitation threshold may lie outside the tested concentration range, with the observed variation being instrument noise.\n• Two opposing effects, such as increasing available precipitating species and increasing dissolution or complexation, may cancel locally.\n\nBecause α and pH were also nearly invariant, the data are compatible with coupled proton and solubility buffering. They do not show whether precipitation causes the pH clamp, merely responds to it, or is independently regulated.\n\n5. Measurements that changed or constrained the explanation\n\nBatches 1–4 first varied loading eight-fold at V = 0.040 L. The absence of a monotonic pH or precipitation response immediately argued against a simple unbuffered concentration-controlled model. Batches 5–8 and 9–12 then repeated the loading series at larger volumes. Their similarly narrow final-assay bands showed that the flat response was not peculiar to the smallest vessel volume.\n\nThe matched-concentration pairs, especially batches 2/11 and 7/12, tested whether C_T alone was sufficient. They supported approximate rather than exact concentration collapse and left room for small independent volume, total-amount, or batch effects.\n\nBatch 6, the selected representative experiment, used 0.012 mol in 0.060 L and produced final pH/14 = 0.29328, α = 0.06192, and P = 0.15191. It is useful as a mid-domain anchor, but it was selected for representativeness rather than because it maximized any outcome.\n\nThe intermediate pH-meter measurements were noisier than the final assays. Relative to the paired final values, their RMS differences were 0.00401 for pH/14, 0.01750 for α, and 0.02369 for P. Those differences are consistent with the pH meter's larger declared noise scales. For example, its batch-1 P estimate was 0.20043 while the final assay gave 0.15072. I therefore did not reinterpret such individual intermediate outliers as distinct chemical states.\n\nThe final equilibrium residual averaged 0.00213 and was at most 0.00995, in batch 10. Several reported residuals were exactly zero, potentially reflecting clipping at the lower bound. These low values indicate internal consistency with the environment's equilibrium calculation, but they do not independently identify a mechanism. Likewise, equilibrium_confidence is explicitly an environment diagnostic and is not used as my epistemic confidence.\n\nNo numerical archival local relationship was supplied in the public material packet. The principal candidate law tested here was therefore the ordinary unbuffered weak-acid concentration dependence. Its strong form is not supported; the buffered effective-acid form is supported locally.\n\n6. Identifiability and uncertainty\n\nThe identifiable quantities are the local response plateau, the approximate coupling between pH and α, and the lack of a large concentration-driven precipitation transition. The apparent pK_a,eff is a compact empirical parameter, not identification of a named chemical or proof of ideal activities.\n\nThe following are not identifiable from this campaign:\n\n• the molecular identity or proton stoichiometry of the anonymous reagent;\n• the identity and capacity of any buffer or counterion reservoir;\n• activity coefficients and ionic-strength effects;\n• the solid phase identity, solubility product, nucleation barrier, or actual precipitated mass;\n• whether the precipitation proxy has an offset, nonlinear calibration, or saturation;\n• equilibration time, kinetic hysteresis, or aging effects, because time was not deliberately varied;\n• temperature dependence, since only the ambient condition was used;\n• solvent and catalyst effects, since only water and no catalyst were tested;\n• behavior below 0.05 or above 0.80 mol L⁻¹, or outside 0.040–0.080 L and 0.004–0.032 mol.\n\nThere were no independent replicate batches at identical n and V, so variance components cannot be separated cleanly into instrument noise, batch noise, and real weak effects. The declared instrument noise and the small observed scatter make the plateau interpretation reasonable, but they do not justify claiming mathematically exact invariance.\n\n7. Supported model and predictions versus speculation\n\nSupported within the measured domain:\n\n1. pH is approximately clamped near 4.08.\n2. The dissociated fraction is approximately 0.071 and is consistent with pK_a,eff ≈ 5.20 through a Henderson–Hasselbalch-type relation.\n3. Loading and dilution have, at most, weak effects compared with the observed and declared measurement scatter.\n4. The precipitation proxy occupies a nearly flat band around 0.155, with no resolved threshold across 0.05–0.80 mol L⁻¹.\n\nLocal interpolation, rather than direct observation:\n\nFor another water-only batch at approximately 297 K with n and V inside the tested rectangle, I would use pH/14 ≈ 0.292, α ≈ 0.071, and P ≈ 0.155 as central predictions, widening uncertainty enough to cover at least the observed ranges. The small fitted α decline with C_T could be retained as a secondary term, but a constant model is nearly as defensible.\n\nSpeculation:\n\nThe most plausible microscopic story is a buffered proton reservoir coupled to a weak acid with effective pK_a near 5.2, plus either a precipitation reporter baseline or a solubility-buffered species. A precipitation-controlled proton reservoir is an attractive unified explanation, but the present measurements cannot distinguish it from independent pH buffering plus an unrelated proxy baseline. Claims outside the tested concentration, volume, solvent, temperature, and timing ranges would be extrapolations and are not warranted by these observations."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    },
+    "K2": {
+      "payload": {
+        "report": "1. Initial claims: supported, challenged, or untested\n\nThe initial material packet contained no task-specific property dossier, numerical equilibrium law, archival parameter estimate, or named chemical identity. K1 therefore correctly stated: “No numerical archival local relationship was supplied in the public material packet.” There was no substantive quantitative prior to confirm or refute.\n\nSeveral items in the initial packet were contractual framing rather than empirical claims: this was an aqueous weak-acid/precipitation slice; pH_normalized meant pH/14; acid_dissociation_fraction and precipitation_signal were bounded observables; and equilibrium_confidence was an environment diagnostic rather than epistemic confidence. The campaign respected those definitions, but observing compatible numbers does not independently validate a contract.\n\nThe broad weak-acid framing received limited support. In K1 I found that final-assay pH and dissociation pairs were compatible with an effective Henderson–Hasselbalch relationship, with apparent pKa,eff about 5.20. That supports an effective acid/base description, not a molecular identity or an ideal monoprotic mechanism.\n\nA simple unbuffered weak-acid model was challenged by actual evidence. Across nominal concentrations from 0.05 to 0.80 mol/L, pH and dissociation remained nearly flat instead of showing the strong concentration dependence expected for an isolated weak acid in water. K1 explicitly revised this interpretation toward a buffered or otherwise regulated equilibrium. This was positive counterevidence, not merely an absence of evidence.\n\nA large precipitation transition inside the sampled range was also disfavored: the final precipitation proxy stayed between 0.14663 and 0.15996. That does not establish absence of precipitation. It only argues against a large resolved change in the public proxy over the sampled domain.\n\nImportant claims remained untested: path independence, equilibration kinetics, buffer capacity, behavior at trace loading, behavior above 0.80 mol/L, solid identity, temperature dependence, and transfer to other solvents or catalysts. In particular, the plateau interpretation had no counterexample within the sampled range, but that is not proof that the plateau continues toward zero loading or extreme concentration.\n\nThere was some evidence against an exact concentration-only law. At equal concentration, batches 2 and 11 differed in precipitation signal by about 0.0112, while batches 7 and 12 differed in pH_normalized by about 0.00436. K1 did not completely ignore this: it described concentration collapse as “approximate rather than exact” and retained possible amount, volume, or batch effects. Nevertheless, the final plateau summary arguably emphasized invariance more strongly than these pairwise discrepancies warranted.\n\n2. Experiments that formed or changed the interpretation\n\nBatches 1–4 were the first decisive block. At fixed V = 0.040 L, loading rose from 0.004 to 0.032 mol, yet the final pH_normalized values remained within 0.28898–0.29305 and the precipitation proxy within 0.14663–0.15795. This directly weakened the initially plausible unbuffered concentration-response model.\n\nBatches 5–8 and 9–12 changed the interpretation from “possibly a small-volume artifact” to “a response plateau repeated across the sampled volume range.” The same narrow response bands appeared at 0.060 and 0.080 L.\n\nThe matched-concentration comparisons were especially informative. Batches 2 and 11 both had 0.300 mol/L but different total amounts and volumes; batches 7 and 12 both had 0.400 mol/L. These comparisons supported approximate state dependence on concentration while showing that exact collapse was not established.\n\nThe paired intermediate and final measurements also changed how I weighted evidence. Their mean differences were small, but RMS differences were much larger for dissociation and precipitation than for the final assays alone. Batch 1, for example, had intermediate precipitation_signal 0.20043 but final precipitation_signal 0.15072. I consequently based K1 primarily on the lower-noise final assay. That was reasonable, although it also meant that possible time-dependent relaxation was treated mainly as measurement noise rather than tested mechanistically.\n\nThe original 3 × 4 grid itself was chosen before outcomes were known. It was guided by the research brief’s emphasis on loading, volume, dilution, pH, and precipitation, plus the public stock limits. Choosing water, omitting catalysts, and varying amount and volume factorially were grounded in the aqueous-equilibrium objective. By contrast, the lower bound of 0.004 mol was an unvalidated design guess. It proved sufficient to characterize the plateau but left the trace-loading regime—the most important region in several blind questions—unobserved.\n\nThe campaign was not adaptively redesigned after the early flat results. Preserving the planned coverage avoided outcome-driven design changes, but it also meant that later batches continued sampling the same plateau instead of placing one or more points below 0.004 mol. Thus the conclusion was well supported locally and weakly supported at the lower boundary.\n\n3. Principal competing mechanisms\n\nThe leading effective explanation in K1 was a buffered weak-acid equilibrium:\n\nHA ⇌ H+ + A−,\n\nwith pH held near 4.08 by a latent proton reservoir and an effective pKa near 5.20. This explains why the dissociation fraction remains near 0.071 despite changing total concentration.\n\nThe strongest competitors are:\n\n(a) A precipitation- or solid-phase-buffered system. A solid reservoir could regulate dissolved activity and proton balance simultaneously. This could reproduce the same local pH and dissociation plateau without an independent soluble buffer.\n\n(b) An instrument/proxy plateau. The underlying chemistry could vary while the bounded processed observables remain in a compressed or saturated response region. The campaign used processed estimates and did not establish a direct conversion from precipitation_signal to precipitated mass.\n\n(c) A domain-limited saturation model. The sampled 0.004–0.032 mol range may lie entirely above a low-loading transition. This explanation is especially relevant to Q03, Q04, Q08, and Q09. K1 acknowledged that thresholds could lie outside the tested range, but the campaign did not locate them.\n\n(d) Opposing effects that cancel locally. Increasing total concentration could favor precipitation while activity, complexation, or proton regulation offsets the change. A locally flat response would not then imply a single invariant equilibrium constant.\n\n(e) Small independent amount or volume effects. The equal-concentration pairs and the tentative positive volume coefficient for precipitation leave this possibility open.\n\n(f) History-dependent nucleation or relaxation. The disagreement between intermediate and final measurements could be pure sensor noise, but the experiment did not independently vary waiting time or dosing order. Q05–Q07 later required a path-independence assumption that was not directly tested in the campaign.\n\nThe existing data distinguish these mechanisms only partially. They reject a strong, monotonic unbuffered weak-acid response across 0.05–0.80 mol/L and disfavor a large precipitation transition within that interval. They cannot distinguish an external buffer from a solid reservoir, a compressed reporter, or a saturated latent response. They also cannot distinguish equilibrium path independence from fast but unobserved kinetic relaxation.\n\n4. One additional legal complete experiment\n\nIf exactly one additional complete experiment were permitted, I would choose an extreme dilute condition: 0.075 L water plus 0.000001 mol reagent, followed by an in-process pH-meter measurement, termination, and the required final assay. This is the condition represented by sealed blind query Q08, but I would select it prospectively because it maximizes separation among the leading mechanisms. I would not execute it now.\n\nPossible outcomes would have distinct implications:\n\n• If pH_normalized, dissociation, and precipitation all remain near the K1 plateau—approximately 0.292, 0.071, and 0.155—the persistent-buffer or reporter-baseline explanation would gain substantial support. A simple material-limited precipitation signal would become less plausible.\n\n• If pH rises, dissociation rises strongly, and precipitation approaches zero, that would support a low-loading transition toward dilute weak-acid behavior. It would show that the original campaign sampled only the saturated side of the response.\n\n• If pH and dissociation change but precipitation remains near 0.155, proton speciation and the precipitation proxy would appear partly independent; an instrumental or background offset for precipitation would become more credible.\n\n• If precipitation falls while pH and dissociation stay near their plateau, the proton reservoir would appear persistent while precipitation depends mainly on total material inventory.\n\n• If the intermediate and final assays differ greatly, time dependence or post-termination relaxation would become a priority explanation, although a single experiment would still not cleanly separate kinetics from instrument disagreement.\n\nThis experiment would not identify the buffer or solid phase, but it would resolve the largest extrapolation uncertainty left by the campaign.\n\n5. Tradeoff between identifiability and operational score\n\nThe research objective was characterization rather than yield or process optimization. I therefore used a factorial amount–volume design rather than searching for the highest scalar score. The design deliberately sacrificed any opportunity to concentrate resources around a high-scoring condition in exchange for comparisons across loading and dilution.\n\nI also did not treat equilibrium_confidence as an optimization target, even though it had substantial weight in the scalar scoring contract. This followed the explicit instruction that it was an environment diagnostic, not scientific confidence. Chasing it would have distorted the mechanistic objective.\n\nThere was no meaningful optimization-driven sacrifice of identifiability. The more important weakness was the reverse: the design pursued broad factorial coverage for identifiability but distributed all 12 experiments within what turned out to be a relatively flat region. Once the first several batches suggested a plateau, an adaptive scientific design might have allocated a batch to trace loading or an exact replicate. The fixed grid protected against outcome-driven manipulation but reduced discrimination among plateau mechanisms.\n\nThe selected recommendation, batch 6, was not chosen because it maximized score. It was chosen as a representative mid-volume, moderate-loading anchor with both intermediate and final measurements. This was consistent with the characterization objective but should not be described as optimization.\n\n6. Evidence not fully used and weaknesses in the blind predictions\n\nThe campaign made limited use of potentially informative structure in the paired measurements. Intermediate-to-final changes were summarized as noise, but they could also contain kinetic information. Without replicate timing conditions, that signal was difficult to interpret, yet K1 could have emphasized the ambiguity more strongly.\n\nThe exact factorial structure was used for simple linear regressions and matched-concentration comparisons, but not for nonlinear threshold models, hierarchical measurement-error models, or explicit interaction terms. With only 12 batches and no exact replicates, sophisticated fits would have been weakly identified; nevertheless, the limitation matters.\n\nProcessed final estimates dominated the analysis. Any public raw spectral or mass-balance features that might have distinguished baseline signal from genuine precipitation were not incorporated into the sealed report. I cannot now inspect additional evidence, and I do not claim that such features would necessarily have been diagnostic.\n\nEquilibrium residuals were available but difficult to exploit chemically. K1 appropriately avoided converting low residuals into mechanistic confidence. The equilibrium_confidence values were also intentionally excluded from epistemic reasoning.\n\nThe least reliable blind predictions are Q08 and Q10. Q08 extrapolates far below the observed loading range and its central estimate assumes a dilute-regime transition. Q10 extrapolates from a maximum observed concentration of 0.80 mol/L to 6.67 mol/L and speculates about stronger precipitation. Their wide intervals appropriately signal uncertainty, but even those intervals depend on qualitative assumptions about how bounded proxies behave outside support.\n\nQ03 and Q09 are also highly uncertain because they probe trace concentrations and total amounts. Their central estimates invoke increased fractional dissociation and reduced precipitation, neither of which was observed directly.\n\nSome intervals were probably too narrow:\n\n• Q05–Q07 used identical, fairly narrow intervals because their final nominal composition was identical. However, 0.002 mol is below the campaign’s minimum amount and 0.024 L is below its minimum volume. More importantly, the campaign never tested dosing-order or nucleation-history effects. Treating these as well-supported interior predictions was too confident.\n\n• Q11 had an in-range concentration but used 0.040 mol, above the observed amount range. Its narrow interval assumed concentration dominance and understated possible independent total-amount effects.\n\n• Q12 was the best-supported prediction because its concentration was interior and its amount and volume were close to the sampled domain, although its volume was still slightly below 0.040 L.\n\n• Q01 and Q02 had wider intervals, appropriately reflecting their low amounts, but assigning different precipitation point estimates at equal concentration introduced an amount effect that the campaign had not reliably quantified.\n\nThe narrow Q05–Q07 and Q11 intervals are in some tension with K1’s explicit scope statement limiting support to 0.004–0.032 mol, 0.040–0.080 L, and 0.05–0.80 mol/L. The trace and extreme predictions were more consistent with K1 because their rationales explicitly labeled the trends as extrapolations and used broad intervals.\n\nNo prediction truth has been supplied, so these criticisms are prospective calibration concerns, not post hoc explanations of errors.\n\n7. Limitations of the sealed recommendation\n\nThe sealed recommendation was batch 6: 0.012 mol reagent in 0.060 L water, with final pH_normalized 0.29328, dissociation fraction 0.06192, and precipitation signal 0.15191. It was selected as a representative evidentiary anchor, not as a best-performing recipe.\n\nIts repeatability has not been established. Testing repeatability would require multiple independent batches with the exact same actions, comparing both intermediate and final measurements and reporting all failures. One observed batch cannot separate instrument noise from batch variability.\n\nLocal robustness would require a small neighborhood around batch 6. Useful contrasts would independently perturb amount and volume, include constant-concentration pairs, and vary dosing order or a controlled waiting interval. That would test whether the apparent plateau survives local perturbation and whether the route to the final state matters.\n\nCross-material generalization is unsupported. Only water was used, no catalyst was added, and the reagent was anonymous. Testing another solvent or catalyst would define a different material context rather than validate the existing aqueous mechanism automatically.\n\nCross-world generalization is also unsupported. The effective pKa, plateau level, and precipitation proxy may be specific to this bounded synthetic world. Transfer would require preregistered repetition across independent worlds or material instances, with the same measurement contract and explicit criteria for parameter stability.\n\nFinally, batch 6 cannot be called “proven optimal.” It was not selected by an optimization analysis, and the campaign did not search the legal action space for a maximum. I cannot even claim that it was the sample-in highest-scoring batch without a documented comparison of the relevant scalar scores. The defensible statement is only that batch 6 was a representative sampled condition chosen for blind replay. “Sample-in highest,” “locally robust,” and “globally optimal” are separate claims, none of which was established by the sealed recommendation."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    },
+    "Q": {
+      "payload": {
+        "predictions": [
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.085,
+                "lower80": 0.05,
+                "upper80": 0.14
+              },
+              "pH_normalized": {
+                "estimate": 0.296,
+                "lower80": 0.286,
+                "upper80": 0.31
+              },
+              "precipitation_signal": {
+                "estimate": 0.11,
+                "lower80": 0.04,
+                "upper80": 0.18
+              }
+            },
+            "query_id": "Q01",
+            "rationale": "The concentration is 0.015 mol/L, below the observed 0.05–0.80 mol/L range but not yet in the extreme trace regime. I predict modestly greater dissociation and less precipitation than the measured plateau. The interval allows the alternative that pH buffering and the precipitation baseline remain fully active."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.085,
+                "lower80": 0.05,
+                "upper80": 0.14
+              },
+              "pH_normalized": {
+                "estimate": 0.296,
+                "lower80": 0.286,
+                "upper80": 0.31
+              },
+              "precipitation_signal": {
+                "estimate": 0.125,
+                "lower80": 0.055,
+                "upper80": 0.185
+              }
+            },
+            "query_id": "Q02",
+            "rationale": "This has the same 0.015 mol/L concentration as Q01, so the equilibrium-state model gives the same pH and dissociation estimates. Its twofold greater total amount may sustain slightly more precipitation signal, although the campaign did not identify a reliable independent amount effect."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.22,
+                "lower80": 0.07,
+                "upper80": 0.48
+              },
+              "pH_normalized": {
+                "estimate": 0.326,
+                "lower80": 0.29,
+                "upper80": 0.38
+              },
+              "precipitation_signal": {
+                "estimate": 0.045,
+                "lower80": 0.0,
+                "upper80": 0.145
+              }
+            },
+            "query_id": "Q03",
+            "rationale": "At only 0.000133 mol/L and 0.00001 mol total, this is far below the studied loading range. The estimate allows dilution to increase dissociation and pH while insufficient total material suppresses precipitation. The wide interval includes the competing buffered-plateau explanation."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.095,
+                "lower80": 0.045,
+                "upper80": 0.2
+              },
+              "pH_normalized": {
+                "estimate": 0.296,
+                "lower80": 0.278,
+                "upper80": 0.325
+              },
+              "precipitation_signal": {
+                "estimate": 0.065,
+                "lower80": 0.0,
+                "upper80": 0.16
+              }
+            },
+            "query_id": "Q04",
+            "rationale": "The total amount matches Q03, but the smaller volume raises concentration to 0.00167 mol/L. I therefore predict less dissociation and a lower pH than Q03, with a slightly larger precipitation proxy. Both amount and concentration remain far outside direct support."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.074,
+                "lower80": 0.061,
+                "upper80": 0.087
+              },
+              "pH_normalized": {
+                "estimate": 0.292,
+                "lower80": 0.287,
+                "upper80": 0.297
+              },
+              "precipitation_signal": {
+                "estimate": 0.151,
+                "lower80": 0.139,
+                "upper80": 0.164
+              }
+            },
+            "query_id": "Q05",
+            "rationale": "The final state is 0.002 mol in 0.024 L, or 0.0833 mol/L, close to the low end of the measured concentration domain. Under an equilibrium state-function interpretation, interleaving the additions should not materially alter the final assay."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.074,
+                "lower80": 0.061,
+                "upper80": 0.087
+              },
+              "pH_normalized": {
+                "estimate": 0.292,
+                "lower80": 0.287,
+                "upper80": 0.297
+              },
+              "precipitation_signal": {
+                "estimate": 0.151,
+                "lower80": 0.139,
+                "upper80": 0.164
+              }
+            },
+            "query_id": "Q06",
+            "rationale": "Q06 has the same final water volume, reagent amount, and concentration as Q05. I predict identical observables because no campaign evidence established path dependence, aging, or irreversible precipitation during dosing."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.074,
+                "lower80": 0.061,
+                "upper80": 0.087
+              },
+              "pH_normalized": {
+                "estimate": 0.292,
+                "lower80": 0.287,
+                "upper80": 0.297
+              },
+              "precipitation_signal": {
+                "estimate": 0.151,
+                "lower80": 0.139,
+                "upper80": 0.164
+              }
+            },
+            "query_id": "Q07",
+            "rationale": "The final composition is again identical to Q05 and Q06. Reagent exposure to the intermediate smaller volume could matter if rapid irreversible nucleation occurs, but that mechanism was not observed; the interval includes a modest unmodeled history effect."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.52,
+                "lower80": 0.15,
+                "upper80": 0.88
+              },
+              "pH_normalized": {
+                "estimate": 0.375,
+                "lower80": 0.305,
+                "upper80": 0.48
+              },
+              "precipitation_signal": {
+                "estimate": 0.015,
+                "lower80": 0.0,
+                "upper80": 0.1
+              }
+            },
+            "query_id": "Q08",
+            "rationale": "This is an extreme trace condition at approximately 0.0000133 mol/L. The central prediction extrapolates toward much greater fractional dissociation, higher pH, and nearly absent precipitation as loading approaches zero. Uncertainty is very large because a persistent latent buffer or proxy baseline could instead retain values near the observed plateau."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.2,
+                "lower80": 0.06,
+                "upper80": 0.45
+              },
+              "pH_normalized": {
+                "estimate": 0.323,
+                "lower80": 0.288,
+                "upper80": 0.38
+              },
+              "precipitation_signal": {
+                "estimate": 0.025,
+                "lower80": 0.0,
+                "upper80": 0.12
+              }
+            },
+            "query_id": "Q09",
+            "rationale": "The total amount is the same as Q08, but concentration is 12.5 times greater at approximately 0.000167 mol/L. I consequently predict less dissociation and a lower pH than Q08, while retaining a very small precipitation signal because the absolute material inventory is only one micromole."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.045,
+                "lower80": 0.005,
+                "upper80": 0.1
+              },
+              "pH_normalized": {
+                "estimate": 0.285,
+                "lower80": 0.255,
+                "upper80": 0.305
+              },
+              "precipitation_signal": {
+                "estimate": 0.3,
+                "lower80": 0.12,
+                "upper80": 0.65
+              }
+            },
+            "query_id": "Q10",
+            "rationale": "The concentration is 6.67 mol/L, more than eight times the studied maximum. The estimate extrapolates toward suppressed dissociation, slightly lower pH, and stronger precipitation. The exceptionally wide precipitation interval reflects uncertainty between a genuine high-concentration transition and continued buffering or reporter saturation."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.059,
+                "upper80": 0.084
+              },
+              "pH_normalized": {
+                "estimate": 0.292,
+                "lower80": 0.287,
+                "upper80": 0.297
+              },
+              "precipitation_signal": {
+                "estimate": 0.157,
+                "lower80": 0.144,
+                "upper80": 0.171
+              }
+            },
+            "query_id": "Q11",
+            "rationale": "Although the amount is slightly above the campaign range, the 0.533 mol/L concentration and 0.075 L volume are within or very near observed support. Batch 8 had the same concentration and gave 0.29216, 0.07072, and 0.15233, so the prediction remains close to the empirical plateau."
+          },
+          {
+            "metrics": {
+              "acid_dissociation_fraction": {
+                "estimate": 0.073,
+                "lower80": 0.061,
+                "upper80": 0.085
+              },
+              "pH_normalized": {
+                "estimate": 0.292,
+                "lower80": 0.287,
+                "upper80": 0.296
+              },
+              "precipitation_signal": {
+                "estimate": 0.154,
+                "lower80": 0.143,
+                "upper80": 0.165
+              }
+            },
+            "query_id": "Q12",
+            "rationale": "This interior holdout has a concentration of 0.136 mol/L and lies near batches 1 and 10 in concentration. The campaign found no resolved pH or precipitation slope there, so the estimates use the measured local plateau with intervals based on assay noise and observed batch scatter."
+          }
+        ],
+        "rationale": "Predictions use the previously sealed interpretation without additional experiments. Inside or near the measured domain, the central model is the observed aqueous plateau: pH_normalized about 0.292, acid dissociation about 0.071, and precipitation signal about 0.155. Intervals combine final-assay noise with observed between-batch scatter. Identical final compositions in Q05–Q07 receive identical predictions because equilibrium observables were treated as state functions. For trace-load and extreme-concentration extrapolations, intervals are deliberately much wider and central estimates allow physically plausible departure from the plateau: increased fractional dissociation and diminished precipitation upon extreme dilution, and the reverse tendency at very high concentration. These extrapolated trends were not directly observed and compete with the alternative of persistent buffering and a nearly constant precipitation-proxy baseline."
+      },
+      "validation": {
+        "failure": null,
+        "valid": true
+      }
+    }
+  },
+  "prediction_evaluation": {
+    "eqs": {
+      "absolute_error": 0.0005952109131763805,
+      "aligned_prior_is_treatment_not_discovery_credit": true,
+      "covered80": true,
+      "dissociation_precipitation": "continuous",
+      "identifiable": true,
+      "path_dependence": "indeterminate",
+      "structural_labels_scored": false,
+      "valid": true,
+      "width80": 0.1200000000000001
+    },
+    "equilibrium_confidence_used_as_agent_uncertainty_or_score": false,
+    "metrics": {
+      "acid_dissociation_fraction": {
+        "empirical_coverage80": 0.9833333333333333,
+        "mae_to_five_repeat_mean": 0.008384249289830528,
+        "mean_interval_score_alpha_0_2": 0.17586959411203862,
+        "mean_width80": 0.17391666666666666,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "pH_normalized": {
+        "empirical_coverage80": 1.0,
+        "mae_to_five_repeat_mean": 0.003290167490641265,
+        "mean_interval_score_alpha_0_2": 0.045916666666666675,
+        "mean_width80": 0.045916666666666675,
+        "query_count": 12,
+        "reference_observation_count": 60
+      },
+      "precipitation_signal": {
+        "empirical_coverage80": 0.95,
+        "mae_to_five_repeat_mean": 0.031053139485263576,
+        "mean_interval_score_alpha_0_2": 0.12237144790093103,
+        "mean_width80": 0.12075,
+        "query_count": 12,
+        "reference_observation_count": 60
+      }
+    },
+    "valid": true
+  },
+  "recovery": null,
+  "reference_truth": {
+    "Q01": [
+      {
+        "acid_dissociation_fraction": 0.07805701345205307,
+        "pH_normalized": 0.29647883772850037,
+        "precipitation_signal": 0.15237440168857574
+      },
+      {
+        "acid_dissociation_fraction": 0.06145871803164482,
+        "pH_normalized": 0.29690679907798767,
+        "precipitation_signal": 0.15346971154212952
+      },
+      {
+        "acid_dissociation_fraction": 0.07295544445514679,
+        "pH_normalized": 0.2922861576080322,
+        "precipitation_signal": 0.15232037007808685
+      },
+      {
+        "acid_dissociation_fraction": 0.08966384828090668,
+        "pH_normalized": 0.2933022379875183,
+        "precipitation_signal": 0.14849421381950378
+      },
+      {
+        "acid_dissociation_fraction": 0.081082783639431,
+        "pH_normalized": 0.2914603054523468,
+        "precipitation_signal": 0.15142472088336945
+      }
+    ],
+    "Q02": [
+      {
+        "acid_dissociation_fraction": 0.0737093985080719,
+        "pH_normalized": 0.2947787046432495,
+        "precipitation_signal": 0.15909121930599213
+      },
+      {
+        "acid_dissociation_fraction": 0.08554009348154068,
+        "pH_normalized": 0.29749083518981934,
+        "precipitation_signal": 0.15821999311447144
+      },
+      {
+        "acid_dissociation_fraction": 0.0803598016500473,
+        "pH_normalized": 0.2905747592449188,
+        "precipitation_signal": 0.1530269831418991
+      },
+      {
+        "acid_dissociation_fraction": 0.08104070276021957,
+        "pH_normalized": 0.2940578758716583,
+        "precipitation_signal": 0.16019299626350403
+      },
+      {
+        "acid_dissociation_fraction": 0.0833740234375,
+        "pH_normalized": 0.29277700185775757,
+        "precipitation_signal": 0.1550293117761612
+      }
+    ],
+    "Q03": [
+      {
+        "acid_dissociation_fraction": 0.22850345075130463,
+        "pH_normalized": 0.33487194776535034,
+        "precipitation_signal": 0.0019557331688702106
+      },
+      {
+        "acid_dissociation_fraction": 0.22678880393505096,
+        "pH_normalized": 0.33345022797584534,
+        "precipitation_signal": 0.00826636515557766
+      },
+      {
+        "acid_dissociation_fraction": 0.22976237535476685,
+        "pH_normalized": 0.3318921625614166,
+        "precipitation_signal": 0.0056813727132976055
+      },
+      {
+        "acid_dissociation_fraction": 0.2322118580341339,
+        "pH_normalized": 0.33321040868759155,
+        "precipitation_signal": 0.0
+      },
+      {
+        "acid_dissociation_fraction": 0.2268817126750946,
+        "pH_normalized": 0.3364171087741852,
+        "precipitation_signal": 0.0
+      }
+    ],
+    "Q04": [
+      {
+        "acid_dissociation_fraction": 0.10720045864582062,
+        "pH_normalized": 0.30417385697364807,
+        "precipitation_signal": 0.13971959054470062
+      },
+      {
+        "acid_dissociation_fraction": 0.10973663628101349,
+        "pH_normalized": 0.3015025556087494,
+        "precipitation_signal": 0.13054223358631134
+      },
+      {
+        "acid_dissociation_fraction": 0.101344995200634,
+        "pH_normalized": 0.3054582476615906,
+        "precipitation_signal": 0.14139316976070404
+      },
+      {
+        "acid_dissociation_fraction": 0.10565592348575592,
+        "pH_normalized": 0.3025379180908203,
+        "precipitation_signal": 0.13397589325904846
+      },
+      {
+        "acid_dissociation_fraction": 0.10874450206756592,
+        "pH_normalized": 0.30792659521102905,
+        "precipitation_signal": 0.1380103975534439
+      }
+    ],
+    "Q05": [
+      {
+        "acid_dissociation_fraction": 0.06501547247171402,
+        "pH_normalized": 0.29201656579971313,
+        "precipitation_signal": 0.16049867868423462
+      },
+      {
+        "acid_dissociation_fraction": 0.06941484659910202,
+        "pH_normalized": 0.29204633831977844,
+        "precipitation_signal": 0.1546163558959961
+      },
+      {
+        "acid_dissociation_fraction": 0.06780785322189331,
+        "pH_normalized": 0.29504281282424927,
+        "precipitation_signal": 0.15370558202266693
+      },
+      {
+        "acid_dissociation_fraction": 0.06709058582782745,
+        "pH_normalized": 0.2875751852989197,
+        "precipitation_signal": 0.14963273704051971
+      },
+      {
+        "acid_dissociation_fraction": 0.07373834401369095,
+        "pH_normalized": 0.29340654611587524,
+        "precipitation_signal": 0.14666695892810822
+      }
+    ],
+    "Q06": [
+      {
+        "acid_dissociation_fraction": 0.0646865963935852,
+        "pH_normalized": 0.29021692276000977,
+        "precipitation_signal": 0.16627128422260284
+      },
+      {
+        "acid_dissociation_fraction": 0.049282435327768326,
+        "pH_normalized": 0.29173004627227783,
+        "precipitation_signal": 0.1461648941040039
+      },
+      {
+        "acid_dissociation_fraction": 0.07121572643518448,
+        "pH_normalized": 0.28819525241851807,
+        "precipitation_signal": 0.17018498480319977
+      },
+      {
+        "acid_dissociation_fraction": 0.07424526661634445,
+        "pH_normalized": 0.2930069863796234,
+        "precipitation_signal": 0.1580647975206375
+      },
+      {
+        "acid_dissociation_fraction": 0.06644759327173233,
+        "pH_normalized": 0.28933990001678467,
+        "precipitation_signal": 0.16387486457824707
+      }
+    ],
+    "Q07": [
+      {
+        "acid_dissociation_fraction": 0.06696134805679321,
+        "pH_normalized": 0.291524201631546,
+        "precipitation_signal": 0.15251541137695312
+      },
+      {
+        "acid_dissociation_fraction": 0.06260858476161957,
+        "pH_normalized": 0.28947219252586365,
+        "precipitation_signal": 0.14714033901691437
+      },
+      {
+        "acid_dissociation_fraction": 0.06777983158826828,
+        "pH_normalized": 0.2912572920322418,
+        "precipitation_signal": 0.15717476606369019
+      },
+      {
+        "acid_dissociation_fraction": 0.07466931641101837,
+        "pH_normalized": 0.29056569933891296,
+        "precipitation_signal": 0.16289563477039337
+      },
+      {
+        "acid_dissociation_fraction": 0.0685441642999649,
+        "pH_normalized": 0.2909214496612549,
+        "precipitation_signal": 0.15220633149147034
+      }
+    ],
+    "Q08": [
+      {
+        "acid_dissociation_fraction": 0.5221601724624634,
+        "pH_normalized": 0.36837607622146606,
+        "precipitation_signal": 0.007065394427627325
+      },
+      {
+        "acid_dissociation_fraction": 0.5252357125282288,
+        "pH_normalized": 0.37469983100891113,
+        "precipitation_signal": 0.004256960935890675
+      },
+      {
+        "acid_dissociation_fraction": 0.5056025981903076,
+        "pH_normalized": 0.37520453333854675,
+        "precipitation_signal": 0.008695564232766628
+      },
+      {
+        "acid_dissociation_fraction": 0.5170007348060608,
+        "pH_normalized": 0.3719857633113861,
+        "precipitation_signal": 0.0
+      },
+      {
+        "acid_dissociation_fraction": 0.5165361762046814,
+        "pH_normalized": 0.37495267391204834,
+        "precipitation_signal": 0.0017024062108248472
+      }
+    ],
+    "Q09": [
+      {
+        "acid_dissociation_fraction": 0.20751464366912842,
+        "pH_normalized": 0.33053603768348694,
+        "precipitation_signal": 0.02097097598016262
+      },
+      {
+        "acid_dissociation_fraction": 0.21909506618976593,
+        "pH_normalized": 0.326507568359375,
+        "precipitation_signal": 0.019691884517669678
+      },
+      {
+        "acid_dissociation_fraction": 0.21167626976966858,
+        "pH_normalized": 0.33035990595817566,
+        "precipitation_signal": 0.018426625058054924
+      },
+      {
+        "acid_dissociation_fraction": 0.2096167355775833,
+        "pH_normalized": 0.3303010165691376,
+        "precipitation_signal": 0.017283715307712555
+      },
+      {
+        "acid_dissociation_fraction": 0.2036009579896927,
+        "pH_normalized": 0.3282267451286316,
+        "precipitation_signal": 0.019862471148371696
+      }
+    ],
+    "Q10": [
+      {
+        "acid_dissociation_fraction": 0.0689246878027916,
+        "pH_normalized": 0.2895342707633972,
+        "precipitation_signal": 0.15823990106582642
+      },
+      {
+        "acid_dissociation_fraction": 0.07807261496782303,
+        "pH_normalized": 0.28978654742240906,
+        "precipitation_signal": 0.14898118376731873
+      },
+      {
+        "acid_dissociation_fraction": 0.08632931113243103,
+        "pH_normalized": 0.2935769557952881,
+        "precipitation_signal": 0.1583419293165207
+      },
+      {
+        "acid_dissociation_fraction": 0.07461002469062805,
+        "pH_normalized": 0.2924022674560547,
+        "precipitation_signal": 0.1555742472410202
+      },
+      {
+        "acid_dissociation_fraction": 0.06416616588830948,
+        "pH_normalized": 0.29519569873809814,
+        "precipitation_signal": 0.15340983867645264
+      }
+    ],
+    "Q11": [
+      {
+        "acid_dissociation_fraction": 0.06300698220729828,
+        "pH_normalized": 0.28931525349617004,
+        "precipitation_signal": 0.14731544256210327
+      },
+      {
+        "acid_dissociation_fraction": 0.06597553938627243,
+        "pH_normalized": 0.29435378313064575,
+        "precipitation_signal": 0.14849767088890076
+      },
+      {
+        "acid_dissociation_fraction": 0.07168329507112503,
+        "pH_normalized": 0.2900003492832184,
+        "precipitation_signal": 0.15769556164741516
+      },
+      {
+        "acid_dissociation_fraction": 0.07185442000627518,
+        "pH_normalized": 0.29077911376953125,
+        "precipitation_signal": 0.16191451251506805
+      },
+      {
+        "acid_dissociation_fraction": 0.06744442880153656,
+        "pH_normalized": 0.29149341583251953,
+        "precipitation_signal": 0.15709611773490906
+      }
+    ],
+    "Q12": [
+      {
+        "acid_dissociation_fraction": 0.08016713708639145,
+        "pH_normalized": 0.2922014594078064,
+        "precipitation_signal": 0.14172758162021637
+      },
+      {
+        "acid_dissociation_fraction": 0.06938615441322327,
+        "pH_normalized": 0.2910260558128357,
+        "precipitation_signal": 0.14793844521045685
+      },
+      {
+        "acid_dissociation_fraction": 0.0670909732580185,
+        "pH_normalized": 0.29242026805877686,
+        "precipitation_signal": 0.15279196202754974
+      },
+      {
+        "acid_dissociation_fraction": 0.06590159237384796,
+        "pH_normalized": 0.29064416885375977,
+        "precipitation_signal": 0.15329468250274658
+      },
+      {
+        "acid_dissociation_fraction": 0.07158652693033218,
+        "pH_normalized": 0.2917492389678955,
+        "precipitation_signal": 0.14403191208839417
+      }
+    ]
+  },
+  "schema_version": "work-ii-eq-public-cell-1.0",
+  "source": {
+    "batches": [
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.04
+          },
+          {
+            "amount_mol": 0.004,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 5,
+        "lifecycle_index": 1,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07558944076299667,
+          "cost": 0.1995999962091446,
+          "equilibrium_confidence": 0.45265743136405945,
+          "equilibrium_residual": 0.0036336230114102364,
+          "pH_normalized": 0.28898167610168457,
+          "precipitation_signal": 0.1507163792848587,
+          "safety_risk": 0.03913859277963638,
+          "score": 0.2694109380245209
+        },
+        "ordinal": 1
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.04
+          },
+          {
+            "amount_mol": 0.012,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 10,
+        "lifecycle_index": 2,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07101302593946457,
+          "cost": 0.22360000014305115,
+          "equilibrium_confidence": 0.5396541953086853,
+          "equilibrium_residual": 0.002391951624304056,
+          "pH_normalized": 0.29304563999176025,
+          "precipitation_signal": 0.14663155376911163,
+          "safety_risk": 0.04995903745293617,
+          "score": 0.30774831771850586
+        },
+        "ordinal": 2
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.04
+          },
+          {
+            "amount_mol": 0.024,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 15,
+        "lifecycle_index": 3,
+        "metrics": {
+          "acid_dissociation_fraction": 0.06738102436065674,
+          "cost": 0.2596000134944916,
+          "equilibrium_confidence": 0.3658106327056885,
+          "equilibrium_residual": 0.001146403606981039,
+          "pH_normalized": 0.29097381234169006,
+          "precipitation_signal": 0.15794502198696136,
+          "safety_risk": 0.08888009935617447,
+          "score": 0.23059353232383728
+        },
+        "ordinal": 3
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.04
+          },
+          {
+            "amount_mol": 0.032,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 20,
+        "lifecycle_index": 4,
+        "metrics": {
+          "acid_dissociation_fraction": 0.0679381787776947,
+          "cost": 0.28360000252723694,
+          "equilibrium_confidence": 0.3774244785308838,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.29033705592155457,
+          "precipitation_signal": 0.15411657094955444,
+          "safety_risk": 0.13155309855937958,
+          "score": 0.23557984828948975
+        },
+        "ordinal": 4
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.06
+          },
+          {
+            "amount_mol": 0.004,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 25,
+        "lifecycle_index": 5,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07912444323301315,
+          "cost": 0.20440000295639038,
+          "equilibrium_confidence": 0.42747437953948975,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2888164818286896,
+          "precipitation_signal": 0.15763434767723083,
+          "safety_risk": 0.03803812712430954,
+          "score": 0.26071515679359436
+        },
+        "ordinal": 5
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.06
+          },
+          {
+            "amount_mol": 0.012,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 30,
+        "lifecycle_index": 6,
+        "metrics": {
+          "acid_dissociation_fraction": 0.061917051672935486,
+          "cost": 0.22840000689029694,
+          "equilibrium_confidence": 0.5168500542640686,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2932771146297455,
+          "precipitation_signal": 0.1519140601158142,
+          "safety_risk": 0.043499164283275604,
+          "score": 0.29708075523376465
+        },
+        "ordinal": 6
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.06
+          },
+          {
+            "amount_mol": 0.024,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 35,
+        "lifecycle_index": 7,
+        "metrics": {
+          "acid_dissociation_fraction": 0.06946497410535812,
+          "cost": 0.26440000534057617,
+          "equilibrium_confidence": 0.45983272790908813,
+          "equilibrium_residual": 0.0019850931130349636,
+          "pH_normalized": 0.29362452030181885,
+          "precipitation_signal": 0.15706954896450043,
+          "safety_risk": 0.059263166040182114,
+          "score": 0.27324432134628296
+        },
+        "ordinal": 7
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.06
+          },
+          {
+            "amount_mol": 0.032,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 40,
+        "lifecycle_index": 8,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07072122395038605,
+          "cost": 0.28839999437332153,
+          "equilibrium_confidence": 0.37418481707572937,
+          "equilibrium_residual": 0.004726216662675142,
+          "pH_normalized": 0.2921561002731323,
+          "precipitation_signal": 0.15232859551906586,
+          "safety_risk": 0.07727137953042984,
+          "score": 0.2334107607603073
+        },
+        "ordinal": 8
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.004,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 45,
+        "lifecycle_index": 9,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07328641414642334,
+          "cost": 0.20919999480247498,
+          "equilibrium_confidence": 0.4080561101436615,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2925504446029663,
+          "precipitation_signal": 0.1599550098180771,
+          "safety_risk": 0.03754241764545441,
+          "score": 0.25153082609176636
+        },
+        "ordinal": 9
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.012,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 50,
+        "lifecycle_index": 10,
+        "metrics": {
+          "acid_dissociation_fraction": 0.0664600282907486,
+          "cost": 0.23319999873638153,
+          "equilibrium_confidence": 0.48931363224983215,
+          "equilibrium_residual": 0.009946778416633606,
+          "pH_normalized": 0.2928289771080017,
+          "precipitation_signal": 0.1577165722846985,
+          "safety_risk": 0.0410994216799736,
+          "score": 0.28393682837486267
+        },
+        "ordinal": 10
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.024,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 55,
+        "lifecycle_index": 11,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07692167162895203,
+          "cost": 0.26919999718666077,
+          "equilibrium_confidence": 0.5232118368148804,
+          "equilibrium_residual": 0.0,
+          "pH_normalized": 0.2937108874320984,
+          "precipitation_signal": 0.1578059047460556,
+          "safety_risk": 0.04995903745293617,
+          "score": 0.30387163162231445
+        },
+        "ordinal": 11
+      },
+      {
+        "actions": [
+          {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.08
+          },
+          {
+            "amount_mol": 0.032,
+            "operation": "add_reagent"
+          },
+          {
+            "instrument": "ph_meter",
+            "operation": "measure"
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "end_step": 60,
+        "lifecycle_index": 12,
+        "metrics": {
+          "acid_dissociation_fraction": 0.07435660064220428,
+          "cost": 0.29319998621940613,
+          "equilibrium_confidence": 0.44868120551109314,
+          "equilibrium_residual": 0.0017777992179617286,
+          "pH_normalized": 0.28926321864128113,
+          "precipitation_signal": 0.15903836488723755,
+          "safety_risk": 0.059263166040182114,
+          "score": 0.26911550760269165
+        },
+        "ordinal": 12
+      }
+    ],
+    "evidentiary_anchor": {
+      "selected_experiment_index": 6,
+      "selection_rationale": "Batch 6 is a representative mid-volume, moderate-loading condition with both an intermediate pH-meter observation and the required final assay, making it a useful anchor for the observed near-flat equilibrium-response region rather than an optimization claim."
+    },
+    "exact_replay": {
+      "checked_steps": 60,
+      "max_abs_error": 0.0,
+      "mismatches": [],
+      "verified": true
+    },
+    "rollbacks": []
+  }
+}

@@ -247,6 +247,34 @@ WORLD_AXIS_REGISTRY: dict[str, WorldAxisSpec] = {
             "Changes the hidden activity-coefficient ratio while retaining the same "
             "acid-base and precipitation solver laws.",
         ),
+        _axis(
+            "equilibrium-characterization",
+            "equilibrium.mechanism-benchmark",
+            "coupled weak-acid precipitation benchmark substrate",
+            "initial_state",
+            (
+                "equilibrium_mechanism_benchmark_version",
+                "equilibrium_mechanism_family",
+                "hidden_equilibrium_log10_ksp",
+                "equilibrium_precipitating_cation_fraction",
+            ),
+            "Selects the registered EQ-S coupled-equilibrium substrate without exposing "
+            "its hidden mechanism or constants.",
+            ("extrapolation",),
+        ),
+        _axis(
+            "equilibrium-characterization",
+            "equilibrium.aqueous-ion-pair-network",
+            "aqueous ion-pair mechanism topology",
+            "initial_state",
+            (
+                "equilibrium_mechanism_family",
+                "equilibrium_aqueous_association_beta_L_per_mol",
+            ),
+            "Adds a distinct aqueous MA intermediate and its mass-action equation to "
+            "the coupled weak-acid precipitation network.",
+            ("interpolation",),
+        ),
     )
 }
 
@@ -341,6 +369,40 @@ def apply_axis_interventions(
             metadata["equilibrium_activity_coefficient_ratio"] = float(
                 metadata.get("equilibrium_activity_coefficient_ratio", 1.0)
             ) * _effect_multiplier(intervention.mode, intervention.severity)
+            state = state.replace(metadata=metadata)
+        elif intervention.axis_id == "equilibrium.mechanism-benchmark":
+            if intervention.mode != "extrapolation" or intervention.severity != 1.0:
+                raise ValueError(
+                    "equilibrium mechanism benchmark is a frozen substrate selector; "
+                    "mode must be extrapolation and severity must equal 1"
+                )
+            metadata = dict(state.metadata)
+            metadata.update(
+                {
+                    "equilibrium_mechanism_benchmark_version": "eq-s-v0.2",
+                    "hidden_equilibrium_log10_ksp": -5.2,
+                    "hidden_equilibrium_ksp": 10.0**-5.2,
+                    "equilibrium_precipitating_cation_fraction": 0.15,
+                    "equilibrium_activity_coefficient_ratio": 1.0,
+                }
+            )
+            metadata.setdefault(
+                "equilibrium_mechanism_family",
+                "direct_free_ion_precipitation",
+            )
+            state = state.replace(metadata=metadata)
+        elif intervention.axis_id == "equilibrium.aqueous-ion-pair-network":
+            if intervention.mode != "interpolation":
+                raise ValueError("aqueous ion-pair network requires interpolation mode")
+            metadata = dict(state.metadata)
+            metadata.update(
+                {
+                    "equilibrium_mechanism_family": "aqueous_ion_pair_intermediate",
+                    "equilibrium_aqueous_association_beta_L_per_mol": (
+                        7000.0 + 2500.0 * intervention.severity
+                    ),
+                }
+            )
             state = state.replace(metadata=metadata)
         else:
             factor = _effect_multiplier(intervention.mode, intervention.severity)

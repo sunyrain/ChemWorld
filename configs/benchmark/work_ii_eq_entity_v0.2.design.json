@@ -1,0 +1,240 @@
+{
+  "schema_version": "chemworld-work-ii-eq-entity-formal-design-0.2",
+  "status": "human_requested_design_provider_sealed",
+  "task_id": "equilibrium-characterization",
+  "task": "bounded_aqueous_equilibrium_entity_mapping",
+  "prior_locus": "E",
+  "research_goal": "characterization",
+  "provider_execution_authorized": false,
+  "provider_calls_authorized": 0,
+  "base_substrate": {
+    "path": "configs/benchmark/work_ii_eq_entity_substrate_v0.1.json",
+    "sha256": "d226af310f911b060e394c664a260deeae84dc6dbf1bc608f4e31c43e91cf638"
+  },
+  "canonical_posttest_protocol": {
+    "path": "workstreams/flagship_tasks/WORK_II_CANONICAL_K1_Q_K2_PROTOCOL_V1_1.md",
+    "sha256": "cacfc67f299fff5ae776528ff2e850ebe9d4b94f803860aff34794dc6ce5dbc2"
+  },
+  "objective": {
+    "source_instruction": "Characterize how each selectable anonymous aqueous-medium identity changes the coupled equilibrium response, determine which relationships transfer across concentration and scale, and distinguish entity-conditioned behavior from common concentration effects. This is a mechanism-characterization task, not an optimization task. Complete exactly twelve independent batches and seal an evidence-backed entity-response map plus one evidentiary anchor; do not claim that an observed entity is globally optimal.",
+    "sealed_delivery": "entity-conditioned mechanism map, evidence boundary, uncertainty, and one completed evidentiary-anchor batch",
+    "operation_recommendation_applicable": false,
+    "forbidden_task_reframings": [
+      "select the highest-scoring medium",
+      "optimize one response metric",
+      "estimate one common scalar while ignoring entity identity",
+      "choose a reaction-network family"
+    ]
+  },
+  "participant_posttest_stages": ["K1", "Q", "K2"],
+  "forbidden_participant_posttests": [
+    "EQE closed-set identity answer",
+    "candidate property-vector menu",
+    "hidden numerical profile estimation requirement",
+    "single composite mechanism score"
+  ],
+  "counts": {
+    "worlds": 5,
+    "arms": 3,
+    "independent_source_sessions": 15,
+    "source_batches_per_session": 12,
+    "source_batches": 180,
+    "posttests_per_session": 3,
+    "posttests": 45,
+    "queries_per_session": 12,
+    "reference_repeats_per_query": 5,
+    "reference_executions": 300
+  },
+  "arms": ["Opaque", "Aligned", "MisIndexed"],
+  "prediction_metrics": [
+    "pH_normalized",
+    "acid_dissociation_fraction",
+    "precipitation_signal"
+  ],
+  "public_common_background": {
+    "delivery": "identical in Opaque, Aligned, and MisIndexed",
+    "scope": "three selectable anonymous aqueous media under one fixed bounded weak-acid/direct-precipitation network",
+    "common_equations": [
+      "HA(aq) <=> H+(aq) + A-(aq)",
+      "M+(aq) + A-(aq) <=> MA(s)"
+    ],
+    "allowed_claim": "medium identity may change a joint bundle of effective acid-ionization, solid-formation, cation-availability, and activity properties",
+    "forbidden_content": "no numerical constant, hidden profile, answer label, query coordinate, or prescribed experiment"
+  },
+  "common_private_topology": {
+    "mechanism_family": "direct_free_ion_precipitation",
+    "species_nodes": ["HA(aq)", "H+(aq)", "A-(aq)", "M+(aq)", "MA(s)"],
+    "equation_ids": ["acid_dissociation", "free_ion_solid_equilibrium"],
+    "aqueous_intermediate_present": false
+  },
+  "prior_contract": {
+    "schema_version": "chemworld-eq-entity-prior-0.2",
+    "opaque": "no instance-level entity-to-property mapping",
+    "aligned": "correct qualitative local entity-to-property mapping; no numbers or query conditions",
+    "misindexed": "the same rows, fields, vocabulary, and precision under the frozen no-fixed-point cycle",
+    "misindex_permutation": {"0": 1, "1": 2, "2": 0},
+    "descriptor_fields": [
+      "selector",
+      "acid_ionization_tendency",
+      "solid_formation_tendency"
+    ],
+    "descriptor_levels": {
+      "acid_ionization_tendency": ["higher", "intermediate", "lower"],
+      "solid_formation_tendency": ["higher", "intermediate", "lower"]
+    },
+    "forbidden_public_fields": [
+      "base_pka",
+      "pka_shift",
+      "log10_ksp",
+      "cation_fraction",
+      "activity_coefficient_ratio",
+      "numeric_transition",
+      "query_id",
+      "recipe",
+      "world_id"
+    ]
+  },
+  "worlds": [
+    {
+      "world_id": "EQ-E-W01",
+      "world_seed": 5101,
+      "base_pka_nuisance": 4.65,
+      "profiles": [
+        {"selector": 0, "pka_shift": -0.60, "log10_ksp": -5.70, "cation_fraction": 0.08, "activity_coefficient_ratio": 0.70},
+        {"selector": 1, "pka_shift": 0.00, "log10_ksp": -5.20, "cation_fraction": 0.15, "activity_coefficient_ratio": 1.00},
+        {"selector": 2, "pka_shift": 0.60, "log10_ksp": -4.70, "cation_fraction": 0.22, "activity_coefficient_ratio": 1.30}
+      ],
+      "aligned_descriptors": [
+        {"selector": 0, "acid_ionization_tendency": "higher", "solid_formation_tendency": "higher"},
+        {"selector": 1, "acid_ionization_tendency": "intermediate", "solid_formation_tendency": "intermediate"},
+        {"selector": 2, "acid_ionization_tendency": "lower", "solid_formation_tendency": "lower"}
+      ]
+    },
+    {
+      "world_id": "EQ-E-W02",
+      "world_seed": 5102,
+      "base_pka_nuisance": 4.85,
+      "profiles": [
+        {"selector": 0, "pka_shift": -0.50, "log10_ksp": -4.70, "cation_fraction": 0.10, "activity_coefficient_ratio": 0.80},
+        {"selector": 1, "pka_shift": 0.00, "log10_ksp": -5.40, "cation_fraction": 0.13, "activity_coefficient_ratio": 1.10},
+        {"selector": 2, "pka_shift": 0.55, "log10_ksp": -5.90, "cation_fraction": 0.20, "activity_coefficient_ratio": 1.25}
+      ],
+      "aligned_descriptors": [
+        {"selector": 0, "acid_ionization_tendency": "higher", "solid_formation_tendency": "lower"},
+        {"selector": 1, "acid_ionization_tendency": "intermediate", "solid_formation_tendency": "intermediate"},
+        {"selector": 2, "acid_ionization_tendency": "lower", "solid_formation_tendency": "higher"}
+      ]
+    },
+    {
+      "world_id": "EQ-E-W03",
+      "world_seed": 5103,
+      "base_pka_nuisance": 5.00,
+      "profiles": [
+        {"selector": 0, "pka_shift": -0.65, "log10_ksp": -5.00, "cation_fraction": 0.18, "activity_coefficient_ratio": 0.75},
+        {"selector": 1, "pka_shift": 0.10, "log10_ksp": -5.80, "cation_fraction": 0.08, "activity_coefficient_ratio": 1.20},
+        {"selector": 2, "pka_shift": 0.55, "log10_ksp": -4.80, "cation_fraction": 0.28, "activity_coefficient_ratio": 1.00}
+      ],
+      "aligned_descriptors": [
+        {"selector": 0, "acid_ionization_tendency": "higher", "solid_formation_tendency": "higher"},
+        {"selector": 1, "acid_ionization_tendency": "intermediate", "solid_formation_tendency": "intermediate"},
+        {"selector": 2, "acid_ionization_tendency": "lower", "solid_formation_tendency": "lower"}
+      ]
+    },
+    {
+      "world_id": "EQ-E-W04",
+      "world_seed": 5104,
+      "base_pka_nuisance": 5.20,
+      "profiles": [
+        {"selector": 0, "pka_shift": 0.30, "log10_ksp": -5.90, "cation_fraction": 0.10, "activity_coefficient_ratio": 1.30},
+        {"selector": 1, "pka_shift": -0.70, "log10_ksp": -5.10, "cation_fraction": 0.18, "activity_coefficient_ratio": 0.70},
+        {"selector": 2, "pka_shift": 0.00, "log10_ksp": -4.60, "cation_fraction": 0.25, "activity_coefficient_ratio": 1.00}
+      ],
+      "aligned_descriptors": [
+        {"selector": 0, "acid_ionization_tendency": "lower", "solid_formation_tendency": "intermediate"},
+        {"selector": 1, "acid_ionization_tendency": "higher", "solid_formation_tendency": "higher"},
+        {"selector": 2, "acid_ionization_tendency": "intermediate", "solid_formation_tendency": "lower"}
+      ]
+    },
+    {
+      "world_id": "EQ-E-W05",
+      "world_seed": 5105,
+      "base_pka_nuisance": 5.35,
+      "profiles": [
+        {"selector": 0, "pka_shift": 0.00, "log10_ksp": -6.00, "cation_fraction": 0.15, "activity_coefficient_ratio": 1.10},
+        {"selector": 1, "pka_shift": 0.75, "log10_ksp": -4.90, "cation_fraction": 0.35, "activity_coefficient_ratio": 0.55},
+        {"selector": 2, "pka_shift": -0.70, "log10_ksp": -5.20, "cation_fraction": 0.10, "activity_coefficient_ratio": 1.50}
+      ],
+      "aligned_descriptors": [
+        {"selector": 0, "acid_ionization_tendency": "intermediate", "solid_formation_tendency": "higher"},
+        {"selector": 1, "acid_ionization_tendency": "lower", "solid_formation_tendency": "lower"},
+        {"selector": 2, "acid_ionization_tendency": "higher", "solid_formation_tendency": "intermediate"}
+      ]
+    }
+  ],
+  "queries": [
+    {"query_id": "Q01", "coverage": ["low_concentration", "entity_contrast", "selector_0"], "selector": 0, "concentration_M": 0.005, "volume_L": 0.024, "acid_total_mol": 0.00012, "actions": [{"operation": "add_solvent", "solvent": 0, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00012}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q02", "coverage": ["low_concentration", "entity_contrast", "selector_1"], "selector": 1, "concentration_M": 0.005, "volume_L": 0.024, "acid_total_mol": 0.00012, "actions": [{"operation": "add_solvent", "solvent": 1, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00012}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q03", "coverage": ["low_concentration", "entity_contrast", "selector_2"], "selector": 2, "concentration_M": 0.005, "volume_L": 0.024, "acid_total_mol": 0.00012, "actions": [{"operation": "add_solvent", "solvent": 2, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00012}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q04", "coverage": ["interior_concentration", "entity_contrast", "selector_0"], "selector": 0, "concentration_M": 0.08, "volume_L": 0.024, "acid_total_mol": 0.00192, "actions": [{"operation": "add_solvent", "solvent": 0, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00192}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q05", "coverage": ["interior_concentration", "entity_contrast", "selector_1"], "selector": 1, "concentration_M": 0.08, "volume_L": 0.024, "acid_total_mol": 0.00192, "actions": [{"operation": "add_solvent", "solvent": 1, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00192}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q06", "coverage": ["interior_concentration", "entity_contrast", "selector_2"], "selector": 2, "concentration_M": 0.08, "volume_L": 0.024, "acid_total_mol": 0.00192, "actions": [{"operation": "add_solvent", "solvent": 2, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.00192}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q07", "coverage": ["high_concentration", "entity_contrast", "selector_0"], "selector": 0, "concentration_M": 0.6, "volume_L": 0.024, "acid_total_mol": 0.0144, "actions": [{"operation": "add_solvent", "solvent": 0, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.0144}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q08", "coverage": ["high_concentration", "entity_contrast", "selector_1"], "selector": 1, "concentration_M": 0.6, "volume_L": 0.024, "acid_total_mol": 0.0144, "actions": [{"operation": "add_solvent", "solvent": 1, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.0144}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q09", "coverage": ["high_concentration", "entity_contrast", "selector_2"], "selector": 2, "concentration_M": 0.6, "volume_L": 0.024, "acid_total_mol": 0.0144, "actions": [{"operation": "add_solvent", "solvent": 2, "volume_L": 0.024}, {"operation": "add_reagent", "amount_mol": 0.0144}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q10", "coverage": ["same_concentration_scale_control", "selector_0"], "selector": 0, "concentration_M": 0.08, "volume_L": 0.048, "acid_total_mol": 0.00384, "actions": [{"operation": "add_solvent", "solvent": 0, "volume_L": 0.048}, {"operation": "add_reagent", "amount_mol": 0.00384}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q11", "coverage": ["same_concentration_scale_control", "selector_1"], "selector": 1, "concentration_M": 0.08, "volume_L": 0.048, "acid_total_mol": 0.00384, "actions": [{"operation": "add_solvent", "solvent": 1, "volume_L": 0.048}, {"operation": "add_reagent", "amount_mol": 0.00384}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]},
+    {"query_id": "Q12", "coverage": ["same_concentration_scale_control", "selector_2"], "selector": 2, "concentration_M": 0.08, "volume_L": 0.048, "acid_total_mol": 0.00384, "actions": [{"operation": "add_solvent", "solvent": 2, "volume_L": 0.048}, {"operation": "add_reagent", "amount_mol": 0.00384}, {"operation": "terminate"}, {"operation": "measure", "instrument": "final_assay"}]}
+  ],
+  "q_contract": {
+    "outer_prompt": "canonical v1.1 Q prompt, byte-identical across EQ-P, EQ-S, and EQ-E",
+    "payload": "the twelve ordered query rows in this file",
+    "shared_across_arms": true,
+    "adaptation_after_source_forbidden": true,
+    "truth_generation": "five independent keyed-noise repeats per world/query after all fifteen K2 reports seal",
+    "scoring": [
+      "MAE to five-repeat mean",
+      "empirical 80% coverage",
+      "mean interval width",
+      "interval score at alpha 0.2",
+      "entity-contrast error at each concentration",
+      "within-entity concentration-transfer error",
+      "same-concentration scale-transfer error"
+    ]
+  },
+  "source_resource_card": {
+    "operation_attempt_limit": 180,
+    "vessel_start_limit": 12,
+    "final_assay_limit": 12,
+    "nonfinal_instrument_use_limit": 12,
+    "reagent_mol": 0.24,
+    "solvent_L": 0.72,
+    "process_time_limit_s": null,
+    "selectable_medium_ids": [0, 1, 2]
+  },
+  "provider_free_design_gate": {
+    "planned_campaigns": 15,
+    "planned_batches": 180,
+    "planned_exact_replays": 180,
+    "provider_calls": 0,
+    "observation_noise_sd": 0.003,
+    "minimum_identity_response_span": 0.015,
+    "minimum_metrics_above_span_per_concentration": 2,
+    "minimum_within_entity_pH_span": 0.06,
+    "minimum_within_entity_non_pH_span": 0.015,
+    "maximum_scale_control_mean_gap": 0.015,
+    "maximum_solver_residual": 1e-8,
+    "require_arm_physics_identity": true,
+    "require_all_world_descriptor_checks": true
+  },
+  "execution_policy": {
+    "provider_free_gate_first": true,
+    "human_review_after_gate": true,
+    "provider_launch_before_review": false,
+    "canary": "EQ-E-W01 Opaque/Aligned/MisIndexed, at most three workers",
+    "canary_release_rule": "all three twelve-batch source plus K1/Q/K2 chains complete and validate",
+    "remaining": "EQ-E-W02 through EQ-E-W05, at most eight isolated workers with automatic slot refill",
+    "truth_embargo": "all fifteen K2 responses must be sealed before reference truth or any external audit",
+    "automatic_platform_repair": "retain the original failure and resume only from the latest legal boundary without changing worlds, prompts, Q, model, physics, or scoring"
+  },
+  "next_step_if_gate_passes": "return five-world design and zero-provider gate report for human review; do not start an Agent canary"
+}

@@ -543,6 +543,24 @@ class OperationValidator:
             )
         if check_payload:
             preconditions.update(self._payload_checks(operation_type, payload, state))
+            if (
+                operation_type == "add_solvent"
+                and state.metadata.get("equilibrium_entity_panel_version")
+            ):
+                batch_settings = equipment_settings(
+                    state.equipment,
+                    "batch_reactor",
+                    fields=("solvent", "solvent_volume_L"),
+                )
+                active_medium = batch_settings.get("solvent")
+                active_volume = float(batch_settings.get("solvent_volume_L", 0.0))
+                requested_medium = payload.get("solvent")
+                preconditions["equilibrium_entity_single_medium_per_batch"] = (
+                    active_volume <= self.constitution.tolerance
+                    or active_medium is None
+                    or requested_medium is None
+                    or int(requested_medium) == int(active_medium)
+                )
             if operation_type == "distill" and "cut_fraction" in payload:
                 preconditions["cut_fraction_supported"] = population_active(state)
                 preconditions["payload_bounds:cut_fraction"] = self._in_range(

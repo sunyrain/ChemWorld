@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -12,6 +12,10 @@ from chemworld.physchem.equilibrium_chemistry import (
     SolubilityProductSpec,
     apply_precipitation_hooks,
     solve_monoprotic_acid_base,
+)
+from chemworld.physchem.equilibrium_mechanism import (
+    EquilibriumMechanismFamily,
+    solve_coupled_weak_acid_precipitation,
 )
 from chemworld.physchem.spectroscopy_adapter_manifest import (
     ValidatedInstrumentRuntimeProvider,
@@ -424,6 +428,127 @@ class ChemWorldObservationKernel:
                 "precipitation_signal": 0.0,
                 "equilibrium_residual": 1.0,
                 "equilibrium_confidence": 0.0,
+            }
+
+        if state.metadata.get("equilibrium_entity_panel_version"):
+            settings = equipment_settings(
+                state.equipment,
+                "batch_reactor",
+                fields=("solvent",),
+            )
+            selector = str(int(settings.get("solvent", 0)))
+            configured_profiles = state.metadata.get("equilibrium_entity_profiles")
+            if not isinstance(configured_profiles, dict) or selector not in configured_profiles:
+                raise ValueError("EQ-E active medium has no registered private profile")
+            profile = configured_profiles[selector]
+            if not isinstance(profile, dict):
+                raise ValueError("EQ-E private profile is malformed")
+            coupled = solve_coupled_weak_acid_precipitation(
+                acid_total_mol=acid_total,
+                volume_L=volume_L,
+                pka=float(state.metadata["equilibrium_entity_base_pka"])
+                + float(profile["pka_shift"]),
+                log10_ksp=float(profile["log10_ksp"]),
+                mechanism_family="direct_free_ion_precipitation",
+                cation_fraction=float(profile["cation_fraction"]),
+                activity_coefficient_ratio=float(
+                    profile["activity_coefficient_ratio"]
+                ),
+            )
+            concentration = acid_total / volume_L
+            identity_signal = max(
+                coupled.acid_dissociation_fraction,
+                coupled.precipitation_signal,
+            )
+            concentration_quality = 1.0 - min(
+                abs(np.log10(max(concentration, 1.0e-12)) - np.log10(0.08)) / 4.0,
+                1.0,
+            )
+            confidence = float(
+                np.clip(
+                    0.55 * (1.0 - min(coupled.equilibrium_residual, 1.0))
+                    + 0.20 * min(identity_signal / 0.08, 1.0)
+                    + 0.25 * concentration_quality,
+                    0.0,
+                    1.0,
+                )
+            )
+            return {
+                "pH_normalized": float(np.clip(coupled.pH / 14.0, 0.0, 1.0)),
+                "acid_dissociation_fraction": float(
+                    np.clip(coupled.acid_dissociation_fraction, 0.0, 1.0)
+                ),
+                "precipitation_signal": float(
+                    np.clip(coupled.precipitation_signal, 0.0, 1.0)
+                ),
+                "equilibrium_residual": float(
+                    np.clip(coupled.equilibrium_residual, 0.0, 1.0)
+                ),
+                "equilibrium_confidence": confidence,
+            }
+
+        if state.metadata.get("equilibrium_mechanism_benchmark_version") == "eq-s-v0.2":
+            pka = self._hidden_acid_pka(state)
+            mechanism_family = str(
+                state.metadata.get(
+                    "equilibrium_mechanism_family",
+                    "direct_free_ion_precipitation",
+                )
+            )
+            configured_beta = state.metadata.get(
+                "equilibrium_aqueous_association_beta_L_per_mol"
+            )
+            coupled = solve_coupled_weak_acid_precipitation(
+                acid_total_mol=acid_total,
+                volume_L=volume_L,
+                pka=pka,
+                log10_ksp=float(
+                    state.metadata.get("hidden_equilibrium_log10_ksp", -5.2)
+                ),
+                mechanism_family=cast(EquilibriumMechanismFamily, mechanism_family),
+                cation_fraction=float(
+                    state.metadata.get(
+                        "equilibrium_precipitating_cation_fraction",
+                        0.15,
+                    )
+                ),
+                association_beta_L_per_mol=(
+                    None if configured_beta is None else float(configured_beta)
+                ),
+                activity_coefficient_ratio=float(
+                    state.metadata.get("equilibrium_activity_coefficient_ratio", 1.0)
+                ),
+            )
+            concentration = acid_total / volume_L
+            identifiability = 1.0 - min(
+                abs(coupled.acid_dissociation_fraction - 0.08) / 0.08,
+                1.0,
+            )
+            concentration_quality = 1.0 - min(
+                abs(np.log10(max(concentration, 1.0e-12)) - np.log10(0.125)) / 4.0,
+                1.0,
+            )
+            confidence = float(
+                np.clip(
+                    0.45 * (1.0 - min(coupled.equilibrium_residual, 1.0))
+                    + 0.30 * identifiability
+                    + 0.25 * concentration_quality,
+                    0.0,
+                    1.0,
+                )
+            )
+            return {
+                "pH_normalized": float(np.clip(coupled.pH / 14.0, 0.0, 1.0)),
+                "acid_dissociation_fraction": float(
+                    np.clip(coupled.acid_dissociation_fraction, 0.0, 1.0)
+                ),
+                "precipitation_signal": float(
+                    np.clip(coupled.precipitation_signal, 0.0, 1.0)
+                ),
+                "equilibrium_residual": float(
+                    np.clip(coupled.equilibrium_residual, 0.0, 1.0)
+                ),
+                "equilibrium_confidence": confidence,
             }
 
         pka = self._hidden_acid_pka(state)
