@@ -21,6 +21,8 @@ The campaign contains 12/12 completed batches and 60 recorded operations. Exact 
 | 11 | 0.293711 | 0.0769217 | 0.157806 | 0 |
 | 12 | 0.289263 | 0.0743566 | 0.159038 | 0.0017778 |
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## Sealed scientific account
 
 ### K1 report
