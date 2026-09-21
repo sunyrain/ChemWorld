@@ -117,7 +117,10 @@ def fixture_prediction():
     return queries, truth, payload
 
 
-def test_public_neighbor_baseline_does_not_count_rejected_seed_doses():
+@pytest.mark.parametrize(
+    "rejection", ["validation_failed", "rolled_back", "campaign_resource_rejected"]
+)
+def test_public_neighbor_baseline_does_not_count_rejected_seed_doses(rejection):
     records = []
     for batch, dose, value in ((0, 0.05, 0.2), (1, 0.15, 0.8)):
         base = {"experiment_index": batch, "transaction_status": "committed"}
@@ -125,8 +128,7 @@ def test_public_neighbor_baseline_does_not_count_rejected_seed_doses():
         records.append({**base, "action": action})
         if batch == 0:
             records.extend(
-                {**base, "action": action, "transaction_status": "validation_failed"}
-                for _ in range(40)
+                {**base, "action": action, "transaction_status": rejection} for _ in range(40)
             )
         records.append(
             {
@@ -150,6 +152,38 @@ def test_public_neighbor_baseline_does_not_count_rejected_seed_doses():
     result = c.public_baselines(records, queries, {"Q01": dict.fromkeys(c.METRICS, 0.2)})
     assert result["training_batches"] == 2
     assert all(v == 0 for v in result["mae"]["public_nearest_neighbor"].values())
+
+
+def test_recipe_preserves_resource_rejection_without_executing_it():
+    records = [
+        {
+            "experiment_index": 0,
+            "transaction_status": "committed",
+            "action": {"operation": "add_solvent", "solvent": 0, "volume_L": 0.02},
+        },
+        {
+            "experiment_index": 0,
+            "transaction_status": "campaign_resource_rejected",
+            "action": {"operation": "add_solvent", "solvent": 1, "volume_L": 100},
+        },
+        {
+            "experiment_index": 0,
+            "transaction_status": "committed",
+            "action": {"operation": "measure", "instrument": "final_assay"},
+            "instrument": "final_assay",
+        },
+    ]
+    original = copy.deepcopy(records)
+    recipe = c.pilot.committed_recipe(records, 1)
+    assert records == original
+    assert recipe["actions"] == [records[0]["action"], records[2]["action"]]
+    assert recipe["source_attempts"] == 3
+    assert recipe["excluded_rejected_attempts"] == [
+        {"step": 2, "action": records[1]["action"], "status": "campaign_resource_rejected"}
+    ]
+    records[1]["transaction_status"] = "unknown_status"
+    with pytest.raises(ValueError, match="Unknown transaction status"):
+        c.pilot.committed_recipe(records, 1)
 
 
 def test_scoring_separates_resolved_effects_ties_and_quality_classes():

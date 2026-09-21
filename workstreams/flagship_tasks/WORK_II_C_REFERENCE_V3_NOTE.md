@@ -1,5 +1,12 @@
 # C reference v3 and formal launch — 2026-09-20
 
+## Post hoc baseline repair and analysis, 2026-09-21
+
+The user authorizes repairing the two public-baseline parser failures and analyzing retained results. This is deterministic reanalysis, not a new participant or qualification block. The recipe extractor now recognizes `campaign_resource_rejected` as a rejected attempt: preserve it as provenance and exclude it from executed recipe features. Unknown statuses still fail. This explicitly changes the postprocessing helper in `scripts/run_work_ii_c_pilot.py`; the historical release binding and original source/result files are preserved, not regenerated or claimed to bind the revised helper. No physics, queries, agent budgets, model outputs or prediction scoring changes.
+
+Coverage is all thirty C sources, including both reported failures. Recompute the existing public-mean and nearest-neighbor baselines using only retained public final assays for fitting and the original saved reference targets for scoring. Require thirty available baselines, two repaired omissions, exact equality with all twenty-eight previously available results, and byte preservation of source trajectories, original results, design and reference inputs. Keep every original failure in the repair summary. Output `BASELINE_REANALYSIS.json` and its readable report beside the current C report; let the current inventory consume that correction explicitly. No simulator or provider calls. Comparisons are exploratory, report all four metrics, both budgets and all arms, and keep the eleven-assay source visible. Test the actual rejected-action feature path and rejection provenance before recomputation.
+
+
 User authorization: accelerate preparation and begin real model experiments after valid qualification. This is a new block; preserve all old pilot, interrupted formal and development records. Retain full-process v5, the latent material family, world distribution, thresholds, E O/A/M intervention and GPT-5.6 Sol / medium. No physics tuning or new parameter grid.
 
 Question: does a fixed six-pair prediction set around the already demonstrated accessible domain retain material, seed, cooling, thermal-history, continuing-growth and upstream-loading effects, with both quality classes in every planned world? The host reference domain is not a prescribed source-agent workflow.

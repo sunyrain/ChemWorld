@@ -349,7 +349,7 @@ def committed_recipe(records, lifecycle_index):
         status = record.get("transaction_status")
         if status == "committed":
             committed.append(record)
-        elif status in {"validation_failed", "rolled_back"}:
+        elif status in {"validation_failed", "rolled_back", "campaign_resource_rejected"}:
             rejected.append({"step": step, "action": record["action"], "status": status})
         else:
             raise ValueError(f"Unknown transaction status at step {step}: {status}")

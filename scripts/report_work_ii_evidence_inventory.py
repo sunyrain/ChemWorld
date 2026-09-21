@@ -113,7 +113,7 @@ def c_descriptive(rows):
     }
 
 
-def build(commit, p_summary=None):
+def build(commit, p_summary=None, c_baseline_reanalysis=None):
     ec_path = REPORTS / "work-ii-ec-pa-five-world-en-20260919/summary.json"
     analysis_path = ec_path.with_name("completed-block-analysis.json")
     rx_path = REPORTS / "work-ii-rx-ps-five-world-dual-goal-20260919-final/SUMMARY.json"
@@ -198,8 +198,16 @@ def build(commit, p_summary=None):
         }
     assert len(rx["cells"]) == rx["complete_cells"] == 60
     assert len({r["cell_id"] for r in rx["cells"]}) == 60
+    correction = local(c_baseline_reanalysis) if c_baseline_reanalysis else None
+    corrected = {r["id"]: r for r in correction["rows"]} if correction else {}
+    if correction:
+        assert set(corrected) == {r["id"] for r in crystal["results"]}
     c_rows = []
     for r in crystal["results"]:
+        baseline = r.get("public_baselines", {})
+        if r["id"] in corrected:
+            assert corrected[r["id"]]["original_baseline"] == baseline
+            baseline = corrected[r["id"]]["public_baselines"]
         sealed = sum(
             bool(p.get("payload")) and not p.get("failure") for p in r.get("posttests", {}).values()
         )
@@ -218,8 +226,10 @@ def build(commit, p_summary=None):
                 "prediction_evaluation": r.get("prediction_evaluation"),
                 "retest_execution_passed": retest.get("passed"),
                 "retest_metrics": retest_metrics,
-                "baseline_available": r.get("public_baselines", {}).get("available"),
-                "baseline_failure": r.get("public_baselines", {}).get("failure"),
+                "baseline_available": baseline.get("available"),
+                "baseline_failure": baseline.get("failure"),
+                "baseline_original_failure": r.get("public_baselines", {}).get("failure"),
+                "public_baselines": baseline,
             }
         )
     c_counts = {
@@ -366,6 +376,7 @@ def build(commit, p_summary=None):
             "rows": c_rows,
             "descriptive": c_descriptive(c_rows),
             "retained_prior_attempt": crystal.get("retained_prior_attempt"),
+            "baseline_reanalysis": correction,
         },
         "p_current": local(p_summary)
         if p_summary
@@ -435,6 +446,8 @@ def build(commit, p_summary=None):
         pool["note"] = "Six system families; pilot, qualification, references and retries excluded."
         data["inputs"].append(str(p_summary).replace("\\", "/"))
     data["current_primary_pool"] = pool
+    if c_baseline_reanalysis:
+        data["inputs"].append(str(c_baseline_reanalysis).replace("\\", "/"))
     return data
 
 
@@ -571,6 +584,12 @@ def render(data):
         "A missing C batch remains a source"
         " nonconformance; valid predictions remain analyzable with that label. A reporting/baseline"
         " exception after K2 is not a failed scientific answer.",
+        (
+            "C public baselines are now available for all 30 sources: two omissions repaired "
+            "from retained observations and all 28 earlier available results reproduced exactly. "
+            "Original parser failures remain in the correction provenance; no agent was rerun."
+            if data["c_current"].get("baseline_reanalysis") else ""
+        ),
         "",
         "## Historical inventory and source navigation",
         "",
@@ -588,11 +607,12 @@ def main():
     parser.add_argument("--remote-commit", required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--p-summary", type=Path)
+    parser.add_argument("--c-baseline-reanalysis", type=Path)
     args = parser.parse_args()
     commit = subprocess.check_output(
         ["git", "rev-parse", args.remote_commit], cwd=ROOT, text=True
     ).strip()
-    data = build(commit, args.p_summary)
+    data = build(commit, args.p_summary, args.c_baseline_reanalysis)
     args.output.mkdir(parents=True, exist_ok=True)
     (args.output / "summary.json").write_text(
         json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
