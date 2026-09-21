@@ -1,6 +1,6 @@
 # Experiment inventory: machine-generated snapshot
 
-Observed at 2026-09-21T10:32:30+08:00; remote evidence at `6a5ff6fc5f98fc24df1f0b141c3b441c34ebe73f`.
+Observed at 2026-09-21T11:10:18+08:00; remote evidence at `6a5ff6fc5f98fc24df1f0b141c3b441c34ebe73f`.
 
 This report reads existing exports only. No provider call, physics execution, runtime checkout or evidence reclassification is performed.
 
@@ -70,6 +70,7 @@ EQ-S v0.2.1 is a separate closed-set pilot (15/15 abstentions). The v0.3 note ex
 - C-W02-B12-E-Opaque: failed; batches 11/12; posttests 3/3; failure `None`; source nonconformance `{'completed_batches': 11, 'planned_batches': 12}`.
 
 A missing C batch remains a source nonconformance; valid predictions remain analyzable with that label. A reporting/baseline exception after K2 is not a failed scientific answer.
+C public baselines are now available for all 30 sources: two omissions repaired from retained observations and all 28 earlier available results reproduced exactly. Original parser failures remain in the correction provenance; no agent was rerun.
 
 ## Historical inventory and source navigation
 

@@ -41,12 +41,12 @@ does not require a globally clean worktree or a new platform certificate.
 The closure snapshot includes the newly merged EQ-E exports. To regenerate it from the fixed input commit:
 
 ```powershell
-uv run --no-sync python -m scripts.report_work_ii_evidence_inventory --remote-commit 6a5ff6fc --p-summary workstreams/flagship_tasks/reports/work-ii-p-five-world-20260921-v4/summary.json --output workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921
+uv run --no-sync python -m scripts.report_work_ii_evidence_inventory --remote-commit 6a5ff6fc --p-summary workstreams/flagship_tasks/reports/work-ii-p-five-world-20260921-v4/summary.json --c-baseline-reanalysis workstreams/flagship_tasks/reports/work-ii-c-formal-20260920-v3-auto/BASELINE_REANALYSIS.json --output workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921
 ```
 
 The closure snapshot is
 [the current evidence inventory](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/summary.json),
-generated at 2026-09-21 10:32:30 +08:00. It resolves remote EQ evidence at the explicit
+generated at 2026-09-21 11:10:18 +08:00. It resolves remote EQ evidence at the explicit
 commit `6a5ff6fc5f98fc24df1f0b141c3b441c34ebe73f`. The rendering script uses this binding,
 not the current tip of a remote branch. RX and EQ reference targets are already released
 in those completed exports; the reanalysis performs no new truth generation.
@@ -147,4 +147,16 @@ reference diagnostics. No experiment execution was part of this verification.
 
 The remote runtime and sanitized exports were merged without rerunning historical scientific cells. EQ-E adds fifteen complete campaigns and forty-five canonical stages, making 240 campaigns across eight blocks in six families. The prior overview figure retains sixteen selected readout panels; the full data and Appendix B additionally contain all three EQ-E metrics. Existing goals, budget comparisons and recommendation outcomes are unchanged.
 
-The failure review distinguishes two source nonconformances (C solvent exhaustion and P discards), two C public-baseline parser omissions (`campaign_resource_rejected` in C-W02/12/Opaque and C-W05/24/MisIndexed), and one historical EC supplement with missing Q/K2. The C baseline omissions are outside the reported agent prediction/retest comparisons; they require deterministic reanalysis only if that baseline is used. No main-matrix model rerun is required. See the [record-level decisions](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/ANALYSIS.md#failure-disposition-after-remote-integration).
+The failure review distinguishes two source nonconformances (C solvent exhaustion and P discards), two C public-baseline parser omissions (`campaign_resource_rejected` in C-W02/12/Opaque and C-W05/24/MisIndexed), and one historical EC supplement with missing Q/K2. The C baseline omissions are now repaired: thirty baselines are available and the twenty-eight previously valid values are unchanged. The published agent prediction/retest values are unaffected. No main-matrix model rerun is required. See the [record-level decisions](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/ANALYSIS.md#failure-disposition-after-remote-integration).
+
+
+## Completed detailed analysis, 21 September
+
+[Detailed paired analysis](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md) and its JSON retain 18 budget-metric comparisons, 234 prior contrasts including within-system macro readouts, 16 C baseline comparisons, and both-conforming paired sensitivity. Leave-one-world-out ranges are influence checks, not confidence intervals. [Chinese interpretation](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/INTERPRETATION_ZH.md) distinguishes endpoint findings, one explicitly selected C trace example, and untested mechanism hypotheses. This analysis is subsequent to the current review PDF; the PDF's existing numerical results are unchanged, and it does not yet include the new baseline comparison. No new model/simulator calls or historical evidence promotion occurred.
+
+```powershell
+uv run --no-sync python -m scripts.reanalyze_work_ii_c_baselines --root runs/formal/work-ii-c-five-world-20260920-v3-auto --report workstreams/flagship_tasks/reports/work-ii-c-formal-20260920-v3-auto
+uv run --no-sync python scripts/analyze_work_ii_completed_pool.py
+```
+
+The baseline command requires the retained ignored source trajectories and frozen reference files; its public correction is shipped with the report. It preserves original files and rejects unknown transaction statuses. The old source binding remains historical; the explicitly documented recipe-parser change is a post hoc evaluation correction, not an assertion that the prior freeze covers revised code.

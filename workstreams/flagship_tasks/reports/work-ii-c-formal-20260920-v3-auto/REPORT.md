@@ -1,5 +1,7 @@
 # Crystallization formal experiment
 
+Postprocessing update, 21 September: [all thirty public baselines are now available](BASELINE_REANALYSIS.md). Two parser omissions were repaired; the other twenty-eight results reproduced exactly. The historical exports below retain their original parser diagnostics. Source experiments, predictions, posttests, retests and the 11/12 source nonconformance are unchanged.
+
 Phase: ended_with_incomplete_chains.
 
 Started: 30/30; complete chains: 29/30; failures: 1.

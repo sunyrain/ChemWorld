@@ -1,5 +1,7 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
+Analysis update, 21 September: both C public-baseline parser omissions are repaired. All thirty baselines are available, with twenty-eight previous values reproduced exactly and original failures retained. No agent or simulator experiment was repeated. [Baseline comparison](reports/work-ii-c-formal-20260920-v3-auto/BASELINE_REANALYSIS.md), [complete paired analysis](reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md), and [Chinese interpretation](reports/work-ii-evidence-closeout-20260921/INTERPRETATION_ZH.md) distinguish supported conclusions from mechanism hypotheses. The scientific matrix below is unchanged.
+
 Updated 2026-09-21 after pulling remote `6a5ff6fc`. **The selected programme is terminal.** The verified current primary pool contains **240 sources, 238 source-and-assessment-conforming chains, 3,597/3,600 final-assayed source batches and 720/720 K1/Q/K2 stages**, covering six system families. All eight study blocks use five worlds and the Opaque / Aligned / MisIndexed arms. E/P/S describe the prior locus, not additional arms; P as a system name means purification.
 
 | System / prior locus | Commission | Batch budgets | Source sessions | Final assays | K1/Q/K2 stages |
