@@ -1,0 +1,73 @@
+{
+  "schema_version": "chemworld-work-ii-eq-rx-p-cross-model-0.1",
+  "study_id": "work-ii-eq-rx-p-cross-model-20260922-v0.1",
+  "status": "participant_execution_authorized",
+  "experiment_note": "workstreams/flagship_tasks/WORK_II_EQ_RX_P_CROSS_MODEL_EXPERIMENT_NOTE_V0_1.md",
+  "conditions": [
+    {
+      "condition_id": "gpt56_sol_medium_anchor",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "medium"
+    },
+    {
+      "condition_id": "gpt56_sol_xhigh",
+      "model": "gpt-5.6-sol",
+      "reasoning_effort": "xhigh"
+    },
+    {
+      "condition_id": "gpt55_medium",
+      "model": "gpt-5.5",
+      "reasoning_effort": "medium"
+    },
+    {
+      "condition_id": "gpt56_terra_medium",
+      "model": "gpt-5.6-terra",
+      "reasoning_effort": "medium"
+    },
+    {
+      "condition_id": "gpt56_luna_medium",
+      "model": "gpt-5.6-luna",
+      "reasoning_effort": "medium"
+    }
+  ],
+  "counts": {
+    "conditions": 5,
+    "eq_p_sessions_per_condition": 15,
+    "rx_p_sessions_per_condition": 30,
+    "sessions_per_condition": 45,
+    "source_sessions": 225,
+    "source_batches_per_session": 12,
+    "source_batches": 2700,
+    "shared_posttests_per_session": 3,
+    "shared_posttests": 675,
+    "eq_supplements": 75,
+    "w01_canary_sessions": 45,
+    "remaining_sessions": 180
+  },
+  "execution": {
+    "global_workers": 8,
+    "progress_interval_seconds": 30,
+    "canary_world": "W01",
+    "require_all_conditions_to_pass_canary": true,
+    "outcome_based_replacement_forbidden": true,
+    "scientific_or_schema_failure_retained": true,
+    "reference_truth_shared_across_conditions": true,
+    "proxy": "http://127.0.0.1:7897"
+  },
+  "provider": {
+    "id": "chemworld_openai_https",
+    "name": "OpenAI",
+    "auth_mode": "chatgpt_subscription_cached_login",
+    "wire_api": "responses"
+  },
+  "bindings": {
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_v2.0.json": "a8d57eb5062dca9ce8d9c844fa11cfb6cba35662a522326a364201370e2011e6",
+    "configs/benchmark/work_ii_eq_bounded_equilibrium_freeze_v2.0.json": "175b3af20fea0b3ab9d1343f8b9f34954923ffc7693e1f5046374d95e17334e6",
+    "scripts/run_work_ii_eq_bounded_equilibrium_v2.py": "bbc6a4d4d0d7f56e10ce7dda9e2523bf6a8ff5dd80950ade7ae619706d61f72a",
+    "configs/benchmark/work_ii_rx_ps_five_world_dual_goal_v1.0.json": "7daa6227c7558bfd4d97c09c4411a0c0620e69314f2f8eb0669745443a8903b8",
+    "configs/benchmark/work_ii_rx_ps_five_world_dual_goal_v1.0.1.json": "c803cdf0ca75e8b1eb1f954305751f167db52ec6f86c419017742b8a8bbb6606",
+    "configs/benchmark/work_ii_reaction_safety_matched_prior_package.json": "5aa8364aa96bd773a7c3f2b6164809bbb2f4abe8772cb13bd944f04abaae6e10",
+    "configs/benchmark/experiment_1_rx_structural_repair_v1.1.0.json": "ee7775bb8d7b80d4e603425f9c3c29839f8a8a9b4b5ee8031a3d67de63e1bd2f",
+    "scripts/run_work_ii_rx_ps_five_world_dual_goal.py": "7886e6e28304c87b0a004a83d1cf32ac4aeeaafdccc6db1fe2619ce17ec0d886"
+  }
+}
