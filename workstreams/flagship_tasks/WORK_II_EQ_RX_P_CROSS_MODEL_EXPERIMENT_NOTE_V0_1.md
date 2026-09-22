@@ -89,3 +89,9 @@ fresh namespace is launched, recovery 1 adds an explicit executable/PATH preflig
 provider-verified GPT-5.5 alias to the adapter allowlist, and validates every frozen condition
 before creating any source directory. No prompt, world, arm, task, budget, seed, query, metric,
 model condition, or scientific stopping rule changes.
+
+The recovery preflight additionally caught that the shared virtual environment uses an editable
+installation pointing at the collaborator's working checkout. No recovery run directory or model
+call had started. The detached recovery controller therefore prepends the frozen archive's `src/`
+and repository root to `PYTHONPATH`; the recorded import path and source commit must resolve inside
+that archive. This is execution isolation only and does not change the scientific environment.
