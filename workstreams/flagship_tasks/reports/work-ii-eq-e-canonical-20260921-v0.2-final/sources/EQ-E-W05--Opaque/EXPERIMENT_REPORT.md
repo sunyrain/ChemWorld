@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `12`: High-loading, doubled-scale medium-2 batch anchors the observed loading response and directly pairs with the smaller-scale condition for transfer assessment; selection is evidentiary, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report

@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `5`: A useful evidentiary anchor because its 0.30 mol/L, 0.04 L medium-1 condition sits in both the cross-medium comparison and the matched-concentration scale pair, with a clear precipitation response; this is an anchor, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report

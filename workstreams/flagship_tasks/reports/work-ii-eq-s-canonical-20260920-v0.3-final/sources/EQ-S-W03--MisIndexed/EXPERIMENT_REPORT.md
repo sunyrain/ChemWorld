@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 72 recorded operations. Exac
 
 Batch `8`: Batch 8 is a useful evidentiary anchor because its high acid loading and low dilution produced the campaign's clearest precipitation signal together with a strongly depressed normalized pH, anchoring both concentration-response trends without implying an optimum.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

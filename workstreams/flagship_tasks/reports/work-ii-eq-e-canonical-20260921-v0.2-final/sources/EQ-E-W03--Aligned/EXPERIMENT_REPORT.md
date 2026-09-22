@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 62 recorded operations. Exac
 
 Batch `4`: Batch 4 is the most useful evidentiary anchor because it tests medium 0 at 0.20 mol/L on the larger scale, pairs directly with the matched-concentration smaller-scale batch 3, and includes duplicate pH-meter observations plus the final assay for assessing measurement scatter and scale transfer; this is an anchor choice, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report

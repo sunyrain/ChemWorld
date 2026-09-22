@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 61 recorded operations. Exac
 
 Batch `4`: Batch 4 is a central evidentiary anchor: its medium-0, 0.02 mol in 0.06 L condition supports direct entity comparison with batches 5–6 and a matched-concentration scale check against batch 10. This selection is for interpretability, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 # Mechanistic report

@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `10`: Central 0.25 mol/L loading in medium 2; it anchors both the matched-concentration cross-medium comparison and the twofold-scale transfer check against batch 12.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 # Mechanistic report

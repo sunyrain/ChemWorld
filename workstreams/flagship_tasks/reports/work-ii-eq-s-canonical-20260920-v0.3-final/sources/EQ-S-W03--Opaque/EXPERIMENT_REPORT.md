@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `10`: Batch 10 is the high-loading, low-volume corner of the balanced 4-by-3 aqueous factorial and provides a clear evidentiary anchor for the joint low-pH/high-precipitation trend; it is selected for interpretive leverage, not as an optimum.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `10`: Batch 10 is a useful evidentiary anchor because its 0.030 mol in 0.040 L condition matches the nominal concentration of batch 5 while doubling both loading and volume, helping separate concentration-controlled pH behavior from total-loading or volume effects on precipitation.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

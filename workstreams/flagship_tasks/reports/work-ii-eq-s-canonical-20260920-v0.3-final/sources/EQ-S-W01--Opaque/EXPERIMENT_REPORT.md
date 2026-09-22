@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `7`: Batch 7 is a central 0.50 mol/L loading point and anchors the matched-concentration series across three volumes, making it especially useful for separating concentration-driven behavior from absolute amount and volume effects.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 # Mechanistic report

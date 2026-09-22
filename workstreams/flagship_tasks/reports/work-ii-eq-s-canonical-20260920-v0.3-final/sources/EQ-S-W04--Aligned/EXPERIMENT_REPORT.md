@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 72 recorded operations. Exac
 
 Batch `9`: Batch 9 is the strongest evidentiary anchor: the highest concentration condition produced the lowest normalized pH and the clearest nonzero precipitation signal, linking the loading/dilution grid to the proposed acid/solid branches without claiming an optimum.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

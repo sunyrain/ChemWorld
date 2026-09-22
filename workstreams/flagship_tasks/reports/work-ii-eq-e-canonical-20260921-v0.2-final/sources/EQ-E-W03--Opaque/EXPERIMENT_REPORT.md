@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 61 recorded operations. Exac
 
 Batch `4`: Batch 4 is a useful evidentiary anchor because its high-loading, large-scale medium-0 response shows a clear precipitation signal and directly pairs with the same-concentration small-scale batch for transfer assessment; this is an anchor choice, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report
