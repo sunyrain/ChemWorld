@@ -77,3 +77,15 @@ No result-dependent extra samples, model-specific prompt changes, or model-speci
 are allowed. Completion requires 225/225 conforming source chains, 2,700/2,700 source batches,
 exact replay, all sealed posttests, shared provider-free truth/evaluation, and retained accounting
 for every failure and repair.
+
+## Pre-action recovery 1
+
+The first detached controller created no trajectory, result, completed batch, or scientific model
+response. Its children failed during agent construction because the non-login controller PATH did
+not contain the already installed Codex executable; GPT-5.5 additionally passed the live provider
+probe but was absent from the local adapter's static allowlist. The controller was stopped while
+the canary was still pre-action. The entire original namespace and logs are retained. Before a
+fresh namespace is launched, recovery 1 adds an explicit executable/PATH preflight, adds only the
+provider-verified GPT-5.5 alias to the adapter allowlist, and validates every frozen condition
+before creating any source directory. No prompt, world, arm, task, budget, seed, query, metric,
+model condition, or scientific stopping rule changes.

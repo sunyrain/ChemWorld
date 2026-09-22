@@ -9,6 +9,7 @@ import copy
 import hashlib
 import json
 import os
+import shutil
 import subprocess
 import sys
 import threading
@@ -70,6 +71,25 @@ def configure_proxy(config: Mapping[str, Any]) -> None:
         os.environ[key] = value
     for key in ("NO_PROXY", "no_proxy"):
         os.environ[key] = "127.0.0.1,localhost"
+
+
+def configure_runtime_environment() -> None:
+    local_bin = str(Path.home() / ".local" / "bin")
+    path_parts = os.environ.get("PATH", "").split(os.pathsep)
+    if local_bin not in path_parts:
+        os.environ["PATH"] = os.pathsep.join([local_bin, *path_parts])
+    if shutil.which("codex") is None:
+        raise RuntimeError("Codex CLI is unavailable after the runtime PATH preflight")
+
+
+def validate_local_provider_surface(config: Mapping[str, Any]) -> None:
+    from chemworld.providers.codex_subscription import SUPPORTED_MODELS
+
+    unsupported = sorted(
+        {str(row["model"]) for row in config["conditions"]} - set(SUPPORTED_MODELS)
+    )
+    if unsupported:
+        raise RuntimeError(f"local Codex adapter does not support frozen models: {unsupported}")
 
 
 def validate_bindings(config: Mapping[str, Any]) -> None:
@@ -207,6 +227,8 @@ def run_one_cell(args: argparse.Namespace) -> None:
     config = read(CONFIG)
     validate_bindings(config)
     configure_proxy(config)
+    configure_runtime_environment()
+    validate_local_provider_surface(config)
     condition = next(
         (row for row in config["conditions"] if row["condition_id"] == args.condition), None
     )
@@ -484,6 +506,8 @@ def coordinate(args: argparse.Namespace) -> None:
     config = read(CONFIG)
     validate_bindings(config)
     configure_proxy(config)
+    configure_runtime_environment()
+    validate_local_provider_surface(config)
     eq_config, rx_config, eq_schedule, rx_schedule = load_schedules()
     jobs = build_jobs(config["conditions"], eq_schedule, rx_schedule)
     root = args.output.resolve()
