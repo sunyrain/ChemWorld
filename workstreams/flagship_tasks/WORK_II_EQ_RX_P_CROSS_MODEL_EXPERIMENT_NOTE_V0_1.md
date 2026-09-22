@@ -69,7 +69,9 @@ After a passing canary, the remaining 180 sessions run from a single block-balan
 The maximum previously qualified shared-provider concurrency is eight isolated subprocesses. The
 queue keeps all five provider conditions interleaved; it does not allocate eight workers per
 condition. This prevents shared global-provider state, directory collisions, and avoidable rate
-limit confounding while using the validated concurrency ceiling.
+limit confounding while using the validated concurrency ceiling. Provider traffic uses a dedicated
+Mac-to-Materials reverse proxy listener on remote port 7898 with SSH keepalives; it is independent
+of the pre-existing shared listener on port 7897.
 
 No result-dependent extra samples, model-specific prompt changes, or model-specific tool budgets
 are allowed. Completion requires 225/225 conforming source chains, 2,700/2,700 source batches,
