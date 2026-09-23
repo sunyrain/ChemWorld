@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `7`: Batch 7 is a useful evidentiary anchor because its intermediate 0.25 mol/L loading lies inside the concentration series, has all three response channels resolved, and supports direct cross-medium and loading comparisons without relying on a boundary concentration or a scale replicate alone.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report

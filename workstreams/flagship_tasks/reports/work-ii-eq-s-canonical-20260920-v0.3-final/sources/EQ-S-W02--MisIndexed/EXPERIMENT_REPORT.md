@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 72 recorded operations. Exac
 
 Batch `10`: Batch 10 is a useful high-loading, low-volume anchor: its final assay clearly captures the acidic, precipitating edge of the factorial loading–dilution response for comparison with the more dilute batches.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

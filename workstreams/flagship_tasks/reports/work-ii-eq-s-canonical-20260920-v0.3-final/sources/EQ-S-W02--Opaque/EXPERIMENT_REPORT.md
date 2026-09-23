@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `9`: Batch 9 is the clearest high-loading anchor: 0.040 mol in 0.040 L water produced the lowest normalized pH and the strongest final precipitation signal, providing a useful endpoint for the loading/dilution series rather than an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 # Mechanistic report

@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 61 recorded operations. Exac
 
 Batch `12`: Batch 12 is a useful anchor because its medium-2 high-loading, large-volume condition completes both the within-medium loading contrast and the matched-concentration scale comparison.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report
 
 Mechanistic report

@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `7`: Batch 7 is a useful low-loading, high-dilution anchor: its elevated normalized pH, measurable free-base fraction, and near-zero precipitation contrast clearly with the paired 0.004 mol/0.04 L batch and support joint loading–dilution interpretation without implying an optimum.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 Mechanistic report

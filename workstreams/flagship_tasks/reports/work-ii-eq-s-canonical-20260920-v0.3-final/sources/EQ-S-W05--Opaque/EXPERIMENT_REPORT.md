@@ -25,6 +25,8 @@ The autonomous campaign completed 12/12 batches and 60 recorded operations. Exac
 
 Batch `12`: Experiment 12 is the high-loading, low-volume boundary anchor: it gives the clearest observed acidic shift and strongest precipitation proxy in the concentration series, making it useful for constraining scope and checking trend extrapolation; this is an evidentiary selection, not an optimum claim.
 
+Complete sanitized agent-visible scientific I/O: [trajectory](trajectory.jsonl). Every attempted operation is retained in order; private provider events, credentials, session identifiers, usage accounting, and evaluator-only state are excluded.
+
 ## K1 — sealed open mechanistic report (primary mechanism artifact)
 
 # Mechanistic report
