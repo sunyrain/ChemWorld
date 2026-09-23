@@ -45,6 +45,10 @@ Displayed figure text is condensed by the authors, not a verbatim quotation. The
 
 > This interpretation is consistent with the data but seed survival or partial dissolution was not directly measured.
 
+### K1 plateau
+
+> Batch 23 remains the sealed recommendation, but the evidence supports a broad near-optimal plateau rather than a precisely located temperature optimum.
+
 ### Q rationale
 
 > Q07–Q08: the 315 K temperature cycle is expected to dissolve preferentially small particles and improve size and fines, at the cost of unrecovered dissolved product after the relatively fast recool.
@@ -52,6 +56,10 @@ Displayed figure text is condensed by the authors, not a verbatim quotation. The
 ### K2 critique
 
 > I mentioned this negative result but still treated thermal cycling mainly through the favorable textbook mechanism of preferential fines dissolution.
+
+### K2 uncertainty
+
+> Thus even the sign of its fines change relative to Q07 is uncertain.
 
 ### K2 proposed
 

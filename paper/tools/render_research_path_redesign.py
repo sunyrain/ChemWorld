@@ -11,7 +11,7 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import FancyArrowPatch, Patch, Rectangle
+from matplotlib.patches import Rectangle
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "workstreams/flagship_tasks/reports/work-ii-c-formal-20260920-v3-auto"
@@ -20,6 +20,7 @@ OUT = ROOT / "output/figures/research-path-redesign"
 INK, MUTED, GRID = "#34434C", "#697781", "#E5E9EC"
 COLORS = ("#607D95", "#337F89")
 FAIL = "#BA8066"
+# Retained W05 qualification queries, noise-free fines; never shown to the agent.
 REFERENCE = {"Q07": 0.35005782200125907, "Q08": 1.0}
 
 
@@ -45,8 +46,9 @@ def public_accounts(source_text, budget):
         proposed = "Repeat the selected recipe, adding a quench\nbefore seeding."
         exact = {
             "K1_interpretation": (
-                "This is the central recovery–quality tradeoff: deeper cooling increased "
-                "thermodynamic recovery but also increased nucleation and approached the fines limit."
+                "This is the central recovery\u2013quality tradeoff: deeper cooling increased "
+                "thermodynamic recovery but also increased nucleation "
+                "and approached the fines limit."
             ),
             "K1_uncertainty": (
                 "The 0.007 recovery difference between batches 10 and 12 is therefore not "
@@ -69,10 +71,10 @@ def public_accounts(source_text, budget):
         )
         uncertainty = (
             "Seed conditioning was not directly measured;\n"
-            "batches 22–24 suggest a recovery plateau."
+            "batches 22\u201324 suggest a recovery plateau."
         )
         critique = (
-            "Batch 8’s null result was underused; even\n"
+            "Batch 8\u2019s null result was underused; even\n"
             "the sign of the reheating forecast is uncertain."
         )
         proposed = "Keep the upstream recipe; replace staged\ncooling with direct cooling to 250 K."
@@ -86,14 +88,21 @@ def public_accounts(source_text, budget):
                 "This interpretation is consistent with the data but seed survival or partial "
                 "dissolution was not directly measured."
             ),
+            "K1_plateau": (
+                "Batch 23 remains the sealed recommendation, but the evidence supports a "
+                "broad near-optimal plateau rather than a precisely located temperature optimum."
+            ),
             "Q_rationale": (
-                "Q07–Q08: the 315 K temperature cycle is expected to dissolve preferentially "
+                "Q07\u2013Q08: the 315 K temperature cycle is expected to dissolve preferentially "
                 "small particles and improve size and fines, at the cost of unrecovered "
                 "dissolved product after the relatively fast recool."
             ),
             "K2_critique": (
                 "I mentioned this negative result but still treated thermal cycling mainly "
                 "through the favorable textbook mechanism of preferential fines dissolution."
+            ),
+            "K2_uncertainty": (
+                "Thus even the sign of its fines change relative to Q07 is uncertain."
             ),
         }
     k2 = stages["K2"]["report"]
@@ -113,12 +122,23 @@ def public_accounts(source_text, budget):
             for r in stages["Q"]["predictions"]
             if r["query_id"] in REFERENCE
         },
-        "timing": "Experiments and sealed recommendation -> K1 -> sealed Q -> K2; no target feedback.",
+        "timing": (
+            "Experiments and sealed recommendation -> K1 -> sealed Q -> K2; no target feedback."
+        ),
     }
 
 
 def prepare():
     retained = json.loads((SOURCE / "summary.json").read_text(encoding="utf-8"))
+    reference_path = (
+        ROOT
+        / "runs/formal/work-ii-c-five-world-20260920-v3-auto/qualification"
+        / "W05/queries/result.json"
+    )
+    if reference_path.exists():
+        original = json.loads(reference_path.read_text(encoding="utf-8"))
+        for index, name in ((6, "Q07"), (7, "Q08")):
+            assert original["truth"][index]["crystal_fines_fraction"] == REFERENCE[name]
     previous = json.loads(PREVIOUS.read_text(encoding="utf-8"))["pair"]
     result = []
     for old in previous:
@@ -342,17 +362,17 @@ def draw(data):
             color=COLORS[i],
         )
 
-    panel("b", 0.630, "Agent’s mechanistic interpretation (K1, after research)")
+    panel("b", 0.630, "Agent\u2019s mechanistic interpretation (K1, after research)")
     for i, row in enumerate(data):
         x, color = 0.052 + i * 0.50, COLORS[i]
         account = row["public_accounts"]
         if i == 0:
             observed = [row["rows"][n - 1] for n in (8, 10)]
             first, last = observed
-            evidence = "Deeper cooling: 270 → 250 K (batches 8–10)"
+            evidence = "Deeper cooling: 270 → 250 K (batches 8\u201310)"
         else:
             first, last = [row["rows"][n - 1] for n in (19, 20)]
-            evidence = "Hotter heating + staged cooling (batches 19–20)"
+            evidence = "Hotter heating + staged cooling (batches 19\u201320)"
         text(x, 0.599, evidence, size=16, color=color)
         text(
             x,
@@ -375,7 +395,8 @@ def draw(data):
     text(
         0.052,
         0.378,
-        "Agent rationale: preferential dissolution of fines. Error bars: original 80% prediction intervals.",
+        "Agent rationale: preferential dissolution of fines. "
+        "Error bars: original 80% prediction intervals.",
         size=15.5,
         color=MUTED,
     )
@@ -425,7 +446,8 @@ def draw(data):
             ax.plot([0, 1], values, "s-", color=color, markersize=5, lw=1.5)
             title = "Withheld reference"
         for xx, value in enumerate(values):
-            ax.text(xx + 0.07, value + 8, f"{value:.0f}%", fontsize=15, color=color)
+            offset = 16 if col == 2 and xx == 0 else 8
+            ax.text(xx + 0.07, value + offset, f"{value:.0f}%", fontsize=15, color=color)
         ax.set(xlim=(-0.32, 1.43), ylim=(0, 120))
         ax.set_yticks([0, 50, 100])
         ax.set_xticks([0, 1], ["Cold hold", "Heat + recool"], fontsize=13.5)
@@ -433,7 +455,7 @@ def draw(data):
         if col == 0:
             ax.set_ylabel("Fines (%)", fontsize=15)
 
-    panel("d", 0.176, "Agent’s retrospective critique (K2, without reference feedback)")
+    panel("d", 0.176, "Agent\u2019s retrospective critique (K2, without reference feedback)")
     for i, row in enumerate(data):
         x, color = 0.052 + i * 0.50, COLORS[i]
         account = row["public_accounts"]
@@ -449,5 +471,6 @@ if __name__ == "__main__":
     data = prepare()
     draw(data)
     print(
-        "Preview: 36 batches, 2 retests, original K1/Q/K2 excerpts and 4 forecast intervals verified."
+        "Preview: 36 batches, 2 retests, original K1/Q/K2 excerpts "
+        "and 4 forecast intervals verified."
     )
