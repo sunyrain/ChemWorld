@@ -1,5 +1,7 @@
 # ChemWorld：按科学问题递进的合篇主线
 
+2026-09-22 作者讨论更新：[EQ/P 原自主研究过程核对](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/EQ_AUTONOMOUS_PROCESS_REVIEW_ZH.md)已完成全部 15 场的有限阶段证据分析。主线保持原 agent 的操作—观测—K1—同上下文 Q—K2；对比的是完整研究后形成的预测方式。报告区分已测平台、K1 中已有解释、Q 时新具体化的外推和 K2 未执行的建议，保留 MisIndexed 反例及缺失的同期决策理由。固定记录交给新会话的两次试读仅作独立开发记录，余下 28 格不再排期。现已结合远端叙事指南整合到 NCS 英文主文、Methods、图 4–5 和共享补充材料 C.4，并重建 NCS/ICLR 两个 PDF；ICLR 正文及原 integrated review 保持。
+
 当前写作入口：[ICLR 2027 / NCS Article 双稿](venues/README.md)。两版已分别组织全文，
 纳入 EQ 浓度区间反转和 C 响应分化，共用已核实结果与补充材料。下面保留此前合篇的
 逐章讨论，原英文 review 版和 PDF 未被覆盖。

@@ -1,0 +1,118 @@
+# C-W05 agent decision figure v5 — imagegen prompt set
+
+Generated and edited with the built-in image_gen tool. Reference: c-w05-agent-visual-v4.png. Final: c-w05-agent-decision-v5.png. Decision notes are illustrative reconstructions, not logged reasoning.
+
+## c-w05-agent-decision-v5-prompt.txt
+
+Redesign the supplied scientific figure into a clear, balanced visual narrative of an AGENT looking at current experimental results, considering them, and choosing the next experiment. The user likes informative graphics but now requests some concise explanatory text and a simple visible agent considering the results. Preserve scientific facts, but make this agent-centered interaction the main visual story.
+
+Do NOT make a text-only flowchart. Do NOT make an icon-only chart. Balance short explanatory sentences with compact numerical readouts, a simple agent glyph and miniature operation diagrams. No decorative crystals, gemstones, powders, realistic instruments, 3D, stock art or ornate robot. A small neutral schematic AI-agent symbol is explicitly desired: for example a thin outlined rounded square with two tiny sensor dots, labelled "Agent". Use it once in each of two campaign lanes. It should be subtle and professional, not a cartoon character.
+
+CRITICAL SCIENTIFIC BOUNDARY:
+The experimental actions and measurements below are real recorded events. Immediate agent thoughts were NOT logged. The short thought captions are EXPLANATORY RECONSTRUCTIONS consistent with the trace, NOT actual recorded words and NOT verbatim quotations. Mark the thought column prominently "Consideration*" and put a clear readable note near the bottom: "*Illustrative reconstruction; immediate thoughts were not logged." No quotation marks around thought captions. Do not claim the reconstructed thoughts caused the choices. The actual next actions and assay values must be labelled as recorded.
+
+DESIGN
+Landscape 3:2, high resolution, white background, polished scientific editorial grid, ample local spacing without dead large blank areas. Restrained navy/blue for the 12-batch lane, teal for 24-batch lane, amber only for failed quality. Charcoal type, fine linework, muted flat fills. Compact title and labels; visual story dominates. No huge bordered cards. Thought notes can be elegant small speech/annotation callouts beside the agent glyph, with one or two short sentences. Use arrows from data to Agent, Agent to actual action, actual action to next measured outcome. TWO INDEPENDENT horizontal lanes; never connect them into one continuous campaign.
+
+TITLE: "Observe, consider, choose the next experiment"
+SUBTITLE: "C-W05 | Two independent crystallization campaigns"
+Compact goal strip: "Maximize recovery | Purity ≥ 80% | Fines ≤ 50%"
+Small definition: "Fines: particles <20 µm"
+
+MAIN FIGURE: two wide horizontal lanes occupying most of the canvas.
+Across each lane, aligned reading order:
+"Recorded observation" → "Consideration*" → "Recorded next action" → "New observation".
+Arrows must connect these four visual stages clearly.
+
+UPPER LANE:
+Title "12-batch campaign · batches 9 → 10".
+A slim campaign-context ribbon above the lane, not a full competing diagram:
+"1–4 Catalysts | 5–7 Solvents | 8–10 Cooling | 11 Seed | 12 Measurements"
+Subtly highlight 8–10.
+
+LEFT: a small assay readout headed "Batch 9".
+Exact values:
+"Recovery 49.8%"
+"Fines 42.4%"
+Use a small "Quality passes" check badge. Purity was also above the required limit.
+Do not display an invented curve. A compact labelled gauge or two numerical readouts is sufficient.
+
+CENTER LEFT: simple Agent symbol with a SHORT annotation beside it:
+"Quality passes."
+"Could colder cooling improve recovery?"
+Heading "Consideration*" makes its reconstruction status clear. No quotation marks. This is neither a claim of hidden thought access nor a verbatim source quote.
+
+CENTER RIGHT: actual next action headed "Batch 10".
+A small cooling-program schematic with a clear change:
+"Endpoint: 260 K → 250 K"
+A lock symbol plus the label "Other settings unchanged".
+Show a sparse temperature-step glyph, not a realistic flask.
+Below it, tiny execution sequence "Cool → Hold → Filter → Assay".
+All of this was actually executed. The cooling duration and hold remained unchanged.
+
+RIGHT: new assay readout with exact values:
+"Recovery 51.2%"
+"Fines 45.7%"
+Small check: "Quality passes".
+Small selection marker: "Later selected: batch 10".
+Do not claim statistical significance for this small recovery difference.
+
+LOWER LANE:
+Title "24-batch campaign · batches 19 → 20".
+Slim campaign-context ribbon:
+"1–6 Materials | 7–18 Process | 19 Reaction | 20 Cooling | 21–24 Refinement"
+Highlight 19 and 20.
+These phase labels summarize actual actions, not inferred motivations.
+
+LEFT: measured readout headed "Batch 19".
+Exact:
+"Recovery 49.0%"
+"Fines 52.8%"
+Prominent amber small "FAIL" badge next to fines and explicit short comparison "52.8% > 50%".
+Purity passed; fines are the failed quality requirement.
+
+CENTER LEFT: another identical simple Agent symbol with SHORT annotation:
+"Fines still fail."
+"Could a different reaction–cooling program help?"
+Again mark "Consideration*" and do not use quotation marks.
+
+CENTER RIGHT: actual action headed "Batch 20".
+Show TWO compact operation changes linked by a plus sign:
+1. Heating glyph, with exact text "390 K / 30 min → 410 K / 20 min".
+2. Cooling glyph showing "Direct → Staged".
+The direct path ends at 260 K; the staged path is explicitly labelled "320 → 290 → 260 K".
+These are REQUESTED program settings, not measured thermal curves. Add tiny "Requested settings".
+Below, a slim execution line "Heat → Quench → Seed → Cool → Hold → Filter → Assay".
+Make the important changes visually obvious without cramming this lane with text.
+Do not suggest this isolates the effect of cooling; heating and cooling both changed.
+
+RIGHT: new readout headed "Batch 20".
+Exact:
+"Recovery 52.9%"
+"Fines 21.5%"
+Teal check and label "FIRST FEASIBLE BATCH".
+Purity also passed.
+Small end note "Later selected: batch 23" so the first passing batch is not confused with the campaign recommendation.
+
+BOTTOM BAND: a slim, well-used comparison of final performance, secondary to the agent narrative above, about one fifth of the canvas height.
+Heading "After both campaigns".
+Use a compact legend: blue "12 batches", teal "24 batches".
+Four small paired mini-bars or paired dot comparisons across the width; no large tables or paragraphs:
+Group heading over first two: "Independent recipe retest"
+1. "Recovery ↑": 50.4% vs 58.1%.
+2. "Fines ↓": 46.2% vs 19.3%.
+Group heading over last two: "New-condition prediction · MAE ↓"
+3. "Recovery": 0.1153 vs 0.0593.
+4. "Purity": 0.0112 vs 0.0648.
+Keep exact value labels. If using bars, use a shared zero-based percent scale for the first two, and shared zero-based 0–0.12 scale for the last two. Small teal tag "better" by recovery MAE and amber "worse" by purity MAE. No significance stars.
+Short takeaway, modest size: "Better recipes; uneven predictive gains."
+
+FOOTER, readable but compact:
+"*Illustrative reconstruction; immediate thoughts were not logged. Actions and observations are recorded. Selected examples, independent sessions."
+
+Do not include the previous long K1/K2 explanation, factor triangle, unexecuted proposed experiment, or decorative scientific art. This version should feel immediately human-readable: the agent reads a result, considers a concise scientific question, makes a concrete next choice, and sees the new outcome. The thought captions must remain clearly marked as explanatory reconstructions. Maintain exact batch indices, all numerical values, the independent-session distinction and the difference between these source-batch observations and final recommendation retests.
+
+
+## c-w05-agent-decision-v5-endpoint-fix-prompt.txt
+
+Make one tiny scientific-clarity correction to the supplied figure, keeping everything else unchanged. In the UPPER 12-batch campaign lane, inside the "Recorded next action / Batch 10" card, the current small staircase from 260 K to 250 K could incorrectly imply that batch 10 used staged cooling. It did NOT: 260 K was the endpoint of the previous batch 9, and 250 K was the endpoint of the new batch 10. Replace ONLY that staircase illustration with a clear pair of target-setting symbols connected by a simple change arrow: "Batch 9: 260 K" → "Batch 10: 250 K". You may use two small thermometer target markers or plain outlined value pills. This must read as a change between two separate experiments, not sequential temperature stages within one experiment. Keep the line "Endpoint: 260 K → 250 K", keep the lock and "Other settings unchanged", and change the little heading from "Cooling program (requested settings)" to "Cooling endpoint (requested setting)". Do not alter the LOWER 24-batch cooling diagram; that one really does use staged cooling and is correct. Preserve all agent icons, thought captions, source values, final results, axes, labels, titles, styling and layout elsewhere.

@@ -20,6 +20,15 @@
 \setlength{\tabcolsep}{4pt}
 \setlength{\parindent}{0pt}
 \setlength{\parskip}{5pt}
+\clubpenalty=10000
+\widowpenalty=10000
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.85}
+\renewcommand{\textfraction}{0.08}
+\renewcommand{\floatpagefraction}{0.8}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
 \renewcommand{\arraystretch}{1.12}
 \providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
 \providecommand{\pandocbounded}[1]{#1}
@@ -42,6 +51,8 @@ $body$
 \clearpage
 \begin{center}\Large\bfseries Supplementary information\end{center}
 \setcounter{section}{0}
+\setcounter{figure}{0}
+\renewcommand{\thefigure}{S\arabic{figure}}
 \appendix
 \input{appendix.tex}
 \end{document}

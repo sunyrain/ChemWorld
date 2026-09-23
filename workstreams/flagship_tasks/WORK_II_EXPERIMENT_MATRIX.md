@@ -1,5 +1,15 @@
 # Work II 完整实验矩阵：先验、自由机理发现与知识的预测及决策价值
 
+2026-09-22 稿件整合（W2-164）：远端 NCS 叙事指南已同步。全部十五场 EQ/P 原自主过程核对已进入 [NCS 主文](../../paper/venues/ncs/article.md)、Methods、图 4–5 和两版共享补充材料 C.4；两个 PDF 已重建检查。图 4 保留 Opaque 成功外推和 MisIndexed 反例，图 5 的保持—改变框架明确为概念解释。此项仅整合既有证据，不改变下面的实验矩阵、分母或停止决定，不新增取证或读出实验。
+
+2026-09-22 保留数据推进（W2-163）：远端仍为 d7deb6e1，无新增文件。[EQ/P 原自主研究过程报告](reports/work-ii-evidence-closeout-20260921/EQ_AUTONOMOUS_PROCESS_REVIEW_ZH.md)及机器摘要覆盖全部 15 场、180 批、945 操作、45 个后测阶段。有限作者编码显示 Opaque 五场 Q 都允许极稀响应脱离平台，Aligned 五场主要延续平台/弱趋势，MisIndexed 保留混合解释反例；11/15 个 K2 建议极稀实验，均未执行。945 个决策 audit 均未提供同期理由，不能据此定位逐步认知原因。全部原 Q 分数及五世界反转复算通过，原始数据与分母保持。仅分析已有研究，不新增模型/模拟器调用、任务矩阵或固定证据读出。
+
+2026-09-21 当前范围纠正（W2-162）：研究对象是原 agent 在连续自主实验中形成并用于预测的结论。先验改变实验选择、观测和解释，均属于完整研究过程的一部分；固定证据的新会话读出改变了研究对象，不再作为主故事的验证前置。[处置说明](WORK_II_EQ_FIXED_EVIDENCE_EXPERIMENT_NOTE.md#2026-09-21-研究对象纠偏与本块处置)：原定 30 格中仅 2 格完成，28 格未启动并退出当前排期；保留全部结果与原设计，不把该块记成科学检验完成，不按结果替换样本。下两段仅为此前准备/试运行快照。当前 240 来源主矩阵与全部失败保持；后续解释以既有操作—观测—K1—同会话 Q—K2 的时序为依据，不将阶段之后的新解释倒推成实验当时已知，也不将现象直接归因于锚定或报告压缩。本次不新增替代实验，历史双模型和 Astra 结果仍不进入当前科学矩阵。
+
+2026-09-21 第一对实际运行（W2-161）：按用户最新授权只完成固定队列前两个 development 读出，2/2 合法封存、共约 7 分钟、计算器 7/5 次，余下 28 格未启动。两组稀释题均失准，未观察到先验收益/损害翻转；输入体量带来较高 token 消耗。[两会话报告](reports/work-ii-eq-fixed-evidence-first-pair-20260921/REPORT.md)。这是同一来源历史的读出检查，不增加主矩阵来源分母，不作为五世界结论。
+
+2026-09-21 新增准备范围（W2-159）：只组织 [EQ/P 固定证据读出块](WORK_II_EQ_FIXED_EVIDENCE_EXPERIMENT_NOTE.md)，复用全部 15 条来源历史，Opaque/Aligned 各一次，共 30 次独立读出。固定 Q03/Q08/Q09 与其余九题的配对交互差；结果无论方向均结案，不自动追加实验。历史双模型和 Astra 科学结果不进入本块。以下已完成 240 来源主矩阵保持原分母。已拉取 d7deb6e1 的完整公开 IO，核对 945 步/180 中间测量/180 终检并准备 30 个真实输入包，13 项离线测试及输入检查通过；当前未调用模型、未生产新科学结果。
+
 Analysis update, 21 September: both C public-baseline parser omissions are repaired. All thirty baselines are available, with twenty-eight previous values reproduced exactly and original failures retained. No agent or simulator experiment was repeated. [Baseline comparison](reports/work-ii-c-formal-20260920-v3-auto/BASELINE_REANALYSIS.md), [complete paired analysis](reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md), and [Chinese interpretation](reports/work-ii-evidence-closeout-20260921/INTERPRETATION_ZH.md) distinguish supported conclusions from mechanism hypotheses. The scientific matrix below is unchanged.
 
 Updated 2026-09-21 after pulling remote `6a5ff6fc`. **The selected programme is terminal.** The verified current primary pool contains **240 sources, 238 source-and-assessment-conforming chains, 3,597/3,600 final-assayed source batches and 720/720 K1/Q/K2 stages**, covering six system families. All eight study blocks use five worlds and the Opaque / Aligned / MisIndexed arms. E/P/S describe the prior locus, not additional arms; P as a system name means purification.

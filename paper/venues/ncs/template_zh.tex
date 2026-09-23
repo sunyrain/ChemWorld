@@ -1,0 +1,62 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[top=21mm,bottom=21mm,left=21mm,right=21mm]{geometry}
+\usepackage{fontspec,xeCJK}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+\setCJKmainfont{SimSun}[BoldFont=SimHei]
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{Microsoft YaHei}
+\usepackage{graphicx,booktabs,array,longtable,calc,float,placeins,needspace}
+\usepackage{amsmath,amssymb,xcolor,microtype}
+\newcommand{\setstretch}[1]{\linespread{#1}\selectfont}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{caption,fancyhdr}
+\definecolor{ChemInk}{HTML}{17293A}
+\captionsetup{font=small,labelfont=bf,labelsep=quad,skip=7pt,justification=justified}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\renewcommand{\refname}{参考文献}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\sffamily ChemWorld}
+\fancyhead[R]{\small\sffamily 研究论文 · 中文整稿}
+\fancyfoot[C]{\small\thepage}
+\setlength{\headheight}{16pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\setlength{\tabcolsep}{3.4pt}
+\renewcommand{\arraystretch}{1.13}
+\setstretch{1.2}
+\setcounter{secnumdepth}{0}
+\setcounter{topnumber}{2}
+\setcounter{totalnumber}{3}
+\renewcommand{\topfraction}{.92}
+\renewcommand{\textfraction}{.07}
+\renewcommand{\floatpagefraction}{.62}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\pandocbounded}[1]{#1}
+\hypersetup{pdftitle={$title$},pdfsubject={ChemWorld full illustrated Chinese manuscript}}
+\begin{document}
+\begin{center}
+{\LARGE\bfseries\color{ChemInk}$title$\par}
+\vspace{.6em}
+{\normalsize\sffamily\color{ChemInk}$subtitle$\par}
+\end{center}
+\vspace{.4em}
+$body$
+\FloatBarrier
+\clearpage
+\bibliographystyle{unsrtnat}
+\bibliography{references}
+\clearpage
+\begin{center}{\Large\bfseries 补充材料}\end{center}
+\noindent 以下保留既有英文协议说明、全部响应级数据表和探索性分析，便于核对正文分母与证据边界。
+\setstretch{1.0}
+\setcounter{section}{0}
+\setcounter{secnumdepth}{2}
+\appendix
+\input{appendix.tex}
+\end{document}

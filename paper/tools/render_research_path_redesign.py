@@ -26,16 +26,13 @@ REFERENCE = {"Q07": 0.35005782200125907, "Q08": 1.0}
 def public_accounts(source_text, budget):
     stages = {}
     for name in ("K1", "Q", "K2"):
-        match = re.search(
-            rf"^## {name}\s*\n```json\s*\n(.*?)\n```", source_text, re.M | re.S
-        )
+        match = re.search(rf"^## {name}\s*\n```json\s*\n(.*?)\n```", source_text, re.M | re.S)
         retained = json.loads(match.group(1))
         assert retained["failure"] is None
         stages[name] = retained["payload"]
     if budget == 12:
         interpretation = (
-            "Deeper cooling raises recovery but promotes\n"
-            "nucleation and narrows the fines margin."
+            "Deeper cooling raises recovery but promotes\nnucleation and narrows the fines margin."
         )
         uncertainty = (
             "Batch 12 has better particle quality; its\n"
@@ -100,7 +97,7 @@ def public_accounts(source_text, budget):
             ),
         }
     k2 = stages["K2"]["report"]
-    exact["K2_proposed"] = k2[k2.index("I would repeat"):].split("\n\n")[0]
+    exact["K2_proposed"] = k2[k2.index("I would repeat") :].split("\n\n")[0]
     for name, quote in exact.items():
         stage = name.split("_")[0]
         original = stages[stage]["rationale" if stage == "Q" else "report"]
@@ -113,7 +110,8 @@ def public_accounts(source_text, budget):
         "exact_excerpts": exact,
         "forecast": {
             r["query_id"]: r["crystal_fines_fraction"]
-            for r in stages["Q"]["predictions"] if r["query_id"] in REFERENCE
+            for r in stages["Q"]["predictions"]
+            if r["query_id"] in REFERENCE
         },
         "timing": "Experiments and sealed recommendation -> K1 -> sealed Q -> K2; no target feedback.",
     }
@@ -148,14 +146,19 @@ def prepare():
         assert actions == retest["batches"][0]["actions"]
         public = public_accounts(text, old["budget"])
         contrast = next(
-            c for c in rr["prediction_evaluation"]["contrasts"]
+            c
+            for c in rr["prediction_evaluation"]["contrasts"]
             if c["factor"] == "thermal_history" and c["metric"] == "crystal_fines_fraction"
         )
         assert abs(REFERENCE["Q08"] - REFERENCE["Q07"] - contrast["true_delta"]) < 1e-12
-        assert abs(
-            public["forecast"]["Q08"]["estimate"] - public["forecast"]["Q07"]["estimate"]
-            - contrast["predicted_delta"]
-        ) < 1e-12
+        assert (
+            abs(
+                public["forecast"]["Q08"]["estimate"]
+                - public["forecast"]["Q07"]["estimate"]
+                - contrast["predicted_delta"]
+            )
+            < 1e-12
+        )
         result.append(
             {
                 **old,
@@ -177,19 +180,32 @@ def prepare():
     OUT.mkdir(parents=True, exist_ok=True)
     (OUT / "data.json").write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     lines = [
-        "# Original public accounts used in the thinking-inclusive preview", "",
+        "# Original public accounts used in the thinking-inclusive preview",
+        "",
         "Displayed figure text is condensed by the authors, not a verbatim quotation. "
         "The exact supporting excerpts below are checked against the retained source reports. "
-        "K1 follows research; Q is sealed before K2. Neither Q nor K2 receives target feedback.", "",
+        "K1 follows research; Q is sealed before K2. Neither Q nor K2 receives target feedback.",
+        "",
     ]
     for row in result:
-        lines.extend([f"## {row['budget']}-batch session", "",
-                      f"[Retained report](../../../{row['source']})", ""])
+        lines.extend(
+            [
+                f"## {row['budget']}-batch session",
+                "",
+                f"[Retained report](../../../{row['source']})",
+                "",
+            ]
+        )
         for name, quote in row["public_accounts"]["exact_excerpts"].items():
             lines.extend([f"### {name.replace('_', ' ')}", "", f"> {quote}", ""])
-        lines.extend(["### Original fines forecasts", "",
-                      "| Query | Estimate | Original 80% interval | Withheld reference |",
-                      "|---|---:|---:|---:|"])
+        lines.extend(
+            [
+                "### Original fines forecasts",
+                "",
+                "| Query | Estimate | Original 80% interval | Withheld reference |",
+                "|---|---:|---:|---:|",
+            ]
+        )
         for name, values in row["public_accounts"]["forecast"].items():
             lines.append(
                 f"| {name} | {100 * values['estimate']:g}% | "
@@ -230,7 +246,7 @@ def draw(data):
             "savefig.facecolor": "white",
         }
     )
-    fig = plt.figure(figsize=(14.4, 15.2), facecolor="white")
+    fig = plt.figure(figsize=(14.4, 16.0), facecolor="white")
 
     def text(x, y, label, size=16, color=INK, **kwargs):
         return fig.text(x, y, label, fontsize=size, color=color, **kwargs)
@@ -315,153 +331,115 @@ def draw(data):
             color=MUTED,
         )
 
-    panel("b", 0.659, "Recorded changes between successive experiments")
+    for i, row in enumerate(data):
+        retest = row["retest_metrics"]
+        text(
+            0.078 + i * 0.49,
+            0.672,
+            f"Retest: recovery {100 * retest['crystal_yield']:.1f}%; "
+            f"fines {100 * retest['crystal_fines_fraction']:.1f}%",
+            size=15,
+            color=COLORS[i],
+        )
+
+    panel("b", 0.630, "Agent’s mechanistic interpretation (K1, after research)")
     for i, row in enumerate(data):
         x, color = 0.052 + i * 0.50, COLORS[i]
-        indices = [9, 10] if i == 0 else [19, 20]
-        before, after = [row["transitions"][str(n)] for n in indices]
-        hb, cb = thermal(before["actions"])
-        ha, ca = thermal(after["actions"])
-        text(
-            x,
-            0.628,
-            f"{row['budget']} batches: experiment {indices[0]} → {indices[1]}",
-            size=17,
-            color=color,
-        )
-        heat_string = f"Heat: {hb['target_temperature_K']} K, {hb['duration_s'] / 60:g} min" + (
-            " (unchanged)"
-            if hb == ha
-            else f" → {ha['target_temperature_K']} K, {ha['duration_s'] / 60:g} min"
-        )
-        text(x, 0.599, heat_string, size=15.3, color=MUTED if hb == ha else INK)
+        account = row["public_accounts"]
         if i == 0:
-            text(x, 0.574, f"Cooling endpoint: {cb[0]} K → {ca[0]} K", size=17, color=color)
-            text(x, 0.550, "Other process settings unchanged", size=15, color=MUTED)
+            observed = [row["rows"][n - 1] for n in (8, 10)]
+            first, last = observed
+            evidence = "Deeper cooling: 270 → 250 K (batches 8–10)"
         else:
-            text(x, 0.574, f"Cooling: direct {cb[0]} K → staged targets", size=17, color=color)
-            text(x, 0.550, " → ".join(str(v) for v in ca) + " K", size=17, color=color)
-        for k, (label, metric) in enumerate(
-            (("Recovery", "crystal_yield"), ("Fines", "crystal_fines_fraction"))
-        ):
-            start, end = (100 * v["metrics"][metric] for v in (before, after))
-            text(x + 0.229 * k, 0.517, f"{label}: {start:.1f}% → {end:.1f}%", size=16)
+            first, last = [row["rows"][n - 1] for n in (19, 20)]
+            evidence = "Hotter heating + staged cooling (batches 19–20)"
+        text(x, 0.599, evidence, size=16, color=color)
         text(
             x,
-            0.490,
-            "Feasible → feasible" if i == 0 else "Infeasible → first feasible",
-            color=color,
-            size=15,
+            0.576,
+            f"Recovery {first['recovery_pct']:.1f} → {last['recovery_pct']:.1f}%; "
+            f"fines {first['fines_pct']:.1f} → {last['fines_pct']:.1f}%",
+            size=15.5,
+            color=MUTED,
         )
+        text(x, 0.543, account["interpretation"], size=17, linespacing=1.45, va="top")
+        text(x, 0.485, account["uncertainty"], size=16, color=MUTED, linespacing=1.4, va="top")
 
-    panel("c", 0.444, "The final selected procedures")
-    for i, row in enumerate(data):
-        color, y = COLORS[i], 0.398 - i * 0.072
-        actions = row["selected_actions"]
-        heat, cool = thermal(actions)
-        solvent = next(a["solvent"] for a in actions if a["operation"] == "add_solvent")
-        catalyst = next(a["catalyst"] for a in actions if a["operation"] == "add_catalyst")
-        seed = next(a["seed_mass_g"] * 1000 for a in actions if a["operation"] == "seed_crystals")
-        wait = next(a["duration_s"] / 3600 for a in actions if a["operation"] == "wait")
-        quenched = any(a["operation"] == "quench" for a in actions)
-        text(
-            0.052,
-            y + 0.008,
-            f"{row['budget']} batches\nBatch {row['selected']}",
-            size=15,
-            color=color,
-            linespacing=1.55,
-            va="center",
-        )
-        nodes = [
-            f"Charge\nS{solvent} / C{catalyst}",
-            f"Heat\n{heat['target_temperature_K']} K · {heat['duration_s'] / 60:g} min",
-            "Quench" if quenched else "No quench",
-            f"Seed\n{seed:g} mg",
-            "Cool\n" + " → ".join(str(v) for v in cool) + " K",
-            f"Hold\n{wait:g} h",
-            "Filter\n+ assay",
-        ]
-        centers = [0.208, 0.341, 0.474, 0.58, 0.727, 0.87, 0.95]
-        widths = [0.085, 0.125, 0.098, 0.070, 0.186, 0.054, 0.079]
-        for j, (cx, width, label) in enumerate(zip(centers, widths, nodes, strict=True)):
-            if j != 2 or quenched:
-                fig.add_artist(
-                    Rectangle(
-                        (cx - width / 2, y - 0.014),
-                        width,
-                        0.047,
-                        transform=fig.transFigure,
-                        facecolor="white",
-                        edgecolor="#B7C3CA",
-                        lw=0.7,
-                    )
-                )
-            text(
-                cx,
-                y + 0.008,
-                label,
-                size=14 if j == 4 else 15,
-                ha="center",
-                va="center",
-                color=MUTED if j == 2 and not quenched else INK,
-                linespacing=1.5,
-            )
-            if j < len(nodes) - 1:
-                fig.add_artist(
-                    FancyArrowPatch(
-                        (cx + width / 2 + 0.001, y + 0.008),
-                        (centers[j + 1] - widths[j + 1] / 2 - 0.001, y + 0.008),
-                        transform=fig.transFigure,
-                        arrowstyle="-|>",
-                        mutation_scale=9,
-                        color="#8D9CA6",
-                        linewidth=0.8,
-                    )
-                )
-
-    panel("d", 0.272, "Selected-batch observations and independent retests")
-    fig.legend(
-        handles=[
-            Patch(facecolor="white", edgecolor=MUTED, label="Source observation"),
-            Patch(facecolor=MUTED, label="Independent retest"),
-        ],
-        loc="center left",
-        bbox_to_anchor=(0.047, 0.241),
-        ncol=2,
-        frameon=False,
-        fontsize=15,
-        columnspacing=2,
+    panel("c", 0.428, "Using a mechanistic explanation to predict a new intervention (Q)")
+    text(
+        0.052,
+        0.402,
+        "Test: replace a 2-h cold hold with heating toward 315 K for 1 h and recooling for 1 h.",
+        size=15.5,
     )
-    for col, (metric, label, limit, ticks) in enumerate(
-        (
-            ("crystal_yield", "Recovery (%)", 70, [0, 20, 40, 60]),
-            ("crystal_fines_fraction", "Fines (%) · limit ≤ 50%", 65, [0, 20, 40, 60]),
-            ("crystal_purity", "Purity (%) · limit ≥ 80%", 115, [0, 50, 100]),
+    text(
+        0.052,
+        0.378,
+        "Agent rationale: preferential dissolution of fines. Error bars: original 80% prediction intervals.",
+        size=15.5,
+        color=MUTED,
+    )
+    fig.add_artist(
+        Rectangle(
+            (0.722, 0.207),
+            0.27,
+            0.153,
+            transform=fig.transFigure,
+            facecolor="#F2F4F4",
+            edgecolor="none",
+            zorder=0,
         )
-    ):
-        ax = fig.add_axes([0.078 + 0.32 * col, 0.056, 0.247, 0.143])
+    )
+    for col in range(3):
+        color = COLORS[col] if col < 2 else MUTED
+        ax = fig.add_axes([0.078 + col * 0.32, 0.233, 0.238, 0.103])
         style(ax)
-        for i, row in enumerate(data):
-            color = COLORS[i]
-            vals = [100 * row[k][metric] for k in ("selected_metrics", "retest_metrics")]
-            for j, val in enumerate(vals):
-                bar = ax.bar(
-                    i + (-0.17 if j == 0 else 0.17),
-                    val,
-                    width=0.29,
-                    color="white" if j == 0 else color,
-                    edgecolor=color,
-                    linewidth=1.1,
-                )
-                ax.bar_label(bar, labels=[f"{val:.1f}"], size=13.7, padding=4)
-        ax.set(ylim=(0, limit), xlim=(-0.6, 1.6))
-        ax.set_yticks(ticks)
-        ax.set_title(label, fontsize=16, loc="left", pad=11)
-        ax.set_xticks([0, 1], ["12 batches", "24 batches"], fontsize=14)
-        if metric in ("crystal_fines_fraction", "crystal_purity"):
-            threshold = 50 if metric == "crystal_fines_fraction" else 80
-            ax.axhline(threshold, color="#8D9CA6", lw=0.8, linestyle=(0, (3, 3)), zorder=0)
+        if col < 2:
+            forecasts = data[col]["public_accounts"]["forecast"]
+            values = [100 * forecasts[q]["estimate"] for q in ("Q07", "Q08")]
+            errors = [
+                [
+                    100 * (forecasts[q]["estimate"] - forecasts[q]["lower80"])
+                    for q in ("Q07", "Q08")
+                ],
+                [
+                    100 * (forecasts[q]["upper80"] - forecasts[q]["estimate"])
+                    for q in ("Q07", "Q08")
+                ],
+            ]
+            ax.errorbar(
+                [0, 1],
+                values,
+                yerr=errors,
+                fmt="o-",
+                color=color,
+                capsize=4,
+                elinewidth=1.1,
+                linewidth=1.5,
+                markersize=5,
+            )
+            title = f"{data[col]['budget']}-batch agent"
+        else:
+            values = [100 * REFERENCE[q] for q in ("Q07", "Q08")]
+            ax.set_facecolor("#F2F4F4")
+            ax.plot([0, 1], values, "s-", color=color, markersize=5, lw=1.5)
+            title = "Withheld reference"
+        for xx, value in enumerate(values):
+            ax.text(xx + 0.07, value + 8, f"{value:.0f}%", fontsize=15, color=color)
+        ax.set(xlim=(-0.32, 1.43), ylim=(0, 120))
+        ax.set_yticks([0, 50, 100])
+        ax.set_xticks([0, 1], ["Cold hold", "Heat + recool"], fontsize=13.5)
+        ax.set_title(title, fontsize=16, color=color, loc="left", pad=10)
+        if col == 0:
+            ax.set_ylabel("Fines (%)", fontsize=15)
+
+    panel("d", 0.176, "Agent’s retrospective critique (K2, without reference feedback)")
+    for i, row in enumerate(data):
+        x, color = 0.052 + i * 0.50, COLORS[i]
+        account = row["public_accounts"]
+        text(x, 0.144, account["critique"], size=17, va="top", linespacing=1.4)
+        text(x, 0.082, "Proposed next experiment · not executed", size=15, color=color)
+        text(x, 0.059, account["proposed"], size=16.5, va="top", linespacing=1.4)
     for ext in ("svg", "png"):
         fig.savefig(OUT / f"figure02-research-paths-preview.{ext}", dpi=230)
     plt.close(fig)
@@ -471,5 +449,5 @@ if __name__ == "__main__":
     data = prepare()
     draw(data)
     print(
-        "Preview: 36 source batches, two selected canonical recipes, two retained retests verified."
+        "Preview: 36 batches, 2 retests, original K1/Q/K2 excerpts and 4 forecast intervals verified."
     )

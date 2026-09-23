@@ -1,5 +1,13 @@
 # Integrated manuscript: evidence and reproduction
 
+On 22 September, the NCS draft incorporates the [complete fifteen-campaign EQ/P process review](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/EQ_AUTONOMOUS_PROCESS_REVIEW_ZH.md),
+its original-session predictions, and a conceptual preserve/revise synthesis with the retained
+crystallization baselines. The shared supplement adds the full fifteen-row comparison and
+research-stage timing. Both venue PDFs are rebuilt; the ICLR main text and original integrated
+review are unchanged. Reproduce the process extraction with
+`uv run --no-sync python -m scripts.analyze_work_ii_eq_autonomous_process`, then use the
+[venue build commands](venues/README.md#构建). No new scientific experiment or evidence promotion.
+
 The current venue-specific writing entries are the [ICLR 2027 and NCS Article drafts](venues/README.md),
 prepared on 21 September 2026 from this same retained evidence. They add the explicitly
 exploratory EQ dilution-regime and C joint-response analyses already recorded in the
