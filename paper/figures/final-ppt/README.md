@@ -25,12 +25,20 @@ the current publication figure. [Data and design notes](../../../output/figures/
 
 2026-09-25 Figure 2 replacement: the main English manuscript binds
 [`figure02-research-paths-typography.png`](figure02-research-paths-typography.png),
-exported from the fully editable native-shape
+exported from the mixed-media, source-checked
 [`chemworld-figure2-typography.pptx`](../../../output/pptx/chemworld-figure2-typography.pptx).
 It follows all twelve formal W04/MisIndexed source batches, every operation call
 in selected batch 8, its independent retest, and three evidence-to-next-test
-sequences. All displayed values and operation details are read and checked against
-the formal summary by `w04_crystal_case_panel.mjs`. The small Agent questions are
+sequences. The reviewed concept's continuous pictorial process and four-column
+Agent-question panel use transparent ImageGen illustrations for the ten physical
+stages and the writing/thinking Agent. The two source assets are
+[`figure02-b-instruments-imagegen.png`](assets/figure02-b-instruments-imagegen.png)
+and [`figure02-c-agent-thought-imagegen.png`](assets/figure02-c-agent-thought-imagegen.png).
+The generated entities are cropped and uniformly scaled for placement; labels,
+arrows, data marks and panel rules remain editable PowerPoint elements. Source assays
+and operations are read and checked against the formal summary by
+`w04_crystal_case_panel.mjs`; the intermediate 26.6% fines reading is checked
+against the local formal trajectory when available. The Agent questions are
 author reconstructions, not contemporaneous model quotations. Rebuild with
 `node paper/tools/build_final_figure_deck.mjs --case-only`, then run
 `paper/tools/export_case_typography.ps1`. Supplementary S4 retains the distinct
@@ -69,7 +77,7 @@ Full response tables, the study matrix, retained failures and the all-fifteen eq
 
 ## Artwork and data
 
-The combined deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. Main Figure 2 is exported from its separate, fully editable PPT, whose marks, labels and procedure stages are native shapes and text.
+The combined deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. Main Figure 2 is exported from its separate PPT. Its instruments and Agent are embedded ImageGen raster assets; charts, labels, arrows and numerical annotations remain editable.
 
 Fig. 2 uses the formally retained W04 summary and a layout adapted from the reviewed ImageGen concept. The old W05 single-case source module remains available for comparison. S4 keeps Q sealed during K2 and labels the proposed experiment as unexecuted. The reference in S4d belongs to the reheating question, not to the proposed cooling substitution.
 

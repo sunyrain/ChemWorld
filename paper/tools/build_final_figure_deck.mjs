@@ -27,7 +27,7 @@ const pythonSupport=path.join(BUILD,'python-support');
 await fs.mkdir(pythonSupport,{recursive:true});
 await fs.symlink('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/Lib/site-packages/lxml',path.join(pythonSupport,'lxml'),'junction').catch(e=>{if(e.code!=='EEXIST')throw e;});
 process.env.PYTHONPATH=[pythonSupport,process.env.PYTHONPATH].filter(Boolean).join(path.delimiter);
-const W=1440,H=caseOnly?1160:1900,FONT='Arial',FS=20,SM=18,PANEL=27;
+const W=1440,H=caseOnly?1080:1900,FONT='Arial',FS=20,SM=18,PANEL=27;
 const C={ink:'#24292D',muted:'#6A737B',grid:'#D7DDE1',light:'#EEF1F3',Opaque:'#637482',Aligned:'#277F8A',MisIndexed:'#BC7850',b12:'#416B92',b24:'#277F8A',bad:'#A35F42'};
 const ARMS=['Opaque','Aligned','MisIndexed'];
 const p=Presentation.create({slideSize:{width:W,height:H}});
@@ -165,6 +165,6 @@ await finalizePresentation({workspaceDir:BUILD,candidatePath:candidate,finalPath
  receiptPath:path.join(BUILD,`validation-${stamp}.json`)});
 await fs.copyFile(checked,DECK);
 console.log(`ppt stage=finalized slides=${figures.length}`);
-await fs.writeFile(path.join(OUT,caseOnly?'case-typography-export.json':'style-and-export.json'),JSON.stringify({fontFamily:FONT,fontSizePx:FS,tickSizePx:SM,panelSizePx:caseOnly?30*W/1448:PANEL,widthPx:W,slideHeightPx:H,palette:C,pptx:path.relative(ROOT,DECK),figures:figures.map(({name,height})=>({name,height})),renderSource:'finalized PPTX',illustrations:caseOnly?'native editable shapes and typography':'original raster art with editable text overlays',rasterScale:3,newScientificExperiments:0},null,2)+'\n');
+await fs.writeFile(path.join(OUT,caseOnly?'case-typography-export.json':'style-and-export.json'),JSON.stringify({fontFamily:FONT,fontSizePx:FS,tickSizePx:SM,panelSizePx:caseOnly?30*W/1448:PANEL,widthPx:W,slideHeightPx:H,palette:C,pptx:path.relative(ROOT,DECK),figures:figures.map(({name,height})=>({name,height})),renderSource:'finalized PPTX',illustrations:caseOnly?'ImageGen raster entities with editable data, arrows and typography':'original raster art with editable text overlays',rasterScale:3,newScientificExperiments:0},null,2)+'\n');
 clearInterval(heartbeat);
 console.log('ppt done '+DECK);

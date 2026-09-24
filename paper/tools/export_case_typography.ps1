@@ -29,7 +29,7 @@ $casePresentation = $null
 try {
     $caseApp = New-Object -ComObject PowerPoint.Application
     $casePresentation = $caseApp.Presentations.Open($casePpt,-1,0,0)
-    $casePresentation.Slides.Item(1).Export((Join-Path $caseTemp 'figure2-full.png'),'PNG',4320,3480)
+    $casePresentation.Slides.Item(1).Export((Join-Path $caseTemp 'figure2-full.png'),'PNG',4320,3240)
     Write-Output 'case stage=native-export completed=1/1'
 } finally {
     if ($null -ne $casePresentation) { $casePresentation.Close(); [void][System.Runtime.InteropServices.Marshal]::ReleaseComObject($casePresentation) }
@@ -37,6 +37,6 @@ try {
 }
 Push-Location $caseRoot
 try {
-    & uv run --no-sync python -c "from PIL import Image; from pathlib import Path; import tempfile; t=Path(tempfile.gettempdir())/'chemworld-case-typography'; im=Image.open(t/'figure2-full.png'); assert im.size==(4320,3480), im.size; im.save('paper/figures/final-ppt/figure02-research-paths-typography.png'); im.thumbnail((1440,1160)); im.save(t/'preview.png')"
+    & uv run --no-sync python -c "from PIL import Image; from pathlib import Path; import tempfile; t=Path(tempfile.gettempdir())/'chemworld-case-typography'; im=Image.open(t/'figure2-full.png'); assert im.size==(4320,3240), im.size; im.save('paper/figures/final-ppt/figure02-research-paths-typography.png'); im.thumbnail((1440,1080)); im.save(t/'preview.png')"
     if ($LASTEXITCODE -ne 0) { throw 'Case figure crop failed' }
 } finally { Pop-Location }
