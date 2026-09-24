@@ -1,5 +1,7 @@
 import {addEqEvidence,addCrystalComparison} from './reader_figure_panels.mjs';
-import {addPriorFinal,addCaseFinal,addSecondaryFinal} from './final_figure_panels.mjs';
+import {addPriorFinal,addSecondaryFinal} from './final_figure_panels.mjs';
+import {addSingleCrystalCase as addW04Case} from './w04_crystal_case_panel.mjs';
+import {addSingleCrystalCase as addW05Case} from './single_crystal_case_panel.mjs';
 // Preserve approved artwork while reorganizing the manuscript evidence.
 import {addPreservedFigure} from "./preserved_figure_overlay.mjs";
 import fs from 'node:fs/promises';
@@ -15,7 +17,6 @@ process.env.RUNTIME_NODE_MODULES=RUNTIME;
 const SKILL='C:/Users/Admin/.codex/plugins/cache/openai-primary-runtime/presentations/26.904.11930/skills/presentations';
 const {Presentation,PresentationFile,FileBlob}=await import(pathToFileURL(path.join(RUNTIME,'@oai/artifact-tool/dist/artifact_tool.mjs')).href);
 const {finalizePresentation,applyPresentationChartFont}=await import(pathToFileURL(path.join(SKILL,'container_tools/artifact_tool_utils.mjs')).href);
-const {default:sharp}=await import(pathToFileURL(path.join(RUNTIME,'sharp/dist/index.cjs')).href);
 const DATA=JSON.parse(await fs.readFile(path.join(ROOT,'paper/figures/academic-ppt/retained-figure-data.json'),'utf8'));
 const BUILD=path.join(os.tmpdir(),caseOnly?'chemworld-case-typography':'chemworld-final-ppt');
 const OUT=path.join(ROOT,'paper/figures/final-ppt');
@@ -26,7 +27,7 @@ const pythonSupport=path.join(BUILD,'python-support');
 await fs.mkdir(pythonSupport,{recursive:true});
 await fs.symlink('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/Lib/site-packages/lxml',path.join(pythonSupport,'lxml'),'junction').catch(e=>{if(e.code!=='EEXIST')throw e;});
 process.env.PYTHONPATH=[pythonSupport,process.env.PYTHONPATH].filter(Boolean).join(path.delimiter);
-const W=1440,H=1900,FONT='Arial',FS=20,SM=18,PANEL=27;
+const W=1440,H=caseOnly?1160:1900,FONT='Arial',FS=20,SM=18,PANEL=27;
 const C={ink:'#24292D',muted:'#6A737B',grid:'#D7DDE1',light:'#EEF1F3',Opaque:'#637482',Aligned:'#277F8A',MisIndexed:'#BC7850',b12:'#416B92',b24:'#277F8A',bad:'#A35F42'};
 const ARMS=['Opaque','Aligned','MisIndexed'];
 const p=Presentation.create({slideSize:{width:W,height:H}});
@@ -72,11 +73,11 @@ function groupedPoints(rows,xkey,ykey){return ARMS.map(arm=>{const a=rows.filter
 
 const ctx={slide,panel,chart,axis,series,seg,txt,legend,DATA,C,ARMS,mean,line,ROOT,W,shape,groupedPoints};
 if(caseOnly){
- await addCaseFinal(ctx,'figure02-research-paths-typography');
+ await addW04Case(ctx,'figure02-research-paths-typography');
 } else {
 // Retained illustration with typography-only overlays.
 figures.push(await addPreservedFigure(p,'figure01-framework',ROOT,W));
-await addCaseFinal(ctx,'figure02-research-paths');
+await addW05Case(ctx,'figure02-research-paths');
 
 // Figure 2: matched goal changes, and the separate purification constraint.
 {
@@ -158,12 +159,12 @@ await finalizePresentation({workspaceDir:BUILD,candidatePath:candidate,finalPath
  integrityValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_package_integrity.py'),
  layoutValidatorPath:path.join(SKILL,'container_tools/inspect_presentation_layout_geometry.py'),
  layoutArgs:['--expected-slide-size-emu',`${W*9525},${H*9525}`,'--validate-bullet-geometry','--validate-heading-fit'],
- explicitTotalSlideCount:caseOnly?1:11,requiredNativeChartOwnerSlides:caseOnly?[1]:[2,3,5,6,7,8,11],
+ explicitTotalSlideCount:caseOnly?1:11,requiredNativeChartOwnerSlides:caseOnly?[]:[2,3,5,6,7,8,11],
  materializeLiteralChartWorkbooks:true,nativeChartTargetApplication:'portable',
  fontPolicy:{basis:'design',families:[FONT]},verifyArtifactToolImport:true,
  receiptPath:path.join(BUILD,`validation-${stamp}.json`)});
 await fs.copyFile(checked,DECK);
 console.log(`ppt stage=finalized slides=${figures.length}`);
-await fs.writeFile(path.join(OUT,caseOnly?'case-typography-export.json':'style-and-export.json'),JSON.stringify({fontFamily:FONT,fontSizePx:FS,tickSizePx:SM,panelSizePx:caseOnly?30*W/1448:PANEL,widthPx:W,slideHeightPx:H,palette:C,pptx:path.relative(ROOT,DECK),figures:figures.map(({name,height})=>({name,height})),renderSource:'finalized PPTX',illustrations:'original raster art with editable text overlays',rasterScale:3,newScientificExperiments:0},null,2)+'\n');
+await fs.writeFile(path.join(OUT,caseOnly?'case-typography-export.json':'style-and-export.json'),JSON.stringify({fontFamily:FONT,fontSizePx:FS,tickSizePx:SM,panelSizePx:caseOnly?30*W/1448:PANEL,widthPx:W,slideHeightPx:H,palette:C,pptx:path.relative(ROOT,DECK),figures:figures.map(({name,height})=>({name,height})),renderSource:'finalized PPTX',illustrations:caseOnly?'native editable shapes and typography':'original raster art with editable text overlays',rasterScale:3,newScientificExperiments:0},null,2)+'\n');
 clearInterval(heartbeat);
 console.log('ppt done '+DECK);

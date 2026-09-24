@@ -1,8 +1,6 @@
 // Additional retained-data panels and compacted approved artwork for the final draft.
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import {pathToFileURL} from 'node:url';
-const {default:sharp}=await import(pathToFileURL('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/sharp/dist/index.cjs').href);
 
 export function addPriorFinal(ctx,name='figureS2-prior-detail'){
  const {slide,panel,chart,axis,series,seg,txt,legend,DATA,C,ARMS,mean}=ctx;
@@ -68,91 +66,63 @@ export function addEqFinal(ctx){
 }
 
 export async function addCaseFinal(ctx,name='figure02-research-paths'){
- const {slide,ROOT,W,panel,chart,axis,series,txt,shape,line,C}=ctx;
+ const {slide,ROOT,panel,chart,axis,series,txt,shape,line,C}=ctx;
  const data=JSON.parse(await fs.readFile(path.join(ROOT,'output/figures/research-case-v16/data.json'),'utf8'));
- const art=await fs.readFile(path.join(ROOT,'output/imagegen/c-w05-research-paths-v15.png'));
- const s=slide(name,1825,'Selected original W05 Aligned independent sessions, preserved v16/v15 artwork and retained batch values. Regular-weight editable typography; lowercase Arial bold panel letters match supplied Figure 1. Progress is best feasible observed recovery; no values before first feasible batch. All 36 batch results retained in source CSV. K1 reflections are later accounts. Figure footnotes moved to the manuscript caption. The illustration is not a population budget effect.');
- async function crop(left,top,width,height,x,y,w){const blob=await sharp(art).extract({left,top,width,height}).png().toBuffer();s.images.add({blob,contentType:'image/png',position:{left:x,top:y,width:w,height:height*w/width},fit:'contain',alt:'Approved case artwork, uniformly scaled and reflowed'});}
- const scale=W/1143;
- // Retain original icons and process geometry; replace only raster text with native text.
- function label(t,x,y,w,h,top=0,outY=0,size=22,background='#FFFFFF',color=C.ink,align='left'){
-  const px=x*scale,py=(y-top)*scale+outY;
-  shape(s,'rect',px,py,w*scale,h*scale,background,'none',0);
-  txt(s,t,px+2,py,w*scale-4,h*scale,size,false,color,align);
+ const s=slide(name,1580,'Figure 2: same W05 crystallization world and Aligned information; two independent original sessions. Charts retain all 36 batch outcomes and running best quality-feasible recovery. B19 to B20 changes heating, cooling and an intermediate particle-size check, so no single-operation effect is inferred. K1 text condenses subsequent public accounts, not contemporaneous thoughts.');
+ const blue=C.b12,teal=C.b24,accent='#B86D3D';
+ function heading(id,y,title){txt(s,id,18,y,35,40,30,true,'#111111');txt(s,title,62,y,1330,40,23,false,C.ink);}
+ function rule(y){line(s,24,y,1415,y,C.grid,1.4);}
+ function key(x,y){
+  shape(s,'ellipse',x,y+7,13,13,C.ink,C.ink,1);
+  txt(s,'quality-feasible',x+22,y,195,31,18);
+  line(s,x+236,y+7,x+251,y+22,C.bad,2);line(s,x+236,y+22,x+251,y+7,C.bad,2);
+  txt(s,'infeasible',x+260,y,150,31,18);
+  line(s,x+424,y+14,x+465,y+14,C.ink,2.6);
+  txt(s,'best feasible so far',x+474,y,220,31,18);
  }
- function casePanel(id,y,title){
-  // Figure 1 uses 22.5 pt Arial bold on a 1,448 px-wide slide.
-  txt(s,id,17,y,32,38,30*W/1448,true,'#000000');
-  txt(s,title,64,y,1320,38,22,false,C.ink);
- }
- await crop(0,0,1143,250,0,0,W);
- label('',16,43,750,38);
- casePanel('a',55,'How the research budget was used');
- label('12 batches',30,82,533,29,0,0,26,'#EAF6FC');
- label('24 batches',604,82,527,29,0,0,26,'#EAF7FA');
+ heading('a',15,'Independent research paths in one matched world');
+ txt(s,'Same physical world and Aligned information; separate sessions',63,56,1290,35,20,false,C.muted);
  for(let i=0;i<2;i++){
-  const session=data.pair[i],rows=session.rows,x=15+i*720,col=i?'#009BB5':'#0066DB',best=rows.filter(r=>r.best_feasible_recovery_pct!==null),xx=[],yy=[];
-  best.forEach((r,j)=>{if(j){xx.push(r.batch);yy.push(best[j-1].best_feasible_recovery_pct);}xx.push(r.batch);yy.push(r.best_feasible_recovery_pct);});
-  txt(s,`${session.budget}-batch session`,x+75,319,600,32,20,false,col);
+  const d=data.pair[i],x=25+i*720,col=i?teal:blue,rows=d.rows;
+  txt(s,`${d.budget}-batch session`,x+28,112,650,41,27,true,col);
+  line(s,x+28,160,x+682,160,col,3);
+  txt(s,i?'Materials → process variation → heating and staged cooling → refinement':'Catalysts → solvents → cooling endpoint → refinement',x+28,172,650,35,17,false,C.ink);
+  const best=rows.filter(r=>r.best_feasible_recovery_pct!==null),bx=[],by=[];
+  best.forEach((r,j)=>{if(j){bx.push(r.batch);by.push(best[j-1].best_feasible_recovery_pct);}bx.push(r.batch);by.push(r.best_feasible_recovery_pct);});
   const good=rows.filter(r=>r.quality_feasible),bad=rows.filter(r=>!r.quality_feasible);
-  const ser=[series('Best feasible recovery',xx,yy,col,'none',2.5),series('Feasible observations',good.map(r=>r.batch),good.map(r=>r.recovery_pct),col),series('Infeasible observations',bad.map(r=>r.batch),bad.map(r=>r.recovery_pct),C.bad,'x')];
-  chart(s,ser,x+8,357,680,220,axis('Batch',0,session.budget,i?4:3,'0'),axis('Recovery (%)',20,65,20,'0'));
-  rows.forEach(r=>shape(s,'rect',x+115+(r.batch-1)*510/session.budget,584,Math.min(16,470/session.budget),12,r.quality_feasible?col:C.bad,'none',0));
-  txt(s,`${session.feasible_batches}/${session.budget} quality-feasible; first feasible: batch ${session.first_feasible_batch}`,x+75,602,650,28,18);
+  const ser=[series('Best feasible recovery',bx,by,col,'none',2.9),series('Quality-feasible',good.map(r=>r.batch),good.map(r=>r.recovery_pct),col),series('Infeasible',bad.map(r=>r.batch),bad.map(r=>r.recovery_pct),C.bad,'x')];
+  chart(s,ser,x+12,225,675,450,axis('Batch',0,d.budget,i?4:3,'0'),axis('Net recovery (%)',20,65,10,'0'));
+  txt(s,`First feasible  B${d.first_feasible_batch}`,x+38,687,294,38,21,true,C.ink);
+  txt(s,`Best feasible  B${d.best_feasible_batch} · ${d.best_feasible_recovery_pct.toFixed(1)}%`,x+330,687,355,38,21,true,col,'right');
  }
- line(s,25,683,1415,683,C.grid);
- casePanel('b',692,'Recorded changes between adjacent batches');
- await crop(0,340,1143,103,0,736,W);
- await crop(0,516,1143,412,0,867,W);
- label('Batches 9 → 10',30,343,530,28,340,736,26,'#EAF6FC');
- label('Batches 19 → 20',600,343,521,28,340,736,26,'#EAF7FA');
- for(const [x,obs,rec,fines,color,status] of [[0,'9','49.8%','42.4%','#009BB5','Pass'],[572,'19','49.0%','52.8%','#EC1C24','Fines fail']]){
-  label(`Observation\n(batch ${obs})`,70+x,385,120,45,340,736,20);
-  label(rec,213+x,401,84,32,340,736,29);
-  label(fines,x?887:340,401,x?97:85,32,340,736,29,'#FFFFFF',x?'#EC1C24':C.ink);
-  label(status,x?1038:503,393,x?94:52,39,340,736,21,'#FFFFFF',color);
+ key(357,750);
+ rule(803);
+ heading('b',820,'What changed at the critical transitions');
+ const changes=[
+  {x:25,col:blue,title:'B9 → B10',before:'49.8% recovery · 42.4% fines',after:'51.2% recovery · 45.7% fines',lines:[['Cooling endpoint','260 K','250 K']],note:'Other settings unchanged; both batches meet quality constraints.'},
+  {x:745,col:teal,title:'B19 → B20',before:'49.0% recovery · 52.8% fines',after:'52.9% recovery · 21.5% fines',lines:[['Heating','390 K / 30 min','410 K / 20 min'],['Cooling','Direct to 260 K','Staged 320 → 290 → 260 K'],['Size measurement','Performed','Omitted']],note:'First quality-feasible batch; multiple changes were made together.'}
+ ];
+ for(const q of changes){
+  txt(s,q.title,q.x+25,874,630,44,27,true,q.col);
+  txt(s,q.before,q.x+25,926,630,35,21);
+  line(s,q.x+25,971,q.x+660,971,C.grid,1.2);
+  q.lines.forEach((a,j)=>{const y=991+j*55;txt(s,a[0],q.x+25,y,165,35,19,false,C.muted);txt(s,a[1],q.x+200,y,174,35,19);txt(s,'→',q.x+383,y,39,35,23,false,accent,'center');txt(s,a[2],q.x+428,y,235,39,19,true,C.ink);});
+  txt(s,q.after,q.x+25,1165,630,40,23,true,q.col);
+  txt(s,q.note,q.x+25,1208,640,34,18,false,C.ink);
  }
- label('Next experiment (batch 10)',70,517,350,24,516,867,20);
- label('Next experiment (batch 20)',642,517,410,24,516,867,20);
- label('260 K',108,582,103,33,516,867,24,'#F8FCFE',C.ink,'center');
- label('250 K',272,582,100,33,516,867,24,'#F8FCFE',C.ink,'center');
- label('Heating:',650,545,124,26,516,867,21);
- label('Cooling targets:',874,545,220,26,516,867,21);
- label('260 K',900,636,76,23,516,867,23,'#FFFFFF',C.ink,'center');
- for(const [x,batch,rec,fines,status] of [[0,'10','51.2%','45.7%','Pass'],[568,'20','52.9%','21.5%','First quality-\nfeasible batch']]){
-  label(`Outcome (batch ${batch})`,70+x,873,123,40,516,867,19);
-  label(rec,219+x,884,78,34,516,867,28,'#FFFFFF','#0066DB');
-  label(fines,x?882:338,884,x?98:82,34,516,867,28,'#FFFFFF',x?'#009BB5':C.ink);
-  label(status,x?1027:503,873,x?105:58,47,516,867,20,'#FFFFFF',x?C.ink:'#009BB5');
- }
- label('',195,831,342,28,516,867);
- label('',768,837,347,27,516,867);
- // Remove obsolete step numbers after omitting unrecorded immediate considerations.
- for(const x of [20,743]){
-  for(const [y,n] of [[784,'1'],[858,'2'],[1309,'3']]){
-   shape(s,'rect',x,y,59,66,'#FFFFFF','none',0);
-   shape(s,'ellipse',x+6,y+8,40,40,'#E7F7FC','none',0);
-   txt(s,n,x+6,y+8,40,40,24,false,C.ink,'center');
-  }
- }
- line(s,25,1425,1415,1425,C.grid);
- casePanel('c',1433,'Selected procedures, later K1 accounts and independent retests');
- for(let i=0;i<2;i++){
-  const x=25+i*720,col=i?'#009BB5':'#0066DB';
-  txt(s,i?'Selected batch 23 (24-batch session)':'Selected batch 10 (12-batch session)',x+10,1474,680,31,20,false);
-  await crop(30,1052,65,72,x+5,1511,67);
-  txt(s,i?'Hotter, shorter heating + staged cooling.\nBatches 22–24 formed a broad recovery plateau.':'Batch 12 had fewer fines; batch 10 led in recovery.\nThe small recovery gap remained unresolved.',x+93,1514,599,63,18);
- }
- await crop(0,1149,1143,88,0,1595,W);
- label('Selected recipe (batch 10)',23,1149,400,23,1149,1595,20);
- label('Selected recipe (batch 23)',596,1149,474,23,1149,1595,20);
- label('S1 / C3',35,1204,67,21,1149,1595,21,'#FFFFFF',C.ink,'center');
- label('S2 / C1',599,1204,74,21,1149,1595,21,'#FFFFFF',C.ink,'center');
- for(let i=0;i<2;i++){
-  const x=25+i*720,col=i?'#009BB5':'#0066DB';
-  txt(s,i?'Observed: recovery 57.0% | purity 100% | fines 14.2%':'Observed: recovery 51.2% | purity 97.8% | fines 45.7%',x+7,1710,695,27,17);
-  txt(s,'Independent retest',x+12,1746,670,29,19,false,C.ink,'center');
-  txt(s,i?'Recovery 58.1%     Fines 19.3%':'Recovery 50.4%     Fines 46.2%',x+12,1780,670,39,24,false,col,'center');
+ rule(1265);
+ heading('c',1280,'Sealed recommendation and independent retest');
+ const selections=[
+  {x:25,col:blue,rec:'B10',source:'51.2%',retest:'50.4%',fines:'46.2%',account:'B10 led in recovery; the small gap from B12\nremained unresolved.'},
+  {x:745,col:teal,rec:'B23',source:'57.0%',retest:'58.1%',fines:'19.3%',account:'Hotter, shorter heating with staged cooling;\nB22–B24 formed a recovery plateau.'}
+ ];
+ for(const q of selections){
+  txt(s,`Selected ${q.rec}`,q.x+25,1335,290,39,24,true,q.col);
+  txt(s,`Observed ${q.source}`,q.x+306,1335,352,39,22,false,C.ink,'right');
+  line(s,q.x+25,1386,q.x+665,1386,C.grid,1.2);
+  txt(s,`Independent retest   ${q.retest} recovery · ${q.fines} fines`,q.x+25,1400,640,43,23,true,q.col);
+  txt(s,'Later public K1 account',q.x+25,1458,640,30,18,true,C.muted);
+  txt(s,q.account,q.x+25,1490,640,64,19,false,C.ink);
  }
 }
 

@@ -23,16 +23,18 @@ the PDF. The combined PowerPoint deck's old Figure 6 is superseded for manuscrip
 placement; it has not been regenerated. The earlier jitter/delta panel is not
 the current publication figure. [Data and design notes](../../../output/figures/crystal-story-preview/README.md).
 
-2026-09-23 Figure 2 typography update: main Figure 2 (Chinese Figure 4) now uses
-`figure02-research-paths-typography.png` from the separate editable
+2026-09-25 Figure 2 replacement: the main English manuscript binds
+[`figure02-research-paths-typography.png`](figure02-research-paths-typography.png),
+exported from the fully editable native-shape
 [`chemworld-figure2-typography.pptx`](../../../output/pptx/chemworld-figure2-typography.pptx).
-Large headings and values use regular weight. Panel letters follow the supplied
-Figure 1's Arial bold style and relative size. Chart keys, quench semantics and
-case limitations live in the manuscript caption, with no slide footer.
-All original charts, values, process icons and later K1 accounts are retained.
-Rebuild this single figure with `build_final_figure_deck.mjs --case-only`, then
-run `paper/tools/export_case_typography.ps1` from the repository root.
-The combined deck's earlier slide remains available for comparison.
+It follows all twelve formal W04/MisIndexed source batches, every operation call
+in selected batch 8, its independent retest, and three evidence-to-next-test
+sequences. All displayed values and operation details are read and checked against
+the formal summary by `w04_crystal_case_panel.mjs`. The small Agent questions are
+author reconstructions, not contemporaneous model quotations. Rebuild with
+`node paper/tools/build_final_figure_deck.mjs --case-only`, then run
+`paper/tools/export_case_typography.ps1`. Supplementary S4 retains the distinct
+W05/Aligned 12/24 pair and its sealed thermal forecasts.
 
 2026-09-23 Figure 1 override: both NCS manuscripts now use slide 1 of the
 user-supplied `FIgure1_2.pptx`, exported separately as
@@ -49,7 +51,7 @@ The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses thi
 | Figure | Purpose | Location |
 |---|---|---|
 | 1 | Experimental instrument and original-session assessment | Main Results, instrument |
-| 2 | Recorded 12/24-batch crystallization paths, operations and retests | Main Results, instrument |
+| 2 | One complete W04 twelve-batch crystallization history, B8 procedure and subsequent tests | Main Results, instrument |
 | 3 | Retest gains, prediction errors, joint outcomes and five-world discordance | Main Results, commission comparison |
 | 4 | Four paired outcomes under larger research envelopes | Main Results, budget comparison |
 | 5 | Five-world withheld EQ reference versus original predictions | Main Results, prior comparison |
@@ -67,11 +69,11 @@ Full response tables, the study matrix, retained failures and the all-fifteen eq
 
 ## Artwork and data
 
-The deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. The original framework, case operation icons and reflection illustration are preserved. The selected case's native progress plots are compacted to two recovery plots with feasibility strips; all 36 observations remain, including failures and the undefined feasible-best value before first success.
+The combined deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. Main Figure 2 is exported from its separate, fully editable PPT, whose marks, labels and procedure stages are native shapes and text.
 
-Fig. 2 uses the retained v16 batch data and approved v15 artwork that underlies v16. Immediate thoughts are not reconstructed. Its K1 summaries are explicitly later public accounts. S4 keeps Q sealed during K2 and labels the proposed experiment as unexecuted. The reference in S4d belongs to the reheating question, not to the proposed cooling substitution.
+Fig. 2 uses the formally retained W04 summary and a layout adapted from the reviewed ImageGen concept. The old W05 single-case source module remains available for comparison. S4 keeps Q sealed during K2 and labels the proposed experiment as unexecuted. The reference in S4d belongs to the reheating question, not to the proposed cooling substitution.
 
-Quantitative inputs remain in [retained-figure-data.json](../academic-ppt/retained-figure-data.json) and [the selected-case data](../../../output/figures/research-case-v16/data.json). They derive from existing campaign metrics, baseline reanalysis and the complete retained equilibrium process review. No model, simulator or judge calls are made. Chart workbooks use twelve significant digits; retained inputs keep the original precision.
+Other quantitative inputs remain in [retained-figure-data.json](../academic-ppt/retained-figure-data.json) and [the W05 supplementary-case data](../../../output/figures/research-case-v16/data.json). They derive from existing campaign metrics, baseline reanalysis and the complete retained equilibrium process review. No model, simulator or judge calls are made. Chart workbooks use twelve significant digits; retained inputs keep the original precision.
 
 Arial, black/dark-grey anchoring text, slate/teal/ochre arm colours and blue/teal budget colours are maintained. [style-and-export.json](style-and-export.json) records sizes, colours and crop bounds. Publication PNGs are 4,320 pixels wide. Cropping trims unused canvas only; images are scaled uniformly.
 

@@ -1,8 +1,9 @@
 # Figure 3：讨论收束与论文整合方案
 
 2026-09-24。本文汇总本轮 Figure 3 的科学解释、数据口径和写作决定，作为此次论文整合的工作说明。
-沿用已完成的数据矩阵，不新增实验。英文正文、图注和跨段落修改稿已在下方备好；
-论文源文件、正式图件、PPT 和 PDF 尚未按此方案替换。准备工作与出版物更新分别记录。
+沿用已完成的数据矩阵，不新增实验。四面板 Figure 3、英文正文与补充材料已整合，
+完整英文 PDF 已重建。最终措辞以[英文稿](../../../paper/venues/ncs/article.md)为准；
+本轮使用原生矢量科学绘图，已有其他图件与 PPT 保留。
 
 ## 1. 收束为两个相连的问题
 
@@ -136,7 +137,8 @@ EC 的该标记包括后测恢复，并非只标记来源实验重启。因此�
 
 ## 5. 可直接用于整合的英文稿
 
-以下 Results 和 caption 对应第 6 节的四面板方案；它们是替换稿，不是当前 PDF 已采用的正文。
+以下 Results 和 caption 是第 6 节四面板方案的整合底稿；正文已采用其科学表述，
+正式图注按实际面板和版面压缩，最终版本见英文稿。
 读者可见的文本不写内部运行编号、文件名或 hash。
 
 ### Results 替换段落
@@ -213,22 +215,30 @@ Figure 3 负责建立分别测量操作与预测的必要性；EQ/C 负责深化
 或“一个案例解释所有会话”。也不声称高分即接近最优、终态预测代表全过程预测、
 K2 回顾等于先前已掌握的知识。当前为一个 agent 配置、有限世界和相关读出的描述性结果。
 
-已经完成：数据矩阵、分母口径、两目标解释、案例证据核对、上方英文替换稿与图注方案。
-剩余实施限定为三个步骤：
+已完成本轮三个实施步骤：
 
-1. 按第 6 节重排 Figure 3，保留全部点和原始数值；完成一次图件视觉检查。
-2. 一次性替换 Results/图注，并同步摘要、引言、Methods、Discussion 与补充材料引用。
-3. 重建并检查完整英文 PDF，确认图号、正文引用、排版和主附录分工后结束本轮整合。
+1. Figure 3 保留 EC/RX 全部 60 对，新增两条完整 12 批次路径、两次独立复测和全部 12 题原始预测。
+   图 a 圈出回顾性选取的案例；图 d 同时突出正确的 Q04 与 Q06/Q08/Q10 的低估，保留原始区间。
+2. Results、图注、摘要、引言、Methods 和 Discussion 已同步；世界均值移入 Figure S6，
+   完整联合结果、分层、恢复敏感性、24 批操作、两份公开 Q 理由和十二题数值进入附录 E.4–E.8。
+3. 完整英文 PDF 为 40 页，Figure 3 位于第 6 页，新增附录位于第 35–39 页。
+   已检查全篇页面总览以及新图、表格和原文引用的实际排版。后续中文叙事整合完成后，
+   构建计数为正文 3,254 词、摘要 144 词，仍为六图一表；构建无溢出或未解析引用警告。
 
-这些步骤不要求新增实验、阶段性预测补测、追加模型、额外 baseline 或全矩阵机制评分。
-没有必要为了写出更强的结论不断扩张证据。当前六面板图件与旧四面板正文图注的错配，
-在同一次替换中解决；不能将本工作说明的完成称为稿件或 PDF 已更新。
+W2-195 已进一步吸收远端中文片段中对平台双重角色、资源与信息正面收益、原会话评价顺序及
+未来系统设计的表述。Figure 3、定量 Results、图注和 Methods 保持不变；设计建议明确为待检验方向。
+
+科学核对覆盖 120 个会话端点、60 对、24 批分数、170 条公开操作、两次复测和十二题预测。
+未增加模型或模拟器调用，未改变既有实验分母、失败记录或证据身份。
 
 ## 8. 文件与复现
 
 - [可读数据矩阵](DATA_MATRIX.md)：原始覆盖、全部分层、12 批操作和 12 题预测。
 - [60 对实际表现矩阵](performance-pairs.csv)：原始目标、两方端点、实际高分会话、未舍入差值、恢复标记。
 - [12 批实验](case-batches.csv)及[12 题预测](case-queries.csv)：全部保留，包括低分、正确预测和区间未覆盖。
+- [两条路径的全部 24 批实验](case-paired-batches.csv)：含操作顺序、分段电解和封存推荐。
+- [新 Figure 3](../../../paper/figures/venue-results/figure03-goals-paths-forecasts.svg)及[Figure S6](../../../paper/figures/venue-results/figureS6-goal-world-means.svg)。
+- [完整英文 PDF](../../pdf/chemworld-ncs-en-final.pdf)，[补充材料源稿](../../../paper/venues/ncs/goal_prediction_details.md)。
 - [原始目标配对表](all-60-pairs.csv)、[原始均值与计数](summary.json)：沿用旧定义，未覆写。
 - [整理脚本](../../../paper/tools/analyze_operation_prediction_relationship.py)。
 - 案例 [Discovery 公开报告](../../../workstreams/flagship_tasks/reports/work-ii-ec-pa-five-world-en-20260919/EC-W01-B12-discovery-E-Opaque/REPORT.md)与[完整操作](../../../workstreams/flagship_tasks/reports/work-ii-ec-pa-five-world-en-20260919/EC-W01-B12-discovery-E-Opaque/public-trajectory.json)。
@@ -238,6 +248,8 @@ K2 回顾等于先前已掌握的知识。当前为一个 agent 配置、有限�
 
 ```powershell
 uv run --no-sync python paper/tools/analyze_operation_prediction_relationship.py
+uv run --no-sync python paper/tools/render_goal_prediction_panels.py
+uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs --output output/pdf/chemworld-ncs-en-final.pdf
 ```
 
 配对数值来自已保留的 `paper/figures/integrated-results/campaign_metrics.csv`，并逐项对照原配对 CSV。
@@ -245,5 +257,6 @@ uv run --no-sync python paper/tools/analyze_operation_prediction_relationship.py
 完整重建需要该绑定的本地运行目录。导出仅含操作设置、分数和预测结果，不含原始 provider 数据或私有种子。
 已导出的 CSV 和本文可独立阅读。
 
-已有图件由 `paper/tools/render_operation_prediction_story.py` 构建，仍是原来的委托对比；
-本次脚本不会调用它，也不改动既有论文配图。
+当前四面板图与支持材料由 `paper/tools/render_goal_prediction_panels.py` 构建。
+脚本复用旧委托配对的核对逻辑，但将新图导出到独立路径，避免改变中文历史稿所引用的旧图件。
+英文稿已绑定新路径；其他正文图件保持原有安排。

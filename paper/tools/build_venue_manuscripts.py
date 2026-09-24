@@ -135,6 +135,11 @@ def appendix(venue: str):
             "increase computational allowances.](figures/final-ppt/figureS3-budget-detail.png)"
             "{width=100%}\n"
         )
+    if venue == "ncs":
+        protocol = protocol.replace(
+            "EC goal sensitivity\nis reported in the main text.",
+            "EC goal sensitivity\nis reported with the supplementary goal comparison.",
+        )
     # One full-width prior overview per page; keep it apart from protocol text.
     protocol = protocol.replace("## A.6", "\\clearpage\n\n## A.6")
     if venue == "iclr2027":
@@ -151,6 +156,7 @@ def appendix(venue: str):
     ]
     if venue == "ncs":
         blocks.append((VENUES / "ncs/selected_research_cases.md").read_text(encoding="utf-8"))
+        blocks.append((VENUES / "ncs/goal_prediction_details.md").read_text(encoding="utf-8"))
         blocks.append((VENUES / "ncs/eq_prediction_details.md").read_text(encoding="utf-8"))
     text = "\n\\clearpage\n\n".join(blocks)
     text = re.sub(r"^# Appendix [A-F]\. ", "# ", text, flags=re.M)
