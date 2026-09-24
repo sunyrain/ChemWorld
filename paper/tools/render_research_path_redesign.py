@@ -190,7 +190,7 @@ def prepare():
                 "public_accounts": public,
                 "withheld_reference": REFERENCE,
                 "transitions": {
-                    str(n): batches[n] for n in ([9, 10] if old["budget"] == 12 else [19, 20])
+                    str(n): batches[n] for n in ([8, 10] if old["budget"] == 12 else [19, 20])
                 },
             }
         )
@@ -263,6 +263,7 @@ def draw(data):
             "ytick.color": MUTED,
             "axes.linewidth": 0.7,
             "svg.fonttype": "none",
+            "svg.hashsalt": "chemworld-research-paths",
             "savefig.facecolor": "white",
         }
     )
@@ -356,7 +357,7 @@ def draw(data):
         text(
             0.078 + i * 0.49,
             0.672,
-            f"Retest: recovery {100 * retest['crystal_yield']:.1f}%; "
+            f"Evaluator retest: recovery {100 * retest['crystal_yield']:.1f}%; "
             f"fines {100 * retest['crystal_fines_fraction']:.1f}%",
             size=15,
             color=COLORS[i],
@@ -463,7 +464,14 @@ def draw(data):
         text(x, 0.082, "Proposed next experiment · not executed", size=15, color=color)
         text(x, 0.059, account["proposed"], size=16.5, va="top", linespacing=1.4)
     for ext in ("svg", "png"):
-        fig.savefig(OUT / f"figure02-research-paths-preview.{ext}", dpi=230)
+        path = OUT / f"figure02-research-paths-preview.{ext}"
+        fig.savefig(path, dpi=230, metadata={"Date": None} if ext == "svg" else None)
+        if ext == "svg":
+            path.write_text(
+                "\n".join(line.rstrip() for line in path.read_text(encoding="utf-8").splitlines())
+                + "\n",
+                encoding="utf-8",
+            )
     plt.close(fig)
 
 
