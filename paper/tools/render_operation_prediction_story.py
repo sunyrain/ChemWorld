@@ -12,14 +12,26 @@ import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.patches import Patch
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch, Rectangle
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "paper/figures/integrated-results"
 OUT = ROOT / "output/figures/operation-prediction-story"
 ASSETS = ROOT / "paper/figures/venue-results"
-INK, MUTED, GRID = "#34434C", "#63717B", "#E5E9EC"
-DISCOVERY, OPTIMIZATION, REACTION = "#94A3AD", "#337F89", "#B47857"
+INK, MUTED, AXIS = "#26343D", "#63717B", "#111111"
+DISCOVERY, OPTIMIZATION = "#9AABB4", "#0F858B"
+ARM_COLORS = {
+    "Opaque": "#187AA5",
+    "Aligned": "#DB6B25",
+    "MisIndexed": "#209887",
+}
+QUADRANT_COLORS = {
+    "operation_worse_prediction_better": "#F2EEF8",
+    "both_better": "#EDF6EF",
+    "both_worse": "#EDF3F6",
+    "operation_better_prediction_worse": "#FBEFE8",
+}
 KEYS = ("world", "locus", "budget", "arm")
 CATEGORIES = (
     "both_better",
@@ -125,138 +137,284 @@ def prepare():
             writer = csv.DictWriter(stream, fieldnames=list(rr[0]))
             writer.writeheader()
             writer.writerows(rr)
-    return summary
+    return summary, pairs
 
 
 def style(ax, horizontal=False):
     ax.spines[["top", "right"]].set_visible(False)
-    ax.spines["left" if horizontal else "bottom"].set_visible(False)
-    ax.spines["bottom" if horizontal else "left"].set_color("#A8B3BA")
-    ax.tick_params(length=0, pad=8)
-    ax.grid(axis="x" if horizontal else "y", color=GRID, linewidth=0.6)
-    ax.set_axisbelow(True)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_visible(True)
+        ax.spines[side].set_color(AXIS)
+        ax.spines[side].set_linewidth(0.6)
+    ax.tick_params(
+        axis="both",
+        which="major",
+        direction="out",
+        length=2.5,
+        width=0.6,
+        color=AXIS,
+        labelcolor=AXIS,
+        pad=3,
+    )
+    ax.grid(False)
 
 
-def draw(s):
+def quadrant_background(ax, xlim, ylim):
+    xmin, xmax = xlim
+    ymin, ymax = ylim
+    regions = (
+        ((xmin, 0), -xmin, ymax, QUADRANT_COLORS["operation_worse_prediction_better"]),
+        ((0, 0), xmax, ymax, QUADRANT_COLORS["both_better"]),
+        ((xmin, ymin), -xmin, -ymin, QUADRANT_COLORS["both_worse"]),
+        ((0, ymin), xmax, -ymin, QUADRANT_COLORS["operation_better_prediction_worse"]),
+    )
+    for origin, width, height, color in regions:
+        ax.add_patch(
+            Rectangle(
+                origin,
+                width,
+                height,
+                facecolor=color,
+                edgecolor="none",
+                zorder=0,
+            )
+        )
+
+
+def quadrant_labels(ax, counts, fontsize=5.75):
+    labels = (
+        (0.04, 0.95, "Prediction better\nRetest worse", counts["operation_worse_prediction_better"], "left", "top"),
+        (0.54, 0.95, "Both better", counts["both_better"], "left", "top"),
+        (0.04, 0.05, "Both worse", counts["both_worse"], "left", "bottom"),
+        (0.96, 0.05, "Retest better\nPrediction worse", counts["operation_better_prediction_worse"], "right", "bottom"),
+    )
+    for x, y, label, count, ha, va in labels:
+        ax.text(
+            x,
+            y,
+            f"{label}\n{count}/30",
+            transform=ax.transAxes,
+            ha=ha,
+            va=va,
+            fontsize=fontsize,
+            color=INK,
+            linespacing=1.35,
+            zorder=5,
+        )
+
+
+def draw_joint(ax, pairs, counts, *, xlim, ylim, xticks, yticks, label_fontsize=5.75):
+    assert len(pairs) == 30
+    assert sum(counts.values()) == 30
+    assert abs(xlim[0] + xlim[1]) < 1e-12
+    assert abs(ylim[0] + ylim[1]) < 1e-12
+    xx = [r["delta_retest"] for r in pairs]
+    yy = [-r["delta_score_mae"] for r in pairs]
+    assert xlim[0] < min(xx) and max(xx) < xlim[1]
+    assert ylim[0] < min(yy) and max(yy) < ylim[1]
+    quadrant_background(ax, xlim, ylim)
+    for arm in ("Opaque", "Aligned", "MisIndexed"):
+        rows = [r for r in pairs if r["arm"] == arm]
+        assert len(rows) == 10
+        ax.scatter(
+            [r["delta_retest"] for r in rows],
+            [-r["delta_score_mae"] for r in rows],
+            s=18,
+            marker="o",
+            color=ARM_COLORS[arm],
+            edgecolor="white",
+            linewidth=0.35,
+            alpha=0.94,
+            zorder=3,
+        )
+    ax.axvline(0, color="#78858D", linewidth=0.45, linestyle=(0, (4, 3)), zorder=2)
+    ax.axhline(0, color="#78858D", linewidth=0.45, linestyle=(0, (4, 3)), zorder=2)
+    ax.set_xlim(xlim)
+    ax.set_ylim(ylim)
+    ax.set_xticks(xticks)
+    ax.set_yticks(yticks)
+    ax.set_xlabel("Change in retested score", labelpad=4)
+    ax.set_ylabel("Prediction improvement", labelpad=4)
+    ax.spines[["top", "right"]].set_visible(False)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_visible(True)
+        ax.spines[side].set_color(AXIS)
+        ax.spines[side].set_linewidth(0.6)
+    ax.tick_params(
+        axis="both",
+        which="major",
+        direction="out",
+        length=2.5,
+        width=0.6,
+        color=AXIS,
+        labelcolor=AXIS,
+        pad=3,
+    )
+    ax.grid(False)
+    quadrant_labels(ax, counts, fontsize=label_fontsize)
+
+
+def draw_world_bars(ax, rows, metric):
+    xx = np.arange(5)
+    style(ax)
+    for offset, goal, color in (
+        (-0.21, "discovery", DISCOVERY),
+        (0.21, "optimization", OPTIMIZATION),
+    ):
+        ax.bar(
+            xx + offset,
+            [r[f"{goal}_{metric}"] for r in rows],
+            width=0.38,
+            color=color,
+        )
+    ax.set_xticks(xx, [f"W{i}" for i in range(1, 6)], fontsize=5.75)
+
+
+def draw(s, pairs):
     plt.rcParams.update(
         {
             "font.family": "Arial",
-            "font.size": 16,
+            "font.size": 6.5,
             "font.weight": "normal",
             "text.color": INK,
             "axes.labelcolor": INK,
-            "xtick.color": MUTED,
-            "ytick.color": MUTED,
-            "axes.linewidth": 0.7,
+            "xtick.color": AXIS,
+            "ytick.color": AXIS,
+            "axes.linewidth": 0.6,
             "svg.fonttype": "none",
             "pdf.fonttype": 42,
             "savefig.facecolor": "white",
         }
     )
-    fig = plt.figure(figsize=(14.4, 10.8), facecolor="white")
+    # Native 183-mm full-width canvas: no hidden 50% downscaling in the paper.
+    # A compact landscape grid keeps each panel visually wide at 183-mm output.
+    fig = plt.figure(figsize=(7.2, 4.55), facecolor="white")
     for letter, x, y, title in [
-        ("a", 0.025, 0.95, "Electrochemistry: recommendation performance"),
-        ("b", 0.531, 0.95, "Electrochemistry: prediction error"),
-        ("c", 0.025, 0.453, "Joint outcomes of the two commissions"),
-        ("d", 0.531, 0.453, "Discordance across electrochemical worlds"),
+        ("a", 0.025, 0.950, "EC recommendation performance"),
+        ("b", 0.355, 0.950, "EC prediction error"),
+        ("c", 0.685, 0.950, "EC joint outcomes"),
+        ("d", 0.025, 0.510, "RX recommendation performance"),
+        ("e", 0.355, 0.510, "RX prediction error"),
+        ("f", 0.685, 0.510, "RX joint outcomes"),
     ]:
-        fig.text(x, y, letter, size=21.5, weight="bold")
-        fig.text(x + 0.027, y, title, size=17)
-    ec = s["overall"]["EC"]
-    fig.text(
-        0.052,
-        0.906,
-        f"Mean score: {ec['discovery_retest_mean']:.3f} to {ec['optimization_retest_mean']:.3f}",
-        size=16,
-    )
-    fig.text(0.052, 0.873, "Optimization improves 26/30 paired retests", size=15, color=MUTED)
-    fig.text(
-        0.558,
-        0.906,
-        f"Mean MAE: {ec['discovery_score_mae_mean']:.4f} "
-        f"to {ec['optimization_score_mae_mean']:.4f}",
-        size=16,
-    )
-    fig.text(0.558, 0.873, "Optimization improves 14/30 paired forecasts", size=15, color=MUTED)
-    legend = [
+        fig.text(x, y, letter, size=8.5, weight="bold", va="top")
+        fig.text(x + 0.032, y, title, size=7, weight="bold", va="top")
+    commission_legend = [
         Patch(color=DISCOVERY, label="Discovery"),
         Patch(color=OPTIMIZATION, label="Optimization"),
     ]
-    for x in (0.052, 0.558):
-        fig.legend(
-            handles=legend,
-            loc="center left",
-            bbox_to_anchor=(x, 0.836),
-            ncol=2,
-            frameon=False,
-            fontsize=15,
-            handlelength=1.1,
-            columnspacing=2,
-        )
-    a = fig.add_axes([0.078, 0.552, 0.4, 0.243])
-    b = fig.add_axes([0.61, 0.552, 0.35, 0.243])
-    worlds = [r for r in s["world_means"] if r["system"] == "EC"]
-    xx = np.arange(5)
-    for ax, metric in ((a, "retest"), (b, "score_mae")):
-        style(ax)
-        for offset, goal, color in (
-            (-0.18, "discovery", DISCOVERY),
-            (0.18, "optimization", OPTIMIZATION),
-        ):
-            ax.bar(xx + offset, [r[f"{goal}_{metric}"] for r in worlds], width=0.32, color=color)
-        ax.set_xticks(xx, [f"World {i}" for i in range(1, 6)], fontsize=14)
-    a.set(ylim=(0, 0.9), ylabel="Retested score (higher is better)")
-    a.set_yticks([0, 0.3, 0.6, 0.9])
-    b.set(ylim=(0, 0.22), ylabel="Score MAE (lower is better)")
-    b.set_yticks([0, 0.05, 0.10, 0.15, 0.20])
-    c = fig.add_axes([0.225, 0.08, 0.25, 0.265])
-    style(c, horizontal=True)
     fig.legend(
-        handles=[
-            Patch(color=OPTIMIZATION, label="Electrochemistry"),
-            Patch(color=REACTION, label="Reaction processing"),
-        ],
-        loc="center left",
-        bbox_to_anchor=(0.052, 0.412),
-        frameon=False,
+        handles=commission_legend,
+        loc="upper right",
+        bbox_to_anchor=(0.990, 0.995),
         ncol=2,
-        fontsize=14.5,
+        frameon=False,
+        fontsize=6,
         handlelength=1.1,
-        columnspacing=1.4,
+        columnspacing=1.5,
     )
-    categories = [
-        "Both better",
-        "Better retest,\nworse prediction",
-        "Worse retest,\nbetter prediction",
-        "Both worse",
+    axes = {
+        "a": fig.add_axes([0.060, 0.650, 0.255, 0.245]),
+        "b": fig.add_axes([0.390, 0.650, 0.255, 0.245]),
+        "c": fig.add_axes([0.720, 0.650, 0.270, 0.245]),
+        "d": fig.add_axes([0.060, 0.200, 0.255, 0.250]),
+        "e": fig.add_axes([0.390, 0.200, 0.255, 0.250]),
+        "f": fig.add_axes([0.720, 0.200, 0.270, 0.250]),
+    }
+    ec_worlds = [r for r in s["world_means"] if r["system"] == "EC"]
+    rx_worlds = [r for r in s["world_means"] if r["system"] == "RX"]
+    draw_world_bars(axes["a"], ec_worlds, "retest")
+    draw_world_bars(axes["b"], ec_worlds, "score_mae")
+    draw_world_bars(axes["d"], rx_worlds, "retest")
+    draw_world_bars(axes["e"], rx_worlds, "score_mae")
+    axes["a"].set_ylim(0, 0.9)
+    axes["a"].set_yticks([0, 0.3, 0.6, 0.9])
+    axes["d"].set_ylim(0, 0.45)
+    axes["d"].set_yticks([0, 0.15, 0.30, 0.45])
+    for ax in (axes["a"], axes["d"]):
+        ax.set_ylabel("Retested score")
+    axes["b"].set_ylim(0, 0.22)
+    axes["b"].set_yticks([0, 0.05, 0.10, 0.15, 0.20])
+    axes["e"].set_ylim(0, 0.13)
+    axes["e"].set_yticks([0, 0.04, 0.08, 0.12])
+    for ax in (axes["b"], axes["e"]):
+        ax.set_ylabel("Score MAE")
+    ec_pairs = [r for r in pairs if r["system"] == "EC"]
+    rx_pairs = [r for r in pairs if r["system"] == "RX"]
+    draw_joint(
+        axes["c"],
+        ec_pairs,
+        s["overall"]["EC"]["outcomes"],
+        xlim=(-0.56, 0.56),
+        ylim=(-0.25, 0.25),
+        xticks=(-0.50, -0.25, 0, 0.25, 0.50),
+        yticks=(-0.2, -0.1, 0, 0.1, 0.2),
+        label_fontsize=5.0,
+    )
+    draw_joint(
+        axes["f"],
+        rx_pairs,
+        s["overall"]["RX"]["outcomes"],
+        xlim=(-0.08, 0.08),
+        ylim=(-0.20, 0.20),
+        xticks=(-0.06, -0.03, 0, 0.03, 0.06),
+        yticks=(-0.2, -0.1, 0, 0.1, 0.2),
+        label_fontsize=5.0,
+    )
+    arm_legend = [
+        Line2D([], [], linestyle="none", marker="", label="Information arm"),
+        *[
+            Line2D(
+                [],
+                [],
+                linestyle="none",
+                marker="o",
+                markersize=3.5,
+                markerfacecolor=ARM_COLORS[arm],
+                markeredgecolor="white",
+                markeredgewidth=0.35,
+                label=arm,
+            )
+            for arm in ("Opaque", "Aligned", "MisIndexed")
+        ],
     ]
-    for offset, system, color in ((0.17, "EC", OPTIMIZATION), (-0.17, "RX", REACTION)):
-        values = [s["overall"][system]["outcomes"][k] for k in CATEGORIES]
-        bars = c.barh(np.array([3, 2, 1, 0]) + offset, values, height=0.28, color=color)
-        c.bar_label(bars, labels=[f"{v}/30" for v in values], padding=4, size=14.5)
-    c.set(xlim=(0, 30), ylim=(-0.6, 3.6), xlabel="Matched pairs (of 30 per system)")
-    c.set_xticks([0, 10, 20, 30])
-    c.set_yticks([3, 2, 1, 0], categories, fontsize=14.5)
-    d = fig.add_axes([0.61, 0.08, 0.35, 0.265])
-    style(d)
-    fig.text(0.558, 0.412, "Better retest, worse prediction: 13/30 pairs", size=15, color=MUTED)
-    values = [r["discordant"] for r in worlds]
-    bars = d.bar(xx, values, width=0.57, color=OPTIMIZATION)
-    d.bar_label(bars, labels=[f"{v}/6" for v in values], padding=6, size=16)
-    d.set(ylim=(0, 6), ylabel="Discordant pairs (of 6 per world)")
-    d.set_yticks([0, 2, 4, 6])
-    d.set_xticks(xx, [f"World {i}" for i in range(1, 6)], fontsize=14)
+    fig.legend(
+        handles=arm_legend,
+        loc="lower center",
+        bbox_to_anchor=(0.5, 0.018),
+        frameon=False,
+        ncol=4,
+        fontsize=5.75,
+        handletextpad=0.55,
+        columnspacing=1.8,
+    )
     ASSETS.mkdir(parents=True, exist_ok=True)
-    for ext in ("pdf", "svg", "png"):
-        fig.savefig(ASSETS / f"figure03-operation-prediction.{ext}", dpi=300)
-    fig.savefig(OUT / "operation-prediction-four-panels.png", dpi=200)
+    fig.savefig(
+        ASSETS / "figure03-operation-prediction.pdf",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+    fig.savefig(
+        ASSETS / "figure03-operation-prediction.svg",
+        dpi=300,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+    fig.savefig(
+        ASSETS / "figure03-operation-prediction.png",
+        dpi=600,
+        bbox_inches="tight",
+        facecolor="white",
+    )
+    fig.savefig(OUT / "operation-prediction-four-panels.png", dpi=600)
     plt.close(fig)
 
 
 if __name__ == "__main__":
-    summary = prepare()
-    draw(summary)
+    summary, paired_rows = prepare()
+    draw(summary, paired_rows)
     print(
-        "Rendered 4 panels from 120 campaigns / 60 pairs; "
+        "Rendered 6 panels from 120 campaigns / 60 pairs; "
         "exact retained deltas and restart sensitivity verified."
     )
