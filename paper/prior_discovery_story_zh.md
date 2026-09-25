@@ -6,7 +6,7 @@
 纳入 EQ 浓度区间反转和 C 响应分化，共用已核实结果与补充材料。下面保留此前合篇的
 逐章讨论，原英文 review 版和 PDF 未被覆盖。
 
-更新：2026-09-21。与[英文全文](chemworld_integrated_manuscript.md)章节对应。本文件用于作者讨论，说明各章的问题、实验依据、结论和下一章为何必要。完整数据及历史失败另见附录和证据记录。
+更新：2026-09-21。与[英文全文](archive/integrated-review/chemworld_integrated_manuscript.md)章节对应。本文件用于作者讨论，说明各章的问题、实验依据、结论和下一章为何必要。完整数据及历史失败另见附录和证据记录。
 
 后续讨论：[外部故事建议评估与逐世界再分析](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/STORY_REVIEW_ZH.md)新增EQ查询区间反转、C响应反转及完整80组三臂世界比较，供合作者评估；尚未据此替换英文主文。
 
@@ -174,7 +174,7 @@ P还有一个重复错误：15场中13场将洗涤分段对纯度的影响预测
 
 建议按第4→5→6→7章讨论四个判断：操作与预测分离是否足以成为核心问题；预算改善及其敏感性应怎样表述；先验反转应保留哪些代表性比较；C同源基线与个案支持多强的证据利用主张。每章已列出反例和不能推出的解释。
 
-- [英文全文](chemworld_integrated_manuscript.md)：正式论证与附录A完整矩阵、协议。
+- [英文全文](archive/integrated-review/chemworld_integrated_manuscript.md)：正式论证与附录A完整矩阵、协议。
 - [全指标附录B](chemworld_integrated_results_appendix.md)：所有指标与三臂。
 - [逐场指标](figures/integrated-results/campaign_metrics.csv)：240场、1,065条记录。
 - [详细配对分析](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/DETAILED_ANALYSIS.md)：预算、先验、基线与敏感性。

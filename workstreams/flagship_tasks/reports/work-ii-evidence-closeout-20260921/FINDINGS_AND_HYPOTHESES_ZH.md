@@ -1917,7 +1917,7 @@ Opaque: `RX-W05--S--safety_constrained_optimization--Opaque`，复测=0.35622；
 [D]: DETAILED_ANALYSIS.md
 [W]: STORY_REVIEW_ZH.md
 [INT]: INTERPRETATION_ZH.md
-[M]: ../../../../paper/chemworld_integrated_manuscript.md
+[M]: ../../../../paper/archive/integrated-review/chemworld_integrated_manuscript.md
 [F]: ../../../arxiv_v1/FIRST_PAPER_TODOLIST.md
 [MX]: ../../WORK_II_EXPERIMENT_MATRIX.md
 [HIST]: ../../WORK_II_PAPER_RESULTS_ZH.md

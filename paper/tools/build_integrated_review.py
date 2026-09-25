@@ -14,7 +14,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 PAPER = ROOT / "paper"
 OUT = ROOT / "output/pdf/archive/integrated-review"
-SOURCE = PAPER / "chemworld_integrated_manuscript.md"
+SOURCE = PAPER / "archive/integrated-review/chemworld_integrated_manuscript.md"
 
 
 def run(command, cwd):
@@ -47,9 +47,10 @@ def main():
     assert used <= keys, used - keys
     assert "Prospective nine-system" not in text
     assert "[TODO" not in text and "[TBD" not in text
-    for asset in re.findall(r"\]\((figures/[^)]+)\)", body):
-        assert (PAPER / asset).is_file(), asset
-        body = body.replace("](" + asset + ")", "](" + (PAPER / asset).as_posix() + ")")
+    for asset in re.findall(r"\]\((\.\./\.\./figures/[^)]+)\)", body):
+        asset_path = (SOURCE.parent / asset).resolve()
+        assert asset_path.is_file(), asset
+        body = body.replace("](" + asset + ")", "](" + asset_path.as_posix() + ")")
     OUT.mkdir(parents=True, exist_ok=True)
     # Keep transient LaTeX and QA files outside the repository.
     build = Path(tempfile.gettempdir()) / "chemworld-integrated-review-build"

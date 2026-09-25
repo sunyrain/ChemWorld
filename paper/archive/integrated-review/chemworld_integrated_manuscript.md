@@ -141,7 +141,7 @@ matched demonstrations of private-law forks. The three-arm campaigns studied her
 information interventions within each world; the fork demonstrations establish a platform
 capability and do not increase the agent-study sample size.
 
-![Controlled worlds and autonomous assessment. The evaluator controls physical laws and supplied information separately. Agents retain freedom over experimental actions and mechanism expression. Prediction follows a sealed report but retains the full research context; it is not a report-only transfer test.](figures/integrated-results/framework.pdf){width=100%}
+![Controlled worlds and autonomous assessment. The evaluator controls physical laws and supplied information separately. Agents retain freedom over experimental actions and mechanism expression. Prediction follows a sealed report but retains the full research context; it is not a report-only transfer test.](../../figures/integrated-results/framework.pdf){width=100%}
 
 ## 2.2 Experiments have persistent consequences
 
@@ -379,7 +379,7 @@ is therefore neither a uniformly better operating strategy across these tasks no
 necessarily a tradeoff against prediction. Operational and predictive outputs must be
 measured separately: their relationship changes with the system and assignment.
 
-![Goal contrasts with the same prediction endpoint. Points compare optimization with discovery in matched conditions; colors denote arms and shapes denote five worlds. Rightward means a better retest, upward means worse score prediction. Each panel contains 30 pairs clustered in five worlds. EC includes two budgets and RX two prior loci; scores and reference targets differ, so magnitudes are not pooled.](figures/integrated-results/goals.pdf){width=100%}
+![Goal contrasts with the same prediction endpoint. Points compare optimization with discovery in matched conditions; colors denote arms and shapes denote five worlds. Rightward means a better retest, upward means worse score prediction. Each panel contains 30 pairs clustered in five worlds. EC includes two budgets and RX two prior loci; scores and reference targets differ, so magnitudes are not pooled.](../../figures/integrated-results/goals.pdf){width=100%}
 
 ## 4.2 A useful outcome must satisfy the actual scientific commission
 
@@ -411,7 +411,7 @@ Thus even the interpretation of operational success requires multiple responses:
 recovery without sufficient purity does not satisfy this commission, and a qualifying
 recipe does not establish reliable predictions of either response.
 
-![Purification delivery and uncertainty. Left: all fifteen recommendation retests, with the purity threshold dashed. Right: campaign-level interval coverage and arm means; the dashed line is nominal 80%. World markers and arm colors follow Figure 2; a cross marks the source shortfall.](figures/integrated-results/purification.pdf){width=100%}
+![Purification delivery and uncertainty. Left: all fifteen recommendation retests, with the purity threshold dashed. Right: campaign-level interval coverage and arm means; the dashed line is nominal 80%. World markers and arm colors follow Figure 2; a cross marks the source shortfall.](../../figures/integrated-results/purification.pdf){width=100%}
 
 The goal experiments establish a separation between achievement and prediction, while
 the delivery study shows why achievement must respect the system's constraints. The
@@ -471,7 +471,7 @@ from -0.00323 to +0.00698. Fines still improve on average in the conforming pair
 nominal 80%. By contrast, the directions of the EC and PA mean budget improvements
 survive removing any one world. These are influence checks, not confidence intervals.
 
-![Budget contrasts. Thin lines connect the same world and arm across independent 12- and 24-batch sessions; dark diamonds show means. Colors follow Figure 2. The cross marks C's source shortfall. EC panels predict score, PA predicts organic fraction, and C predicts fines fraction; vertical scales differ.](figures/integrated-results/budgets.pdf){width=100%}
+![Budget contrasts. Thin lines connect the same world and arm across independent 12- and 24-batch sessions; dark diamonds show means. Colors follow Figure 2. The cross marks C's source shortfall. EC panels predict score, PA predicts organic fraction, and C predicts fines fraction; vertical scales differ.](../../figures/integrated-results/budgets.pdf){width=100%}
 
 These comparisons enlarge the research envelope, including computation and allocation.
 They do not establish that twelve experiments are inherently insufficient or identify
@@ -610,7 +610,7 @@ underpredicted by 0.21890 and 0.18274 at the two budgets. These patterns motivat
 examining how the observations constrain extrapolation, without identifying a unique
 psychological or mechanistic cause.
 
-![Same-source empirical references reveal response-specific failures in crystallization. Each panel compares agent MAE with the mean of its own public final observations for all thirty campaigns. Points above the diagonal favor the public mean. Colors denote prior arms; circles and triangles denote 12 and 24 batches. The cross marks the eleven-assay source. Panels have different scales and reuse five worlds.](figures/integrated-results/evidence.pdf){width=100%}
+![Same-source empirical references reveal response-specific failures in crystallization. Each panel compares agent MAE with the mean of its own public final observations for all thirty campaigns. Points above the diagonal favor the public mean. Colors denote prior arms; circles and triangles denote 12 and 24 batches. The cross marks the eleven-assay source. Panels have different scales and reuse five worlds.](../../figures/integrated-results/evidence.pdf){width=100%}
 
 ## 7.2 Recognizing the limits of evidence does not ensure calibrated forecasts
 
@@ -938,7 +938,7 @@ completed cohort-wide mechanism score or causal compression experiment is implie
 
 ## A.6 Full prior overview
 
-![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these selected readouts with all metric-specific arm means, including EQ/E.](figures/integrated-results/priors.pdf){width=100%}
+![Prior information has no common ordering. Every panel includes five worlds and three arms: Opaque (O), Aligned (A), and MisIndexed (M). Gray lines connect worlds; colored bars show means. Crosses mark source shortfalls. RX and EQ use within-system macro errors; other panels name their response. Scales differ. Appendix B complements these selected readouts with all metric-specific arm means, including EQ/E.](../../figures/integrated-results/priors.pdf){width=100%}
 
 # References
 

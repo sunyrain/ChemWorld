@@ -19,5 +19,6 @@ exports. Their filenames preserve the original editing-stage identity:
 | `chemworld-ncs-zh-full.pdf` | [Chinese full draft](ncs/chemworld-ncs-zh-full.pdf) |
 
 The earlier [integrated review PDF](integrated-review/chemworld-integrated-review.pdf)
-remains linked from its evidence index. None of these PDFs is the current NCS
+and its [source](../../../paper/archive/integrated-review/chemworld_integrated_manuscript.md)
+remain linked from their evidence index. None of these PDFs is the current NCS
 or ICLR manuscript.

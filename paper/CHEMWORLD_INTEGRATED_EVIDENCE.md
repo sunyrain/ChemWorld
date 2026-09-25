@@ -21,7 +21,7 @@ bibliography, and bound qualification artifacts are unchanged by this revision.
 
 ## Manuscript and outputs
 
-- Canonical English source: [chemworld_integrated_manuscript.md](chemworld_integrated_manuscript.md).
+- Historical English review source: [chemworld_integrated_manuscript.md](archive/integrated-review/chemworld_integrated_manuscript.md).
 - Chinese abstract and author argument: [prior_discovery_story_zh.md](prior_discovery_story_zh.md).
 - Generated all-metric appendix: [chemworld_integrated_results_appendix.md](chemworld_integrated_results_appendix.md).
 - Generated campaign data: [campaign_metrics.csv](figures/integrated-results/campaign_metrics.csv), 240 campaigns and 1,065 campaign/metric rows.
