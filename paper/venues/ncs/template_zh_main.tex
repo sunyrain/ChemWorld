@@ -1,0 +1,54 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[margin=23mm]{geometry}
+\usepackage{fontspec,xeCJK}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+\setCJKmainfont{SimSun}[BoldFont=SimHei]
+\setCJKsansfont{Microsoft YaHei}
+\setCJKmonofont{Microsoft YaHei}
+\usepackage{graphicx,booktabs,array,longtable,calc,float,placeins,needspace}
+\usepackage{amsmath,amssymb,xcolor,microtype}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{caption,fancyhdr}
+\captionsetup{font=small,labelfont=bf,labelsep=quad,skip=7pt}
+\renewcommand{\figurename}{图}
+\renewcommand{\tablename}{表}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small ChemWorld}
+\fancyhead[R]{\small 中文正文译稿}
+\fancyfoot[C]{\thepage}
+\setlength{\headheight}{16pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.15}
+\linespread{1.18}
+\clubpenalty=10000
+\widowpenalty=10000
+\setcounter{secnumdepth}{0}
+\renewcommand{\topfraction}{.92}
+\renewcommand{\bottomfraction}{.85}
+\renewcommand{\textfraction}{.07}
+\renewcommand{\floatpagefraction}{.75}
+\makeatletter
+\setlength{\@fptop}{0pt}
+\makeatother
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\pandocbounded}[1]{#1}
+\hypersetup{pdftitle={$title$},pdfsubject={Current ChemWorld article: Chinese main-text translation}}
+\begin{document}
+\begin{center}
+{\LARGE\bfseries $title$\par}
+\vspace{.6em}
+{\small 中文正文译稿\par}
+\end{center}
+\vspace{.4em}
+\noindent\textbf{摘要}\par
+$abstract$
+\par\vspace{.7em}
+$body$
+\FloatBarrier
+\end{document}

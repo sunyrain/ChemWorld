@@ -70,7 +70,7 @@ def assets(text: str):
 
 
 def author_block():
-    meta, _ = load_markdown(PAPER / "chemworld_integrated_manuscript.md")
+    meta, _ = load_markdown(PAPER / "archive/integrated-review/chemworld_integrated_manuscript.md")
     names = []
     for a in meta["author"]:
         marks = "1" + (",*" if a.get("equal_contribution") else "")
@@ -102,35 +102,73 @@ def author_block():
 def appendix(venue: str):
     protocol = (VENUES / "shared_protocol.md").read_text(encoding="utf-8")
     if venue == "ncs":
+        def graphic_page(path: str, label: str, caption: str) -> str:
+            assert (PAPER / path).is_file(), path
+            return (
+                f"\\noindent\\includegraphics[width=\\linewidth]{{{path}}}\\par\n\n"
+                f"\\noindent{{\\small\\textbf{{Figure {label}.}} "
+                f"{caption}\\par}}\n"
+            )
+
+        prior_pages = (
+            ("a-d", "electrochemistry across both goals and budgets"),
+            ("e-h", "partitioning and reaction discovery"),
+            ("i-l", "reaction optimization and equilibrium"),
+            ("m-p", "crystallization and purification"),
+        )
+        prior_figures = "\n\\clearpage\n\n".join(
+            graphic_page(
+                f"figures/venue-results/figureS1-prior-graphical-table-{index}.pdf",
+                f"S1{panels}",
+                "Full prior overview for " + subject + ". Each graphical table retains "
+                "five worlds and all three information arms; the bottom row is the arm "
+                "mean. Bar lengths and adjacent values show prediction MAE on the "
+                "within-panel scale printed above. An x marks a source-assay shortfall. "
+                "Scales differ between response types. Appendix B retains the full "
+                "response tables, including the equilibrium entity-prior study.",
+            )
+            for index, (panels, subject) in enumerate(prior_pages, start=1)
+        )
         protocol = re.sub(
             r"!\[[^\n]+\]\(\.\./figures/integrated-results/priors\.pdf\)\{width=100%\}",
-            "![Prior information has no common ordering. Each panel retains five worlds "
-            "and three information conditions: Opaque (O), Aligned (A) and MisIndexed (M). "
-            "Grey lines connect the same world across arms; colored points show individual "
-            "campaigns, including source-assay shortfalls. RX and EQ use within-system "
-            "macro errors; other panels name the response. Scales differ. The complete "
-            "response tables include the equilibrium entity-prior study and all 240 "
-            "campaigns.](figures/final-ppt/figureS1-prior-overview.png){width=100%}",
+            lambda _: "\\refstepcounter{figure}\n\n" + prior_figures,
             protocol,
         )
         protocol += (
             "\n\\clearpage\n\n## A.7 Prior effects by system and regime\n\n"
-            "![Prior information depends on the system and intervention regime. a,b, "
-            "Reaction parameter-prior macro MAE under discovery and optimization; lines "
-            "connect the same world across arms. c,d, Equilibrium macro MAE and interval "
-            "coverage on the other nine and three most dilute queries. Points retain five "
-            "worlds per arm; short lines show means. The horizontal reference marks nominal "
-            "80% coverage. The exploratory grouping does not classify all other nine queries "
-            "as interpolation.](figures/final-ppt/figureS2-prior-detail.png){width=100%}\n"
+            "\\refstepcounter{figure}\n\n"
+            + graphic_page(
+                "figures/venue-results/figureS2-prior-difference-reaction.pdf",
+                "S2a,b",
+                "Reaction parameter-prior macro MAE differences from Opaque under discovery "
+                "and optimization. Rows are matched worlds; the Opaque absolute MAE is "
+                "printed at left and only paired differences appear on the horizontal "
+                "axis. Negative means lower error. Bottom marks show the mean paired "
+                "difference. Aligned improves in four of five worlds under each goal.",
+            )
+            +
+            "\n\\clearpage\n\n"
+            + graphic_page(
+                "figures/venue-results/figureS2-prior-difference-equilibrium.pdf",
+                "S2c-f",
+                "Equilibrium parameter-prior differences from Opaque for the other nine "
+                "and three most dilute queries. Panels c,d show macro MAE, where "
+                "negative means lower error. Panels e,f show 80\\% interval coverage "
+                "changes in percentage points, where positive means higher coverage. "
+                "Opaque absolute values are printed at left, apart from the difference "
+                "axis. Response and regime scales differ. The grouping is post hoc.",
+            )
+            +
             "\n\\clearpage\n\n## A.8 Complete budget comparison\n\n"
-            "![Complete budget effects across six readouts. Each column retains fifteen "
-            "pairs of independent sessions. Headers show campaign means and improved counts; "
+            "![Complete budget effects across six readouts in a two-by-three layout. "
+            "Each panel retains fifteen "
+            "pairs of independent sessions. Headers show campaign means; "
             "rows show paired changes. Positive changes favour the larger research envelope. "
             "Panels a-d show MAE at 12 minus MAE at 24; e shows fines coverage at 24 minus "
             "coverage at 12 in percentage points; f shows the corresponding gain in retested "
             "recovery. All fines coverage values remain below nominal 80%. Diamonds show mean "
-            "changes; crosses retain source-assay shortfalls. O, A and M denote Opaque, "
-            "Aligned and MisIndexed. World labels are system-specific. Scales differ except "
+            "changes; crosses retain source-assay shortfalls. Marks are point estimates, "
+            "without uncertainty intervals. World labels are system-specific. Scales differ except "
             "in a-b. The crystallization panels reuse the same campaigns; larger budgets also "
             "increase computational allowances.](figures/final-ppt/figureS3-budget-detail.png)"
             "{width=100%}\n"
@@ -158,9 +196,11 @@ def appendix(venue: str):
         blocks.append((VENUES / "ncs/selected_research_cases.md").read_text(encoding="utf-8"))
         blocks.append((VENUES / "ncs/goal_prediction_details.md").read_text(encoding="utf-8"))
         blocks.append((VENUES / "ncs/eq_prediction_details.md").read_text(encoding="utf-8"))
+        blocks.append((VENUES / "ncs/applicability_diagnostics.md").read_text(encoding="utf-8"))
+        blocks.append((VENUES / "ncs/process_model_details.md").read_text(encoding="utf-8"))
     text = "\n\\clearpage\n\n".join(blocks)
-    text = re.sub(r"^# Appendix [A-F]\. ", "# ", text, flags=re.M)
-    text = re.sub(r"^## [A-F]\.\d+ ", "## ", text, flags=re.M)
+    text = re.sub(r"^# Appendix [A-H]\. ", "# ", text, flags=re.M)
+    text = re.sub(r"^## [A-H]\.\d+ ", "## ", text, flags=re.M)
     # Metric tables are compact units; avoid stranded subsection headings.
     text = re.sub(r"^(## .+)$", r"\\needspace{9\\baselineskip}\n\n\1", text, flags=re.M)
     return assets(text)

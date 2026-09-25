@@ -1,5 +1,50 @@
 # Final English manuscript figures
 
+2026-09-25 Supplementary S3/S4 fidelity correction: slides 9 and 10 now follow
+the actual user-selected references in
+`output/imagegen/s3-s4-layout-concepts-20260925/selected/`.
+S3 matches the reference coordinates, full arm labels, compact header and
+six-panel point layout using native editable shapes. Its 90 paired point
+estimates and six means come from retained data; the concept's fictional
+geographic labels, numbers and unsupported error bars are not publication data.
+S4 preserves the original reference art, gradients, thinking agents, locked
+documents and table geometry as a raster graphical layer, with editable
+scientific text and numerical corrections. It is not fully vector-editable.
+The W05/Aligned histories, sealed forecasts, K2 answers and unexecuted cooling
+proposal remain distinct; its evaluator reference belongs only to thermal Q.
+Rebuild the two slides with
+`uv run --no-sync python paper/tools/rebuild_selected_supplement_figures.py
+--output output/pptx/chemworld-figures-s3s4-candidate.pptx`, using the bundled
+`python-pptx` package on `PYTHONPATH`; export slides 9/10 from PowerPoint at
+4320×5700 and crop to the bounds in `style-and-export.json`, or export individual
+slide copies at heights 960 and 1460 design units. Keep width 1440 and scale
+uniformly; publication PNGs are 4320×2880 (S3) and 4320×4380 (S4).
+For direct PNG exports, set density metadata to 288 dpi without resampling:
+PowerPoint can otherwise emit a spurious 3.048-dpi tag that exceeds TeX bounds.
+
+2026-09-25 applicability closeout: the current English and Chinese manuscripts
+bind Figure 5 to [the vector PDF](../venue-results/figure05-eq-coverage-reversal.pdf),
+with [SVG](../venue-results/figure05-eq-coverage-reversal.svg) and
+[PNG](../venue-results/figure05-eq-coverage-reversal.png) alongside it. Panel a
+shows all 180 source assays and 60 withheld reference means; panel b connects
+the same three-response regime means as Table 1 to all five-world points;
+panel c preserves the original most-dilute five-world forecast comparison.
+The old single-panel Figure 5 and its PPT slide remain historical assets.
+Other main figure bindings are unchanged. Rebuild with
+`uv run --no-sync python paper/tools/render_eq_closeout.py`.
+[Scope, data and model sources](../../../output/figures/applicability-closeout/README.md).
+
+2026-09-25 approved narrative reconstruction: the English article retains all six
+main figure assets and captions, with Figures 1-2 in the open-experimentation
+section, Figures 3-4 in the objectives/resources section, Figure 5 and Table 1 in
+the cross-regime prior-reversal section, and Figure 6 in the complementary
+generalization section. Main Figure 3 uses
+[`figure03-goals-paths-forecasts.pdf`](../venue-results/figure03-goals-paths-forecasts.pdf),
+the four-panel paired-outcome, original-path and sealed-forecast version. This
+binding supersedes the earlier Figure 3 entry below for the current English
+article; archived manuscript bindings are unchanged. No artwork or plotted
+data were regenerated for this prose reconstruction.
+
 2026-09-25 Figure 4 replacement: the main English manuscript now uses the
 user-selected six-panel 2×3 layout. The [editable PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx)
 contains native text, lines and point marks calculated from
@@ -65,19 +110,19 @@ manuscript's Figure 1. [Source and export notes](../venue-results/figure01-user-
 
 2026-09-23 reader revision: the approved crystallization research path is now main Fig. 2. EQ uses the approved five-world bar comparison with editable chart data; regime statistics are native manuscript Table 1, and all original intervals remain in Supplementary Table F1. Fig. 6 uses the four-panel replacement described above.
 
-The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
+The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3, 5 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
 
 ## Placement
 
 | Figure | Purpose | Location |
 |---|---|---|
-| 1 | Experimental instrument and original-session assessment | Main Results, instrument |
-| 2 | One complete W04 twelve-batch crystallization history, B8 procedure and subsequent tests | Main Results, instrument |
-| 3 | Retest gains, prediction errors, joint outcomes and five-world discordance | Main Results, commission comparison |
-| 4 | Six paired outcomes under larger research envelopes | Main Results, budget comparison |
-| 5 | Five-world withheld EQ reference versus original predictions | Main Results, prior comparison |
-| 6 | Purity departure, response-specific value, information conditions and interval coverage | Main Results, generalization |
-| Table 1 | EQ regime MAE and interval coverage | Main Results, prior comparison |
+| 1 | Experimental freedom, controlled worlds and original-session assessment | Main Results, open experimentation |
+| 2 | One complete W04 twelve-batch crystallization history, B8 procedure and subsequent tests | Main Results, open experimentation |
+| 3 | All goal pairs, original research paths, retests and sealed forecasts | Main Results, objectives and resources |
+| 4 | Six paired outcomes under larger research envelopes | Main Results, objectives and resources |
+| 5 | Source evidence coverage, three-response regime reversal and five-world EQ forecasts | Main Results, cross-regime prior reversal |
+| 6 | Purity departure, response-specific value, information conditions and interval coverage | Main Results, preserving and revising relationships |
+| Table 1 | EQ regime MAE and interval coverage | Main Results, cross-regime prior reversal |
 | S1 | Full prior overview | Appendix A.6 |
 | S2 | Reaction prior benefits and full EQ regime comparisons | Appendix A.7 |
 | S3 | Complete six-outcome budget comparison | Appendix A.8 |
@@ -85,6 +130,19 @@ The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses thi
 | S5 | Purification delivery and crystallization size/fines references | Appendix E.1 |
 | Tables E1/E2 | Full crystallization baseline errors and purity interval widths | Appendix E.3 |
 | Table F1 | All fifteen original EQ intervals and campaign source ranges | Appendix F.1 |
+
+Appendix A.6 now uses four vector pages of source-derived graphical tables,
+[`figureS1-prior-graphical-table-1.pdf`](../venue-results/figureS1-prior-graphical-table-1.pdf)
+through `-4.pdf`. Each page retains four strata, five worlds per arm, displayed
+MAE values and arm means. Appendix A.7 uses the paired-difference figure
+[`figureS2-prior-difference-reaction.pdf`](../venue-results/figureS2-prior-difference-reaction.pdf)
+and its [equilibrium continuation](../venue-results/figureS2-prior-difference-equilibrium.pdf).
+Opaque absolute values are printed beside world labels; only Aligned-Opaque and
+MisIndexed-Opaque differences appear on the signed axes. The other-nine and
+dilute-three regimes have separate scales. Rebuild these six vector pages with
+`uv run --no-sync python paper/tools/render_ncs_prior_graphical.py` before
+building the NCS manuscript. The combined PowerPoint deck's older S1/S2 slides
+remain historical exports and are not bound into the current NCS PDF.
 
 Full response tables, the study matrix, retained failures and the all-fifteen equilibrium account table remain in Appendices A-C. Main-text captions describe the quantities and comparisons; overall titles are not repeated inside the figures.
 

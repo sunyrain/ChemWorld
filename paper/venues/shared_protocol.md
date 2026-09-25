@@ -16,8 +16,9 @@
 
 Table A1. Complete selected study scope. Each campaign has one agent realization. One C
 campaign exhausts its solvent stock and discards its twelfth vessel, completing eleven final assays. One P campaign uses all twelve vessel starts
-but discards two vessels, leaving ten final assays. All campaigns have sealed mechanism,
-prediction, and reflection stages; 238 meet the full source-and-assessment specification.
+but discards two vessels, leaving ten final assays. All campaigns have scientific account (K1),
+sealed prediction (Q), and retrospective review (K2) stages; 238 meet the full
+source-and-assessment specification.
 
 ## A.2 Prediction targets and system-specific questions
 
@@ -137,10 +138,12 @@ Original trajectories, truth, model answers, and error records are retained; the
 correction uses no new simulator or provider calls. Unknown transaction statuses
 remain errors. This is an evaluator repair, not a change to a completed experiment.
 
-The EC illustrative trace is the second-world, 12-batch Opaque EC discovery campaign;
-its sparse-positive-coverage counterexamples are first-world, 24-batch Aligned and
-MisIndexed discovery campaigns. They are retrospectively selected examples, not a
-coded prevalence estimate. The additional C case is the fifth-world, 12-batch
+The earlier EC process illustration uses the second-world, 12-batch Opaque
+discovery campaign; its sparse-positive-coverage counterexamples are first-world,
+24-batch Aligned and MisIndexed discovery campaigns. These are distinct from the
+current article's Figure 3, which pairs first-world, 12-batch Opaque discovery and
+optimization campaigns (Supplementary E.6). All are retrospectively selected
+examples, not a coded prevalence estimate. The additional C case is the fifth-world, 12-batch
 MisIndexed campaign, chosen as the largest purity MAE in the 12-batch cohort.
 Its extreme error illustrates a failure; it is not a representative sampling rule.
 

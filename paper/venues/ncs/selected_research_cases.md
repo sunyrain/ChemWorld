@@ -10,13 +10,11 @@ The agent sealed batch 8 as its recommendation. Its source final assay reported 
 
 The source trajectory records operations and observations but no contemporaneous verbal rationale for each batch. Figure 2c therefore labels decision questions as author reconstructions. K1 was written after all twelve experiments. It interpreted the contrast between quenched and controlled-cooling batches as evidence for nucleation-history dependence while acknowledging that multiple recipe variables changed; the mechanism is plausible but not isolated by this campaign. K2 later identified the confound explicitly. No new experiment was run to distinguish quench from the other changes.
 
-\clearpage
-
 ## D.2 Sealed predictions and subsequent reflection
 
 Figure S4 follows a separate W05 Aligned pair of independent 12- and 24-batch sessions through sealed prediction and subsequent reflection; the proposed experiment was not executed. In the 24-batch session, the first nineteen batches fail the fines limit, batch 20 first meets it, and batch 23 is selected. The 12-batch session first meets the quality rule at batch 1. These paths and their Q/K2 assessments do not belong to Figure 2's W04 session and are not a matched quench test.
 
-![Sealed predictions and subsequent reflection in a W05 crystallization pair separate from Figure 2. a, The withheld comparison replaces a two-hour hold at 278.15 K with heating towards 315 K for one hour and recooling for one hour after a common preceding recipe. Thermal profiles are schematic. b, Both original sessions predict lower fines. The condensed public K2 answers follow sealed Q predictions without reference feedback. c, The 24-batch session proposes changing only the cooling procedure of its selected batch; possible outcomes would distinguish upstream, cooling and interaction explanations. This proposal was not executed. d, The evaluator's reference concerns the thermal intervention in a, not the proposed experiment in c, and was unavailable during Q and K2.](../../figures/final-ppt/figureS4-posttest-reflection.png){width=100%}
+![Sealed predictions and subsequent reflection in a W05 crystallization pair separate from Figure 2. A, The independent twelve- and twenty-four-batch source histories: the twelve-batch session first meets the fines rule at batch 1; the twenty-four-batch session first meets it at batch 20 and selects batch 23. B, The same withheld question in both sessions replaces a two-hour hold at 278.15 K with heating towards 315 K for one hour and recooling for one hour after a common preceding recipe. Both sealed Q answers predict fewer fines (17% to 12% at twelve batches; 49% to 35% at twenty-four batches). Thermal profiles show requested targets schematically. C, Condensed public K2 answers follow Q without reference feedback. The twenty-four-batch session proposes changing only the cooling procedure of its selected batch; this experiment was not executed. D, The evaluator's reference is for the thermal intervention in B, not the proposal in C. It was unavailable during Q and K2 and gives the opposite fines direction.](../../figures/final-ppt/figureS4-posttest-reflection.png){width=100%}
 
 \clearpage
 
@@ -36,7 +34,7 @@ In crystallization, agent size forecasts have lower MAE than the source mean in 
 
 In a selected Aligned phase-partitioning campaign pair, the larger budget covers all sixteen material pairings and then allocates eight experiments to process variation; the smaller campaign covers ten pairings. This is a plausible route to improvement, not a cohort-wide causal explanation. Two Aligned world pairs nevertheless worsen.
 
-Uncertainty is part of the same applicability problem. The poor dilute-equilibrium coverage shows that a wrong extrapolation can also be overconfident. In a retrospectively selected MisIndexed crystallization campaign, the mechanism report explicitly acknowledges that only one solvent was tested. Nevertheless, predicted purity averages 0.86833 against a reference mean of 0.98566, and all twelve nominal 80% intervals miss. A verbal statement of uncertainty does not by itself ensure calibrated quantitative prediction.
+Uncertainty is part of the same applicability problem. The poor dilute-equilibrium coverage shows that a wrong extrapolation can also be overconfident. In a retrospectively selected MisIndexed crystallization campaign, the scientific account (K1) explicitly acknowledges that only one solvent was tested. Nevertheless, predicted purity averages 0.86833 against a reference mean of 0.98566, and all twelve nominal 80% intervals miss. A verbal statement of uncertainty does not by itself ensure calibrated quantitative prediction.
 
 \clearpage
 
