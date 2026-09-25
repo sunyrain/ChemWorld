@@ -27,7 +27,7 @@ const pythonSupport=path.join(BUILD,'python-support');
 await fs.mkdir(pythonSupport,{recursive:true});
 await fs.symlink('C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/Lib/site-packages/lxml',path.join(pythonSupport,'lxml'),'junction').catch(e=>{if(e.code!=='EEXIST')throw e;});
 process.env.PYTHONPATH=[pythonSupport,process.env.PYTHONPATH].filter(Boolean).join(path.delimiter);
-const W=1440,H=caseOnly?1080:1900,FONT='Arial',FS=20,SM=18,PANEL=27;
+const W=1440,H=caseOnly?1040:1900,FONT='Arial',FS=20,SM=18,PANEL=27;
 const C={ink:'#24292D',muted:'#6A737B',grid:'#D7DDE1',light:'#EEF1F3',Opaque:'#637482',Aligned:'#277F8A',MisIndexed:'#BC7850',b12:'#416B92',b24:'#277F8A',bad:'#A35F42'};
 const ARMS=['Opaque','Aligned','MisIndexed'];
 const p=Presentation.create({slideSize:{width:W,height:H}});

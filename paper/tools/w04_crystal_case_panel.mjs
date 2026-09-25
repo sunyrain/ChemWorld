@@ -33,7 +33,7 @@ export async function addSingleCrystalCase(ctx,name='figure02-research-paths-typ
     if(!reading||reading.step!==97||!same(reading.observation.crystal_fines_fraction,intermediate))throw Error('B8 intermediate measurement changed');
   }catch(e){if(e.code!=='ENOENT')throw e;}
   const F=v=>v.toFixed(1);
-  const s=slide(name,1080,'Figure 2. W04/MisIndexed twelve-batch concept. Pictorial instruments and thinking Agent are ImageGen assets; labels, data and arrows remain editable. Final assays and operations are generated from the formal summary. The in-process particle-size reading at source step 97 is distinct from the final assay. Agent questions are author reconstructions, not contemporaneous quotations; K1 followed all batches. Early quench effects are confounded.');
+  const s=slide(name,1040,'Figure 2. W04/MisIndexed twelve-batch concept. Pictorial instruments and thinking Agent are ImageGen assets; labels, data and arrows remain editable. Final assays and operations are generated from the formal summary. The in-process particle-size reading at source step 97 is distinct from the final assay. Agent questions are author reconstructions, not contemporaneous quotations; K1 followed all batches. Early quench effects are confounded.');
   const sharp=(await import(pathToFileURL(path.join(process.env.RUNTIME_NODE_MODULES,'sharp/dist/index.cjs')).href)).default;
   const asset=name=>path.join(ROOT,'paper/figures/final-ppt/assets',name);
   const ink='#27323A',black='#111820',muted='#596B78',border='#8295A2',teal='#087F97',rust='#C85A3A';
@@ -112,9 +112,9 @@ export async function addSingleCrystalCase(ctx,name='figure02-research-paths-typ
   for(let i=0;i<9;i++)arrow(centres[i]+54,574,centres[i+1]-54,black);
 
   // c: four columns and one directed path per row; the thinking Agent is raster artwork.
-  panel(691,385,'c','Key observations, questions, and next tests');
+  panel(691,343,'c','Key observations, questions, and next tests');
   T('Observed',114,735,198,28,19,true,ink);
-  T('Agent question*',441,735,252,28,19,true,ink);
+  T('Agent question',441,735,252,28,19,true,ink);
   T('Next tested action',785,735,286,28,19,true,ink);
   T('Outcome',1210,735,180,28,19,true,ink);
   L(25,766,1414,766,border,1.4);
@@ -138,6 +138,4 @@ export async function addSingleCrystalCase(ctx,name='figure02-research-paths-typ
     arrow(1060,r.y+31,1100,ink);
     T(r.out,1134,r.y+4,271,62,18,true,r.outColor);
   });
-  shape(s,'roundRect',25,1031,1389,36,'#F7FAFB',border,1);
-  T('* Questions reconstructed from recorded actions, not contemporaneous model quotes. K1 was written after research; quench mechanism not isolated.',45,1036,1353,26,15,false,ink,'center');
 }
