@@ -13,7 +13,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 PAPER = ROOT / "paper"
-OUT = ROOT / "output/pdf"
+OUT = ROOT / "output/pdf/archive/integrated-review"
 SOURCE = PAPER / "chemworld_integrated_manuscript.md"
 
 

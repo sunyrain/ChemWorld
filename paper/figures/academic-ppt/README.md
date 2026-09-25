@@ -4,7 +4,7 @@ Superseded for manuscript use by the [preserved-artwork correction](../preserved
 
 The editing master is [chemworld-academic-figures.pptx](../../../output/pptx/chemworld-academic-figures.pptx). It contains seven main figures and two supplementary figures, in manuscript order. Text, diagrams and data marks are native editable PowerPoint objects; 31 charts also contain editable data workbooks. The aligned budget comparison uses native lines, points and text so every world/arm row can be edited independently.
 
-The full English article is [chemworld-ncs-en-full.pdf](../../../output/pdf/chemworld-ncs-en-full.pdf), built from [article.md](../../venues/ncs/article.md). Figures are exported **after reopening the finalized PPTX**, then inserted into the article. Publication PNGs are 4,320 pixels wide (about 670 dpi at the manuscript's 164 mm figure width). They are raster exports; the editable master is the PPTX.
+The full English article is [chemworld-ncs-en-full.pdf](../../../output/pdf/archive/ncs/chemworld-ncs-en-full.pdf), built from [article.md](../../venues/ncs/article.md). Figures are exported **after reopening the finalized PPTX**, then inserted into the article. Publication PNGs are 4,320 pixels wide (about 670 dpi at the manuscript's 164 mm figure width). They are raster exports; the editable master is the PPTX.
 
 ## Consistent styling
 
@@ -33,7 +33,7 @@ $env:UV_CACHE_DIR = Join-Path $env:TEMP 'chemworld-uv-cache'
 $env:PYTHONIOENCODING = 'utf-8'
 uv run --no-sync python paper/tools/prepare_academic_figure_data.py
 uv run --no-sync 'C:/Users/Admin/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node.exe' paper/tools/build_academic_figure_deck.mjs
-uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs --output output/pdf/chemworld-ncs-en-full.pdf
+uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs --output output/pdf/archive/ncs/chemworld-ncs-en-full.pdf
 ```
 
 The PPT builder uses the installed presentation runtime and finalizer, repairs native chart marker fills before validation, and renders every finalized slide. `CODEX_NODE_MODULES` can override the bundled module directory. Temporary renders and validation receipts stay outside the repository. `style-and-export.json` records the figure crop heights and export scale. The fixed-width slides share one editing canvas; publication exports trim only the unused bottom area.

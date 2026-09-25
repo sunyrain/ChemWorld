@@ -1,6 +1,6 @@
 # C-W05 示例图拆分：正文位置与图注建议
 
-依据：远端 `origin/main` 的 `74c9303295762888594390640bf696f5645f1679`（2026-09-22，Add NCS Chinese manuscript and generated figure archive）新增的 `paper/venues/ncs/ChemWorld_NCS_中文正文_v1.md`，已读全文；同时对照本地有未提交修改的 `paper/venues/ncs/article.md`。本轮 fetch 获取远端，未合并或覆盖本地稿件。以下是图件编排建议，尚未修改正文、图号或 PDF。
+依据：远端 `origin/main` 的 `74c9303295762888594390640bf696f5645f1679`（2026-09-22，Add NCS Chinese manuscript and generated figure archive）新增的 `paper/venues/ncs/archive/ChemWorld_NCS_中文正文_v1.md`，已读全文；同时对照本地有未提交修改的 `paper/venues/ncs/article.md`。本轮 fetch 获取远端，未合并或覆盖本地稿件。以下是图件编排建议，尚未修改正文、图号或 PDF。
 
 ## 判断
 

@@ -4,6 +4,7 @@
 | --- | --- | --- |
 | Work I: programmable chemical worlds | [Manuscript](experimental_intelligence_v1_manuscript.md), [display plan](experimental_intelligence_v1_display_items.md) | [arXiv PDF](exports/experimental-intelligence-v1-arxiv/chemworld-experimental-agency-arxiv.pdf) and source bundles in the same directory |
 | Work II: experimental knowledge and decisions | [Long manuscript](prior_discovery_manuscript.md); separately maintained [anonymous submission](iclr2027/submission.md) and [appendix](iclr2027/appendix.md) | [Long PDF](exports/prior-discovery-draft/prior-discovery-draft.pdf), [anonymous PDF](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-anonymous.pdf), [anonymous supplement](exports/prior-discovery-iclr2027/prior-discovery-iclr2027-supplement.zip) |
+| Integrated autonomous-study Article | [NCS Article](venues/ncs/article.md), [ICLR manuscript](venues/iclr2027/manuscript.md) and [venue guide](venues/README.md) | [NCS reading PDF](../output/pdf/chemworld-ncs-en-final.pdf), [ICLR reading PDF](../output/pdf/chemworld-iclr2027.pdf) |
 
 For Work II, read the [complete story](prior_discovery_story_zh.md), then the
 [experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md).
@@ -41,3 +42,4 @@ width and inspect rendered PDFs after layout changes. Builds do not create exper
 Current Work I figures live in `figures/first-paper-world-instrument-v1/`; Work II figures in
 `figures/prior-discovery/`. Retained older figure/proof packages are historical artifacts bound to
 their original evidence. They are not alternative current manuscripts or mandatory build steps.
+Previous integrated-study NCS drafts are indexed in the [PDF archive](../output/pdf/archive/README.md).

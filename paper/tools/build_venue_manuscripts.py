@@ -316,7 +316,7 @@ def build(venue: str, output_override: Path | None = None):
             assert identifying not in combined, identifying
     OUT.mkdir(parents=True, exist_ok=True)
     output = output_override or OUT / (
-        "chemworld-iclr2027.pdf" if venue == "iclr2027" else "chemworld-ncs-article.pdf"
+        "chemworld-iclr2027.pdf" if venue == "iclr2027" else "chemworld-ncs-en-final.pdf"
     )
     output = output.resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

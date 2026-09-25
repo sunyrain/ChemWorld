@@ -27,7 +27,7 @@ bibliography, and bound qualification artifacts are unchanged by this revision.
 - Generated campaign data: [campaign_metrics.csv](figures/integrated-results/campaign_metrics.csv), 240 campaigns and 1,065 campaign/metric rows.
 - Paired goal contrasts and totals: [analysis.json](figures/integrated-results/analysis.json).
 - Six vector figures, with PNG previews: [figure directory](figures/integrated-results).
-- Review PDF: [chemworld-integrated-review.pdf](../output/pdf/chemworld-integrated-review.pdf).
+- Historical review PDF: [chemworld-integrated-review.pdf](../output/pdf/archive/integrated-review/chemworld-integrated-review.pdf).
 
 The PDF includes the English source, protocol appendix, generated full metric appendix,
 and references. It is a review artifact, not a replacement for the frozen platform release.

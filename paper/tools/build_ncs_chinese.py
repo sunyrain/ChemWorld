@@ -17,9 +17,9 @@ from PIL import Image, ImageDraw
 
 ROOT = Path(__file__).resolve().parents[2]
 PAPER = ROOT / "paper"
-SOURCE = PAPER / "venues/ncs/ChemWorld_NCS_中文正文_v1.md"
+SOURCE = PAPER / "venues/ncs/archive/ChemWorld_NCS_中文正文_v1.md"
 BUILD = Path(tempfile.gettempdir()) / "chemworld-ncs-chinese-full"
-OUTPUT = ROOT / "output/pdf/chemworld-ncs-zh-full.pdf"
+OUTPUT = ROOT / "output/pdf/archive/ncs/chemworld-ncs-zh-full.pdf"
 
 
 def run(command, stage):
@@ -105,7 +105,7 @@ def main():
     assert source.count("{#fig:") == 8
     assert "[Figure " not in source and "about here" not in source
     assert "# 图件建议" not in source
-    body = source.replace("](../../figures/", "](figures/")
+    body = source.replace("](../../../figures/", "](figures/")
     # Section headings provide the visual hierarchy; manuscript draft rules are redundant.
     body = body.replace("\n\n---\n\n", "\n\n")
     results_start, results_end = body.index("# 结果"), body.index("# 讨论")
@@ -151,7 +151,7 @@ def main():
             *common,
             "main.md",
             "--standalone",
-            "--template=" + str(PAPER / "venues/ncs/template_zh.tex"),
+            "--template=" + str(PAPER / "venues/ncs/archive/template_zh.tex"),
             "-o",
             "main.tex",
         ],
@@ -197,7 +197,7 @@ def main():
         "new_experiments": 0,
         "qa_directory": str(BUILD),
     }
-    (PAPER / "venues/ncs/CHINESE_BUILD_SUMMARY.json").write_text(
+    (PAPER / "venues/ncs/archive/CHINESE_BUILD_SUMMARY.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
     print(json.dumps(report, ensure_ascii=False, indent=2), flush=True)

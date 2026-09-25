@@ -1,6 +1,6 @@
 # 中文整稿配图
 
-这组图依据远端 `74c9303295762888594390640bf696f5645f1679` 新增的中文稿全文制作，插入[中文正文](../../venues/ncs/ChemWorld_NCS_中文正文_v1.md)。正文保留原有科学内容，替换图件占位、加入两个案例引入段并接入既有参考文献和完整补充材料。2026-09-22 重构图 3 后，此图及对应图注也已同步至英文 NCS 稿。
+这组图依据远端 `74c9303295762888594390640bf696f5645f1679` 新增的中文稿全文制作，插入[中文正文](../../venues/ncs/archive/ChemWorld_NCS_中文正文_v1.md)。正文保留原有科学内容，替换图件占位、加入两个案例引入段并接入既有参考文献和完整补充材料。2026-09-22 重构图 3 后，此图及对应图注也已同步至英文 NCS 稿。
 
 | 图 | 读者需要理解的问题 | 制作方式 |
 | --- | --- | --- |
@@ -42,6 +42,6 @@ uv run --no-sync python paper/tools/build_ncs_chinese.py
 
 构建需要 Pandoc、XeLaTeX、BibTeX、Poppler，以及模板指定的中文字体。示意图 PNG 为已保留资产；上述命令不会再次调用 Imagegen。
 
-输出为 `output/pdf/chemworld-ncs-zh-full.pdf`，包含中文正文、方法、参考文献、扩展图和既有英文完整补充材料。[构建摘要](../../venues/ncs/CHINESE_BUILD_SUMMARY.json)记录页数、缺字/引用/溢出检查；临时目录中的逐页 PNG 用于视觉复核。
+输出为 `output/pdf/archive/ncs/chemworld-ncs-zh-full.pdf`，包含中文正文、方法、参考文献、扩展图和既有英文完整补充材料。[构建摘要](../../venues/ncs/CHINESE_BUILD_SUMMARY.json)记录页数、缺字/引用/溢出检查；临时目录中的逐页 PNG 用于视觉复核。
 
-图 3 重构后的最新阅读版本为[中文 PDF](../../../output/pdf/chemworld-ncs-zh-budget-redesign.pdf)（29 页）及[英文 PDF](../../../output/pdf/chemworld-ncs-article-budget-redesign.pdf)（24 页）。原 PDF 被阅读器占用，本次用构建脚本的 `--output` 参数保存为独立文件；默认输出路径不变。单图提供 [PNG](figure03-research-envelope.png)、[SVG](figure03-research-envelope.svg) 与[矢量 PDF](figure03-research-envelope.pdf)。
+图 3 重构后的最新阅读版本为[中文 PDF](../../../output/pdf/archive/ncs/chemworld-ncs-zh-budget-redesign.pdf)（29 页）及[英文 PDF](../../../output/pdf/archive/ncs/chemworld-ncs-article-budget-redesign.pdf)（24 页）。原 PDF 被阅读器占用，本次用构建脚本的 `--output` 参数保存为独立文件；默认输出路径不变。单图提供 [PNG](figure03-research-envelope.png)、[SVG](figure03-research-envelope.svg) 与[矢量 PDF](figure03-research-envelope.pdf)。
