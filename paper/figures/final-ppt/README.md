@@ -1,5 +1,18 @@
 # Final English manuscript figures
 
+2026-09-25 Figure 4 replacement: the main English manuscript now uses the
+user-selected six-panel 2×3 layout. The [editable PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx)
+contains native text, lines and point marks calculated from
+`retained-figure-data.json`; the [publication PNG](figure04-research-envelope.png)
+is its export. Generated concept-art dot positions are not used. Panels a-f show electrochemical
+discovery and optimization score MAE, partitioning organic-fraction MAE,
+crystallization recovery MAE, fines-interval coverage and independent retest
+recovery. Each panel pairs 12/24 campaign means with all fifteen true signed
+world-arm differences. Vertical offsets only separate the dots; the diamond is
+the paired median. The C-W02/Opaque source-assay shortfall stays visible as a
+cross. Supplementary S3 retains the detailed world-arm matrix of all six
+outcomes. The reference layout is [A2](../../../output/imagegen/figure4-layout-concepts-20260925/A2-six-readouts-2x3-mean-and-swarm.png).
+
 2026-09-23 Figure 3 redesign (Chinese Figure 2): both NCS manuscripts bind the
 four-panel [vector figure](../venue-results/figure03-operation-prediction.pdf).
 Five-world retest means and prediction errors establish the electrochemical
@@ -61,7 +74,7 @@ The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses thi
 | 1 | Experimental instrument and original-session assessment | Main Results, instrument |
 | 2 | One complete W04 twelve-batch crystallization history, B8 procedure and subsequent tests | Main Results, instrument |
 | 3 | Retest gains, prediction errors, joint outcomes and five-world discordance | Main Results, commission comparison |
-| 4 | Four paired outcomes under larger research envelopes | Main Results, budget comparison |
+| 4 | Six paired outcomes under larger research envelopes | Main Results, budget comparison |
 | 5 | Five-world withheld EQ reference versus original predictions | Main Results, prior comparison |
 | 6 | Purity departure, response-specific value, information conditions and interval coverage | Main Results, generalization |
 | Table 1 | EQ regime MAE and interval coverage | Main Results, prior comparison |
@@ -77,7 +90,7 @@ Full response tables, the study matrix, retained failures and the all-fifteen eq
 
 ## Artwork and data
 
-The combined deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. Main Figure 2 is exported from its separate PPT. Its instruments and Agent are embedded ImageGen raster assets; charts, labels, arrows and numerical annotations remain editable.
+The combined deck contains eleven slides and 31 native charts with embedded data workbooks. Statistical charts, labels and numerical panels are editable. Figure 4's fifteen points per panel are native PowerPoint shapes at source-derived horizontal positions. Approved illustrations retain raster artwork with editable text overlays; they are not fully editable vector drawings. Main Figure 2 is exported from its separate PPT. Its instruments and Agent are embedded ImageGen raster assets; charts, labels, arrows and numerical annotations remain editable.
 
 Fig. 2 uses the formally retained W04 summary and a layout adapted from the reviewed ImageGen concept. The old W05 single-case source module remains available for comparison. S4 keeps Q sealed during K2 and labels the proposed experiment as unexecuted. The reference in S4d belongs to the reheating question, not to the proposed cooling substitution.
 

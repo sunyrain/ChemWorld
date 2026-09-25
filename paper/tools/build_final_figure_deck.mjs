@@ -95,7 +95,88 @@ legend(s,ARMS.map(a=>[a,C[a]]),692,440);
 }
 
 // Budget comparisons: selected main outcomes and complete supplemental view.
+function addBudgetMainSix() {
+ const s=slide('figure04-research-envelope',1050,
+  'Figure 4. Six source-driven matched independent 12/24-batch outcomes. The upper pair in each panel gives campaign means. The lower swarm plots all 15 signed world-arm differences at their true horizontal values; vertical offset only prevents collisions. Black diamonds show medians. Open crosses retain source-assay shortfalls. Source: retained campaign metrics.');
+ const defs=[
+  ['EC','discovery','score','mae','Electrochemistry Discovery','Score MAE',.3,[.17378,.11222,11]],
+  ['EC','optimization','score','mae','Electrochemistry Optimization','Score MAE',.3,[.17811,.10818,12]],
+  ['PA','discovery','product_in_organic','mae','Partitioning','Organic-fraction MAE',.2,[.08291,.02379,13]],
+  ['C','delivery','crystal_yield','mae','Crystallization Recovery','Recovery MAE',.3,[.10433,.07937,8]],
+  ['C','delivery','crystal_fines_fraction','coverage','Crystallization Fines interval coverage','Fines coverage (%)',50,[35.6,43.9,7]],
+  ['C','delivery','crystal_yield','retest','Crystallization Retested recovery','Retested recovery',.6,[.42054,.39939,7]]
+ ];
+ const median=values=>[...values].sort((a,b)=>a-b)[Math.floor(values.length/2)];
+ const near=(a,b,tol)=>Math.abs(a-b)<=tol;
+ defs.forEach(([sys,goal,metric,field,heading,label,lim,expected],i)=>{
+  const col=i%3,row=Math.floor(i/3),x=25+col*475,y=15+row*490,w=440;
+  const records=rowdata(sys,goal,metric),pairs=new Map();
+  records.forEach(r=>{const key=`${r.world}|${r.arm}`;if(!pairs.has(key))pairs.set(key,{});pairs.get(key)[r.budget]=r;});
+  const keys=[...pairs.keys()].sort((a,b)=>{
+   const [aw,aa]=a.split('|'),[bw,ba]=b.split('|');
+   return aw.localeCompare(bw)||ARMS.indexOf(aa)-ARMS.indexOf(ba);
+  });
+  if(keys.length!==15||keys.some(k=>!pairs.get(k)[12]||!pairs.get(k)[24]))throw Error('Figure 4 pair coverage changed');
+  const scale=field==='coverage'?100:1,direction=field==='mae'?-1:1;
+  const means=[12,24].map(b=>mean(keys.map(k=>pairs.get(k)[b][field]*scale)));
+  const points=keys.map(k=>{
+   const a=pairs.get(k)[12],b=pairs.get(k)[24];
+   return {key:k,change:direction*(b[field]-a[field])*scale,shortfall:!a.conforming||!b.conforming};
+  });
+  const improved=points.filter(p=>p.change>1e-12).length;
+  if(!near(means[0],expected[0],field==='coverage'?.1:5e-5)||
+     !near(means[1],expected[1],field==='coverage'?.1:5e-5)||improved!==expected[2])
+   throw Error(`Figure 4 ${sys}/${goal}/${metric} source values changed`);
+  if(sys==='C'&&points.filter(p=>p.shortfall).map(p=>p.key).join(',')!=='C-W02|Opaque')
+   throw Error('Figure 4 crystallization shortfall changed');
+  txt(s,String.fromCharCode(97+i),x,y,32,40,27,true,C.ink);
+  txt(s,heading,x+25,y+3,w-35,40,18,true,C.ink,'center');
+  txt(s,label,x+42,y+43,w-70,27,17,false,C.muted,'center');
+  const x12=x+112,x24=x+287,dumbY=y+145;
+  line(s,x12,dumbY,x24,dumbY,C.grid,2);
+  marker(s,x12,dumbY,C.b12,9);
+  marker(s,x24,dumbY,C.b24,9);
+  txt(s,'12 batches',x12-56,y+108,112,26,16,false,C.ink,'center');
+  txt(s,'24 batches',x24-56,y+108,112,26,16,false,C.ink,'center');
+  const fm=v=>field==='coverage'?(v.toFixed(1)+'%'):field==='retest'?(v*100).toFixed(1)+'%':v.toFixed(4);
+  txt(s,fm(means[0]),x12-61,y+161,122,28,18,false,C.b12,'center');
+  txt(s,fm(means[1]),x24-61,y+161,122,28,18,false,C.b24,'center');
+  txt(s,`${improved}/15`,x+365,y+128,70,30,20,true,C.ink,'center');
+  txt(s,'improved',x+354,y+157,92,24,16,false,C.muted,'center');
+  const mid=x+220,px=v=>mid+(v/lim)*190,cy=y+291;
+  line(s,mid,y+222,mid,y+358,C.muted,1.2);
+  // Place all real x-values. The y-coordinate is only a deterministic collision offset.
+  const placed=[];
+  [...points].sort((a,b)=>a.change-b.change).forEach((p,rank)=>{
+   const xx=px(p.change);
+   const offsets=[-45,-30,-15,0,15,30,45,-60,60];
+   const preferred=[-30,15,-45,30,0,-15,45,15,-30,30,-45,0,45,-15,0][rank];
+   const offset=[preferred,...offsets].find(o=>placed.every(q=>Math.hypot(xx-q.x,cy+o-q.y)>=15));
+   if(offset===undefined)throw Error('Figure 4 swarm cannot place all fifteen points');
+   const yy=cy+offset;placed.push({x:xx,y:yy});
+   const color=p.change>1e-12?C.Aligned:p.change< -1e-12?C.bad:C.muted;
+   marker(s,xx,yy,p.shortfall?C.muted:color,p.shortfall?6.5:5.5,p.shortfall?'x':'circle');
+  });
+  const med=median(points.map(p=>p.change));
+  shape(s,'diamond',px(med)-6,cy-6,12,12,C.ink,C.ink,1);
+  const axisY=y+373;
+  line(s,x+25,axisY,x+w-25,axisY,C.ink,1.3);
+  for(const v of [-lim,0,lim]){
+   const xx=px(v);line(s,xx,axisY,xx,axisY+8,C.ink,1);
+   const tick=v===0?'0':(v>0?'+':'')+(field==='coverage'?v.toFixed(0):v.toFixed(1));
+   txt(s,tick,xx-38,axisY+12,76,28,17,false,C.ink,'center');
+  }
+  const axisLabel=field==='mae'?'Prediction error reduction':field==='coverage'?'Coverage gain (percentage points)':'Recovery gain';
+  txt(s,axisLabel,x+12,axisY+50,w-24,38,17,false,C.ink,'center');
+ });
+ const ly=1017;
+ marker(s,164,ly+8,C.Aligned,6);txt(s,'Favorable',183,ly-7,145,31,17,false,C.ink);
+ marker(s,421,ly+8,C.bad,6);txt(s,'Unfavorable',440,ly-7,160,31,17,false,C.ink);
+ marker(s,706,ly+8,C.muted,7,'x');txt(s,'Source-assay shortfall',728,ly-7,245,31,17,false,C.ink);
+ shape(s,'diamond',1108,ly+2,12,12,C.ink,C.ink,1);txt(s,'Median (n = 15)',1131,ly-7,225,31,17,false,C.ink);
+}
 function addBudget(full=false) {
+if(!full)return addBudgetMainSix();
 const s=slide(full?'figureS3-budget-detail':'figure04-research-envelope',1060,'Budget effects. All 90 response comparisons in 15 matched independent 12/24 pairs per panel. Positive change denotes lower MAE, higher coverage or higher recovery. Native editable data marks. Source shortfalls are retained and crossed. Complete response detail remains in the supplementary view. Source: campaign_metrics.csv.');
 const allDefs=[['EC','discovery','score','mae','Electrochemistry\nDiscovery','Score MAE'],['EC','optimization','score','mae','Electrochemistry\nOptimization','Score MAE'],['PA','discovery','product_in_organic','mae','Partitioning','Organic-fraction\nMAE'],['C','delivery','crystal_yield','mae','Crystallization\nRecovery prediction','Recovery MAE'],['C','delivery','crystal_fines_fraction','coverage','Crystallization\nInterval coverage','Fines coverage (%)'],['C','delivery','crystal_yield','retest','Crystallization\nOperating delivery','Retested recovery']];
 const defs=full?allDefs:[allDefs[0],allDefs[2],allDefs[3],allDefs[5]];
