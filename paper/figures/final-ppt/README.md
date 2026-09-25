@@ -65,6 +65,14 @@ manuscript's Figure 1. [Source and export notes](../venue-results/figure01-user-
 
 2026-09-23 reader revision: the approved crystallization research path is now main Fig. 2. EQ uses the approved five-world bar comparison with editable chart data; regime statistics are native manuscript Table 1, and all original intervals remain in Supplementary Table F1. Fig. 6 uses the four-panel replacement described above.
 
+2026-09-25 Figure 5 replacement: the main EQ figure now combines the retained
+three-arm regime MAE and interval-coverage summaries with the five-world Q08
+comparison. The plotted values are rebuilt from 15 world-arm cells, 15 original
+Q08 predictions and all 180 source assays by
+`paper/tools/render_figure05_regime_bars.py`; no model or simulator is called.
+Editable PDF/SVG, 600-dpi TIFF, PNG and plotted source data are retained under
+`paper/figures/venue-results/figure05-regime-bars-reference-style.*`.
+
 The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
 
 ## Placement
@@ -75,7 +83,7 @@ The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses thi
 | 2 | One complete W04 twelve-batch crystallization history, B8 procedure and subsequent tests | Main Results, instrument |
 | 3 | Retest gains, prediction errors, joint outcomes and five-world discordance | Main Results, commission comparison |
 | 4 | Six paired outcomes under larger research envelopes | Main Results, budget comparison |
-| 5 | Five-world withheld EQ reference versus original predictions | Main Results, prior comparison |
+| 5 | EQ regime errors, interval coverage and five-world withheld-reference comparison | Main Results, prior comparison |
 | 6 | Purity departure, response-specific value, information conditions and interval coverage | Main Results, generalization |
 | Table 1 | EQ regime MAE and interval coverage | Main Results, prior comparison |
 | S1 | Full prior overview | Appendix A.6 |
