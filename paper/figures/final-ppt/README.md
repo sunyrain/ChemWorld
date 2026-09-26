@@ -1,5 +1,74 @@
 # Final English manuscript figures
 
+## Current editable figure collection
+
+The [editable PowerPoint](../../../output/pptx/chemworld-current-figures-editable.pptx)
+now retains the user's seven-slide selection: Figures 1–6 and S4. The user
+edited fonts and grouping after the original 17-slide collection was delivered;
+those changes are preserved. Do not overwrite this file with the collection
+builder, which produces the original 17-slide selection.
+
+Quantitative plots contain editable text, curves, bars and individual markers.
+The converted vector plots support editing their graphic objects; they do not
+automatically recalculate from an Excel sheet. Reused slides are grouped and
+can be ungrouped or edited through PowerPoint's Selection Pane.
+Figures 1 and 2 retain original raster artwork. S4 now preserves its selected
+four-section layout with 189 native editable objects for text, timelines,
+temperature profiles, table cells and numerical marks. Only six small original
+illustrations remain cropped images; there is no full-slide background image.
+Figure 3 uses consistent quadrant descriptions relative to Optimization versus
+Discovery, separates the information-arm legend, and identifies the circled
+example in panels c–d. Its data and all retained objects are unchanged.
+These notes describe the collection's preparation before the user's final edits.
+
+2026-09-26 manuscript integration: the user's latest saved seven-slide PPT is
+the current source for Figures 1–6 and S4. Native PDF exports are in
+[`../current-editable/`](../current-editable/) and are bound directly by both
+manuscript sources (S4 appears in the full English supplement). Only external
+slide whitespace is cropped; internal layout, fonts, colours, values and
+illustrations are preserved. The PPT itself is not changed by export. The older
+image/vector files described below are provenance, not the current bindings
+for these seven figures. S1–S3, S5 and S6 retain their existing bindings.
+
+Re-export after saving changes in the current PPT:
+
+```powershell
+./paper/tools/export_current_figure_ppt.ps1
+uv run --no-sync python paper/tools/crop_current_figure_exports.py
+uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs
+uv run --no-sync python paper/tools/build_ncs_chinese_main.py
+```
+
+The crop helper uses Pillow and pypdf. If pypdf is supplied by the bundled
+document runtime, pass its `Lib/site-packages` directory with
+`--dependency-path`; continue running through the repository's locked Python.
+The native export requires a registered presentation application on Windows.
+Do not rerun the older figure generators or the 17-slide builder over this
+user-edited source.
+
+2026-09-26 typography follow-up: all fractional font sizes in the seven-slide
+collection were rounded upward to whole points. Adjusted 50 text boxes,
+including S4 heading gaps, cell wrapping and Figure 6 label-to-axis spacing.
+The installed presentation application reports integer font sizes for all 631
+text objects. All scientific text and values are retained, with only whitespace
+reflow; non-text geometry and embedded images are unchanged.
+
+To reproduce the earlier 17-slide collection in a separate output, use
+`collect_current_figure_vectors.py --build
+"$env:TEMP/chemworld-current-figure-collection"`, then
+`build_current_figure_collection.mjs`, `package_current_figure_collection.py
+--build "$env:TEMP/chemworld-current-figure-collection"`, and
+`finalize_current_figure_collection.mjs`, all under `paper/tools`.
+That historical finalizer writes `output/pptx/chemworld-figure-collection-17.pptx`;
+it no longer overwrites the user-curated seven-slide file.
+Use the locked `uv run --no-sync` environment and the bundled Node executable.
+The original collection's S5 preserves three embedded workbooks. The current
+seven-slide file was validated and rendered in the installed presentation
+application, with both changed pages visually checked and the other slides
+verified unchanged.
+
+## Manuscript figure history and bindings
+
 2026-09-26 editorial integration: Figure 6 retains the remote black typography,
 clean axes and vector/600-dpi exports. Panel b now explicitly labels the count
 as forecasts with lower MAE than the source-mean baseline. Numerical data,

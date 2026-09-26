@@ -264,6 +264,7 @@ def build(venue: str, output_override: Path | None = None):
         "academic-ppt",
         "preserved-ppt",
         "final-ppt",
+        "current-editable",
     ):
         target = build_dir / "figures" / folder
         target.mkdir(parents=True, exist_ok=True)

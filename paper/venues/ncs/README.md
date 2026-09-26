@@ -38,8 +38,12 @@ figures and one main table. It is a complete reading draft, not a submitted
 journal package; the public archive and author declarations remain pending.
 
 Rebuild the current PDF from the repository root with
-`uv run --no-sync python paper/tools/render_ncs_prior_graphical.py`, then
 `uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs`.
+Figures 1–6 and S4 now use native PDF exports of the user's final edited
+[seven-slide PPT](../../../output/pptx/chemworld-current-figures-editable.pptx).
+The [figure guide](../../figures/final-ppt/README.md) explains how to re-export
+that source after further edits. The supplementary figures outside this PPT
+retain their existing artwork; no figure regeneration is needed for a PDF build.
 The default output is the current PDF linked above. It includes the unified
 information-arm colours and the revised prose. The earlier
 `chemworld-ncs-en-palette.pdf` contains the preceding prose and is superseded.
