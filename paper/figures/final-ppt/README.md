@@ -1,5 +1,13 @@
 # Final English manuscript figures
 
+2026-09-25 semantic colour alignment: current quantitative main Figures 3, 5
+and 6 and Supplementary S1/S2 use the same information-arm colours:
+Opaque `#637482`, Aligned `#277F8A`, and MisIndexed `#BC7850`.
+Their Python renderers read these values from the existing `palette` in
+`style-and-export.json` through `paper/tools/ncs_figure_style.py`.
+Goal, budget, feasibility and reference encodings retain their own panel legends.
+This colour-only update preserves figure geometry, typography and all values.
+
 2026-09-25 Supplementary S3/S4 fidelity correction: slides 9 and 10 now follow
 the actual user-selected references in
 `output/imagegen/s3-s4-layout-concepts-20260925/selected/`.
@@ -120,7 +128,7 @@ The remote paired-box Figure 4 alternative is also retained as
 The current article and released PDF keep the explicit Figure 4/5 bindings
 listed above; importing these alternative assets does not change those bindings.
 
-The [final English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3, 5 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
+The [current English PDF](../../../output/pdf/chemworld-ncs-en-palette.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3, 5 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
 
 ## Placement
 

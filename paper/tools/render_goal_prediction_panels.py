@@ -18,7 +18,8 @@ from analyze_operation_prediction_relationship import (
     write_csv,
 )
 from matplotlib.lines import Line2D
-from render_operation_prediction_story import ARM_COLORS, ASSETS, prepare, style
+from ncs_figure_style import ARM_COLORS
+from render_operation_prediction_story import ASSETS, prepare, style
 
 DISCOVERY, OPTIMIZATION, REFERENCE = "#657C99", "#19847B", "#AF542D"
 INK = "#171717"

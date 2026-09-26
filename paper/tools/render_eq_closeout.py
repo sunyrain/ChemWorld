@@ -12,13 +12,13 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
+from ncs_figure_style import ARM_COLORS as COLORS
+from ncs_figure_style import ARMS
 
 ROOT = Path(__file__).resolve().parents[2]
 REPORT = ROOT / "workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921"
 OUT = ROOT / "paper/figures/venue-results"
 DATA = ROOT / "output/figures/applicability-closeout"
-ARMS = ("Opaque", "Aligned", "MisIndexed")
-COLORS = {"Opaque": "#607382", "Aligned": "#287E88", "MisIndexed": "#B87752"}
 INK = "#202326"
 
 

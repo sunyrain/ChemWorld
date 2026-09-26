@@ -14,12 +14,12 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Rectangle
 from matplotlib.ticker import MaxNLocator
+from ncs_figure_style import ARM_COLORS as COLORS
+from ncs_figure_style import ARMS
 
 ROOT = Path(__file__).resolve().parents[2]
 SOURCE = ROOT / "paper/figures/academic-ppt/retained-figure-data.json"
 OUT = ROOT / "paper/figures/venue-results"
-ARMS = ("Opaque", "Aligned", "MisIndexed")
-COLORS = {"Opaque": "#637482", "Aligned": "#277F8A", "MisIndexed": "#BC7850"}
 INK, MUTED, GRID, TRACK = "#24292D", "#6A737B", "#D7DDE1", "#EEF1F3"
 
 plt.rcParams.update(

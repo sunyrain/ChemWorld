@@ -14,12 +14,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.patches import Patch
+from ncs_figure_style import ARM_COLORS as COLORS
+from ncs_figure_style import ARMS
 from render_crystal_simple_preview import SOURCE, summarize
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "output/figures/crystal-story-preview"
-ARMS = ("Opaque", "Aligned", "MisIndexed")
-COLORS = {"Opaque": "#687B89", "Aligned": "#337F89", "MisIndexed": "#B47857"}
 INK, MUTED, GRID = "#34434C", "#63717B", "#E5E9EC"
 AGENT, OBS, REF = "#337F89", "#92A0AA", "#CDD5DA"
 METRICS = ("crystal_yield", "crystal_fines_fraction", "crystal_size", "crystal_purity")
