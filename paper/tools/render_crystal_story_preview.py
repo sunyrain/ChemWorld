@@ -20,7 +20,7 @@ from render_crystal_simple_preview import SOURCE, summarize
 
 ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "output/figures/crystal-story-preview"
-INK, MUTED, GRID = "#34434C", "#63717B", "#E5E9EC"
+INK = "#111111"
 AGENT, OBS, REF = "#337F89", "#92A0AA", "#CDD5DA"
 METRICS = ("crystal_yield", "crystal_fines_fraction", "crystal_size", "crystal_purity")
 
@@ -101,53 +101,41 @@ def prepare():
 
 def axis_style(ax, horizontal=False):
     ax.spines[["top", "right"]].set_visible(False)
-    ax.spines["left" if horizontal else "bottom"].set_visible(False)
-    ax.spines["bottom" if horizontal else "left"].set_color("#A8B3BA")
-    ax.grid(axis="x" if horizontal else "y", color=GRID, lw=0.6)
-    ax.set_axisbelow(True)
-    ax.tick_params(length=0, pad=7)
+    for side in ("left", "bottom"):
+        ax.spines[side].set_visible(True)
+        ax.spines[side].set_color(INK)
+        ax.spines[side].set_linewidth(0.9)
+    ax.grid(False)
+    ax.tick_params(axis="both", colors=INK, width=0.9, length=4, direction="out", pad=7)
 
 
 def draw(s, publish=False):
     plt.rcParams.update(
         {
             "font.family": "Arial",
-            "font.size": 16,
+            "font.size": 8,
             "font.weight": "normal",
             "text.color": INK,
             "axes.labelcolor": INK,
-            "xtick.color": MUTED,
-            "ytick.color": MUTED,
+            "axes.edgecolor": INK,
+            "xtick.color": INK,
+            "ytick.color": INK,
             "svg.fonttype": "none",
             "pdf.fonttype": 42,
             "axes.linewidth": 0.7,
             "savefig.facecolor": "white",
         }
     )
-    fig = plt.figure(figsize=(14.4, 10.8), facecolor="white")
+    fig = plt.figure(figsize=(7.2, 5.4), facecolor="white")
     for letter, x, y, title in [
         ("a", 0.025, 0.951, "Observed and predicted purity"),
         ("b", 0.531, 0.951, "Predictive value varies by response"),
         ("c", 0.025, 0.472, "Information effects differ across responses"),
         ("d", 0.531, 0.472, "Purity intervals can miss the reference"),
     ]:
-        fig.text(x, y, letter, fontsize=21.5, weight="bold")
-        fig.text(x + 0.027, y, title, fontsize=17.5)
-    fig.text(
-        0.052,
-        0.906,
-        "335 of 360 purity forecasts are below their reference",
-        color=MUTED,
-        size=15,
-    )
-    fig.text(
-        0.558,
-        0.906,
-        "Campaigns with lower agent MAE\nthan the observed-mean baseline",
-        color=MUTED,
-        size=15,
-    )
-    a = fig.add_axes([0.186, 0.585, 0.293, 0.282])
+        fig.text(x, y, letter, fontsize=10.75, weight="bold", color=INK)
+        fig.text(x + 0.027, y, title, fontsize=8.75, color=INK)
+    a = fig.add_axes([0.186, 0.575, 0.293, 0.315])
     axis_style(a, horizontal=True)
     a.set(xlim=(0, 100), ylim=(-0.6, 3.7), xlabel="Mean crystal purity (%)")
     a.set_xticks([0, 25, 50, 75, 100])
@@ -176,7 +164,7 @@ def draw(s, publish=False):
             transform=a.get_yaxis_transform(),
             ha="right",
             va="center",
-            size=16,
+            size=8,
             linespacing=1.5,
         )
         a.text(
@@ -185,17 +173,16 @@ def draw(s, publish=False):
             f"{val:.2f}%",
             ha="right",
             va="center",
-            size=16,
+            size=8,
             color="white" if color == AGENT else INK,
         )
-    b = fig.add_axes([0.685, 0.585, 0.275, 0.282])
+    b = fig.add_axes([0.685, 0.575, 0.275, 0.315])
     axis_style(b, horizontal=True)
     b.set(xlim=(0, 30), ylim=(-0.6, 3.7), xlabel="Campaigns (of 30)")
     b.set_xticks([0, 10, 20, 30])
     b.set_yticks([3, 2, 1, 0], ["Recovery", "Fines fraction", "Particle size index", "Purity"])
     for y, metric in zip([3, 2, 1, 0], METRICS, strict=True):
         wins = s["response_wins"][metric]
-        b.barh(y, 30, height=0.47, color="#E9EDF0")
         b.barh(y, wins, height=0.47, color=AGENT)
         b.text(
             wins - 0.6 if wins > 4 else wins + 0.6,
@@ -204,7 +191,7 @@ def draw(s, publish=False):
             va="center",
             ha="right" if wins > 4 else "left",
             color="white" if wins > 4 else INK,
-            size=16,
+            size=8,
         )
     legend = [Patch(color=COLORS[arm], label=arm) for arm in ARMS]
     for anchor in (0.052, 0.558):
@@ -214,7 +201,7 @@ def draw(s, publish=False):
             bbox_to_anchor=(anchor, 0.430),
             ncol=3,
             frameon=False,
-            fontsize=16,
+            fontsize=8,
             handlelength=1.1,
             columnspacing=1.8,
         )
@@ -231,34 +218,40 @@ def draw(s, publish=False):
             for budget in (12, 24)
         ]
         bars = c.bar(positions + (j - 1) * 0.22, yy, width=0.2, color=COLORS[arm])
-        c.bar_label(bars, labels=[f"{v:.1f}" for v in yy], padding=4, fontsize=15)
+        c.bar_label(bars, labels=[f"{v:.1f}" for v in yy], padding=4, fontsize=7.5)
         cov = [lookup[budget, arm]["purity_coverage_percent"] for budget in (12, 24)]
         bars = d.bar(np.array([0, 1]) + (j - 1) * 0.22, cov, width=0.2, color=COLORS[arm], zorder=3)
         d.bar_label(
             bars,
             labels=[f"{v:.1f}" for v in cov],
             padding=4,
-            fontsize=15,
+            fontsize=7.5,
             zorder=5,
             bbox={"facecolor": "white", "edgecolor": "none", "pad": 0.5},
         )
     c.set(ylim=(0, 18.8), ylabel="Prediction MAE (percentage points)")
     c.set_yticks([0, 5, 10, 15])
-    c.set_xticks(positions, ["12 batches", "24 batches", "12 batches", "24 batches"], fontsize=15)
-    c.text(0.5, -0.17, "Recovery", transform=c.get_xaxis_transform(), ha="center", size=16)
-    c.text(3.1, -0.17, "Purity", transform=c.get_xaxis_transform(), ha="center", size=16)
-    c.axvline(1.8, color=GRID, lw=0.7)
+    c.set_xticks(positions, ["12 batches", "24 batches", "12 batches", "24 batches"], fontsize=7.5)
+    c.text(0.5, -0.30, "Recovery", transform=c.get_xaxis_transform(), ha="center", size=8)
+    c.text(3.1, -0.30, "Purity", transform=c.get_xaxis_transform(), ha="center", size=8)
     d.set(ylim=(0, 110), ylabel="Purity interval coverage (%)")
     d.set_yticks([0, 20, 40, 60, 80, 100])
     d.set_xticks([0, 1], ["12 batches", "24 batches"])
-    d.axhline(80, color="#536570", linestyle=(0, (4, 3)), lw=1, zorder=4)
+    d.axhline(80, color=INK, linestyle=(0, (4, 3)), lw=1, zorder=4)
     for ext in ("png", "svg"):
-        fig.savefig(OUT / f"crystal-four-panel-story.{ext}", dpi=200)
+        fig.savefig(OUT / f"crystal-four-panel-story.{ext}", dpi=600)
     if publish:
         destination = ROOT / "paper/figures/venue-results"
         destination.mkdir(parents=True, exist_ok=True)
-        for ext in ("pdf", "png", "svg"):
-            fig.savefig(destination / f"figure06-crystal-generalization.{ext}", dpi=300)
+        fig.savefig(destination / "figure06-crystal-generalization.pdf", bbox_inches="tight")
+        fig.savefig(destination / "figure06-crystal-generalization.svg", bbox_inches="tight")
+        fig.savefig(destination / "figure06-crystal-generalization.png", dpi=600, bbox_inches="tight")
+        fig.savefig(
+            destination / "figure06-crystal-generalization.tiff",
+            dpi=600,
+            bbox_inches="tight",
+            pil_kwargs={"compression": "tiff_lzw"},
+        )
     plt.close(fig)
 
 

@@ -3,7 +3,7 @@
 \usepackage{fontspec}
 \setmainfont{Times New Roman}
 \setsansfont{Arial}
-\setmonofont{Consolas}
+\IfFontExistsTF{Consolas}{\setmonofont{Consolas}}{\setmonofont{Menlo}}
 \usepackage{microtype,graphicx,booktabs,array,longtable,calc,float,placeins,needspace}
 \usepackage{amsmath,amssymb,xcolor}
 \usepackage[numbers,sort&compress,super]{natbib}
