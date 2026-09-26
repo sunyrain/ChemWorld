@@ -57,6 +57,11 @@ All editable figure text now follows the Times New Roman/even-point rule, with
 20 pt panel letters and 18 pt panel headings; the original artwork and data
 are preserved. All figures bind native vector PDF exports. No figure
 regeneration is needed for a manuscript PDF build.
+Figure 5 now follows the selected remote three-panel bar-chart layout, with
+larger Times New Roman text, the established arm colours, actual source
+concentration coverage and explicit five-world/SD information. Its editable
+source and both reading PDFs are synchronized. Figure 4 retains the current
+unconnected difference plots; the user rejected the connected-pair candidates.
 The default output is the current PDF linked above. It includes the unified
 information-arm colours and the revised prose. The earlier
 `chemworld-ncs-en-palette.pdf` contains the preceding prose and is superseded.

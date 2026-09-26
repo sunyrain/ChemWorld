@@ -21,6 +21,24 @@ Discovery, separates the information-arm legend, and identifies the circled
 example in panels c–d. Its data and all retained objects are unchanged.
 These notes describe the collection's preparation before the user's final edits.
 
+2026-09-27 Figure 5 update: the collection retains the selected remote layout
+(a/b above, c below; bars in b/c), with the original arm palette, Times New Roman,
+16–18 pt ordinary text, 20 pt panel letters and 18 pt headings. All 180 source
+assays use their actual concentrations; the five-world points and sample-SD
+semantics are explicit. Slide 5 contains 430 native editable objects. The other
+six slides, including the current unconnected Figure 4, are unchanged. The user
+explicitly rejected the connected-pair Figure 4 candidates; do not adopt them.
+
+For a Figure 5 rebuild, render `render_figure05_readable.py --output
+<private-build>/figure05`, run `update_figure05_collection.py prepare --build
+<private-build>`, `build_figure05_native.mjs <private-build>`,
+`update_figure05_collection.py package --build <private-build>`, then
+`finalize_figure05_collection.mjs <private-build>`, all under `paper/tools`.
+Use an absolute private build directory, locked Python and bundled Node.
+The checked deck path is written to `checked-path.txt`; inspect its native
+export before replacing the current collection. The normal export/build
+commands below synchronize the figure PDF and manuscripts after acceptance.
+
 2026-09-26 manuscript integration: the user's latest saved seven-slide PPT is
 the current source for Figures 1–6 and S4. Native PDF exports are in
 [`../current-editable/`](../current-editable/) and are bound directly by both

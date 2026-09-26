@@ -19,7 +19,6 @@ from pathlib import Path
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
-import pymupdf
 from matplotlib.patches import Patch
 from PIL import Image
 
@@ -562,6 +561,8 @@ def compose_candidate(
     panel_b_pdf: Path,
     panel_c_pdf: Path,
 ) -> None:
+    import pymupdf
+
     base = pymupdf.open()
     page = base.new_page(width=981.0, height=585.75)
     panel_a = pymupdf.open(panel_a_pdf)
