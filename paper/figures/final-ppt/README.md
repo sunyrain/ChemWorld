@@ -28,13 +28,29 @@ manuscript sources (S4 appears in the full English supplement). Only external
 slide whitespace is cropped; internal layout, fonts, colours, values and
 illustrations are preserved. The PPT itself is not changed by export. The older
 image/vector files described below are provenance, not the current bindings
-for these seven figures. S1–S3, S5 and S6 retain their existing bindings.
+for these seven figures.
+
+The [supplementary editable PowerPoint](../../../output/pptx/chemworld-supplementary-figures-editable.pptx)
+contains nine pages: S1 (four pages), S2 (two pages), S3, S5 and S6. S4 stays
+in the user's seven-slide collection. All current manuscript figures now bind
+the native PDFs in `current-editable`; S5 retains its three native charts and
+their original embedded workbooks.
+
+Current typography follows the user's 2026-09-26 specification: Times New Roman,
+ordinary editable text rounded upward to the next even point, panel letters
+20 pt and panel headings 18 pt. Existing raster illustrations are preserved.
+Text frames and label spacing were adjusted for fit; numerical data, chart
+marks and original illustrations were checked against the source. These are
+PPT source sizes; manuscript placement scales each figure proportionally.
+Manuscript table text already uses Times New Roman at 10 pt.
 
 Re-export after saving changes in the current PPT:
 
 ```powershell
 ./paper/tools/export_current_figure_ppt.ps1
 uv run --no-sync python paper/tools/crop_current_figure_exports.py
+./paper/tools/export_current_figure_ppt.ps1 -Kind supplementary
+uv run --no-sync python paper/tools/crop_current_figure_exports.py --kind supplementary
 uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs
 uv run --no-sync python paper/tools/build_ncs_chinese_main.py
 ```
@@ -46,7 +62,8 @@ The native export requires a registered presentation application on Windows.
 Do not rerun the older figure generators or the 17-slide builder over this
 user-edited source.
 
-2026-09-26 typography follow-up: all fractional font sizes in the seven-slide
+Earlier 2026-09-26 typography follow-up (superseded by the even-point rule above):
+all fractional font sizes in the seven-slide
 collection were rounded upward to whole points. Adjusted 50 text boxes,
 including S4 heading gaps, cell wrapping and Figure 6 label-to-axis spacing.
 The installed presentation application reports integer font sizes for all 631

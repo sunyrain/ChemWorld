@@ -118,7 +118,7 @@ def appendix(venue: str):
         )
         prior_figures = "\n\\clearpage\n\n".join(
             graphic_page(
-                f"figures/venue-results/figureS1-prior-graphical-table-{index}.pdf",
+                f"figures/current-editable/figureS1-{index}.pdf",
                 f"S1{panels}",
                 "Full prior overview for " + subject + ". Each graphical table retains "
                 "five worlds and all three information arms; the bottom row is the arm "
@@ -138,7 +138,7 @@ def appendix(venue: str):
             "\n\\clearpage\n\n## A.7 Prior effects by system and regime\n\n"
             "\\refstepcounter{figure}\n\n"
             + graphic_page(
-                "figures/venue-results/figureS2-prior-difference-reaction.pdf",
+                "figures/current-editable/figureS2-ab.pdf",
                 "S2a,b",
                 "Reaction parameter-prior macro MAE differences from Opaque under discovery "
                 "and optimization. Rows are matched worlds; the Opaque absolute MAE is "
@@ -149,7 +149,7 @@ def appendix(venue: str):
             +
             "\n\\clearpage\n\n"
             + graphic_page(
-                "figures/venue-results/figureS2-prior-difference-equilibrium.pdf",
+                "figures/current-editable/figureS2-cf.pdf",
                 "S2c-f",
                 "Equilibrium parameter-prior differences from Opaque for the other nine "
                 "and three most dilute queries. Panels c,d show macro MAE, where "
@@ -170,7 +170,7 @@ def appendix(venue: str):
             "changes; crosses retain source-assay shortfalls. Marks are point estimates, "
             "without uncertainty intervals. World labels are system-specific. Scales differ except "
             "in a-b. The crystallization panels reuse the same campaigns; larger budgets also "
-            "increase computational allowances.](figures/final-ppt/figureS3-budget-detail.png)"
+            "increase computational allowances.](figures/current-editable/figureS3.pdf)"
             "{width=100%}\n"
         )
     if venue == "ncs":

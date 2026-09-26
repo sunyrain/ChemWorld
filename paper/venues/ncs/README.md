@@ -42,8 +42,12 @@ Rebuild the current PDF from the repository root with
 Figures 1–6 and S4 now use native PDF exports of the user's final edited
 [seven-slide PPT](../../../output/pptx/chemworld-current-figures-editable.pptx).
 The [figure guide](../../figures/final-ppt/README.md) explains how to re-export
-that source after further edits. The supplementary figures outside this PPT
-retain their existing artwork; no figure regeneration is needed for a PDF build.
+that source after further edits. S1–S3, S5 and S6 use the separate
+[nine-page supplementary PPT](../../../output/pptx/chemworld-supplementary-figures-editable.pptx).
+All editable figure text now follows the Times New Roman/even-point rule, with
+20 pt panel letters and 18 pt panel headings; the original artwork and data
+are preserved. All figures bind native vector PDF exports. No figure
+regeneration is needed for a manuscript PDF build.
 The default output is the current PDF linked above. It includes the unified
 information-arm colours and the revised prose. The earlier
 `chemworld-ncs-en-palette.pdf` contains the preceding prose and is superseded.

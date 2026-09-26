@@ -1,4 +1,4 @@
-"""Crop native exports of the user-edited Figures 1-6 and S4 without reflow."""
+"""Crop native exports of the editable main or supplementary figures without reflow."""
 
 from __future__ import annotations
 
@@ -10,15 +10,18 @@ from pathlib import Path
 from PIL import Image, ImageChops
 
 ROOT = Path(__file__).resolve().parents[2]
-LABELS = ("01", "02", "03", "04", "05", "06", "S4")
+LABELS = {
+    "main": ("01", "02", "03", "04", "05", "06", "S4"),
+    "supplementary": ("S1-1", "S1-2", "S1-3", "S1-4", "S2-ab", "S2-cf", "S3", "S5", "S6"),
+}
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--kind", choices=LABELS, default="main")
     parser.add_argument(
         "--exports",
         type=Path,
-        default=Path(tempfile.gettempdir()) / "chemworld-user-ppt-integration",
     )
     parser.add_argument(
         "--output",
@@ -31,16 +34,24 @@ def main() -> None:
         help="Optional bundled site-packages directory containing pypdf.",
     )
     args = parser.parse_args()
+    labels = LABELS[args.kind]
+    if args.exports is None:
+        folder = (
+            "chemworld-user-ppt-integration"
+            if args.kind == "main"
+            else "chemworld-supplementary-ppt-integration"
+        )
+        args.exports = Path(tempfile.gettempdir()) / folder
     if args.dependency_path:
         sys.path.append(str(args.dependency_path))
     from pypdf import PdfReader, PdfWriter
     from pypdf.generic import RectangleObject
 
     reader = PdfReader(args.exports / "all-slides.pdf")
-    if len(reader.pages) != len(LABELS):
-        raise ValueError("Expected seven pages: Figures 1-6, then S4")
+    if len(reader.pages) != len(labels):
+        raise ValueError(f"Expected {len(labels)} pages for {args.kind}")
     args.output.mkdir(parents=True, exist_ok=True)
-    for index, (label, page) in enumerate(zip(LABELS, reader.pages, strict=True), 1):
+    for index, (label, page) in enumerate(zip(labels, reader.pages, strict=True), 1):
         with Image.open(args.exports / f"slide-{index}.png") as source:
             image = source.convert("RGB")
         difference = ImageChops.difference(image, Image.new("RGB", image.size, "white"))
@@ -82,7 +93,7 @@ def main() -> None:
         # A private preview is useful for reviewing the crop; only PDF is published.
         image.crop((left, top, right, bottom)).save(args.exports / f"figure{label}-cropped.png")
         print(
-            f"Figure export: completed={index}/7 {path.name} "
+            f"Figure export: completed={index}/{len(labels)} {path.name} "
             f"size={float(crop.width):.1f}x{float(crop.height):.1f} pt",
             flush=True,
         )

@@ -15,7 +15,7 @@ Figure 3 uses 120 campaigns and sixty original goal pairs. Each pair fixes world
 
 Both endpoints favour the same campaign in 16/30 EC and 21/30 RX pairs, and opposite campaigns in 14/30 and 9/30. Strict signs define these descriptive counts; near-zero differences are not thereby significant. Each system reuses five worlds. RX score MAE favours optimization in 8/30 pairs; its separate six-response macro MAE does so in 6/30.
 
-![World-level summaries of the same goal comparison. a,b, Electrochemical recommendation retests and score-prediction MAE. c,d, Reaction-processing endpoints. Each bar averages six campaigns per goal within a world. World labels are system-specific; bar means do not replace the individual paired differences in Figure 3. Scales differ across panels.](../../figures/venue-results/figureS6-goal-world-means.pdf){width=100%}
+![World-level summaries of the same goal comparison. a,b, Electrochemical recommendation retests and score-prediction MAE. c,d, Reaction-processing endpoints. Each bar averages six campaigns per goal within a world. World labels are system-specific; bar means do not replace the individual paired differences in Figure 3. Scales differ across panels.](../../figures/current-editable/figureS6.pdf){width=100%}
 
 \clearpage
 

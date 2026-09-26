@@ -28,7 +28,7 @@ Purification provides another response-specific example: fourteen of fifteen cam
 
 In crystallization, agent size forecasts have lower MAE than the source mean in four of thirty campaigns and fines forecasts in twenty-one (Fig. S5b,c). Together with the recovery and purity contrasts in the main text, these results retain the complete response-specific comparison.
 
-![Additional operational and predictive outcomes. a, All fifteen purification recommendations, showing original-charge recovery and independently retested purity. The line marks the purity threshold of 0.80; eligible counts are 0/5, 3/5 and 0/5 for Opaque, Aligned and MisIndexed. b,c, Size and fines MAE for all thirty crystallization campaigns relative to each campaign's public observation mean. Points above the diagonal favour the mean; the campaign with a source-assay shortfall remains included. These panels use different response scales.](../../figures/final-ppt/figureS5-secondary-outcomes.png){width=100%}
+![Additional operational and predictive outcomes. a, All fifteen purification recommendations, showing original-charge recovery and independently retested purity. The line marks the purity threshold of 0.80; eligible counts are 0/5, 3/5 and 0/5 for Opaque, Aligned and MisIndexed. b,c, Size and fines MAE for all thirty crystallization campaigns relative to each campaign's public observation mean. Points above the diagonal favour the mean; the campaign with a source-assay shortfall remains included. These panels use different response scales.](../../figures/current-editable/figureS5.pdf){width=100%}
 
 ## E.2 Additional selected examples
 
