@@ -31,16 +31,13 @@ documents the executed process models and a concrete three-arm input example.
 These analyses add no experiments and preserve all campaigns and failures.
 
 The [Chinese main-text translation](article_zh_main.md) is a reading derivative
-of this English source, rendered as [a main-text-only PDF](../../../output/pdf/chemworld-ncs-zh-main-references.pdf).
+of this English source, rendered as [a main-text-only PDF](../../../output/pdf/chemworld-ncs-zh-main.pdf).
 It translates the title, abstract, Introduction, Results, Discussion, captions
 and table, retains the original figure artwork, and omits Methods, the reference
 list and supplementary material. Rebuild it with
 `uv run --no-sync python paper/tools/build_ncs_chinese_main.py`.
-The current reference-expanded export has 11 pages. The usual
-`chemworld-ncs-zh-main.pdf` was locked by a viewer during this update, so that
-file retains the preceding text; the linked `-references.pdf` is the current
-reading copy. After closing the viewer, the command above can replace the usual
-filename from the synchronized source.
+The current reference-expanded export has 11 pages and uses the standard
+filename above; the temporary `-references.pdf` export has been retired.
 
 The article uses the shared [protocol](../shared_protocol.md),
 [exploratory analysis](../shared_exploratory_analysis.md) and
