@@ -47,7 +47,7 @@ def main() -> None:
     assert not re.search(r"^# (?:方法|参考文献|补充材料)", body, re.M)
     body = citation_numbers(body, english)
     body = re.sub(r"^(## .+)$", r"\\FloatBarrier\n\n\1", body, flags=re.M)
-    body = body.replace("# 讨论", "\\FloatBarrier\n\n# 讨论")
+    body = body.replace("# 讨论", "\\FloatBarrier\n\\needspace{12\\baselineskip}\n\n# 讨论")
     body = body.replace("# 结果", "\\needspace{12\\baselineskip}\n\n# 结果")
     body = re.sub(r"^(#{1,2} .+)$", r"\\needspace{5\\baselineskip}\n\n\1", body, flags=re.M)
     body = assets(body)

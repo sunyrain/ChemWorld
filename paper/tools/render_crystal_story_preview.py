@@ -129,7 +129,7 @@ def draw(s, publish=False):
     fig = plt.figure(figsize=(7.2, 5.4), facecolor="white")
     for letter, x, y, title in [
         ("a", 0.025, 0.951, "Observed and predicted purity"),
-        ("b", 0.531, 0.951, "Predictive value varies by response"),
+        ("b", 0.531, 0.951, "Lower MAE than the source-mean baseline"),
         ("c", 0.025, 0.472, "Information effects differ across responses"),
         ("d", 0.531, 0.472, "Purity intervals can miss the reference"),
     ]:
@@ -245,7 +245,9 @@ def draw(s, publish=False):
         destination.mkdir(parents=True, exist_ok=True)
         fig.savefig(destination / "figure06-crystal-generalization.pdf", bbox_inches="tight")
         fig.savefig(destination / "figure06-crystal-generalization.svg", bbox_inches="tight")
-        fig.savefig(destination / "figure06-crystal-generalization.png", dpi=600, bbox_inches="tight")
+        fig.savefig(
+            destination / "figure06-crystal-generalization.png", dpi=600, bbox_inches="tight"
+        )
         fig.savefig(
             destination / "figure06-crystal-generalization.tiff",
             dpi=600,

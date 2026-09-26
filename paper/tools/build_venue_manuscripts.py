@@ -241,7 +241,9 @@ def build(venue: str, output_override: Path | None = None):
         discussion = body.split("# Discussion", 1)[1].split("# Methods", 1)[0]
         assert "## " not in discussion
         body = body.replace("# Methods", "\\FloatBarrier\n\\clearpage\n\n# Methods")
-        body = body.replace("# Discussion", "\\FloatBarrier\n\n# Discussion")
+        body = body.replace(
+            "# Discussion", "\\FloatBarrier\n\\needspace{12\\baselineskip}\n\n# Discussion"
+        )
         # Keep result figures within the scientific section that introduces them.
         main_body, methods_body = body.split("# Methods", 1)
         main_body = re.sub(r"^(## .+)$", r"\\FloatBarrier\n\n\1", main_body, flags=re.M)

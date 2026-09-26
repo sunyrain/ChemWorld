@@ -1,7 +1,7 @@
 # NCS Article — current reading entry
 
 The current English manuscript is [article.md](article.md). Read its complete
-[PDF](../../../output/pdf/chemworld-ncs-en-palette.pdf), which includes Methods,
+[PDF](../../../output/pdf/chemworld-ncs-en-final.pdf), which includes Methods,
 references and supplementary information. Figure sources and rebuild instructions
 are in the [figure guide](../../figures/final-ppt/README.md).
 
@@ -11,7 +11,10 @@ Results outline: open experimentation; objectives and resource gains;
 cross-regime reversal of correct-prior benefits; and complementary failures to
 revise or preserve experimental relationships. The Discussion develops the
 prospective connection between experiment choice, competing explanations and
-applicability.
+applicability. The 2026-09-26 integration retains the remote four-section Results
+and three-paragraph Discussion, with selected effect magnitudes and scope
+qualifiers restored after reviewing the compression. The Chinese reading text
+follows the same revision.
 
 The bounded closeout sharpens the abstract's within-regime 8.7-fold comparator
 and connects Figure 5's source coverage, regime reversal and five-world forecasts.
@@ -36,12 +39,10 @@ journal package; the public archive and author declarations remain pending.
 
 Rebuild the current PDF from the repository root with
 `uv run --no-sync python paper/tools/render_ncs_prior_graphical.py`, then
-`uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs
---output output/pdf/chemworld-ncs-en-palette.pdf`.
-This reading export includes the unified information-arm colours. The default
-builder filename, `chemworld-ncs-en-final.pdf`, remains the preceding export
-because it was open and locked during the colour update. Manuscript prose is
-unchanged; the proposed Results/Discussion condensation has not been applied.
+`uv run --no-sync python paper/tools/build_venue_manuscripts.py --venue ncs`.
+The default output is the current PDF linked above. It includes the unified
+information-arm colours and the revised prose. The earlier
+`chemworld-ncs-en-palette.pdf` contains the preceding prose and is superseded.
 
 Earlier NCS manuscript versions, the Chinese draft and the superseded story
 guide are indexed in [the archive](archive/README.md). They are provenance,

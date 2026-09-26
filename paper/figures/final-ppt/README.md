@@ -1,5 +1,12 @@
 # Final English manuscript figures
 
+2026-09-26 editorial integration: Figure 6 retains the remote black typography,
+clean axes and vector/600-dpi exports. Panel b now explicitly labels the count
+as forecasts with lower MAE than the source-mean baseline. Numerical data,
+information-arm colours and the other five main figure assets are unchanged.
+The current English reading export is `output/pdf/chemworld-ncs-en-final.pdf`;
+its Results/Discussion revision is also reflected in the Chinese reading text.
+
 2026-09-25 semantic colour alignment: current quantitative main Figures 3, 5
 and 6 and Supplementary S1/S2 use the same information-arm colours:
 Opaque `#637482`, Aligned `#277F8A`, and MisIndexed `#BC7850`.
@@ -128,7 +135,7 @@ The remote paired-box Figure 4 alternative is also retained as
 The current article and released PDF keep the explicit Figure 4/5 bindings
 listed above; importing these alternative assets does not change those bindings.
 
-The [current English PDF](../../../output/pdf/chemworld-ncs-en-palette.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3, 5 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
+The [current English PDF](../../../output/pdf/chemworld-ncs-en-final.pdf) uses this directory's exports from the [PowerPoint master](../../../output/pptx/chemworld-figures-final.pptx), with the Figure 1, 2, 3, 5 and 6 replacements specified above. The user-designated preserved PDF and v16 case PPT remain unchanged. The separate replacement concept set is not used.
 
 ## Placement
 
