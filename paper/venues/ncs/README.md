@@ -16,6 +16,13 @@ and three-paragraph Discussion, with selected effect magnitudes and scope
 qualifiers restored after reviewing the compression. The Chinese reading text
 follows the same revision.
 
+The related-work update cites 30 works, verified against publisher records and
+official proceedings, covering autonomous laboratories, scientific-agent
+environments, experimental design and predictive evaluation. The Introduction
+explicitly positions ChemWorld alongside PhysGym, BoxingGym and other close
+environments. The main text is 2,498 words; the Discussion remains three
+paragraphs (281 words). Results, Methods, evidence and figure assets are unchanged.
+
 The bounded closeout sharpens the abstract's within-regime 8.7-fold comparator
 and connects Figure 5's source coverage, regime reversal and five-world forecasts.
 [Appendix G](applicability_diagnostics.md) decomposes all retained equilibrium
@@ -24,11 +31,16 @@ documents the executed process models and a concrete three-arm input example.
 These analyses add no experiments and preserve all campaigns and failures.
 
 The [Chinese main-text translation](article_zh_main.md) is a reading derivative
-of this English source, rendered as [a main-text-only PDF](../../../output/pdf/chemworld-ncs-zh-main.pdf).
+of this English source, rendered as [a main-text-only PDF](../../../output/pdf/chemworld-ncs-zh-main-references.pdf).
 It translates the title, abstract, Introduction, Results, Discussion, captions
 and table, retains the original figure artwork, and omits Methods, the reference
 list and supplementary material. Rebuild it with
 `uv run --no-sync python paper/tools/build_ncs_chinese_main.py`.
+The current reference-expanded export has 11 pages. The usual
+`chemworld-ncs-zh-main.pdf` was locked by a viewer during this update, so that
+file retains the preceding text; the linked `-references.pdf` is the current
+reading copy. After closing the viewer, the command above can replace the usual
+filename from the synchronized source.
 
 The article uses the shared [protocol](../shared_protocol.md),
 [exploratory analysis](../shared_exploratory_analysis.md) and
