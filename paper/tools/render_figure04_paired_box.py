@@ -9,6 +9,7 @@ test or significance annotation is added.
 
 from __future__ import annotations
 
+import argparse
 import json
 from collections import defaultdict
 from pathlib import Path
@@ -21,7 +22,10 @@ from matplotlib.lines import Line2D
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA_PATH = ROOT / "paper/figures/academic-ppt/retained-figure-data.json"
-OUT_STEM = ROOT / "paper/figures/venue-results/figure04-research-envelope-paired-box-compact"
+OUT_STEMS = {
+    "compact": ROOT / "paper/figures/venue-results/figure04-research-envelope-paired-box-compact",
+    "full": ROOT / "paper/figures/venue-results/figure04-research-envelope-paired-box",
+}
 
 INK = "#111111"
 BOX_EDGE = "#30363A"
@@ -189,25 +193,30 @@ def format_mean(value: float, field: str) -> str:
     return f"{value:.1f}%" if field in {"coverage", "retest"} else f"{value:.3f}"
 
 
-def save(fig: plt.Figure) -> None:
-    OUT_STEM.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(OUT_STEM.with_suffix(".svg"), bbox_inches="tight")
-    fig.savefig(OUT_STEM.with_suffix(".pdf"), bbox_inches="tight")
-    fig.savefig(OUT_STEM.with_suffix(".png"), dpi=600, bbox_inches="tight")
+def save(fig: plt.Figure, out_stem: Path) -> None:
+    out_stem.parent.mkdir(parents=True, exist_ok=True)
+    fig.savefig(out_stem.with_suffix(".svg"), bbox_inches="tight")
+    fig.savefig(out_stem.with_suffix(".pdf"), bbox_inches="tight")
+    fig.savefig(out_stem.with_suffix(".png"), dpi=600, bbox_inches="tight")
     fig.savefig(
-        OUT_STEM.with_suffix(".tiff"),
+        out_stem.with_suffix(".tiff"),
         dpi=600,
         bbox_inches="tight",
         pil_kwargs={"compression": "tiff_lzw"},
     )
 
 
-def render() -> None:
+def render(layout: str = "compact") -> None:
+    if layout not in OUT_STEMS:
+        raise ValueError(f"Unknown layout: {layout}")
     with DATA_PATH.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
 
     fig, axes = plt.subplots(2, 3, figsize=(7.2, 5.25))
-    fig.subplots_adjust(left=0.072, right=0.995, top=0.94, bottom=0.14, wspace=0.38, hspace=0.51)
+    if layout == "full":
+        fig.subplots_adjust(left=0.072, right=0.995, top=0.90, bottom=0.14, wspace=0.34, hspace=0.60)
+    else:
+        fig.subplots_adjust(left=0.072, right=0.995, top=0.94, bottom=0.14, wspace=0.38, hspace=0.51)
     jitter = np.asarray([-0.105, -0.075, -0.045, -0.015, 0.015, 0.045, 0.075, 0.105, -0.090, -0.060, -0.030, 0.030, 0.060, 0.090, 0.0])
 
     for index, (ax, definition) in enumerate(zip(axes.flat, DEFINITIONS)):
@@ -285,13 +294,23 @@ def render() -> None:
                 )
 
         panel = chr(ord("a") + index)
-        ax.text(-0.22, 1.13, panel, transform=ax.transAxes, fontsize=9.0, fontweight="bold", color=INK)
-        ax.text(0.50, 1.14, definition["heading"], transform=ax.transAxes, ha="center", va="bottom", fontsize=7.7, fontweight="bold", color=INK)
-        summary = (
-            f"Mean: {format_mean(means[0], definition['field'])} → "
-            f"{format_mean(means[1], definition['field'])}; improved in {improved}/15 pairs"
-        )
-        ax.text(0.50, 1.045, summary, transform=ax.transAxes, ha="center", va="bottom", fontsize=6.2, color=INK)
+        if layout == "full":
+            ax.text(-0.22, 1.21, panel, transform=ax.transAxes, fontsize=9.0, fontweight="bold", color=INK)
+            ax.text(0.50, 1.21, definition["heading"], transform=ax.transAxes, ha="center", va="bottom", fontsize=7.7, fontweight="bold", color=INK)
+            ax.text(0.50, 1.12, definition["readout"], transform=ax.transAxes, ha="center", va="bottom", fontsize=7.0, color=INK)
+            summary = (
+                f"Mean {format_mean(means[0], definition['field'])} → "
+                f"{format_mean(means[1], definition['field'])}; {improved}/15 improve"
+            )
+            ax.text(0.50, 1.03, summary, transform=ax.transAxes, ha="center", va="bottom", fontsize=6.2, color=INK)
+        else:
+            ax.text(-0.22, 1.13, panel, transform=ax.transAxes, fontsize=9.0, fontweight="bold", color=INK)
+            ax.text(0.50, 1.14, definition["heading"], transform=ax.transAxes, ha="center", va="bottom", fontsize=7.7, fontweight="bold", color=INK)
+            summary = (
+                f"Mean: {format_mean(means[0], definition['field'])} → "
+                f"{format_mean(means[1], definition['field'])}; improved in {improved}/15 pairs"
+            )
+            ax.text(0.50, 1.045, summary, transform=ax.transAxes, ha="center", va="bottom", fontsize=6.2, color=INK)
 
         ax.set_xlim(-0.43, 1.43)
         ax.set_ylim(*definition["ylim"])
@@ -319,12 +338,16 @@ def render() -> None:
     for text in legend.get_texts():
         text.set_color(INK)
 
-    save(fig)
+    out_stem = OUT_STEMS[layout]
+    save(fig, out_stem)
     plt.close(fig)
-    print(OUT_STEM.relative_to(ROOT).with_suffix(".png"))
+    print(out_stem.relative_to(ROOT).with_suffix(".png"))
     print("Verified 6 panels x 15 matched real-data pairs; boxes include all observations; no inferential annotations.")
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--layout", choices=sorted(OUT_STEMS), default="compact")
+    args = parser.parse_args()
     configure()
-    render()
+    render(args.layout)
