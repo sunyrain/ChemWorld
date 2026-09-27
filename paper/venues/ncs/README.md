@@ -11,17 +11,21 @@ Results outline: open experimentation; objectives and resource gains;
 cross-regime reversal of correct-prior benefits; and complementary failures to
 revise or preserve experimental relationships. The Discussion develops the
 prospective connection between experiment choice, competing explanations and
-applicability. The 2026-09-27 revision expands the Discussion to four paragraphs
-that distinguish operational performance, predictive accuracy and applicability
-judgment, then connect these dimensions to future experiment selection and the
-scope of the present evidence.
+applicability. The 2026-09-27 integration retains four concise Discussion
+paragraphs: the complementary equilibrium/crystallization findings, evaluation
+through research histories and forecasts, future experiments at applicability
+boundaries, and the specific limits of the evidence. Applicability judgment is
+an evaluation perspective, not an independently validated third capability;
+retrospective experiment proposals remain unexecuted. The Chinese Discussion
+follows the same revision.
 
 The related-work update cites 30 works, verified against publisher records and
 official proceedings, covering autonomous laboratories, scientific-agent
 environments, experimental design and predictive evaluation. The Introduction
 explicitly positions ChemWorld alongside PhysGym, BoxingGym and other close
-environments. The main text is 2,707 words; the Discussion has four
-paragraphs (494 words). Results, Methods, evidence and figure assets are unchanged.
+environments. The main text is 2,546 words; the Discussion has four
+paragraphs (328 words, excluding citation keys). Results, Methods, evidence and
+figure assets are unchanged.
 
 The bounded closeout sharpens the abstract's within-regime 8.7-fold comparator
 and connects Figure 5's source coverage, regime reversal and five-world forecasts.
