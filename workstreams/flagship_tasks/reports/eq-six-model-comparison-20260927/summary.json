@@ -1,0 +1,475 @@
+{
+  "status": "complete",
+  "evidence_scope": "development single-world six-session comparison",
+  "planned_sessions": 6,
+  "completed_sessions": 6,
+  "planned_source_batches": 72,
+  "completed_source_batches": 72,
+  "reasoning_effort": "medium",
+  "world": "EQ-W01",
+  "dilute_queries": [
+    "Q03",
+    "Q08",
+    "Q09"
+  ],
+  "cells": [
+    {
+      "model": "gpt-5.6-luna",
+      "arm": "Opaque",
+      "cell_id": "EQ-W01--Opaque",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 60,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 306.89100000000326,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.1676064169848407,
+          "coverage80": 0.1851851851851852,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.08822040557861327,
+              "coverage80": 0.2222222222222222,
+              "width80": 0.11555555555555556
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.22064232545428808,
+              "coverage80": 0.2222222222222222,
+              "width80": 0.2653333333333333
+            },
+            "precipitation_signal": {
+              "mae": 0.1939565199216207,
+              "coverage80": 0.1111111111111111,
+              "width80": 0.17833333333333334
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.17846893965287344,
+          "coverage80": 0.2222222222222222,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.17712752064069112,
+              "coverage80": 0.0,
+              "width80": 0.18666666666666662
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.35192224423090623,
+              "coverage80": 0.0,
+              "width80": 0.3466666666666667
+            },
+            "precipitation_signal": {
+              "mae": 0.006357054087022941,
+              "coverage80": 0.6666666666666666,
+              "width80": 0.011666666666666667
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.93,
+          "lower80": 0.76,
+          "upper80": 0.99
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    },
+    {
+      "model": "gpt-5.6-luna",
+      "arm": "Aligned",
+      "cell_id": "EQ-W01--Aligned",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 49,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 260.73499999998603,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.08829319515051666,
+          "coverage80": 0.5185185185185185,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.027331516689724385,
+              "coverage80": 0.5555555555555556,
+              "width80": 0.05099999999999998
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.11625821550687156,
+              "coverage80": 0.2222222222222222,
+              "width80": 0.16600000000000004
+            },
+            "precipitation_signal": {
+              "mae": 0.12128985325495403,
+              "coverage80": 0.7777777777777778,
+              "width80": 0.2922222222222222
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.09463183273333643,
+          "coverage80": 0.5555555555555555,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.027794187307357776,
+              "coverage80": 0.3333333333333333,
+              "width80": 0.07666666666666666
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.24858891089757287,
+              "coverage80": 0.3333333333333333,
+              "width80": 0.36666666666666664
+            },
+            "precipitation_signal": {
+              "mae": 0.007512399995078643,
+              "coverage80": 1.0,
+              "width80": 0.041666666666666664
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.82,
+          "lower80": 0.6,
+          "upper80": 0.94
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "arm": "Opaque",
+      "cell_id": "EQ-W01--Opaque",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 60,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 299.98499999998603,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.011363709463013546,
+          "coverage80": 1.0,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.003376718044281012,
+              "coverage80": 1.0,
+              "width80": 0.04666666666666668
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.014248936931292219,
+              "coverage80": 1.0,
+              "width80": 0.08444444444444445
+            },
+            "precipitation_signal": {
+              "mae": 0.016465473413467407,
+              "coverage80": 1.0,
+              "width80": 0.11388888888888887
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.15219772701379325,
+          "coverage80": 0.6666666666666666,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.04953914602597553,
+              "coverage80": 1.0,
+              "width80": 0.12166666666666669
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.38741108910242716,
+              "coverage80": 0.0,
+              "width80": 0.22166666666666668
+            },
+            "precipitation_signal": {
+              "mae": 0.01964294591297706,
+              "coverage80": 1.0,
+              "width80": 0.11333333333333333
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.09,
+          "lower80": 0.025,
+          "upper80": 0.3
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "arm": "Aligned",
+      "cell_id": "EQ-W01--Aligned",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 60,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 280.01600000000326,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.0076533312885849565,
+          "coverage80": 0.9851851851851853,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.0032422758738199836,
+              "coverage80": 0.9555555555555556,
+              "width80": 0.014444444444444458
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.008307595809300738,
+              "coverage80": 1.0,
+              "width80": 0.06577777777777777
+            },
+            "precipitation_signal": {
+              "mae": 0.011410122182634146,
+              "coverage80": 1.0,
+              "width80": 0.10555555555555557
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.1367532825693488,
+          "coverage80": 0.2222222222222222,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.04753914602597553,
+              "coverage80": 0.0,
+              "width80": 0.03166666666666664
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.3080777557690938,
+              "coverage80": 0.0,
+              "width80": 0.165
+            },
+            "precipitation_signal": {
+              "mae": 0.05464294591297706,
+              "coverage80": 0.6666666666666666,
+              "width80": 0.13
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.19,
+          "lower80": 0.11,
+          "upper80": 0.3
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "arm": "Opaque",
+      "cell_id": "EQ-W01--Opaque",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 72,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 340.2029999999795,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.009221894568867156,
+          "coverage80": 0.7851851851851852,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.0042249425252278705,
+              "coverage80": 0.7555555555555555,
+              "width80": 0.010444444444444454
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.015309271428320143,
+              "coverage80": 0.7333333333333333,
+              "width80": 0.03266666666666667
+            },
+            "precipitation_signal": {
+              "mae": 0.008131469753053455,
+              "coverage80": 0.8666666666666667,
+              "width80": 0.03588888888888889
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.20953106034712657,
+          "coverage80": 0.0,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.0742058126926422,
+              "coverage80": 0.0,
+              "width80": 0.013000000000000012
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.40507775576909383,
+              "coverage80": 0.0,
+              "width80": 0.03766666666666666
+            },
+            "precipitation_signal": {
+              "mae": 0.14930961257964373,
+              "coverage80": 0.0,
+              "width80": 0.03966666666666665
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.066,
+          "lower80": 0.047,
+          "upper80": 0.086
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    },
+    {
+      "model": "gpt-5.5",
+      "arm": "Aligned",
+      "cell_id": "EQ-W01--Aligned",
+      "status": "completed",
+      "source_status": "completed",
+      "source_batches": 12,
+      "operations": 96,
+      "replay_verified": true,
+      "sealed_stages": {
+        "EQS": true,
+        "K1": true,
+        "K2": true,
+        "Q": true
+      },
+      "elapsed_s": 450.5320000000065,
+      "failure": null,
+      "prediction_metrics": {
+        "other_nine": {
+          "query_count": 9,
+          "macro_mae": 0.006581814385343487,
+          "coverage80": 0.9111111111111111,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.0038627775086297086,
+              "coverage80": 0.8666666666666667,
+              "width80": 0.012666666666666678
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.00899305474758148,
+              "coverage80": 0.9111111111111111,
+              "width80": 0.04722222222222222
+            },
+            "precipitation_signal": {
+              "mae": 0.006889610899819271,
+              "coverage80": 0.9555555555555556,
+              "width80": 0.03711111111111111
+            }
+          }
+        },
+        "dilute_three": {
+          "query_count": 3,
+          "macro_mae": 0.19579772701379325,
+          "coverage80": 0.0,
+          "responses": {
+            "pH_normalized": {
+              "mae": 0.0630058126926422,
+              "coverage80": 0.0,
+              "width80": 0.029666666666666675
+            },
+            "acid_dissociation_fraction": {
+              "mae": 0.3637444224357605,
+              "coverage80": 0.0,
+              "width80": 0.107
+            },
+            "precipitation_signal": {
+              "mae": 0.16064294591297706,
+              "coverage80": 0.0,
+              "width80": 0.07133333333333332
+            }
+          }
+        }
+      },
+      "most_dilute_dissociation": {
+        "prediction": {
+          "estimate": 0.116,
+          "lower80": 0.062,
+          "upper80": 0.185
+        },
+        "reference_mean": 0.7160339117050171
+      }
+    }
+  ],
+  "matched_comparisons": [
+    {
+      "model": "gpt-5.6-luna",
+      "aligned_minus_opaque": {
+        "other_nine": -0.07931322183432403,
+        "dilute_three": -0.08383710691953701
+      },
+      "reversal": false
+    },
+    {
+      "model": "gpt-5.6-terra",
+      "aligned_minus_opaque": {
+        "other_nine": -0.003710378174428589,
+        "dilute_three": -0.015444444444444455
+      },
+      "reversal": false
+    },
+    {
+      "model": "gpt-5.5",
+      "aligned_minus_opaque": {
+        "other_nine": -0.002640080183523669,
+        "dilute_three": -0.01373333333333332
+      },
+      "reversal": false
+    }
+  ]
+}
