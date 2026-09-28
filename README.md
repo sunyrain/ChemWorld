@@ -22,6 +22,10 @@ risk, and cost of experiments needed to adapt to independent models, real data, 
 
 **Website:** https://sunyrain.github.io/ChemWorld/
 
+**Current manuscript:** [English/Chinese files and editable figures](paper/venues/ncs/README.md).
+**Other releases:** [paper guide](paper/README.md).
+**Historical material:** [archive and recovery](archive/README.md).
+
 ## Research map
 
 | Layer | Role |

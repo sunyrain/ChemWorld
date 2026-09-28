@@ -46,8 +46,9 @@ acknowledgements, references and supplementary information.
 The current files use the `authors` suffix because the preceding Chinese Word
 and complete PDF were occupied during publication. Earlier `final`, `revised`
 and `main` paths are retained and are not the current editing or reading entry
-points; use the files in the table above. The older Chinese `main.docx` is a
-complete manuscript despite its filename.
+points; use the files in the table above. Superseded Word/PDF copies are now in
+the [workspace archive](../../../archive/README.md), with original-path recovery.
+The retained English `final.pdf` also remains a legacy build-summary dependency.
 
 The current editable text sources are:
 
@@ -174,10 +175,11 @@ citations and figure references before copying checked artifacts into `output`.
 Extract main-only PDFs from the actual main-text page span of that build; the
 current span is pages 1–11. Do not hard-code that span for future revisions.
 
-The earlier `build_venue_manuscripts.py --venue ncs`,
-`build_ncs_chinese_main.py` and `build_ncs_chinese_word.py` are historical export
-paths. They do not reproduce the current bilingual narrative, figure allocation
-and complete supplement, and must not overwrite these current artifacts.
+The earlier `build_venue_manuscripts.py --venue ncs` is a historical TeX export.
+The old Chinese export scripts are packaged with the retired editorial tools in
+the [archive](../../../archive/README.md). Those routes do not reproduce the
+current bilingual narrative, figure allocation and complete supplement, and must
+not overwrite these current artifacts.
 The older TeX template and archived reading variants likewise remain provenance,
 not competing manuscript sources.
 

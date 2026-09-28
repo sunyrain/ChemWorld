@@ -12,6 +12,8 @@ and release artifacts remain available wherever evidence or replay consumers req
 - `scripts/` contains current commands and retained reconstruction tools; its guide identifies their scope.
 - `workstreams/` contains one tracker per workstream, experiment notes and retained evidence records.
 - `runs/`, `site/`, caches, credentials, and provider responses are local artifacts and remain ignored.
+- `archive/README.md` and `archive/CONTENTS.tsv` index retired editorial material;
+  ZIP packages are local and ignored. Git retains the versioned originals.
 
 The environment provides physical-chemistry worlds, interventions, observations, budgets, scoring,
 and replay. Evaluation campaigns may update an Agent's context, memory, and actions, but ChemWorld

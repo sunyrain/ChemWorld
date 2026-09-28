@@ -10,6 +10,19 @@ authorize a new experiment or restore a historical qualification gate.
 
 ## Current research paths
 
+The completed 28 September bilingual manuscript is indexed by the
+[current manuscript guide](../paper/venues/ncs/README.md). Its retained equilibrium
+comparison uses `run_work_ii_eq_three_model_matrix.py`,
+`run_work_ii_eq_astra_matrix.py` and their paired analysis scripts; the source pilot
+uses `run_work_ii_eq_six_model_comparison.py`. These are reconstruction/execution
+entry points for their fixed notes, not authorization for another run.
+
+The table below describes the separately retained earlier research tracks. Current
+editorial tools are listed in [paper/tools/README.md](../paper/tools/README.md).
+Retired layout patches and unused candidates are in the
+[workspace archive](../archive/README.md); scientific repair/recovery scripts remain
+where evidence or tests still consume them.
+
 | Work | Entry points | Authority |
 | --- | --- | --- |
 | First-paper release | `paper/tools/build_arxiv_release.py` | First-paper TODO and canonical manuscript |

@@ -1,13 +1,11 @@
-# Previous NCS writing — archive
+# Historical manuscript recovery
 
-This directory retains the superseded Chinese NCS manuscript, its source
-excerpt, template and last build summary, plus the 22 September narrative
-guide. The current English Article is [one level above](../article.md).
+The superseded Chinese manuscript, source excerpt, template, build summary and
+earlier narrative guide have been packaged in the
+[workspace archive](../../../../archive/README.md). The
+[file index](../../../../archive/CONTENTS.tsv) preserves their original paths.
+The retired Chinese export tool is in the editorial-code ZIP.
 
-The historical Chinese PDF and the older English and Chinese editing snapshots
-are listed in the [PDF archive](../../../../output/pdf/archive/README.md).
-They are kept for provenance and comparison, not for current manuscript reading.
-
-`paper/tools/build_ncs_chinese.py` still points to the archived Chinese source
-and exports into the archive. Its output is historical and does not update the
-current English Article.
+Use the [current bilingual guide](../README.md) for editing and reading. Restore
+historical files into a separate directory when comparing versions; do not rebuild
+over the current author manuscript using an archived exporter.
