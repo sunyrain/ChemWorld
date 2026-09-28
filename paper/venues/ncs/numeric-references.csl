@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<style xmlns="http://purl.org/net/xbiblio/csl" version="1.0" class="in-text" default-locale="en-US">
+  <info>
+    <title>ChemWorld numeric manuscript references</title>
+    <id>https://chemworld.local/styles/numeric-manuscript</id>
+    <updated>2026-09-28T00:00:00+00:00</updated>
+  </info>
+  <citation collapse="citation-number">
+    <sort><key variable="citation-number"/></sort>
+    <layout delimiter="," vertical-align="sup"><text variable="citation-number"/></layout>
+  </citation>
+  <bibliography et-al-min="7" et-al-use-first="6" second-field-align="flush" entry-spacing="1">
+    <layout suffix=".">
+      <text variable="citation-number" suffix=". "/>
+      <names variable="author" suffix=". "><name initialize-with=". " and="text" delimiter=", "/><et-al/></names>
+      <text variable="title" suffix=". "/>
+      <group delimiter=" ">
+        <text variable="container-title" font-style="italic"/>
+        <text variable="volume" font-weight="bold"/>
+        <text variable="page"/>
+        <date variable="issued" prefix="(" suffix=")"><date-part name="year"/></date>
+      </group>
+      <choose><if variable="DOI"><text variable="DOI" prefix=". https://doi.org/"/></if><else><text variable="URL" prefix=". "/></else></choose>
+    </layout>
+  </bibliography>
+</style>

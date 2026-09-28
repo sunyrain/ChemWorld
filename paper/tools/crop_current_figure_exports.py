@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[2]
 LABELS = {
     "main": ("01", "02", "03", "04", "05", "06", "S4"),
     "supplementary": ("S1-1", "S1-2", "S1-3", "S1-4", "S2-ab", "S2-cf", "S3", "S5", "S6"),
+    "narrative": ("01", "02", "03", "04", "05", "06", "S4", "S7", "S8"),
 }
 
 
@@ -36,11 +37,11 @@ def main() -> None:
     args = parser.parse_args()
     labels = LABELS[args.kind]
     if args.exports is None:
-        folder = (
-            "chemworld-user-ppt-integration"
-            if args.kind == "main"
-            else "chemworld-supplementary-ppt-integration"
-        )
+        folder = {
+            "main": "chemworld-user-ppt-integration",
+            "supplementary": "chemworld-supplementary-ppt-integration",
+            "narrative": "chemworld-narrative-ppt-export",
+        }[args.kind]
         args.exports = Path(tempfile.gettempdir()) / folder
     if args.dependency_path:
         sys.path.append(str(args.dependency_path))

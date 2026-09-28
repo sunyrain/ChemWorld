@@ -1,18 +1,26 @@
 param(
     [string]$Source,
     [string]$ExportDirectory,
-    [ValidateSet('main', 'supplementary')]
+    [ValidateSet('main', 'supplementary', 'narrative')]
     [string]$Kind = 'main'
 )
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 if (-not $Source) {
-    $name = if ($Kind -eq 'main') { 'current' } else { 'supplementary' }
-    $Source = Join-Path $repoRoot "output/pptx/chemworld-$name-figures-editable.pptx"
+    if ($Kind -eq 'narrative') {
+        $Source = Join-Path $repoRoot 'output/pptx/chemworld-ncs-final-figures.pptx'
+    } else {
+        $name = if ($Kind -eq 'main') { 'current' } else { 'supplementary' }
+        $Source = Join-Path $repoRoot "output/pptx/chemworld-$name-figures-editable.pptx"
+    }
 }
 if (-not $ExportDirectory) {
-    $folder = if ($Kind -eq 'main') { 'chemworld-user-ppt-integration' } else { 'chemworld-supplementary-ppt-integration' }
+    $folder = switch ($Kind) {
+        'main' { 'chemworld-user-ppt-integration' }
+        'supplementary' { 'chemworld-supplementary-ppt-integration' }
+        'narrative' { 'chemworld-narrative-ppt-export' }
+    }
     $ExportDirectory = Join-Path $env:TEMP $folder
 }
 $expected = if ($Kind -eq 'main') { 7 } else { 9 }

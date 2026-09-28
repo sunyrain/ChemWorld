@@ -1,5 +1,16 @@
 # Final English manuscript figures
 
+## Current bilingual manuscript
+
+The current bilingual manuscript uses the [nine-slide figure collection](../../../output/pptx/chemworld-ncs-final-figures.pptx)
+and [native exports](../narrative-final/README.md). Main Figures 4 and 5 now show
+prior reversal/cross-model results and successful research paths. The budget
+figure and original detailed Sol figure are retained as S4 and S8. Figure 1 has
+an updated study-scope label; Figures 2, 3, 6 and the case now numbered S5 retain their accepted design.
+The seven-slide source below remains unchanged and still supports the earlier
+English/Chinese Markdown derivatives. The following historical bindings do not
+describe the latest author Word's figure order.
+
 ## Current editable figure collection
 
 The [editable PowerPoint](../../../output/pptx/chemworld-current-figures-editable.pptx)
