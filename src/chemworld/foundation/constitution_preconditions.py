@@ -187,10 +187,14 @@ def check_operation_preconditions(
         "terminate",
     }
     from chemworld.world.control_contract import CONTROL_OPERATIONS
+    from chemworld.world.stream_contract import STREAM_OPERATIONS
 
     if operation_type in CONTROL_OPERATIONS:
         needs_not_terminated = True
         needs_volume = operation_type == "advance_control"
+    if operation_type in STREAM_OPERATIONS:
+        needs_not_terminated = True
+        needs_volume = operation_type == "advance_flow"
     return {
         "instrument_available": operation_type != "measure" or instrument is not None,
         "has_volume": not needs_volume or has_volume,

@@ -22,6 +22,7 @@ from chemworld.world.operations import (
     instrument_name,
     operation_contracts,
 )
+from chemworld.world.stream_contract import STREAM_FIELDS
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
 EXTRACTANTS = SOLVENTS
@@ -95,6 +96,9 @@ class ActionCodec:
         control_numeric_fields = set(CONTROL_NUMERIC) | (
             set(CONTROL_ACTION_FIELDS.get(canonical["operation"], ())) - set(CONTROL_CHOICES)
         )
+        control_numeric_fields |= set(STREAM_FIELDS.get(canonical["operation"], ())) - {
+            "connection"
+        }
         for field in control_numeric_fields:
             if field in canonical:
                 if np.asarray(canonical[field]).dtype.kind == "b":

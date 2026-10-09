@@ -11,6 +11,7 @@ from chemworld.foundation import Operation
 from chemworld.world.actions import SOLVENTS
 from chemworld.world.control_contract import CONTROL_ACTION_FIELDS, CONTROL_OPERATIONS
 from chemworld.world.ontology import chemworld_state_variables
+from chemworld.world.stream_contract import STREAM_FIELDS, STREAM_OPERATIONS
 
 REACTION_OPERATIONS = (
     "add_reagent",
@@ -45,7 +46,7 @@ CRYSTALLIZATION_OPERATIONS = (
     "resuspend_crystals",
 )
 DISTILLATION_OPERATIONS = ("evaporate", "distill", "collect_fraction")
-FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
+FLOW_OPERATIONS = ("set_flow_rate", "run_flow", *STREAM_OPERATIONS)
 ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
 MACRO_OPERATIONS = ("wash", "dry", "concentrate")
 TERMINAL_OPERATIONS = ("terminate",)
@@ -90,6 +91,11 @@ EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 # Services may retain defensive clipping, but validated actions must never be
 # silently reinterpreted by those guards.
 OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("set_flow_stream", "flow_rate_mL_min"): (0.0, 20.0),
+    ("set_flow_rate", "flow_rate_mL_min"): (0.01, 20.0),
+    ("advance_flow", "duration_s"): (1.0, 14400.0),
+    ("advance_flow", "target_temperature_K"): (250.0, 430.0),
+    ("advance_flow", "current_mA"): (0.0, 500.0),
     ("configure_control", "target_temperature_K"): (250.0, 430.0),
     ("queue_control_stage", "target_temperature_K"): (250.0, 430.0),
     ("advance_control", "duration_s"): (1.0, 14400.0),
@@ -200,6 +206,10 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        *(
+            Operation(name, "Finite-reservoir continuous streams", fields, ("not_terminated",))
+            for name, fields in STREAM_FIELDS.items()
+        ),
         *(
             Operation(name, "Persistent bounded process control", fields, ("not_terminated",))
             for name, fields in CONTROL_ACTION_FIELDS.items()

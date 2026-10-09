@@ -8,6 +8,7 @@ from typing import Any
 
 from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import OPERATION_TYPES
+from chemworld.world.stream_contract import STREAM_OPERATIONS
 
 
 @dataclass(frozen=True)
@@ -98,7 +99,7 @@ class DomainServiceRegistry:
                     "continuous_flow",
                     "continuous_flow",
                     "ChemWorldFlowServices",
-                    ("set_flow_rate", "run_flow"),
+                    ("set_flow_rate", "run_flow", *STREAM_OPERATIONS),
                     ("continuous_flow",),
                 ),
                 DomainServiceContract(

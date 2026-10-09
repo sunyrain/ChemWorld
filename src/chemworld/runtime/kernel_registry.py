@@ -17,6 +17,7 @@ from chemworld.runtime.profiles import TaskRuntimeProfile
 from chemworld.runtime.transactions import StatePatch, WorldEvent
 from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import OPERATION_TYPES, operation_contracts
+from chemworld.world.stream_contract import STREAM_OPERATIONS
 
 
 @dataclass(frozen=True)
@@ -293,6 +294,10 @@ def affected_ledgers(operation_type: str) -> tuple[str, ...]:
         )
     if operation_type in CONTROL_OPERATIONS:
         affected.extend(("equipment", "species", "phases", "thermal", "process"))
+    if operation_type in STREAM_OPERATIONS:
+        affected.extend(
+            ("inactive_vessels", "samples", "equipment", "species", "phases", "vessels", "thermal")
+        )
     return tuple(dict.fromkeys(affected))
 
 

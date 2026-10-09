@@ -14,7 +14,9 @@ from chemworld.envs.spaces import OBSERVATION_KEYS, value_or_default
 from chemworld.foundation.solvents import MIXTURE_MODEL_ID
 from chemworld.foundation.state import OperationRecord
 from chemworld.materials import public_material_catalog
+from chemworld.physchem.coupled_flow import FLOW_MODEL
 from chemworld.runtime.component_network import public_network
+from chemworld.runtime.continuous_streams import public_streams
 from chemworld.runtime.control_program import control_settings, public_control
 from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.runtime.species import MechanismSpeciesView
@@ -69,6 +71,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "allowed_instruments": sorted(env.allowed_instruments),
         "material_catalog": public_material_catalog(task_id=env.task_id),
         "control_model": deepcopy(CONTROL_MODEL),
+        "continuous_stream_model": deepcopy(FLOW_MODEL),
         "mixture_model": {
             "id": MIXTURE_MODEL_ID,
             "catalog_size": 4,
@@ -449,6 +452,7 @@ def build_step_info(
         "material_routing": env._state.samples.routing_summary(),
         "component_network": public_network(env._state),
         "process_control": public_control(env._state),
+        "continuous_streams": public_streams(env._state),
         "control_trace": (
             control_settings(env._state).get("last_samples", [])
             if operation_record.operation_type == "advance_control"
