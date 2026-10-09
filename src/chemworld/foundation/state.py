@@ -196,9 +196,12 @@ class WorldState:
             "thermal": None if self.thermal is None else self.thermal.to_dict(),
             "process": None if self.process is None else self.process.to_dict(),
             "samples": self.samples.to_dict() if include_hidden else self.samples.public_summary(),
+            "material_routing": self.samples.routing_summary(),
         }
         if include_hidden:
             payload["species_amounts"] = deepcopy(self.species_amounts)
+            payload["active_reference_sources"] = deepcopy(self.samples.active_reference_sources)
+            payload["active_reference_shares"] = deepcopy(self.samples.active_reference_shares)
         return payload
 
     def replace(self, **updates: Any) -> WorldState:

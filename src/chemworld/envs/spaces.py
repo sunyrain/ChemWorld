@@ -8,6 +8,7 @@ from typing import Any
 import numpy as np
 from gymnasium import spaces
 
+from chemworld.foundation.samples import CONTAINER_IDS
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     INSTRUMENTS,
@@ -85,6 +86,11 @@ def make_action_space() -> spaces.Dict:
     return ConditionalActionDict(
         {
             "operation": spaces.Discrete(len(OPERATION_TYPES)),
+            "container": spaces.Discrete(len(CONTAINER_IDS)),
+            "source_container": spaces.Discrete(len(CONTAINER_IDS)),
+            "destination_container": spaces.Discrete(len(CONTAINER_IDS)),
+            "capacity_L": spaces.Box(0.0001, 0.1, shape=(1,), dtype=np.float32),
+            "mixing": spaces.Discrete(2),
             "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
             "volume_L": spaces.Box(0.0, 0.080, shape=(1,), dtype=np.float32),
             "catalyst_amount_mol": spaces.Box(0.0, 0.005, shape=(1,), dtype=np.float32),

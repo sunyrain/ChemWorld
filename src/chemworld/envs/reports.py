@@ -419,6 +419,7 @@ def build_step_info(
         "experiment_ended": False,
         "experiment_summaries": deepcopy(env._experiment_summaries),
         "sample_inventory": env._state.samples.public_summary(),
+        "material_routing": env._state.samples.routing_summary(),
         "task_id": env.task_id,
         "scenario_id": None if env.scenario_spec is None else env.scenario_spec.scenario_id,
         "initial_state_id": env.scenario_spec.initial_state_id,

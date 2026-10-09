@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- R24 已完成：`create_container` / `transfer_material` 支持同溶剂淬灭液体/晶浆的命名容器、比例分样、显式合并及回装处理；保留相、粒群、种晶与来源分母。3/3 路径、57 动作（54 提交/3 预期拒绝）、12 次转移，独立进程 3/3 精确回放；最大物料误差 1.735e-18 mol。最终机器摘要 `D:/Projects/ChemWorld-local-research/20261009-extension-r24/attempt-03/summary.json`，说明 `development-extension-r24-20261009.md`。150 项相关集成通过，后续 API 定向检查通过；早期适配器失败保留在说明。当前执行标识 `chemworld-current-20261009-material-routing`。8 项扩展中 R24/R26 完成；R23/R25/R27/R28/R29/R36 尚未完成，下一步 R23 混合溶剂/组分账，再推进实例拓扑。当前没有运行中的实验或服务。不要重复运行覆盖已有目录。
+
 - 用户新增目标：完成原后置 R23–R29、R36 共 8 项；明确不含 R19/R21/R33。R26 已完成原生过滤后悬浮/热复溶/再结晶，3/3 双循环、57 动作、6 份隔离滤液与 3/3 replay；首轮 0/3 两循环的稀释失败保留。说明 `development-extension-r26-20261009.md`，数据 `D:/Projects/ChemWorld-local-research/20261009-extension-r26/`。当前状态仅看 TODO 第 9 节；剩余 7 项继续推进，下一步 R24 通用样品/容器路由。当前执行标识已改为 `chemworld-current-20261009-extensions`，旧开发证据用各自提交，不在主线补兼容执行器。
 
 - R20/R34/R35 已完成：4 campaign / 5 批次 / 18 动作的负结果、弃批、截断及开放记录保留并导出，4/4 replay；15/15 注册任务、181 动作、736 public payload 及 15/15 replay 通过。首轮 schema 调用错误保留，已通过的结果块未重跑。最终核心集成 327 passed / 0 failed。说明与 LYJ 生命周期/资源交接见 `development-release-r20-r34-r35-20261009.md`；Parquet 可选 backend 未装，文件导出尚未验证。Ours 本次适用 17 项全部完成，R19/R21/R33 和 8 项后置仍 DEFERRED；状态唯一入口仍为 TODO 第 9 节。下列“下一步”是各阶段的历史记录，不重新启动已完成任务。

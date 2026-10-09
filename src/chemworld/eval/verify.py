@@ -325,13 +325,17 @@ def verify_records(
             replay_audit_info = {**info, **replay_provenance}
             replay_observation = _scalar_observation(observation)
             recorded_observation = record["observation"]
-            recorded_inventory = record.get("environment_outcome", {}).get("sample_inventory")
-            if recorded_inventory is not None:
+            for inventory_field, default_inventory in (
+                ("sample_inventory", []), ("material_routing", {})
+            ):
+                recorded_inventory = record.get("environment_outcome", {}).get(inventory_field)
+                if recorded_inventory is None:
+                    continue
                 inventory_mismatches = _jsonish_mismatches(
                     step=int(record["step"]),
-                    field="sample_inventory",
+                    field=inventory_field,
                     recorded=recorded_inventory,
-                    replayed=info.get("sample_inventory", []),
+                    replayed=info.get(inventory_field, default_inventory),
                     tolerance=tolerance,
                 )
                 mismatches.extend(inventory_mismatches)

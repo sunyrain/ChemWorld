@@ -7,6 +7,7 @@ from typing import Any
 
 import numpy as np
 
+from chemworld.foundation.samples import CONTAINER_IDS
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
@@ -42,6 +43,11 @@ GYM_ACTION_KEYS = (
     "potential_V",
     "current_mA",
     "electrolyte_profile",
+    "container",
+    "source_container",
+    "destination_container",
+    "capacity_L",
+    "mixing",
 )
 
 
@@ -70,6 +76,15 @@ class ActionCodec:
             canonical = payload
         canonical["operation"] = self._operation_name(canonical["operation"])
         canonical = self._apply_aliases(canonical)
+        for field in ("container", "source_container", "destination_container"):
+            if field in canonical:
+                canonical[field] = self._index(canonical[field], CONTAINER_IDS)
+        if canonical["operation"] in {"create_container", "transfer_material"}:
+            for field in ("capacity_L", "transfer_fraction"):
+                if field in canonical:
+                    canonical[field] = self._float(canonical, field, 0)
+            if "mixing" in canonical:
+                canonical["mixing"] = self._index(canonical["mixing"], ("empty_only", "allow"))
         if "solvent" in canonical:
             canonical["solvent"] = self._choice_index(canonical["solvent"], self.solvents)
         if "catalyst" in canonical:
@@ -189,6 +204,11 @@ class ActionCodec:
             self._float(action, "potential_V", 1.2),
             self._float(action, "current_mA", 50.0),
             self._float(action, "electrolyte_profile", 1.0),
+            self._float(action, "container", 1.0),
+            self._float(action, "source_container", 0.0),
+            self._float(action, "destination_container", 1.0),
+            self._float(action, "capacity_L", 0.1),
+            self._float(action, "mixing", 0.0),
         ]
         vector = np.asarray(values, dtype=np.float32)
         if not np.all(np.isfinite(vector)):
@@ -242,6 +262,10 @@ class ActionCodec:
         required = operation_contracts(
             include_campaign_controls=operation in CAMPAIGN_CONTROL_OPERATIONS
         )[operation].required_fields
+        for index, key in enumerate(("container", "source_container", "destination_container"), 23):
+            decoded[key] = int(np.clip(round(array[index]), 0, len(CONTAINER_IDS) - 1))
+        decoded["capacity_L"] = float(array[26])
+        decoded["mixing"] = int(np.clip(round(array[27]), 0, 1))
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

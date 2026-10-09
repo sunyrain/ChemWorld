@@ -19,6 +19,8 @@ REACTION_OPERATIONS = (
     "wait",
     "sample",
     "quench",
+    "create_container",
+    "transfer_material",
     "terminate",
     "measure",
 )
@@ -83,6 +85,7 @@ EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 # Services may retain defensive clipping, but validated actions must never be
 # silently reinterpreted by those guards.
 OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("transfer_material", "transfer_fraction"): (0.0, 1.0),
     ("heat", "duration_s"): (1.0, 14_400.0),
     ("wait", "duration_s"): (1.0, 14_400.0),
     ("add_phase", "volume_L"): (0.0, 0.060),
@@ -188,6 +191,11 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        Operation("create_container", "Open a single-use storage container",
+                  ("container", "capacity_L"), ("not_terminated",)),
+        Operation("transfer_material", "Transfer or merge a representative material aliquot",
+                  ("source_container", "destination_container", "transfer_fraction", "mixing"),
+                  ("not_terminated", "material_routing_valid")),
         Operation(
             "resuspend_crystals",
             "Isolate filtrate and resuspend retained crystals in fresh solvent",

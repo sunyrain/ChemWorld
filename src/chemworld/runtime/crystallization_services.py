@@ -28,6 +28,7 @@ from chemworld.runtime.full_process_contract import (
     population_settings,
     seed_provenance_active,
 )
+from chemworld.runtime.material_routing import _active, _contents
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
@@ -637,7 +638,12 @@ class ChemWorldCrystallizationServices:
         solvent = int(_action_float(action, "solvent", 0))
         if not 0.0001 <= volume <= 0.080 or solvent not in range(len(SOLVENTS)):
             raise ValueError("Invalid resuspension volume or solvent")
-        sample_id = f"filtrate-{len(state.samples.samples) + 1:04d}"
+        sample_id = next((f"filtrate-{i:04d}" for i in range(1, 17)
+                          if f"filtrate-{i:04d}" not in state.samples.samples), None)
+        if sample_id is None:
+            raise ValueError("All 16 disposable filtrate containers have been used")
+        source = _active(state)
+        source_contents = _contents(source)
         sample = StoredSample(
             sample_id=sample_id,
             source_vessel_id=state.vessel_id,
@@ -649,7 +655,13 @@ class ChemWorldCrystallizationServices:
             solvent=solvent,
             quenched=state.quenched,
             seed_target_mol=dissolved_seed * (1.0 - retained_liquid_fraction),
+            lineage=source.lineage,
         )
+        sample = replace(sample, contents=replace(
+            _contents(sample), species=source_contents.species,
+            reference_sources=source_contents.reference_sources,
+            reference_shares=source_contents.reference_shares,
+        ))
         liquid_volume = volume + cake_liquor.volume_L
         phases = PhaseLedger(
             {
@@ -689,10 +701,16 @@ class ChemWorldCrystallizationServices:
             species_amounts=phases.total_amounts_mol(),
             volume_L=liquid_volume,
             equipment=equipment,
-            samples=state.samples.append(sample),
+            samples=replace(
+                state.samples.append(sample),
+                containers_used=state.samples.containers_used + 1,
+                active_lineage=source.lineage,
+                active_reference_sources=source_contents.reference_sources,
+                active_reference_shares=source_contents.reference_shares,
+            ),
             ledger=state.ledger.with_updates(
                 cost=state.ledger.cost
-                + 0.010
+                + 0.030
                 + volume * 8.0 * float(self.world.solvent_costs[solvent])
             ),
         )

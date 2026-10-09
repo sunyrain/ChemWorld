@@ -45,6 +45,8 @@ class DomainServiceRegistry:
                         "add_catalyst",
                         "sample",
                         "quench",
+                        "create_container",
+                        "transfer_material",
                         "evaporate",
                         "terminate",
                     ),

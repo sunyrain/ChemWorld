@@ -326,6 +326,11 @@ class OperationValidator:
     ) -> tuple[Any, ...]:
         """Narrow categorical choices to physically persistent task state."""
 
+        if operation_type == "create_container" and field == "container":
+            from chemworld.foundation.samples import CONTAINER_IDS
+
+            return tuple(i for i in choices if CONTAINER_IDS[i] not in state.samples.samples)
+
         if operation_type == "measure" and field == "instrument":
             choices = tuple(
                 choice for choice in choices if (choice == "final_assay") == state.terminated
@@ -440,6 +445,10 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
+        if not check_payload and operation_type in {"create_container", "transfer_material"}:
+            from chemworld.runtime.material_routing import routing_available
+
+            preconditions["material_route_available"] = routing_available(state, operation_type)
         crystallizer_settings = equipment_settings(
             state.equipment, "crystallizer", fields=("crystal_seeded", "seed_target_mol")
         )
@@ -487,6 +496,8 @@ class OperationValidator:
                 "measure",
                 "terminate",
                 "resuspend_crystals",
+                "create_container",
+                "transfer_material",
             }
         if operation_type in {"add_solvent", "add_phase", "add_extractant"}:
             maximum_addition = max(self._max_volume_l(state) - state.volume_L, 0.0)
@@ -775,6 +786,12 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
+        if operation_type in {"create_container", "transfer_material"}:
+            from chemworld.runtime.material_routing import routing_error
+
+            checks["payload_material_routing_valid"] = (
+                routing_error(state, operation_type, payload) is None
+            )
         required_fields = operation_contracts(
             include_campaign_controls=operation_type in CAMPAIGN_CONTROL_OPERATIONS
         )[operation_type].required_fields

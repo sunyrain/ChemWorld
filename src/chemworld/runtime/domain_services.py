@@ -25,6 +25,7 @@ from chemworld.runtime.domain_service_registry import (
 from chemworld.runtime.electrochemical_services import ChemWorldElectrochemicalServices
 from chemworld.runtime.flow_services import ChemWorldFlowServices
 from chemworld.runtime.instrument_cost_services import ChemWorldInstrumentCostServices
+from chemworld.runtime.material_routing import ChemWorldMaterialRoutingServices
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_separation_services import ChemWorldPhaseSeparationServices
 from chemworld.runtime.primitive_services import ChemWorldPrimitiveOperationServices
@@ -57,6 +58,7 @@ class ChemWorldDomainServices:
         self.species_view = MechanismSpeciesView(compiled_mechanism)
         self.operation_recorder = ChemWorldOperationRecorder(constitution)
         self.primitive = ChemWorldPrimitiveOperationServices(world, self.species_view)
+        self.material_routing = ChemWorldMaterialRoutingServices()
         self.reaction_thermal = ChemWorldReactionThermalServices(world, self.species_view)
         self.phase_separation = ChemWorldPhaseSeparationServices(
             world,
@@ -105,6 +107,8 @@ class ChemWorldDomainServices:
         self,
     ) -> dict[str, Callable[[WorldState, dict[str, Any]], WorldState]]:
         return {
+            "create_container": self.material_routing.create_container,
+            "transfer_material": self.material_routing.transfer_material,
             "add_reagent": self.primitive.add_reagent,
             "add_solvent": self.primitive.add_solvent,
             "add_catalyst": self.primitive.add_catalyst,

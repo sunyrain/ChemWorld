@@ -69,7 +69,8 @@ def test_decoder_uses_dynamic_public_bounds_and_cooling_constraint() -> None:
     base = gym.make("ChemWorld", task_id="reaction-to-crystallization")
     try:
         assert isinstance(base.action_space, gym.spaces.Dict)
-        vector = np.zeros(50, dtype=np.float32)
+        vector = np.zeros(len(OPERATION_TYPES) + len(base.action_space.spaces) - 1,
+                          dtype=np.float32)
         vector[OPERATION_TYPES.index("cool_crystallize")] = 1.0
         required = list(operation_contracts()["cool_crystallize"].required_fields)
         schema = {

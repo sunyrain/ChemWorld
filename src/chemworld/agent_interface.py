@@ -19,6 +19,7 @@ import numpy as np
 from chemworld.data.logging import to_builtin
 from chemworld.envs.spaces import OBSERVATION_KEYS
 from chemworld.foundation import equipment_settings, selected_phase_id
+from chemworld.foundation.samples import CONTAINER_IDS
 from chemworld.materials import material_choice_labels
 from chemworld.operation_validator import (
     ELECTROCHEMICAL_MIN_ADAPTED_CURRENT_DELTA_MA,
@@ -89,6 +90,11 @@ def _campaign_snapshot(base: Any, ledger: Any) -> dict[str, Any]:
 
 
 FIELD_UNITS: dict[str, str] = {
+    "capacity_L": "L",
+    "container": "categorical",
+    "source_container": "categorical",
+    "destination_container": "categorical",
+    "mixing": "categorical",
     "amount_mol": "mol",
     "volume_L": "L",
     "catalyst_amount_mol": "mol",
@@ -114,6 +120,7 @@ FIELD_UNITS: dict[str, str] = {
 }
 
 FIELD_RANGES: dict[str, tuple[float, float]] = {
+    "capacity_L": (0.0001, 0.1),
     "amount_mol": (0.0, 0.040),
     "volume_L": (0.0, 0.080),
     "catalyst_amount_mol": (0.0, 0.005),
@@ -132,6 +139,10 @@ FIELD_RANGES: dict[str, tuple[float, float]] = {
 }
 
 FIELD_CHOICES: dict[str, list[Any]] = {
+    "container": list(range(1, 17)),
+    "source_container": list(range(len(CONTAINER_IDS))),
+    "destination_container": list(range(len(CONTAINER_IDS))),
+    "mixing": [0, 1],
     "instrument": list(INSTRUMENTS),
     "catalyst": list(range(len(CATALYSTS))),
     "solvent": list(range(len(SOLVENTS))),
@@ -425,6 +436,7 @@ def _field_schema(
         payload["recommended_range"] = {"low": low, "high": high}
         payload["lower_bound_inclusive"] = not (
             field in {"amount_mol", "catalyst_amount_mol", "sample_volume_L"}
+            or (operation == "transfer_material" and field == "transfer_fraction")
             or (field == "volume_L" and operation in {"add_solvent", "add_phase", "add_extractant"})
         )
         payload["upper_bound_inclusive"] = True
@@ -434,6 +446,10 @@ def _field_schema(
     choices = list(operation_choices) if operation_choices is not None else FIELD_CHOICES.get(field)
     if choices is not None:
         payload["choices"] = list(choices)
+        if field in {"container", "source_container", "destination_container"}:
+            payload["choice_labels"] = {str(i): CONTAINER_IDS[i] for i in choices}
+        elif field == "mixing":
+            payload["choice_labels"] = {"0": "empty destination only", "1": "allow mixing"}
         labels = material_choice_labels(field, task_id=task_id)
         if labels:
             payload["choice_labels"] = labels
@@ -550,6 +566,11 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             field["locked_for_current_experiment"] = True
     _apply_campaign_resource_schema(base, operation, fields)
     constraints: list[dict[str, Any]] = []
+    if operation == "transfer_material" and state is not None:
+        from chemworld.runtime.material_routing import material_routes
+
+        constraints.append({"id": "material_routing", "kind": "material_routes",
+                            "routes": material_routes(state)})
     if operation == "cool_crystallize" and state is not None:
         constraints.extend(
             [
@@ -633,6 +654,16 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             "Use validate_action(action) before executing.",
             "Payload aliases are canonicalized by the environment action codec.",
             "Fields outside operation and required_fields are rejected atomically.",
+            *([
+                "Storage domain: quenched same-solvent reactor liquids and crystal slurries; "
+                "sealed isothermal storage has no reaction, evaporation or phase evolution.",
+                "Transfer is instantaneous and proportional in every phase; liquid heat "
+                "capacity determines adiabatic mixing temperature.",
+                "Each transfer uses a new disposable tool (cost 0.005); each new container "
+                "costs 0.02 and retires when emptied. Occupied destinations require mixing=1.",
+                "Addresses: active=0, container-01..16=1..16, filtrate-0001..0016=17..32. "
+                "Use the material_routes constraint for compatible source/destination bounds.",
+            ] if operation in {"create_container", "transfer_material"} else []),
         ],
     }
 
@@ -1864,6 +1895,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
     """Return a structured public observation bundle for tool agents."""
 
     actions = available_actions(env)
+    material_state = getattr(_base_env(env), "_state", None)
     operational = full_process_operational_state(env, info)
     research = getattr(_base_env(env), "research_brief", None)
     if research is not None:
@@ -1886,6 +1918,12 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "cost_components": to_builtin(info.get("cost_components", {})),
         "constraints": to_builtin(info.get("constraint_flags", {})),
         "campaign_state": campaign_state(env),
+        "sample_inventory": (
+            material_state.samples.public_summary() if material_state is not None else []
+        ),
+        "material_routing": (
+            material_state.samples.routing_summary() if material_state is not None else {}
+        ),
         "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info, _actions=actions),
