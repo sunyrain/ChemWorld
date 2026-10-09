@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- R01/R02 已完成；每完成 1–2 项再 pull/push。说明与交接 `development-release-r01-r02-20261009.md`；26/26 当前物理路径精确回放，9/9 热成对、2/2 真零负结果结案、148 passed / 1 optional skip，Ruff 与 11 文件 mypy 通过。全部原始数据留在仓库外，首轮失败不覆盖。用户已取消主线向后兼容要求：论文复现使用独立固定发布快照，main 不保留旧热控或新建 v6 兼容层；旧轨迹明确转向原执行版本。本条取代下述规划时的“未开始”状态，状态仅在 TODO 第 9 节维护。
+
 - 2026-10-09 后续规划：用户要求复核每项必要性、按 Ours / LYJ 两组分工并推送当前仓库 main。认领/完成唯一入口为 `../FIRST_PAPER_TODOLIST.md` 第 9 节；本轮只建立规划，44 项改良仍未认领/未开始。必要性为 17 必做、10 合并、9 条件、8 后置；不把全部 44 项当作首发阻塞。两组职责及逐项理由见 `COMMUNITY_RELEASE_IMPROVEMENT_PLAN.md` 本次复核段。
 
 - 当前任务已完成：DEV-EXPLORE-03，社区发布质量评估及 44 项改良清单；用户指定首发服务研究者与 Agent 开发者。成果入口 `COMMUNITY_RELEASE_IMPROVEMENT_PLAN.md`，执行设计/结果 `development-release-exploration-20261009.md`；机器摘要 `D:/Projects/ChemWorld-local-research/20261009-explore03/analysis.json`。没有正在运行的探索或临时 UI 服务。当前只修改研究文档和 TODO，未修运行时、未发布。
@@ -36,7 +38,7 @@
 
 ## 下次继续时的具体入口
 
-三个探索块均已停止。先读 `COMMUNITY_RELEASE_IMPROVEMENT_PLAN.md`，依据用户下一步指令推进具体修复；推荐先确认发行源与边界，再修科学语义和研究者完整工作流。未开始的建议不能记为已完成。
+三个探索块及 R01/R02 开发验证均已停止，没有运行中的实验或临时服务。Ours 后续入口为 TODO 第 9 节，下一建议是 R03 测量时钟；LYJ 继续自己的文件范围。用户指定每完成 1–2 项再 pull/push。未开始的建议不能记为已完成。
 若新增实验，先写一个短块说明；保留这两轮全部结果。若只是复查，优先读取 analysis.json 和当前报告，不重跑世界。
 三个多批研究的 `E-research-s*/experiment_documents/model_owned_notebook.md` 保存实验表；
 `prospective_predictions.json` 保存预测在先的选点记录，`research_results.json` 保存验证误差和恢复进程信息。
