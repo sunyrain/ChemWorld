@@ -11,9 +11,12 @@ import threading
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from chemworld.data.logging import to_builtin
+
+if TYPE_CHECKING:
+    from chemworld.agents.notebook_versions import NotebookVersions
 
 EXPERIMENT_DOCUMENTS_VERSION = "chemworld-experiment-documents-0.1"
 AUTHORITATIVE_LEDGER_VERSION = "chemworld-environment-authoritative-ledger-0.1"
@@ -32,7 +35,7 @@ class ExperimentDocumentWorkspace:
     authoritative file still matches the hash retained by this host object.
     """
 
-    def __init__(self, run_directory: str | Path) -> None:
+    def __init__(self, run_directory: str | Path, *, versioned_notebook: bool = False) -> None:
         root = Path(run_directory).expanduser().resolve()
         self.run_directory = root
         self.documents_directory = root / "experiment_documents"
@@ -40,6 +43,7 @@ class ExperimentDocumentWorkspace:
             self.documents_directory / "environment_authoritative_ledger.jsonl"
         )
         self.notebook_path = self.documents_directory / "model_owned_notebook.md"
+        self.versioned_notebook = versioned_notebook
         self._expected_authoritative_sha256: str | None = None
         self._last_event_id: str | None = None
         self._initialized = False
@@ -77,12 +81,16 @@ class ExperimentDocumentWorkspace:
             self._expected_authoritative_sha256 = fingerprint["sha256"]
             self._last_event_id = fingerprint["last_event_id"]
             self._initialized = True
+            if self.versioned_notebook:
+                self._versions().sync_view()
             return self.manifest()
 
     def reset(self) -> dict[str, Any]:
         """Explicitly replace both documents with a fresh empty workspace."""
 
         with self._lock:
+            if self.versioned_notebook and self._versions().log()["total"]:
+                raise ValueError("start a new run directory to reset a versioned notebook")
             self.documents_directory.mkdir(parents=True, exist_ok=True)
             _atomic_write_bytes(self.authoritative_path, b"")
             _atomic_write_text(self.notebook_path, DEFAULT_NOTEBOOK_TEXT)
@@ -148,11 +156,15 @@ class ExperimentDocumentWorkspace:
                 )
             return deepcopy(fingerprint)
 
-    def read_notebook(self) -> str:
+    def read_notebook(self, revision: int | None = None) -> str:
         """Return the model-owned notebook after checking the host ledger."""
 
         with self._lock:
             self.verify_authoritative_integrity()
+            if self.versioned_notebook:
+                return str(self._versions()._load(revision)["text"])
+            if revision is not None:
+                raise ValueError("notebook versioning is not enabled")
             return self.notebook_path.read_text(encoding="utf-8")
 
     def write_notebook(self, text: str) -> dict[str, Any]:
@@ -162,9 +174,49 @@ class ExperimentDocumentWorkspace:
             raise TypeError("notebook text must be a string")
         with self._lock:
             self.verify_authoritative_integrity()
-            _atomic_write_text(self.notebook_path, text)
+            if self.versioned_notebook:
+                self.notebook_tool("write", text=text)
+            else:
+                _atomic_write_text(self.notebook_path, text)
             self.verify_authoritative_integrity()
             return self.manifest()
+
+    def _versions(self) -> NotebookVersions:
+        from chemworld.agents.notebook_versions import NotebookVersions
+
+        return NotebookVersions(self.notebook_path, DEFAULT_NOTEBOOK_TEXT)
+
+    def notebook_tool(self, operation: str, **arguments: Any) -> dict[str, Any]:
+        """On-demand notebook API; no body is returned by writes, logs or restores."""
+        if not self.versioned_notebook:
+            raise ValueError("notebook versioning is not enabled")
+        fields = {
+            "write": {"text", "message", "reviewed_through"},
+            "restore": {"revision", "message"},
+            "read": {"revision", "offset", "limit"},
+            "log": {"offset", "limit"},
+            "diff": {"before", "after", "offset", "limit"},
+        }
+        if operation not in fields or arguments.keys() - fields[operation]:
+            raise ValueError("unknown notebook operation or arguments")
+        with self._lock:
+            ledger = self.verify_authoritative_integrity()
+            versions = self._versions()
+            cursor = {"event_count": ledger["line_count"], "last_event_id": ledger["last_event_id"]}
+            if operation in {"write", "restore"}:
+                reviewed = arguments.get("reviewed_through")
+                if reviewed is not None and reviewed not in _authoritative_event_ids(
+                    self.authoritative_path
+                ):
+                    raise ValueError("reviewed_through must reference an existing public event")
+                method = versions.commit if operation == "write" else versions.restore
+                result = method(public_cursor=cursor, **arguments)
+            elif operation in {"read", "log", "diff"}:
+                result = getattr(versions, operation)(**arguments)
+            else:
+                raise ValueError("unknown notebook operation")
+            self.verify_authoritative_integrity()
+            return {**result, "current_public_cursor": cursor}
 
     def manifest(self) -> dict[str, Any]:
         """Return paths and fingerprints, never authoritative ledger contents."""
@@ -186,6 +238,15 @@ class ExperimentDocumentWorkspace:
                     "agent_writable": True,
                     "relative_path": self._relative_path(self.notebook_path),
                     **notebook,
+                    **(
+                        {
+                            "versioning": True,
+                            "latest": self._versions().status(),
+                            "content_policy": "on_demand_only",
+                        }
+                        if self.versioned_notebook
+                        else {}
+                    ),
                 },
             }
 
