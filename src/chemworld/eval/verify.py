@@ -11,6 +11,7 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.data.validation import validate_records
 from chemworld.envs.chemworld_env import ChemWorldEnv
+from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 
@@ -155,16 +156,22 @@ def verify_records(
 
     validate_records(records)
     for record in records:
-        if record.get("reaction_thermal_control_id") != REACTION_THERMAL_CONTROL_ID:
+        semantics = {
+            "reaction_thermal_control_id": REACTION_THERMAL_CONTROL_ID,
+            "runtime_semantics_id": RUNTIME_SEMANTICS_ID,
+        }
+        for field, current in semantics.items():
+            if record.get(field) == current:
+                continue
             return VerificationResult(
                 verified=False,
                 checked_steps=0,
                 max_abs_error=0.0,
                 mismatches=[{
                     "step": record["step"],
-                    "field": "reaction_thermal_control_id",
-                    "recorded": record.get("reaction_thermal_control_id"),
-                    "replayed": REACTION_THERMAL_CONTROL_ID,
+                    "field": field,
+                    "recorded": record.get(field),
+                    "replayed": current,
                     "abs_error": None,
                     "reason": (
                         "This trajectory requires its original frozen runtime and uv.lock. "

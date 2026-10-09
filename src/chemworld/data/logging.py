@@ -16,6 +16,7 @@ from chemworld.data.schema import (
     TRAJECTORY_COMPATIBILITY_ALIASES,
     TRAJECTORY_SCHEMA_VERSION,
 )
+from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 
@@ -208,6 +209,8 @@ class TrajectoryLogger:
                 "observation_noise_mode"
             ),
             "full_process_contract_id": task_info.get("full_process_contract_id"),
+            "runtime_semantics_id": task_info.get("runtime_semantics_id", RUNTIME_SEMANTICS_ID),
+            "risk_signal_contract": to_builtin(task_info.get("risk_signal_contract")),
             "reaction_thermal_control_id": task_info.get(
                 "reaction_thermal_control_id", REACTION_THERMAL_CONTROL_ID
             ),

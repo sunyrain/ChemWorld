@@ -13,6 +13,7 @@ from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.envs.spaces import OBSERVATION_KEYS, value_or_default
 from chemworld.foundation.state import OperationRecord
 from chemworld.materials import public_material_catalog
+from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
     OPERATION_TYPES,
@@ -20,7 +21,7 @@ from chemworld.world.operations import (
     chemworld_state_variable_contracts,
     operation_contracts,
 )
-from chemworld.world.scoring import safety_cost_from_flags
+from chemworld.world.scoring import risk_signal_contract, safety_cost_from_flags
 from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 from chemworld.world.world_law import world_law_spec
 
@@ -49,6 +50,8 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "success_metrics": ([] if task_spec is None else list(task_spec.success_metrics)),
         "runtime_profile_hash": env.runtime.profile.profile_hash,
         "reaction_thermal_control_id": REACTION_THERMAL_CONTROL_ID,
+        "runtime_semantics_id": RUNTIME_SEMANTICS_ID,
+        "risk_signal_contract": risk_signal_contract(),
         "mechanism_summary": build_public_mechanism_summary(compiled_mechanism),
         "scoring_contract": env.scoring_contract.to_dict(),
         "scoring_contract_hash": env.scoring_contract.contract_hash,
@@ -462,6 +465,7 @@ def build_step_info(
             else f"Action precondition failed: {', '.join(failed_preconditions)}"
         ),
         "constraint_flags": constraint_flags,
+        "risk_signal_contract": risk_signal_contract(),
         "env_version": __version__,
         "world_family_version": env.world.family_version,
     }

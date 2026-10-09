@@ -179,7 +179,7 @@ TASK_PROMPT_PROFILES: dict[str, dict[str, Any]] = {
         "failure_modes": [
             "precondition failure",
             "budget exhaustion before final_assay",
-            "unsafe high-temperature or high-risk trajectory",
+            "process/procedure penalty at or above the task limit",
         ],
     },
     "reaction-to-purification": {
@@ -1259,7 +1259,9 @@ def task_prompt(env: Any) -> dict[str, Any]:
         experiment_lifecycle=experiment_lifecycle,
     )
     return {
-        "text": text,
+        "text": text + "\nRisk signal: " + info["risk_signal_contract"]["interpretation"],
+        "runtime_semantics_id": info.get("runtime_semantics_id"),
+        "risk_signal_contract": deepcopy(info["risk_signal_contract"]),
         "task_id": info.get("task_id"),
         "objective": info.get("objective"),
         "budget": info.get("budget"),
@@ -1674,7 +1676,8 @@ def lab_report_view(
     )
     lines = [
         opening,
-        f"Visible score={score:.3f}, cost={cost:.3f}, safety_risk={risk:.3f}.",
+        f"Visible score={score:.3f}, cost={cost:.3f}, safety_risk={risk:.3f} "
+        "(mixed process/procedure penalty, not a physical hazard probability).",
         (
             "Key public metrics: "
             + _format_metric_map(
