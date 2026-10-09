@@ -272,6 +272,11 @@ class OperationValidator:
             )
         elif operation_type == "sample" and field == "sample_volume_L":
             dynamic_high = min(dynamic_high, max(state.volume_L, 0.0))
+        elif operation_type == "resuspend_crystals" and field == "volume_L":
+            cake = None if state.phases is None else state.phases.phases.get("cake_liquor")
+            dynamic_high = min(
+                dynamic_high, self._max_volume_l(state) - (cake.volume_L if cake else 0)
+            )
         elif operation_type == "seed_crystals" and field == "seed_mass_g":
             cumulative_limit = OPERATION_CUMULATIVE_FIELD_LIMITS[(operation_type, field)]
             charged = float(
@@ -481,6 +486,7 @@ class OperationValidator:
                 "discard_batch",
                 "measure",
                 "terminate",
+                "resuspend_crystals",
             }
         if operation_type in {"add_solvent", "add_phase", "add_extractant"}:
             maximum_addition = max(self._max_volume_l(state) - state.volume_L, 0.0)
@@ -540,19 +546,15 @@ class OperationValidator:
             )
         if operation_type == "measure" and payload.get("instrument") == "particle_size":
             solid = None if state.phases is None else state.phases.phases.get("solid")
-            preconditions["particle_population_available"] = (
-                empty_crystals
-                or (
-                    active(state)
-                    and solid is not None
-                    and sum(solid.species_amounts_mol.values()) > self.constitution.tolerance
-                )
+            preconditions["particle_population_available"] = empty_crystals or (
+                active(state)
+                and solid is not None
+                and sum(solid.species_amounts_mol.values()) > self.constitution.tolerance
             )
         if check_payload:
             preconditions.update(self._payload_checks(operation_type, payload, state))
-            if (
-                operation_type == "add_solvent"
-                and state.metadata.get("equilibrium_entity_panel_version")
+            if operation_type == "add_solvent" and state.metadata.get(
+                "equilibrium_entity_panel_version"
             ):
                 batch_settings = equipment_settings(
                     state.equipment,
@@ -785,6 +787,7 @@ class OperationValidator:
 
         lock_contract = {
             "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
+            "resuspend_crystals": ("solvent", "batch_reactor", "solvent_volume_L"),
             "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
             "add_extractant": (
                 "extractant",
@@ -850,6 +853,19 @@ class OperationValidator:
                 "catalyst_amount_mol",
                 0.0,
                 0.005,
+            )
+        if operation_type == "resuspend_crystals" and "volume_L" in payload:
+            cake_volume = (
+                state.phases.phases["cake_liquor"].volume_L
+                if state.phases is not None and "cake_liquor" in state.phases.phases
+                else 0.0
+            )
+            checks["payload_bounds:volume_L"] = self._in_range(
+                payload,
+                "volume_L",
+                0.0001,
+                min(0.080, self._max_volume_l(state) - cake_volume),
+                inclusive_low=True,
             )
         if (
             operation_type in {"heat", "cool_crystallize", "evaporate", "distill", "run_flow"}

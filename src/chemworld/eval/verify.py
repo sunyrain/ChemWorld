@@ -167,18 +167,20 @@ def verify_records(
                 verified=False,
                 checked_steps=0,
                 max_abs_error=0.0,
-                mismatches=[{
-                    "step": record["step"],
-                    "field": field,
-                    "recorded": record.get(field),
-                    "replayed": current,
-                    "abs_error": None,
-                    "reason": (
-                        "This trajectory requires its original frozen runtime and uv.lock. "
-                        "Current main does not replay historical physics; see "
-                        "configs/current.json publication.frozen_release for paper evidence."
-                    ),
-                }],
+                mismatches=[
+                    {
+                        "step": record["step"],
+                        "field": field,
+                        "recorded": record.get(field),
+                        "replayed": current,
+                        "abs_error": None,
+                        "reason": (
+                            "This trajectory requires its original frozen runtime and uv.lock. "
+                            "Current main does not replay historical physics; see "
+                            "configs/current.json publication.frozen_release for paper evidence."
+                        ),
+                    }
+                ],
             )
     first = records[0]
     composition_request = first.get("composition_request")
@@ -200,12 +202,8 @@ def verify_records(
         optional_string_kwargs = {
             "full_process_contract_id": "full_process_contract_id",
             "electrochemical_workflow_mode": "electrochemical_workflow_mode",
-            "electrochemical_material_family_id": (
-                "electrochemical_material_family_id"
-            ),
-            "crystallization_material_family_id": (
-                "crystallization_material_family_id"
-            ),
+            "electrochemical_material_family_id": ("electrochemical_material_family_id"),
+            "crystallization_material_family_id": ("crystallization_material_family_id"),
             "scoring_contract_id": "scoring_contract_id",
             "observation_noise_mode": "observation_noise_mode",
             "observation_noise_namespace": "observation_noise_namespace",
@@ -215,9 +213,7 @@ def verify_records(
             if isinstance(value, str) and value:
                 env_kwargs[env_key] = value
         observation_seed = first.get("observation_seed")
-        if isinstance(observation_seed, int) and not isinstance(
-            observation_seed, bool
-        ):
+        if isinstance(observation_seed, int) and not isinstance(observation_seed, bool):
             env_kwargs["observation_seed_override"] = observation_seed
         # New trajectories carry the evaluator-only normalized configuration
         # separately so a misindexed arm can be reconstructed without exposing
@@ -329,6 +325,27 @@ def verify_records(
             replay_audit_info = {**info, **replay_provenance}
             replay_observation = _scalar_observation(observation)
             recorded_observation = record["observation"]
+            recorded_inventory = record.get("environment_outcome", {}).get("sample_inventory")
+            if recorded_inventory is not None:
+                inventory_mismatches = _jsonish_mismatches(
+                    step=int(record["step"]),
+                    field="sample_inventory",
+                    recorded=recorded_inventory,
+                    replayed=info.get("sample_inventory", []),
+                    tolerance=tolerance,
+                )
+                mismatches.extend(inventory_mismatches)
+                max_abs_error = max(
+                    max_abs_error,
+                    max(
+                        (
+                            float(item["abs_error"])
+                            for item in inventory_mismatches
+                            if item.get("abs_error") is not None
+                        ),
+                        default=0.0,
+                    ),
+                )
 
             reward_error = abs(float(record["reward"]) - float(reward))
             max_abs_error = max(max_abs_error, reward_error)

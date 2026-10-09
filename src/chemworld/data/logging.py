@@ -115,6 +115,7 @@ class TrajectoryLogger:
             "last_terminal_summary": to_builtin(info.get("last_terminal_summary")),
             "batch_discarded": bool(info.get("batch_discarded", False)),
             "right_censored_open_batch": bool(info.get("right_censored_open_batch", False)),
+            "sample_inventory": to_builtin(info.get("sample_inventory", [])),
         }
         default_agent_visible_observation = {
             "observation": observation_payload,

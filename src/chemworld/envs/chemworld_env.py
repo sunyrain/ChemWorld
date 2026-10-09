@@ -907,7 +907,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 can_start_next = False
                 blockers = ["environment_budget_exhausted"]
             if can_start_next:
-                self._state = self._fresh_initial_state()
+                retained_samples = self._state.samples
+                self._state = self._fresh_initial_state().replace(samples=retained_samples)
                 self._current_batch_resource_baseline = deepcopy(
                     self._campaign_resource_ledger.snapshot()["state"]
                     if self._campaign_resource_ledger is not None

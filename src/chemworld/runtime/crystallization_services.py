@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import numpy as np
@@ -12,6 +13,7 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.foundation.samples import StoredSample
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import (
     CoolingCrystallizationResult,
@@ -27,6 +29,7 @@ from chemworld.runtime.full_process_contract import (
     seed_provenance_active,
 )
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.actions import SOLVENTS
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.thermal_kernel import account_temperature_transition
 
@@ -50,6 +53,8 @@ def _effective_seed_diameter_m(crystallizer_settings: dict[str, Any]) -> float:
     """
 
     recorded_d50_m = crystallizer_settings.get("csd_d50_m")
+    if recorded_d50_m is None:
+        return DEFAULT_CRYSTAL_SEED_DIAMETER_M
     try:
         candidate = float(recorded_d50_m)
     except (TypeError, ValueError):
@@ -238,8 +243,8 @@ class ChemWorldCrystallizationServices:
         impurity_species = self.species_view.primary_impurity_species
         explicit_seed_mass_g = float(crystallizer_settings.get("crystal_seed_mass_g", 0.0))
         explicit_seed_target_mol = float(crystallizer_settings.get("seed_target_mol", 0.0))
-        phases = {} if state.phases is None else state.phases.phases
-        mother_liquor = phases.get("mother_liquor")
+        phase_records = {} if state.phases is None else state.phases.phases
+        mother_liquor = phase_records.get("mother_liquor")
         existing_solid_product, existing_solid_impurity = _solid_phase_amounts(
             state,
             target_species=target_species,
@@ -614,6 +619,84 @@ class ChemWorldCrystallizationServices:
             metadata=metadata,
         )
 
+    def resuspend_crystals(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        """Retain the separated filtrate and put wet cake in fresh, isothermal solvent.
+
+        This operation does not force dissolution. Subsequent heating uses the
+        solubility curve, particle shrinkage and dissolution-energy model.
+        """
+        assert state.phases is not None
+        liquor = state.phases.phases["mother_liquor"]
+        solid = state.phases.phases["solid"]
+        cake_liquor = state.phases.phases["cake_liquor"]
+        crystal_settings = equipment_settings(state.equipment, "crystallizer")
+        dissolved_seed = float(crystal_settings.get("dissolved_seed_target_mol", 0.0))
+        liquid_total = liquor.volume_L + cake_liquor.volume_L
+        retained_liquid_fraction = cake_liquor.volume_L / max(liquid_total, 1e-12)
+        volume = _action_float(action, "volume_L", 0.015)
+        solvent = int(_action_float(action, "solvent", 0))
+        if not 0.0001 <= volume <= 0.080 or solvent not in range(len(SOLVENTS)):
+            raise ValueError("Invalid resuspension volume or solvent")
+        sample_id = f"filtrate-{len(state.samples.samples) + 1:04d}"
+        sample = StoredSample(
+            sample_id=sample_id,
+            source_vessel_id=state.vessel_id,
+            collection_operation="resuspend_crystals",
+            collected_at_s=state.ledger.time_s,
+            volume_L=liquor.volume_L,
+            species_amounts_mol=liquor.species_amounts_mol,
+            temperature_K=state.temperature_K,
+            solvent=solvent,
+            quenched=state.quenched,
+            seed_target_mol=dissolved_seed * (1.0 - retained_liquid_fraction),
+        )
+        liquid_volume = volume + cake_liquor.volume_L
+        phases = PhaseLedger(
+            {
+                "solid": replace(solid, volume_L=0.0, selected=False),
+                "mother_liquor": replace(
+                    liquor,
+                    volume_L=liquid_volume,
+                    species_amounts_mol=cake_liquor.species_amounts_mol,
+                    selected=True,
+                ),
+            }
+        )
+        equipment = upsert_equipment_record(
+            state.equipment,
+            equipment_id="crystal_filter",
+            equipment_type="solid_liquid_filter",
+            attached_vessel_id=state.vessel_id,
+            status="resuspended",
+            settings={"crystals_filtered": False},
+        )
+        equipment = upsert_equipment_record(
+            equipment,
+            equipment_id="batch_reactor",
+            equipment_type="batch_reactor",
+            attached_vessel_id=state.vessel_id,
+            settings={"solvent_volume_L": liquid_volume, "catalyst_amount_mol": 0.0},
+        )
+        equipment = upsert_equipment_record(
+            equipment,
+            equipment_id="crystallizer",
+            equipment_type="crystallizer",
+            attached_vessel_id=state.vessel_id,
+            settings={"dissolved_seed_target_mol": dissolved_seed * retained_liquid_fraction},
+        )
+        return state.replace(
+            phases=phases,
+            species_amounts=phases.total_amounts_mol(),
+            volume_L=liquid_volume,
+            equipment=equipment,
+            samples=state.samples.append(sample),
+            ledger=state.ledger.with_updates(
+                cost=state.ledger.cost
+                + 0.010
+                + volume * 8.0 * float(self.world.solvent_costs[solvent])
+            ),
+        )
+
     def filter_crystals(self, state: WorldState) -> WorldState:
         target_species = self.species_view.primary_target_species
         impurity_species = self.species_view.primary_impurity_species
@@ -662,6 +745,29 @@ class ChemWorldCrystallizationServices:
             product_mol=product,
             impurity_mol=impurity,
             mother_liquor_volume_L=state.volume_L * 0.92,
+        )
+        # The wet cake retains 8% of the well-mixed mother liquor, including
+        # its dissolved solutes. Both liquid fractions remain in the ledger.
+        liquor = phases.phases["mother_liquor"]
+        phases = PhaseLedger(
+            {
+                **phases.phases,
+                "mother_liquor": replace(
+                    liquor,
+                    species_amounts_mol={
+                        s: n * 0.92 for s, n in liquor.species_amounts_mol.items()
+                    },
+                ),
+                "cake_liquor": replace(
+                    liquor,
+                    phase_id="cake_liquor",
+                    volume_L=state.volume_L * 0.08,
+                    species_amounts_mol={
+                        s: n * 0.08 for s, n in liquor.species_amounts_mol.items()
+                    },
+                    selected=False,
+                ),
+            }
         )
         phase_totals = phases.total_amounts_mol()
         filter_balance_error = max(

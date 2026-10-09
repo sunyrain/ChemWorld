@@ -112,7 +112,7 @@ def sample_domain(state: WorldState) -> tuple[str, ...]:
     """
     phases = {} if state.phases is None else state.phases.phases
     if {"solid", "mother_liquor"} <= phases.keys():
-        return ("solid", "mother_liquor")
+        return tuple(key for key in ("solid", "mother_liquor", "cake_liquor") if key in phases)
     selected = selected_phase_id(state.phases)
     if selected is None and "organic" in phases:
         selected = "organic"

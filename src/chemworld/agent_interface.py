@@ -443,6 +443,7 @@ def _field_schema(
 def _locked_recipe_choice(base: Any, operation: str, field: str) -> Any | None:
     lock_contract = {
         "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
+        "resuspend_crystals": ("solvent", "batch_reactor", "solvent_volume_L"),
         "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
         "add_extractant": (
             "extractant",
@@ -793,6 +794,7 @@ def resource_blocked_actions(env: Any) -> list[dict[str, Any]]:
 _CAMPAIGN_RESOURCE_STOCK_FIELDS: dict[str, tuple[str, str]] = {
     "add_reagent": ("reagent_mol", "amount_mol"),
     "add_solvent": ("solvent_L", "volume_L"),
+    "resuspend_crystals": ("solvent_L", "volume_L"),
     "add_catalyst": ("catalyst_mol", "catalyst_amount_mol"),
     "seed_crystals": ("seed_g", "seed_mass_g"),
     "add_extractant": ("extractant_L", "volume_L"),

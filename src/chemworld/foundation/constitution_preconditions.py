@@ -131,6 +131,7 @@ def check_operation_preconditions(
         "electrolyze",
     }
     needs_material = operation_type in {
+        "resuspend_crystals",
         "heat",
         "wait",
         "terminate",
@@ -151,6 +152,7 @@ def check_operation_preconditions(
         "electrolyze",
     }
     needs_not_terminated = operation_type in {
+        "resuspend_crystals",
         "add_reagent",
         "add_solvent",
         "add_catalyst",
@@ -196,6 +198,15 @@ def check_operation_preconditions(
         "measure_final_not_repeated": not is_final_assay or not final_assay_done,
         "terminate_requires_material": operation_type != "terminate" or has_material,
         "filter_requires_crystallization": operation_type != "filter_crystals" or crystallized,
+        "resuspend_requires_filtered_crystals": operation_type != "resuspend_crystals"
+        or (
+            bool(equipment_settings(state.equipment, "crystal_filter").get("crystals_filtered"))
+            and state.phases is not None
+            and "solid" in state.phases.phases
+            and "mother_liquor" in state.phases.phases
+            and "cake_liquor" in state.phases.phases
+            and state.quenched
+        ),
         "cool_crystallize_requires_reaction_or_seed": operation_type != "cool_crystallize"
         or crystallization_ready,
         "cool_crystallize_reference_temperature_in_solubility_domain": operation_type

@@ -33,7 +33,12 @@ SEPARATION_OPERATIONS = (
     "concentrate",
     "transfer",
 )
-CRYSTALLIZATION_OPERATIONS = ("seed_crystals", "cool_crystallize", "filter_crystals")
+CRYSTALLIZATION_OPERATIONS = (
+    "seed_crystals",
+    "cool_crystallize",
+    "filter_crystals",
+    "resuspend_crystals",
+)
 DISTILLATION_OPERATIONS = ("evaporate", "distill", "collect_fraction")
 FLOW_OPERATIONS = ("set_flow_rate", "run_flow")
 ELECTROCHEMISTRY_OPERATIONS = ("set_potential", "electrolyze")
@@ -90,6 +95,7 @@ OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
     ("seed_crystals", "seed_mass_g"): (1.0e-6, 0.050),
     ("cool_crystallize", "target_temperature_K"): (250.0, 330.0),
     ("cool_crystallize", "duration_s"): (1.0, 14_400.0),
+    ("resuspend_crystals", "volume_L"): (0.0001, 0.080),
     ("evaporate", "target_temperature_K"): (298.15, 390.0),
     ("evaporate", "duration_s"): (1.0, 14_400.0),
     ("distill", "target_temperature_K"): (298.15, 430.0),
@@ -182,6 +188,12 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        Operation(
+            "resuspend_crystals",
+            "Isolate filtrate and resuspend retained crystals in fresh solvent",
+            ("volume_L", "solvent"),
+            ("not_terminated", "has_material", "resuspend_requires_filtered_crystals"),
+        ),
         Operation("add_reagent", "Add reagent", ("amount_mol",), ("not_terminated",)),
         Operation("add_solvent", "Add solvent", ("volume_L", "solvent"), ("not_terminated",)),
         Operation(

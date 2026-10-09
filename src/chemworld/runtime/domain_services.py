@@ -126,6 +126,7 @@ class ChemWorldDomainServices:
             "seed_crystals": self.crystallization.seed_crystals,
             "cool_crystallize": self.crystallization.cool_crystallize,
             "filter_crystals": lambda state, _action: self.crystallization.filter_crystals(state),
+            "resuspend_crystals": self.crystallization.resuspend_crystals,
             "evaporate": self.primitive.evaporate,
             "distill": self.distillation.distill,
             "collect_fraction": self.distillation.collect_fraction,

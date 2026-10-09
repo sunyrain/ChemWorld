@@ -244,6 +244,7 @@ def affected_ledgers(operation_type: str) -> tuple[str, ...]:
         "seed_crystals",
         "cool_crystallize",
         "filter_crystals",
+        "resuspend_crystals",
         "evaporate",
         "distill",
         "collect_fraction",
@@ -281,6 +282,8 @@ def affected_ledgers(operation_type: str) -> tuple[str, ...]:
         affected.append("equipment")
     if operation_type == "measure":
         affected.append("observation")
+    if operation_type == "resuspend_crystals":
+        affected.extend(("samples", "vessels", "equipment"))
     return tuple(dict.fromkeys(affected))
 
 

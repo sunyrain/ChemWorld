@@ -6,6 +6,7 @@ from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
 
+from chemworld.foundation.samples import SampleLedger
 from chemworld.foundation.state_helpers import (
     equipment_settings,
     equipment_status,
@@ -71,6 +72,7 @@ class WorldState:
     equipment: EquipmentLedger | None = None
     thermal: ThermalLedger | None = None
     process: ProcessLedger | None = None
+    samples: SampleLedger = field(default_factory=SampleLedger)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "species_amounts", deepcopy(self.species_amounts))
@@ -193,6 +195,7 @@ class WorldState:
             "equipment": None if self.equipment is None else self.equipment.to_dict(),
             "thermal": None if self.thermal is None else self.thermal.to_dict(),
             "process": None if self.process is None else self.process.to_dict(),
+            "samples": self.samples.to_dict() if include_hidden else self.samples.public_summary(),
         }
         if include_hidden:
             payload["species_amounts"] = deepcopy(self.species_amounts)

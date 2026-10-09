@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- 用户新增目标：完成原后置 R23–R29、R36 共 8 项；明确不含 R19/R21/R33。R26 已完成原生过滤后悬浮/热复溶/再结晶，3/3 双循环、57 动作、6 份隔离滤液与 3/3 replay；首轮 0/3 两循环的稀释失败保留。说明 `development-extension-r26-20261009.md`，数据 `D:/Projects/ChemWorld-local-research/20261009-extension-r26/`。当前状态仅看 TODO 第 9 节；剩余 7 项继续推进，下一步 R24 通用样品/容器路由。当前执行标识已改为 `chemworld-current-20261009-extensions`，旧开发证据用各自提交，不在主线补兼容执行器。
+
 - R20/R34/R35 已完成：4 campaign / 5 批次 / 18 动作的负结果、弃批、截断及开放记录保留并导出，4/4 replay；15/15 注册任务、181 动作、736 public payload 及 15/15 replay 通过。首轮 schema 调用错误保留，已通过的结果块未重跑。最终核心集成 327 passed / 0 failed。说明与 LYJ 生命周期/资源交接见 `development-release-r20-r34-r35-20261009.md`；Parquet 可选 backend 未装，文件导出尚未验证。Ours 本次适用 17 项全部完成，R19/R21/R33 和 8 项后置仍 DEFERRED；状态唯一入口仍为 TODO 第 9 节。下列“下一步”是各阶段的历史记录，不重新启动已完成任务。
 
 - R08/R31 与合并交接 R14 已完成：5 个现有 authoring 轴补声明/实验性范围，合同 6/6、benchmark_ready 0；7/7 轨迹、72/72 操作、7/7 replay，首次遗漏干预上下文的 5 次验证失败保留并仅重验既有轨迹。20 项相关测试通过；模型域、误差、API/模式表见 `development-release-r08-r31-20261009.md`。R19/R21/R33 本次条件未触发已明确记录；剩余 Ours 为 R34 与 R20/R35 的公开边界/结果导出交接。

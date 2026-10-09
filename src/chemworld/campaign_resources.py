@@ -52,6 +52,7 @@ ELECTROCHEMICAL_SOLVENT_ACTION_UPPER_L = 0.080
 _STOCK_FIELDS_BY_OPERATION: dict[str, tuple[str, str]] = {
     "add_reagent": ("reagent_mol", "amount_mol"),
     "add_solvent": ("solvent_L", "volume_L"),
+    "resuspend_crystals": ("solvent_L", "volume_L"),
     "add_catalyst": ("catalyst_mol", "catalyst_amount_mol"),
     "seed_crystals": ("seed_g", "seed_mass_g"),
     "add_extractant": ("extractant_L", "volume_L"),

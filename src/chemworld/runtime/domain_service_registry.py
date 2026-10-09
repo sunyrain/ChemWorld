@@ -78,7 +78,7 @@ class DomainServiceRegistry:
                     "crystallization",
                     "crystallization",
                     "ChemWorldCrystallizationServices",
-                    ("seed_crystals", "cool_crystallize", "filter_crystals"),
+                    ("seed_crystals", "cool_crystallize", "filter_crystals", "resuspend_crystals"),
                     ("crystallization",),
                 ),
                 DomainServiceContract(
