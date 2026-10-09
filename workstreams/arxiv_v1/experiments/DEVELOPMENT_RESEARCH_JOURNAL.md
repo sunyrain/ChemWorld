@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- R17/R18 与合并模板 R22 已完成：离线六步研究文档/事实账本与新进程精确回放，80/80 持久公开历史经双工具分页查回首尾，88 项相关测试通过。结果/交接 `development-release-r17-r18-20261009.md`；机器摘要 `D:/Projects/ChemWorld-local-research/20261009-r17-r18/attempt-01/summary.json`。下一步核实仍公开支持的旧模式采样与 Gym 入口，按当前语义修复；不恢复旧运行时兼容。
+
 - R03/R11 已完成：测量统一瞬时虚拟快照，6/6 仪器时间/资源/回放、7/7 真实 CLI 错误路径通过。15 项新测试通过；整合 65 passed / 1 已知 R08 readiness 失败，未掩盖。说明 `development-release-r03-r11-20261009.md`，数据 `D:/Projects/ChemWorld-local-research/20261009-r03-r11/attempt-01/summary.json`。继续推进 Ours 尚未完成项，目标仍为完成全部适用分配工作，8 项后置扩展不在当前范围。
 
 - R01/R02 已完成；每完成 1–2 项再 pull/push。说明与交接 `development-release-r01-r02-20261009.md`；26/26 当前物理路径精确回放，9/9 热成对、2/2 真零负结果结案、148 passed / 1 optional skip，Ruff 与 11 文件 mypy 通过。全部原始数据留在仓库外，首轮失败不覆盖。用户已取消主线向后兼容要求：论文复现使用独立固定发布快照，main 不保留旧热控或新建 v6 兼容层；旧轨迹明确转向原执行版本。本条取代下述规划时的“未开始”状态，状态仅在 TODO 第 9 节维护。
@@ -40,7 +42,7 @@
 
 ## 下次继续时的具体入口
 
-三个探索块及 R01/R02 开发验证均已停止，没有运行中的实验或临时服务。Ours 后续入口为 TODO 第 9 节，下一建议是 R03 测量时钟；LYJ 继续自己的文件范围。用户指定每完成 1–2 项再 pull/push。未开始的建议不能记为已完成。
+探索与 R01/R02、R03/R11、R17/R18 开发验证均已结束，没有运行中的实验或临时服务。Ours 后续入口为 TODO 第 9 节；LYJ 继续自己的文件范围。用户指定每完成 1–2 项再 pull/push。未开始的建议不能记为已完成。
 若新增实验，先写一个短块说明；保留这两轮全部结果。若只是复查，优先读取 analysis.json 和当前报告，不重跑世界。
 三个多批研究的 `E-research-s*/experiment_documents/model_owned_notebook.md` 保存实验表；
 `prospective_predictions.json` 保存预测在先的选点记录，`research_results.json` 保存验证误差和恢复进程信息。

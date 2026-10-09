@@ -22,6 +22,7 @@ from pathlib import Path
 from typing import Any
 
 from chemworld.agents.interaction import DecisionAuditRecord
+from chemworld.agents.public_history import public_history_page
 from chemworld.eval.work_ii_prior_discovery import (
     WORK_II_LAW_BASES,
     WORK_II_LAW_LINKS,
@@ -1055,22 +1056,14 @@ class ChemWorldMCPServer:
         }
 
     def _history(self, arguments: dict[str, Any]) -> dict[str, Any]:
-        raw_limit = arguments.get("limit", 5)
-        if isinstance(raw_limit, bool) or not isinstance(raw_limit, int):
-            raise ValueError("limit must be an integer")
-        limit = max(1, min(raw_limit, 10))
-        rows: list[dict[str, Any]] = []
-        path = self.public / "history.jsonl"
-        if path.exists():
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if line:
-                    value = json.loads(line)
-                    if isinstance(value, dict):
-                        rows.append(value)
         return {
             "schema_version": MCP_SERVER_VERSION,
-            "authoritative": False,
-            "events": rows[-limit:],
+            **public_history_page(
+                self.public,
+                limit=arguments.get("limit", 5),
+                offset=arguments.get("offset"),
+                max_bytes=int(self._descriptor()["max_tool_output_bytes"]) - 128,
+            ),
         }
 
     def _action_readout_contract(self) -> dict[str, Any] | None:
@@ -2840,10 +2833,16 @@ class ChemWorldMCPServer:
             },
             {
                 "name": "history",
-                "description": "Read a bounded non-authoritative cache of recent public outcomes.",
+                "description": (
+                    "Read public outcome history; defaults to recent events. Use offset=0 for "
+                    "the first event, then next_offset to page through complete retained history."
+                ),
                 "inputSchema": {
                     "type": "object",
-                    "properties": {"limit": {"type": "integer", "minimum": 1, "maximum": 10}},
+                    "properties": {
+                        "limit": {"type": "integer", "minimum": 1, "maximum": 10},
+                        "offset": {"type": "integer", "minimum": 0},
+                    },
                     "additionalProperties": False,
                 },
                 "annotations": read_annotations,

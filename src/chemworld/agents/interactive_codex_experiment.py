@@ -649,7 +649,9 @@ Complete one experiment by interacting with the environment only through the str
 the required chemworld_lab MCP server. Call material_information once at the start. Submit every
 physical operation with step, using the current expected_step and a complete action object. Use
 the returned public outcome and state before selecting another operation. status exposes the
-latest bounded state, history exposes only a bounded non-authoritative cache, and inspect_artifact
+latest bounded state. history pages through the complete public operation stream: use offset=0
+for the first event and next_offset to continue; without offset it returns recent events.
+The response reports cache truncation and the persistent source path. inspect_artifact
 retrieves a bounded public characterization fragment only when useful.
 
 The current working directory is agent/ and persists within this benchmark cell. You may create
@@ -3226,7 +3228,7 @@ def _initial_prompt(
             "mcp_server": "chemworld_lab (required, bounded, host-owned)",
             "material_reference": "chemworld_lab.material_information",
             "task_contract_reference": "../reference/task_contract.json",
-            "public_history": "bounded non-authoritative cache",
+            "public_history": "complete public operation stream with bounded pages; recent cache",
             "authoritative_trajectory_available": False,
         },
         "mcp_step_example": {

@@ -1,13 +1,14 @@
 """Bounded file IPC for one-session, tool-driven Codex experiments.
 
 The authoritative environment and trajectory never live in this workspace.  The
-workspace contains only a reconstructable public cache, a small bridge, and an
+workspace contains a complete public operation stream, a recent cache, a small bridge, and an
 initially empty directory in which the model may create arbitrary notes.
 """
 
 from __future__ import annotations
 
 import hashlib
+import inspect
 import json
 import os
 import shutil
@@ -20,6 +21,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from chemworld.agents.public_history import public_history_page
 from chemworld.data.logging import to_builtin
 
 EXPERIMENT_CODEX_IPC_VERSION = "chemworld-experiment-codex-ipc-0.2"
@@ -90,6 +92,7 @@ class ExperimentCodexWorkspace:
         self.lab_tool_path = self.agent_directory / "lab_tool.py"
         self.current_path = self.public_directory / "current.json"
         self.history_path = self.public_directory / "history.jsonl"
+        self.operation_history_path = self.public_directory / "operation_history.jsonl"
         self.active_session_path = self.ipc_directory / "active_session.json"
         self.max_tool_output_bytes = int(max_tool_output_bytes)
         self.history_event_limit = int(history_event_limit)
@@ -121,6 +124,7 @@ class ExperimentCodexWorkspace:
                 _python_shim_source(),
             )
         _atomic_write_text(self.history_path, "")
+        _atomic_write_text(self.operation_history_path, "")
         self._history_rows = []
         self._session_descriptors = {}
         self._initialized = True
@@ -422,8 +426,7 @@ class ExperimentCodexWorkspace:
             or prior_indices != sorted(set(prior_indices))
             or len(prior_indices) != prior_count
             or not isinstance(prior_batch_ids, list)
-            or prior_batch_ids
-            != [f"batch-{index:04d}" for index in prior_indices]
+            or prior_batch_ids != [f"batch-{index:04d}" for index in prior_indices]
             or not isinstance(prior_evidence, list)
             or any(not isinstance(item, str) or not item for item in prior_evidence)
             or len(set(prior_evidence)) != len(prior_evidence)
@@ -488,7 +491,7 @@ class ExperimentCodexWorkspace:
         return _fingerprint(self.current_path)
 
     def append_public_history(self, event: Mapping[str, Any]) -> dict[str, Any]:
-        """Append to a bounded cache; this file is never the authoritative ledger."""
+        """Retain the public outcome durably, then refresh its bounded recent cache."""
 
         self._require_initialized()
         normalized = _bounded_json_object(
@@ -505,6 +508,10 @@ class ExperimentCodexWorkspace:
             raise ExperimentCodexIPCError(
                 "one public history event exceeds the configured cache budget"
             )
+        with self.operation_history_path.open("ab") as handle:
+            handle.write(_encode_jsonl([normalized]))
+            handle.flush()
+            os.fsync(handle.fileno())
         _atomic_write_bytes(self.history_path, _encode_jsonl(rows))
         self._history_rows = rows
         return {
@@ -704,6 +711,8 @@ class ExperimentCodexWorkspace:
                 "max_tool_output_bytes": self.max_tool_output_bytes,
                 "history_event_limit": self.history_event_limit,
                 "history_byte_limit": self.history_byte_limit,
+                "complete_history": "public/operation_history.jsonl",
+                "history_pagination": "history offset=0 starts at the first public operation",
                 "max_artifact_bytes": self.max_artifact_bytes,
             },
             "material_information": (
@@ -1066,19 +1075,16 @@ def status(_: argparse.Namespace) -> None:
     emit(read_object(PUBLIC / "current.json"), cap=int(active["max_tool_output_bytes"]))
 
 
+# PUBLIC_HISTORY_READER
+
+
 def history(args: argparse.Namespace) -> None:
     active = descriptor()
-    limit = max(1, min(int(args.limit), 10))
-    rows = []
-    history_path = PUBLIC / "history.jsonl"
-    if history_path.exists():
-        for line in history_path.read_text(encoding="utf-8").splitlines():
-            if line:
-                value = json.loads(line)
-                if isinstance(value, dict):
-                    rows.append(value)
     emit(
-        {"schema_version": VERSION, "authoritative": False, "events": rows[-limit:]},
+        {"schema_version": VERSION, **public_history_page(
+            PUBLIC, limit=args.limit, offset=args.offset,
+            max_bytes=int(active["max_tool_output_bytes"]) - 128
+        )},
         cap=int(active["max_tool_output_bytes"]),
     )
 
@@ -1252,6 +1258,7 @@ def parser() -> argparse.ArgumentParser:
     status_parser.set_defaults(func=status)
     history_parser = commands.add_parser("history")
     history_parser.add_argument("--limit", type=int, default=5)
+    history_parser.add_argument("--offset", type=int)
     history_parser.set_defaults(func=history)
     inspect_parser = commands.add_parser("inspect")
     inspect_parser.add_argument("--artifact-id", required=True)
@@ -1297,6 +1304,12 @@ def main() -> int:
 if __name__ == "__main__":
     raise SystemExit(main())
 '''
+
+
+# Keep the standalone, standard-library bridge and MCP on the same reader.
+LAB_TOOL_SOURCE = LAB_TOOL_SOURCE.replace(
+    "# PUBLIC_HISTORY_READER", inspect.getsource(public_history_page)
+)
 
 
 __all__ = [
