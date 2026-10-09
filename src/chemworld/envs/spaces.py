@@ -117,7 +117,7 @@ def make_action_space() -> spaces.Dict:
             "transfer_fraction": spaces.Box(0.0, 1.0, shape=(1,), dtype=np.float32),
             "seed_mass_g": spaces.Box(0.0, 0.050, shape=(1,), dtype=np.float32),
             "reflux_ratio": spaces.Box(0.0, 10.0, shape=(1,), dtype=np.float32),
-            "flow_rate_mL_min": spaces.Box(0.01, 20.0, shape=(1,), dtype=np.float32),
+            "flow_rate_mL_min": spaces.Box(0.0, 20.0, shape=(1,), dtype=np.float32),
             "residence_time_s": spaces.Box(1.0, 7200.0, shape=(1,), dtype=np.float32),
             "potential_V": spaces.Box(-3.0, 3.0, shape=(1,), dtype=np.float32),
             "current_mA": spaces.Box(0.0, 500.0, shape=(1,), dtype=np.float32),

@@ -18,6 +18,7 @@ from chemworld.foundation import (
 )
 from chemworld.runtime.component_network import route_material, select_vessel
 from chemworld.runtime.constitution_factory import make_chemworld_constitution
+from chemworld.runtime.continuous_streams import ContinuousStreamServices
 from chemworld.runtime.control_program import ControlProgramServices
 from chemworld.runtime.crystallization_services import ChemWorldCrystallizationServices
 from chemworld.runtime.distillation_services import ChemWorldDistillationServices
@@ -39,6 +40,7 @@ from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import operation_name
 from chemworld.world.parameters import ChemWorldParameters
+from chemworld.world.stream_contract import STREAM_OPERATIONS
 
 
 class ChemWorldDomainServices:
@@ -66,6 +68,7 @@ class ChemWorldDomainServices:
         self.material_routing = ChemWorldMaterialRoutingServices()
         self.reaction_thermal = ChemWorldReactionThermalServices(world, self.species_view)
         self.control_program = ControlProgramServices(self.reaction_thermal)
+        self.continuous_streams = ContinuousStreamServices(world, self.species_view)
         self.phase_separation = ChemWorldPhaseSeparationServices(
             world,
             self.species_view,
@@ -148,6 +151,7 @@ class ChemWorldDomainServices:
     ) -> dict[str, Callable[[WorldState, dict[str, Any]], WorldState]]:
         return {
             **dict.fromkeys(CONTROL_OPERATIONS, self.control_program.apply),
+            **dict.fromkeys(STREAM_OPERATIONS, self.continuous_streams.apply),
             "select_vessel": select_vessel,
             "route_material": route_material,
             "create_container": self.material_routing.create_container,

@@ -42,6 +42,7 @@ from chemworld.world.operations import (
     OPERATION_TYPES,
     operation_contracts,
 )
+from chemworld.world.stream_contract import STREAM_OPERATIONS
 
 OPERATION_AFFORDANCE_STATE_MACHINE_VERSION = "chemworld-operation-affordance-state-machine-0.7"
 ELECTROCHEMICAL_MIN_ADAPTED_POTENTIAL_DELTA_V = 0.02
@@ -498,6 +499,13 @@ class OperationValidator:
         from chemworld.runtime.component_network import operation_available
 
         preconditions["operation_available_in_vessel"] = operation_available(state, operation_type)
+        if operation_type in STREAM_OPERATIONS:
+            preconditions["stream_network_available"] = bool(
+                state.metadata.get("component_network")
+            )
+            preconditions["stream_episode_open"] = not state.terminated
+            if operation_type == "advance_flow":
+                preconditions["stream_tank_filled"] = state.volume_L > 1e-6
         if operation_type in CONTROL_OPERATIONS:
             from chemworld.runtime.control_program import control_settings
 
@@ -870,6 +878,10 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
+        if operation_type in STREAM_OPERATIONS:
+            from chemworld.runtime.continuous_streams import stream_error
+
+            checks["payload_stream_valid"] = stream_error(state, operation_type, payload) is None
         if operation_type in CONTROL_OPERATIONS:
             from chemworld.runtime.control_program import control_error
 

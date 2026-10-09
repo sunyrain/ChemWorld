@@ -32,6 +32,7 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
 )
 from chemworld.runtime.component_network import public_network
+from chemworld.runtime.continuous_streams import public_streams
 from chemworld.runtime.control_program import public_control
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.control_contract import CONTROL_CHOICES, CONTROL_NUMERIC
@@ -140,7 +141,7 @@ FIELD_RANGES: dict[str, tuple[float, float]] = {
     "transfer_fraction": (0.0, 1.0),
     "seed_mass_g": (0.0, 1.0),
     "reflux_ratio": (0.0, 10.0),
-    "flow_rate_mL_min": (0.01, 20.0),
+    "flow_rate_mL_min": (0.0, 20.0),
     "residence_time_s": (1.0, 7200.0),
     "potential_V": (-3.0, 3.0),
     "current_mA": (0.0, 500.0),
@@ -1958,6 +1959,9 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         ),
         "component_network": public_network(material_state) if material_state is not None else None,
         "process_control": public_control(material_state) if material_state is not None else None,
+        "continuous_streams": public_streams(material_state)
+        if material_state is not None
+        else None,
         "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info, _actions=actions),
