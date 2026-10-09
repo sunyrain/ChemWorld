@@ -32,7 +32,9 @@ from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
 )
 from chemworld.runtime.component_network import public_network
+from chemworld.runtime.control_program import public_control
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
+from chemworld.world.control_contract import CONTROL_CHOICES, CONTROL_NUMERIC
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
     OPERATION_FIELD_BOUNDS,
@@ -91,6 +93,8 @@ def _campaign_snapshot(base: Any, ledger: Any) -> dict[str, Any]:
 
 
 FIELD_UNITS: dict[str, str] = {
+    **{key: values[2] for key, values in CONTROL_NUMERIC.items()},
+    **dict.fromkeys(CONTROL_CHOICES, "categorical"),
     "vessel": "categorical",
     "connection": "categorical",
     "capacity_L": "L",
@@ -123,6 +127,7 @@ FIELD_UNITS: dict[str, str] = {
 }
 
 FIELD_RANGES: dict[str, tuple[float, float]] = {
+    **{key: (values[0], values[1]) for key, values in CONTROL_NUMERIC.items()},
     "capacity_L": (0.0001, 0.1),
     "amount_mol": (0.0, 0.040),
     "volume_L": (0.0, 0.080),
@@ -142,6 +147,7 @@ FIELD_RANGES: dict[str, tuple[float, float]] = {
 }
 
 FIELD_CHOICES: dict[str, list[Any]] = {
+    **{key: list(range(len(values))) for key, values in CONTROL_CHOICES.items()},
     "vessel": list(range(16)),
     "connection": list(range(64)),
     "component": list(range(16)),
@@ -459,6 +465,10 @@ def _field_schema(
             payload["choice_labels"] = {str(i): CONTAINER_IDS[i] for i in choices}
         elif field == "mixing":
             payload["choice_labels"] = {"0": "empty destination only", "1": "allow mixing"}
+        elif field in CONTROL_CHOICES:
+            payload["choice_labels"] = {
+                str(i): name for i, name in enumerate(CONTROL_CHOICES[field])
+            }
         labels = material_choice_labels(field, task_id=task_id)
         if labels:
             payload["choice_labels"] = labels
@@ -565,7 +575,8 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             if field_name in {"vessel", "connection"}:
                 network = public_network(state)
                 entries = (
-                    [] if network is None
+                    []
+                    if network is None
                     else network["vessels" if field_name == "vessel" else "connections"]
                 )
                 field["choice_labels"] = {str(item["index"]): item["id"] for item in entries}
@@ -576,9 +587,9 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     _apply_campaign_resource_schema(base, operation, fields)
     constraints: list[dict[str, Any]] = []
     if operation in {"select_vessel", "route_material"} and state is not None:
-        constraints.append({
-            "id": "component_network", "kind": "material_ports", "network": public_network(state)
-        })
+        constraints.append(
+            {"id": "component_network", "kind": "material_ports", "network": public_network(state)}
+        )
     if operation == "transfer_material" and state is not None:
         from chemworld.runtime.material_routing import material_routes
 
@@ -1946,6 +1957,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
             material_state.samples.routing_summary() if material_state is not None else {}
         ),
         "component_network": public_network(material_state) if material_state is not None else None,
+        "process_control": public_control(material_state) if material_state is not None else None,
         "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info, _actions=actions),

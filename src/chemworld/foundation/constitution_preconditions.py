@@ -186,6 +186,11 @@ def check_operation_preconditions(
         "electrolyze",
         "terminate",
     }
+    from chemworld.world.control_contract import CONTROL_OPERATIONS
+
+    if operation_type in CONTROL_OPERATIONS:
+        needs_not_terminated = True
+        needs_volume = operation_type == "advance_control"
     return {
         "instrument_available": operation_type != "measure" or instrument is not None,
         "has_volume": not needs_volume or has_volume,

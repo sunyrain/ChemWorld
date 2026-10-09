@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from typing import Any
 
+from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import OPERATION_TYPES
 
 
@@ -59,7 +60,7 @@ class DomainServiceRegistry:
                     "reaction_thermal",
                     "reaction",
                     "ChemWorldReactionThermalServices",
-                    ("heat", "wait"),
+                    ("heat", "wait", *CONTROL_OPERATIONS),
                     ("reaction",),
                 ),
                 DomainServiceContract(

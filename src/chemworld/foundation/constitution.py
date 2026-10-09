@@ -159,6 +159,24 @@ class PhysicalConstitution:
             *check_ledger_single_source(self, state),
             check_risk_range(self, state),
         ]
+        from chemworld.foundation.state_helpers import equipment_settings
+
+        controller = equipment_settings(state.equipment, "process_controller")
+        if controller:
+            from chemworld.foundation.gas import GasBoundary
+
+            try:
+                gas = GasBoundary.from_dict(controller["gas"])
+                gas_valid = abs(state.pressure_Pa - gas.pressure_pa) <= 1e-6
+            except (KeyError, TypeError, ValueError):
+                gas_valid = False
+            checks.append(
+                CheckResult(
+                    "gas_boundary_balance",
+                    gas_valid,
+                    "plenum component and energy accounting; measured pressure",
+                )
+            )
         for name, local in sorted(state.inactive_vessels.items()):
             for check in sorted(self.check_state(local).checks, key=lambda item: item.name):
                 from dataclasses import replace

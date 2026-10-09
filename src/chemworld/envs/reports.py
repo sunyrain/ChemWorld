@@ -15,8 +15,10 @@ from chemworld.foundation.solvents import MIXTURE_MODEL_ID
 from chemworld.foundation.state import OperationRecord
 from chemworld.materials import public_material_catalog
 from chemworld.runtime.component_network import public_network
+from chemworld.runtime.control_program import control_settings, public_control
 from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.world.control_contract import CONTROL_MODEL
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
     OPERATION_TYPES,
@@ -66,6 +68,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
         "material_catalog": public_material_catalog(task_id=env.task_id),
+        "control_model": deepcopy(CONTROL_MODEL),
         "mixture_model": {
             "id": MIXTURE_MODEL_ID,
             "catalog_size": 4,
@@ -445,6 +448,12 @@ def build_step_info(
         "sample_inventory": env._state.samples.public_summary(),
         "material_routing": env._state.samples.routing_summary(),
         "component_network": public_network(env._state),
+        "process_control": public_control(env._state),
+        "control_trace": (
+            control_settings(env._state).get("last_samples", [])
+            if operation_record.operation_type == "advance_control"
+            else []
+        ),
         "task_id": env.task_id,
         "scenario_id": None if env.scenario_spec is None else env.scenario_spec.scenario_id,
         "initial_state_id": env.scenario_spec.initial_state_id,

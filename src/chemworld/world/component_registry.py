@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import (
     CRYSTALLIZATION_OPERATIONS,
     DISTILLATION_OPERATIONS,
@@ -47,7 +48,7 @@ COMPONENT_CAPABILITIES = {
         20,
         4,
     ),
-    "thermal": ComponentCapability(("heat", "wait")),
+    "thermal": ComponentCapability(("heat", "wait", *CONTROL_OPERATIONS)),
     "phase": ComponentCapability(("add_phase",), "equilibrium-characterization", 10),
     "separation": ComponentCapability(
         SEPARATION_OPERATIONS,
