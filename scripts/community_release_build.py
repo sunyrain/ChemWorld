@@ -26,6 +26,7 @@ SOURCE_EXTRAS = frozenset(
     {
         BUILD_HOOK,
         "pyproject.toml",
+        "uv.lock",
         "README.md",
         "LICENSE",
         "CONTRIBUTING.md",
@@ -34,7 +35,16 @@ SOURCE_EXTRAS = frozenset(
         "examples/demo_manual_event_sequence.py",
         "examples/demo_agent_facing_api.py",
         "examples/demo_offline_research.py",
+        "examples/demo_minimal_agent.py",
         "docs/community_release.md",
+        "docs/community_release.en.md",
+        "docs/getting_started.md",
+        "docs/getting_started.en.md",
+        "docs/operations.md",
+        "docs/operations.en.md",
+        "docs/action_schema.md",
+        "docs/offline_research.md",
+        "docs/offline_research.en.md",
     }
 )
 

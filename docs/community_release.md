@@ -75,6 +75,16 @@ it does not ship another runtime. The apparatus is drawn in CSS, not a copied
 third-party image. No remotely loaded font, telemetry or provider is needed by
 the packaged UI. Preserve the repository LICENSE when redistributing.
 
+The remaining distributed Python sources, examples, documentation and finite
+simulator configuration tables are repository-authored material under that same
+MIT license. The included tables specify synthetic model contracts; they are not
+redistributed experimental datasets or a validated chemistry database. No paper
+figures, photographs, manuscript assets, proprietary reference data or external
+font files are in the distribution allowlist. Dependencies are installed
+separately and retain their own licenses; `uv.lock` identifies their versions,
+not a relicensing grant. Source distributions include the lockfile and bilingual
+quickstarts. Review any future third-party asset before extending the allowlist.
+
 ## Frozen paper reproduction
 
 Use the independent [paper snapshot and its lockfile](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724).

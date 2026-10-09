@@ -15,7 +15,7 @@ Action 是一次操作，Recipe 是一组按顺序执行的 Action。两者都�
 
 ```python
 {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1}
-{"operation": "heat", "temperature_K": 350.0, "duration_s": 1200.0, "stirring_rpm": 800.0}
+{"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0, "stirring_speed_rpm": 800.0}
 {"operation": "measure", "instrument": "final_assay"}
 ```
 
@@ -31,7 +31,8 @@ schema = env.unwrapped.action_schema("heat")
 recipe = [
     {"operation": "add_solvent", "volume_L": 0.03, "solvent": 1},
     {"operation": "add_reagent", "amount_mol": 0.012},
-    {"operation": "heat", "temperature_K": 350.0, "duration_s": 1200.0},
+    {"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0, "stirring_speed_rpm": 800.0},
+    {"operation": "terminate"},
     {"operation": "measure", "instrument": "final_assay"},
 ]
 ```

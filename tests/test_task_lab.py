@@ -606,6 +606,12 @@ def test_task_lab_static_ui_exposes_model_input_and_public_analysis() -> None:
     assert "state_effects" in student_javascript
     assert "public_vessel" in student_javascript
     assert "reasoning_content" not in javascript
+    assert 'id="cancelRun"' in html
+    assert 'event.type === "run_cancelled"' in javascript
+    assert 'id="closeSession"' in student_html
+    assert 'aria-label="导出的公开实验记录"' in student_html
+    assert "if (lab.session && !lab.closed) await closeSession()" in student_javascript
+    assert "Session closed — no additional assay" in student_javascript
 
 
 def test_local_api_key_file_is_private_and_status_is_redacted(tmp_path: Path) -> None:

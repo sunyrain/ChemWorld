@@ -54,6 +54,17 @@ _TASK_COPY: dict[str, tuple[str, str, str]] = {
 }
 
 _EFFECTS: dict[str, tuple[str, str, str]] = {
+    "configure_instrument": (
+        "配置光谱采集",
+        "设置扫描次数、分辨率和稀释倍率；measure 才采集。",
+        "measure",
+    ),
+    "set_flow_stream": ("设置进出料流", "设置声明连接的阀流量；零值关闭阀门，不推进时间。", "flow"),
+    "advance_flow": (
+        "推进有限库存连续流",
+        "实际扣减上游库存并收集出口；同时记账热量与电荷。",
+        "flow",
+    ),
     "configure_control": ("配置过程控制", "配置持久过程控制；不会自动推进时间。", "heat"),
     "queue_control_stage": ("追加控制阶段", "向有限队列追加声明的设定值阶段。", "heat"),
     "set_control_feedback": ("设定传感反馈", "设定温度或压力阈值及合同允许的响应。", "measure"),

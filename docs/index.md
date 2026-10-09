@@ -14,7 +14,9 @@
 
 <div class="cw-button-row" markdown>
 
-[走进一次未知世界](one_experiment.md){ .md-button .md-button--primary }
+[安装与第一个实验](getting_started.md){ .md-button .md-button--primary }
+[完整离线研究范例](offline_research.md){ .md-button }
+[走进一次未知世界](one_experiment.md){ .md-button }
 [阅读研究主线](vision.md){ .md-button }
 [构建一个 Agent](agent_tracks.md){ .md-button }
 

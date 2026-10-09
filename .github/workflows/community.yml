@@ -34,6 +34,8 @@ jobs:
         run: >-
           uv run --no-sync pytest -q
           tests/test_community_release_examples.py
+          tests/test_community_release_research.py
+          tests/test_community_release_docs.py
           tests/test_community_release_packaging.py
           tests/test_wheel_smoke.py
           tests/test_cli_errors.py
@@ -48,6 +50,8 @@ jobs:
           scripts/community_release_build.py scripts/smoke_test_wheel.py
           tests/test_community_release_examples.py tests/test_community_release_packaging.py
           tests/test_wheel_smoke.py examples/demo_manual_event_sequence.py
+          examples/demo_offline_research.py tests/test_community_release_research.py
+          examples/demo_minimal_agent.py tests/test_community_release_docs.py
           src/chemworld/lab
           apps/task_lab/server.py apps/task_lab/student_session.py
 

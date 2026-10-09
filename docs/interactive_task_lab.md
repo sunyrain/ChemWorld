@@ -1,5 +1,15 @@
 # 打开可视化实验室
 
+## 安装包入口：无模型密钥的 Student Lab
+
+安装当前开发 wheel 后运行 `chemworld-lab --no-browser`，浏览器打开打印出的本机地址。
+选择任务、提交合法操作；反应任务最短路径是加溶剂、加反应物、`terminate`、
+`measure(instrument="final_assay")`。随后精确回放、导出，再关闭会话。
+导出区提供可复制 JSON；下载请求不等于文件已经保存。关闭不会替用户补做终检。
+退出进程前保存记录。详见[安装入口](getting_started.md)和[分发/验证边界](community_release.md)。
+
+## 仓库开发入口：Task Lab
+
 Task Lab 提供两个入口：想观察模型怎样决策，打开 **Agent Observatory**；想亲手选择实验操作，
 打开 **Student Lab**。它们共享同一环境和任务合同，区别只在交互方式。
 
@@ -13,23 +23,11 @@ Task Lab 提供两个入口：想观察模型怎样决策，打开 **Agent Obser
 在仓库根目录运行：
 
 ```powershell
-python -m apps.task_lab.server --port 8876
+uv run --no-sync python -m apps.task_lab.server --port 8876
 ```
 
-若密钥保存在仓库根目录的本地 `api.md`，无需先设置环境变量：
-
-```powershell
-python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
-```
-
-该文件已被 Git 忽略；密钥只进入本地服务进程内存，不会进入浏览器、轨迹或结果文件。
-
-Windows 下即使尚未激活虚拟环境，仓库也会自动使用 `.venv\Scripts\python.exe` 重新启动。
-首次使用且依赖尚未安装时，请运行：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-```
+首次使用先运行 `uv sync --locked --extra dev`。离线经典算法和 Student Lab 不需要密钥。
+如另行授权使用在线模型，只通过进程环境变量提供凭据，不在仓库中创建密钥文件。
 
 | 入口 | 地址 | 是否需要模型 API |
 | --- | --- | --- |
@@ -75,8 +73,9 @@ Agent 端支持搜索和选择全部 15 个任务，也可使用快速双任务�
 
 只有成功完成 `final_assay` 才形成一个可独立比较的已完成实验。在 `single_experiment` 模式下这会结束
 episode；在 `campaign` 模式下系统记录终检结果、增加 experiment index，并以相同世界参数恢复一只
-全新的初始反应器。因而，同一釜内继续升温或追加物料不能被描述为独立对照实验；溶剂和催化剂类别也
-应在单次实验内保持为同一配方选择。Agent prompt 会显式收到这些状态语义。
+全新的初始状态。因而，同一釜内继续升温或追加物料不能被描述为独立对照实验。
+当前版本支持有限目录内的溶剂混合及具名组分加料；不是任意输入分子结构即可生成新化学。
+有多容器配置时，加料和过程作用于选中容器；切换容器本身不搬运物料，需显式转移/路由。
 
 ### 控制模型能看到多少谱图信息
 
@@ -103,10 +102,11 @@ Agent 和 Student 共用一套公开操作语义。每个可执行动作会说�
 
 - 结晶种子、加相体积以及冷却、蒸发、蒸馏和流动反应温区使用有效运行范围；
 - `add_phase` 只开放当前实现支持的 aqueous/organic 液相；
-- 萃取剂使用与公开溶剂目录一致的四个稳定材料代码，并实际驱动分配与风险模型；同一实验内追加
-  萃取剂会保持同一类别，避免把混合溶剂误算为最后一次投料；
-- 多次晶种投加按累计质量、累计目标物质的量和累计固相账本执行；同一实验内溶剂和催化剂类别保持
-  锁定，新的 final assay 实验边界会重置该选择。
+- 萃取剂使用公开溶剂目录的稳定材料代码；混合物的组成和各组分贡献由当前核心合同计算，
+  不应把累计投料理解成最后一次设置覆盖前面的物料；
+- 多次晶种投加按累计质量、累计目标物质的量和累计固相账本执行；
+- `configure_control`、`queue_control_stage`、`set_control_feedback` 配置持久控制程序，
+  `advance_control` 才推进物理时间；暂停/恢复不伪造推进。适用字段以当前 schema 为准。
 
 这些约束属于核心动作合同，并由 Gym、Agent Observatory 和 Student Lab 共同使用。它们修正输入语义
 与运行时的一致性；凡涉及确定性结果变化的项目均同步更新黄金表征，但不回写既有正式方法结果。
@@ -151,18 +151,12 @@ GP、RF 和安全约束代理先做 4 个初始配方，第 5 个配方起使用
 Task Lab 当前只接入 DeepSeek API。这是本地交互产品的 provider，不是双旗舰正式 campaign 使用的
 Codex subscription adapter；切换 Task Lab 凭据不会改变或复现正式结果。
 
-=== "本地 key 文件"
-
-    ```powershell
-    python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
-    ```
-
 === "PowerShell"
 
     ```powershell
     $env:DEEPSEEK_API_KEY = "<your-api-key>"
     $env:DEEPSEEK_MODEL = "<provider-model-id>"
-    python -m apps.task_lab.server --port 8876
+    uv run --no-sync python -m apps.task_lab.server --port 8876
     ```
 
 === "bash"
@@ -170,7 +164,7 @@ Codex subscription adapter；切换 Task Lab 凭据不会改变或复现正式�
     ```bash
     export DEEPSEEK_API_KEY="..."
     export DEEPSEEK_MODEL="<provider-model-id>"
-    python -m apps.task_lab.server --port 8876
+    uv run --no-sync python -m apps.task_lab.server --port 8876
     ```
 
 API key 只由本地 Python 服务读取，不进入浏览器、prompt artifact、trajectory 或
@@ -189,7 +183,7 @@ API key 只由本地 Python 服务读取，不进入浏览器、prompt artifact�
 ### 从命令行批量评测
 
 ```powershell
-python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 24
+uv run --no-sync python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 24
 ```
 
 每次运行会生成 `evaluation_summary.json`，并为每个任务保存模型计划、完整轨迹和经过回放验证的
@@ -198,7 +192,7 @@ python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 2
 扩展 Task Lab 的 DeepSeek campaign：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay --mode adaptive `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay --mode adaptive `
   --max-steps 36 --budget-multiplier 2 --campaign-override `
   --spectrum-disclosure unassigned
 ```
@@ -206,7 +200,7 @@ python -m apps.task_lab.run_evaluation --tasks reaction-to-assay --mode adaptive
 经典 GP-EI：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --agent gp_bo `
+uv run --no-sync python -m apps.task_lab.run_evaluation --agent gp_bo `
   --tasks reaction-optimization-standard --max-steps 72
 ```
 
@@ -226,8 +220,9 @@ python -m apps.task_lab.run_evaluation --agent gp_bo `
 电化学过程。液位依据当前 experiment 的公开 `ΔV` 累积，测量会显示取样扣除，campaign 换釜后会
 回到 fresh vessel。动画是已执行操作的状态示意，不会把未知组成、颜色或晶体形貌伪装成观测结果。
 
-非法动作会在执行前被拒绝，不消耗预算，也不会改变世界状态。学生可将验证器作为实验前检查，
-而不需要通过失败来猜测环境规则。
+界面预校验拒绝的输入不会送入环境。真正执行后发生的失败则依照核心事务合同记录：物理状态
+是否提交、资源/风险后果和失败原因必须分别查看，不能把所有失败都说成免费且没有后果。
+`terminate`、主动关闭、预算截断和完成终检是不同状态；只有实际成功的 final assay 才计入终检数。
 
 ## 页面上的分数分别代表什么
 

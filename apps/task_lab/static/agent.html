@@ -32,7 +32,7 @@
         <label class="field-label">模型<input id="modelName" value="deepseek-v4-pro"></label>
         <label class="field-label">推理强度<select id="reasoningEffort"><option value="high">High</option><option value="max" selected>Max · 复杂发现</option></select></label>
         <label class="field-label">谱图披露<select id="spectrumDisclosure"><option value="raw">Raw · 仅曲线</option><option value="unassigned" selected>Unassigned · 默认</option><option value="assigned">Assigned · 教学</option></select></label>
-        <label class="field-label">单任务步数上限<input id="maxSteps" type="number" min="1" max="360" value="36"></label>
+        <label class="field-label">单任务步数上限<input id="maxSteps" type="number" min="1" max="200" value="36"></label>
         <label class="field-label">实验预算<select id="budgetMultiplier"><option value="1">1× · 官方预算</option><option value="2" selected>2× · 扩展研究</option><option value="3">3× · 扩展研究</option><option value="4">4× · 扩展研究</option></select></label>
         <label class="field-label">Seed<input id="runSeed" type="number" min="0" placeholder="任务默认 seed"></label>
       </div>
@@ -40,6 +40,8 @@
       <label class="thinking-toggle"><input id="thinkingMode" type="checkbox" checked><span><b>模型侧强化推理</b><small>仅展示结构化审计摘要，不公开隐藏思维链</small></span></label>
       <p id="contractNotice" class="contract-notice">EXTENDED RESEARCH · 2× budget · non-official score</p>
       <button id="startRun" class="cta-button"><span>启动评测</span><b>Run →</b></button>
+      <button id="cancelRun" class="ghost-button" disabled>取消运行（下一个检查点）</button>
+      <p role="status" id="cancelStatus">取消不会补做终检；不会立即中断正在进行的网络调用。</p>
       <p class="security-note"><span>◆</span> API key 仅存在于服务端进程；浏览器和轨迹不可见。</p>
     </aside>
 

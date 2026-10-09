@@ -12,6 +12,27 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
+    "configure_instrument": {
+        "type": "configuration",
+        "label_zh": "配置光谱采集",
+        "summary": "Configures scans, resolution and dilution; measure acquires the signal.",
+        "summary_zh": "设置扫描次数、分辨率和稀释倍率；measure 才采集信号。",
+        "visual": "measure",
+    },
+    "set_flow_stream": {
+        "type": "configuration",
+        "label_zh": "设置进出料流",
+        "summary": "Sets declared stream flow; zero closes the valve, with no time advance.",
+        "summary_zh": "设置声明连接的阀流量；零值关闭阀门，不推进时间。",
+        "visual": "flow",
+    },
+    "advance_flow": {
+        "type": "continuous_process",
+        "label_zh": "推进有限库存连续流",
+        "summary": "Consumes upstream inventory; collects outflow and settles heat/charge ledgers.",
+        "summary_zh": "扣减真实上游库存、收集出口并记账热量与电荷。",
+        "visual": "flow",
+    },
     "configure_control": {
         "type": "control",
         "label_zh": "配置过程控制",

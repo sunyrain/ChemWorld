@@ -51,6 +51,17 @@ Do not paste a suspected secret into an issue or diagnostic command output to pr
 
 ## Third-party code and provider boundaries
 
+The two writable Lab servers are **loopback-only**, with no user authentication.
+Host/Origin checks and bounded JSON requests, sessions, workers and histories
+reduce accidental/cross-site writes; they do not make a public multi-user service.
+Do not port-forward them or expose them through a reverse proxy. Close idle
+sessions and stop the server when finished. Cancellation of checkout jobs is
+cooperative; it cannot guarantee immediate interruption of an in-flight network call.
+
+Native replay exports contain host-owned reconstruction metadata. They are useful
+for local verification but must not be supplied as an agent's observation channel
+or posted with private evaluation inputs. Inspect and redact exports before sharing.
+
 The local student harness is a bounded message and process interface, not a security boundary for
 malicious code. Untrusted submissions require an independent low-privilege execution environment
 with no network access, read-only inputs, isolated writable storage, and explicit CPU, memory,

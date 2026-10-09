@@ -1,128 +1,87 @@
-# 安装并跑通第一次实验
+# 从安装到可回放实验
 
-这一页只做一件事：**从空环境走到一条通过回放验证的 ChemWorld 轨迹**。第一次运行建议使用
-`reaction-to-assay`，整个过程通常只需要几分钟。
+本页针对当前开发运行时，不复现论文旧物理。软件世界不是真实实验操作指南。
+[English source](https://github.com/sunyrain/ChemWorld/blob/main/docs/getting_started.en.md) · [发行范围与验证边界](community_release.md)
 
-## 1. 安装项目
+## 选择入口
 
-需要 Python 3.11 或更高版本。
+| 目的 | 路径 |
+| --- | --- |
+| 使用当前功能 | 安装从 main 构建的 wheel；没有授权发布新版 PyPI/tag，不把旧的 0.2.0 当成当前 main |
+| 开发、贡献或运行完整例子 | Git checkout + 已提交 uv.lock，如下 |
+| 复现旧论文 | [独立冻结快照及其依赖](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724)，不要使用当前 main 解释旧轨迹 |
+
+Python 3.11/3.12 是本轮验证目标；各操作系统实际结果见发行说明。
+已有 wheel 时，在独立虚拟环境执行
+`python -m pip install /absolute/path/to/chemworld_bench-0.2.0-py3-none-any.whl`。
+从源码构建用 Git clone 或生成的 sdist，不用 GitHub ZIP。
+
+## 开发安装
+
+需要已安装的 uv 和 Python 3.11 或 3.12：
 
 ```bash
 git clone https://github.com/sunyrain/ChemWorld.git
 cd ChemWorld
-python -m pip install -e ".[dev]"
+uv sync --locked --extra dev
+uv run --no-sync chemworld tasks list
 ```
 
-确认命令行入口已经安装：
+以下命令在 checkout 执行；wheel 环境中直接使用其 `python`、`chemworld`、`chemworld-lab`。
+例子源文件位于仓库/源码发行包，不假定安装 wheel 后当前目录有 `examples/`。
+
+## 第一次终检和最小 Agent
 
 ```bash
-chemworld --help
-chemworld tasks list
+uv run --no-sync python examples/demo_manual_event_sequence.py
+uv run --no-sync python examples/demo_agent_facing_api.py
+uv run --no-sync python examples/demo_minimal_agent.py --output runs/minimal-agent.jsonl
+uv run --no-sync chemworld verify --submission runs/minimal-agent.jsonl --tolerance 0
+uv run --no-sync chemworld evaluate --submission runs/minimal-agent.jsonl
 ```
 
-=== "Windows"
+选择新的输出路径，例子拒绝覆盖已有结果。`FourStepAgent` 展示 `BaseAgent.act(history)` 与 runner
+的扩展点，不声称优化能力或在线学习。`terminate` 不是终检；只有提交的
+`measure` + `instrument="final_assay"` 才计入终检。得分低仍是有效实验结果。
 
-    如果 `python` 被解析成 Microsoft Store 别名，可以直接使用仓库虚拟环境：
-
-    ```powershell
-    .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-    ```
-
-=== "文档与参考验证"
-
-    只有在构建站点或运行扩展物理参考检查时，才需要额外依赖：
-
-    ```bash
-    python -m pip install -e ".[dev,docs,physchem-ref]"
-    ```
-
-## 2. 运行一个完整回合
-
-先让内置 Agent 完成一次实验：
+## 研究笔记、预测、失败与导出
 
 ```bash
-chemworld run --task reaction-to-assay --agent random --seed 0
+uv run --no-sync python examples/demo_offline_research.py --output runs/offline-example
 ```
 
-命令会把 trajectory JSONL 和 manifest 写入 `runs/`，并在终端打印实际路径。这里的 random Agent
-不是性能基线；它只是最短的端到端连通性检查。
+[完整范例设计](offline_research.md)在实验前固定七条路径；预测先封存，再执行两条留出实验，输出
+真实误差。原生 JSONL 保留拒绝、开放和截断记录，每条轨迹在新进程零容差回放。
+数组未观测值是 NaN，JSON 中是 null，须同时读取 `observed_mask`；不要补零。
+本例仅导出 JSONL，未安装/未验证的 Parquet 可选后端不作为已通过功能。
 
-## 3. 验证结果
-
-把上一步输出的轨迹路径代入下面两条命令：
+## 可写 Lab
 
 ```bash
-chemworld verify --constitution --submission runs/<trajectory>.jsonl
-chemworld evaluate --submission runs/<trajectory>.jsonl
+uv run --no-sync chemworld-lab --no-browser
 ```
 
-- `verify` 检查文件结构、合同摘要、状态守恒和确定性回放。
-- `evaluate` 从轨迹重新计算结果，不采用提交文件自带的分数。
+打开打印的本机地址：选择任务 → 开始 → 操作 → 终止 → final_assay → 精确回放 → 下载/复制 JSONL → 关闭。
+关闭不会补做终检。下载受阻时使用页面导出副本，离开页面前确认保存。
+只监听回环地址，不经端口转发对外开放。它不是运行陌生代码的安全沙箱。
+`apps.task_lab.server` 是另外的 checkout 研究工具，不属于 wheel 的命令入口。
 
-看到验证通过后，你已经跑通了 ChemWorld 最核心的链路：
-
-```text
-任务 → Agent → Action → 环境 → 轨迹 → 回放 → 评分
-```
-
-## 4. 用 Python 查看环境
+## 公开接口
 
 ```python
 import gymnasium as gym
-import chemworld  # 注册 ChemWorld 环境
+import chemworld
 
 env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
-observation, info = env.reset(seed=0)
-
-print(info["task_id"])
-print(info["physics_maturity"])
-print(env.unwrapped.available_actions())
+try:
+    _, info = env.reset(seed=0)
+    print(info["task_id"])
+    print(env.unwrapped.action_schema("heat"))
+    print(env.unwrapped.available_actions())
+finally:
+    env.close()
 ```
 
-`available_actions()` 返回当前状态下真正可执行的操作。它比维护一套固定动作模板更可靠，因为不同
-任务、阶段和物料状态会开放不同操作。
-
-## 5. 手动执行一个 Action
-
-先读取 schema，再在不改变环境状态的情况下校验动作：
-
-```python
-schema = env.unwrapped.action_schema("add_reagent")
-action = {"operation": "add_reagent", "amount_mol": 0.01}
-check = env.unwrapped.validate_action(action)
-
-if check["valid"]:
-    observation, reward, terminated, truncated, info = env.step(action)
-else:
-    print(check["invalid_reasons"])
-```
-
-无效动作会带回 `invalid_reasons` 和前置条件提示，方便 Agent 修改后重试。任务允许哪些操作、
-仪器、预算与终止方式，以 reset 信息和任务卡为准。
-
-!!! tip "正确处理未测量值"
-    数组里的未测量值是 `NaN`，写入 JSONL 后是 `null`。不要把它当成零；读取数值时同时检查
-    `observed_mask` 或 `observed_keys`。
-
-## 6. 打开可视化实验室
-
-```bash
-python -m apps.task_lab.server --port 8876
-```
-
-启动后可以打开：
-
-- [Agent Observatory](http://127.0.0.1:8876/agent/)：观看 Agent 的逐步决策、谱图与资源消耗。
-- [Student Lab](http://127.0.0.1:8876/student/)：手动选择操作，观察实验状态变化。
-
-经典算法和 Student Lab 不需要在线模型密钥。在线模型的配置方式见
-[接入 LLM Agent](llm_agent_harness.md)。
-
-## 接下来做什么
-
-| 如果你想…… | 继续阅读 |
-| --- | --- |
-| 换一个更复杂的任务 | [选择一个任务](tasks.md) |
-| 编写自己的 Agent | [从 Agent 接口开始](agent_interface.md) |
-| 理解每种操作的含义 | [认识操作语言](operations.md) |
-| 做可复现的方法比较 | [设计公平评测](benchmark_protocol.md) |
+支持操作以 `task_info()` 为准，当前可用性以 `available_actions()` 和 `validate_action()` 为准。
+查看[操作语言](operations.md)、[Agent API](agent_interface.md)和
+[贡献说明](https://github.com/sunyrain/ChemWorld/blob/main/CONTRIBUTING.md)。

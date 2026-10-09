@@ -122,6 +122,30 @@ def check_install(archive: Path, *, python: str, root: Path) -> dict:
             env=child_env,
         )
         assert json.loads(completed.stdout.splitlines()[-1])["final_assay_completed"]
+        captured_run(
+            [
+                str(interpreter),
+                "-I",
+                str(root / "examples/demo_minimal_agent.py"),
+                "--output",
+                str(work / "minimal-agent.jsonl"),
+            ],
+            cwd=work,
+            env=child_env,
+        )
+        research = work / "offline-research"
+        captured_run(
+            [
+                str(interpreter),
+                "-I",
+                str(root / "examples/demo_offline_research.py"),
+                "--output",
+                str(research),
+            ],
+            cwd=work,
+            env=child_env,
+        )
+        assert json.loads((research / "summary.json").read_text())["accepted"]
         trajectory = work / "trajectory.jsonl"
         for args in (
             ["tasks", "list"],
@@ -163,9 +187,7 @@ def main() -> int:
             archives = [args.archive.resolve()]
         else:
             subprocess.run(["uv", "build", "--out-dir", temporary], cwd=root, check=True)
-            archives = sorted(
-                [*Path(temporary).glob("*.whl"), *Path(temporary).glob("*.tar.gz")]
-            )
+            archives = sorted([*Path(temporary).glob("*.whl"), *Path(temporary).glob("*.tar.gz")])
         rows = [check_install(archive, python=args.python, root=root) for archive in archives]
     report = json.dumps(rows, indent=2) + "\n"
     if args.output:

@@ -24,6 +24,7 @@
         <div class="surface-heading"><div><p class="overline">01 · MISSION</p><h2>实验任务</h2></div><span id="missionMaturity" class="soft-tag">—</span></div>
         <label class="field-label dark-label">选择任务<select id="studentTask"></select></label>
         <div class="seed-line"><label class="field-label dark-label">Seed<input id="studentSeed" type="number" min="0" value="0"></label><button id="createSession" class="student-cta">开始 / 重置</button></div>
+        <button id="closeSession" class="outline-button" disabled>关闭会话（不补终检）</button>
         <div id="studentBackground" class="mission-brief"><div class="brief-placeholder">选择任务后查看任务背景与学习目标。</div></div>
         <div class="mission-steps"><div class="active"><b>1</b><span>理解目标<small>阅读背景与评分</small></span></div><div><b>2</b><span>设计操作<small>选择合法动作</small></span></div><div><b>3</b><span>分析反馈<small>更新实验假设</small></span></div></div>
       </aside>
@@ -104,6 +105,7 @@
 
     <section class="surface light-surface history-panel">
       <div class="surface-heading"><div><p class="overline">EXPERIMENT NOTEBOOK</p><h2>操作与观测记录</h2></div><button id="downloadNotebook" class="outline-button" disabled>下载记录</button></div>
+      <details><summary>复制最近导出的公开记录（退出页面前保存）</summary><textarea id="notebookExport" aria-label="导出的公开实验记录" readonly rows="8" style="width:100%"></textarea></details>
       <div class="light-table-shell"><table><thead><tr><th>Step</th><th>Experiment</th><th>Operation</th><th>状态变化</th><th>Reward</th><th>Official</th><th>公开观测</th></tr></thead><tbody id="studentHistory"><tr><td colspan="7"><div class="empty-table">尚未开始实验</div></td></tr></tbody></table></div>
     </section>
   </main>

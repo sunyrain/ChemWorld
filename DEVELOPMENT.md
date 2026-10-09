@@ -21,12 +21,13 @@ does not retrain hosted models or modify their weights.
 
 ## Locked contributor environment
 
-The public README documents a general editable `pip` install for users. Repository development uses
+The public README distinguishes installed archives, current source development,
+and the independent frozen paper snapshot. Repository development uses
 the committed `uv.lock` so validation does not silently inherit or mutate the system Python
 environment. On a fresh checkout, install once with:
 
 ```bash
-uv sync --extra dev
+uv sync --locked --extra dev
 ```
 
 After setup, run all repository tools with `uv run --no-sync ...`. Add optional extras to the

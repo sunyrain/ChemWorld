@@ -26,6 +26,14 @@ risk, and cost of experiments needed to adapt to independent models, real data, 
 **Other releases:** [paper guide](paper/README.md).
 **Historical material:** [archive and recovery](archive/README.md).
 
+**Current community entry:** [中文入门](docs/getting_started.md) ·
+[English quickstart](docs/getting_started.en.md) · [complete offline research](docs/offline_research.md).
+Use current main for development; reproduce the paper with its
+[independent frozen snapshot](https://github.com/sunyrain/ChemWorld-Public/tree/03e8026301c185fd6ba5bdbda7460765d9b3e724).
+This branch has one current runtime, not an old-physics compatibility backend.
+Version 0.2.0 remains development metadata; no new PyPI release is being announced.
+See [distribution and tested-platform boundaries](docs/community_release.md).
+
 ## Research map
 
 | Layer | Role |
@@ -41,17 +49,17 @@ The agent, trainer, model weights, and private agent memory sit outside the thre
 
 ## Start in five minutes
 
-ChemWorld supports Python 3.11 and 3.12.
+Python 3.11 and 3.12 are the community validation targets; see the linked platform results.
 
 ```bash
 git clone https://github.com/sunyrain/ChemWorld.git
 cd ChemWorld
-python -m pip install -e ".[dev]"
+uv sync --locked --extra dev
 ```
 
-The commands above are the general editable-install route for users. Repository contributors should
-use the committed lockfile: run `uv sync --extra dev` once, then execute checks and repository tools
-with `uv run --no-sync ...`; see [CONTRIBUTING.md](CONTRIBUTING.md).
+The commands above use the committed lockfile. Run tools with `uv run --no-sync ...`;
+see [CONTRIBUTING.md](CONTRIBUTING.md). Installed-wheel users use their isolated
+environment's `chemworld`/`chemworld-lab` directly. Examples live in the checkout or sdist.
 
 The default development extra collects the complete suite and skips optional RL modules when their
 backend is absent. RL development and training use `python -m pip install -e ".[dev,rl]"`, which also
@@ -60,10 +68,10 @@ installs the supported Stable-Baselines3/Torch stack.
 Run and independently verify a complete trajectory:
 
 ```bash
-chemworld tasks list
-chemworld run --task reaction-to-assay --agent random --seed 0
-chemworld verify --constitution --submission runs/<trajectory>.jsonl
-chemworld evaluate --submission runs/<trajectory>.jsonl
+uv run --no-sync chemworld tasks list
+uv run --no-sync python examples/demo_minimal_agent.py --output runs/minimal-agent.jsonl
+uv run --no-sync chemworld verify --submission runs/minimal-agent.jsonl --tolerance 0
+uv run --no-sync chemworld evaluate --submission runs/minimal-agent.jsonl
 ```
 
 Evaluation replays the trajectory and recomputes metrics rather than trusting a score supplied by the agent.
