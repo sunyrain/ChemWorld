@@ -8,6 +8,7 @@ import numpy as np
 
 from chemworld.foundation import Observation, PhysicalConstitution, WorldState, equipment_settings
 from chemworld.foundation.state import ProcessLedger, selected_phase_id
+from chemworld.physchem.configurable_spectra import SPECTRAL_MODEL_ID, acquire_spectrum
 from chemworld.physchem.equilibrium_chemistry import (
     SolubilityProductSpec,
     apply_precipitation_hooks,
@@ -24,6 +25,7 @@ from chemworld.runtime.full_process_contract import unrecoverable_crystallizatio
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_ledger_services import ChemWorldPhaseLedgerServices
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.runtime.spectral_settings import spectral_settings
 from chemworld.world.observation_contracts import TaskObservationContract
 from chemworld.world.observation_kernel import (
     base_observed_mask,
@@ -39,6 +41,11 @@ from chemworld.world.scoring import (
 )
 from chemworld.world.separation_kernel import downstream_truth_values
 from chemworld.world.species_roles import PHASE_PRODUCT_AMOUNT_KEY
+from chemworld.world.spectral_contract import (
+    SPECTRAL_INSTRUMENTS,
+    acquisition_cost,
+    acquisition_seconds,
+)
 
 
 class ChemWorldObservationKernel:
@@ -100,6 +107,8 @@ class ChemWorldObservationKernel:
 
         instrument_id = instrument_name(action.get("instrument", "hplc"))
         instrument = self.constitution.instruments[instrument_id]
+        if instrument_id in SPECTRAL_INSTRUMENTS:
+            return self._spectral_observation(state, instrument_id, rng)
         truth_values = self._truth_values(state)
         noisy = self._base_public_values(state)
         observed_mask = self._base_observed_mask()
@@ -178,6 +187,76 @@ class ChemWorldObservationKernel:
             },
             instrument_id=instrument_id,
             cost=instrument.cost,
+            sample_consumed_L=instrument.sample_volume_L,
+        )
+
+    def _spectral_observation(
+        self, state: WorldState, instrument_id: str, rng: np.random.Generator
+    ) -> Observation:
+        configuration = spectral_settings(state, instrument_id)
+        packet = acquire_spectrum(
+            instrument_id,
+            (
+                self.species_view.reactant_amount(state) / state.volume_L,
+                self.species_view.target_amount(state) / state.volume_L,
+                self.species_view.impurity_amount(state) / state.volume_L,
+            ),
+            configuration,
+            rng,
+            noise_multiplier=self.observation_noise_multiplier,
+        )
+        seconds = acquisition_seconds(instrument_id, configuration)
+        packet["acquisition"] = {
+            "clock_semantics": "instantaneous_snapshot",
+            "sample_time_s": state.ledger.time_s,
+            "result_time_s": state.ledger.time_s,
+            "analysis_effort_s": seconds,
+            "effort_ledger": "analysis_time_s",
+            "reactor_advance_s": 0.0,
+        }
+        values, mask = self._base_public_values(state), self._base_observed_mask()
+        fit = packet["processed_estimates"]["concentration_mol_L"]
+        a, p, b = (
+            fit[key] for key in ("reactant_reporter", "target_reporter", "impurity_reporter")
+        )
+        instrument = self.constitution.instruments[instrument_id]
+        allowed = (
+            instrument.observable_keys
+            if self.observation_contract is None
+            else self.observation_contract.observable_keys_for_instrument(
+                instrument_id, instrument.observable_keys
+            )
+        )
+        estimates = {
+            "selectivity": p / (p + b) if p is not None and b is not None and p + b > 0 else None,
+            "purity": p / (a + p + b)
+            if all(v is not None for v in (a, p, b)) and a + p + b > 0
+            else None,
+            "byproduct_signal": b / (a + p + b)
+            if all(v is not None for v in (a, p, b)) and a + p + b > 0
+            else None,
+        }
+        for key in allowed:
+            values[key] = estimates[key]
+            mask[key] = estimates[key] is not None
+        values["score"] = self._score(values)
+        self.last_provider_execution = {
+            "model_id": SPECTRAL_MODEL_ID,
+            "maturity": "development",
+            "role": "runtime",
+            "success": True,
+            "failure_reason": None,
+            "provenance": ["finite anonymous reporter calibration; acquired-trace NNLS"],
+        }
+        return Observation(
+            values=values,
+            units=self._observation_units(),
+            observed_mask=mask,
+            raw_signal=packet,
+            processed_estimate=self._processed_estimate(values, mask),
+            uncertainty={},
+            instrument_id=instrument_id,
+            cost=acquisition_cost(instrument_id, configuration),
             sample_consumed_L=instrument.sample_volume_L,
         )
 

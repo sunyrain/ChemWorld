@@ -14,6 +14,7 @@ from chemworld.foundation import (
     upsert_equipment_record,
 )
 from chemworld.runtime.full_process_contract import active, sample_domain, withdraw_sample
+from chemworld.runtime.spectral_settings import spectral_settings
 from chemworld.world.instruments import (
     INSTRUMENT_RUNTIME_MODEL_ID,
     INSTRUMENT_RUNTIME_PROVENANCE,
@@ -22,6 +23,11 @@ from chemworld.world.instruments import (
     instrument_runtime_contract_hash,
 )
 from chemworld.world.operations import instrument_name
+from chemworld.world.spectral_contract import (
+    SPECTRAL_INSTRUMENTS,
+    acquisition_cost,
+    acquisition_seconds,
+)
 
 
 class ChemWorldInstrumentCostServices:
@@ -50,9 +56,14 @@ class ChemWorldInstrumentCostServices:
                 f"required={volume}, available={state.volume_L}"
             )
         sampled = withdraw_sample(state, volume)
+        spectral = instrument_id in SPECTRAL_INSTRUMENTS
+        configuration = spectral_settings(state, instrument_id) if spectral else {}
+        cost = acquisition_cost(instrument_id, configuration) if spectral else instrument.cost
+        seconds = acquisition_seconds(instrument_id, configuration) if spectral else 0.0
         ledger = state.ledger.with_updates(
-            cost=state.ledger.cost + instrument.cost,
+            cost=state.ledger.cost + cost,
             sample_consumed_L=state.ledger.sample_consumed_L + volume,
+            analysis_time_s=state.ledger.analysis_time_s + seconds,
         )
         equipment_id = instrument_equipment_id(instrument_id)
         previous_settings = equipment_settings(state.equipment, equipment_id)
@@ -80,6 +91,15 @@ class ChemWorldInstrumentCostServices:
             },
         }
         execution_history = list(previous_settings.get("execution_history", ()))
+        if spectral:
+            execution.update(
+                model_id="finite-calibrated-reporter-spectra-v1",
+                maturity="development",
+                provider_path="chemworld.physchem.configurable_spectra.acquire_spectrum",
+                provenance=["finite reporter calibration and noisy acquired-trace fit"],
+                configuration=configuration,
+                analysis_time_s=seconds,
+            )
         if instrument_id == "particle_size":
             execution.update(
                 model_id="synthetic-particle-summary-v1",
@@ -97,11 +117,12 @@ class ChemWorldInstrumentCostServices:
             settings={
                 "instrument_id": instrument_id,
                 "last_time_s": state.ledger.time_s,
-                "last_cost": instrument.cost,
+                "last_cost": cost,
+                "last_analysis_time_s": seconds,
                 "last_sample_consumed_L": volume,
                 "use_count": use_count,
                 "model_id": execution["model_id"],
-                "provider_path": INSTRUMENT_RUNTIME_PROVIDER_PATH,
+                "provider_path": execution["provider_path"],
                 "provider_contract_hash": execution["provider_contract_hash"],
                 "provenance": execution["provenance"],
                 "diagnostics": execution["diagnostics"],

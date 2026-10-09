@@ -40,11 +40,18 @@ FORBIDDEN_PUBLIC_KEYS = {
 def test_every_public_instrument_declares_complete_synthetic_contract() -> None:
     contracts = instrument_contracts()
 
-    assert set(contracts) == PUBLIC_INSTRUMENTS
+    assert set(contracts) == PUBLIC_INSTRUMENTS | {"nmr", "ir", "ms"}
     for contract in contracts.values():
         payload = contract.to_dict()
         assert payload["input_state_schema"]["physical_state"] == "virtual_liquid_sample"
         assert payload["axis_contract"]["unit"]
+        if contract.instrument_id in {"nmr", "ir", "ms"}:
+            assert payload["calibration_contract"]["status"] == "finite_synthetic_calibration"
+            assert "scan_count" in payload["calibration_contract"]["settings"]
+            assert payload["detection_contract"]["below_lod"] == "null with reason"
+            assert payload["cost"] > 0 and payload["sample_consumption_L"] > 0
+            assert payload["clock_semantics"] == "instantaneous_snapshot"
+            continue
         assert payload["calibration_contract"]["status"] == "synthetic_reference_calibration"
         assert set(payload["detection_contract"]) == {
             "lod_mol_L",
@@ -227,9 +234,7 @@ def test_reference_closures_cover_uvvis_chromatography_and_ph() -> None:
         detector_concentration=0.20,
         mobile_phase_fraction=0.70,
     )
-    assert stronger_mobile_phase.retention_time_min != pytest.approx(
-        report.retention_time_min
-    )
+    assert stronger_mobile_phase.retention_time_min != pytest.approx(report.retention_time_min)
 
     ph_packet = raw_signal(
         "ph_meter",

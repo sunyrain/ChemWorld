@@ -492,6 +492,21 @@ def final_assay_spectra(
 def raw_signal_schema(instrument_id: str) -> dict[str, Any]:
     """Return the JSON-friendly raw-signal schema advertised by an instrument."""
 
+    if instrument_id in {"nmr", "ir", "ms"}:
+        return {
+            "type": "object",
+            "required": [
+                "kind",
+                "axis",
+                "raw_signal",
+                "calibration",
+                "processed_estimates",
+                "noise",
+                "settings",
+            ],
+            "properties": {"kind": {"const": instrument_id + "_spectrum"}},
+            "additionalProperties": True,
+        }
     if instrument_id == "particle_size":
         return {
             "type": "object",

@@ -22,6 +22,7 @@ from chemworld.world.operations import (
     instrument_name,
     operation_contracts,
 )
+from chemworld.world.spectral_contract import SPECTRAL_BOUNDS, SPECTRAL_FIELDS
 from chemworld.world.stream_contract import STREAM_FIELDS
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
@@ -60,6 +61,7 @@ GYM_ACTION_KEYS = (
     "vessel",
     "connection",
     *CONTROL_VECTOR_FIELDS,
+    *SPECTRAL_FIELDS,
 )
 
 
@@ -99,6 +101,7 @@ class ActionCodec:
         control_numeric_fields |= set(STREAM_FIELDS.get(canonical["operation"], ())) - {
             "connection"
         }
+        control_numeric_fields |= set(SPECTRAL_FIELDS)
         for field in control_numeric_fields:
             if field in canonical:
                 if np.asarray(canonical[field]).dtype.kind == "b":
@@ -254,7 +257,10 @@ class ActionCodec:
             self._float(action, key, CONTROL_NUMERIC[key][3] if key in CONTROL_NUMERIC else 0)
             for key in CONTROL_VECTOR_FIELDS
         ]
-        vector = np.asarray([*values, *control_values], dtype=np.float32)
+        spectral_values = [
+            self._float(action, key, SPECTRAL_BOUNDS[key][3]) for key in SPECTRAL_FIELDS
+        ]
+        vector = np.asarray([*values, *control_values, *spectral_values], dtype=np.float32)
         if not np.all(np.isfinite(vector)):
             raise ValueError("Encoded action vector must contain only finite values")
         return vector
@@ -319,6 +325,8 @@ class ActionCodec:
                 if key in CONTROL_CHOICES
                 else float(array[index])
             )
+        for index, key in enumerate(SPECTRAL_FIELDS, 31 + len(CONTROL_VECTOR_FIELDS)):
+            decoded[key] = float(array[index])
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

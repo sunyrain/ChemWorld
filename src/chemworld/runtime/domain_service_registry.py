@@ -113,7 +113,7 @@ class DomainServiceRegistry:
                     "instrument_cost",
                     "observation",
                     "ChemWorldInstrumentCostServices",
-                    ("measure",),
+                    ("measure", "configure_instrument"),
                     ("observation",),
                 ),
             )
