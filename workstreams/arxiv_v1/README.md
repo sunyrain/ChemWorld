@@ -7,8 +7,11 @@
 1. [`../../AGENTS.md`](../../AGENTS.md)
 2. [`FIRST_PAPER_TODOLIST.md`](FIRST_PAPER_TODOLIST.md)
 
-第一篇当前由 `codex-1` 在 `main` 上单 agent 推进。不要认领旧 Work I task，不要恢复
-claim、租约、integration queue 或逐任务 review 流程。
+第一篇原任务已冻结完成。用户新增的社区发布改良按
+[TODO 第 9 节](FIRST_PAPER_TODOLIST.md#community-release-todo)分为 **Ours / LYJ** 两组，
+按文件独占并行，协调者在 `main` 顺序集成；该节提供“完成 / 认领 / 暂未开始”状态格。
+必要性评估见 [44 项改良清单](experiments/COMMUNITY_RELEASE_IMPROVEMENT_PLAN.md)。
+不要认领旧 Work I task，不要恢复 claim、租约、integration queue 或逐任务 review 流程。
 
 ## 目录分类
 
