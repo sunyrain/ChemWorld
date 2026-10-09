@@ -40,6 +40,7 @@ function wireControls() {
   $("#taskSearch").addEventListener("input", filterTasks);
   $("#toggleTasks").addEventListener("click", invertTasks);
   $("#startRun").addEventListener("click", startRun);
+  $("#cancelRun").addEventListener("click", cancelRun);
   $("#exportResults").addEventListener("click", exportResults);
   $("#agentBackend").addEventListener("change", updateBackendControls);
   $("#budgetMultiplier").addEventListener("change", updateContractNotice);
@@ -113,6 +114,8 @@ async function startRun() {
     };
     if ($("#runSeed").value !== "") payload.seed = Number($("#runSeed").value);
     app.job = await api("/api/runs", { method: "POST", body: payload });
+    $("#cancelRun").disabled = false;
+    $("#cancelStatus").textContent = "可在下一个执行检查点取消，不补做终检。";
     setStatus("RUNNING", app.job.model);
     const source = new EventSource(`/api/runs/${app.job.job_id}/events`);
     source.onmessage = (message) => handleEvent(JSON.parse(message.data), source, button);
@@ -122,6 +125,24 @@ async function startRun() {
   } catch (error) {
     setStatus("ERROR", $("#modelName").value);
     addTelemetry("error", "启动失败", error.message);
+    button.disabled = false;
+    $("#cancelRun").disabled = true;
+  }
+}
+
+async function cancelRun() {
+  if (!app.job) return;
+  const button = $("#cancelRun");
+  button.disabled = true;
+  try {
+    const result = await api(`/api/runs/${app.job.job_id}/cancel`, { method: "POST", body: {} });
+    // A terminal SSE event may arrive before the cancellation HTTP response.
+    if (["CANCELLED", "COMPLETED", "ERROR"].includes($("#runStatus").textContent)) return;
+    $("#cancelStatus").textContent = result.status === "cancelling"
+      ? "取消已请求，等待执行检查点；已有结果和失败记录会保留。"
+      : `运行状态：${result.status}`;
+  } catch (error) {
+    $("#cancelStatus").textContent = `取消失败：${error.message}`;
     button.disabled = false;
   }
 }
@@ -250,11 +271,20 @@ function handleEvent(event, source, button) {
     source.close();
     button.disabled = false;
     $("#exportResults").disabled = false;
-  } else if (event.type === "run_failed") {
-    setStatus("ERROR", app.job?.model || "runtime");
-    addTelemetry("error", "运行失败", event.error);
+    $("#cancelRun").disabled = true;
+    $("#cancelStatus").textContent = "运行已结束。";
+  } else if (event.type === "run_failed" || event.type === "run_cancelled") {
+    const cancelled = event.type === "run_cancelled";
+    setStatus(cancelled ? "CANCELLED" : "ERROR", app.job?.model || "runtime");
+    addTelemetry(cancelled ? "warn" : "error", cancelled ? "已取消（保留已有记录）" : "运行失败", event.error);
     source.close();
     button.disabled = false;
+    $("#cancelRun").disabled = true;
+    $("#cancelStatus").textContent = cancelled ? "已在执行检查点取消。未自动补做终检。" : "运行失败，保留错误记录。";
+    $("#exportResults").disabled = app.results.length === 0;
+    if (!app.results.length) {
+      $("#scoreTable").innerHTML = '<tr><td colspan="10"><div class="empty-table">运行已结束，没有完成的任务汇总；逐步记录保留在事件流和服务端输出中。</div></td></tr>';
+    }
   }
 }
 

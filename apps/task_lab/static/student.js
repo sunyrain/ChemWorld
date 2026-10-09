@@ -5,6 +5,7 @@ const lab = {
   spectrum: null,
   spectrumHistory: [],
   spectrumHistoryIndex: -1,
+  closed: false,
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -35,6 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 function wireLab() {
   $("#studentTask").addEventListener("change", () => previewMission(currentTask()));
   $("#createSession").addEventListener("click", createSession);
+  $("#closeSession").addEventListener("click", () => closeSession().catch((error) => showValidation(false, error.message)));
   $("#operationSelect").addEventListener("change", renderOperationFields);
   $("#submitAction").addEventListener("click", submitAction);
   $("#downloadNotebook").addEventListener("click", downloadNotebook);
@@ -57,10 +59,12 @@ async function createSession() {
   const button = $("#createSession");
   button.disabled = true;
   try {
+    if (lab.session && !lab.closed) await closeSession();
     const session = await api("/api/student-sessions", {
       method: "POST",
       body: { task_id: $("#studentTask").value, seed: Number($("#studentSeed").value || 0) },
     });
+    lab.closed = false;
     renderSession(session);
     showValidation(true, "实验已创建。系统只展示当前状态下可执行的合法操作。");
   } catch (error) {
@@ -71,9 +75,11 @@ async function createSession() {
 }
 
 async function submitAction() {
-  if (!lab.session) return;
+  if (!lab.session || lab.closed) return;
   const button = $("#submitAction");
   button.disabled = true;
+  $("#closeSession").disabled = true;
+  $("#createSession").disabled = true;
   try {
     const result = await api(`/api/student-sessions/${lab.session.session_id}/actions`, {
       method: "POST",
@@ -89,7 +95,9 @@ async function submitAction() {
   } catch (error) {
     showValidation(false, error.message);
   } finally {
-    if (!lab.session?.done) button.disabled = false;
+    if (!lab.session?.done && !lab.closed) button.disabled = false;
+    $("#closeSession").disabled = lab.closed;
+    $("#createSession").disabled = false;
   }
 }
 
@@ -102,7 +110,8 @@ function renderSession(session) {
   const visible = latest?.visible_metrics || session.lab_report?.visible_metrics || {};
   previewMission(task);
   $("#sessionCode").textContent = session.session_id.slice(0, 8).toUpperCase();
-  $("#sessionState").textContent = session.done ? "Episode completed" : `${task.title} · seed ${session.seed}`;
+  $("#closeSession").disabled = false;
+  $("#sessionState").textContent = session.done ? "Episode ended — check assay count" : `${task.title} · seed ${session.seed}`;
   $("#experimentBadge").textContent = `Experiment ${campaign.experiment_index + 1}`;
   $("#studentStep").textContent = `${campaign.operation_count} / ${campaign.budget}`;
   $("#studentProgress").style.width = `${campaign.operation_count / Math.max(campaign.budget, 1) * 100}%`;
@@ -301,9 +310,25 @@ function fmtDuration(value) {
 function downloadNotebook() {
   if (!lab.session) return;
   const payload = { session_id: lab.session.session_id, task_id: lab.session.task_id, seed: lab.session.seed, background: lab.session.background, history: lab.session.history };
-  const url = URL.createObjectURL(new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" }));
+  const text = JSON.stringify(payload, null, 2);
+  $("#notebookExport").value = text;
+  const url = URL.createObjectURL(new Blob([text], { type: "application/json" }));
   const link = document.createElement("a");
-  link.href = url; link.download = `${lab.session.task_id}-student-notebook.json`; link.click(); URL.revokeObjectURL(url);
+  link.href = url; link.download = `${lab.session.task_id}-student-notebook.json`;
+  document.body.appendChild(link); link.click(); link.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
+}
+
+async function closeSession() {
+  if (!lab.session || lab.closed) return;
+  const result = await api(`/api/student-sessions/${lab.session.session_id}/close`, { method: "POST", body: {} });
+  lab.session = result.state_before_close;
+  lab.closed = true;
+  $("#notebookExport").value = JSON.stringify(lab.session, null, 2);
+  $("#submitAction").disabled = true;
+  $("#closeSession").disabled = true;
+  $("#sessionState").textContent = "Session closed — no additional assay";
+  showValidation(true, "会话已关闭，资源已释放。退出页面前请保存导出区的记录。未补做终检。");
 }
 
 function drawLearningCurve(values) {

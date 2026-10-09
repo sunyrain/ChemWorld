@@ -6,9 +6,14 @@
 ## 当前信号类型
 
 以下是**信号概念**，不是 `measure.instrument` 可直接接收的 ID 列表。
-当前公共 ID 是 `hplc`、`gc`、`uvvis`、`ph_meter`、`final_assay`，以及部分任务的
-`particle_size`。以当前任务的 `env.unwrapped.action_schema("measure")` 为准。
-IR/NMR/MS-like 特征可以出现在合成信号视图中，不能据此提交 `instrument="nmr"` 等动作。
+基础 ID 是 `hplc`、`gc`、`uvvis`、`ph_meter`、`final_assay`，以及部分任务的
+`particle_size`。新增 `nmr`、`ir`、`ms` 需要 composition 和任务显式开放，
+以当前任务的 `env.unwrapped.action_schema("measure")` 为准。
+旧谱包中的 IR/NMR/MS-like 特征与新独立仪器不同，不能仅凭视图标签判断允许的动作。
+
+新仪器先用 `configure_instrument(instrument, scan_count, resolution_factor, dilution_factor)`
+配置，再用 `measure` 采集。它们提供有限匿名校准通道、原始信号和基于信号拟合的估计，
+不从分子结构预测真实谱图。未检出/饱和/不可辨识保留 null 和原因；分析秒数与反应器物理时钟分开。
 
 - HPLC / GC retention curve 与峰摘要；
 - UV–Vis absorbance；

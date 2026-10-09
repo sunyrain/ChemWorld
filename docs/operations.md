@@ -43,9 +43,11 @@ Operation 是 Agent 在 ChemWorld 中真正能做的事：投料、改变条件�
 
 ## 仪器 ID 与信号不是同一层
 
-可执行的仪器词表为 `hplc`、`gc`、`uvvis`、`ph_meter`、`final_assay`；
-部分 full-process 合同另开放 `particle_size`。每个任务的允许项仍读 `allowed_instruments`。
-IR/NMR-like 等特征可能出现在合成谱包内，不等于可以提交 `instrument="ir"` 或 `instrument="nmr"`。
+基础仪器为 `hplc`、`gc`、`uvvis`、`ph_meter`、`final_assay`；
+当前核心也支持显式声明的 `nmr`、`ir`、`ms`，部分 full-process 合同另开放 `particle_size`。
+每个任务的允许项仍读 `allowed_instruments`，不能把低层支持理解成每个任务都允许。
+新光谱仪使用 `configure_instrument` 设置扫描次数、分辨率和稀释倍数，再用 `measure` 采集。
+有限匿名校准通道不是结构鉴定模型；已有谱包中 IR/NMR-like 特征也不自动授权独立测量。
 
 操作是有状态的。连续两次 `heat` 会从当前温度与组成继续推进；没有形成两相时调用
 `separate_phase` 会被拒绝，而不是假装成功。

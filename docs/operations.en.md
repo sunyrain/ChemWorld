@@ -25,11 +25,14 @@ For every state, inspect `task_info()`, `action_schema(operation)`,
 task permission, and task permission is not current-state legality. Never
 hard-code the action vector length or silently clip out-of-range values.
 
-Executable instrument IDs are `hplc`, `gc`, `uvvis`, `ph_meter`, `final_assay`;
-some full-process contracts additionally permit `particle_size`. Read
-`allowed_instruments`. IR/NMR-like features inside a synthetic spectral packet
-are **not** separate `measure` instrument IDs. Model-library availability does
-not create a new agent action.
+Base instrument IDs are `hplc`, `gc`, `uvvis`, `ph_meter`, `final_assay`.
+Current core also supports explicitly declared `nmr`, `ir`, `ms`; some
+full-process contracts permit `particle_size`. Read the task's
+`allowed_instruments`: registry membership alone is not permission.
+`configure_instrument` sets scans, resolution and dilution before `measure`.
+These are finite anonymous calibrated reporters, not structure-identification
+models. IR/NMR-like features inside an existing synthetic packet do not by
+themselves authorize a standalone acquisition.
 
 End a process with `terminate`, then request
 `{"operation": "measure", "instrument": "final_assay"}`. Neither an open record,
