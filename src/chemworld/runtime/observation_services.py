@@ -20,6 +20,7 @@ from chemworld.physchem.equilibrium_mechanism import (
 from chemworld.physchem.spectroscopy_adapter_manifest import (
     ValidatedInstrumentRuntimeProvider,
 )
+from chemworld.runtime.full_process_contract import unrecoverable_crystallization_result
 from chemworld.runtime.mechanisms import CompiledMechanism
 from chemworld.runtime.phase_ledger_services import ChemWorldPhaseLedgerServices
 from chemworld.runtime.species import MechanismSpeciesView
@@ -111,7 +112,15 @@ class ChemWorldObservationKernel:
             )
         )
         selected_keys = set(observable_keys)
+        empty_crystals = unrecoverable_crystallization_result(
+            state, tolerance=self.constitution.tolerance
+        )
+        undefined_crystal_keys = {
+            "crystal_size", "crystal_purity", "crystal_csd_quality", "crystal_fines_fraction"
+        } if empty_crystals else set()
         for key in instrument.observable_keys:
+            if key in undefined_crystal_keys:
+                continue
             std = instrument.noise_std.get(key, 0.0) * self.observation_noise_multiplier
             value = float(np.clip(truth_values[key] + rng.normal(0.0, std), 0.0, 1.0))
             if key in selected_keys:
@@ -139,17 +148,21 @@ class ChemWorldObservationKernel:
             state,
             observable_keys=observable_keys,
         )
+        raw_signal = self._raw_signal(
+            instrument_id, noisy, state, rng, species_amounts_mol=public_species_amounts
+        )
+        if empty_crystals and instrument_id in {"particle_size", "final_assay"}:
+            raw_signal["sample_outcome"] = {
+                "status": "negative_result",
+                "reason": "below_crystal_recovery_threshold",
+                "recovery_threshold_mol": self.constitution.tolerance,
+                "undefined_observables": sorted(undefined_crystal_keys & selected_keys),
+            }
         return Observation(
             values=noisy,
             units=self._observation_units(),
             observed_mask=observed_mask,
-            raw_signal=self._raw_signal(
-                instrument_id,
-                noisy,
-                state,
-                rng,
-                species_amounts_mol=public_species_amounts,
-            ),
+            raw_signal=raw_signal,
             processed_estimate=self._processed_estimate(noisy, observed_mask),
             uncertainty={
                 f"{key}_std": float(std) * self.observation_noise_multiplier
@@ -204,7 +217,11 @@ class ChemWorldObservationKernel:
             }
             return {
                 "kind": "particle_size_signal",
-                "d50_um": 250.0 * float(values["crystal_size"]),
+                "d50_um": (
+                    None
+                    if values["crystal_size"] is None
+                    else 250.0 * float(values["crystal_size"])
+                ),
                 "fines_number_fraction": values["crystal_fines_fraction"],
                 "csd_quality": values["crystal_csd_quality"],
                 "fines_threshold_um": 20.0,

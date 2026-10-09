@@ -11,6 +11,7 @@ import gymnasium as gym
 import chemworld  # noqa: F401
 from chemworld.data.validation import validate_records
 from chemworld.envs.chemworld_env import ChemWorldEnv
+from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 
 @dataclass(frozen=True)
@@ -153,6 +154,25 @@ def verify_records(
     """Replay trajectory actions and compare deterministic observations/rewards."""
 
     validate_records(records)
+    for record in records:
+        if record.get("reaction_thermal_control_id") != REACTION_THERMAL_CONTROL_ID:
+            return VerificationResult(
+                verified=False,
+                checked_steps=0,
+                max_abs_error=0.0,
+                mismatches=[{
+                    "step": record["step"],
+                    "field": "reaction_thermal_control_id",
+                    "recorded": record.get("reaction_thermal_control_id"),
+                    "replayed": REACTION_THERMAL_CONTROL_ID,
+                    "abs_error": None,
+                    "reason": (
+                        "This trajectory requires its original frozen runtime and uv.lock. "
+                        "Current main does not replay historical physics; see "
+                        "configs/current.json publication.frozen_release for paper evidence."
+                    ),
+                }],
+            )
     first = records[0]
     composition_request = first.get("composition_request")
     benchmark_task_id = first.get("benchmark_task_id")
@@ -393,6 +413,12 @@ def verify_records(
                 "transaction_status",
                 "rollback_reason",
                 "state_delta_summary",
+                "observed_mask",
+                "raw_signal",
+                "processed_estimate",
+                "uncertainty",
+                "measurement_cost",
+                "sample_consumed",
             )
             for field in replay_metadata_fields:
                 if field not in record:

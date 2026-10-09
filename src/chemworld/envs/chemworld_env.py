@@ -210,7 +210,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             raise ValueError("unsupported full_process_contract_id")
         self.full_process_contract_id = full_process_contract_id
         if full_process_contract_id is not None:
-            if self.task_id not in FULL_PROCESS_TASKS:
+            if self.task_id not in FULL_PROCESS_TASKS or self.task_spec is None:
                 raise ValueError("full process contract requires a native full-process task")
             self.task_spec = replace(
                 self.task_spec,
@@ -893,6 +893,9 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     ),
                 ),
             }
+            sample_outcome = observation.raw_signal.get("sample_outcome")
+            if isinstance(sample_outcome, dict):
+                terminal_summary["sample_outcome"] = deepcopy(sample_outcome)
             self._experiment_summaries.append(deepcopy(terminal_summary))
             self._experiment_index += 1
             self._campaign_resource_current_vessel_started = False

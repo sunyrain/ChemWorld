@@ -16,6 +16,7 @@ from chemworld.data.schema import (
     TRAJECTORY_COMPATIBILITY_ALIASES,
     TRAJECTORY_SCHEMA_VERSION,
 )
+from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 
 def to_builtin(value: Any) -> Any:
@@ -207,6 +208,9 @@ class TrajectoryLogger:
                 "observation_noise_mode"
             ),
             "full_process_contract_id": task_info.get("full_process_contract_id"),
+            "reaction_thermal_control_id": task_info.get(
+                "reaction_thermal_control_id", REACTION_THERMAL_CONTROL_ID
+            ),
             "research_brief": {
                 key: to_builtin(task_info["research_brief"][key])
                 for key in ("schema_version", "card", "prior_record")

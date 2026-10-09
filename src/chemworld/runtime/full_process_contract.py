@@ -1,4 +1,4 @@
-"""Opt-in phase-resolved process semantics; legacy trajectories keep their law."""
+"""Phase-resolved process modes; historical trajectories use their frozen runtime."""
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from dataclasses import replace
 
 from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
 from chemworld.foundation.state import PhaseLedger, selected_phase_id
+from chemworld.foundation.state_helpers import equipment_setting_truth
 
 FULL_PROCESS_CONTRACT = "phase-resolved-process-v1"
 FULL_PROCESS_POPULATION_CONTRACT = "phase-resolved-process-v2"
@@ -47,6 +48,17 @@ def seed_provenance_active(state: WorldState) -> bool:
     }
 
 
+def unrecoverable_crystallization_result(state: WorldState, *, tolerance: float) -> bool:
+    """A completed attempt whose solid inventory is below the operation threshold."""
+    if (
+        not equipment_setting_truth(state.equipment, "crystallizer", "execution_history")
+        or state.phases is None
+        or "solid" not in state.phases.phases
+    ):
+        return False
+    return sum(state.phases.phases["solid"].species_amounts_mol.values()) <= tolerance
+
+
 def population_settings(cohorts: tuple[tuple[float, float], ...]) -> dict:
     """Derive all particle statistics from the same retained count/diameter cohorts."""
     from chemworld.physchem.crystallization_units import _crystal_size_distribution, _CrystalCohort
@@ -67,7 +79,9 @@ def population_settings(cohorts: tuple[tuple[float, float], ...]) -> dict:
     }
 
 
-def shrink_population(cohorts, remaining_fraction):
+def shrink_population(
+    cohorts: tuple[tuple[float, float], ...], remaining_fraction: float
+) -> tuple[tuple[float, float], ...]:
     """Equal radial recession; smallest particles disappear first, with exact mass closure."""
     if not cohorts or remaining_fraction <= 0:
         return ()
@@ -130,7 +144,7 @@ def withdraw_sample(state: WorldState, volume_L: float) -> WorldState:
         settings = equipment_settings(equipment, "crystallizer")
         # Charged seed mass remains the cumulative stock counter. Active seed
         # provenance and solution-grown inventory decrease with slurry sampling.
-        updates = {
+        updates: dict[str, float] = {
             key: float(settings[key]) * (1.0 - fraction)
             for key in (
                 "seed_target_mol",

@@ -19,6 +19,7 @@ from chemworld.physchem.reactor_shared import (
     ReactorResult,
     ReactorValidityDomain,
 )
+from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 R_GAS = 8.31446261815324
 
@@ -180,19 +181,14 @@ def integrate_compiled_reaction_ode(
         for index, reaction in enumerate(network.reactions)
     }
     adjusted_network = RuntimeAdjustedReactionNetwork(network, multipliers)
-    temperature_span = abs(target_temperature - state.temperature_K)
-    maximum_heat_W = 90.0 if target_temperature >= state.temperature_K else 70.0
-    jacket_ua = (
-        0.0
-        if not heat or temperature_span <= 1.0e-12
-        else min(4.0, maximum_heat_W / temperature_span)
-    )
     thermal = HeatTransferSpec(
         rho_cp_J_per_L_K=float(world.rho_cp_J_per_L_K),
         ua_W_per_K=float(world.ua_W_per_K),
         environment_temperature_K=float(world.environment_temperature_K),
-        jacket_ua_W_per_K=jacket_ua,
+        jacket_ua_W_per_K=4.0 if heat else 0.0,
         jacket_temperature_K=target_temperature if heat else None,
+        maximum_jacket_heating_W=90.0,
+        maximum_jacket_cooling_W=70.0,
     )
     maximum_temperature = _maximum_vessel_temperature(state)
     validity_domain = ReactorValidityDomain(
@@ -278,7 +274,8 @@ def integrate_compiled_reaction_ode(
         "mechanism_hash": compiled_mechanism.mechanism_hash,
         "rate_multipliers": multipliers,
         "operation_semantic": "advance",
-        "heat_boundary": "bounded_linear_jacket" if heat else "environment_only_wait",
+        "heat_boundary": "continuous_bounded_linear_jacket" if heat else "environment_only_wait",
+        "reaction_thermal_control_id": REACTION_THERMAL_CONTROL_ID,
     }
     digest = _trajectory_digest(reactor_result, provenance)
     return ReactionIntegrationResult(

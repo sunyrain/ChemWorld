@@ -21,6 +21,7 @@ from chemworld.world.operations import (
     operation_contracts,
 )
 from chemworld.world.scoring import safety_cost_from_flags
+from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 from chemworld.world.world_law import world_law_spec
 
 
@@ -47,6 +48,7 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "observation_policy": (None if task_spec is None else task_spec.observation_policy),
         "success_metrics": ([] if task_spec is None else list(task_spec.success_metrics)),
         "runtime_profile_hash": env.runtime.profile.profile_hash,
+        "reaction_thermal_control_id": REACTION_THERMAL_CONTROL_ID,
         "mechanism_summary": build_public_mechanism_summary(compiled_mechanism),
         "scoring_contract": env.scoring_contract.to_dict(),
         "scoring_contract_hash": env.scoring_contract.contract_hash,

@@ -29,6 +29,7 @@ from chemworld.runtime.full_process_contract import (
     FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     active,
     population_active,
+    unrecoverable_crystallization_result,
 )
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
@@ -449,6 +450,9 @@ class OperationValidator:
         free_crystallization = (
             state.metadata.get("full_process_contract_id") == FULL_PROCESS_FREE_RESEARCH_CONTRACT
         )
+        empty_crystals = unrecoverable_crystallization_result(
+            state, tolerance=self.constitution.tolerance
+        )
         current_nonfinal_assay = self._has_current_nonfinal_assay(state)
         if flagship_crystallization and operation_type == "seed_crystals" and not crystal_seeded:
             process_metrics = {} if state.process is None else state.process.metrics
@@ -495,7 +499,7 @@ class OperationValidator:
             )
             if flagship_crystallization:
                 preconditions["flagship_crystallization_requires_isolated_crystals"] = (
-                    crystals_filtered
+                    crystals_filtered or empty_crystals
                 )
             if self.task_id == "electrochemical-conversion":
                 preconditions["flagship_electrochemistry_requires_outcome_assay"] = (
@@ -537,9 +541,12 @@ class OperationValidator:
         if operation_type == "measure" and payload.get("instrument") == "particle_size":
             solid = None if state.phases is None else state.phases.phases.get("solid")
             preconditions["particle_population_available"] = (
-                active(state)
-                and solid is not None
-                and sum(solid.species_amounts_mol.values()) > self.constitution.tolerance
+                empty_crystals
+                or (
+                    active(state)
+                    and solid is not None
+                    and sum(solid.species_amounts_mol.values()) > self.constitution.tolerance
+                )
             )
         if check_payload:
             preconditions.update(self._payload_checks(operation_type, payload, state))
