@@ -74,7 +74,7 @@ class ChemWorldOperationRecorder:
         if operation == "measure":
             instrument = instrument_name(action.get("instrument", "hplc"))
             if preconditions_passed:
-                measurement_cost = self.constitution.instruments[instrument].cost
+                measurement_cost = after.ledger.cost - before.ledger.cost
         return OperationRecord(
             operation_type=operation,
             preconditions=preconditions,

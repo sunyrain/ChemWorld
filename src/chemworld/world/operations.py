@@ -11,6 +11,7 @@ from chemworld.foundation import Operation
 from chemworld.world.actions import SOLVENTS
 from chemworld.world.control_contract import CONTROL_ACTION_FIELDS, CONTROL_OPERATIONS
 from chemworld.world.ontology import chemworld_state_variables
+from chemworld.world.spectral_contract import SPECTRAL_FIELDS, SPECTRAL_INSTRUMENTS
 from chemworld.world.stream_contract import STREAM_FIELDS, STREAM_OPERATIONS
 
 REACTION_OPERATIONS = (
@@ -24,6 +25,7 @@ REACTION_OPERATIONS = (
     "quench",
     "create_container",
     "transfer_material",
+    "configure_instrument",
     *CONTROL_OPERATIONS,
     "terminate",
     "measure",
@@ -83,7 +85,7 @@ OPERATION_TYPES = (
     "measure",
 )
 CAMPAIGN_OPERATION_TYPES = (*OPERATION_TYPES, *CAMPAIGN_CONTROL_OPERATIONS)
-INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay")
+INSTRUMENTS = ("hplc", "gc", "uvvis", "ph_meter", "final_assay", *SPECTRAL_INSTRUMENTS)
 EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 
 # Operation-specific input contracts are the single source of truth for values
@@ -206,6 +208,12 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        Operation(
+            "configure_instrument",
+            "Configure finite spectral acquisition",
+            ("instrument", *SPECTRAL_FIELDS),
+            ("not_terminated",),
+        ),
         *(
             Operation(name, "Finite-reservoir continuous streams", fields, ("not_terminated",))
             for name, fields in STREAM_FIELDS.items()
@@ -384,7 +392,7 @@ def operation_contracts(
             module = "continuous_flow"
         elif operation.id in electrochemistry:
             module = "electrochemistry"
-        elif operation.id == "measure":
+        elif operation.id in {"measure", "configure_instrument"}:
             module = "observation"
         elif operation.id in reaction or operation.id in {"select_vessel", "route_material"}:
             module = "reaction"

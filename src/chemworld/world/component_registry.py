@@ -35,6 +35,7 @@ COMMON_OPERATIONS = (
     "create_container",
     "transfer_material",
     "measure",
+    "configure_instrument",
     "terminate",
 )
 NETWORK_OPERATIONS = ("select_vessel", "route_material")

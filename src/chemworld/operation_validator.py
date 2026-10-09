@@ -386,6 +386,17 @@ class OperationValidator:
             choices = tuple(
                 choice for choice in choices if (choice == "final_assay") == state.terminated
             )
+        if operation_type == "configure_instrument" and field == "instrument":
+            from chemworld.world.spectral_contract import SPECTRAL_INSTRUMENTS
+
+            network = state.metadata.get("component_network")
+            choices = tuple(
+                choice
+                for choice in choices
+                if choice in SPECTRAL_INSTRUMENTS
+                and (network is None or choice in network["instruments"][state.vessel_id])
+                and not state.terminated
+            )
         if operation_type == "set_potential" and field == "electrolyte_profile":
             settings = equipment_settings(
                 state.equipment, "electrochemical_cell", fields=("electrolyte_profile",)
@@ -499,6 +510,20 @@ class OperationValidator:
         from chemworld.runtime.component_network import operation_available
 
         preconditions["operation_available_in_vessel"] = operation_available(state, operation_type)
+        if operation_type == "configure_instrument":
+            from chemworld.world.spectral_contract import SPECTRAL_INSTRUMENTS
+
+            available = set(
+                self.allowed_instruments
+                if self.allowed_instruments is not None
+                else self.constitution.instruments
+            )
+            network = state.metadata.get("component_network")
+            if network:
+                available &= set(network["instruments"][state.vessel_id])
+            preconditions["configurable_instrument_available"] = bool(
+                available & set(SPECTRAL_INSTRUMENTS)
+            )
         if operation_type in STREAM_OPERATIONS:
             preconditions["stream_network_available"] = bool(
                 state.metadata.get("component_network")
@@ -878,6 +903,23 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
+        if operation_type == "configure_instrument":
+            from chemworld.runtime.spectral_settings import configuration_error
+
+            checks["payload_spectral_configuration_valid"] = (
+                configuration_error(state, payload) is None
+            )
+            allowed = (
+                self.allowed_instruments
+                if self.allowed_instruments is not None
+                else self.constitution.instruments
+            )
+            checks["instrument_available"] = payload.get("instrument") in allowed
+            network = state.metadata.get("component_network")
+            if network:
+                checks["instrument_available_in_vessel"] = (
+                    payload.get("instrument") in network["instruments"][state.vessel_id]
+                )
         if operation_type in STREAM_OPERATIONS:
             from chemworld.runtime.continuous_streams import stream_error
 

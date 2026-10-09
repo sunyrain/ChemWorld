@@ -37,6 +37,7 @@ from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermal
 from chemworld.runtime.record_services import ChemWorldOperationRecorder
 from chemworld.runtime.solvent_transport import finish_solvent_transition, initialize_solvents
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.runtime.spectral_settings import configure_instrument
 from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import operation_name
 from chemworld.world.parameters import ChemWorldParameters
@@ -188,6 +189,7 @@ class ChemWorldDomainServices:
             "electrolyze": self.electrochemical.electrolyze,
             "terminate": lambda state, _action: state.replace(terminated=True),
             "measure": self.instrument_cost.apply_measurement_cost,
+            "configure_instrument": configure_instrument,
         }
 
     def service_id_for_operation(self, operation: str) -> str:

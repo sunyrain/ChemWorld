@@ -34,6 +34,7 @@ from chemworld.physchem.electrochemical_task_contract import (
 from chemworld.runtime.component_network import public_network
 from chemworld.runtime.continuous_streams import public_streams
 from chemworld.runtime.control_program import public_control
+from chemworld.runtime.spectral_settings import public_spectral_settings
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.control_contract import CONTROL_CHOICES, CONTROL_NUMERIC
 from chemworld.world.operations import (
@@ -46,6 +47,7 @@ from chemworld.world.operations import (
 from chemworld.world.operations import (
     EXTENDED_INSTRUMENTS as INSTRUMENTS,
 )
+from chemworld.world.spectral_contract import SPECTRAL_BOUNDS
 
 PUBLIC_ACTION_SCHEMA_VERSION = "chemworld-public-action-affordance-0.2"
 
@@ -94,6 +96,7 @@ def _campaign_snapshot(base: Any, ledger: Any) -> dict[str, Any]:
 
 
 FIELD_UNITS: dict[str, str] = {
+    **{key: values[2] for key, values in SPECTRAL_BOUNDS.items()},
     **{key: values[2] for key, values in CONTROL_NUMERIC.items()},
     **dict.fromkeys(CONTROL_CHOICES, "categorical"),
     "vessel": "categorical",
@@ -128,6 +131,7 @@ FIELD_UNITS: dict[str, str] = {
 }
 
 FIELD_RANGES: dict[str, tuple[float, float]] = {
+    **{key: (values[0], values[1]) for key, values in SPECTRAL_BOUNDS.items()},
     **{key: (values[0], values[1]) for key, values in CONTROL_NUMERIC.items()},
     "capacity_L": (0.0001, 0.1),
     "amount_mol": (0.0, 0.040),
@@ -1962,6 +1966,9 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "continuous_streams": public_streams(material_state)
         if material_state is not None
         else None,
+        "spectral_configurations": public_spectral_settings(material_state)
+        if material_state is not None
+        else {},
         "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info, _actions=actions),

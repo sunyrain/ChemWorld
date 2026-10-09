@@ -50,6 +50,7 @@ class Ledger:
     gas_bath_heat_J: float = 0.0
     flow_pump_work_J: float = 0.0
     flow_electrical_work_J: float = 0.0
+    analysis_time_s: float = 0.0
 
     def with_updates(self, **updates: float) -> Ledger:
         return replace(self, **updates)

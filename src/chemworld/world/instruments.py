@@ -9,6 +9,15 @@ from typing import Any
 
 from chemworld.foundation import Instrument
 from chemworld.world.spectra import raw_signal_schema
+from chemworld.world.spectral_contract import (
+    SCAN_TIME_S,
+    SPECTRAL_BOUNDS,
+    SPECTRAL_COST,
+    SPECTRAL_INSTRUMENTS,
+    SPECTRAL_SAMPLE_L,
+    acquisition_cost,
+    default_spectral_settings,
+)
 
 INSTRUMENT_RUNTIME_MODEL_ID = "chemworld_validated_synthetic_instruments_v1"
 INSTRUMENT_RUNTIME_PROVIDER_PATH = (
@@ -211,6 +220,15 @@ def chemworld_instruments(*, include_particle_size: bool = False) -> dict[str, I
                 "crystal_fines_fraction": 0.015,
             },
         )
+    for name in SPECTRAL_INSTRUMENTS:
+        instruments[name] = Instrument(
+            name,
+            name.upper(),
+            ("selectivity", "purity", "byproduct_signal"),
+            cost=acquisition_cost(name, default_spectral_settings()),
+            sample_volume_L=SPECTRAL_SAMPLE_L[name],
+            noise_std={},
+        )
     return instruments
 
 
@@ -267,6 +285,7 @@ def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, In
     """Return formal contracts for every instrument available in ChemWorld."""
 
     calibration = {
+        **dict.fromkeys(SPECTRAL_INSTRUMENTS, "finite-calibrated-reporter-spectra-v1"),
         "uvvis": "beer_lambert_public_calibration_v2",
         "ph_meter": "nernstian_public_ph_calibration_v2",
         "gc": "retention_plate_public_calibration_v2",
@@ -275,6 +294,9 @@ def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, In
         "particle_size": "bounded_particle_imaging_v1",
     }
     axes: dict[str, dict[str, Any]] = {
+        "nmr": {"key": "chemical_shift", "unit": "ppm", "range": [0, 10]},
+        "ir": {"key": "wavenumber", "unit": "cm^-1", "range": [400, 4000]},
+        "ms": {"key": "mass_to_charge", "unit": "m/z", "range": [10, 65]},
         "particle_size": {"key": "diameter_summary", "unit": "micrometre", "range": [0, 250]},
         "uvvis": {"key": "wavelength_nm", "unit": "nm", "range": [320.0, 760.0]},
         "ph_meter": {"key": "replicate_index", "unit": "index", "range": None},
@@ -287,6 +309,10 @@ def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, In
         },
     }
     calibration_methods = {
+        **dict.fromkeys(
+            SPECTRAL_INSTRUMENTS,
+            "nonnegative least squares of acquired signal using public reporter profiles",
+        ),
         "particle_size": "Number-weighted particle imaging; d50 and count fraction below 20 um",
         "uvvis": "Beer-Lambert absorbance with blank, path length, and dilution",
         "ph_meter": "Nernstian electrode response at declared temperature",
@@ -367,6 +393,45 @@ def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, In
                 "Sampling and results share the current simulation time; measurement does not "
                 "advance chemistry, temperature, or energy. Chromatogram retention times are "
                 "signal coordinates, not elapsed world time."
+            ),
+        )
+    from dataclasses import replace
+
+    for name in SPECTRAL_INSTRUMENTS:
+        contracts[name] = replace(
+            contracts[name],
+            uncertainty_model="linear covariance of fitted signal; declared Gaussian scan noise",
+            noise_model={
+                "base_signal_std": {"nmr": 0.003, "ir": 0.002, "ms": 0.004}[name],
+                "scan_scaling_exponent": -0.5,
+            },
+            calibration_contract={
+                "profile": calibration[name],
+                "method": calibration_methods[name],
+                "settings": {
+                    key: {"bounds": list(value[:2]), "unit": value[2], "default": value[3]}
+                    for key, value in SPECTRAL_BOUNDS.items()
+                },
+                "acquisition_effort": (
+                    "5 s overhead plus scans times per-instrument scan duration; "
+                    "analysis_time_s ledger"
+                ),
+                "status": "finite_synthetic_calibration",
+                "seconds_per_scan": SCAN_TIME_S[name],
+                "cost": {"base": SPECTRAL_COST[name], "per_analysis_second": 0.0002},
+            },
+            detection_contract={
+                "lod": "max(1e-6 times dilution, 3.3 times fitted standard error)",
+                "below_lod": "null with reason",
+            },
+            saturation_contract={
+                "upper_signal_limit": 2.0,
+                "policy": "clip trace and mark all concentration estimates null",
+            },
+            synthetic_boundary=(
+                "Finite anonymous reporter spectra; not molecular structure predictions. "
+                "Instantaneous physical snapshot; acquisition effort is separate analysis_time_s "
+                "and cost, not reactor elapsed time."
             ),
         )
     return contracts

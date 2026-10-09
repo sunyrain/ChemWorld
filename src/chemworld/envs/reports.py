@@ -20,6 +20,7 @@ from chemworld.runtime.continuous_streams import public_streams
 from chemworld.runtime.control_program import control_settings, public_control
 from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 from chemworld.runtime.species import MechanismSpeciesView
+from chemworld.runtime.spectral_settings import public_spectral_settings
 from chemworld.world.control_contract import CONTROL_MODEL
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
@@ -453,6 +454,7 @@ def build_step_info(
         "component_network": public_network(env._state),
         "process_control": public_control(env._state),
         "continuous_streams": public_streams(env._state),
+        "spectral_configurations": public_spectral_settings(env._state),
         "control_trace": (
             control_settings(env._state).get("last_samples", [])
             if operation_record.operation_type == "advance_control"

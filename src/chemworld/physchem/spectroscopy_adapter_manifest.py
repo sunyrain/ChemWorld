@@ -126,7 +126,7 @@ class ValidatedInstrumentRuntimeProvider:
     def validate_domain(self, inputs: Mapping[str, Any]) -> tuple[str, ...]:
         violations: list[str] = []
         instrument_id = inputs.get("instrument_id")
-        if instrument_id not in instrument_contracts():
+        if instrument_id not in {"hplc", "gc", "uvvis", "ph_meter", "final_assay"}:
             violations.append("instrument_id has no declared runtime contract")
         public_values = inputs.get("public_values")
         if not isinstance(public_values, Mapping):

@@ -17,6 +17,7 @@ from chemworld.world.operations import (
     PUBLIC_OBSERVATION_KEYS,
     operation_contracts,
 )
+from chemworld.world.spectral_contract import SPECTRAL_BOUNDS
 
 OBSERVATION_KEYS = PUBLIC_OBSERVATION_KEYS
 
@@ -86,6 +87,10 @@ def make_action_space() -> spaces.Dict:
 
     return ConditionalActionDict(
         {
+            **{
+                key: spaces.Box(bounds[0], bounds[1], shape=(1,), dtype=np.float32)
+                for key, bounds in SPECTRAL_BOUNDS.items()
+            },
             "operation": spaces.Discrete(len(OPERATION_TYPES)),
             "container": spaces.Discrete(len(CONTAINER_IDS)),
             "source_container": spaces.Discrete(len(CONTAINER_IDS)),

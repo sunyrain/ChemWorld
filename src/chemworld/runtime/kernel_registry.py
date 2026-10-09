@@ -298,6 +298,8 @@ def affected_ledgers(operation_type: str) -> tuple[str, ...]:
         affected.extend(
             ("inactive_vessels", "samples", "equipment", "species", "phases", "vessels", "thermal")
         )
+    if operation_type == "configure_instrument":
+        affected.append("equipment")
     return tuple(dict.fromkeys(affected))
 
 
