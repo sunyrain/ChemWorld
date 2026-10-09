@@ -91,6 +91,7 @@ def make_action_space() -> spaces.Dict:
             "destination_container": spaces.Discrete(len(CONTAINER_IDS)),
             "capacity_L": spaces.Box(0.0001, 0.1, shape=(1,), dtype=np.float32),
             "mixing": spaces.Discrete(2),
+            "component": spaces.Discrete(16),
             "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
             "volume_L": spaces.Box(0.0, 0.080, shape=(1,), dtype=np.float32),
             "catalyst_amount_mol": spaces.Box(0.0, 0.005, shape=(1,), dtype=np.float32),
@@ -128,9 +129,7 @@ def make_observation_space() -> spaces.Dict:
     )
 
 
-def value_or_default(
-    values: dict[str, float | None], key: str, default: float = 0.0
-) -> float:
+def value_or_default(values: dict[str, float | None], key: str, default: float = 0.0) -> float:
     value = values.get(key)
     return default if value is None else float(value)
 
@@ -144,9 +143,7 @@ def to_observation(values: dict[str, float | None]) -> dict[str, np.ndarray]:
             raise ValueError(f"observation value {key!r} must be numeric, not boolean")
         resolved = float(value)
         if not np.isfinite(resolved) or not 0.0 <= resolved <= 1.0:
-            raise ValueError(
-                f"observation value {key!r} must be finite and lie in [0, 1]"
-            )
+            raise ValueError(f"observation value {key!r} must be finite and lie in [0, 1]")
         return resolved
 
     return {

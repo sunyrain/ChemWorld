@@ -13,6 +13,7 @@ from chemworld.world.ontology import chemworld_state_variables
 
 REACTION_OPERATIONS = (
     "add_reagent",
+    "add_component",
     "add_solvent",
     "add_catalyst",
     "heat",
@@ -191,11 +192,18 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
-        Operation("create_container", "Open a single-use storage container",
-                  ("container", "capacity_L"), ("not_terminated",)),
-        Operation("transfer_material", "Transfer or merge a representative material aliquot",
-                  ("source_container", "destination_container", "transfer_fraction", "mixing"),
-                  ("not_terminated", "material_routing_valid")),
+        Operation(
+            "create_container",
+            "Open a single-use storage container",
+            ("container", "capacity_L"),
+            ("not_terminated",),
+        ),
+        Operation(
+            "transfer_material",
+            "Transfer or merge a representative material aliquot",
+            ("source_container", "destination_container", "transfer_fraction", "mixing"),
+            ("not_terminated", "material_routing_valid"),
+        ),
         Operation(
             "resuspend_crystals",
             "Isolate filtrate and resuspend retained crystals in fresh solvent",
@@ -203,6 +211,12 @@ def chemworld_operations() -> tuple[Operation, ...]:
             ("not_terminated", "has_material", "resuspend_requires_filtered_crystals"),
         ),
         Operation("add_reagent", "Add reagent", ("amount_mol",), ("not_terminated",)),
+        Operation(
+            "add_component",
+            "Dose one catalog feed independently",
+            ("component", "amount_mol"),
+            ("not_terminated",),
+        ),
         Operation("add_solvent", "Add solvent", ("volume_L", "solvent"), ("not_terminated",)),
         Operation(
             "add_catalyst",

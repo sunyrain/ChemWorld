@@ -16,6 +16,7 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.foundation.solvents import DENSITY_RATIOS, VISCOSITY_RATIOS
 from chemworld.foundation.state_ledgers import EquipmentLedger, EquipmentRecord
 from chemworld.physchem.heat_transfer_units import TubularHeatTransferBoundarySpec
 from chemworld.physchem.pfr_reactors import PFRGeometrySpec, PFRModel
@@ -26,6 +27,7 @@ from chemworld.world.continuous_flow import (
     FIXED_FLOW_REACTOR_INNER_DIAMETER_M,
     FIXED_FLOW_REACTOR_VOLUME_L,
 )
+from chemworld.world.mixtures import volumetric_heat_capacity, working_solvents
 
 
 def _action_float(action: dict[str, Any], key: str, default: float) -> float:
@@ -54,6 +56,7 @@ def _feed_signature(state: WorldState) -> str:
             for species_id, amount in sorted(state.species_amounts.items())
         },
         "volume_L": float(state.volume_L),
+        "carrier_volumes_L": working_solvents(state).volumes_L,
         "temperature_K": float(state.temperature_K),
         "initial_charge_ledger_mol": (
             {}
@@ -205,8 +208,10 @@ class ChemWorldFlowServices:
             length_m=float(configuration["reactor_length_m"]),
             inner_diameter_m=inner_diameter_m,
             roughness_m=float(configuration["roughness_m"]),
-            fluid_density_kg_m3=float(configuration["fluid_density_kg_m3"]),
-            fluid_viscosity_Pa_s=float(configuration["fluid_viscosity_Pa_s"]),
+            fluid_density_kg_m3=float(configuration["fluid_density_kg_m3"])
+            * working_solvents(state).linear_property(DENSITY_RATIOS),
+            fluid_viscosity_Pa_s=float(configuration["fluid_viscosity_Pa_s"])
+            * working_solvents(state).log_property(VISCOSITY_RATIOS),
             boundary_ua_W_per_m_K=thermal_boundary.conductance_per_length_W_m_K,
             boundary_temperature_K=target_temperature,
             hydraulic_provenance_id="chemworld_single_phase_darcy_weisbach_v1",
@@ -219,7 +224,8 @@ class ChemWorldFlowServices:
             geometry=geometry,
             inlet_pressure_Pa=state.pressure_Pa,
             reactor_id="chemworld_runtime_geometry_resolved_pfr_v2",
-            rate_multiplier=self.world.domain_parameter("flow_rate_multiplier"),
+            rate_multiplier=self.world.domain_parameter("flow_rate_multiplier")
+            * working_solvents(state).log_property(tuple(self.world.solvent_effects[:, 0])),
         )
         inlet_concentrations = {
             species_id: float(state.species_amounts.get(species_id, 0.0)) / state.volume_L
@@ -229,7 +235,7 @@ class ChemWorldFlowServices:
             inlet_concentrations,
             temperature_K=state.temperature_K,
             heat_transfer=HeatTransferSpec(
-                rho_cp_J_per_L_K=self.world.rho_cp_J_per_L_K,
+                rho_cp_J_per_L_K=volumetric_heat_capacity(state, self.world.rho_cp_J_per_L_K),
                 ua_W_per_K=0.0,
                 environment_temperature_K=self.world.environment_temperature_K,
             ),

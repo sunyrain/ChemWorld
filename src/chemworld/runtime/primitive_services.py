@@ -12,11 +12,18 @@ from chemworld.foundation import (
     equipment_settings,
     process_with_metrics,
     selected_phase_id,
+    species_with_added_initial_amounts,
     upsert_equipment_record,
+)
+from chemworld.foundation.solvents import (
+    HEAT_CAPACITY_RATIOS,
+    RELATIVE_VOLATILITIES,
+    SolventInventory,
 )
 from chemworld.foundation.state import PhaseLedger
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import CATALYSTS, SOLVENTS
+from chemworld.world.mixtures import volumetric_heat_capacity, working_solvents
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.thermal_kernel import account_temperature_transition
 
@@ -101,20 +108,26 @@ class ChemWorldPrimitiveOperationServices:
 
     def add_reagent(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "amount_mol", 0.003), 0.0, 0.040))
-        reactant = self.species_view.reactant_species(state)
         additions = self.species_view.reagent_charge_amounts(
             state,
             limiting_amount_mol=amount,
         )
+        return self._add_feed(state, additions)
+
+    def add_component(self, state: WorldState, action: dict[str, Any]) -> WorldState:
+        component = int(action["component"])
+        feeds = self.species_view.feed_species
+        if not 0 <= component < len(feeds):
+            raise ValueError("Component is outside this mechanism's feed catalog")
+        return self._add_feed(state, {feeds[component]: float(action["amount_mol"])})
+
+    def _add_feed(self, state: WorldState, additions: dict[str, float]) -> WorldState:
         species, phases = self._phase_aware_material_state(
             state,
             additions_mol=additions,
         )
-        species_ledger = self.species_view.record_added_reactant(
-            state.species,
-            reactant_species=reactant,
-            amount_mol=amount,
-        )
+        species_ledger = species_with_added_initial_amounts(state.species, additions)
+        amount = sum(additions.values())
         ledger = state.ledger.with_updates(cost=state.ledger.cost + 0.03 * amount / 0.01)
         return state.replace(
             species_amounts=species,
@@ -135,8 +148,7 @@ class ChemWorldPrimitiveOperationServices:
             status="configured",
             settings={
                 "solvent": solvent,
-                "solvent_volume_L": float(previous_settings.get("solvent_volume_L", 0.0))
-                + volume,
+                "solvent_volume_L": float(previous_settings.get("solvent_volume_L", 0.0)) + volume,
             },
         )
         ledger = state.ledger.with_updates(
@@ -146,13 +158,43 @@ class ChemWorldPrimitiveOperationServices:
             state,
             added_volume_L=volume,
         )
+        old_capacity = state.volume_L * volumetric_heat_capacity(state, self.world.rho_cp_J_per_L_K)
+        fresh_capacity = volume * self.world.rho_cp_J_per_L_K * HEAT_CAPACITY_RATIOS[solvent]
+        mixed_temperature = (
+            state.temperature_K
+            + fresh_capacity
+            / (old_capacity + fresh_capacity)
+            * (self.world.environment_temperature_K - state.temperature_K)
+            if old_capacity + fresh_capacity > 0
+            else state.temperature_K
+        )
         return state.replace(
             species_amounts=species,
             phases=phases,
             volume_L=state.volume_L + volume,
             ledger=ledger,
             equipment=equipment,
+            temperature_K=mixed_temperature,
+        ).replace(phases=self._solvent_addition_phases(state, species, volume, solvent))
+
+    def _solvent_addition_phases(
+        self, state: WorldState, species: dict[str, float], volume: float, solvent: int
+    ) -> PhaseLedger:
+        assert state.phases is not None
+        target = self._material_destination_phase(state)
+        if target is None:
+            raise ValueError("Solvent addition requires a material phase")
+        phases = state.phases.phases.copy()
+        current = phases[target]
+        phases[target] = replace(
+            current,
+            volume_L=current.volume_L + volume,
+            solvents=current.solvents + SolventInventory.pure(solvent, volume),
+            species_amounts_mol=species
+            if target == "reactor_liquid"
+            else current.species_amounts_mol,
         )
+        return PhaseLedger(phases)
 
     def add_catalyst(self, state: WorldState, action: dict[str, Any]) -> WorldState:
         amount = float(np.clip(_action_float(action, "catalyst_amount_mol", 0.00020), 0.0, 0.005))
@@ -172,9 +214,7 @@ class ChemWorldPrimitiveOperationServices:
             status="configured",
             settings={
                 "catalyst": catalyst,
-                "catalyst_amount_mol": float(
-                    previous_settings.get("catalyst_amount_mol", 0.0)
-                )
+                "catalyst_amount_mol": float(previous_settings.get("catalyst_amount_mol", 0.0))
                 + amount,
             },
         )
@@ -203,7 +243,9 @@ class ChemWorldPrimitiveOperationServices:
     def quench(self, state: WorldState) -> WorldState:
         target = max(298.15, state.temperature_K - 45.0)
         sensible_magnitude = abs(
-            self.world.rho_cp_J_per_L_K * state.volume_L * (target - state.temperature_K)
+            volumetric_heat_capacity(state, self.world.rho_cp_J_per_L_K)
+            * state.volume_L
+            * (target - state.temperature_K)
         )
         duration = max(sensible_magnitude / 250.0, 1.0)
         thermal = account_temperature_transition(
@@ -254,13 +296,20 @@ class ChemWorldPrimitiveOperationServices:
         target_temperature = float(
             np.clip(_action_float(action, "target_temperature_K", 328.15), 298.15, 390.0)
         )
-        removal = float(
-            np.clip(
-                0.08 + duration / 7200.0 + (target_temperature - 298.15) / 420.0,
-                0.0,
-                0.70,
-            )
+        medium = working_solvents(state)
+        heat_capacity = (
+            volumetric_heat_capacity(state, self.world.rho_cp_J_per_L_K) * state.volume_L
         )
+        target_temperature = max(target_temperature, state.temperature_K)
+        sensible = min(45.0 * duration, heat_capacity * (target_temperature - state.temperature_K))
+        final_temperature = state.temperature_K + sensible / max(heat_capacity, 1e-12)
+        requested = state.volume_L * min(
+            0.70, duration / 7200.0 * medium.log_property(RELATIVE_VOLATILITIES)
+        )
+        latent_J_L = 40_700.0 / 0.018
+        removed_volume = min(requested, max(45.0 * duration - sensible, 0.0) / latent_J_L)
+        latent = removed_volume * latent_J_L
+        removal = removed_volume / max(state.volume_L, 1e-12)
         process_metrics = {} if state.process is None else state.process.metrics
         solvent_loss = min(
             1.0,
@@ -271,13 +320,33 @@ class ChemWorldPrimitiveOperationServices:
             time_s=state.ledger.time_s + duration,
             cost=state.ledger.cost + duration / 3600.0 * 0.040,
             risk=min(1.0, state.ledger.risk + 0.04 * removal),
-            energy_jacket_J=state.ledger.energy_jacket_J + 45.0 * duration,
+            energy_jacket_J=state.ledger.energy_jacket_J + sensible + latent,
+        )
+        assert state.phases is not None
+        target_phase = self._material_destination_phase(state)
+        phases = state.phases.phases.copy()
+        if target_phase is None:
+            raise ValueError("Evaporation requires a selected material phase")
+        phases[target_phase] = replace(
+            phases[target_phase], volume_L=max(phases[target_phase].volume_L - removed_volume, 0.0)
         )
         return state.replace(
-            volume_L=state.volume_L * (1.0 - 0.55 * removal),
-            temperature_K=target_temperature,
+            phases=PhaseLedger(phases),
+            volume_L=state.volume_L - removed_volume,
+            temperature_K=final_temperature,
             ledger=ledger,
             process=process,
+            metadata={
+                **state.metadata,
+                "last_evaporation_energy": {
+                    "sensible_J": sensible,
+                    "latent_J": latent,
+                    "jacket_J": sensible + latent,
+                    "removed_carrier_L": removed_volume,
+                    "energy_balance_residual_J": 0.0,
+                    "model": "finite_carrier_45W_sensible_then_latent_no_environment_loss",
+                },
+            },
         )
 
     def penalize_invalid(self, state: WorldState) -> WorldState:

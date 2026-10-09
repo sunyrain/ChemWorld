@@ -19,6 +19,7 @@ from chemworld.world.operations import (
 
 PHASES = ("reactor_liquid", "aqueous", "organic")
 EXTRACTANTS = SOLVENTS
+FEED_IDS = tuple(f"feed-{i}" for i in range(16))
 GYM_ACTION_KEYS = (
     "operation",
     "amount_mol",
@@ -48,6 +49,7 @@ GYM_ACTION_KEYS = (
     "destination_container",
     "capacity_L",
     "mixing",
+    "component",
 )
 
 
@@ -76,6 +78,8 @@ class ActionCodec:
             canonical = payload
         canonical["operation"] = self._operation_name(canonical["operation"])
         canonical = self._apply_aliases(canonical)
+        if "component" in canonical:
+            canonical["component"] = self._index(canonical["component"], FEED_IDS)
         for field in ("container", "source_container", "destination_container"):
             if field in canonical:
                 canonical[field] = self._index(canonical[field], CONTAINER_IDS)
@@ -209,6 +213,7 @@ class ActionCodec:
             self._float(action, "destination_container", 1.0),
             self._float(action, "capacity_L", 0.1),
             self._float(action, "mixing", 0.0),
+            self._float(action, "component", 0.0),
         ]
         vector = np.asarray(values, dtype=np.float32)
         if not np.all(np.isfinite(vector)):
@@ -266,6 +271,7 @@ class ActionCodec:
             decoded[key] = int(np.clip(round(array[index]), 0, len(CONTAINER_IDS) - 1))
         decoded["capacity_L"] = float(array[26])
         decoded["mixing"] = int(np.clip(round(array[27]), 0, 1))
+        decoded["component"] = int(np.clip(round(array[28]), 0, len(FEED_IDS) - 1))
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

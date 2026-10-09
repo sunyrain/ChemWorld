@@ -908,11 +908,28 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 blockers = ["environment_budget_exhausted"]
             if can_start_next:
                 retained_samples = replace(
-                    self._state.samples, active_lineage=(), active_reference_sources={},
+                    self._state.samples,
+                    active_lineage=(),
+                    active_reference_sources={},
                     active_reference_shares={},
                     batch_generation=self._state.samples.batch_generation + 1,
                 )
-                self._state = self._fresh_initial_state().replace(samples=retained_samples)
+                new_state = self._fresh_initial_state()
+                retained_solvents = self._state.solvent_accounting
+                from chemworld.foundation.solvents import SolventInventory
+
+                closed_batch_solvents = SolventInventory()
+                if self._state.phases is not None:
+                    for phase in self._state.phases.phases.values():
+                        closed_batch_solvents = closed_batch_solvents + phase.solvents
+                self._state = new_state.replace(
+                    samples=retained_samples,
+                    solvent_accounting=replace(
+                        retained_solvents,
+                        initial=retained_solvents.initial + new_state.solvent_accounting.initial,
+                        removed=retained_solvents.removed + closed_batch_solvents,
+                    ),
+                )
                 self._current_batch_resource_baseline = deepcopy(
                     self._campaign_resource_ledger.snapshot()["state"]
                     if self._campaign_resource_ledger is not None
@@ -1164,7 +1181,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self._campaign_resource_ledger = (
             None
             if self.campaign_resource_card is None
-            else CampaignResourceLedger(self.campaign_resource_card)
+            else CampaignResourceLedger(
+                self.campaign_resource_card,
+                reagent_charge_molar_multiplier=self.operation_validator.reagent_charge_molar_multiplier,
+            )
         )
         self._campaign_resource_current_vessel_started = False
         self._last_campaign_resource_receipt = None
@@ -1437,6 +1457,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
             target_species=species_view.target_species,
             reagent_charge_molar_multiplier=reagent_charge_molar_multiplier,
+            feed_count=len(species_view.feed_species),
+            liquid_supply_temperature_K=self.world.environment_temperature_K,
             operation_types=self.action_codec.operation_types,
             action_codec=self.action_codec,
             authored_field_bounds=(
@@ -1508,6 +1530,8 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         )
 
     def _fresh_initial_state(self) -> WorldState:
+        from chemworld.runtime.solvent_transport import initialize_solvents
+
         state = deepcopy(self.scenario_instance.initial_state)
         if self.full_process_contract_id is not None:
             state = state.replace(
@@ -1517,7 +1541,7 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     "full_process_task_id": self.task_id,
                 }
             )
-        return state
+        return initialize_solvents(state)
 
     def _observation_seed(self, world_seed: int) -> int:
         """Resolve observation noise independently from hidden-world generation.

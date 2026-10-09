@@ -319,7 +319,7 @@ def test_public_liquid_bounds_prevent_material_first_pressure_rollback() -> None
         env.close()
 
 
-def test_electrolyte_profile_and_solvent_are_public_and_locked() -> None:
+def test_electrolyte_profile_is_locked_and_solvent_blending_is_public() -> None:
     env = gym.make("ChemWorld", task_id="electrochemical-conversion", seed=0)
     try:
         env.reset(seed=0)
@@ -333,8 +333,8 @@ def test_electrolyte_profile_and_solvent_are_public_and_locked() -> None:
         locked_solvent = next(
             field for field in locked_solvent_schema["fields"] if field["field"] == "solvent"
         )
-        assert locked_solvent["choices"] == [2]
-        assert locked_solvent["locked_for_current_experiment"] is True
+        assert locked_solvent["choices"] == [0, 1, 2, 3]
+        assert "locked_for_current_experiment" not in locked_solvent
         env.step({"operation": "add_reagent", "amount_mol": 0.010})
         profile_schema = env.unwrapped.action_schema("set_potential")
         profile = next(
@@ -382,15 +382,15 @@ def test_electrolyte_profile_and_solvent_are_public_and_locked() -> None:
         env.close()
 
 
-def test_core_locks_material_category_for_current_experiment() -> None:
+def test_core_allows_mixed_solvents_in_current_experiment() -> None:
     env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
     try:
         env.reset(seed=0)
         env.step({"operation": "add_solvent", "volume_L": 0.02, "solvent": 1})
         schema = env.unwrapped.action_schema("add_solvent")
         solvent_field = next(field for field in schema["fields"] if field["field"] == "solvent")
-        assert solvent_field["choices"] == [1]
-        assert solvent_field["locked_for_current_experiment"] is True
+        assert solvent_field["choices"] == [0, 1, 2, 3]
+        assert "locked_for_current_experiment" not in solvent_field
 
         same = env.unwrapped.validate_action(
             {"operation": "add_solvent", "volume_L": 0.005, "solvent": 1}
@@ -399,9 +399,8 @@ def test_core_locks_material_category_for_current_experiment() -> None:
             {"operation": "add_solvent", "volume_L": 0.005, "solvent": 2}
         )
         assert same["valid"]
-        assert not switched["valid"]
-        assert not switched["dispatchable_to_runtime"]
-        assert "payload_locked:solvent" in switched["invalid_reasons"]
+        assert switched["valid"]
+        assert switched["dispatchable_to_runtime"]
     finally:
         env.close()
 

@@ -115,9 +115,11 @@ class ChemWorldObservationKernel:
         empty_crystals = unrecoverable_crystallization_result(
             state, tolerance=self.constitution.tolerance
         )
-        undefined_crystal_keys = {
-            "crystal_size", "crystal_purity", "crystal_csd_quality", "crystal_fines_fraction"
-        } if empty_crystals else set()
+        undefined_crystal_keys = (
+            {"crystal_size", "crystal_purity", "crystal_csd_quality", "crystal_fines_fraction"}
+            if empty_crystals
+            else set()
+        )
         for key in instrument.observable_keys:
             if key in undefined_crystal_keys:
                 continue
@@ -453,18 +455,27 @@ class ChemWorldObservationKernel:
             }
 
         if state.metadata.get("equilibrium_entity_panel_version"):
-            settings = equipment_settings(
-                state.equipment,
-                "batch_reactor",
-                fields=("solvent",),
-            )
-            selector = str(int(settings.get("solvent", 0)))
+            from chemworld.world.mixtures import working_solvents
+
             configured_profiles = state.metadata.get("equilibrium_entity_profiles")
-            if not isinstance(configured_profiles, dict) or selector not in configured_profiles:
+            if not isinstance(configured_profiles, dict) or any(
+                str(i) not in configured_profiles for i in range(4)
+            ):
                 raise ValueError("EQ-E active medium has no registered private profile")
-            profile = configured_profiles[selector]
-            if not isinstance(profile, dict):
-                raise ValueError("EQ-E private profile is malformed")
+            medium = working_solvents(state)
+            profile = {
+                key: (
+                    medium.log_property
+                    if key == "activity_coefficient_ratio"
+                    else medium.linear_property
+                )(tuple(configured_profiles[str(i)][key] for i in range(4)))
+                for key in (
+                    "pka_shift",
+                    "log10_ksp",
+                    "cation_fraction",
+                    "activity_coefficient_ratio",
+                )
+            }
             coupled = solve_coupled_weak_acid_precipitation(
                 acid_total_mol=acid_total,
                 volume_L=volume_L,
@@ -473,9 +484,7 @@ class ChemWorldObservationKernel:
                 log10_ksp=float(profile["log10_ksp"]),
                 mechanism_family="direct_free_ion_precipitation",
                 cation_fraction=float(profile["cation_fraction"]),
-                activity_coefficient_ratio=float(
-                    profile["activity_coefficient_ratio"]
-                ),
+                activity_coefficient_ratio=float(profile["activity_coefficient_ratio"]),
             )
             concentration = acid_total / volume_L
             identity_signal = max(
@@ -500,12 +509,8 @@ class ChemWorldObservationKernel:
                 "acid_dissociation_fraction": float(
                     np.clip(coupled.acid_dissociation_fraction, 0.0, 1.0)
                 ),
-                "precipitation_signal": float(
-                    np.clip(coupled.precipitation_signal, 0.0, 1.0)
-                ),
-                "equilibrium_residual": float(
-                    np.clip(coupled.equilibrium_residual, 0.0, 1.0)
-                ),
+                "precipitation_signal": float(np.clip(coupled.precipitation_signal, 0.0, 1.0)),
+                "equilibrium_residual": float(np.clip(coupled.equilibrium_residual, 0.0, 1.0)),
                 "equilibrium_confidence": confidence,
             }
 
@@ -517,16 +522,12 @@ class ChemWorldObservationKernel:
                     "direct_free_ion_precipitation",
                 )
             )
-            configured_beta = state.metadata.get(
-                "equilibrium_aqueous_association_beta_L_per_mol"
-            )
+            configured_beta = state.metadata.get("equilibrium_aqueous_association_beta_L_per_mol")
             coupled = solve_coupled_weak_acid_precipitation(
                 acid_total_mol=acid_total,
                 volume_L=volume_L,
                 pka=pka,
-                log10_ksp=float(
-                    state.metadata.get("hidden_equilibrium_log10_ksp", -5.2)
-                ),
+                log10_ksp=float(state.metadata.get("hidden_equilibrium_log10_ksp", -5.2)),
                 mechanism_family=cast(EquilibriumMechanismFamily, mechanism_family),
                 cation_fraction=float(
                     state.metadata.get(
@@ -564,12 +565,8 @@ class ChemWorldObservationKernel:
                 "acid_dissociation_fraction": float(
                     np.clip(coupled.acid_dissociation_fraction, 0.0, 1.0)
                 ),
-                "precipitation_signal": float(
-                    np.clip(coupled.precipitation_signal, 0.0, 1.0)
-                ),
-                "equilibrium_residual": float(
-                    np.clip(coupled.equilibrium_residual, 0.0, 1.0)
-                ),
+                "precipitation_signal": float(np.clip(coupled.precipitation_signal, 0.0, 1.0)),
+                "equilibrium_residual": float(np.clip(coupled.equilibrium_residual, 0.0, 1.0)),
                 "equilibrium_confidence": confidence,
             }
 

@@ -86,16 +86,9 @@ class ChemWorldReactionThermalServices:
         )
         if solid_target <= 1.0e-12:
             return state, 0.0
-        solvent_index = int(equipment_settings(state.equipment, "batch_reactor").get("solvent", 0))
-        material_coupling_enabled = (
-            state.metadata.get("crystallization_material_family_id")
-            == "reaction-crystallization-latent-materials-v1"
-        )
-        solubility_multiplier = (
-            float(self.world.crystallization_solvent_solubility_multipliers[solvent_index])
-            if material_coupling_enabled and solvent_index in range(4)
-            else 1.0
-        )
+        from chemworld.world.mixtures import crystallization_medium_modifier
+
+        solubility_multiplier = crystallization_medium_modifier(state, self.world, "solubility")
         curve = SolubilityCurveSpec(
             model_id="runtime_vanthoff_material_solubility_v2",
             reference_solubility_mol_L=(

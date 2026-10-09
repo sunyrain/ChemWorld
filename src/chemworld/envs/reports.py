@@ -11,9 +11,11 @@ import numpy as np
 from chemworld import __version__
 from chemworld.backends import semi_mechanistic_backend_spec
 from chemworld.envs.spaces import OBSERVATION_KEYS, value_or_default
+from chemworld.foundation.solvents import MIXTURE_MODEL_ID
 from chemworld.foundation.state import OperationRecord
 from chemworld.materials import public_material_catalog
 from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
+from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.instruments import instrument_contracts
 from chemworld.world.operations import (
     OPERATION_TYPES,
@@ -63,6 +65,27 @@ def build_task_info(env: Any) -> dict[str, Any]:
         "allowed_operations": sorted(env.allowed_operations),
         "allowed_instruments": sorted(env.allowed_instruments),
         "material_catalog": public_material_catalog(task_id=env.task_id),
+        "mixture_model": {
+            "id": MIXTURE_MODEL_ID,
+            "catalog_size": 4,
+            "volume_rule": "additive_carrier_volume_L",
+            "heat_capacity_rule": "volume_weighted_endpoint_ratios",
+            "positive_property_rule": "log_volume_fraction_interpolation",
+            "domain": "finite_surrogate_media_not_calibrated_real_solvent_mixtures",
+            "solute_volume_rule": "dilute_tracer_solutes_do_not_add_carrier_volume",
+        },
+        "feed_catalog": [
+            {
+                "id": f"feed-{i}",
+                "component": i,
+                "reference_recipe_mol_per_amount_mol": MechanismSpeciesView(compiled_mechanism)
+                .reagent_charge_amounts(
+                    env.scenario_instance.initial_state, limiting_amount_mol=1.0
+                )
+                .get(species, 0.0),
+            }
+            for i, species in enumerate(MechanismSpeciesView(compiled_mechanism).feed_species)
+        ],
         "kernel_maturity": env.kernel_maturity.to_dict(),
         "physics_maturity": env.kernel_maturity.lowest_level.value,
         "proxy_allowed": env.kernel_maturity.proxy_allowed,

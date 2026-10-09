@@ -110,6 +110,8 @@ class OperationValidator:
         allowed_instruments: set[str] | None = None,
         target_species: tuple[str, ...] = (),
         reagent_charge_molar_multiplier: float = 1.0,
+        feed_count: int = 1,
+        liquid_supply_temperature_K: float = 298.15,
         task_id: str | None = None,
         electrochemical_workflow_mode: str = (ELECTROCHEMICAL_WORKFLOW_ADAPTIVE_TWO_STAGE),
         operation_types: tuple[str, ...] = OPERATION_TYPES,
@@ -123,6 +125,10 @@ class OperationValidator:
         if reagent_charge_molar_multiplier <= 0.0:
             raise ValueError("reagent_charge_molar_multiplier must be positive")
         self.reagent_charge_molar_multiplier = float(reagent_charge_molar_multiplier)
+        if not 1 <= feed_count <= 16:
+            raise ValueError("Mechanism feed catalog must contain 1 to 16 components")
+        self.feed_count = feed_count
+        self.liquid_supply_temperature_K = liquid_supply_temperature_K
         self.task_id = task_id
         self.electrochemical_workflow_mode = normalize_electrochemical_workflow_mode(
             electrochemical_workflow_mode
@@ -254,10 +260,12 @@ class OperationValidator:
         if authored is not None:
             dynamic_low = max(dynamic_low, authored[0])
             dynamic_high = min(dynamic_high, authored[1])
-        if operation_type == "add_reagent" and field == "amount_mol":
+        if operation_type in {"add_reagent", "add_component"} and field == "amount_mol":
             dynamic_high = min(
                 dynamic_high,
-                self._maximum_safe_reagent_amount_mol(state),
+                self._maximum_safe_reagent_amount_mol(
+                    state, single=operation_type == "add_component"
+                ),
             )
         elif (
             operation_type in {"add_solvent", "add_phase", "add_extractant"} and field == "volume_L"
@@ -325,6 +333,21 @@ class OperationValidator:
         choices: tuple[Any, ...],
     ) -> tuple[Any, ...]:
         """Narrow categorical choices to physically persistent task state."""
+
+        if operation_type == "add_component" and field == "component":
+            return tuple(i for i in choices if 0 <= i < self.feed_count)
+
+        # The EQ-E experiment's pure-medium task contract is distinct from
+        # the general runtime's mixture capability. Keep its public schema
+        # consistent with the task-level constraint without imposing it globally.
+        if (
+            operation_type == "add_solvent"
+            and field == "solvent"
+            and state.metadata.get("equilibrium_entity_panel_version")
+        ):
+            settings = equipment_settings(state.equipment, "batch_reactor")
+            if float(settings.get("solvent_volume_L", 0)) > self.constitution.tolerance:
+                return tuple(i for i in choices if i == settings.get("solvent"))
 
         if operation_type == "create_container" and field == "container":
             from chemworld.foundation.samples import CONTAINER_IDS
@@ -505,7 +528,7 @@ class OperationValidator:
                 self._minimum_safe_liquid_addition_volume_l(state),
                 self.constitution.tolerance,
             )
-        if operation_type == "add_reagent":
+        if operation_type in {"add_reagent", "add_component"}:
             preconditions["reagent_pressure_capacity_available"] = (
                 self._maximum_safe_reagent_amount_mol(state) > self.constitution.tolerance
             )
@@ -636,6 +659,7 @@ class OperationValidator:
             allowed = {
                 "add_solvent",
                 "add_reagent",
+                "add_component",
                 "set_potential",
                 "electrolyze",
                 "measure",
@@ -645,7 +669,12 @@ class OperationValidator:
                 allowed.add("terminate")
             return operation_type in allowed
         if setpoint_count == 0:
-            return operation_type in {"add_solvent", "add_reagent", "set_potential"}
+            return operation_type in {
+                "add_solvent",
+                "add_reagent",
+                "add_component",
+                "set_potential",
+            }
         if electrolysis_count == 0:
             return operation_type == "electrolyze"
         if self.electrochemical_workflow_mode == ELECTROCHEMICAL_WORKFLOW_STATIC_SINGLE_STAGE:
@@ -803,14 +832,7 @@ class OperationValidator:
                 checks[f"payload_choice:{field}"] = payload.get(field) in choices
 
         lock_contract = {
-            "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
-            "resuspend_crystals": ("solvent", "batch_reactor", "solvent_volume_L"),
             "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
-            "add_extractant": (
-                "extractant",
-                "liquid_liquid_extractor",
-                "extractant_volume_L",
-            ),
         }.get(operation_type)
         if lock_contract is not None and lock_contract[0] in payload:
             locked_field, equipment_id, charged_key = lock_contract
@@ -824,7 +846,9 @@ class OperationValidator:
                 selected is None or payload.get(locked_field) == selected
             )
 
-        if operation_type == "add_reagent" and "amount_mol" in payload:
+        if operation_type == "add_component" and "component" in payload:
+            checks["payload_choice:component"] = payload["component"] in range(self.feed_count)
+        if operation_type in {"add_reagent", "add_component"} and "amount_mol" in payload:
             low, high = self.public_field_bounds(
                 operation_type,
                 "amount_mol",
@@ -1205,7 +1229,7 @@ class OperationValidator:
             return state.vessels.vessels[state.vessel_id].max_pressure_Pa
         return self.constitution.vessel.max_pressure_Pa
 
-    def _maximum_safe_reagent_amount_mol(self, state: WorldState) -> float:
+    def _maximum_safe_reagent_amount_mol(self, state: WorldState, *, single: bool = False) -> float:
         """Invert the public pressure law to bound one reagent charge safely."""
 
         if state.temperature_K <= 0.0:
@@ -1234,7 +1258,7 @@ class OperationValidator:
             maximum_concentration_mol_l * state.volume_L - current_amount_mol,
             0.0,
         )
-        return remaining_amount_mol / self.reagent_charge_molar_multiplier
+        return remaining_amount_mol / (1.0 if single else self.reagent_charge_molar_multiplier)
 
     def _minimum_safe_liquid_addition_volume_l(self, state: WorldState) -> float:
         """Invert the pressure law for a material-first liquid charge."""
@@ -1252,7 +1276,9 @@ class OperationValidator:
         )
         if current_amount_mol <= 0.0:
             return 0.0
-        base_pressure_pa = 101_325.0 * state.temperature_K / 298.15
+        # Mixing with fresh solvent can raise the temperature of a cold charge.
+        temperature = max(state.temperature_K, self.liquid_supply_temperature_K)
+        base_pressure_pa = 101_325.0 * temperature / 298.15
         pressure_ceiling_pa = max(self._max_pressure_pa(state) - 1.0, 0.0)
         maximum_concentration_mol_l = (
             (pressure_ceiling_pa / base_pressure_pa - 1.0) / 0.025

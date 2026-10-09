@@ -102,8 +102,7 @@ class ServiceOperationKernel:
                 cost_delta=transaction.state.ledger.cost - before.ledger.cost,
                 risk_delta=transaction.state.ledger.risk - before.ledger.risk,
                 sample_delta=(
-                    transaction.state.ledger.sample_consumed_L
-                    - before.ledger.sample_consumed_L
+                    transaction.state.ledger.sample_consumed_L - before.ledger.sample_consumed_L
                 ),
                 affected_ledgers=("process",),
                 kernel_id=self.kernel_id,
@@ -227,6 +226,7 @@ class OperationKernelRegistry:
 def affected_ledgers(operation_type: str) -> tuple[str, ...]:
     material = {
         "add_reagent",
+        "add_component",
         "add_catalyst",
         "add_solvent",
         "sample",

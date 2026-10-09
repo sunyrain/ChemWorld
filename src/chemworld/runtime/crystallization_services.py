@@ -14,6 +14,7 @@ from chemworld.foundation import (
     upsert_equipment_record,
 )
 from chemworld.foundation.samples import StoredSample
+from chemworld.foundation.solvents import SolventInventory
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import (
     CoolingCrystallizationResult,
@@ -31,6 +32,7 @@ from chemworld.runtime.full_process_contract import (
 from chemworld.runtime.material_routing import _active, _contents
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.actions import SOLVENTS
+from chemworld.world.mixtures import crystallization_medium_modifier
 from chemworld.world.parameters import ChemWorldParameters
 from chemworld.world.thermal_kernel import account_temperature_transition
 
@@ -268,33 +270,10 @@ class ChemWorldCrystallizationServices:
         effective_seed_target_mol = existing_solid_product
         effective_seed_mass_g = effective_seed_target_mol * target_molecular_weight * 1000.0
         initial_concentration = dissolved_product_mol / max(feed_volume_L, 1.0e-12)
-        solvent_index = int(equipment_settings(state.equipment, "batch_reactor").get("solvent", 0))
-        material_coupling_enabled = (
-            state.metadata.get("crystallization_material_family_id")
-            == "reaction-crystallization-latent-materials-v1"
-        )
-        if material_coupling_enabled and solvent_index not in range(4):
-            raise ValueError("configured solvent index is outside the material contract")
-        solubility_multiplier = (
-            float(self.world.crystallization_solvent_solubility_multipliers[solvent_index])
-            if material_coupling_enabled
-            else 1.0
-        )
-        nucleation_multiplier = (
-            float(self.world.crystallization_solvent_nucleation_multipliers[solvent_index])
-            if material_coupling_enabled
-            else 1.0
-        )
-        growth_multiplier = (
-            float(self.world.crystallization_solvent_growth_multipliers[solvent_index])
-            if material_coupling_enabled
-            else 1.0
-        )
-        occlusion_multiplier = (
-            float(self.world.crystallization_solvent_occlusion_multipliers[solvent_index])
-            if material_coupling_enabled
-            else 1.0
-        )
+        solubility_multiplier = crystallization_medium_modifier(state, self.world, "solubility")
+        nucleation_multiplier = crystallization_medium_modifier(state, self.world, "nucleation")
+        growth_multiplier = crystallization_medium_modifier(state, self.world, "growth")
+        occlusion_multiplier = crystallization_medium_modifier(state, self.world, "occlusion")
         reference_solubility = (
             self.world.crystallization_reference_solubility_mol_L
             * self.world.domain_parameter("crystallization_solubility_multiplier")
@@ -638,8 +617,14 @@ class ChemWorldCrystallizationServices:
         solvent = int(_action_float(action, "solvent", 0))
         if not 0.0001 <= volume <= 0.080 or solvent not in range(len(SOLVENTS)):
             raise ValueError("Invalid resuspension volume or solvent")
-        sample_id = next((f"filtrate-{i:04d}" for i in range(1, 17)
-                          if f"filtrate-{i:04d}" not in state.samples.samples), None)
+        sample_id = next(
+            (
+                f"filtrate-{i:04d}"
+                for i in range(1, 17)
+                if f"filtrate-{i:04d}" not in state.samples.samples
+            ),
+            None,
+        )
         if sample_id is None:
             raise ValueError("All 16 disposable filtrate containers have been used")
         source = _active(state)
@@ -652,16 +637,27 @@ class ChemWorldCrystallizationServices:
             volume_L=liquor.volume_L,
             species_amounts_mol=liquor.species_amounts_mol,
             temperature_K=state.temperature_K,
-            solvent=solvent,
+            solvent=liquor.solvents.dominant_index,
             quenched=state.quenched,
             seed_target_mol=dissolved_seed * (1.0 - retained_liquid_fraction),
             lineage=source.lineage,
         )
-        sample = replace(sample, contents=replace(
-            _contents(sample), species=source_contents.species,
-            reference_sources=source_contents.reference_sources,
-            reference_shares=source_contents.reference_shares,
-        ))
+        sample = replace(
+            sample,
+            contents=replace(
+                _contents(sample),
+                species=source_contents.species,
+                phases=PhaseLedger(
+                    {
+                        "reactor_liquid": replace(
+                            liquor, phase_id="reactor_liquid", vessel_id=sample_id, selected=False
+                        )
+                    }
+                ),
+                reference_sources=source_contents.reference_sources,
+                reference_shares=source_contents.reference_shares,
+            ),
+        )
         liquid_volume = volume + cake_liquor.volume_L
         phases = PhaseLedger(
             {
@@ -670,6 +666,7 @@ class ChemWorldCrystallizationServices:
                     liquor,
                     volume_L=liquid_volume,
                     species_amounts_mol=cake_liquor.species_amounts_mol,
+                    solvents=cake_liquor.solvents + SolventInventory.pure(solvent, volume),
                     selected=True,
                 ),
             }
