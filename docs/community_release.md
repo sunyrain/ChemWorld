@@ -58,3 +58,29 @@ billing or publish to that separate repository.
 
 Local installation/matrix results and current-repository CI are reported
 separately; never count a queued or billing-blocked job as passed.
+
+## Development validation
+
+Target matrix: Linux, Windows and macOS, each with Python 3.11 and 3.12.
+Metadata allowing newer Python versions is not a claim that they were tested.
+The workflow runs focused current-interface checks, then installs **both wheel
+and sdist** into fresh environments outside the checkout using committed locked
+dependencies. Documentation has a strict-build-only job, with no deployment,
+tagging or package publication.
+
+Run the same installation check locally:
+
+```bash
+uv sync --locked --extra dev --extra docs
+uv run --no-sync python scripts/smoke_test_wheel.py --python 3.11
+uv run --no-sync python scripts/smoke_test_wheel.py --python 3.12
+uv run --no-sync mkdocs build --strict
+```
+
+At the first packaging batch, macOS arm64 **3.11.15 and 3.12.14 passed for both
+archive types**: all 15 task resets, six current contracts, public resource loads,
+the eight-operation manual example through final assay, and new-process CLI
+run/verify/evaluate. Package checks compare actual clean and dirty archives
+byte-for-byte, including a no-Git sdist rebuild. Linux/Windows jobs are not
+counted as passed until execution results are available. No old qualification
+or scientific result has been regenerated.

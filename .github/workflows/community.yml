@@ -1,0 +1,64 @@
+name: Community package and current interfaces
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'configs/**'
+      - 'examples/**'
+      - 'tests/**'
+      - 'scripts/community_release*'
+      - 'scripts/smoke_test_wheel.py'
+      - 'pyproject.toml'
+      - 'uv.lock'
+      - '.github/workflows/community.yml'
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  focused-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.20'
+          python-version: '3.12'
+      - run: uv sync --locked --extra dev
+      - name: Public examples, package boundary and current interfaces
+        run: >-
+          uv run --no-sync pytest -q
+          tests/test_community_release_examples.py
+          tests/test_community_release_packaging.py
+          tests/test_wheel_smoke.py
+          tests/test_cli_errors.py
+          tests/test_agent_interface.py
+          tests/test_world_composition.py
+          tests/test_measurement_clock.py
+      - name: Release-tool lint
+        run: >-
+          uv run --no-sync ruff check
+          scripts/community_release_build.py scripts/smoke_test_wheel.py
+          tests/test_community_release_examples.py tests/test_community_release_packaging.py
+          tests/test_wheel_smoke.py examples/demo_manual_event_sequence.py
+
+  installed-package:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        python: ['3.11', '3.12']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: '0.12.20'
+          python-version: ${{ matrix.python }}
+      - run: uv sync --locked --extra dev
+      - name: Fresh wheel and sdist environments outside checkout
+        run: uv run --no-sync python scripts/smoke_test_wheel.py
