@@ -112,6 +112,9 @@ class TrajectoryLogger:
             "sample_consumed": float(info.get("sample_consumed", 0.0)),
             "terminated": bool(terminated),
             "truncated": bool(truncated),
+            "last_terminal_summary": to_builtin(info.get("last_terminal_summary")),
+            "batch_discarded": bool(info.get("batch_discarded", False)),
+            "right_censored_open_batch": bool(info.get("right_censored_open_batch", False)),
         }
         default_agent_visible_observation = {
             "observation": observation_payload,

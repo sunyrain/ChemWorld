@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- R20/R34/R35 已完成：4 campaign / 5 批次 / 18 动作的负结果、弃批、截断及开放记录保留并导出，4/4 replay；15/15 注册任务、181 动作、736 public payload 及 15/15 replay 通过。首轮 schema 调用错误保留，已通过的结果块未重跑。最终核心集成 327 passed / 0 failed。说明与 LYJ 生命周期/资源交接见 `development-release-r20-r34-r35-20261009.md`；Parquet 可选 backend 未装，文件导出尚未验证。Ours 本次适用 17 项全部完成，R19/R21/R33 和 8 项后置仍 DEFERRED；状态唯一入口仍为 TODO 第 9 节。下列“下一步”是各阶段的历史记录，不重新启动已完成任务。
+
 - R08/R31 与合并交接 R14 已完成：5 个现有 authoring 轴补声明/实验性范围，合同 6/6、benchmark_ready 0；7/7 轨迹、72/72 操作、7/7 replay，首次遗漏干预上下文的 5 次验证失败保留并仅重验既有轨迹。20 项相关测试通过；模型域、误差、API/模式表见 `development-release-r08-r31-20261009.md`。R19/R21/R33 本次条件未触发已明确记录；剩余 Ours 为 R34 与 R20/R35 的公开边界/结果导出交接。
 
 - R15/R30 已完成：runtime_semantics_id 标识当前执行，3/3 历史标识变体执行前拒绝；论文固定源码/依赖与 main 分离。13 次空釜拒绝罚分到 1，物理状态不变，公开信号仍 masked，不能误读为危险概率或安全证明。结果与 LYJ 交接见 `development-release-r15-r30-20261009.md`。下一步 R08/R31（适用域及已支持泛化轴），随后 R34/R20/R35。
@@ -48,7 +50,7 @@
 
 ## 下次继续时的具体入口
 
-探索与 R01/R02、R03/R11、R17/R18 开发验证均已结束，没有运行中的实验或临时服务。Ours 后续入口为 TODO 第 9 节；LYJ 继续自己的文件范围。用户指定每完成 1–2 项再 pull/push。未开始的建议不能记为已完成。
+探索与 Ours 本次全部适用开发改良均已结束，没有运行中的实验或临时服务。后续入口为 TODO 第 9 节；LYJ 继续自己的文件范围，收到具体核心缺陷再按最小复现修复。用户指定每完成 1–2 项再 pull/push。未触发条件和发布后扩展不能记为已完成，也不重新启动旧资格审计。
 若新增实验，先写一个短块说明；保留这两轮全部结果。若只是复查，优先读取 analysis.json 和当前报告，不重跑世界。
 三个多批研究的 `E-research-s*/experiment_documents/model_owned_notebook.md` 保存实验表；
 `prospective_predictions.json` 保存预测在先的选点记录，`research_results.json` 保存验证误差和恢复进程信息。
