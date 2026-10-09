@@ -12,6 +12,27 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
+    "create_container": {
+        "type": "inventory_creation",
+        "label_zh": "创建容器",
+        "summary": "Creates an identified empty container under the current resource contract.",
+        "summary_zh": "按当前资源合同创建有身份的空容器，不会产生物料。",
+        "visual": "transfer",
+    },
+    "transfer_material": {
+        "type": "material_routing",
+        "label_zh": "路由物料",
+        "summary": "Moves identified material between supported sources and destinations.",
+        "summary_zh": "在合同允许的来源与目标之间转移有身份的物料，记录来源与损失。",
+        "visual": "transfer",
+    },
+    "resuspend_crystals": {
+        "type": "state_change",
+        "label_zh": "复悬晶体",
+        "summary": "Returns isolated crystals to a liquid processing state.",
+        "summary_zh": "按公开合同将隔离晶体放回液体处理状态，物料历史保持可追踪。",
+        "visual": "crystallize",
+    },
     "add_reagent": {
         "type": "additive_charge",
         "label_zh": "累计投料",

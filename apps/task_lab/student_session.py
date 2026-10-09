@@ -5,6 +5,7 @@ from __future__ import annotations
 import threading
 import uuid
 from dataclasses import dataclass, field
+from http import HTTPStatus
 from typing import Any
 
 import gymnasium as gym
@@ -20,6 +21,7 @@ from apps.task_lab.interaction_semantics import (
 from apps.task_lab.spectral_payload import spectral_payload
 from chemworld.data.logging import observation_to_json, to_builtin
 from chemworld.interfaces.blender import attach_blender
+from chemworld.lab.http_security import RequestRejected
 from chemworld.materials import action_material_display
 from chemworld.tasks import get_task
 
@@ -37,13 +39,17 @@ class StudentSession:
         self._env.reset(seed=self.seed)
         self._history: list[dict[str, Any]] = []
         self._lock = threading.RLock()
+        self._closed = False
 
     def close(self) -> None:
         with self._lock:
+            self._closed = True
             self._env.close()
 
     def state(self) -> dict[str, Any]:
         with self._lock:
+            if self._closed:
+                raise ValueError("Session is closed")
             base: Any = self._env.unwrapped
             campaign = base.campaign_state()
             report = _student_lab_report(base.observation_view("lab_report"), self._history)
@@ -66,6 +72,8 @@ class StudentSession:
 
     def step(self, action: dict[str, Any]) -> dict[str, Any]:
         with self._lock:
+            if self._closed:
+                raise ValueError("Session is closed")
             base: Any = self._env.unwrapped
             trace = [
                 {"selected_action": dict(record.get("action") or {})} for record in self._history
@@ -153,10 +161,23 @@ class StudentSessionManager:
 
     def create(self, task_id: str, seed: int | None = None) -> StudentSession:
         task = get_task(task_id)
-        session = StudentSession(task_id=task_id, seed=task.seeds[0] if seed is None else seed)
         with self._lock:
+            if len(self._sessions) >= 16:
+                raise RequestRejected(
+                    "Close an existing session first", HTTPStatus.SERVICE_UNAVAILABLE
+                )
+            session = StudentSession(task_id=task_id, seed=task.seeds[0] if seed is None else seed)
             self._sessions[session.session_id] = session
         return session
+
+    def close(self, session_id: str) -> dict[str, Any]:
+        with self._lock:
+            session = self.get(session_id)
+            with session._lock:
+                state = session.state()
+                session.close()
+                del self._sessions[session_id]
+            return {"closed": True, "state_before_close": state}
 
     def get(self, session_id: str) -> StudentSession:
         with self._lock:

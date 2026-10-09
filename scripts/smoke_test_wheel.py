@@ -13,7 +13,8 @@ from pathlib import Path
 PROBE = """
 import json, sys
 from pathlib import Path
-from importlib.metadata import version
+from importlib.metadata import version, distribution
+from importlib.resources import files
 import chemworld, gymnasium as gym
 from chemworld.tasks import list_tasks
 from chemworld.task_design import serious_task_readiness_manifest
@@ -43,6 +44,21 @@ assert root.resolve().is_relative_to(Path(sys.prefix).resolve())
 assert not (root / 'current.json').exists()
 assert not (root / 'private_eval.placeholder.json').exists()
 assert not (root / 'providers').exists()
+for asset in ('index.html', 'lab.css', 'lab.js'):
+    assert files('chemworld.lab').joinpath('static', asset).is_file()
+assert any(e.name == 'chemworld-lab' for e in distribution('chemworld-bench').entry_points)
+from chemworld.lab.session import LabSessionManager
+manager = LabSessionManager()
+session = manager.create('reaction-to-assay', 0)
+for action in (
+    {'operation': 'add_solvent', 'volume_L': 0.025, 'solvent': 0},
+    {'operation': 'add_reagent', 'amount_mol': 0.012},
+    {'operation': 'terminate'},
+    {'operation': 'measure', 'instrument': 'final_assay'},
+):
+    assert session.step(action)['accepted']
+assert session.replay()['verified']
+assert manager.close(session.session_id)['final_assay_count'] == 1
 print(json.dumps({'package': chemworld.__file__, 'version': chemworld.__version__,
                   'tasks': tasks, 'contracts': readiness['contract_ready_count'],
                   'runtime_semantics_id': RUNTIME_SEMANTICS_ID}))

@@ -7,6 +7,7 @@ on:
       - 'src/**'
       - 'configs/**'
       - 'examples/**'
+      - 'apps/task_lab/**'
       - 'tests/**'
       - 'scripts/community_release*'
       - 'scripts/smoke_test_wheel.py'
@@ -39,12 +40,16 @@ jobs:
           tests/test_agent_interface.py
           tests/test_world_composition.py
           tests/test_measurement_clock.py
+          tests/test_packaged_lab.py
+          tests/test_task_lab.py
       - name: Release-tool lint
         run: >-
           uv run --no-sync ruff check
           scripts/community_release_build.py scripts/smoke_test_wheel.py
           tests/test_community_release_examples.py tests/test_community_release_packaging.py
           tests/test_wheel_smoke.py examples/demo_manual_event_sequence.py
+          src/chemworld/lab
+          apps/task_lab/server.py apps/task_lab/student_session.py
 
   installed-package:
     strategy:

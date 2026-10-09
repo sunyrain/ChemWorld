@@ -9,7 +9,7 @@ import threading
 import uuid
 from dataclasses import dataclass, field
 from http import HTTPStatus
-from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
@@ -25,8 +25,13 @@ from apps.task_lab.run_evaluation import DEFAULT_TASKS
 from apps.task_lab.runner import RunMode, run_task
 from apps.task_lab.spectral_payload import SpectrumDisclosure
 from apps.task_lab.student_session import StudentSessionManager
+from chemworld.lab.http_security import LocalServer, RequestRejected, check_local, read_local_json
 
 STATIC_ROOT = Path(__file__).with_name("static")
+
+
+class RunCancelledError(RuntimeError):
+    pass
 
 
 @dataclass
@@ -46,10 +51,15 @@ class RunJob:
     results: list[dict[str, Any]] = field(default_factory=list)
     status: str = "queued"
     error: str | None = None
+    cancel_requested: bool = False
     condition: threading.Condition = field(default_factory=threading.Condition)
 
     def emit(self, event: dict[str, Any]) -> None:
         with self.condition:
+            if self.cancel_requested and event.get("type") != "run_cancelled":
+                raise RunCancelledError("Run cancelled at the next execution checkpoint")
+            if len(self.events) >= 10000:
+                raise RuntimeError("Run event limit reached")
             self.events.append({"index": len(self.events), **event})
             self.condition.notify_all()
 
@@ -143,6 +153,11 @@ class RunJobManager:
             output_dir=self.output_root / job_id,
         )
         with self._lock:
+            active = sum(
+                job.status in {"queued", "running", "cancelling"} for job in self._jobs.values()
+            )
+            if active >= 2 or len(self._jobs) >= 32:
+                raise RequestRejected("Run capacity reached", HTTPStatus.SERVICE_UNAVAILABLE)
             self._jobs[job_id] = job
         thread = threading.Thread(
             target=self._run,
@@ -160,6 +175,15 @@ class RunJobManager:
             except KeyError as exc:
                 raise KeyError(f"unknown run job: {job_id}") from exc
 
+    def cancel(self, job_id: str) -> dict[str, Any]:
+        job = self.get(job_id)
+        with job.condition:
+            if job.status in {"queued", "running", "cancelling"}:
+                job.cancel_requested = True
+                job.status = "cancelling"
+                job.condition.notify_all()
+        return job.snapshot()
+
     @staticmethod
     def _run(
         job: RunJob,
@@ -167,23 +191,23 @@ class RunJobManager:
         seed: int | None,
         max_steps: int,
     ) -> None:
-        job.status = "running"
-        job.emit(
-            {
-                "type": "run_started",
-                "tasks": job.tasks,
-                "model": job.model,
-                "agent_backend": job.agent_backend,
-                "thinking": job.thinking if job.agent_backend == "deepseek" else False,
-                "reasoning_effort": (
-                    job.reasoning_effort if job.agent_backend == "deepseek" else None
-                ),
-                "budget_multiplier": job.budget_multiplier,
-                "campaign_override": job.campaign_override,
-                "spectrum_disclosure": job.spectrum_disclosure,
-            }
-        )
         try:
+            job.status = "running"
+            job.emit(
+                {
+                    "type": "run_started",
+                    "tasks": job.tasks,
+                    "model": job.model,
+                    "agent_backend": job.agent_backend,
+                    "thinking": job.thinking if job.agent_backend == "deepseek" else False,
+                    "reasoning_effort": (
+                        job.reasoning_effort if job.agent_backend == "deepseek" else None
+                    ),
+                    "budget_multiplier": job.budget_multiplier,
+                    "campaign_override": job.campaign_override,
+                    "spectrum_disclosure": job.spectrum_disclosure,
+                }
+            )
             for task_id in job.tasks:
                 if job.agent_backend == "deepseek":
                     if client is None:
@@ -216,15 +240,22 @@ class RunJobManager:
             job.status = "completed"
             job.emit({"type": "run_completed", "results": list(job.results)})
         except Exception as exc:
-            job.error = str(exc)
-            job.status = "error"
-            job.emit({"type": "run_failed", "error": job.error})
+            with job.condition:
+                job.error = str(exc)
+                job.status = "cancelled" if job.cancel_requested else "error"
+                job.events.append(
+                    {
+                        "index": len(job.events),
+                        "type": "run_cancelled" if job.cancel_requested else "run_failed",
+                        "error": job.error,
+                    }
+                )
         finally:
             with job.condition:
                 job.condition.notify_all()
 
 
-class TaskLabServer(ThreadingHTTPServer):
+class TaskLabServer(LocalServer):
     def __init__(
         self,
         address: tuple[str, int],
@@ -237,6 +268,8 @@ class TaskLabServer(ThreadingHTTPServer):
         self.student_sessions = StudentSessionManager()
 
     def server_close(self) -> None:
+        for job_id in list(self.jobs._jobs):
+            self.jobs.cancel(job_id)
         self.student_sessions.close_all()
         super().server_close()
 
@@ -245,6 +278,11 @@ class TaskLabHandler(BaseHTTPRequestHandler):
     server: TaskLabServer
 
     def do_GET(self) -> None:
+        try:
+            check_local(self)
+        except RequestRejected as exc:
+            self._error(exc.status, str(exc))
+            return
         path = urlparse(self.path).path
         if path == "/api/tasks":
             self._json(
@@ -292,9 +330,13 @@ class TaskLabHandler(BaseHTTPRequestHandler):
                 if (
                     not isinstance(tasks, list)
                     or not tasks
+                    or len(tasks) > 15
                     or any(task not in known for task in tasks)
                 ):
                     raise ValueError("tasks must be a non-empty list of registered task ids")
+                max_steps = int(body.get("max_steps", 18))
+                if not 1 <= max_steps <= 200:
+                    raise ValueError("max_steps must be between 1 and 200")
                 mode = str(body.get("mode") or "adaptive")
                 if mode not in {"plan", "adaptive"}:
                     raise ValueError("mode must be plan or adaptive")
@@ -318,12 +360,18 @@ class TaskLabHandler(BaseHTTPRequestHandler):
                     thinking=bool(body.get("thinking", True)),
                     reasoning_effort=reasoning_effort,  # type: ignore[arg-type]
                     seed=int(body["seed"]) if body.get("seed") is not None else None,
-                    max_steps=int(body.get("max_steps", 18)),
+                    max_steps=max_steps,
                     budget_multiplier=budget_multiplier,
                     campaign_override=bool(body.get("campaign_override", False)),
                     spectrum_disclosure=spectrum_disclosure,  # type: ignore[arg-type]
                 )
                 self._json(job.snapshot(), status=HTTPStatus.ACCEPTED)
+                return
+            if path.startswith("/api/runs/") and path.endswith("/cancel"):
+                self._json(self.server.jobs.cancel(path.split("/")[3]))
+                return
+            if path.startswith("/api/student-sessions/") and path.endswith("/close"):
+                self._json(self.server.student_sessions.close(path.split("/")[3]))
                 return
             if path == "/api/student-sessions":
                 task_id = str(body.get("task_id") or DEFAULT_TASKS[0])
@@ -339,21 +387,17 @@ class TaskLabHandler(BaseHTTPRequestHandler):
                 self._json(self.server.student_sessions.get(session_id).step(action))
                 return
             self._error(HTTPStatus.NOT_FOUND, "unknown endpoint")
+        except RequestRejected as exc:
+            self._error(exc.status, str(exc))
         except KeyError as exc:
             self._error(HTTPStatus.NOT_FOUND, str(exc))
         except (TypeError, ValueError) as exc:
             self._error(HTTPStatus.BAD_REQUEST, str(exc))
-        except Exception as exc:
-            self._error(HTTPStatus.INTERNAL_SERVER_ERROR, str(exc))
+        except Exception:
+            self._error(HTTPStatus.INTERNAL_SERVER_ERROR, "Lab operation failed")
 
     def _request_json(self) -> dict[str, Any]:
-        length = int(self.headers.get("Content-Length", "0"))
-        if length <= 0:
-            return {}
-        payload = json.loads(self.rfile.read(length).decode("utf-8"))
-        if not isinstance(payload, dict):
-            raise ValueError("request body must be a JSON object")
-        return payload
+        return read_local_json(self)
 
     def _events(self, job_id: str) -> None:
         try:
@@ -370,10 +414,14 @@ class TaskLabHandler(BaseHTTPRequestHandler):
         try:
             while True:
                 with job.condition:
-                    if index >= len(job.events) and job.status in {"queued", "running"}:
+                    if index >= len(job.events) and job.status in {
+                        "queued",
+                        "running",
+                        "cancelling",
+                    }:
                         job.condition.wait(timeout=10.0)
                     pending = job.events[index:]
-                    finished = job.status in {"completed", "error"}
+                    finished = job.status in {"completed", "error", "cancelled"}
                 for event in pending:
                     data = json.dumps(event, ensure_ascii=False)
                     self.wfile.write(f"data: {data}\n\n".encode())
@@ -465,7 +513,6 @@ def main() -> int:
     except KeyboardInterrupt:
         pass
     finally:
-        server.shutdown()
         server.server_close()
     return 0
 

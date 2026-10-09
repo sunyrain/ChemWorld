@@ -31,13 +31,49 @@ physics to reproduce an old trajectory.
 
 ## UI scope
 
-The existing provider-free packaged Lab from ChemWorld-Public is the UI to reuse
-against this runtime. It must pass local write-boundary, lifecycle, installed
-asset and browser-path tests before being called supported here. Until that
-integration is verified, the existing checkout Task Lab is not an installation
-guarantee. Its writable routes still require the same security checks; labelling
-them experimental does not waive those requirements. No remote hosted service
-or model-provider execution is authorized by this development work.
+The provider-free Student Lab is reused from ChemWorld-Public and included in
+the wheel. Start it with `chemworld-lab --no-browser`, then visit the printed
+loopback URL (default `http://127.0.0.1:8876`). The checkout research Task Lab
+remains a separate developer tool, not a wheel entry point. No remote hosted
+service or model-provider execution is authorized by this development work.
+
+Both writable servers check Host/Origin, same-site context, JSON content type,
+body size (64 KiB), connection lifetime and concurrent handlers (16), plus a
+server-wide 120-writes/minute limit. Student sessions are limited to 16; the
+packaged Lab also caps each history at 1,000 operations. The checkout runner
+permits two active jobs, 32 retained jobs, 200 steps/task and 10,000 events/job.
+These are local abuse/resource bounds, not authentication or a hostile-code
+sandbox. Do not expose either server through a reverse proxy or port forward.
+
+The Lab exports native JSONL, uses the normal exact verifier, and closes sessions
+without inserting an assay. Reset exports/closes the previous session. Keep the
+download or copy the export text **before leaving the page**; process exit removes
+temporary session storage. A download request is not proof the browser saved a
+file. The checkout runner's cancellation is cooperative at its next event
+checkpoint, not a promise to interrupt an in-flight provider/network request.
+No paid/provider cancellation behavior has been tested.
+
+The installed package is checked for static assets, session creation, committed
+final assay, native export/replay and close. Browser checks cover labelled
+controls, keyboard selection, final-assay count, replay feedback and close;
+screen-reader/mobile and remote multi-user support are not claimed.
+
+On macOS, the installed-wheel browser walkthrough reached one final assay and
+reported exact replay of four operations (maximum error 0). A second one-action
+session exported readable native JSONL and closed with zero final assays.
+Keyboard operation selection and labelled export text were checked. The embedded
+browser did not confirm a Blob download reaching disk; the copyable export is
+verified, but filesystem download behavior across browsers is not yet certified.
+
+### Included Lab assets
+
+Python/HTML/CSS/JavaScript Lab sources originate from
+[ChemWorld-Public at db98e800](https://github.com/sunyrain/ChemWorld-Public/tree/db98e8002fac0512ed9084a3c8c27985cb9fc405/src/chemworld/lab),
+under the same MIT License, copyright 2026 ChemWorld Contributors. This work
+adapts those sources to current interfaces and local safety/lifecycle handling;
+it does not ship another runtime. The apparatus is drawn in CSS, not a copied
+third-party image. No remotely loaded font, telemetry or provider is needed by
+the packaged UI. Preserve the repository LICENSE when redistributing.
 
 ## Frozen paper reproduction
 
@@ -55,6 +91,9 @@ check annotations report an account billing lock. This is an infrastructure
 block, not evidence that source tests failed or passed. A successful Pages
 deployment is likewise not package validation. This work does not change account
 billing or publish to that separate repository.
+
+The newly added development workflows at `29b46d4d` were blocked for the same
+reason (for example check 113696715300); no cloud test step ran there either.
 
 Local installation/matrix results and current-repository CI are reported
 separately; never count a queued or billing-blocked job as passed.
