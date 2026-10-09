@@ -27,6 +27,8 @@ def total_solvents(state: WorldState) -> SolventInventory:
         else:
             for phase in sample.contents.phases.phases.values():
                 total = total + phase.solvents
+    for local in state.inactive_vessels.values():
+        total = total + total_solvents(local)
     return total
 
 

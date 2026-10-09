@@ -286,6 +286,10 @@ def affected_ledgers(operation_type: str) -> tuple[str, ...]:
         affected.extend(("samples", "vessels", "equipment"))
     if operation_type in {"create_container", "transfer_material"}:
         affected.extend(("samples", "species", "phases", "vessels", "equipment"))
+    if operation_type in {"select_vessel", "route_material"}:
+        affected.extend((
+            "inactive_vessels", "samples", "species", "phases", "vessels", "equipment", "thermal"
+        ))
     return tuple(dict.fromkeys(affected))
 
 

@@ -92,6 +92,8 @@ def make_action_space() -> spaces.Dict:
             "capacity_L": spaces.Box(0.0001, 0.1, shape=(1,), dtype=np.float32),
             "mixing": spaces.Discrete(2),
             "component": spaces.Discrete(16),
+            "vessel": spaces.Discrete(16),
+            "connection": spaces.Discrete(64),
             "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
             "volume_L": spaces.Box(0.0, 0.080, shape=(1,), dtype=np.float32),
             "catalyst_amount_mol": spaces.Box(0.0, 0.005, shape=(1,), dtype=np.float32),

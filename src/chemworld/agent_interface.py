@@ -31,6 +31,7 @@ from chemworld.physchem.crystallization_units import (
 from chemworld.physchem.electrochemical_task_contract import (
     ELECTROCHEMICAL_WORKFLOW_AUTONOMOUS_OPEN_V1,
 )
+from chemworld.runtime.component_network import public_network
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
@@ -90,6 +91,8 @@ def _campaign_snapshot(base: Any, ledger: Any) -> dict[str, Any]:
 
 
 FIELD_UNITS: dict[str, str] = {
+    "vessel": "categorical",
+    "connection": "categorical",
     "capacity_L": "L",
     "container": "categorical",
     "source_container": "categorical",
@@ -139,6 +142,8 @@ FIELD_RANGES: dict[str, tuple[float, float]] = {
 }
 
 FIELD_CHOICES: dict[str, list[Any]] = {
+    "vessel": list(range(16)),
+    "connection": list(range(64)),
     "component": list(range(16)),
     "container": list(range(1, 17)),
     "source_container": list(range(len(CONTAINER_IDS))),
@@ -437,7 +442,10 @@ def _field_schema(
         payload["recommended_range"] = {"low": low, "high": high}
         payload["lower_bound_inclusive"] = not (
             field in {"amount_mol", "catalyst_amount_mol", "sample_volume_L"}
-            or (operation == "transfer_material" and field == "transfer_fraction")
+            or (
+                operation in {"transfer_material", "route_material"}
+                and field == "transfer_fraction"
+            )
             or (field == "volume_L" and operation in {"add_solvent", "add_phase", "add_extractant"})
         )
         payload["upper_bound_inclusive"] = True
@@ -554,12 +562,23 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             if public_choices != choices:
                 field["choices"] = public_choices
                 field["state_dependent_choices"] = True
+            if field_name in {"vessel", "connection"}:
+                network = public_network(state)
+                entries = (
+                    [] if network is None
+                    else network["vessels" if field_name == "vessel" else "connections"]
+                )
+                field["choice_labels"] = {str(item["index"]): item["id"] for item in entries}
         locked = _locked_recipe_choice(base, operation, field_name)
         if locked is not None:
             field["choices"] = [locked]
             field["locked_for_current_experiment"] = True
     _apply_campaign_resource_schema(base, operation, fields)
     constraints: list[dict[str, Any]] = []
+    if operation in {"select_vessel", "route_material"} and state is not None:
+        constraints.append({
+            "id": "component_network", "kind": "material_ports", "network": public_network(state)
+        })
     if operation == "transfer_material" and state is not None:
         from chemworld.runtime.material_routing import material_routes
 
@@ -1926,6 +1945,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         "material_routing": (
             material_state.samples.routing_summary() if material_state is not None else {}
         ),
+        "component_network": public_network(material_state) if material_state is not None else None,
         "available_actions": actions,
         "resource_blocked_actions": resource_blocked_actions(env),
         "lab_report": lab_report_view(env, observation, info, _actions=actions),

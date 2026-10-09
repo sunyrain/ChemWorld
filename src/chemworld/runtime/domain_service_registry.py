@@ -48,6 +48,8 @@ class DomainServiceRegistry:
                         "quench",
                         "create_container",
                         "transfer_material",
+                        "select_vessel",
+                        "route_material",
                         "evaporate",
                         "terminate",
                     ),

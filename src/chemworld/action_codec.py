@@ -50,6 +50,8 @@ GYM_ACTION_KEYS = (
     "capacity_L",
     "mixing",
     "component",
+    "vessel",
+    "connection",
 )
 
 
@@ -64,6 +66,8 @@ class ActionCodec:
     phases: tuple[str, ...] = PHASES
     extractants: tuple[str, ...] = EXTRACTANTS
     electrolyte_profiles: tuple[str, ...] = ELECTROLYTE_PROFILES
+    vessels: tuple[str, ...] = tuple(f"vessel-{i}" for i in range(16))
+    connections: tuple[str, ...] = tuple(f"connection-{i}" for i in range(64))
 
     def canonicalize(self, action: dict[str, Any]) -> dict[str, Any]:
         """Normalize event-action JSON into canonical names and flat payload."""
@@ -80,10 +84,13 @@ class ActionCodec:
         canonical = self._apply_aliases(canonical)
         if "component" in canonical:
             canonical["component"] = self._index(canonical["component"], FEED_IDS)
+        for field, choices in (("vessel", self.vessels), ("connection", self.connections)):
+            if field in canonical:
+                canonical[field] = self._index(canonical[field], choices)
         for field in ("container", "source_container", "destination_container"):
             if field in canonical:
                 canonical[field] = self._index(canonical[field], CONTAINER_IDS)
-        if canonical["operation"] in {"create_container", "transfer_material"}:
+        if canonical["operation"] in {"create_container", "transfer_material", "route_material"}:
             for field in ("capacity_L", "transfer_fraction"):
                 if field in canonical:
                     canonical[field] = self._float(canonical, field, 0)
@@ -214,6 +221,8 @@ class ActionCodec:
             self._float(action, "capacity_L", 0.1),
             self._float(action, "mixing", 0.0),
             self._float(action, "component", 0.0),
+            self._float(action, "vessel", 0.0),
+            self._float(action, "connection", 0.0),
         ]
         vector = np.asarray(values, dtype=np.float32)
         if not np.all(np.isfinite(vector)):
@@ -272,6 +281,8 @@ class ActionCodec:
         decoded["capacity_L"] = float(array[26])
         decoded["mixing"] = int(np.clip(round(array[27]), 0, 1))
         decoded["component"] = int(np.clip(round(array[28]), 0, len(FEED_IDS) - 1))
+        decoded["vessel"] = int(np.clip(round(array[29]), 0, max(len(self.vessels) - 1, 0)))
+        decoded["connection"] = int(np.clip(round(array[30]), 0, max(len(self.connections) - 1, 0)))
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

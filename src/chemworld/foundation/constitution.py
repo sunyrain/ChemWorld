@@ -159,6 +159,11 @@ class PhysicalConstitution:
             *check_ledger_single_source(self, state),
             check_risk_range(self, state),
         ]
+        for name, local in sorted(state.inactive_vessels.items()):
+            for check in sorted(self.check_state(local).checks, key=lambda item: item.name):
+                from dataclasses import replace
+
+                checks.append(replace(check, name=f"vessel:{name}:{check.name}"))
         return ConstitutionReport(checks)
 
     def check_observation(
@@ -278,6 +283,8 @@ class PhysicalConstitution:
             | set(after.species_amounts)
             | set(before.samples.total_amounts_mol())
             | set(after.samples.total_amounts_mol())
+            | {s for local in before.inactive_vessels.values() for s in local.species_amounts}
+            | {s for local in after.inactive_vessels.values() for s in local.species_amounts}
         ) - set(self.substances)
         if unknown_species:
             return CheckResult(
@@ -292,6 +299,9 @@ class PhysicalConstitution:
         for amounts, state in ((before_amounts, before), (after_amounts, after)):
             for species, amount in state.samples.total_amounts_mol().items():
                 amounts[species] = amounts.get(species, 0.0) + amount
+            for local in state.inactive_vessels.values():
+                for species, amount in local.species_amounts.items():
+                    amounts[species] = amounts.get(species, 0.0) + amount
         before_elements = self.element_totals(before_amounts)
         after_elements = self.element_totals(after_amounts)
         errors: list[float] = []
