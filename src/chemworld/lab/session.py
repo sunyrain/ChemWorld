@@ -54,6 +54,12 @@ _TASK_COPY: dict[str, tuple[str, str, str]] = {
 }
 
 _EFFECTS: dict[str, tuple[str, str, str]] = {
+    "configure_control": ("配置过程控制", "配置持久过程控制；不会自动推进时间。", "heat"),
+    "queue_control_stage": ("追加控制阶段", "向有限队列追加声明的设定值阶段。", "heat"),
+    "set_control_feedback": ("设定传感反馈", "设定温度或压力阈值及合同允许的响应。", "measure"),
+    "advance_control": ("推进控制程序", "按实际时间、能量及气体收支记账。", "heat"),
+    "pause_control": ("暂停程序", "暂停持久控制；不是完成终检。", "terminate"),
+    "resume_control": ("恢复程序", "从持久游标恢复，不重做已完成阶段。", "heat"),
     "select_vessel": ("切换容器", "切换到声明容器，消耗操作预算但不推进物理时间。", "transfer"),
     "route_material": ("沿端口转移", "沿声明连接转移物料，遵守显式混合政策。", "transfer"),
     "add_component": ("独立组分投料", "加入公开投料目录的单个组分，按实际摩尔数记账。", "feed"),

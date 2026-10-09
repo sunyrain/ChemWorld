@@ -12,6 +12,48 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
+    "configure_control": {
+        "type": "control",
+        "label_zh": "配置过程控制",
+        "summary": "Configures persistent process control.",
+        "summary_zh": "配置持久的过程控制；不会自动推进物理时间。",
+        "visual": "heat",
+    },
+    "queue_control_stage": {
+        "type": "control",
+        "label_zh": "追加控制阶段",
+        "summary": "Queues a finite control stage.",
+        "summary_zh": "向有限阶段队列追加声明的设定值过程。",
+        "visual": "heat",
+    },
+    "set_control_feedback": {
+        "type": "control",
+        "label_zh": "设定传感反馈",
+        "summary": "Sets declared sensor-threshold feedback.",
+        "summary_zh": "设定温度或压力传感阈值及合同允许的响应。",
+        "visual": "measure",
+    },
+    "advance_control": {
+        "type": "control",
+        "label_zh": "推进控制程序",
+        "summary": "Advances control and settles actual time and gas resources.",
+        "summary_zh": "推进控制程序，按实际时间、能量及气体收支记账。",
+        "visual": "heat",
+    },
+    "pause_control": {
+        "type": "control",
+        "label_zh": "暂停程序",
+        "summary": "Pauses the persistent controller, not a final assay.",
+        "summary_zh": "暂停持久控制程序；不是完成终检。",
+        "visual": "terminate",
+    },
+    "resume_control": {
+        "type": "control",
+        "label_zh": "恢复程序",
+        "summary": "Resumes from the persistent cursor.",
+        "summary_zh": "从持久游标恢复程序，不重做已完成阶段。",
+        "visual": "heat",
+    },
     "select_vessel": {
         "type": "vessel_selection",
         "label_zh": "切换容器",
