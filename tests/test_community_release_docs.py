@@ -16,6 +16,28 @@ import chemworld  # noqa: F401 -- registers the environment
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def test_onboarding_action_literals_have_required_fields():
+    env = gym.make("ChemWorld", task_id="reaction-to-assay", seed=0)
+    try:
+        env.reset(seed=0)
+        for name in ("action_schema.md", "operations.md", "operations.en.md"):
+            text = (ROOT / "docs" / name).read_text(encoding="utf-8")
+            for block in re.findall(r"```python\n(.*?)```", text, re.S):
+                for node in ast.walk(ast.parse(block)):
+                    if not isinstance(node, ast.Dict):
+                        continue
+                    try:
+                        action = ast.literal_eval(node)
+                    except (ValueError, TypeError):
+                        continue
+                    if "operation" in action:
+                        schema = env.unwrapped.action_schema(action["operation"])
+                        assert schema["valid_operation_type"], (name, action)
+                        assert set(schema["required_fields"]) <= set(action), (name, action)
+    finally:
+        env.close()
+
+
 def test_documented_recipe_is_a_real_completed_experiment():
     text = (ROOT / "docs/action_schema.md").read_text(encoding="utf-8")
     blocks = re.findall(r"```python\n(.*?)```", text, re.S)

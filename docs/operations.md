@@ -8,7 +8,7 @@ Operation 是 Agent 在 ChemWorld 中真正能做的事：投料、改变条件�
 每个操作都有一个 `operation` 名称，并按需携带参数：
 
 ```python
-{"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0}
+{"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0, "stirring_speed_rpm": 800.0}
 ```
 
 常见参数包括：
@@ -56,7 +56,7 @@ IR/NMR-like 等特征可能出现在合成谱包内，不等于可以提交 `ins
 available = env.unwrapped.available_actions()
 schema = env.unwrapped.action_schema("heat")
 check = env.unwrapped.validate_action(
-    {"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0}
+    {"operation": "heat", "target_temperature_K": 350.0, "duration_s": 1200.0, "stirring_speed_rpm": 800.0}
 )
 ```
 
