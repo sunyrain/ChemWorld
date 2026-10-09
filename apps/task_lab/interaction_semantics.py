@@ -12,6 +12,13 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
+    "add_component": {
+        "type": "additive_charge",
+        "label_zh": "独立组分投料",
+        "summary": "Adds one feed-catalog component with its actual molar resource cost.",
+        "summary_zh": "加入公开 feed catalog 中的单个组分，按实际加入摩尔数记账。",
+        "visual": "feed",
+    },
     "create_container": {
         "type": "inventory_creation",
         "label_zh": "创建容器",
@@ -92,11 +99,8 @@ _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
     "add_extractant": {
         "type": "additive_charge",
         "label_zh": "加入萃取相",
-        "summary": (
-            "Adds volume to the organic phase; the current runtime has no "
-            "identity-specific extractant effect."
-        ),
-        "summary_zh": "向有机相加液；当前运行时尚无萃取剂名称对应的独立物性效应。",
+        "summary": "Adds finite-catalog carrier to the organic phase under the mixture model.",
+        "summary_zh": "按当前混合介质模型向有机相加入有限目录载体；不代表真实溶剂标定。",
         "visual": "phase",
     },
     "mix": {

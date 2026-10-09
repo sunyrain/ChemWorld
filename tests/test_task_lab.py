@@ -405,15 +405,18 @@ def test_student_session_rejects_invalid_action_without_spending_budget() -> Non
             for item in accepted["state"]["available_actions"]
             if item["operation"] == "add_solvent"
         )
-        assert solvent_affordance["recipe_lock"] == {"field": "solvent", "value": 2}
+        assert solvent_affordance["recipe_lock"] is None
         solvent_field = next(
             field for field in solvent_affordance["fields"] if field["field"] == "solvent"
         )
-        assert solvent_field["choices"] == [2]
+        assert solvent_field["choices"] == [0, 1, 2, 3]
         switched = session.step({"operation": "add_solvent", "volume_L": 0.005, "solvent": 1})
-        assert switched["accepted"] is False
-        assert "payload_locked:solvent" in switched["validation"]["invalid_reasons"]
-        assert switched["state"]["campaign_state"]["operation_count"] == 1
+        assert switched["accepted"] is True
+        assert switched["state"]["campaign_state"]["operation_count"] == 2
+        assert switched["state"]["public_vessel"]["net_volume_delta_L"] == pytest.approx(0.033)
+        unavailable = session.step({"operation": "add_solvent", "volume_L": 0.005, "solvent": 99})
+        assert unavailable["accepted"] is False
+        assert unavailable["state"]["campaign_state"]["operation_count"] == 2
     finally:
         manager.close_all()
 

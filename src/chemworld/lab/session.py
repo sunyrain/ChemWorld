@@ -54,6 +54,7 @@ _TASK_COPY: dict[str, tuple[str, str, str]] = {
 }
 
 _EFFECTS: dict[str, tuple[str, str, str]] = {
+    "add_component": ("独立组分投料", "加入公开投料目录的单个组分，按实际摩尔数记账。", "feed"),
     "create_container": ("创建容器", "创建有身份的空容器，不产生物料。", "transfer"),
     "transfer_material": ("路由物料", "按公开合同转移有身份的物料，保留来源与损失。", "transfer"),
     "resuspend_crystals": ("复悬晶体", "将隔离晶体放回液体处理状态。", "crystallize"),
