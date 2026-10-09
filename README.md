@@ -62,7 +62,7 @@ see [CONTRIBUTING.md](CONTRIBUTING.md). Installed-wheel users use their isolated
 environment's `chemworld`/`chemworld-lab` directly. Examples live in the checkout or sdist.
 
 The default development extra collects the complete suite and skips optional RL modules when their
-backend is absent. RL development and training use `python -m pip install -e ".[dev,rl]"`, which also
+backend is absent. RL development and training use `uv sync --locked --extra dev --extra rl`, which also
 installs the supported Stable-Baselines3/Torch stack.
 
 Run and independently verify a complete trajectory:
@@ -113,7 +113,7 @@ observation field.
 ## Optional visual interface
 
 ```bash
-python -m apps.task_lab.server --port 8876
+uv run --no-sync python -m apps.task_lab.server --port 8876
 ```
 
 - Agent Observatory: <http://127.0.0.1:8876/agent/>

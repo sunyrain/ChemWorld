@@ -9,12 +9,13 @@ from copy import deepcopy
 from dataclasses import dataclass, field
 from http import HTTPStatus
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import gymnasium as gym
 
 import chemworld  # noqa: F401
 from chemworld.data.logging import TrajectoryLogger, load_jsonl, observation_to_json, to_builtin
+from chemworld.envs.chemworld_env import ChemWorldEnv
 from chemworld.eval.verify import verify_records
 from chemworld.lab.http_security import RequestRejected
 from chemworld.materials import action_material_display
@@ -186,7 +187,7 @@ class LabSession:
         task = get_task(self.task_id)
         self._env = gym.make("ChemWorld", **task.env_kwargs(seed=self.seed))
         self._env.reset(seed=self.seed)
-        base = self._env.unwrapped
+        base = cast(ChemWorldEnv, self._env.unwrapped)
         self._task_info = {**base.task_info(), **base.evaluator_provenance()}
         self._history: list[dict[str, Any]] = []
         self._lock = threading.RLock()
@@ -194,7 +195,7 @@ class LabSession:
         self._storage = tempfile.TemporaryDirectory(prefix="chemworld-lab-")
         self._trajectory = Path(self._storage.name) / "trajectory.jsonl"
         self._logger = TrajectoryLogger(self._trajectory)
-        self._replay = None
+        self._replay: dict[str, Any] | None = None
 
     def close(self) -> None:
         with self._lock:

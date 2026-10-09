@@ -7,14 +7,16 @@ import json
 import threading
 from collections import deque
 from http import HTTPStatus
-from http.server import ThreadingHTTPServer
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from socket import socket
 from time import monotonic
+from typing import Any, NoReturn, cast
 
 MAX_REQUEST_BYTES = 64 * 1024
 
 
 class RequestRejected(ValueError):  # noqa: N818 -- names a rejected HTTP request
-    def __init__(self, message, status=HTTPStatus.BAD_REQUEST):
+    def __init__(self, message: str, status: HTTPStatus = HTTPStatus.BAD_REQUEST) -> None:
         super().__init__(message)
         self.status = status
 
@@ -24,24 +26,26 @@ class LocalServer(ThreadingHTTPServer):
 
     daemon_threads = True
 
-    def __init__(self, address, handler):
+    def __init__(self, address: tuple[str, int], handler: type[BaseHTTPRequestHandler]) -> None:
         host = address[0]
         if host != "localhost" and not ipaddress.ip_address(host).is_loopback:
             raise ValueError("Lab only binds to loopback addresses")
         self._slots = threading.BoundedSemaphore(16)
-        self._writes = deque()
+        self._writes: deque[float] = deque()
         self._writes_lock = threading.Lock()
         super().__init__(address, handler)
 
-    def get_request(self):
+    def get_request(self) -> tuple[socket, tuple[str, int]]:
         request, address = super().get_request()
         request.settimeout(10)
         return request, address
 
-    def process_request(self, request, client_address):
+    def process_request(
+        self, request: socket | tuple[bytes, socket], client_address: tuple[str, int]
+    ) -> None:
         if not self._slots.acquire(blocking=False):
             try:
-                request.sendall(b"HTTP/1.0 503 Busy\r\nContent-Length: 0\r\n\r\n")
+                cast(socket, request).sendall(b"HTTP/1.0 503 Busy\r\nContent-Length: 0\r\n\r\n")
             finally:
                 self.shutdown_request(request)
             return
@@ -51,13 +55,15 @@ class LocalServer(ThreadingHTTPServer):
             self._slots.release()
             raise
 
-    def process_request_thread(self, request, client_address):
+    def process_request_thread(
+        self, request: socket | tuple[bytes, socket], client_address: tuple[str, int]
+    ) -> None:
         try:
             super().process_request_thread(request, client_address)
         finally:
             self._slots.release()
 
-    def allow_write(self):
+    def allow_write(self) -> bool:
         now = monotonic()
         with self._writes_lock:
             while self._writes and self._writes[0] <= now - 60:
@@ -68,10 +74,11 @@ class LocalServer(ThreadingHTTPServer):
             return True
 
 
-def check_local(handler):
+def check_local(handler: BaseHTTPRequestHandler) -> None:
     hosts = handler.headers.get_all("Host", [])
     origins = handler.headers.get_all("Origin", [])
-    allowed = {f"127.0.0.1:{handler.server.server_port}", f"localhost:{handler.server.server_port}"}
+    port = cast(LocalServer, handler.server).server_port
+    allowed = {f"127.0.0.1:{port}", f"localhost:{port}"}
     if len(hosts) != 1 or hosts[0] not in allowed:
         raise RequestRejected("Local Host required", HTTPStatus.FORBIDDEN)
     if len(origins) > 1 or (origins and origins[0] not in {f"http://{host}" for host in allowed}):
@@ -80,7 +87,7 @@ def check_local(handler):
         raise RequestRejected("Cross-site request denied", HTTPStatus.FORBIDDEN)
 
 
-def read_local_json(handler):
+def read_local_json(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     check_local(handler)
     if handler.headers.get_content_type() != "application/json":
         raise RequestRejected("application/json required", HTTPStatus.UNSUPPORTED_MEDIA_TYPE)
@@ -95,13 +102,13 @@ def read_local_json(handler):
         raise RequestRejected("Invalid Content-Length") from exc
     if length < 0 or length > MAX_REQUEST_BYTES:
         raise RequestRejected("Request too large", HTTPStatus.REQUEST_ENTITY_TOO_LARGE)
-    if not handler.server.allow_write():
+    if not cast(LocalServer, handler.server).allow_write():
         raise RequestRejected("Write rate exceeded", HTTPStatus.TOO_MANY_REQUESTS)
     raw = handler.rfile.read(length)
     if len(raw) != length:
         raise RequestRejected("Incomplete request body")
 
-    def reject_constant(value):
+    def reject_constant(value: str) -> NoReturn:
         raise ValueError(f"Non-finite JSON number: {value}")
 
     body = json.loads(raw.decode("utf-8"), parse_constant=reject_constant)
