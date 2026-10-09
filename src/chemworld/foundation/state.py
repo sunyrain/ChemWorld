@@ -75,8 +75,17 @@ class WorldState:
     process: ProcessLedger | None = None
     samples: SampleLedger = field(default_factory=SampleLedger)
     solvent_accounting: SolventAccounting = field(default_factory=SolventAccounting)
+    inactive_vessels: dict[str, WorldState] = field(default_factory=dict)
+    vessel_elapsed_s: dict[str, float] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
+        if self.vessel_id in self.inactive_vessels or any(
+            key != value.vessel_id or value.inactive_vessels
+            for key, value in self.inactive_vessels.items()
+        ):
+            raise ValueError("Inactive vessels must be distinct, flat local snapshots")
+        object.__setattr__(self, "inactive_vessels", dict(self.inactive_vessels))
+        object.__setattr__(self, "vessel_elapsed_s", dict(self.vessel_elapsed_s))
         object.__setattr__(self, "species_amounts", deepcopy(self.species_amounts))
         object.__setattr__(self, "units", deepcopy(self.units))
         object.__setattr__(self, "metadata", deepcopy(self.metadata))
@@ -160,7 +169,10 @@ class WorldState:
                     )
                 }
             )
-            if self.thermal is None or set(self.thermal.vessels) == {self.vessel_id}
+            if self.thermal is None or (
+                set(self.thermal.vessels) == {self.vessel_id}
+                and "component_network" not in self.metadata
+            )
             else self.thermal
         )
         process = ProcessLedger(
@@ -187,6 +199,11 @@ class WorldState:
             "pressure_Pa": self.pressure_Pa,
             "phase": self.phase,
             "vessel_id": self.vessel_id,
+            "inactive_vessels": {
+                key: value.to_dict(include_hidden=include_hidden)
+                for key, value in sorted(self.inactive_vessels.items())
+            },
+            "vessel_elapsed_s": dict(sorted(self.vessel_elapsed_s.items())),
             "terminated": self.terminated,
             "quenched": self.quenched,
             "ledger": self.ledger.to_dict(),

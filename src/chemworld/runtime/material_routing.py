@@ -86,6 +86,7 @@ def _active(state: WorldState) -> StoredSample:
     crystal = equipment_settings(state.equipment, "crystallizer")
     lineage = state.samples.active_lineage or (
         f"batch-{state.samples.batch_generation:04d}"
+        f"-{state.vessel_id}"
         f"-material-{len(state.samples.transfers) + 1:04d}",
     )
     capacity = state.vessels.vessels[state.vessel_id].max_volume_L if state.vessels else 0.1
@@ -246,10 +247,22 @@ def _merge(destination: StoredSample, incoming: StoredSample) -> StoredSample:
             assert record is not None
             equipment[key] = record
             continue
-        for setting in ("catalyst", "crystals_filtered"):
+        both_catalyzed = all(
+            float(record.settings.get("catalyst_amount_mol", 0)) > 0
+            for record in (left_record, right_record)
+        )
+        checked_settings = (
+            ("catalyst", "crystals_filtered") if both_catalyzed else ("crystals_filtered",)
+        )
+        for setting in checked_settings:
             if left_record.settings.get(setting) != right_record.settings.get(setting):
                 raise ValueError(f"Mixing requires matching {setting}")
         settings = dict(left_record.settings)
+        if (
+            float(right_record.settings.get("catalyst_amount_mol", 0)) > 0
+            and "catalyst" in right_record.settings
+        ):
+            settings["catalyst"] = right_record.settings["catalyst"]
         for k, value in right_record.settings.items():
             if _extensive(k) and isinstance(value, (float, int)):
                 settings[k] = float(settings.get(k, 0)) + value

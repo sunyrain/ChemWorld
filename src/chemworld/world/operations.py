@@ -71,6 +71,8 @@ PROCESS_OPERATIONS = (
     *ELECTROCHEMISTRY_OPERATIONS,
 )
 OPERATION_TYPES = (
+    "select_vessel",
+    "route_material",
     *REACTION_OPERATIONS[:-2],
     *SEPARATION_OPERATIONS,
     *PROCESS_OPERATIONS,
@@ -86,6 +88,7 @@ EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 # Services may retain defensive clipping, but validated actions must never be
 # silently reinterpreted by those guards.
 OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("route_material", "transfer_fraction"): (0.0, 1.0),
     ("transfer_material", "transfer_fraction"): (0.0, 1.0),
     ("heat", "duration_s"): (1.0, 14_400.0),
     ("wait", "duration_s"): (1.0, 14_400.0),
@@ -192,6 +195,13 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        Operation(
+            "select_vessel", "Select a declared component vessel", ("vessel",), ("not_terminated",)
+        ),
+        Operation(
+            "route_material", "Route a declared material output",
+            ("connection", "transfer_fraction", "mixing"), ("not_terminated",)
+        ),
         Operation(
             "create_container",
             "Open a single-use storage container",
@@ -355,7 +365,7 @@ def operation_contracts(
             module = "electrochemistry"
         elif operation.id == "measure":
             module = "observation"
-        elif operation.id in reaction:
+        elif operation.id in reaction or operation.id in {"select_vessel", "route_material"}:
             module = "reaction"
         else:
             module = "general"

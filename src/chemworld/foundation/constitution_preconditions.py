@@ -152,6 +152,8 @@ def check_operation_preconditions(
         "electrolyze",
     }
     needs_not_terminated = operation_type in {
+        "select_vessel",
+        "route_material",
         "create_container",
         "transfer_material",
         "resuspend_crystals",

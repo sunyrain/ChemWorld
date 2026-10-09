@@ -8,6 +8,7 @@ directly.
 from __future__ import annotations
 
 from collections.abc import Callable
+from dataclasses import replace
 from typing import Any
 
 from chemworld.foundation import (
@@ -15,6 +16,7 @@ from chemworld.foundation import (
     PhysicalConstitution,
     WorldState,
 )
+from chemworld.runtime.component_network import route_material, select_vessel
 from chemworld.runtime.constitution_factory import make_chemworld_constitution
 from chemworld.runtime.crystallization_services import ChemWorldCrystallizationServices
 from chemworld.runtime.distillation_services import ChemWorldDistillationServices
@@ -98,6 +100,32 @@ class ChemWorldDomainServices:
 
         next_state = finish_solvent_transition(state, next_state, action)
         next_state = self.reaction_thermal.with_risk_and_pressure(next_state)
+        if state.vessel_elapsed_s:
+            elapsed = dict(state.vessel_elapsed_s)
+            elapsed[state.vessel_id] += next_state.ledger.time_s - state.ledger.time_s
+            assert next_state.thermal is not None
+            thermal = next_state.thermal.vessels[next_state.vessel_id]
+            if operation != "select_vessel":
+                thermal = replace(thermal, **{
+                    key: (
+                        getattr(thermal, key) + getattr(next_state.ledger, key)
+                        - getattr(state.ledger, key)
+                    )
+                    for key in ("energy_jacket_J", "heat_reaction_J", "heat_loss_J")
+                })
+            next_state = next_state.replace(
+                vessel_elapsed_s=elapsed,
+                thermal=replace(next_state.thermal, vessels={next_state.vessel_id: thermal}),
+            )
+        if operation == "route_material":
+            edge = state.metadata["component_network"]["connections"][action["connection"]]
+            target = edge["target_vessel"]
+            next_state = next_state.replace(inactive_vessels={
+                **next_state.inactive_vessels,
+                target: self.reaction_thermal.with_risk_and_pressure(
+                    next_state.inactive_vessels[target]
+                ),
+            })
         return next_state, self.operation_recorder.record(
             operation,
             before,
@@ -110,6 +138,8 @@ class ChemWorldDomainServices:
         self,
     ) -> dict[str, Callable[[WorldState, dict[str, Any]], WorldState]]:
         return {
+            "select_vessel": select_vessel,
+            "route_material": route_material,
             "create_container": self.material_routing.create_container,
             "transfer_material": self.material_routing.transfer_material,
             "add_reagent": self.primitive.add_reagent,

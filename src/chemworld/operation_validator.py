@@ -257,6 +257,10 @@ class OperationValidator:
         ):
             dynamic_low = 0.0
         authored = self.authored_field_bounds.get((operation_type, field))
+        network = state.metadata.get("component_network", {})
+        authored = network.get("bounds", {}).get(state.vessel_id, {}).get(
+            f"{operation_type}:{field}", authored
+        )
         if authored is not None:
             dynamic_low = max(dynamic_low, authored[0])
             dynamic_high = min(dynamic_high, authored[1])
@@ -334,6 +338,16 @@ class OperationValidator:
     ) -> tuple[Any, ...]:
         """Narrow categorical choices to physically persistent task state."""
 
+        if field in {"vessel", "connection"}:
+            network = state.metadata.get("component_network", {})
+            if field == "connection":
+                from chemworld.runtime.component_network import available_connections
+
+                available = available_connections(state)
+                return tuple(i for i in choices if i in available)
+            names = network.get("vessels" if field == "vessel" else "connections", [])
+            return tuple(i for i in choices if 0 <= i < len(names))
+
         if operation_type == "add_component" and field == "component":
             return tuple(i for i in choices if 0 <= i < self.feed_count)
 
@@ -355,6 +369,9 @@ class OperationValidator:
             return tuple(i for i in choices if CONTAINER_IDS[i] not in state.samples.samples)
 
         if operation_type == "measure" and field == "instrument":
+            network = state.metadata.get("component_network")
+            if network is not None:
+                choices = tuple(i for i in choices if i in network["instruments"][state.vessel_id])
             choices = tuple(
                 choice for choice in choices if (choice == "final_assay") == state.terminated
             )
@@ -468,6 +485,18 @@ class OperationValidator:
     ) -> dict[str, bool]:
         preconditions = self.constitution.check_preconditions(operation_type, state, payload)
         preconditions["operation_allowed_by_task"] = operation_type in self.allowed_operations
+        from chemworld.runtime.component_network import operation_available
+
+        preconditions["operation_available_in_vessel"] = operation_available(state, operation_type)
+        network = state.metadata.get("component_network")
+        if network is not None and operation_type == "measure":
+            preconditions["instrument_available_in_vessel"] = (
+                payload.get("instrument") in network["instruments"][state.vessel_id]
+            )
+        if not check_payload and operation_type == "route_material":
+            from chemworld.runtime.component_network import available_connections
+
+            preconditions["network_route_available"] = bool(available_connections(state))
         if not check_payload and operation_type in {"create_container", "transfer_material"}:
             from chemworld.runtime.material_routing import routing_available
 
@@ -521,6 +550,8 @@ class OperationValidator:
                 "resuspend_crystals",
                 "create_container",
                 "transfer_material",
+                "select_vessel",
+                "route_material",
             }
         if operation_type in {"add_solvent", "add_phase", "add_extractant"}:
             maximum_addition = max(self._max_volume_l(state) - state.volume_L, 0.0)
@@ -815,6 +846,10 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
+        if operation_type in {"select_vessel", "route_material"}:
+            from chemworld.runtime.component_network import network_error
+
+            checks["payload_network_valid"] = network_error(state, operation_type, payload) is None
         if operation_type in {"create_container", "transfer_material"}:
             from chemworld.runtime.material_routing import routing_error
 

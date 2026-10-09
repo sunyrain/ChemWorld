@@ -311,7 +311,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
         self.action_codec = ActionCodec(
             operation_types=(
                 CAMPAIGN_OPERATION_TYPES if self.campaign_controls_enabled else OPERATION_TYPES
-            )
+            ),
+            **({
+                "vessels": tuple(v["id"] for v in self.compiled_composition.spec.vessels),
+                "connections": tuple(c["id"] for c in self.compiled_composition.spec.connections),
+            } if self.compiled_composition is not None else {}),
         )
         self.scenario_generator = DefaultScenarioGenerator()
         self.scenario_spec = (
@@ -922,8 +926,18 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                 if self._state.phases is not None:
                     for phase in self._state.phases.phases.values():
                         closed_batch_solvents = closed_batch_solvents + phase.solvents
+                for local in self._state.inactive_vessels.values():
+                    if local.phases is not None:
+                        for phase in local.phases.phases.values():
+                            closed_batch_solvents = closed_batch_solvents + phase.solvents
                 self._state = new_state.replace(
                     samples=retained_samples,
+                    inactive_vessels={
+                        name: local.replace(samples=replace(
+                            local.samples, batch_generation=retained_samples.batch_generation,
+                            active_lineage=(f"batch-{retained_samples.batch_generation:04d}-{name}",),
+                        )) for name, local in new_state.inactive_vessels.items()
+                    },
                     solvent_accounting=replace(
                         retained_solvents,
                         initial=retained_solvents.initial + new_state.solvent_accounting.initial,
@@ -1453,7 +1467,11 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
             constitution=self.constitution,
             allowed_operations=self.allowed_operations,
             allowed_instruments=self.allowed_instruments,
-            task_id=self.runtime_task_profile_id,
+            task_id=(
+                None if self.compiled_composition is not None
+                and len(self.compiled_composition.spec.vessels) > 1
+                else self.runtime_task_profile_id
+            ),
             electrochemical_workflow_mode=self.electrochemical_workflow_mode,
             target_species=species_view.target_species,
             reagent_charge_molar_multiplier=reagent_charge_molar_multiplier,
@@ -1541,6 +1559,10 @@ class ChemWorldEnv(gym.Env[dict[str, np.ndarray], dict[str, Any]]):
                     "full_process_task_id": self.task_id,
                 }
             )
+        if self.compiled_composition is not None:
+            from chemworld.runtime.component_network import initialize_network
+
+            state = initialize_network(state, self.compiled_composition)
         return initialize_solvents(state)
 
     def _observation_seed(self, world_seed: int) -> int:
