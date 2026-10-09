@@ -1,242 +1,160 @@
-"""Build and exercise ChemWorld from a non-editable wheel installation."""
+"""Install wheel or sdist in a fresh, locked environment outside the checkout."""
 
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
 
+PROBE = """
+import json, sys
+from pathlib import Path
+from importlib.metadata import version
+import chemworld, gymnasium as gym
+from chemworld.tasks import list_tasks
+from chemworld.task_design import serious_task_readiness_manifest
+from chemworld.physchem.mechanism_library import configuration_root
+from chemworld.eval.risk_policy import load_risk_cost_protocol
+from chemworld.eval.resource_accounting import load_resource_protocol
+from chemworld.runtime.semantics import RUNTIME_SEMANTICS_ID
 
-def _run(command: list[str], *, cwd: Path, env: dict[str, str] | None = None) -> None:
-    subprocess.run(command, cwd=cwd, env=env, check=True)
-
-
-def _sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
-
-
-def _wheel_build_command(
-    repository_root: Path,
-    wheel_dir: Path,
-    *,
-    uv_executable: str | None,
-) -> list[str]:
-    if uv_executable:
-        return [
-            uv_executable,
-            "build",
-            "--wheel",
-            "--out-dir",
-            str(wheel_dir),
-            str(repository_root),
-        ]
-    return [
-        sys.executable,
-        "-m",
-        "pip",
-        "wheel",
-        str(repository_root),
-        "--no-deps",
-        "--wheel-dir",
-        str(wheel_dir),
-    ]
-
-
-def _wheel_install_command(
-    wheel: Path,
-    install_dir: Path,
-    *,
-    uv_executable: str | None,
-) -> list[str]:
-    if uv_executable:
-        return [
-            uv_executable,
-            "pip",
-            "install",
-            "--no-deps",
-            "--target",
-            str(install_dir),
-            str(wheel),
-        ]
-    return [
-        sys.executable,
-        "-m",
-        "pip",
-        "install",
-        "--no-deps",
-        "--target",
-        str(install_dir),
-        str(wheel),
-    ]
+assert Path(chemworld.__file__).resolve().is_relative_to(Path(sys.prefix).resolve())
+assert version('chemworld-bench') == chemworld.__version__
+tasks = []
+for task in list_tasks():
+    env = gym.make('ChemWorld', task_id=task.task_id, seed=0)
+    try:
+        _, info = env.reset(seed=0)
+        assert info['task_id'] == task.task_id
+        assert env.unwrapped.available_actions()
+        tasks.append(task.task_id)
+    finally:
+        env.close()
+readiness = serious_task_readiness_manifest()
+assert readiness['contract_ready_count'] == len(readiness['task_ids'])
+assert load_risk_cost_protocol()
+assert load_resource_protocol()
+root = configuration_root()
+assert root.resolve().is_relative_to(Path(sys.prefix).resolve())
+assert not (root / 'current.json').exists()
+assert not (root / 'private_eval.placeholder.json').exists()
+assert not (root / 'providers').exists()
+print(json.dumps({'package': chemworld.__file__, 'version': chemworld.__version__,
+                  'tasks': tasks, 'contracts': readiness['contract_ready_count'],
+                  'runtime_semantics_id': RUNTIME_SEMANTICS_ID}))
+"""
 
 
-def _validate_readiness_payload(
-    payload: dict[str, object],
-    *,
-    require_validated_benchmark: bool,
-) -> None:
-    task_count = int(payload["serious_task_count"])
-    contract_ready_count = int(payload["contract_ready_count"])
-    benchmark_ready_count = int(payload["benchmark_ready_count"])
-    suite_status = str(payload["serious_suite_status"])
-
-    if task_count <= 0 or contract_ready_count != task_count:
-        raise RuntimeError(f"Wheel task contracts are incomplete: {payload}")
-    if suite_status == "candidate":
-        if benchmark_ready_count != 0:
-            raise RuntimeError(f"Candidate wheel carries inconsistent readiness: {payload}")
-    elif suite_status == "validated":
-        if benchmark_ready_count != task_count:
-            raise RuntimeError(f"Validated wheel benchmark evidence is incomplete: {payload}")
-    else:
-        raise RuntimeError(f"Wheel carries an unknown suite status: {payload}")
-    if require_validated_benchmark and suite_status != "validated":
-        raise RuntimeError(f"Wheel does not carry validated benchmark evidence: {payload}")
+def clean_environment() -> dict[str, str]:
+    env = os.environ.copy()
+    for key in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV"):
+        env.pop(key, None)
+    env["PYTHONNOUSERSITE"] = "1"
+    return env
 
 
-def _validate_current_registry_payload(payload: dict[str, object]) -> None:
-    expected = {
-        "current_registry_schema": "chemworld-current-surface-registry-0.4",
-        "project_role": "agent_capability_evaluation_and_training_environment",
-        "environment_updates_agent_weights": False,
-        "formal_results_present": True,
-        "publication_ready": False,
-    }
-    mismatches = {
-        key: {"expected": expected_value, "observed": payload.get(key)}
-        for key, expected_value in expected.items()
-        if payload.get(key) != expected_value
-    }
-    if mismatches:
+def captured_run(command, **kwargs):
+    result = subprocess.run(command, text=True, capture_output=True, **kwargs)
+    if result.returncode:
         raise RuntimeError(
-            f"Wheel current registry has inconsistent claim boundaries: {mismatches}"
+            f"Installed command failed ({result.returncode}): {result.stdout}\n{result.stderr}"
         )
+    return result
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--require-validated-benchmark",
-        action="store_true",
-        help="Reject an installable candidate wheel that does not carry frozen empirical evidence.",
-    )
-    return parser.parse_args()
+def check_install(archive: Path, *, python: str, root: Path) -> dict:
+    with tempfile.TemporaryDirectory(prefix="chemworld-installed-") as temporary:
+        work = Path(temporary)
+        environment = work / "venv"
+        child_env = clean_environment()
+        print(f"Installing {archive.name} on {python}", flush=True)
+        subprocess.run(["uv", "venv", "--python", python, str(environment)], check=True)
+        interpreter = environment / ("Scripts/python.exe" if os.name == "nt" else "bin/python")
+        requirements = subprocess.check_output(
+            ["uv", "export", "--frozen", "--no-dev", "--no-emit-project", "--no-hashes"],
+            cwd=root,
+            text=True,
+        )
+        lock = work / "requirements.txt"
+        lock.write_text(requirements, encoding="utf-8")
+        subprocess.run(
+            ["uv", "pip", "sync", "--python", str(interpreter), str(lock)],
+            cwd=work,
+            env=child_env,
+            check=True,
+        )
+        subprocess.run(
+            ["uv", "pip", "install", "--python", str(interpreter), "--no-deps", str(archive)],
+            cwd=work,
+            env=child_env,
+            check=True,
+        )
+        probe = captured_run(
+            [str(interpreter), "-I", "-c", PROBE],
+            cwd=work,
+            env=child_env,
+        )
+        payload = json.loads(probe.stdout)
+        example = root / "examples/demo_manual_event_sequence.py"
+        completed = captured_run(
+            [str(interpreter), "-I", str(example)],
+            cwd=work,
+            env=child_env,
+        )
+        assert json.loads(completed.stdout.splitlines()[-1])["final_assay_completed"]
+        trajectory = work / "trajectory.jsonl"
+        for args in (
+            ["tasks", "list"],
+            [
+                "run",
+                "--task",
+                "reaction-to-assay",
+                "--agent",
+                "random",
+                "--seed",
+                "0",
+                "--output",
+                str(trajectory),
+            ],
+            ["verify", "--submission", str(trajectory)],
+            ["evaluate", "--submission", str(trajectory), "--output", str(work / "result.json")],
+        ):
+            result = captured_run(
+                [str(interpreter), "-I", "-c", "from chemworld.cli import main; main()", *args],
+                cwd=work,
+                env=child_env,
+            )
+            if args[0] == "verify":
+                assert json.loads(result.stdout)["verified"] is True
+        return {"archive": archive.name, "python": python, "installed_check": "passed", **payload}
 
 
 def main() -> int:
-    args = parse_args()
-    repository_root = Path(__file__).resolve().parents[1]
-    with tempfile.TemporaryDirectory(prefix="chemworld-wheel-smoke-") as temporary:
-        workspace = Path(temporary)
-        wheel_dir = workspace / "wheel"
-        install_dir = workspace / "install"
-        wheel_dir.mkdir()
-        install_dir.mkdir()
-        uv_executable = shutil.which("uv")
-
-        _run(
-            _wheel_build_command(
-                repository_root,
-                wheel_dir,
-                uv_executable=uv_executable,
-            ),
-            cwd=workspace,
-        )
-        wheels = sorted(wheel_dir.glob("chemworld_bench-*.whl"))
-        if len(wheels) != 1:
-            raise RuntimeError(f"Expected exactly one ChemWorld wheel, found {wheels}")
-        _run(
-            _wheel_install_command(
-                wheels[0],
-                install_dir,
-                uv_executable=uv_executable,
-            ),
-            cwd=workspace,
-        )
-
-        smoke = (
-            "import json, pathlib, chemworld, gymnasium as gym; "
-            "from chemworld.task_design import serious_task_readiness_manifest; "
-            "from chemworld.eval.mechanism_adaptation_execution import ("
-            "DEFAULT_GATE_A_PLAN_PATH, DEFAULT_PROTOCOL_PATH as mechanism_protocol); "
-            "from chemworld.physchem.mechanism_library import configuration_root; "
-            "env=gym.make('ChemWorld', task_id='reaction-to-assay', seed=0); "
-            "obs,info=env.reset(seed=0); "
-            "readiness=serious_task_readiness_manifest(); "
-            "current_path=configuration_root() / 'current.json'; "
-            "current=json.loads(current_path.read_text(encoding='utf-8')); "
-            "print(json.dumps({'package': chemworld.__file__, "
-            "'task_id': info['task_id'], 'observation_keys': sorted(obs), "
-            "'serious_suite_status': readiness['suite_status'], "
-            "'serious_task_count': len(readiness['task_ids']), "
-            "'contract_ready_count': readiness['contract_ready_count'], "
-            "'benchmark_ready_count': readiness['benchmark_ready_count'], "
-            "'current_registry_schema': current['schema_version'], "
-            "'current_registry_path': str(current_path), "
-            "'project_role': current['project']['role'], "
-            "'environment_updates_agent_weights': "
-            "current['project']['environment_updates_agent_weights'], "
-            "'formal_results_present': current['formal_evaluation']['formal_results_present'], "
-            "'publication_ready': current['publication']['publication_ready'], "
-            "'package_config_paths': [str(path) for path in ("
-            "DEFAULT_GATE_A_PLAN_PATH, mechanism_protocol)]})); "
-            "env.close()"
-        )
-        env = os.environ.copy()
-        env["PYTHONPATH"] = str(install_dir)
-        completed = subprocess.run(
-            [sys.executable, "-c", smoke],
-            cwd=workspace,
-            env=env,
-            check=True,
-            capture_output=True,
-            text=True,
-        )
-        payload = json.loads(completed.stdout.strip().splitlines()[-1])
-        imported_path = Path(str(payload["package"])).resolve()
-        if not imported_path.is_relative_to(install_dir.resolve()):
-            raise RuntimeError(f"Smoke imported editable source instead of wheel: {imported_path}")
-        if payload["task_id"] != "reaction-to-assay":
-            raise RuntimeError(f"Unexpected wheel smoke task payload: {payload}")
-        _validate_current_registry_payload(payload)
-        _validate_readiness_payload(
-            payload,
-            require_validated_benchmark=args.require_validated_benchmark,
-        )
-        current_registry_path = Path(str(payload["current_registry_path"])).resolve()
-        if not current_registry_path.is_relative_to(install_dir.resolve()):
-            raise RuntimeError(
-                f"Wheel used current registry outside installed resources: {payload}"
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument(
+        "--archive", type=Path, help="Existing wheel or sdist; otherwise build both"
+    )
+    parser.add_argument("--python", default=sys.executable)
+    parser.add_argument("--output", type=Path, help="Optional JSON result, outside the repository")
+    args = parser.parse_args()
+    root = Path(__file__).resolve().parents[1]
+    with tempfile.TemporaryDirectory(prefix="chemworld-build-") as temporary:
+        if args.archive:
+            archives = [args.archive.resolve()]
+        else:
+            subprocess.run(["uv", "build", "--out-dir", temporary], cwd=root, check=True)
+            archives = sorted(
+                [*Path(temporary).glob("*.whl"), *Path(temporary).glob("*.tar.gz")]
             )
-        for raw_path in payload["package_config_paths"]:
-            config_path = Path(str(raw_path)).resolve()
-            if not config_path.is_relative_to(install_dir.resolve()) or not config_path.is_file():
-                raise RuntimeError(
-                    f"Wheel evaluation surface used a non-packaged config path: {payload}"
-                )
-        print(
-            json.dumps(
-                {
-                    "wheel_smoke": "passed",
-                    "wheel": wheels[0].name,
-                    "wheel_bytes": wheels[0].stat().st_size,
-                    "wheel_sha256": _sha256(wheels[0]),
-                    **payload,
-                },
-                indent=2,
-                sort_keys=True,
-            )
-        )
+        rows = [check_install(archive, python=args.python, root=root) for archive in archives]
+    report = json.dumps(rows, indent=2) + "\n"
+    if args.output:
+        args.output.write_text(report, encoding="utf-8")
+    print(report)
     return 0
 
 
