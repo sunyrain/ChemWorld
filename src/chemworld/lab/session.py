@@ -54,6 +54,8 @@ _TASK_COPY: dict[str, tuple[str, str, str]] = {
 }
 
 _EFFECTS: dict[str, tuple[str, str, str]] = {
+    "select_vessel": ("切换容器", "切换到声明容器，消耗操作预算但不推进物理时间。", "transfer"),
+    "route_material": ("沿端口转移", "沿声明连接转移物料，遵守显式混合政策。", "transfer"),
     "add_component": ("独立组分投料", "加入公开投料目录的单个组分，按实际摩尔数记账。", "feed"),
     "create_container": ("创建容器", "创建有身份的空容器，不产生物料。", "transfer"),
     "transfer_material": ("路由物料", "按公开合同转移有身份的物料，保留来源与损失。", "transfer"),

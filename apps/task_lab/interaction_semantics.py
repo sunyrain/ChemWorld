@@ -12,6 +12,20 @@ from typing import Any
 from chemworld.data.logging import to_builtin
 
 _OPERATION_EFFECTS: dict[str, dict[str, str]] = {
+    "select_vessel": {
+        "type": "vessel_selection",
+        "label_zh": "切换容器",
+        "summary": "Selects a declared vessel without advancing physical time.",
+        "summary_zh": "切换到声明容器，消耗操作预算但不推进物理时间。",
+        "visual": "transfer",
+    },
+    "route_material": {
+        "type": "material_routing",
+        "label_zh": "沿端口转移",
+        "summary": "Routes material through a declared connection with explicit mixing policy.",
+        "summary_zh": "沿声明连接转移物料，按显式混合政策保留来源和共享资源账。",
+        "visual": "transfer",
+    },
     "add_component": {
         "type": "additive_charge",
         "label_zh": "独立组分投料",
