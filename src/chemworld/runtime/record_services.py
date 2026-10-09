@@ -68,13 +68,12 @@ class ChemWorldOperationRecorder:
         checks = self._constitution_checks(operation, before, after)
         instrument = None
         measurement_cost = 0.0
-        sample_consumed = 0.0
+        sample_consumed = after.ledger.sample_consumed_L - before.ledger.sample_consumed_L
         preconditions_passed = all(preconditions.values())
         if operation == "measure":
             instrument = instrument_name(action.get("instrument", "hplc"))
             if preconditions_passed:
                 measurement_cost = self.constitution.instruments[instrument].cost
-                sample_consumed = self.constitution.instruments[instrument].sample_volume_L
         return OperationRecord(
             operation_type=operation,
             preconditions=preconditions,

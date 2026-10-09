@@ -4,7 +4,12 @@ from __future__ import annotations
 
 from dataclasses import replace
 
-from chemworld.foundation import WorldState, equipment_settings, upsert_equipment_record
+from chemworld.foundation import (
+    WorldState,
+    equipment_settings,
+    scale_species_initial_amounts,
+    upsert_equipment_record,
+)
 from chemworld.foundation.state import PhaseLedger, selected_phase_id
 from chemworld.foundation.state_helpers import equipment_setting_truth
 
@@ -115,7 +120,12 @@ def sample_domain(state: WorldState) -> tuple[str, ...]:
 
 
 def withdraw_sample(state: WorldState, volume_L: float) -> WorldState:
-    """Conserve unselected inventories and the original reagent denominator."""
+    """Conserve unselected inventories under the current measurement contract.
+
+    Full-process recovery uses the original charge. The default analytical mode
+    uses a sample-normalized reference so a withdrawal alone does not look like
+    chemical conversion. These are measurement modes, not historical replay engines.
+    """
     if state.phases is None:
         raise ValueError("phase-resolved sampling requires a typed inventory")
     domain = sample_domain(state)
@@ -196,6 +206,11 @@ def withdraw_sample(state: WorldState, volume_L: float) -> WorldState:
         volume_L=state.volume_L - volume_L,
         equipment=equipment,
         process=process,
+        species=(
+            state.species
+            if active(state)
+            else scale_species_initial_amounts(state.species, 1.0 - fraction)
+        ),
         metadata={
             **state.metadata,
             "last_sample_domain": list(domain),

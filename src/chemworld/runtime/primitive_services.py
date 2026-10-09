@@ -11,8 +11,6 @@ from chemworld.foundation import (
     WorldState,
     equipment_settings,
     process_with_metrics,
-    scale_phase_ledger,
-    scale_species_initial_amounts,
     selected_phase_id,
     upsert_equipment_record,
 )
@@ -192,31 +190,14 @@ class ChemWorldPrimitiveOperationServices:
         )
 
     def sample(self, state: WorldState, action: dict[str, Any]) -> WorldState:
-        from chemworld.runtime.full_process_contract import active, withdraw_sample
+        from chemworld.runtime.full_process_contract import withdraw_sample
 
         volume = float(np.clip(_action_float(action, "sample_volume_L", 0.0001), 0.0, 0.002))
-        if active(state):
-            return withdraw_sample(state, volume).replace(ledger=state.ledger.with_updates(
+        return withdraw_sample(state, volume).replace(
+            ledger=state.ledger.with_updates(
                 sample_consumed_L=state.ledger.sample_consumed_L + volume,
                 cost=state.ledger.cost + 0.01,
-            ))
-        volume = min(volume, max(state.volume_L, 0.0))
-        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
-        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
-        ledger = state.ledger.with_updates(
-            sample_consumed_L=state.ledger.sample_consumed_L + volume,
-            cost=state.ledger.cost + 0.01,
-        )
-        return state.replace(
-            species_amounts=species,
-            phases=scale_phase_ledger(
-                state.phases,
-                amount_factor=1.0 - fraction,
-                volume_factor=1.0 - fraction,
-            ),
-            volume_L=state.volume_L - volume,
-            ledger=ledger,
-            species=scale_species_initial_amounts(state.species, 1.0 - fraction),
+            )
         )
 
     def quench(self, state: WorldState) -> WorldState:

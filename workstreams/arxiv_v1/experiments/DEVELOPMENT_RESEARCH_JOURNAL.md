@@ -4,6 +4,8 @@
 
 ## 恢复入口
 
+- R04/R09 已完成：当前 sampler 统一逐相扣账，12/12 路径、144 操作及精确回放；RL wrapper 将独立 campaign ID 留在审计元数据，8/8 官方 checker 和双环境向量循环通过，129 项相关测试通过。初次错误统一分析/回收分母的设计及 3 个集成失败已保留，修正后完整重跑。说明 `development-release-r04-r09-20261009.md`。下一步 R15/R30：当前运行时身份、旧论文快照与罚分含义。
+
 - R17/R18 与合并模板 R22 已完成：离线六步研究文档/事实账本与新进程精确回放，80/80 持久公开历史经双工具分页查回首尾，88 项相关测试通过。结果/交接 `development-release-r17-r18-20261009.md`；机器摘要 `D:/Projects/ChemWorld-local-research/20261009-r17-r18/attempt-01/summary.json`。下一步核实仍公开支持的旧模式采样与 Gym 入口，按当前语义修复；不恢复旧运行时兼容。
 
 - R03/R11 已完成：测量统一瞬时虚拟快照，6/6 仪器时间/资源/回放、7/7 真实 CLI 错误路径通过。15 项新测试通过；整合 65 passed / 1 已知 R08 readiness 失败，未掩盖。说明 `development-release-r03-r11-20261009.md`，数据 `D:/Projects/ChemWorld-local-research/20261009-r03-r11/attempt-01/summary.json`。继续推进 Ours 尚未完成项，目标仍为完成全部适用分配工作，8 项后置扩展不在当前范围。

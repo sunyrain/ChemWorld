@@ -97,7 +97,7 @@ def test_paid_particle_sensor_preserves_material_and_scales_slurry_seed_provenan
         assert after.species_amounts == before.species_amounts
         assert after.phases == before.phases
         assert after.ledger.cost - before.ledger.cost == pytest.approx(0.04)
-        assert after.ledger.time_s - before.ledger.time_s == 120
+        assert after.ledger.time_s - before.ledger.time_s == 0
         assert info["raw_signal"]["kind"] == "particle_size_signal"
         assert "crystal_fines_fraction" in info["observed_keys"]
         truth_before = env.unwrapped.observation_kernel._truth_values(after)

@@ -11,8 +11,6 @@ from chemworld.foundation import (
     equipment_settings,
     instrument_completed,
     instrument_equipment_id,
-    scale_phase_ledger,
-    scale_species_initial_amounts,
     upsert_equipment_record,
 )
 from chemworld.runtime.full_process_contract import active, sample_domain, withdraw_sample
@@ -46,14 +44,12 @@ class ChemWorldInstrumentCostServices:
         ):
             raise ValueError("instrument cost and sampling domain must be finite and nonnegative")
         volume = float(instrument.sample_volume_L)
-        sampled = withdraw_sample(state, volume) if active(state) else state
         if state.volume_L < volume:
             raise ValueError(
                 f"insufficient sample volume for {instrument_id}: "
                 f"required={volume}, available={state.volume_L}"
             )
-        fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
-        species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
+        sampled = withdraw_sample(state, volume)
         ledger = state.ledger.with_updates(
             cost=state.ledger.cost + instrument.cost,
             sample_consumed_L=state.ledger.sample_consumed_L + volume,
@@ -90,8 +86,7 @@ class ChemWorldInstrumentCostServices:
                 maturity="development",
                 provenance=["synthetic population-balance scalar observation"],
             )
-        if active(state):
-            execution["diagnostics"]["sample_domain"] = list(sample_domain(state))
+        execution["diagnostics"]["sample_domain"] = list(sample_domain(state))
         execution_history.append(execution)
         equipment = upsert_equipment_record(
             sampled.equipment,
@@ -113,20 +108,7 @@ class ChemWorldInstrumentCostServices:
                 "execution_history": execution_history,
             },
         )
-        if active(state):
-            return sampled.replace(ledger=ledger, equipment=equipment)
-        return state.replace(
-            species_amounts=species,
-            phases=scale_phase_ledger(
-                state.phases,
-                amount_factor=1.0 - fraction,
-                volume_factor=1.0 - fraction,
-            ),
-            volume_L=state.volume_L - volume,
-            ledger=ledger,
-            species=scale_species_initial_amounts(state.species, 1.0 - fraction),
-            equipment=equipment,
-        )
+        return sampled.replace(ledger=ledger, equipment=equipment)
 
 
 __all__ = ["ChemWorldInstrumentCostServices"]
