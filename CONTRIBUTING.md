@@ -7,7 +7,9 @@ keep the boundaries below explicit.
 
 ## Before starting
 
-Read [DEVELOPMENT.md](DEVELOPMENT.md) and the instructions in [AGENTS.md](AGENTS.md). For work that
+For ordinary installation, start at [the quickstart](docs/getting_started.en.md);
+no paper-governance workflow is required. For contributing, read
+[DEVELOPMENT.md](DEVELOPMENT.md) and the instructions in [AGENTS.md](AGENTS.md). For work that
 touches a current research programme, also read its active entry point:
 
 - Work I: `workstreams/arxiv_v1/FIRST_PAPER_TODOLIST.md`
@@ -30,7 +32,7 @@ dependency surface.
 For a fresh development checkout, install the locked development environment once:
 
 ```bash
-uv sync --extra dev
+uv sync --locked --extra dev
 ```
 
 After setup, run repository commands without changing the environment:
@@ -99,11 +101,18 @@ Also run wheel smoke when packaging or resource lookup changes:
 
 ```bash
 uv run --no-sync pytest -q tests/test_wheel_smoke.py
+uv run --no-sync python scripts/smoke_test_wheel.py
 ```
 
 Commands expected to exceed 60 seconds must expose progress at least once per minute, including the
 current stage, completed/total units, throughput, and ETA when known. Keep wrapper logs and probes
 outside the repository.
+
+Report ordinary bugs or request help through the
+[repository issue tracker](https://github.com/sunyrain/ChemWorld/issues).
+Include the commit, OS/Python version, a minimal provider-free reproduction,
+expected/actual behavior and redacted error text. Do not upload a full private
+run. Support is best effort; there is no hosted-service availability promise.
 
 ## Credentials, private data, and generated output
 

@@ -16,7 +16,9 @@ making scalable, comparable, and falsifiable.
 
 <div class="cw-button-row" markdown>
 
-[Read the research thesis](vision.md){ .md-button .md-button--primary }
+[Install and start](getting_started.md){ .md-button .md-button--primary }
+[Complete offline research example](offline_research.md){ .md-button }
+[Read the research thesis](vision.md){ .md-button }
 [Understand causal worlds](causal_worlds.md){ .md-button }
 [Inspect the evidence](research_findings.md){ .md-button }
 

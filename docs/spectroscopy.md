@@ -5,6 +5,11 @@
 
 ## 当前信号类型
 
+以下是**信号概念**，不是 `measure.instrument` 可直接接收的 ID 列表。
+当前公共 ID 是 `hplc`、`gc`、`uvvis`、`ph_meter`、`final_assay`，以及部分任务的
+`particle_size`。以当前任务的 `env.unwrapped.action_schema("measure")` 为准。
+IR/NMR/MS-like 特征可以出现在合成信号视图中，不能据此提交 `instrument="nmr"` 等动作。
+
 - HPLC / GC retention curve 与峰摘要；
 - UV–Vis absorbance；
 - IR / NMR-like feature peaks；
@@ -21,7 +26,7 @@
 3. 如何在成本、噪声和信息增益间取舍；
 4. 新读数是否真的改变后续操作。
 
-Agent Observatory 支持 raw、unassigned、assigned 与 masked 条件，便于做谱图信息消融。具体交互见
+Agent Observatory 的公开选择是 raw、unassigned、assigned，便于做谱图信息消融。具体交互见
 [打开可视化实验室](interactive_task_lab.md)。
 
 !!! warning "解释边界"
