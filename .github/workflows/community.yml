@@ -54,6 +54,15 @@ jobs:
           examples/demo_minimal_agent.py tests/test_community_release_docs.py
           src/chemworld/lab
           apps/task_lab/server.py apps/task_lab/student_session.py
+      - name: Public Lab and example types
+        env:
+          MYPYPATH: src
+        run: >-
+          uv run --no-sync mypy
+          src/chemworld/lab
+          examples/demo_minimal_agent.py examples/demo_offline_research.py
+          apps/task_lab/server.py apps/task_lab/student_session.py
+          apps/task_lab/interaction_semantics.py
 
   installed-package:
     strategy:

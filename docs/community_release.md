@@ -104,6 +104,10 @@ billing or publish to that separate repository.
 
 The newly added development workflows at `29b46d4d` were blocked for the same
 reason (for example check 113696715300); no cloud test step ran there either.
+The same condition was independently confirmed at `a7badfc6`: the
+[current-interface check](https://github.com/sunyrain/ChemWorld/runs/113744875024)
+has an empty step list and an explicit billing-lock annotation. Restoring Actions
+requires the repository account administrator; changing source code cannot fix it.
 
 Local installation/matrix results and current-repository CI are reported
 separately; never count a queued or billing-blocked job as passed.
@@ -133,3 +137,53 @@ run/verify/evaluate. Package checks compare actual clean and dirty archives
 byte-for-byte, including a no-Git sdist rebuild. Linux/Windows jobs are not
 counted as passed until execution results are available. No old qualification
 or scientific result has been regenerated.
+
+The final current-interface integration at `a7badfc6` passed **125 tests** and
+the strict Chinese/English documentation build. After incorporating the optional
+notebook-history extension at `5e226b86`, the affected Lab and offline-example
+regression passed **45 tests**. Six existing scikit-learn GP arithmetic warnings
+were reported, not suppressed. Focused type checking of the public Lab and
+examples passed (nine directly checked files); package-wide typing still reports
+errors in research modules outside this delivery. Do not interpret the focused
+CI job as a claim that repository-wide typing is clean.
+The final global check reports 192 errors in 36 files (449 files checked), in
+evaluation/provider/agent modules and two core interface/resource modules. Those
+owned-core issues were not hidden with ignores or reassigned to this UI release.
+
+Both archive types were reinstalled on macOS arm64 Python **3.11.15 / 3.12.14**
+after that integration. In addition to the checks above, each installation ran
+the four-action custom agent, all seven offline research episodes and seven
+independent-process replays, plus packaged-Lab final assay/export/replay/close.
+The smoke report now records the actual OS, architecture, Python patch version
+and replay denominator. These are provider-free software checks, not new paper
+experiments or evidence of improved scientific predictions.
+
+### Observed installation matrix
+
+| Actual platform | Python | Wheel | sdist |
+| --- | --- | --- | --- |
+| macOS arm64 | 3.11.15 | Passed | Passed |
+| macOS arm64 | 3.12.14 | Passed | Passed |
+| Ubuntu 22.04 x86_64 | 3.11.15 | Passed | Passed |
+| Ubuntu 22.04 x86_64 | 3.12.13 | Passed | Passed |
+| Windows CI target | 3.11 / 3.12 | Not run | Not run |
+
+The eight completed installations each passed the full smoke described above,
+including seven new-process offline replays. Linux used the same execution code
+at `5e226b86` with the smoke report enhancement at `9a2f90a7`; documentation-only
+changes do not change those execution semantics. Initial server dependency
+downloads stalled before tests. The fallback downloaded the exact official
+Linux wheels named by `uv.lock`, verified their SHA-256 hashes and installed the
+exported locked requirements from a temporary offline wheelhouse. It did not
+borrow the server's existing Python 3.13 environment, change dependency versions,
+run providers or replace an unfavorable experiment. Both Linux archive checks
+then completed in fresh environments outside the source tree.
+
+This is not a claim about every Linux distribution, macOS Intel, other Python
+versions, Windows, screen readers or mobile browsers. The declared target matrix
+is unchanged. **Cross-platform acceptance remains incomplete** until a Windows
+runner executes both archive paths and GitHub's account-level Actions lock is
+resolved. The latest workflow at `9a2f90a7` likewise has no executed steps; see
+[its current-interface check](https://github.com/sunyrain/ChemWorld/runs/113761967642).
+An administrator must restore Actions or provide an authorized Windows runner;
+do not remove that matrix entry merely to turn this record green.

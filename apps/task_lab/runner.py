@@ -1130,7 +1130,9 @@ def _method_resources(
     cost_factory = getattr(client, "estimate_cost_usd", None)
     pricing = pricing_factory() if callable(pricing_factory) else None
     accounting_complete = isinstance(pricing, dict) and callable(cost_factory)
-    cost = float(cost_factory(usage)) if accounting_complete else 0.0
+    cost = (
+        float(cost_factory(usage)) if isinstance(pricing, dict) and callable(cost_factory) else 0.0
+    )
     prompt_hash = hashlib.sha256(
         (SYSTEM_PROMPT + "|chemworld-task-lab-adaptive-json-0.2").encode("utf-8")
     ).hexdigest()

@@ -1,5 +1,8 @@
 # ChemWorld Task Lab
 
+这是仓库开发工具，不是 wheel 入口。安装包用户使用 `chemworld-lab --no-browser`，
+见[中英文安装入口](../../docs/getting_started.md)。服务仅支持本机使用，不要端口转发。
+
 Task Lab 提供两个彼此独立的本地产品界面：
 
 - **Agent Observatory**：运行并观察 DeepSeek 或经典主动学习算法的逐轮探索过程；
@@ -10,23 +13,14 @@ Task Lab 提供两个彼此独立的本地产品界面：
 在仓库根目录运行：
 
 ```powershell
-python -m apps.task_lab.server --port 8876
+uv run --no-sync python -m apps.task_lab.server --port 8876
 ```
 
-如果凭据保存在仓库根目录的本地 `api.md`，可直接运行：
+首次使用先按锁文件安装环境。Student Lab 和经典算法不需要模型密钥。
+在线模型需要另行授权，只通过进程环境变量提供凭据，不创建仓库密钥文件。
 
 ```powershell
-python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
-```
-
-`api.md` 已被 Git 忽略。密钥只保存在本地服务进程内存中；浏览器状态接口只会返回
-`api-key-file`、`environment` 或 `missing`，不会返回密钥内容。
-
-即使当前 `python` 不是项目虚拟环境，该命令也会在 Windows 上自动转交给
-`.venv\Scripts\python.exe`。如果项目尚未安装依赖，请先运行：
-
-```powershell
-.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+uv sync --locked --extra dev
 ```
 
 启动后可访问：
@@ -36,6 +30,10 @@ python -m apps.task_lab.server --port 8876 --api-key-file .\api.md
 - Student Lab：<http://127.0.0.1:8876/student/>
 
 服务默认只监听 `127.0.0.1`。不要将带有模型凭据的本地服务直接暴露到公网。
+
+Student Lab 的关闭/重置释放旧会话，公开记录留在导出区，退出页面前保存。
+Agent 的取消按钮在下一个执行检查点停止，不保证立即打断网络调用；已有轨迹和失败不会删除，
+也不会自动补做终检。每个服务有请求、会话和任务并发上限，详见[分发边界](../../docs/community_release.md)。
 
 ## 可选 Blender 连接
 
@@ -65,20 +63,20 @@ $env:DEEPSEEK_MODEL = "<provider-supported-model-id>"
 快速运行两个代表任务。默认采用多轮自适应决策，并启用模型侧强化推理：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --max-steps 18
+uv run --no-sync python -m apps.task_lab.run_evaluation --max-steps 18
 ```
 
 运行全部 15 个任务：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 24
+uv run --no-sync python -m apps.task_lab.run_evaluation --all-tasks --mode adaptive --max-steps 24
 ```
 
 指定任务或续跑已有目录：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay partition-discovery
-python -m apps.task_lab.run_evaluation --tasks partition-discovery --resume `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay partition-discovery
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks partition-discovery --resume `
   --output-dir runs/task_lab/my_evaluation
 ```
 
@@ -109,11 +107,11 @@ Agent 评测默认使用 `unassigned`：模型获得原始曲线和未指认峰�
 target、reactant 或 byproduct 标签。可用同一任务执行三档消融：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
   --spectrum-disclosure raw --max-steps 18
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
   --spectrum-disclosure unassigned --max-steps 18
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
   --spectrum-disclosure assigned --max-steps 18
 ```
 
@@ -131,7 +129,7 @@ multi-factor change。多因素变化对 BO 是正常设计，但不能被 Agent
 扩展研究档位：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
+uv run --no-sync python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
   --mode adaptive --max-steps 36 --budget-multiplier 2 --campaign-override
 ```
 
@@ -149,11 +147,11 @@ python -m apps.task_lab.run_evaluation --tasks reaction-to-assay `
 经典算法不需要 API key，适用于支持标准反应配方的任务：
 
 ```powershell
-python -m apps.task_lab.run_evaluation --agent gp_bo `
+uv run --no-sync python -m apps.task_lab.run_evaluation --agent gp_bo `
   --tasks reaction-optimization-standard --max-steps 72
-python -m apps.task_lab.run_evaluation --agent rf_ei `
+uv run --no-sync python -m apps.task_lab.run_evaluation --agent rf_ei `
   --tasks reaction-optimization-standard --max-steps 72
-python -m apps.task_lab.run_evaluation --agent safe_gp_bo `
+uv run --no-sync python -m apps.task_lab.run_evaluation --agent safe_gp_bo `
   --tasks reaction-safety-constrained --max-steps 72
 ```
 

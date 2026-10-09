@@ -16,4 +16,6 @@ def test_current_installation_probe_does_not_require_frozen_research_evidence():
     assert "mechanism_adaptation_execution" not in PROBE
     assert "is_relative_to(Path(sys.prefix)" in PROBE
     assert "for task in list_tasks()" in PROBE
+    assert "platform.python_version()" in PROBE
+    assert "platform.system()" in PROBE
     compile(PROBE, "installed-package-probe", "exec")

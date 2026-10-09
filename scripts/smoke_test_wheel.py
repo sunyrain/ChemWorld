@@ -11,7 +11,7 @@ import tempfile
 from pathlib import Path
 
 PROBE = """
-import json, sys
+import json, sys, platform
 from pathlib import Path
 from importlib.metadata import version, distribution
 from importlib.resources import files
@@ -61,6 +61,8 @@ assert session.replay()['verified']
 assert manager.close(session.session_id)['final_assay_count'] == 1
 print(json.dumps({'package': chemworld.__file__, 'version': chemworld.__version__,
                   'tasks': tasks, 'contracts': readiness['contract_ready_count'],
+                  'platform': {'system': platform.system(), 'machine': platform.machine(),
+                               'python_version': platform.python_version()},
                   'runtime_semantics_id': RUNTIME_SEMANTICS_ID}))
 """
 
@@ -145,7 +147,8 @@ def check_install(archive: Path, *, python: str, root: Path) -> dict:
             cwd=work,
             env=child_env,
         )
-        assert json.loads((research / "summary.json").read_text())["accepted"]
+        research_summary = json.loads((research / "summary.json").read_text())
+        assert research_summary["accepted"]
         trajectory = work / "trajectory.jsonl"
         for args in (
             ["tasks", "list"],
@@ -170,7 +173,16 @@ def check_install(archive: Path, *, python: str, root: Path) -> dict:
             )
             if args[0] == "verify":
                 assert json.loads(result.stdout)["verified"] is True
-        return {"archive": archive.name, "python": python, "installed_check": "passed", **payload}
+        return {
+            "archive": archive.name,
+            "python": python,
+            "installed_check": "passed",
+            "offline_research": {
+                "accepted": research_summary["accepted"],
+                "new_process_replays": len(research_summary["new_process_replay"]),
+            },
+            **payload,
+        }
 
 
 def main() -> int:
