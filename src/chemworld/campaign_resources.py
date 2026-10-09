@@ -50,6 +50,7 @@ ELECTROCHEMICAL_REAGENT_ACTION_UPPER_MOL = 0.040
 ELECTROCHEMICAL_SOLVENT_ACTION_UPPER_L = 0.080
 
 _STOCK_FIELDS_BY_OPERATION: dict[str, tuple[str, str]] = {
+    "add_component": ("reagent_mol", "amount_mol"),
     "add_reagent": ("reagent_mol", "amount_mol"),
     "add_solvent": ("solvent_L", "volume_L"),
     "resuspend_crystals": ("solvent_L", "volume_L"),
@@ -202,9 +203,7 @@ class CampaignResourceCard:
             ),
         )
         if self.implicit_operation_time_s and self.process_time_limit_s is None:
-            raise ValueError(
-                "implicit_operation_time_s requires process_time_limit_s"
-            )
+            raise ValueError("implicit_operation_time_s requires process_time_limit_s")
         object.__setattr__(
             self,
             "operation_repeat_limits",
@@ -234,9 +233,7 @@ class CampaignResourceCard:
         if self.process_time_limit_s is not None:
             hard_limits["process_time_s"] = self.process_time_limit_s
         if self.implicit_operation_time_s:
-            hard_limits["implicit_operation_time_s"] = dict(
-                self.implicit_operation_time_s
-            )
+            hard_limits["implicit_operation_time_s"] = dict(self.implicit_operation_time_s)
         if self.operation_repeat_limits:
             hard_limits["operation_repeats"] = dict(self.operation_repeat_limits)
         return {
@@ -271,9 +268,7 @@ class CampaignResourceCard:
                 if hard_limits.get("process_time_s") is None
                 else float(hard_limits["process_time_s"])
             ),
-            implicit_operation_time_s=dict(
-                hard_limits.get("implicit_operation_time_s", {})
-            ),
+            implicit_operation_time_s=dict(hard_limits.get("implicit_operation_time_s", {})),
             operation_repeat_limits=dict(hard_limits.get("operation_repeats", {})),
             metadata=dict(payload.get("metadata", {})),
         )
@@ -443,6 +438,7 @@ def derive_campaign_resource_delta(
     outcome: Mapping[str, Any] | None = None,
     *,
     starts_vessel: bool = False,
+    reagent_charge_molar_multiplier: float = 1.0,
 ) -> CampaignResourceDelta:
     """Derive proposed or committed resources from one action/outcome pair.
 
@@ -459,6 +455,8 @@ def derive_campaign_resource_delta(
     if committed and stock_contract is not None:
         stock_id, field_name = stock_contract
         amount = _positive_action_float(action, field_name)
+        if operation == "add_reagent":
+            amount *= reagent_charge_molar_multiplier
         if amount > 0.0:
             stocks[stock_id] = amount
 
@@ -554,8 +552,15 @@ def campaign_resource_event_id(campaign_id: str, operation_attempt_index: int) -
 class CampaignResourceLedger:
     """Persistent, idempotent two-phase ledger for a single resource card."""
 
-    def __init__(self, card: CampaignResourceCard) -> None:
+    def __init__(
+        self, card: CampaignResourceCard, *, reagent_charge_molar_multiplier: float = 1.0
+    ) -> None:
         self.card = card
+        self.reagent_charge_molar_multiplier = _finite_nonnegative(
+            reagent_charge_molar_multiplier, name="reagent_charge_molar_multiplier"
+        )
+        if self.reagent_charge_molar_multiplier <= 0:
+            raise ValueError("Reagent multiplier must be positive")
         self._protected_closeout_contract = self._load_protected_closeout_contract()
         self._events: dict[str, dict[str, Any]] = {}
         self._event_order: list[str] = []
@@ -601,9 +606,7 @@ class CampaignResourceLedger:
         reasons = self._hard_rejection_reasons(
             proposed,
             operation=str(normalized_action.get("operation", "invalid")),
-            protected_closeout_action=self._is_protected_closeout_action(
-                normalized_action
-            ),
+            protected_closeout_action=self._is_protected_closeout_action(normalized_action),
             attempt_charged=attempt_available,
             operation_attempts=self.operation_attempts,
             vessel_starts=self.vessel_starts,
@@ -665,9 +668,7 @@ class CampaignResourceLedger:
             self._hard_rejection_reasons(
                 proposed,
                 operation=str(normalized_action.get("operation", "invalid")),
-                protected_closeout_action=self._is_protected_closeout_action(
-                    normalized_action
-                ),
+                protected_closeout_action=self._is_protected_closeout_action(normalized_action),
                 attempt_charged=attempt_charged,
                 operation_attempts=self.operation_attempts,
                 vessel_starts=self.vessel_starts,
@@ -707,6 +708,7 @@ class CampaignResourceLedger:
             normalized_action,
             outcome,
             starts_vessel=starts_vessel,
+            reagent_charge_molar_multiplier=self.reagent_charge_molar_multiplier,
         )
         committed = _is_committed(outcome)
         outcome_view = {
@@ -749,6 +751,7 @@ class CampaignResourceLedger:
         payload = {
             "schema_version": CAMPAIGN_RESOURCE_LEDGER_VERSION,
             "card": self.card.to_dict(),
+            "reagent_charge_molar_multiplier": self.reagent_charge_molar_multiplier,
             "state": self._state_payload(),
             "events": [_deep_thaw(self._events[event_id]) for event_id in self._event_order],
             "last_event_id": self._event_order[-1] if self._event_order else None,
@@ -772,7 +775,10 @@ class CampaignResourceLedger:
             raise ValueError("campaign resource ledger card/state must be objects")
         if not isinstance(events, list):
             raise ValueError("campaign resource ledger events must be a list")
-        ledger = cls(CampaignResourceCard.from_dict(card_payload))
+        ledger = cls(
+            CampaignResourceCard.from_dict(card_payload),
+            reagent_charge_molar_multiplier=float(payload["reagent_charge_molar_multiplier"]),
+        )
         ledger.operation_attempts = int(state.get("operation_attempts", 0))
         ledger.vessel_starts = int(state.get("vessel_starts", 0))
         ledger.final_assays = int(state.get("final_assays", 0))
@@ -872,8 +878,7 @@ class CampaignResourceLedger:
                     "campaign resource preflight proposal mismatch"
                 )
             expected_attempt_charged = expected_attempt_available and not any(
-                reason.startswith("protected_closeout_")
-                for reason in expected_reasons
+                reason.startswith("protected_closeout_") for reason in expected_reasons
             )
             if preflight.attempt_charged != expected_attempt_charged:
                 raise CampaignResourceIntegrityError(
@@ -1023,9 +1028,7 @@ class CampaignResourceLedger:
                 "protected closeout operation reserve differs from its per-batch formula"
             )
         if operation_reserve >= self.card.operation_attempt_limit:
-            raise ValueError(
-                "protected closeout operation reserve leaves no exploration attempt"
-            )
+            raise ValueError("protected closeout operation reserve leaves no exploration attempt")
         discard_operations_per_batch = _positive_int(
             closeout.get("discard_path_operations_per_batch"),
             name="closeout_policy.discard_path_operations_per_batch",
@@ -1059,9 +1062,7 @@ class CampaignResourceLedger:
         ):
             allowed = frozenset(raw_allowed)
         else:
-            raise ValueError(
-                "closeout_policy.allowed_operation_classes must contain operation IDs"
-            )
+            raise ValueError("closeout_policy.allowed_operation_classes must contain operation IDs")
         if not {"discard_batch", "terminate", "final_assay"}.issubset(allowed):
             raise ValueError(
                 "protected closeout operations must include discard, terminate and final assay"
@@ -1121,8 +1122,8 @@ class CampaignResourceLedger:
                 "process_time_s": 0.0,
                 "by_operation_class": {},
             }
-        nonreserved_attempts = (
-            self.card.operation_attempt_limit - int(contract["operation_reserve"])
+        nonreserved_attempts = self.card.operation_attempt_limit - int(
+            contract["operation_reserve"]
         )
         process_ceiling = float(contract["exploration_process_time_ceiling_s"])
         charged_attempts = 0
@@ -1195,9 +1196,7 @@ class CampaignResourceLedger:
                 final_assays=final_assays,
                 discarded_batches=discarded_batches,
             )
-            remaining_after = (
-                self.card.operation_attempt_limit - operation_attempts - 1
-            )
+            remaining_after = self.card.operation_attempt_limit - operation_attempts - 1
             if remaining_after < required_attempts:
                 reasons.append("protected_closeout_operation_reserve")
         if vessel_starts + proposed.vessel_starts > self.card.vessel_start_limit:
@@ -1225,8 +1224,7 @@ class CampaignResourceLedger:
             contract is not None
             and not protected_closeout_action
             and process_time_s + proposed.process_time_s
-            > float(contract["exploration_process_time_ceiling_s"])
-            + RESOURCE_FLOAT_ABS_TOL
+            > float(contract["exploration_process_time_ceiling_s"]) + RESOURCE_FLOAT_ABS_TOL
         ):
             reasons.append("protected_closeout_process_time_reserve")
         for instrument, count in proposed.instrument_uses.items():
@@ -1327,14 +1325,10 @@ class CampaignResourceLedger:
             consumption = self._protected_reserve_consumption()
             payload["protected_closeout_reserve"] = {
                 "policy": PROTECTED_CLOSEOUT_POLICY,
-                "allowed_operation_classes": list(
-                    contract["allowed_operation_classes"]
-                ),
+                "allowed_operation_classes": list(contract["allowed_operation_classes"]),
                 "planned_batches": contract["planned_batches"],
                 "outstanding_batches": max(
-                    int(contract["planned_batches"])
-                    - self.final_assays
-                    - self.discarded_batches,
+                    int(contract["planned_batches"]) - self.final_assays - self.discarded_batches,
                     0,
                 ),
                 "required_operation_attempts": (
@@ -1346,16 +1340,12 @@ class CampaignResourceLedger:
                 "protected_process_time_s": contract["protected_process_time_s"],
                 "process_time_consumed_s": consumption["process_time_s"],
                 "operation_attempts_consumed": consumption["operation_attempts"],
-                "consumption_by_operation_class": consumption[
-                    "by_operation_class"
-                ],
+                "consumption_by_operation_class": consumption["by_operation_class"],
             }
-            payload["report_only"]["protected_reserve_consumed_s"] = consumption[
-                "process_time_s"
+            payload["report_only"]["protected_reserve_consumed_s"] = consumption["process_time_s"]
+            payload["report_only"]["reserve_consumption_by_operation_class"] = consumption[
+                "by_operation_class"
             ]
-            payload["report_only"][
-                "reserve_consumption_by_operation_class"
-            ] = consumption["by_operation_class"]
         return payload
 
     def _apply_outcome_delta(
@@ -1429,6 +1419,7 @@ class CampaignResourceLedger:
         proposed = derive_campaign_resource_delta(
             action,
             starts_vessel=starts_vessel,
+            reagent_charge_molar_multiplier=self.reagent_charge_molar_multiplier,
         )
         if self.card.process_time_limit_s is None:
             return proposed

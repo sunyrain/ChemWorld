@@ -156,6 +156,7 @@ def check_operation_preconditions(
         "transfer_material",
         "resuspend_crystals",
         "add_reagent",
+        "add_component",
         "add_solvent",
         "add_catalyst",
         "heat",

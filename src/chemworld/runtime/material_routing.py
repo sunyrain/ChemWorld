@@ -13,6 +13,7 @@ from typing import Any
 
 from chemworld.foundation import WorldState, equipment_settings
 from chemworld.foundation.samples import CONTAINER_IDS, MaterialContents, StoredSample
+from chemworld.foundation.solvents import HEAT_CAPACITY_RATIOS, SolventInventory
 from chemworld.foundation.state_ledgers import (
     EquipmentLedger,
     EquipmentRecord,
@@ -143,6 +144,7 @@ def _contents(sample: StoredSample) -> MaterialContents:
                     "liquid",
                     sample.volume_L,
                     sample.species_amounts_mol,
+                    solvents=SolventInventory.pure(sample.solvent, sample.volume_L),
                 )
             }
         ),
@@ -209,13 +211,21 @@ def _merge(destination: StoredSample, incoming: StoredSample) -> StoredSample:
             collection_operation="transfer_material",
         )
     left, right = _contents(destination), _contents(incoming)
-    if destination.solvent != incoming.solvent:
-        raise ValueError("Material routing currently requires the same solvent")
     if set(left.phases.phases) != set(right.phases.phases):
         raise ValueError("Mixing requires matching phase topology; resuspend before mixing")
     # Liquid and slurry heat capacities are solvent dominated in this domain.
     volume = destination.volume_L + incoming.volume_L
-    weight = incoming.volume_L / volume if volume else 0.5
+    left_capacity = sum(
+        p.solvents.volume_L * p.solvents.linear_property(HEAT_CAPACITY_RATIOS)
+        for p in left.phases.phases.values()
+    )
+    right_capacity = sum(
+        p.solvents.volume_L * p.solvents.linear_property(HEAT_CAPACITY_RATIOS)
+        for p in right.phases.phases.values()
+    )
+    weight = (
+        right_capacity / (left_capacity + right_capacity) if left_capacity + right_capacity else 0.5
+    )
     phases = {}
     for key, a in left.phases.phases.items():
         b = right.phases.phases[key]
@@ -225,6 +235,7 @@ def _merge(destination: StoredSample, incoming: StoredSample) -> StoredSample:
             a,
             volume_L=a.volume_L + b.volume_L,
             species_amounts_mol=_sum(a.species_amounts_mol, b.species_amounts_mol),
+            solvents=a.solvents + b.solvents,
         )
     equipment: dict[str, EquipmentRecord] = {}
     for key in left.equipment.equipment.keys() | right.equipment.equipment.keys():
@@ -235,7 +246,7 @@ def _merge(destination: StoredSample, incoming: StoredSample) -> StoredSample:
             assert record is not None
             equipment[key] = record
             continue
-        for setting in ("solvent", "catalyst", "crystals_filtered"):
+        for setting in ("catalyst", "crystals_filtered"):
             if left_record.settings.get(setting) != right_record.settings.get(setting):
                 raise ValueError(f"Mixing requires matching {setting}")
         settings = dict(left_record.settings)
@@ -475,8 +486,12 @@ class ChemWorldMaterialRoutingServices:
         samples = _available_samples(state)
         a, b = samples[source], samples[target]
         incoming = _portion(a, fraction, target)
-        incoming = replace(incoming, source_vessel_id=source, lineage=a.lineage or (a.sample_id,),
-                           collected_at_s=state.ledger.time_s)
+        incoming = replace(
+            incoming,
+            source_vessel_id=source,
+            lineage=a.lineage or (a.sample_id,),
+            collected_at_s=state.ledger.time_s,
+        )
         remaining = _portion(a, 1 - fraction, source)
         samples[source] = replace(remaining, retired=(fraction == 1 and source != "active"))
         samples[target] = _merge(b, incoming)

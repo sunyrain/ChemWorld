@@ -41,6 +41,7 @@ class DomainServiceRegistry:
                     "ChemWorldPrimitiveOperationServices",
                     (
                         "add_reagent",
+                        "add_component",
                         "add_solvent",
                         "add_catalyst",
                         "sample",
@@ -137,8 +138,7 @@ class DomainServiceRegistry:
         missing = sorted(expected - owners)
         if missing:
             raise ValueError(
-                f"Invalid domain service registry operation coverage: "
-                f"{{'missing': {missing}}}"
+                f"Invalid domain service registry operation coverage: {{'missing': {missing}}}"
             )
 
     def service_id_for_operation(self, operation: str) -> str:
@@ -203,10 +203,7 @@ class DomainServiceRegistry:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "services": {
-                contract.service_id: contract.to_dict()
-                for contract in self.contracts
-            },
+            "services": {contract.service_id: contract.to_dict() for contract in self.contracts},
             "operation_service_map": self.operation_map(),
         }
 

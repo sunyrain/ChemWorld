@@ -13,10 +13,12 @@ from chemworld.foundation import (
     process_with_metrics,
     upsert_equipment_record,
 )
+from chemworld.foundation.solvents import SolventInventory
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.runtime.full_process_contract import population_active
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.runtime.vnext_downstream import run_duty_limited_distillation
+from chemworld.world.mixtures import working_solvents
 from chemworld.world.parameters import ChemWorldParameters
 
 
@@ -233,7 +235,10 @@ class ChemWorldDistillationServices:
         if population_active(state) and "cut_fraction" in action:
             distillate_cut = float(action["cut_fraction"])
         theoretical_stages = float(np.clip(2.0 + duration / 900.0, 1.0, 20.0))
-        if p_mol + impurity_mol <= 1.0e-12:
+        feed_solvents = working_solvents(state) if bottoms is None else bottoms.solvents
+        cut_solvents = SolventInventory()
+        retained_solvents = feed_solvents
+        if feed_solvents.volume_L <= 1.0e-12:
             distillate_product = 0.0
             distillate_impurity = 0.0
             distillation_metadata: dict[str, object] = {"no_distillable_material": True}
@@ -253,11 +258,22 @@ class ChemWorldDistillationServices:
                 relative_volatility_multiplier=self.world.domain_parameter(
                     "distillation_relative_volatility_multiplier"
                 ),
+                solvents=feed_solvents,
+                carrier_heat_capacity_J_L_K=self.world.rho_cp_J_per_L_K,
             )
             distillate = distillation.outlet("distillate")
             distillate_product = distillate.get("product", 0.0)
             distillate_impurity = distillate.get("impurity", 0.0)
             distillate_cut = distillation.actual_distillate_cut_fraction
+            cut_solvents = SolventInventory(
+                tuple(distillate.get(f"carrier-{i}", 0.0) * 0.018 for i in range(4))
+            )
+            retained_solvents = SolventInventory(
+                tuple(
+                    distillation.outlet("bottoms").get(f"carrier-{i}", 0.0) * 0.018
+                    for i in range(4)
+                )
+            )
             distillation_metadata = distillation.to_dict()
             executed_model_id = distillation.model_id
             heat_duty = distillation.total_reboiler_duty_J
@@ -330,8 +346,8 @@ class ChemWorldDistillationServices:
             risk=risk,
             energy_jacket_J=state.ledger.energy_jacket_J + heat_duty,
         )
-        new_distillate_volume_L = feed_volume_L * distillate_cut
-        bottoms_volume_L = feed_volume_L - new_distillate_volume_L
+        new_distillate_volume_L = cut_solvents.volume_L
+        bottoms_volume_L = retained_solvents.volume_L
         phases = _distillation_phases(
             state,
             feed_amounts=feed_amounts,
@@ -342,6 +358,14 @@ class ChemWorldDistillationServices:
             new_distillate_volume_L=new_distillate_volume_L,
             bottoms_volume_L=bottoms_volume_L,
         )
+        phase_map = phases.phases.copy()
+        old_receiver = previous_phases.get("distillate")
+        previous_carriers = SolventInventory() if old_receiver is None else old_receiver.solvents
+        phase_map["distillate"] = replace(
+            phase_map["distillate"], solvents=previous_carriers + cut_solvents
+        )
+        phase_map["bottoms"] = replace(phase_map["bottoms"], solvents=retained_solvents)
+        phases = PhaseLedger(phase_map)
         receiver = phases.phases["distillate"]
         receiver_product = sum(
             float(receiver.species_amounts_mol.get(species_id, 0.0))

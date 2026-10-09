@@ -7,6 +7,8 @@ from copy import deepcopy
 from dataclasses import dataclass, field, replace
 from typing import Any
 
+from chemworld.foundation.solvents import SolventInventory
+
 
 @dataclass(frozen=True)
 class SpeciesLedger:
@@ -49,10 +51,13 @@ class PhaseRecord:
     settled: bool = False
     selected: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
+    solvents: SolventInventory = field(default_factory=SolventInventory)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "species_amounts_mol", deepcopy(self.species_amounts_mol))
         object.__setattr__(self, "metadata", deepcopy(self.metadata))
+        if self.solvents.volume_L > 0 and abs(self.solvents.volume_L - self.volume_L) > 1e-14:
+            object.__setattr__(self, "solvents", self.solvents.at_volume(self.volume_L))
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -64,6 +69,7 @@ class PhaseRecord:
             "settled": self.settled,
             "selected": self.selected,
             "metadata": deepcopy(self.metadata),
+            "solvents": self.solvents.to_dict(),
         }
 
 
@@ -150,8 +156,7 @@ class EquipmentLedger:
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            equipment_id: equipment.to_dict()
-            for equipment_id, equipment in self.equipment.items()
+            equipment_id: equipment.to_dict() for equipment_id, equipment in self.equipment.items()
         }
 
 

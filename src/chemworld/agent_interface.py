@@ -139,6 +139,7 @@ FIELD_RANGES: dict[str, tuple[float, float]] = {
 }
 
 FIELD_CHOICES: dict[str, list[Any]] = {
+    "component": list(range(16)),
     "container": list(range(1, 17)),
     "source_container": list(range(len(CONTAINER_IDS))),
     "destination_container": list(range(len(CONTAINER_IDS))),
@@ -153,7 +154,7 @@ FIELD_CHOICES: dict[str, list[Any]] = {
 }
 
 OPERATION_GROUPS: dict[str, tuple[str, ...]] = {
-    "reaction_setup": ("add_solvent", "add_reagent", "add_catalyst"),
+    "reaction_setup": ("add_solvent", "add_reagent", "add_component", "add_catalyst"),
     "reaction_control": ("heat", "wait", "quench", "terminate"),
     "sampling_and_measurement": ("sample", "measure"),
     "phase_setup": ("add_phase", "add_extractant"),
@@ -346,7 +347,7 @@ ELECTROCHEMICAL_AUTONOMOUS_OPEN_PROMPT_PROFILE: dict[str, Any] = {
         "Complete each chosen experiment through terminate and final_assay.",
     ],
     "constraints": [
-        "Material identities become locked when the corresponding physical fixture is charged.",
+        "Catalyst and electrolyte identities are fixed; solvent composition changes with dosing.",
         "Terminate is legal only after at least one committed electrolysis.",
         "No diagnostic instrument, second stage, or setpoint change is mandatory.",
     ],
@@ -362,7 +363,7 @@ ELECTROCHEMICAL_AUTONOMOUS_OPEN_PROMPT_PROFILE: dict[str, Any] = {
     "failure_modes": [
         "terminating before electrolysis",
         "budget exhaustion before final_assay",
-        "invalid material changes after the cell formulation is locked",
+        "invalid catalyst or electrolyte changes after the corresponding fixture is charged",
     ],
 }
 
@@ -458,14 +459,7 @@ def _field_schema(
 
 def _locked_recipe_choice(base: Any, operation: str, field: str) -> Any | None:
     lock_contract = {
-        "add_solvent": ("solvent", "batch_reactor", "solvent_volume_L"),
-        "resuspend_crystals": ("solvent", "batch_reactor", "solvent_volume_L"),
         "add_catalyst": ("catalyst", "batch_reactor", "catalyst_amount_mol"),
-        "add_extractant": (
-            "extractant",
-            "liquid_liquid_extractor",
-            "extractant_volume_L",
-        ),
     }.get(operation)
     if lock_contract is None:
         return None
@@ -569,8 +563,9 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
     if operation == "transfer_material" and state is not None:
         from chemworld.runtime.material_routing import material_routes
 
-        constraints.append({"id": "material_routing", "kind": "material_routes",
-                            "routes": material_routes(state)})
+        constraints.append(
+            {"id": "material_routing", "kind": "material_routes", "routes": material_routes(state)}
+        )
     if operation == "cool_crystallize" and state is not None:
         constraints.extend(
             [
@@ -654,16 +649,20 @@ def action_schema(env: Any, operation: str) -> dict[str, Any]:
             "Use validate_action(action) before executing.",
             "Payload aliases are canonicalized by the environment action codec.",
             "Fields outside operation and required_fields are rejected atomically.",
-            *([
-                "Storage domain: quenched same-solvent reactor liquids and crystal slurries; "
-                "sealed isothermal storage has no reaction, evaporation or phase evolution.",
-                "Transfer is instantaneous and proportional in every phase; liquid heat "
-                "capacity determines adiabatic mixing temperature.",
-                "Each transfer uses a new disposable tool (cost 0.005); each new container "
-                "costs 0.02 and retires when emptied. Occupied destinations require mixing=1.",
-                "Addresses: active=0, container-01..16=1..16, filtrate-0001..0016=17..32. "
-                "Use the material_routes constraint for compatible source/destination bounds.",
-            ] if operation in {"create_container", "transfer_material"} else []),
+            *(
+                [
+                    "Storage domain: quenched finite-catalog mixed liquids and crystal slurries; "
+                    "sealed isothermal storage has no reaction, evaporation or phase evolution.",
+                    "Transfer is instantaneous and proportional in every phase; liquid heat "
+                    "capacity determines adiabatic mixing temperature.",
+                    "Each transfer uses a new disposable tool (cost 0.005); each new container "
+                    "costs 0.02 and retires when emptied. Occupied destinations require mixing=1.",
+                    "Addresses: active=0, container-01..16=1..16, filtrate-0001..0016=17..32. "
+                    "Use the material_routes constraint for compatible source/destination bounds.",
+                ]
+                if operation in {"create_container", "transfer_material"}
+                else []
+            ),
         ],
     }
 
@@ -823,6 +822,7 @@ def resource_blocked_actions(env: Any) -> list[dict[str, Any]]:
 
 
 _CAMPAIGN_RESOURCE_STOCK_FIELDS: dict[str, tuple[str, str]] = {
+    "add_component": ("reagent_mol", "amount_mol"),
     "add_reagent": ("reagent_mol", "amount_mol"),
     "add_solvent": ("solvent_L", "volume_L"),
     "resuspend_crystals": ("solvent_L", "volume_L"),
@@ -1061,6 +1061,8 @@ def _apply_campaign_resource_schema(
             stocks = remaining.get("stocks", {})
             if isinstance(stocks, dict):
                 stock_remaining = max(float(stocks.get(stock_id, 0.0)), 0.0)
+                if operation == "add_reagent":
+                    stock_remaining /= ledger.reagent_charge_molar_multiplier
     for field in fields:
         field_name = str(field.get("field", ""))
         if (

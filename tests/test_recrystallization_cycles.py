@@ -182,7 +182,7 @@ def test_invalid_resuspension_preserves_physical_state(tmp_path):
         for action in [
             {"operation": "resuspend_crystals", "volume_L": 0.2, "solvent": 0},
             {"operation": "resuspend_crystals", "volume_L": float("nan"), "solvent": 0},
-            {"operation": "resuspend_crystals", "volume_L": 0.015, "solvent": 1},
+            {"operation": "resuspend_crystals", "volume_L": 0.015, "solvent": 99},
         ]:
             assert env.step(action)[-1]["transaction_status"] != "committed"
             assert env.unwrapped._state.phases == state.phases

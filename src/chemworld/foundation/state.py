@@ -7,6 +7,7 @@ from dataclasses import dataclass, field, replace
 from typing import Any
 
 from chemworld.foundation.samples import SampleLedger
+from chemworld.foundation.solvents import SolventAccounting, SolventInventory
 from chemworld.foundation.state_helpers import (
     equipment_settings,
     equipment_status,
@@ -73,6 +74,7 @@ class WorldState:
     thermal: ThermalLedger | None = None
     process: ProcessLedger | None = None
     samples: SampleLedger = field(default_factory=SampleLedger)
+    solvent_accounting: SolventAccounting = field(default_factory=SolventAccounting)
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "species_amounts", deepcopy(self.species_amounts))
@@ -91,6 +93,11 @@ class WorldState:
             phase_type=self.phase,
             volume_L=self.volume_L,
             species_amounts_mol=self.species_amounts,
+            solvents=(
+                self.phases.phases["reactor_liquid"].solvents
+                if self.phases is not None and "reactor_liquid" in self.phases.phases
+                else SolventInventory()
+            ),
         )
         phases = (
             PhaseLedger({"reactor_liquid": phase})
@@ -163,12 +170,8 @@ class WorldState:
             sample_consumed_L=self.ledger.sample_consumed_L,
             waste_L=0.0 if self.process is None else self.process.waste_L,
             metrics={} if self.process is None else self.process.metrics,
-            last_observation=(
-                {} if self.process is None else self.process.last_observation
-            ),
-            last_observed_mask=(
-                {} if self.process is None else self.process.last_observed_mask
-            ),
+            last_observation=({} if self.process is None else self.process.last_observation),
+            last_observed_mask=({} if self.process is None else self.process.last_observed_mask),
         )
         object.__setattr__(self, "species", species)
         object.__setattr__(self, "phases", phases)
@@ -197,6 +200,7 @@ class WorldState:
             "process": None if self.process is None else self.process.to_dict(),
             "samples": self.samples.to_dict() if include_hidden else self.samples.public_summary(),
             "material_routing": self.samples.routing_summary(),
+            "solvent_accounting": self.solvent_accounting.to_dict(),
         }
         if include_hidden:
             payload["species_amounts"] = deepcopy(self.species_amounts)

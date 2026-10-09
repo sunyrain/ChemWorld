@@ -31,6 +31,7 @@ from chemworld.runtime.phase_separation_services import ChemWorldPhaseSeparation
 from chemworld.runtime.primitive_services import ChemWorldPrimitiveOperationServices
 from chemworld.runtime.reaction_thermal_services import ChemWorldReactionThermalServices
 from chemworld.runtime.record_services import ChemWorldOperationRecorder
+from chemworld.runtime.solvent_transport import finish_solvent_transition, initialize_solvents
 from chemworld.runtime.species import MechanismSpeciesView
 from chemworld.world.operations import operation_name
 from chemworld.world.parameters import ChemWorldParameters
@@ -77,6 +78,7 @@ class ChemWorldDomainServices:
         action: dict[str, Any],
     ) -> tuple[WorldState, OperationRecord]:
         operation = operation_name(action["operation"])
+        state = initialize_solvents(state)
         before = state
         preconditions = self.constitution.check_preconditions(operation, state, action)
         if not all(preconditions.values()):
@@ -94,6 +96,7 @@ class ChemWorldDomainServices:
         except KeyError as exc:
             raise ValueError(f"Unsupported operation: {operation}") from exc
 
+        next_state = finish_solvent_transition(state, next_state, action)
         next_state = self.reaction_thermal.with_risk_and_pressure(next_state)
         return next_state, self.operation_recorder.record(
             operation,
@@ -110,6 +113,7 @@ class ChemWorldDomainServices:
             "create_container": self.material_routing.create_container,
             "transfer_material": self.material_routing.transfer_material,
             "add_reagent": self.primitive.add_reagent,
+            "add_component": self.primitive.add_component,
             "add_solvent": self.primitive.add_solvent,
             "add_catalyst": self.primitive.add_catalyst,
             "heat": lambda state, action: self.reaction_thermal.integrate(state, action, heat=True),

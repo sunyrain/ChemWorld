@@ -19,6 +19,7 @@ from chemworld.physchem.reactor_shared import (
     ReactorResult,
     ReactorValidityDomain,
 )
+from chemworld.world.mixtures import volumetric_heat_capacity, working_solvents
 from chemworld.world.thermal_control import REACTION_THERMAL_CONTROL_ID
 
 R_GAS = 8.31446261815324
@@ -153,8 +154,7 @@ def integrate_compiled_reaction_ode(
     network.check_conservation(raise_on_error=True)
     species_ids = network.species_ids
     initial_amounts = {
-        species_id: float(state.species_amounts.get(species_id, 0.0))
-        for species_id in species_ids
+        species_id: float(state.species_amounts.get(species_id, 0.0)) for species_id in species_ids
     }
     if any(value < 0.0 or not np.isfinite(value) for value in initial_amounts.values()):
         raise ValueError("reaction species amounts must be finite and nonnegative")
@@ -162,9 +162,7 @@ def integrate_compiled_reaction_ode(
     catalyst = int(reactor_settings.get("catalyst", 0))
     solvent = int(reactor_settings.get("solvent", 0))
     catalyst_effects, solvent_effects = _reaction_effect_tables(world, state)
-    if catalyst_effects.ndim not in {1, 2} or catalyst not in range(
-        catalyst_effects.shape[0]
-    ):
+    if catalyst_effects.ndim not in {1, 2} or catalyst not in range(catalyst_effects.shape[0]):
         raise ValueError("configured catalyst index is outside the world contract")
     if solvent_effects.ndim not in {1, 2} or solvent not in range(solvent_effects.shape[0]):
         raise ValueError("configured solvent index is outside the world contract")
@@ -182,7 +180,7 @@ def integrate_compiled_reaction_ode(
     }
     adjusted_network = RuntimeAdjustedReactionNetwork(network, multipliers)
     thermal = HeatTransferSpec(
-        rho_cp_J_per_L_K=float(world.rho_cp_J_per_L_K),
+        rho_cp_J_per_L_K=volumetric_heat_capacity(state, world.rho_cp_J_per_L_K),
         ua_W_per_K=float(world.ua_W_per_K),
         environment_temperature_K=float(world.environment_temperature_K),
         jacket_ua_W_per_K=4.0 if heat else 0.0,
@@ -235,8 +233,7 @@ def integrate_compiled_reaction_ode(
     )
     if abs(energy_residual) > 1.0e-5 * energy_scale:
         raise RuntimeError(
-            "reaction energy ledger failed to close: "
-            f"residual={energy_residual:.6g} J"
+            f"reaction energy ledger failed to close: residual={energy_residual:.6g} J"
         )
     species_amounts = state.species_amounts.copy()
     species_amounts.update(reactor_result.final_state.amounts_mol)
@@ -262,9 +259,7 @@ def integrate_compiled_reaction_ode(
     )
     provenance = {
         "provider_id": "chemworld_validated_reaction_reactor_runtime_v1",
-        "reaction_network_model_id": (
-            "reaction_ode_mass_action_arrhenius_reference_slice"
-        ),
+        "reaction_network_model_id": ("reaction_ode_mass_action_arrhenius_reference_slice"),
         "reactor_model_id": "dynamic_batch_heat_release_jacket_sampling",
         "reactor_class": "chemworld.physchem.batch_reactors.DynamicBatchReactorModel",
         "reaction_network_class": "chemworld.physchem.reaction_network.ReactionNetworkSpec",
@@ -496,7 +491,7 @@ def compiled_reaction_ode_rhs(
     if heat:
         q_jacket = float(np.clip((target_temperature_K - temperature) * 4.0, -70.0, 90.0))
     heat_loss = world.ua_W_per_K * (temperature - world.environment_temperature_K)
-    heat_capacity = float(world.rho_cp_J_per_L_K) * volume
+    heat_capacity = volumetric_heat_capacity(state, world.rho_cp_J_per_L_K) * volume
     if not np.isfinite(heat_capacity) or heat_capacity <= 0.0:
         raise RuntimeError("diagnostic reaction RHS requires positive heat capacity")
     derivatives[species_count] = (q_jacket - heat_loss - reaction_heat_W) / heat_capacity
@@ -516,29 +511,26 @@ def _hidden_reaction_modifier(
     state: WorldState,
 ) -> float:
     catalyst_effects, solvent_effects = _reaction_effect_tables(world, state)
-    if catalyst_effects.ndim not in {1, 2} or catalyst not in range(
-        catalyst_effects.shape[0]
-    ):
+    if catalyst_effects.ndim not in {1, 2} or catalyst not in range(catalyst_effects.shape[0]):
         raise ValueError("catalyst index is outside the world effect table")
-    if solvent_effects.ndim not in {1, 2} or solvent not in range(
-        solvent_effects.shape[0]
-    ):
+    if solvent_effects.ndim not in {1, 2} or solvent not in range(solvent_effects.shape[0]):
         raise ValueError("solvent index is outside the world effect table")
     catalyst_index = catalyst
-    solvent_index = solvent
     catalyst_reaction_index = min(reaction_index, catalyst_effects.shape[-1] - 1)
     solvent_reaction_index = min(reaction_index, solvent_effects.shape[-1] - 1)
     reactor_settings = equipment_settings(state.equipment, "batch_reactor")
     catalyst_charged = float(reactor_settings.get("catalyst_amount_mol", 0.0)) > 0.0
     catalyst_factor = (
-        catalyst_effects[catalyst_index, catalyst_reaction_index]
-        if catalyst_effects.ndim == 2
-        else catalyst_effects[catalyst_index]
-    ) if catalyst_charged else 1.0
-    solvent_factor = (
-        solvent_effects[solvent_index, solvent_reaction_index]
-        if solvent_effects.ndim == 2
-        else solvent_effects[solvent_index]
+        (
+            catalyst_effects[catalyst_index, catalyst_reaction_index]
+            if catalyst_effects.ndim == 2
+            else catalyst_effects[catalyst_index]
+        )
+        if catalyst_charged
+        else 1.0
+    )
+    solvent_factor = working_solvents(state).log_property(
+        solvent_effects[:, solvent_reaction_index] if solvent_effects.ndim == 2 else solvent_effects
     )
     return float(catalyst_factor * solvent_factor * stirring_factor)
 

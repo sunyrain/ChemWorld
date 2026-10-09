@@ -16,7 +16,7 @@ def _latent(wrapper: ConditionalHybridActionWrapper, operation: str) -> np.ndarr
     return vector
 
 
-def test_wrapper_projects_locked_public_recipe_choices() -> None:
+def test_wrapper_preserves_independent_solvent_choices() -> None:
     env = ConditionalHybridActionWrapper(
         gym.make("ChemWorld", task_id="partition-discovery", budget_override=8)
     )
@@ -31,13 +31,13 @@ def test_wrapper_projects_locked_public_recipe_choices() -> None:
 
         schema = action_schema(env, "add_solvent")
         solvent_field = next(field for field in schema["fields"] if field["field"] == "solvent")
-        assert solvent_field["locked_for_current_experiment"] is True
-        assert solvent_field["choices"] == [first_action["solvent"]]
+        assert "locked_for_current_experiment" not in solvent_field
+        assert solvent_field["choices"] == [0, 1, 2, 3]
 
         second = first.copy()
         second[solvent_coordinate] = 1.0
         second_action = env.action(second)
-        assert second_action["solvent"] == first_action["solvent"]
+        assert second_action["solvent"] != first_action["solvent"]
         assert validate_action(env, second_action)["valid"] is True
     finally:
         env.close()
@@ -69,8 +69,9 @@ def test_decoder_uses_dynamic_public_bounds_and_cooling_constraint() -> None:
     base = gym.make("ChemWorld", task_id="reaction-to-crystallization")
     try:
         assert isinstance(base.action_space, gym.spaces.Dict)
-        vector = np.zeros(len(OPERATION_TYPES) + len(base.action_space.spaces) - 1,
-                          dtype=np.float32)
+        vector = np.zeros(
+            len(OPERATION_TYPES) + len(base.action_space.spaces) - 1, dtype=np.float32
+        )
         vector[OPERATION_TYPES.index("cool_crystallize")] = 1.0
         required = list(operation_contracts()["cool_crystallize"].required_fields)
         schema = {
@@ -149,9 +150,7 @@ def test_adapter_uses_only_public_schema_mask_and_validation() -> None:
 def test_public_schema_adapter_projects_exact_latent_endpoints(
     task_id: str, parameter_endpoint: float
 ) -> None:
-    env = ConditionalHybridActionWrapper(
-        gym.make("ChemWorld", task_id=task_id, budget_override=64)
-    )
+    env = ConditionalHybridActionWrapper(gym.make("ChemWorld", task_id=task_id, budget_override=64))
     try:
         env.reset(seed=0)
         available = action_mask(env)
@@ -186,9 +185,7 @@ def test_public_schema_adapter_projects_exact_latent_endpoints(
     ],
 )
 def test_public_schema_adapter_keeps_seeded_walks_dispatchable(task_id: str) -> None:
-    env = ConditionalHybridActionWrapper(
-        gym.make("ChemWorld", task_id=task_id, budget_override=64)
-    )
+    env = ConditionalHybridActionWrapper(gym.make("ChemWorld", task_id=task_id, budget_override=64))
     rng = np.random.default_rng(3107)
     try:
         env.reset(seed=3107)

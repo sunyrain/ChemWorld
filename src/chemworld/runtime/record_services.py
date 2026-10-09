@@ -16,6 +16,7 @@ from chemworld.world.operations import instrument_name
 MATERIAL_DELTA_ALLOWED_OPERATIONS = frozenset(
     {
         "add_reagent",
+        "add_component",
         "add_catalyst",
         "add_solvent",
         "sample",
