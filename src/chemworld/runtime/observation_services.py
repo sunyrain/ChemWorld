@@ -151,6 +151,11 @@ class ChemWorldObservationKernel:
         raw_signal = self._raw_signal(
             instrument_id, noisy, state, rng, species_amounts_mol=public_species_amounts
         )
+        raw_signal["acquisition"] = {
+            "clock_semantics": "instantaneous_snapshot",
+            "sample_time_s": state.ledger.time_s,
+            "result_time_s": state.ledger.time_s,
+        }
         if empty_crystals and instrument_id in {"particle_size", "final_assay"}:
             raw_signal["sample_outcome"] = {
                 "status": "negative_result",

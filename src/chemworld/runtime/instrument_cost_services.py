@@ -55,14 +55,13 @@ class ChemWorldInstrumentCostServices:
         fraction = 0.0 if state.volume_L <= 0 else volume / state.volume_L
         species = {key: value * (1.0 - fraction) for key, value in state.species_amounts.items()}
         ledger = state.ledger.with_updates(
-            time_s=state.ledger.time_s + (120.0 if instrument_id == "particle_size" else 0.0),
             cost=state.ledger.cost + instrument.cost,
             sample_consumed_L=state.ledger.sample_consumed_L + volume,
         )
         equipment_id = instrument_equipment_id(instrument_id)
         previous_settings = equipment_settings(state.equipment, equipment_id)
         use_count = int(previous_settings.get("use_count", 0)) + 1
-        execution = {
+        execution: dict[str, Any] = {
             "measurement_index": use_count,
             "model_id": INSTRUMENT_RUNTIME_MODEL_ID,
             "provider_path": INSTRUMENT_RUNTIME_PROVIDER_PATH,

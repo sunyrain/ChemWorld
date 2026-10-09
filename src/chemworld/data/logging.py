@@ -338,4 +338,15 @@ class TrajectoryLogger:
 
 def load_jsonl(path: str | Path) -> list[dict[str, Any]]:
     with Path(path).open("r", encoding="utf-8") as handle:
-        return [json.loads(line) for line in handle if line.strip()]
+        records = []
+        for line_number, line in enumerate(handle, 1):
+            if not line.strip():
+                continue
+            try:
+                record = json.loads(line)
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"{path}:{line_number}: invalid JSON: {exc.msg}") from exc
+            if not isinstance(record, dict):
+                raise ValueError(f"{path}:{line_number}: trajectory record must be a JSON object")
+            records.append(record)
+        return records

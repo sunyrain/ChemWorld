@@ -254,6 +254,7 @@ class InstrumentContract:
             "missingness_contract": self.missingness_contract,
             "cost": self.cost,
             "latency_s": self.latency_s,
+            "clock_semantics": "instantaneous_snapshot",
             "sample_consumption_L": self.sample_consumption_L,
             "destructive": self.destructive,
             "requires_terminated": self.requires_terminated,
@@ -265,14 +266,6 @@ class InstrumentContract:
 def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, InstrumentContract]:
     """Return formal contracts for every instrument available in ChemWorld."""
 
-    latency = {
-        "uvvis": 90.0,
-        "ph_meter": 45.0,
-        "gc": 480.0,
-        "hplc": 600.0,
-        "final_assay": 1200.0,
-        "particle_size": 120.0,
-    }
     calibration = {
         "uvvis": "beer_lambert_public_calibration_v2",
         "ph_meter": "nernstian_public_ph_calibration_v2",
@@ -363,14 +356,17 @@ def instrument_contracts(*, include_particle_size: bool = False) -> dict[str, In
                 "masking": "removes spectral evidence only; does not alter world state",
             },
             cost=float(instrument.cost),
-            latency_s=latency.get(instrument_id, 300.0),
+            latency_s=0.0,
             sample_consumption_L=float(instrument.sample_volume_L),
             destructive=instrument.sample_volume_L > 0.0,
             requires_terminated=bool(instrument.requires_terminated),
             calibration_profile=calibration.get(instrument_id, "public_calibration"),
             synthetic_boundary=(
                 "Bounded synthetic benchmark instrument; it does not predict real samples, "
-                "replace an empirical spectral library, or emulate a physical device."
+                "replace an empirical spectral library, or emulate a physical device. "
+                "Sampling and results share the current simulation time; measurement does not "
+                "advance chemistry, temperature, or energy. Chromatogram retention times are "
+                "signal coordinates, not elapsed world time."
             ),
         )
     return contracts

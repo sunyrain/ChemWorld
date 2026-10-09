@@ -202,7 +202,7 @@ def test_negative_result_closes_with_missing_statistics_and_replay(tmp_path):
         assert particle["raw_signal"]["d50_um"] is None
         assert particle["measurement_cost"] > 0.0
         assert particle["sample_consumed"] == 0.0
-        assert particle["state_delta_summary"]["delta_time_s"] == 120.0
+        assert particle["state_delta_summary"]["delta_time_s"] == 0.0
         assert failed_filter["transaction_status"] == "rolled_back"
         assert failed_filter["preconditions"]["filter_requires_crystallization"] is False
         assert terminate["transaction_status"] == "committed"
