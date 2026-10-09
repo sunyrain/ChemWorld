@@ -15,6 +15,7 @@ from chemworld.physchem.batch_reactors import DynamicBatchReactorModel
 from chemworld.physchem.reaction_network import ReactionNetworkSpec
 from chemworld.physchem.reactor_shared import (
     HeatTransferSpec,
+    JacketTemperatureProgram,
     PressureBoundarySpec,
     ReactorResult,
     ReactorValidityDomain,
@@ -126,13 +127,14 @@ def integrate_compiled_reaction_ode(
     target_temperature_K: float,
     heat: bool,
     stirring_speed_rpm: float,
+    jacket_program: JacketTemperatureProgram | None = None,
 ) -> ReactionIntegrationResult | None:
     """Advance the validated mechanism through the bounded dynamic-batch reactor."""
 
     if compiled_mechanism is None:
         raise ValueError("compiled_mechanism is required for reaction integration")
 
-    duration = _bounded_finite(duration_s, "duration_s", minimum=1.0, maximum=14_400.0)
+    duration = _bounded_finite(duration_s, "duration_s", minimum=1.0e-6, maximum=14_400.0)
     target_temperature = _bounded_finite(
         target_temperature_K,
         "target_temperature_K",
@@ -168,7 +170,9 @@ def integrate_compiled_reaction_ode(
         raise ValueError("configured solvent index is outside the world contract")
     stirring_factor = 0.70 + 0.30 * (1.0 - np.exp(-stirring_speed / 420.0))
     multipliers = {
-        reaction.reaction_id: _hidden_reaction_modifier(
+        reaction.reaction_id: 0.0
+        if state.quenched
+        else _hidden_reaction_modifier(
             world,
             catalyst=catalyst,
             solvent=solvent,
@@ -207,6 +211,7 @@ def integrate_compiled_reaction_ode(
         temperature_K=state.temperature_K,
         duration_s=duration,
         heat_transfer=thermal,
+        jacket_program=jacket_program,
         pressure_boundary=PressureBoundarySpec(pressure_Pa=state.pressure_Pa),
         validity_domain=validity_domain,
         evaluation_times_s=tuple(np.linspace(0.0, duration, 17)),

@@ -46,6 +46,8 @@ class Ledger:
     energy_jacket_J: float = 0.0
     heat_reaction_J: float = 0.0
     heat_loss_J: float = 0.0
+    gas_pump_work_J: float = 0.0
+    gas_bath_heat_J: float = 0.0
 
     def with_updates(self, **updates: float) -> Ledger:
         return replace(self, **updates)
@@ -169,7 +171,8 @@ class WorldState:
                     )
                 }
             )
-            if self.thermal is None or (
+            if self.thermal is None
+            or (
                 set(self.thermal.vessels) == {self.vessel_id}
                 and "component_network" not in self.metadata
             )

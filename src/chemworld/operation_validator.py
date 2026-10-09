@@ -33,6 +33,7 @@ from chemworld.runtime.full_process_contract import (
 )
 from chemworld.schemas import validate_action_schema
 from chemworld.world.actions import ELECTROLYTE_PROFILES
+from chemworld.world.control_contract import CONTROL_OPERATIONS
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
     OPERATION_CUMULATIVE_FIELD_LIMITS,
@@ -257,9 +258,18 @@ class OperationValidator:
         ):
             dynamic_low = 0.0
         authored = self.authored_field_bounds.get((operation_type, field))
+        bounds_operation = (
+            "heat"
+            if operation_type in {"configure_control", "queue_control_stage"}
+            and field == "target_temperature_K"
+            else operation_type
+        )
+        authored = self.authored_field_bounds.get((bounds_operation, field), authored)
         network = state.metadata.get("component_network", {})
-        authored = network.get("bounds", {}).get(state.vessel_id, {}).get(
-            f"{operation_type}:{field}", authored
+        authored = (
+            network.get("bounds", {})
+            .get(state.vessel_id, {})
+            .get(f"{bounds_operation}:{field}", authored)
         )
         if authored is not None:
             dynamic_low = max(dynamic_low, authored[0])
@@ -488,6 +498,20 @@ class OperationValidator:
         from chemworld.runtime.component_network import operation_available
 
         preconditions["operation_available_in_vessel"] = operation_available(state, operation_type)
+        if operation_type in CONTROL_OPERATIONS:
+            from chemworld.runtime.control_program import control_settings
+
+            controller = control_settings(state)
+            preconditions["controller_configured"] = operation_type == "configure_control" or bool(
+                controller
+            )
+            if operation_type == "advance_control":
+                preconditions["controller_running"] = (
+                    controller.get("status") == "running" and state.volume_L > 0
+                )
+            if operation_type == "resume_control":
+                preconditions["controller_paused"] = controller.get("status") == "paused"
+            preconditions["controller_episode_open"] = not state.terminated
         network = state.metadata.get("component_network")
         if network is not None and operation_type == "measure":
             preconditions["instrument_available_in_vessel"] = (
@@ -846,6 +870,10 @@ class OperationValidator:
         state: WorldState,
     ) -> dict[str, bool]:
         checks: dict[str, bool] = {}
+        if operation_type in CONTROL_OPERATIONS:
+            from chemworld.runtime.control_program import control_error
+
+            checks["payload_control_valid"] = control_error(state, operation_type, payload) is None
         if operation_type in {"select_vessel", "route_material"}:
             from chemworld.runtime.component_network import network_error
 

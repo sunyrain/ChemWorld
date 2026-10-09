@@ -9,6 +9,12 @@ import numpy as np
 
 from chemworld.foundation.samples import CONTAINER_IDS
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
+from chemworld.world.control_contract import (
+    CONTROL_ACTION_FIELDS,
+    CONTROL_CHOICES,
+    CONTROL_NUMERIC,
+    CONTROL_VECTOR_FIELDS,
+)
 from chemworld.world.operations import (
     CAMPAIGN_CONTROL_OPERATIONS,
     INSTRUMENTS,
@@ -52,6 +58,7 @@ GYM_ACTION_KEYS = (
     "component",
     "vessel",
     "connection",
+    *CONTROL_VECTOR_FIELDS,
 )
 
 
@@ -82,6 +89,21 @@ class ActionCodec:
             canonical = payload
         canonical["operation"] = self._operation_name(canonical["operation"])
         canonical = self._apply_aliases(canonical)
+        for field, choices in CONTROL_CHOICES.items():
+            if field in canonical:
+                canonical[field] = self._index(canonical[field], choices)
+        control_numeric_fields = set(CONTROL_NUMERIC) | (
+            set(CONTROL_ACTION_FIELDS.get(canonical["operation"], ())) - set(CONTROL_CHOICES)
+        )
+        for field in control_numeric_fields:
+            if field in canonical:
+                if np.asarray(canonical[field]).dtype.kind == "b":
+                    raise ValueError(f"{field} must be numeric, not boolean")
+                canonical[field] = self._float(canonical, field, 0)
+                low, high = CONTROL_NUMERIC[field][:2] if field in CONTROL_NUMERIC else (0.0, 0.0)
+                for boundary in (low, high):
+                    if abs(canonical[field] - boundary) <= abs(boundary) * 1e-7:
+                        canonical[field] = boundary
         if "component" in canonical:
             canonical["component"] = self._index(canonical["component"], FEED_IDS)
         for field, choices in (("vessel", self.vessels), ("connection", self.connections)):
@@ -224,7 +246,11 @@ class ActionCodec:
             self._float(action, "vessel", 0.0),
             self._float(action, "connection", 0.0),
         ]
-        vector = np.asarray(values, dtype=np.float32)
+        control_values = [
+            self._float(action, key, CONTROL_NUMERIC[key][3] if key in CONTROL_NUMERIC else 0)
+            for key in CONTROL_VECTOR_FIELDS
+        ]
+        vector = np.asarray([*values, *control_values], dtype=np.float32)
         if not np.all(np.isfinite(vector)):
             raise ValueError("Encoded action vector must contain only finite values")
         return vector
@@ -283,6 +309,12 @@ class ActionCodec:
         decoded["component"] = int(np.clip(round(array[28]), 0, len(FEED_IDS) - 1))
         decoded["vessel"] = int(np.clip(round(array[29]), 0, max(len(self.vessels) - 1, 0)))
         decoded["connection"] = int(np.clip(round(array[30]), 0, max(len(self.connections) - 1, 0)))
+        for index, key in enumerate(CONTROL_VECTOR_FIELDS, 31):
+            decoded[key] = (
+                int(np.clip(round(array[index]), 0, len(CONTROL_CHOICES[key]) - 1))
+                if key in CONTROL_CHOICES
+                else float(array[index])
+            )
         return {"operation": operation, **{key: decoded[key] for key in required}}
 
     def phase_name(self, value: Any) -> str:

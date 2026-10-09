@@ -9,6 +9,7 @@ import numpy as np
 
 from chemworld.foundation import Operation
 from chemworld.world.actions import SOLVENTS
+from chemworld.world.control_contract import CONTROL_ACTION_FIELDS, CONTROL_OPERATIONS
 from chemworld.world.ontology import chemworld_state_variables
 
 REACTION_OPERATIONS = (
@@ -22,6 +23,7 @@ REACTION_OPERATIONS = (
     "quench",
     "create_container",
     "transfer_material",
+    *CONTROL_OPERATIONS,
     "terminate",
     "measure",
 )
@@ -88,6 +90,9 @@ EXTENDED_INSTRUMENTS = (*INSTRUMENTS, "particle_size")
 # Services may retain defensive clipping, but validated actions must never be
 # silently reinterpreted by those guards.
 OPERATION_FIELD_BOUNDS: dict[tuple[str, str], tuple[float, float]] = {
+    ("configure_control", "target_temperature_K"): (250.0, 430.0),
+    ("queue_control_stage", "target_temperature_K"): (250.0, 430.0),
+    ("advance_control", "duration_s"): (1.0, 14400.0),
     ("route_material", "transfer_fraction"): (0.0, 1.0),
     ("transfer_material", "transfer_fraction"): (0.0, 1.0),
     ("heat", "duration_s"): (1.0, 14_400.0),
@@ -195,12 +200,18 @@ def chemworld_operations() -> tuple[Operation, ...]:
     """Return operation contracts for the shared event language."""
 
     return (
+        *(
+            Operation(name, "Persistent bounded process control", fields, ("not_terminated",))
+            for name, fields in CONTROL_ACTION_FIELDS.items()
+        ),
         Operation(
             "select_vessel", "Select a declared component vessel", ("vessel",), ("not_terminated",)
         ),
         Operation(
-            "route_material", "Route a declared material output",
-            ("connection", "transfer_fraction", "mixing"), ("not_terminated",)
+            "route_material",
+            "Route a declared material output",
+            ("connection", "transfer_fraction", "mixing"),
+            ("not_terminated",),
         ),
         Operation(
             "create_container",

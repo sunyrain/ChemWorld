@@ -16,6 +16,7 @@ from chemworld.foundation import (
 )
 from chemworld.foundation.state import PhaseLedger, PhaseRecord
 from chemworld.physchem.crystallization_units import SolubilityCurveSpec
+from chemworld.physchem.reactor_shared import JacketTemperatureProgram
 from chemworld.runtime.full_process_contract import (
     FULL_PROCESS_FREE_RESEARCH_CONTRACT,
     FULL_PROCESS_SEED_CONTRACT,
@@ -266,12 +267,13 @@ class ChemWorldReactionThermalServices:
         action: dict[str, Any],
         *,
         heat: bool,
+        jacket_program: JacketTemperatureProgram | None = None,
     ) -> WorldState:
         duration = _bounded_action_float(
             action,
             "duration_s",
             600.0,
-            minimum=1.0,
+            minimum=1.0e-6 if jacket_program is not None else 1.0,
             maximum=14_400.0,
         )
         target_temperature = _bounded_action_float(
@@ -289,7 +291,7 @@ class ChemWorldReactionThermalServices:
             minimum=100.0,
             maximum=1200.0,
         )
-        if state.quenched:
+        if state.quenched and jacket_program is None:
             working_state, dissolved = (
                 self._redissolve_crystals_for_heating(state, target_temperature)
                 if heat
@@ -301,7 +303,7 @@ class ChemWorldReactionThermalServices:
                 }
                 else (state, 0.0)
             )
-            result = self._quenched_thermal_hold(
+            held_state = self._quenched_thermal_hold(
                 working_state,
                 duration_s=duration,
                 target_temperature_K=target_temperature,
@@ -310,13 +312,13 @@ class ChemWorldReactionThermalServices:
             )
             if dissolved > 0 and not seed_provenance_active(state):
                 energy = 20000.0 * dissolved
-                result = result.replace(
-                    ledger=result.ledger.with_updates(
-                        energy_jacket_J=result.ledger.energy_jacket_J + energy,
-                        heat_reaction_J=result.ledger.heat_reaction_J + energy,
+                held_state = held_state.replace(
+                    ledger=held_state.ledger.with_updates(
+                        energy_jacket_J=held_state.ledger.energy_jacket_J + energy,
+                        heat_reaction_J=held_state.ledger.heat_reaction_J + energy,
                     )
                 )
-            return result
+            return held_state
         working_state, redissolved_target = (
             self._redissolve_crystals_for_heating(state, target_temperature)
             if heat
@@ -350,6 +352,7 @@ class ChemWorldReactionThermalServices:
                 target_temperature_K=target_temperature,
                 heat=heat,
                 stirring_speed_rpm=stirring_speed,
+                jacket_program=jacket_program,
             )
         except (RuntimeError, ValueError):
             # The kernel transaction manager owns rollback.  Return a candidate
@@ -378,7 +381,9 @@ class ChemWorldReactionThermalServices:
             ),
             heat_loss_J=working_state.ledger.heat_loss_J + result.heat_loss_J,
         )
-        advance_index = int(reactor_settings.get("reaction_advance_index", 0)) + 1
+        advance_index = int(reactor_settings.get("reaction_advance_index", 0)) + int(
+            not state.quenched
+        )
         operation_type = "heat" if heat else "wait"
         equipment = upsert_equipment_record(
             working_state.equipment,
@@ -420,13 +425,14 @@ class ChemWorldReactionThermalServices:
                     if working_state.process is None
                     else working_state.process.metrics.get("reaction_cumulative_time_s", 0.0)
                 )
-                + result.duration_s
+                + (0.0 if state.quenched else result.duration_s)
             ),
         )
         phases = working_state.phases
         species_amounts = result.species_amounts
         if active_phase is not None and active_phase_id != "reactor_liquid":
             assert active_phase_id is not None
+            assert working_state.phases is not None
             phase_records = working_state.phases.phases.copy()
             phase_records[active_phase_id] = replace(
                 phase_records[active_phase_id],
@@ -446,6 +452,11 @@ class ChemWorldReactionThermalServices:
     def with_risk_and_pressure(self, state: WorldState) -> WorldState:
         flow_settings = equipment_settings(state.equipment, "flow_reactor")
         pressure_override = flow_settings.get("outlet_pressure_Pa")
+        controller = equipment_settings(state.equipment, "process_controller")
+        if controller:
+            from chemworld.foundation.gas import GasBoundary
+
+            pressure_override = GasBoundary.from_dict(controller["gas"]).pressure_pa
         pressure, risk = pressure_and_risk(
             state=state,
             solvent_risks=self.world.solvent_risks,

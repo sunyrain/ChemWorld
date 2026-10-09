@@ -10,6 +10,7 @@ from gymnasium import spaces
 
 from chemworld.foundation.samples import CONTAINER_IDS
 from chemworld.world.actions import CATALYSTS, ELECTROLYTE_PROFILES, SOLVENTS
+from chemworld.world.control_contract import CONTROL_CHOICES, CONTROL_NUMERIC
 from chemworld.world.operations import (
     INSTRUMENTS,
     OPERATION_TYPES,
@@ -92,6 +93,11 @@ def make_action_space() -> spaces.Dict:
             "capacity_L": spaces.Box(0.0001, 0.1, shape=(1,), dtype=np.float32),
             "mixing": spaces.Discrete(2),
             "component": spaces.Discrete(16),
+            **{key: spaces.Discrete(len(choices)) for key, choices in CONTROL_CHOICES.items()},
+            **{
+                key: spaces.Box(low, high, shape=(1,), dtype=np.float32)
+                for key, (low, high, _unit, _default) in CONTROL_NUMERIC.items()
+            },
             "vessel": spaces.Discrete(16),
             "connection": spaces.Discrete(64),
             "amount_mol": spaces.Box(0.0, 0.040, shape=(1,), dtype=np.float32),
