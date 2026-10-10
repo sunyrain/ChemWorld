@@ -6,8 +6,9 @@ Old paper results use an independent frozen source/dependency snapshot, not a
 compatibility backend in current main.
 
 See the maintained [scope, archive boundary, licenses and actual validation record](https://github.com/sunyrain/ChemWorld/blob/main/docs/community_release.md).
-The matrix target is Linux, Windows and macOS on Python 3.11/3.12; unexecuted or
-billing-blocked cloud jobs are not passing results. The package is not a hostile-code
+The matrix target is Linux, Windows and macOS on Python 3.11/3.12. Validation runs
+locally; cloud CI is no longer used or required. Windows installation is still
+unverified, and historical billing-blocked jobs are not passing results. The package is not a hostile-code
 sandbox. The provider-free writable Lab is loopback-only with bounded local
 requests and sessions; exports/replay use the native trajectory format.
 

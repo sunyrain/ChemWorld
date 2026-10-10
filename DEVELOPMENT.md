@@ -36,6 +36,12 @@ implicit dependency sync.
 
 ## Change workflow
 
+Validation runs locally. Cloud CI is not used or required for development or release;
+the package and documentation Actions workflows were removed on 10 October 2026.
+Keep focused checks for the changed behavior and verify installation on the platforms
+actually claimed as supported. The local commands below and in
+[the distribution record](docs/community_release.md#development-validation) remain available.
+
 1. Resolve active paths from `configs/current.json`; do not select files by largest version suffix.
 2. Trace consumers before removing superseded code or configuration. Migrate active callers together;
    preserve frozen inputs and results at their bound paths without refreshing historical hashes.

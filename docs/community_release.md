@@ -93,7 +93,15 @@ research checkout. Current main has one runtime, no old-physics compatibility
 backend. Other historical trajectories require their own original execution
 commit, not automatically the paper snapshot.
 
-## External CI diagnosis (9 October 2026)
+## Local validation policy (10 October 2026)
+
+Cloud CI is no longer required. The package and documentation Actions workflows
+have been removed from this repository at the project owner's request. Development
+and release checks run locally, using the commands below; restoring account billing
+is not an acceptance condition. This does not change installation coverage or turn
+unexecuted checks into passing results. The separate public repository is unchanged.
+
+### Historical cloud diagnosis (9 October 2026)
 
 The public repository's failed CI run 31571033524 and documentation run
 31571033531 at `db98e800` did **not** execute their build/test steps. GitHub's
@@ -106,8 +114,8 @@ The newly added development workflows at `29b46d4d` were blocked for the same
 reason (for example check 113696715300); no cloud test step ran there either.
 The same condition was independently confirmed at `a7badfc6`: the
 [current-interface check](https://github.com/sunyrain/ChemWorld/runs/113744875024)
-has an empty step list and an explicit billing-lock annotation. Restoring Actions
-requires the repository account administrator; changing source code cannot fix it.
+has an empty step list and an explicit billing-lock annotation. Those unexecuted
+steps remain historical records, not outstanding source-code fixes.
 
 Local installation/matrix results and current-repository CI are reported
 separately; never count a queued or billing-blocked job as passed.
@@ -116,10 +124,10 @@ separately; never count a queued or billing-blocked job as passed.
 
 Target matrix: Linux, Windows and macOS, each with Python 3.11 and 3.12.
 Metadata allowing newer Python versions is not a claim that they were tested.
-The workflow runs focused current-interface checks, then installs **both wheel
+Local validation runs focused current-interface checks and installs **both wheel
 and sdist** into fresh environments outside the checkout using committed locked
-dependencies. Documentation has a strict-build-only job, with no deployment,
-tagging or package publication.
+dependencies. The strict documentation build is also local; these commands do not
+deploy documentation, tag a release or publish a package.
 
 Run the same installation check locally:
 
@@ -145,7 +153,7 @@ regression passed **45 tests**. Six existing scikit-learn GP arithmetic warnings
 were reported, not suppressed. Focused type checking of the public Lab and
 examples passed (nine directly checked files); package-wide typing still reports
 errors in research modules outside this delivery. Do not interpret the focused
-CI job as a claim that repository-wide typing is clean.
+type check as a claim that repository-wide typing is clean.
 The final global check reports 192 errors in 36 files (449 files checked), in
 evaluation/provider/agent modules and two core interface/resource modules. Those
 owned-core issues were not hidden with ignores or reassigned to this UI release.
@@ -166,7 +174,7 @@ experiments or evidence of improved scientific predictions.
 | macOS arm64 | 3.12.14 | Passed | Passed |
 | Ubuntu 22.04 x86_64 | 3.11.15 | Passed | Passed |
 | Ubuntu 22.04 x86_64 | 3.12.13 | Passed | Passed |
-| Windows CI target | 3.11 / 3.12 | Not run | Not run |
+| Windows target | 3.11 / 3.12 | Not run | Not run |
 
 The eight completed installations each passed the full smoke described above,
 including seven new-process offline replays. Linux used the same execution code
@@ -181,9 +189,8 @@ then completed in fresh environments outside the source tree.
 
 This is not a claim about every Linux distribution, macOS Intel, other Python
 versions, Windows, screen readers or mobile browsers. The declared target matrix
-is unchanged. **Cross-platform acceptance remains incomplete** until a Windows
-runner executes both archive paths and GitHub's account-level Actions lock is
-resolved. The latest workflow at `9a2f90a7` likewise has no executed steps; see
+is unchanged. **Cross-platform acceptance remains incomplete** until Windows
+installation checks execute both archive paths on Python 3.11 and 3.12.
+Cloud execution is not required. The historical workflow at `9a2f90a7` had no executed steps; see
 [its current-interface check](https://github.com/sunyrain/ChemWorld/runs/113761967642).
-An administrator must restore Actions or provide an authorized Windows runner;
-do not remove that matrix entry merely to turn this record green.
+Do not remove the Windows matrix entry merely to turn this record green.
