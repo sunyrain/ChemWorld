@@ -60,3 +60,27 @@ history 是环境保存的操作、观测、失败和资源事实。假设记录
 - history 适合查事实，记录本适合取回解释；原始谱图仍应按需读取。当前完整公开工件较大，未来若优化查询，优先提供已有 processed_estimate/raw_signal 的字段选择，避免为了找一个指标翻整个谱图数组。无需为此新增知识图谱、假设状态 API 或自动摘要，也不在本轮继续扩功能。
 
 本轮交付的角色说明位于 `src/chemworld/agents/hypothesis_notebook.py`；试用入口是 `uv run --no-sync -m scripts.run_hypothesis_notebook_pilot --output <new-external-directory>`。版本存储沿用 `ExperimentDocumentWorkspace`，未改 Work II 正式 MCP 协议。原始输入/输出、三份笔记及 `notebook-review.json`、`summary.json`、`fresh-process-replay.json` 在上述仓库外目录；集中测试记录为同级 `acceptance-tests.xml`。两个尝试已报告合计 932167 tokens，不据订阅用量推算美元价格。
+
+## 后续接口完善（2026-10-10，R47）
+
+用户授权继续完善记录本。本段是后续开发，不修改上面 R46 的固定设计、预算或失败结果；没有新增模型运行，也没有重做两批实验。保留五个笔记工具与自由 Markdown，不增加写入配额、必读检查点或自动注入。
+
+本次解决实际查阅问题：
+
+| 需要 | 当前用法 / 改动 |
+| --- | --- |
+| 从笔记引用找原始事实 | `lab_history` 新增可选 `event_ids`，一次请求最多 10 个已有事件，按原时间顺序返回；分页分母是匹配事件数。未知引用明确报错，不静默漏掉。 |
+| 只看观测或处理后估计 | `lab_artifact` 新增 `fields`，例如 `["observation", "processed_estimate"]`；原值保留，null 不补零。判断差异时可一并请求 `uncertainty`。返回 `available_fields`，也可请求 `raw_signal` 或省略 fields 分页读取完整原件。 |
+| 新会话知道有哪些记录可查 | `lab_status` 提供公开历史的事件数/最后事件 ID 和笔记版本元数据；正文仍须主动 read，宿主事件位置不冒充模型实际已读范围。 |
+| 比较未以换行结束的笔记 | diff 使用明确的无末尾换行标记，修复删除行和新增行挤在一起的显示问题；版本原文不改写。 |
+| 让猜想有科学边界 | 角色说明提醒区分数值差异与效应证据，考虑已知误差、分辨率、混杂和重复性；未知则保留未决，不编造误差条，不事后补写事前阈值。提示不作为自动评分或实验门禁。 |
+
+建议使用顺序由 Agent 自选：必要时 `notebook_read` 取回当前解释 → 根据引用用 `lab_history(event_ids=...)` 查事实 → 需要时用 `lab_artifact(fields=...)` 深查读出 → 新证据确实改变解释或决策时 `notebook_write`。`notebook_log/diff/restore` 用来审查版本，恢复始终追加新版本且不撤销实验。该顺序是使用示例，不是规定流程。
+
+验证范围预先限定为已有五个记录本/历史/试用测试文件，并补真实 STDIO 子进程重启、选择字段的原值/原件保留和无换行 diff 回归；只验证软件行为。另只读比较已保留 attempt-02 第 9 个操作（NMR）完整工件与 observation/processed_estimate 两个字段的序列化字符数，度量查询输出量，不估计模型 tokens 或科学收益。原件不写回，不重新执行轨迹。
+
+当前接口范围也保持清楚：版本存储是可复用 Python API；事件定位与字段选择接入的是这个开发 MCP host，尚未迁入 Work II 正式协议。新进程可以通过工具读回原文，不等于真实模型会主动取回、更会使用，后者仍未验证。
+
+实际结果：**27/27 定向测试通过（7.44 s）**，涵盖五个既有测试文件及新增的查询/版本用例；两个独立 STDIO 子进程验证重启前后正文一致、主动读取前不回传正文。3 个改动源码文件的定向 mypy、Ruff、diff 检查与严格双语文档构建通过。JUnit 在系统临时目录 `chemworld-notebook-r47-tests.xml`，没有新建审计包。顺手补齐开发 runner 的类型注解/流类型收窄，不改变实验覆盖或预算。
+
+只读体积核对：上述 NMR 完整公开原件为 **165131 字符**，选取 observation 与 processed_estimate 后为 **1128 字符**，选取体积减少 **99.32%**；字段值保持一致，原件未修改，原始信号仍可另取。该数字仅比较这一个工件的序列化正文，不含工具响应元数据、其他会话输入或模型输出，不能外推为总 token 节省比例。R46 的 384053 tokens 与 1/2 批结果保持原样。

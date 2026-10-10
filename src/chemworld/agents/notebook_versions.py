@@ -179,13 +179,17 @@ class NotebookVersions:
             left: dict[str, Any] = {"revision": 0, "text": self.default_text}
         else:
             left = self._load(right["revision"] - 1 if before is None else before)
+        lines = difflib.unified_diff(
+            left["text"].splitlines(keepends=True),
+            right["text"].splitlines(keepends=True),
+            fromfile=f"v{left['revision']}",
+            tofile=f"v{right['revision']}",
+        )
+        # Agent-authored Markdown often has no trailing newline. Preserve that
+        # distinction without joining the removed and added text onto one line.
         delta = "".join(
-            difflib.unified_diff(
-                left["text"].splitlines(keepends=True),
-                right["text"].splitlines(keepends=True),
-                fromfile=f"v{left['revision']}",
-                tofile=f"v{right['revision']}",
-            )
+            line if line.endswith("\n") else line + "\n\\ No newline at end of file\n"
+            for line in lines
         )
         return {
             "before": self._metadata(left),

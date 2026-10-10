@@ -80,3 +80,18 @@ def test_on_demand_pagination_import_and_invalid_requests(tmp_path):
     assert w.notebook_tool("log")["total"] == 2
     with pytest.raises(ValueError, match="new run"):
         w.reset()
+
+
+def test_diff_keeps_unterminated_lines_readable_and_detects_newline_only_change(tmp_path):
+    w = workspace(tmp_path)
+    w.notebook_tool("write", text="H1: unresolved")
+    w.notebook_tool("write", text="H1: narrower scope")
+    diff = w.notebook_tool("diff")["text"]
+    assert "-H1: unresolved\n\\ No newline at end of file\n" in diff
+    assert "+H1: narrower scope\n\\ No newline at end of file\n" in diff
+    assert "unresolved+H1" not in diff
+    w.notebook_tool("write", text="H1: narrower scope\n")
+    diff = w.notebook_tool("diff")["text"]
+    assert "-H1: narrower scope\n\\ No newline at end of file\n" in diff
+    assert "+H1: narrower scope\n" in diff
+    assert diff.count("No newline") == 1

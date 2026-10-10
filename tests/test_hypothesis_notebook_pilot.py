@@ -180,6 +180,25 @@ def test_stdio_protocol_real_subprocess_and_metadata_only(tmp_path):
     assert body == "HIDDEN_UNTIL_REQUESTED — 假设在350\u2013420 K待检验"
     assert all("error" not in r for r in lines)
 
+    # A second, independent MCP process gets metadata only until it requests the
+    # retained notebook. This verifies transport/persistence, not LLM behavior.
+    restart_requests = [requests[0], requests[1], requests[4], requests[5]]
+    restarted = subprocess.run(
+        [*result.args, "--batch", "2"],
+        input="\n".join(json.dumps(r, ensure_ascii=False) for r in restart_requests) + "\n",
+        capture_output=True,
+        encoding="utf-8",
+        timeout=60,
+        cwd=Path(__file__).resolve().parents[1],
+        check=True,
+        env=child_env,
+    )
+    replies = [json.loads(line) for line in restarted.stdout.splitlines()]
+    assert [r["id"] for r in replies] == [1, 4, 5]
+    assert "HIDDEN_UNTIL_REQUESTED" not in json.dumps(replies[:2])
+    recovered = json.loads(replies[2]["result"]["content"][0]["text"])
+    assert recovered["revision"] == 1 and recovered["text"] == body
+
 
 def test_bad_protocol_params_do_not_mutate_environment(tmp_path):
     host = PilotHost(tmp_path, 1)
@@ -207,5 +226,70 @@ def test_bulk_schema_and_handled_errors_allow_continuing(tmp_path):
         assert host.call("lab_schema", {"operations": ["final_assay"]})["error"]
         assert not host.call("notebook_write", {"text": "H1 — 未检验"}).get("error")
         assert host.docs.notebook_tool("read")["text"] == "H1 — 未检验"
+    finally:
+        host.close()
+
+
+def test_cited_events_and_selected_artifact_fields_preserve_public_values(tmp_path):
+    host = PilotHost(tmp_path, 1)
+    try:
+        for action in batch_actions():
+            event = host.call("lab_step", {"action": action, "reason": "scripted"})
+            assert "error" not in event
+        ledger = host.docs.authoritative_path.read_bytes()
+        nmr_id, final_id = "batch-1-operation-006", "batch-1-operation-008"
+        matched = host.call("lab_history", {"event_ids": [final_id, nmr_id], "limit": 1})
+        assert matched["total"] == 2 and matched["next_offset"] == 1
+        assert matched["events"][0]["event_id"] == nmr_id
+        second = host.call(
+            "lab_history", {"event_ids": [final_id, nmr_id], "offset": 1, "limit": 1}
+        )
+        assert second["events"][0]["event_id"] == final_id
+        assert second["next_offset"] is None
+
+        original = (tmp_path / "public-artifacts" / f"{nmr_id}.json").read_bytes()
+        artifact = json.loads(original)
+        requested = ["observation", "processed_estimate"]
+        response = host.call("lab_artifact", {"event_id": nmr_id, "fields": requested})
+        assert response["next_offset"] is None
+        assert response["selected_fields"] == requested
+        assert json.loads(response["text"]) == {key: artifact[key] for key in requested}
+        assert set(response["available_fields"]) == artifact.keys()
+        assert len(response["text"]) < len(original.decode("utf-8"))
+        # Raw values/arrays stay available and can be reassembled without loss.
+        chunks = []
+        offset = 0
+        while offset is not None:
+            response = host.call(
+                "lab_artifact",
+                {"event_id": nmr_id, "fields": ["raw_signal"], "offset": offset, "limit": 12000},
+            )
+            assert "error" not in response
+            chunks.append(response["text"])
+            offset = response["next_offset"]
+        assert json.loads("".join(chunks)) == {"raw_signal": artifact["raw_signal"]}
+
+        # Nulls/missing observations remain exactly as recorded, not inferred or zero-filled.
+        initial_id = "batch-1-operation-001"
+        initial = json.loads((tmp_path / "public-artifacts" / f"{initial_id}.json").read_bytes())
+        response = host.call("lab_artifact", {"event_id": initial_id, "fields": ["observation"]})
+        assert json.loads(response["text"])["observation"] == initial["observation"]
+        assert any(value is None for value in initial["observation"].values())
+
+        for tool, args in [
+            ("lab_history", {"event_ids": [final_id, "future"]}),
+            ("lab_history", {"event_ids": [final_id, final_id]}),
+            ("lab_history", {"event_ids": []}),
+            ("lab_history", {"event_ids": "not a list"}),
+            ("lab_artifact", {"event_id": nmr_id, "fields": ["evaluator_truth"]}),
+            ("lab_artifact", {"event_id": nmr_id, "fields": []}),
+            ("lab_artifact", {"event_id": nmr_id, "fields": "raw_signal"}),
+            ("lab_artifact", {"event_id": "../../credentials", "fields": ["observation"]}),
+        ]:
+            assert host.call(tool, args).get("error"), args
+        assert host.steps == len(batch_actions())
+        assert host.docs.authoritative_path.read_bytes() == ledger
+        assert (tmp_path / "public-artifacts" / f"{nmr_id}.json").read_bytes() == original
+        assert host.status()["public_history"] == {"event_count": 8, "last_event_id": final_id}
     finally:
         host.close()

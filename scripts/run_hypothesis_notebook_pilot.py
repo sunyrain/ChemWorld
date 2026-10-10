@@ -14,8 +14,9 @@ import subprocess
 import sys
 import time
 from collections import Counter
+from io import TextIOWrapper
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from scripts.run_notebook_environment_pilot import OPERATIONS, append, composition, quality
 
@@ -128,14 +129,39 @@ def tool_definitions() -> list[dict[str, Any]]:
         ),
         (
             "lab_history",
-            "Read public facts across batches. No model interpretations.",
-            {"offset": integer, "limit": {**positive, "maximum": 10}},
+            "Read public facts across batches. Optionally select cited event_ids; "
+            "results stay in chronological order and pagination applies to matches. "
+            "No model interpretations.",
+            {
+                "event_ids": {
+                    "type": "array",
+                    "items": string,
+                    "minItems": 1,
+                    "maxItems": 10,
+                    "uniqueItems": True,
+                },
+                "offset": integer,
+                "limit": {**positive, "maximum": 10},
+            },
             [],
         ),
         (
             "lab_artifact",
-            "Read full public observation/raw signal JSON, paginated by characters.",
-            {"event_id": string, "offset": integer, "limit": {**positive, "maximum": 12000}},
+            "Read public observation JSON, paginated by characters. Select top-level "
+            "fields such as observation, processed_estimate or raw_signal to avoid "
+            "paging unrelated schemas/arrays. Omit fields for the full original JSON. "
+            "Every response lists available_fields; values are unchanged, not summarized.",
+            {
+                "event_id": string,
+                "fields": {
+                    "type": "array",
+                    "items": string,
+                    "minItems": 1,
+                    "uniqueItems": True,
+                },
+                "offset": integer,
+                "limit": {**positive, "maximum": 12000},
+            },
             ["event_id"],
         ),
         (
@@ -243,13 +269,19 @@ class PilotHost:
         return observation_view(self.env, "tool_json", self.obs, self.info)
 
     def status(self) -> dict[str, Any]:
+        documents = self.docs.manifest()
+        ledger = documents["authoritative_ledger"]
         return {
             "batch": self.batch,
             "physical_attempts_remaining": 24 - self.steps,
             "tool_requests_remaining": self.tool_budget - self.calls,
             "terminal": self.terminal,
             "truncated": self.truncated,
-            "notebook": self.docs.manifest()["model_notebook"]["latest"],
+            "notebook": documents["model_notebook"]["latest"],
+            "public_history": {
+                "event_count": ledger["line_count"],
+                "last_event_id": ledger["last_event_id"],
+            },
             **compact_public(self.view()),
         }
 
@@ -306,13 +338,45 @@ class PilotHost:
                 raise ValueError("unknown operation; final_assay is measure's instrument")
             return {op: action_schema(self.env, op) for op in operations}
         if name == "lab_history":
-            return page(records(self.docs.authoritative_path), **args)
+            events = records(self.docs.authoritative_path)
+            selected = args.get("event_ids")
+            if selected is not None:
+                if (
+                    not isinstance(selected, list)
+                    or not 1 <= len(selected) <= 10
+                    or any(not isinstance(key, str) for key in selected)
+                    or len(set(selected)) != len(selected)
+                ):
+                    raise ValueError("event_ids must contain 1..10 distinct public event IDs")
+                unknown = set(selected) - {event["event_id"] for event in events}
+                if unknown:
+                    raise ValueError(f"unknown public events: {sorted(unknown)}")
+                events = [event for event in events if event["event_id"] in selected]
+            return page(events, offset=args.get("offset", 0), limit=args.get("limit", 5))
         if name == "lab_artifact":
             event_id = args["event_id"]
             # Resolve only an actual public event, never an arbitrary agent-supplied path.
-            if event_id not in {e["event_id"] for e in records(self.docs.authoritative_path)}:
+            if not isinstance(event_id, str) or event_id not in {
+                e["event_id"] for e in records(self.docs.authoritative_path)
+            }:
                 raise ValueError("unknown public event")
             body = (self.root / "public-artifacts" / f"{event_id}.json").read_text(encoding="utf-8")
+            artifact = json.loads(body)
+            fields = args.get("fields")
+            if fields is not None:
+                if (
+                    not isinstance(fields, list)
+                    or not fields
+                    or any(not isinstance(field, str) for field in fields)
+                    or len(set(fields)) != len(fields)
+                ):
+                    raise ValueError("fields must be a nonempty list of distinct top-level names")
+                unknown = set(fields) - artifact.keys()
+                if unknown:
+                    raise ValueError(
+                        f"unknown fields: {sorted(unknown)}; available_fields: {sorted(artifact)}"
+                    )
+                body = json.dumps({key: artifact[key] for key in fields}, ensure_ascii=False)
             offset, limit = args.get("offset", 0), args.get("limit", 8000)
             if (
                 type(offset) is not int
@@ -323,6 +387,9 @@ class PilotHost:
                 raise ValueError("invalid artifact page")
             end = min(len(body), offset + limit)
             return {
+                "event_id": event_id,
+                "available_fields": sorted(artifact),
+                "selected_fields": fields,
                 "text": body[offset:end],
                 "offset": offset,
                 "total_characters": len(body),
@@ -438,8 +505,8 @@ def dispatch(host: PilotHost, request: dict[str, Any]) -> dict[str, Any] | None:
 def serve(root: Path, batch: int, tool_budget: int, deadline: float) -> None:
     # MCP is UTF-8 even when Windows starts the child with a legacy locale and
     # does not forward the launcher's PYTHONIOENCODING environment variable.
-    sys.stdin.reconfigure(encoding="utf-8", errors="strict")
-    sys.stdout.reconfigure(encoding="utf-8", errors="strict")
+    cast(TextIOWrapper, sys.stdin).reconfigure(encoding="utf-8", errors="strict")
+    cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8", errors="strict")
     host = PilotHost(root, batch, tool_budget=tool_budget, deadline=deadline)
     try:
         for line in sys.stdin:
@@ -453,7 +520,9 @@ def serve(root: Path, batch: int, tool_budget: int, deadline: float) -> None:
         host.close()
 
 
-def cli_command(client, root: Path, batch: int, tool_budget: int, deadline: float) -> list[str]:
+def cli_command(
+    client: CodexSubscriptionClient, root: Path, batch: int, tool_budget: int, deadline: float
+) -> list[str]:
     folder = root / "provider" / f"session-{batch}"
     folder.mkdir(parents=True, exist_ok=False)
     workspace = folder / "empty-workspace"
@@ -523,7 +592,7 @@ def cli_command(client, root: Path, batch: int, tool_budget: int, deadline: floa
 
 
 def stop_process(process: subprocess.Popen) -> None:
-    if os.name == "nt":
+    if sys.platform == "win32":
         subprocess.run(
             ["taskkill", "/PID", str(process.pid), "/T", "/F"],
             capture_output=True,
@@ -622,6 +691,7 @@ def run(root: Path) -> dict[str, Any]:
                     **kwargs,
                 )
                 try:
+                    assert process.stdin is not None  # Popen was opened with stdin=PIPE.
                     process.stdin.write((folder / "prompt.txt").read_text(encoding="utf-8"))
                     process.stdin.close()
                     last_progress = 0.0
@@ -667,7 +737,7 @@ def run(root: Path) -> dict[str, Any]:
                 for e in events
                 if e.get("type") == "turn.completed" and isinstance(e.get("usage"), dict)
             ]
-            usage = dict(Counter())
+            usage: dict[str, int | float] = {}
             for u in usage_events:
                 for key, value in u.items():
                     if isinstance(value, (int, float)):
