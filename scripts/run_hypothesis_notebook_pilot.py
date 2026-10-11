@@ -240,15 +240,24 @@ class PilotHost:
     """One serialized MCP host owns one batch; notebook/history persist across hosts."""
 
     def __init__(
-        self, root: Path, batch: int, *, tool_budget: int = 60, deadline: float | None = None
+        self,
+        root: Path,
+        batch: int,
+        *,
+        tool_budget: int = 60,
+        deadline: float | None = None,
+        seed: int = 0,
+        observation_seed: int | None = None,
     ):
         self.root, self.batch = root, batch
         self.folder = root / f"batch-{batch}"
         self.folder.mkdir(parents=True, exist_ok=False)
         self.docs = ExperimentDocumentWorkspace(root / "research", versioned_notebook=True)
         self.docs.initialize()
-        self.env = ChemWorldEnv(composition=composition(), seed=0)
-        self.obs, self.info = self.env.reset(seed=0)
+        self.env = ChemWorldEnv(
+            composition=composition(), seed=seed, observation_seed_override=observation_seed
+        )
+        self.obs, self.info = self.env.reset(seed=seed)
         self.logger = TrajectoryLogger(self.folder / "trajectory.jsonl")
         self.task = {**self.env.task_info(), **self.env.evaluator_provenance()}
         self.tool_budget = tool_budget

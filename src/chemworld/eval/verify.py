@@ -212,9 +212,6 @@ def verify_records(
             value = first.get(record_key)
             if isinstance(value, str) and value:
                 env_kwargs[env_key] = value
-        observation_seed = first.get("observation_seed")
-        if isinstance(observation_seed, int) and not isinstance(observation_seed, bool):
-            env_kwargs["observation_seed_override"] = observation_seed
         # New trajectories carry the evaluator-only normalized configuration
         # separately so a misindexed arm can be reconstructed without exposing
         # the transposition to the agent-facing material dossier.  Fall back
@@ -237,6 +234,11 @@ def verify_records(
             "objective": _objective_from_record(first),
             "seed": int(first["seed"]),
         }
+    # Observation streams can be overridden for composed worlds as well as
+    # benchmark tasks. Reconstruct the recorded stream independently of seed.
+    observation_seed = first.get("observation_seed")
+    if isinstance(observation_seed, int) and not isinstance(observation_seed, bool):
+        env_kwargs["observation_seed_override"] = observation_seed
     campaign_resource_card = first.get("campaign_resource_card")
     if isinstance(first.get("research_brief"), dict):
         env_kwargs["research_brief"] = dict(first["research_brief"])
