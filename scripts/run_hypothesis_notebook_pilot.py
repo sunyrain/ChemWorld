@@ -152,6 +152,14 @@ def tool_definitions() -> list[dict[str, Any]]:
             [],
         ),
         (
+            "lab_reports",
+            "Read your submitted reports from earlier batches, on demand. With no batch, "
+            "list metadata only. Reports are model interpretations, not authoritative facts; "
+            "check lab_history for observations. Body pagination uses characters.",
+            {"batch": positive, "offset": integer, "limit": {**positive, "maximum": 32000}},
+            [],
+        ),
+        (
             "lab_artifact",
             "Read public observation JSON, paginated by characters. Select top-level "
             "fields such as observation, processed_estimate or raw_signal to avoid "
@@ -299,8 +307,22 @@ class PilotHost:
                 "event_count": ledger["line_count"],
                 "last_event_id": ledger["last_event_id"],
             },
+            "previous_reports": {"batches": list(self.prior_reports())},
             **compact_public(self.view()),
         }
+
+    def prior_reports(self) -> dict[int, dict[str, Any]]:
+        """Only previously submitted model reports; never expose evaluator summaries."""
+        reports = {}
+        for number in range(1, self.batch):
+            result = read_json(self.root / f"batch-{number}" / "host-summary.json", {})
+            if result.get("finished") and isinstance(result.get("report"), str):
+                reports[number] = {
+                    "batch": number,
+                    "text": result["report"],
+                    "final_assay_completed": bool(result.get("terminal")),
+                }
+        return reports
 
     def persist(self) -> None:
         self.result.update(
@@ -370,6 +392,39 @@ class PilotHost:
                     raise ValueError(f"unknown public events: {sorted(unknown)}")
                 events = [event for event in events if event["event_id"] in selected]
             return page(events, offset=args.get("offset", 0), limit=args.get("limit", 5))
+        if name == "lab_reports":
+            reports = self.prior_reports()
+            number = args.get("batch")
+            metadata = [
+                {
+                    "batch": item["batch"],
+                    "total_characters": len(item["text"]),
+                    "final_assay_completed": item["final_assay_completed"],
+                }
+                for item in reports.values()
+            ]
+            if number is None:
+                return {"reports": metadata, "source": "model_submitted_reports"}
+            if type(number) is not int or number not in reports:
+                raise ValueError("batch must identify a previously submitted report")
+            offset, limit = args.get("offset", 0), args.get("limit", 8000)
+            if (
+                type(offset) is not int
+                or offset < 0
+                or type(limit) is not int
+                or not 1 <= limit <= 32000
+            ):
+                raise ValueError("invalid report page")
+            body = reports[number]["text"]
+            end = min(len(body), offset + limit)
+            return {
+                **reports[number],
+                "text": body[offset:end],
+                "offset": offset,
+                "total_characters": len(body),
+                "next_offset": end if end < len(body) else None,
+                "source": "model_submitted_report_not_authoritative_fact",
+            }
         if name == "lab_artifact":
             event_id = args["event_id"]
             # Resolve only an actual public event, never an arbitrary agent-supplied path.

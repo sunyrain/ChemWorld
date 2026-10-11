@@ -364,8 +364,16 @@ def run_session(
     deadline: float,
     completed: int,
     block_start: float,
+    *,
+    command_args: list[str] | None = None,
+    planned_batches: int = 12,
+    tool_budget: int = 36,
 ) -> dict[str, Any]:
-    args = command(client, root, campaign, batch, deadline)
+    args = (
+        command_args
+        if command_args is not None
+        else command(client, root, campaign, batch, deadline)
+    )
     folder = root / "provider" / f"session-{batch}"
     kwargs = (
         {"creationflags": subprocess.CREATE_NO_WINDOW}
@@ -403,19 +411,19 @@ def run_session(
                                 "campaign": campaign,
                                 "batch": batch,
                                 "completed": completed,
-                                "total": 12,
+                                "total": planned_batches,
                                 "calls": status.get("tool_calls", 0),
                                 "physical_steps": status.get("steps", 0),
                                 "elapsed_s": round(elapsed),
                                 "batches_per_min": rate,
-                                "eta_min": (12 - completed) / rate if rate else None,
+                                "eta_min": (planned_batches - completed) / rate if rate else None,
                             }
                         ),
                         flush=True,
                     )
                     last = time.time()
                 if time.time() >= deadline or (
-                    status.get("tool_calls", 0) >= 36 and not status.get("finished")
+                    status.get("tool_calls", 0) >= tool_budget and not status.get("finished")
                 ):
                     stop_reason = "time_or_tool_budget"
                     base.stop_process(process)
