@@ -1,0 +1,3650 @@
+{
+  "formal_result": false,
+  "planned_batches": 8,
+  "completed_batches": 8,
+  "total_tokens": 3842393,
+  "failures": [],
+  "elapsed_s": 1216.209715604782,
+  "arms": {
+    "H": {
+      "total_tokens": 1691872,
+      "batches": [
+        {
+          "batch": 1,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 17,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-001",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.05,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-002",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 0
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-003",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-004",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 300,
+                "duration_s": 1800,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-005",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-006",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-007",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 1800,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-008",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-009",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-010",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 360,
+                "duration_s": 1800,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-011",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-012",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-013",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-014",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-015",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-016",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-017",
+              "notebook_revision": 0
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002000000000000001,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002000000000000001,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 17,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_schema": 1,
+            "lab_step": 17,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [],
+          "post_last_action_revisions": [],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-1-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.18375933170318604,
+                "selectivity": 0.32473379373550415,
+                "conversion": 0.5637516975402832,
+                "cost": 0.5389999747276306,
+                "safety_risk": 0.11046242713928223,
+                "score": 0.12097268551588058,
+                "byproduct_signal": 0.19121497869491577
+              }
+            },
+            {
+              "event_id": "batch-1-operation-007",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.47407642006874084,
+                "cost": 0.6528000235557556,
+                "safety_risk": 0.11046242713928223,
+                "score": 0.0,
+                "byproduct_signal": 0.2430150806903839
+              }
+            },
+            {
+              "event_id": "batch-1-operation-009",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.27753332257270813,
+                "selectivity": 0.3463982939720154,
+                "conversion": 0.9346818327903748,
+                "cost": 0.7477999925613403,
+                "safety_risk": 0.12030699104070663,
+                "score": 0.17658768594264984,
+                "byproduct_signal": 0.35059425234794617
+              }
+            },
+            {
+              "event_id": "batch-1-operation-010",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.46928489208221436,
+                "cost": 0.8615999817848206,
+                "safety_risk": 0.12030699104070663,
+                "score": 0.0,
+                "byproduct_signal": 0.47011640667915344
+              }
+            },
+            {
+              "event_id": "batch-1-operation-012",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.2960518002510071,
+                "selectivity": 0.2880174219608307,
+                "conversion": 0.9880857467651367,
+                "cost": 0.95660001039505,
+                "safety_risk": 0.1314152628183365,
+                "score": 0.14249500632286072,
+                "byproduct_signal": 0.41605839133262634
+              }
+            },
+            {
+              "event_id": "batch-1-operation-013",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.41634848713874817,
+                "cost": 1.0,
+                "safety_risk": 0.1314152628183365,
+                "score": 0.0
+              }
+            },
+            {
+              "event_id": "batch-1-operation-014",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.3089695870876312,
+                "selectivity": 0.2812798023223877,
+                "conversion": 0.9839423298835754,
+                "cost": 1.0,
+                "safety_risk": 0.1314152628183365,
+                "score": 0.14034515619277954,
+                "byproduct_signal": 0.4062454104423523
+              }
+            },
+            {
+              "event_id": "batch-1-operation-017",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.29335594177246094,
+                "selectivity": 0.26380059123039246,
+                "conversion": 0.9883438944816589,
+                "cost": 1.0,
+                "safety_risk": 0.11987902969121933,
+                "score": 0.1314927637577057,
+                "byproduct_signal": 0.4078490734100342,
+                "degradation_warning": 0.06381265074014664,
+                "virtual_spectrum_summary": 0.2530326843261719
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.29335594177246094,
+            "selectivity": 0.26380059123039246,
+            "conversion": 0.9883438944816589,
+            "cost": 1.0,
+            "safety_risk": 0.11987902969121933,
+            "score": 0.1314927637577057,
+            "byproduct_signal": 0.4078490734100342,
+            "degradation_warning": 0.06381265074014664,
+            "virtual_spectrum_summary": 0.2530326843261719
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 331849,
+              "cached_input_tokens": 299648,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3825,
+              "reasoning_output_tokens": 1321
+            },
+            "usage_complete": true,
+            "total_tokens": 335674,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 131.13605117797852
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 2,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 11,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-001",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "solvent": 2,
+                "volume_L": 0.05
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-002",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst": 0,
+                "catalyst_amount_mol": 0.001
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-003",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-004",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 3600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-005",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-006",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-007",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-008",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-009",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-010",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-011",
+              "notebook_revision": 0
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 11,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_history",
+              "arguments": {
+                "limit": 10,
+                "offset": 10
+              },
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "lab_history",
+              "arguments": {
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 17,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-1-operation-009",
+                  "batch-1-operation-010",
+                  "batch-1-operation-017",
+                  "batch-2-operation-005",
+                  "batch-2-operation-006",
+                  "batch-2-operation-007",
+                  "batch-2-operation-008",
+                  "batch-2-operation-011"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_history": 3,
+            "lab_reports": 1,
+            "lab_schema": 1,
+            "lab_step": 11,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [],
+          "post_last_action_revisions": [],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-2-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.34454140067100525,
+                "selectivity": 0.32948923110961914,
+                "conversion": 0.9622536897659302,
+                "cost": 0.5540000200271606,
+                "safety_risk": 0.12283076345920563,
+                "score": 0.23706069588661194,
+                "byproduct_signal": 0.3340306282043457
+              }
+            },
+            {
+              "event_id": "batch-2-operation-007",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.4884369373321533,
+                "cost": 0.6678000092506409,
+                "safety_risk": 0.12283076345920563,
+                "score": 0.0,
+                "byproduct_signal": 0.4913480281829834
+              }
+            },
+            {
+              "event_id": "batch-2-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.3521593511104584,
+                "selectivity": 0.3472021520137787,
+                "conversion": 0.9585704803466797,
+                "cost": 0.7477999925613403,
+                "safety_risk": 0.12283076345920563,
+                "score": 0.2158595770597458,
+                "byproduct_signal": 0.35962218046188354
+              }
+            },
+            {
+              "event_id": "batch-2-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.35035571455955505,
+                "selectivity": 0.35131949186325073,
+                "conversion": 0.9816524982452393,
+                "cost": 0.9481999278068542,
+                "safety_risk": 0.11967602372169495,
+                "score": 0.18902398645877838,
+                "byproduct_signal": 0.3718160092830658,
+                "degradation_warning": 0.07991752028465271,
+                "virtual_spectrum_summary": 0.24046169221401215
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.35035571455955505,
+            "selectivity": 0.35131949186325073,
+            "conversion": 0.9816524982452393,
+            "cost": 0.9481999278068542,
+            "safety_risk": 0.11967602372169495,
+            "score": 0.18902398645877838,
+            "byproduct_signal": 0.3718160092830658,
+            "degradation_warning": 0.07991752028465271,
+            "virtual_spectrum_summary": 0.24046169221401215
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 481942,
+              "cached_input_tokens": 436736,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 3417,
+              "reasoning_output_tokens": 852
+            },
+            "usage_complete": true,
+            "total_tokens": 485359,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 120.84941291809082
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 3,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 11,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-001",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.05,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-002",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 0
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-003",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-004",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 360,
+                "duration_s": 3600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-005",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-006",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-007",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-008",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-009",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-010",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-011",
+              "notebook_revision": 0
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 11,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 2,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-2-operation-001",
+                  "batch-2-operation-002",
+                  "batch-2-operation-003",
+                  "batch-2-operation-004",
+                  "batch-2-operation-005",
+                  "batch-2-operation-006",
+                  "batch-2-operation-007",
+                  "batch-2-operation-008",
+                  "batch-2-operation-009",
+                  "batch-2-operation-010"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 17,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-1-operation-012",
+                  "batch-1-operation-014",
+                  "batch-1-operation-017",
+                  "batch-2-operation-011"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_reports": 2,
+            "lab_history": 2,
+            "lab_schema": 1,
+            "lab_step": 11,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [],
+          "post_last_action_revisions": [],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-3-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.4508897662162781,
+                "selectivity": 0.44532498717308044,
+                "conversion": 1.0,
+                "cost": 0.5540000200271606,
+                "safety_risk": 0.1370527744293213,
+                "score": 0.3194129467010498,
+                "byproduct_signal": 0.3517901301383972
+              }
+            },
+            {
+              "event_id": "batch-3-operation-007",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.5529955625534058,
+                "cost": 0.6678000092506409,
+                "safety_risk": 0.1370527744293213,
+                "score": 0.0038156937807798386
+              }
+            },
+            {
+              "event_id": "batch-3-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.43723785877227783,
+                "selectivity": 0.4418852627277374,
+                "conversion": 1.0,
+                "cost": 0.7477999925613403,
+                "safety_risk": 0.1370527744293213,
+                "score": 0.28265705704689026,
+                "byproduct_signal": 0.35300663113594055
+              }
+            },
+            {
+              "event_id": "batch-3-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.44452202320098877,
+                "selectivity": 0.4293782711029053,
+                "conversion": 0.9964876174926758,
+                "cost": 0.9526505470275879,
+                "safety_risk": 0.1255139857530594,
+                "score": 0.2549782693386078,
+                "byproduct_signal": 0.35918575525283813,
+                "degradation_warning": 0.14128951728343964,
+                "virtual_spectrum_summary": 0.26113244891166687
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.44452202320098877,
+            "selectivity": 0.4293782711029053,
+            "conversion": 0.9964876174926758,
+            "cost": 0.9526505470275879,
+            "safety_risk": 0.1255139857530594,
+            "score": 0.2549782693386078,
+            "byproduct_signal": 0.35918575525283813,
+            "degradation_warning": 0.14128951728343964,
+            "virtual_spectrum_summary": 0.26113244891166687
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 422375,
+              "cached_input_tokens": 382976,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 4256,
+              "reasoning_output_tokens": 1534
+            },
+            "usage_complete": true,
+            "total_tokens": 426631,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 138.15439462661743
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 4,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 15,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-001",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.05,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-002",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 1
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-003",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-004",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 1800,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-005",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-006",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-007",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-008",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 360,
+                "duration_s": 1800,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-009",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-010",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-011",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-012",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-013",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-014",
+              "notebook_revision": 0
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-015",
+              "notebook_revision": 0
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00030000000000000003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002000000000000001,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 15,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [
+            {
+              "call": 24,
+              "tool": "lab_artifact",
+              "error": "ValueError",
+              "message": "unknown fields: ['action']; available_fields: ['available_actions', 'campaign_state', 'component_network', 'constraints', 'continuous_streams', 'cost', 'cost_components', 'lab_report', 'material_routing', 'mode', 'observation', 'observed_keys', 'observed_mask', 'process_control', 'processed_estimate', 'raw_signal', 'resource_blocked_actions', 'sample_inventory', 'spectral_configurations', 'spectral_fit', 'task', 'uncertainty']"
+            },
+            {
+              "call": 25,
+              "tool": "lab_artifact",
+              "error": "ValueError",
+              "message": "unknown fields: ['action']; available_fields: ['available_actions', 'campaign_state', 'component_network', 'constraints', 'continuous_streams', 'cost', 'cost_components', 'lab_report', 'material_routing', 'mode', 'observation', 'observed_keys', 'observed_mask', 'process_control', 'processed_estimate', 'raw_signal', 'resource_blocked_actions', 'sample_inventory', 'spectral_configurations', 'spectral_fit', 'task', 'uncertainty']"
+            },
+            {
+              "call": 26,
+              "tool": "lab_artifact",
+              "error": "ValueError",
+              "message": "unknown fields: ['action']; available_fields: ['available_actions', 'campaign_state', 'component_network', 'constraints', 'continuous_streams', 'cost', 'cost_components', 'lab_report', 'material_routing', 'mode', 'observation', 'observed_keys', 'observed_mask', 'process_control', 'processed_estimate', 'raw_signal', 'resource_blocked_actions', 'sample_inventory', 'spectral_configurations', 'spectral_fit', 'task', 'uncertainty']"
+            },
+            {
+              "call": 27,
+              "tool": "lab_artifact",
+              "error": "ValueError",
+              "message": "unknown fields: ['action']; available_fields: ['available_actions', 'campaign_state', 'component_network', 'constraints', 'continuous_streams', 'cost', 'cost_components', 'lab_report', 'material_routing', 'mode', 'observation', 'observed_keys', 'observed_mask', 'process_control', 'processed_estimate', 'raw_signal', 'resource_blocked_actions', 'sample_inventory', 'spectral_configurations', 'spectral_fit', 'task', 'uncertainty']"
+            }
+          ],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_reports",
+              "arguments": {},
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 2,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 5,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 3,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 22,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-1-operation-009",
+                  "batch-1-operation-012",
+                  "batch-1-operation-014",
+                  "batch-1-operation-017",
+                  "batch-2-operation-006",
+                  "batch-2-operation-008",
+                  "batch-2-operation-011",
+                  "batch-3-operation-006",
+                  "batch-3-operation-008",
+                  "batch-3-operation-011"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 23,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-4-operation-006",
+                  "batch-4-operation-007",
+                  "batch-4-operation-008",
+                  "batch-4-operation-010",
+                  "batch-4-operation-011",
+                  "batch-4-operation-012",
+                  "batch-4-operation-015"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 24,
+              "tool": "lab_artifact",
+              "arguments": {
+                "event_id": "batch-2-operation-005",
+                "fields": [
+                  "action",
+                  "observation",
+                  "uncertainty"
+                ],
+                "limit": 5000,
+                "offset": 0
+              },
+              "failed": true
+            },
+            {
+              "call": 25,
+              "tool": "lab_artifact",
+              "arguments": {
+                "event_id": "batch-2-operation-011",
+                "fields": [
+                  "action",
+                  "observation",
+                  "uncertainty"
+                ],
+                "limit": 5000,
+                "offset": 0
+              },
+              "failed": true
+            },
+            {
+              "call": 26,
+              "tool": "lab_artifact",
+              "arguments": {
+                "event_id": "batch-3-operation-005",
+                "fields": [
+                  "action",
+                  "observation",
+                  "uncertainty"
+                ],
+                "limit": 5000,
+                "offset": 0
+              },
+              "failed": true
+            },
+            {
+              "call": 27,
+              "tool": "lab_artifact",
+              "arguments": {
+                "event_id": "batch-3-operation-011",
+                "fields": [
+                  "action",
+                  "observation",
+                  "uncertainty"
+                ],
+                "limit": 5000,
+                "offset": 0
+              },
+              "failed": true
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_reports": 4,
+            "lab_schema": 1,
+            "lab_step": 15,
+            "lab_history": 2,
+            "lab_artifact": 4,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [],
+          "post_last_action_revisions": [],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-4-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.40242040157318115,
+                "selectivity": 0.4360792636871338,
+                "conversion": 0.936988890171051,
+                "cost": 0.9390000104904175,
+                "safety_risk": 0.12458926439285278,
+                "score": 0.23193159699440002,
+                "byproduct_signal": 0.2909567654132843
+              }
+            },
+            {
+              "event_id": "batch-4-operation-007",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.5723356604576111,
+                "cost": 1.0,
+                "safety_risk": 0.12458926439285278,
+                "score": 0.0,
+                "byproduct_signal": 0.39781224727630615
+              }
+            },
+            {
+              "event_id": "batch-4-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.41720980405807495,
+                "selectivity": 0.4553925395011902,
+                "conversion": 0.9426860809326172,
+                "cost": 1.0,
+                "safety_risk": 0.12458926439285278,
+                "score": 0.23557431995868683,
+                "byproduct_signal": 0.3081735372543335
+              }
+            },
+            {
+              "event_id": "batch-4-operation-010",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.3500273525714874,
+                "selectivity": 0.33876994252204895,
+                "conversion": 1.0,
+                "cost": 1.0,
+                "safety_risk": 0.13464613258838654,
+                "score": 0.17604464292526245,
+                "byproduct_signal": 0.38971465826034546
+              }
+            },
+            {
+              "event_id": "batch-4-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.4685542583465576,
+                "cost": 1.0,
+                "safety_risk": 0.13464613258838654,
+                "score": 0.0
+              }
+            },
+            {
+              "event_id": "batch-4-operation-012",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.34975001215934753,
+                "selectivity": 0.3616306781768799,
+                "conversion": 0.9809596538543701,
+                "cost": 1.0,
+                "safety_risk": 0.13464613258838654,
+                "score": 0.17971710860729218,
+                "byproduct_signal": 0.389784038066864
+              }
+            },
+            {
+              "event_id": "batch-4-operation-015",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.353825181722641,
+                "selectivity": 0.3544577956199646,
+                "conversion": 0.998360276222229,
+                "cost": 1.0,
+                "safety_risk": 0.12310895323753357,
+                "score": 0.184585839509964,
+                "byproduct_signal": 0.38828179240226746,
+                "degradation_warning": 0.13693509995937347,
+                "virtual_spectrum_summary": 0.2751757800579071
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.353825181722641,
+            "selectivity": 0.3544577956199646,
+            "conversion": 0.998360276222229,
+            "cost": 1.0,
+            "safety_risk": 0.12310895323753357,
+            "score": 0.184585839509964,
+            "byproduct_signal": 0.38828179240226746,
+            "degradation_warning": 0.13693509995937347,
+            "virtual_spectrum_summary": 0.2751757800579071
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 439759,
+              "cached_input_tokens": 384768,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 4449,
+              "reasoning_output_tokens": 1334
+            },
+            "usage_complete": true,
+            "total_tokens": 444208,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 133.40871214866638
+          },
+          "transport_failure_count": 0
+        }
+      ],
+      "elapsed_s": 523.5485708713531
+    },
+    "N": {
+      "total_tokens": 2150521,
+      "batches": [
+        {
+          "batch": 1,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 13,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-001",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.04,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-002",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 0
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-003",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-004",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 350,
+                "duration_s": 600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-005",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-006",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 350,
+                "duration_s": 1200,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-007",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-008",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-009",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-010",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-011",
+              "notebook_revision": 1
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-012",
+              "notebook_revision": 2
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-1-operation-013",
+              "notebook_revision": 2
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 13,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_schema": 1,
+            "notebook_write": 2,
+            "lab_step": 13,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [
+            1
+          ],
+          "post_last_action_revisions": [
+            3
+          ],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-1-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.37144267559051514,
+                "selectivity": 0.5886706709861755,
+                "conversion": 0.6318210959434509,
+                "cost": 0.5162000060081482,
+                "safety_risk": 0.13463044166564941,
+                "score": 0.2849835157394409,
+                "byproduct_signal": 0.13002675771713257
+              }
+            },
+            {
+              "event_id": "batch-1-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.47668251395225525,
+                "selectivity": 0.5285997986793518,
+                "conversion": 0.9632075428962708,
+                "cost": 0.6061999797821045,
+                "safety_risk": 0.13790126144886017,
+                "score": 0.3414066433906555,
+                "byproduct_signal": 0.2964232563972473
+              }
+            },
+            {
+              "event_id": "batch-1-operation-009",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.6087281107902527,
+                "cost": 0.7200000286102295,
+                "safety_risk": 0.13790126144886017,
+                "score": 0.0097067104652524,
+                "byproduct_signal": 0.3744979798793793
+              }
+            },
+            {
+              "event_id": "batch-1-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.44942495226860046,
+                "selectivity": 0.48111817240715027,
+                "conversion": 0.9519324898719788,
+                "cost": 0.8418703079223633,
+                "safety_risk": 0.1306326687335968,
+                "score": 0.281246542930603,
+                "byproduct_signal": 0.28543421626091003
+              }
+            },
+            {
+              "event_id": "batch-1-operation-013",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.46631747484207153,
+                "selectivity": 0.4726721942424774,
+                "conversion": 0.9545393586158752,
+                "cost": 1.0,
+                "safety_risk": 0.1306326687335968,
+                "score": 0.26412254571914673,
+                "byproduct_signal": 0.28608396649360657,
+                "degradation_warning": 0.04939410462975502,
+                "virtual_spectrum_summary": 0.17957352101802826
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.46631747484207153,
+            "selectivity": 0.4726721942424774,
+            "conversion": 0.9545393586158752,
+            "cost": 1.0,
+            "safety_risk": 0.1306326687335968,
+            "score": 0.26412254571914673,
+            "byproduct_signal": 0.28608396649360657,
+            "degradation_warning": 0.04939410462975502,
+            "virtual_spectrum_summary": 0.17957352101802826
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 346133,
+              "cached_input_tokens": 288256,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 4899,
+              "reasoning_output_tokens": 1204
+            },
+            "usage_complete": true,
+            "total_tokens": 351032,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 141.8978180885315
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 2,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 13,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-001",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "solvent": 2,
+                "volume_L": 0.04
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-002",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst": 0,
+                "catalyst_amount_mol": 0.001
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-003",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-004",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-005",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-006",
+              "notebook_revision": 4
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 1200,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-007",
+              "notebook_revision": 5
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-008",
+              "notebook_revision": 5
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-009",
+              "notebook_revision": 6
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-010",
+              "notebook_revision": 6
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-011",
+              "notebook_revision": 6
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-012",
+              "notebook_revision": 7
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-2-operation-013",
+              "notebook_revision": 7
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 13,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "notebook_read",
+              "arguments": {
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "lab_history",
+              "arguments": {
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_reports": 1,
+            "notebook_read": 1,
+            "lab_history": 1,
+            "lab_schema": 1,
+            "notebook_write": 4,
+            "lab_step": 13,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [
+            4
+          ],
+          "post_last_action_revisions": [
+            8
+          ],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-2-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.26879945397377014,
+                "selectivity": 0.5440046787261963,
+                "conversion": 0.45921650528907776,
+                "cost": 0.5162000060081482,
+                "safety_risk": 0.12574461102485657,
+                "score": 0.20745639503002167,
+                "byproduct_signal": 0.0818830132484436
+              }
+            },
+            {
+              "event_id": "batch-2-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.3838297724723816,
+                "selectivity": 0.4183686673641205,
+                "conversion": 0.9018374085426331,
+                "cost": 0.6061999797821045,
+                "safety_risk": 0.1286804974079132,
+                "score": 0.26359066367149353,
+                "byproduct_signal": 0.29581648111343384
+              }
+            },
+            {
+              "event_id": "batch-2-operation-009",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.5477331876754761,
+                "cost": 0.7200000286102295,
+                "safety_risk": 0.1286804974079132,
+                "score": 0.0,
+                "byproduct_signal": 0.3852201998233795
+              }
+            },
+            {
+              "event_id": "batch-2-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.35824641585350037,
+                "selectivity": 0.42150798439979553,
+                "conversion": 0.9070392847061157,
+                "cost": 0.8382930755615234,
+                "safety_risk": 0.12551920115947723,
+                "score": 0.21808037161827087,
+                "byproduct_signal": 0.30440759658813477
+              }
+            },
+            {
+              "event_id": "batch-2-operation-013",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.35770124197006226,
+                "selectivity": 0.3992103636264801,
+                "conversion": 0.8908318877220154,
+                "cost": 0.9982931017875671,
+                "safety_risk": 0.12551920115947723,
+                "score": 0.18661262094974518,
+                "byproduct_signal": 0.2950325608253479,
+                "degradation_warning": 0.028327032923698425,
+                "virtual_spectrum_summary": 0.17501506209373474
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.35770124197006226,
+            "selectivity": 0.3992103636264801,
+            "conversion": 0.8908318877220154,
+            "cost": 0.9982931017875671,
+            "safety_risk": 0.12551920115947723,
+            "score": 0.18661262094974518,
+            "byproduct_signal": 0.2950325608253479,
+            "degradation_warning": 0.028327032923698425,
+            "virtual_spectrum_summary": 0.17501506209373474
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 583150,
+              "cached_input_tokens": 541696,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5838,
+              "reasoning_output_tokens": 550
+            },
+            "usage_complete": true,
+            "total_tokens": 588988,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 168.7460811138153
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 3,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 13,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-001",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.04,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-002",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 1
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-003",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-004",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 350,
+                "duration_s": 600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-005",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-006",
+              "notebook_revision": 9
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 350,
+                "duration_s": 1200,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-007",
+              "notebook_revision": 10
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-008",
+              "notebook_revision": 10
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-009",
+              "notebook_revision": 11
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-010",
+              "notebook_revision": 11
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-011",
+              "notebook_revision": 11
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-012",
+              "notebook_revision": 11
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-3-operation-013",
+              "notebook_revision": 11
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 13,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 2,
+                "limit": 10000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 10000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "notebook_read",
+              "arguments": {
+                "limit": 10000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 6,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-2-operation-001",
+                  "batch-2-operation-002",
+                  "batch-2-operation-003",
+                  "batch-2-operation-004",
+                  "batch-2-operation-005",
+                  "batch-2-operation-006",
+                  "batch-2-operation-007",
+                  "batch-2-operation-008",
+                  "batch-2-operation-009",
+                  "batch-2-operation-010"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_reports": 2,
+            "notebook_read": 1,
+            "lab_schema": 1,
+            "lab_history": 1,
+            "notebook_write": 3,
+            "lab_step": 13,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [
+            9
+          ],
+          "post_last_action_revisions": [
+            12
+          ],
+          "reference_issues": [
+            {
+              "revision": 12,
+              "missing": [
+                "batch-4-operation-013"
+              ]
+            }
+          ],
+          "measurements": [
+            {
+              "event_id": "batch-3-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.5053471922874451,
+                "selectivity": 0.6132515072822571,
+                "conversion": 0.8313785195350647,
+                "cost": 0.9161999821662903,
+                "safety_risk": 0.1390477418899536,
+                "score": 0.3169323801994324,
+                "byproduct_signal": 0.16657954454421997
+              }
+            },
+            {
+              "event_id": "batch-3-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.49053341150283813,
+                "selectivity": 0.5045925378799438,
+                "conversion": 1.0,
+                "cost": 1.0,
+                "safety_risk": 0.14063957333564758,
+                "score": 0.2862549424171448,
+                "byproduct_signal": 0.30554115772247314
+              }
+            },
+            {
+              "event_id": "batch-3-operation-009",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.6280285120010376,
+                "cost": 1.0,
+                "safety_risk": 0.14063957333564758,
+                "score": 0.0
+              }
+            },
+            {
+              "event_id": "batch-3-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.48796966671943665,
+                "selectivity": 0.4973953366279602,
+                "conversion": 1.0,
+                "cost": 1.0,
+                "safety_risk": 0.13337193429470062,
+                "score": 0.28499069809913635,
+                "byproduct_signal": 0.29828473925590515
+              }
+            },
+            {
+              "event_id": "batch-3-operation-013",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.5073935389518738,
+                "selectivity": 0.4883098006248474,
+                "conversion": 0.9846935868263245,
+                "cost": 1.0,
+                "safety_risk": 0.13337193429470062,
+                "score": 0.2909005880355835,
+                "byproduct_signal": 0.2884384095668793,
+                "degradation_warning": 0.08560917526483536,
+                "virtual_spectrum_summary": 0.19716525077819824
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.5073935389518738,
+            "selectivity": 0.4883098006248474,
+            "conversion": 0.9846935868263245,
+            "cost": 1.0,
+            "safety_risk": 0.13337193429470062,
+            "score": 0.2909005880355835,
+            "byproduct_signal": 0.2884384095668793,
+            "degradation_warning": 0.08560917526483536,
+            "virtual_spectrum_summary": 0.19716525077819824
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 608362,
+              "cached_input_tokens": 565760,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 5755,
+              "reasoning_output_tokens": 754
+            },
+            "usage_complete": true,
+            "total_tokens": 614117,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 193.53469896316528
+          },
+          "transport_failure_count": 0
+        },
+        {
+          "batch": 4,
+          "executed": true,
+          "engineering_passed": true,
+          "steps": 13,
+          "actions": [
+            {
+              "action": {
+                "operation": "add_reagent",
+                "amount_mol": 0.02
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-001",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "add_solvent",
+                "volume_L": 0.04,
+                "solvent": 2
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-002",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "add_catalyst",
+                "catalyst_amount_mol": 0.001,
+                "catalyst": 1
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-003",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "configure_instrument",
+                "instrument": "nmr",
+                "scan_count": 32,
+                "resolution_factor": 2,
+                "dilution_factor": 10
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-004",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 600,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-005",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-006",
+              "notebook_revision": 13
+            },
+            {
+              "action": {
+                "operation": "heat",
+                "target_temperature_K": 330,
+                "duration_s": 1200,
+                "stirring_speed_rpm": 600
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-007",
+              "notebook_revision": 14
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-008",
+              "notebook_revision": 14
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-009",
+              "notebook_revision": 15
+            },
+            {
+              "action": {
+                "operation": "quench"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-010",
+              "notebook_revision": 15
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-011",
+              "notebook_revision": 15
+            },
+            {
+              "action": {
+                "operation": "terminate"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-012",
+              "notebook_revision": 15
+            },
+            {
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "status": "committed",
+              "event_id": "batch-4-operation-013",
+              "notebook_revision": 15
+            }
+          ],
+          "quality": [
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true,
+                "analysis_seconds": true,
+                "measurement_cost": true,
+                "sample_volume": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0003,
+              "analysis_seconds": 69.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.00019999999999999998,
+              "analysis_seconds": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true
+              },
+              "max_carrier_error_L": 0.0
+            },
+            {
+              "checks": {
+                "carrier_balance": true,
+                "measurement_clock": true
+              },
+              "max_carrier_error_L": 0.0,
+              "sample_consumed": 0.0002999999999999999,
+              "analysis_seconds": 0.0
+            }
+          ],
+          "replay": {
+            "verified": true,
+            "checked_steps": 13,
+            "max_abs_error": 0.0,
+            "mismatches": []
+          },
+          "errors": [],
+          "retrievals": [
+            {
+              "call": 2,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 3,
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 3,
+              "tool": "notebook_read",
+              "arguments": {
+                "limit": 12000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 4,
+              "tool": "lab_history",
+              "arguments": {
+                "limit": 10,
+                "offset": 29
+              },
+              "failed": false
+            },
+            {
+              "call": 22,
+              "tool": "lab_history",
+              "arguments": {
+                "event_ids": [
+                  "batch-1-operation-013",
+                  "batch-2-operation-013",
+                  "batch-3-operation-013",
+                  "batch-4-operation-006",
+                  "batch-4-operation-008",
+                  "batch-4-operation-009",
+                  "batch-4-operation-011",
+                  "batch-4-operation-013"
+                ],
+                "limit": 10,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 23,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 1,
+                "limit": 9000,
+                "offset": 0
+              },
+              "failed": false
+            },
+            {
+              "call": 24,
+              "tool": "lab_reports",
+              "arguments": {
+                "batch": 2,
+                "limit": 9000,
+                "offset": 0
+              },
+              "failed": false
+            }
+          ],
+          "tool_counts": {
+            "lab_status": 1,
+            "lab_reports": 3,
+            "notebook_read": 1,
+            "lab_history": 2,
+            "lab_schema": 1,
+            "notebook_write": 3,
+            "lab_step": 13,
+            "finish_batch": 1
+          },
+          "pre_first_action_revisions": [
+            13
+          ],
+          "post_last_action_revisions": [
+            16
+          ],
+          "reference_issues": [],
+          "measurements": [
+            {
+              "event_id": "batch-4-operation-006",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.3550601899623871,
+                "selectivity": 0.550081193447113,
+                "conversion": 0.657793402671814,
+                "cost": 0.9161999821662903,
+                "safety_risk": 0.12931905686855316,
+                "score": 0.2110699713230133,
+                "byproduct_signal": 0.15200340747833252
+              }
+            },
+            {
+              "event_id": "batch-4-operation-008",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.4121762216091156,
+                "selectivity": 0.4278937578201294,
+                "conversion": 0.9727604985237122,
+                "cost": 1.0,
+                "safety_risk": 0.13175269961357117,
+                "score": 0.22739942371845245,
+                "byproduct_signal": 0.30425968766212463
+              }
+            },
+            {
+              "event_id": "batch-4-operation-009",
+              "action": {
+                "operation": "measure",
+                "instrument": "nmr"
+              },
+              "observation": {
+                "selectivity": 0.580634593963623,
+                "cost": 1.0,
+                "safety_risk": 0.13175269961357117,
+                "score": 0.0,
+                "byproduct_signal": 0.4049561023712158
+              }
+            },
+            {
+              "event_id": "batch-4-operation-011",
+              "action": {
+                "operation": "measure",
+                "instrument": "hplc"
+              },
+              "observation": {
+                "yield": 0.41077661514282227,
+                "selectivity": 0.41027307510375977,
+                "conversion": 0.9931040406227112,
+                "cost": 1.0,
+                "safety_risk": 0.12859268486499786,
+                "score": 0.22511881589889526,
+                "byproduct_signal": 0.30234596133232117
+              }
+            },
+            {
+              "event_id": "batch-4-operation-013",
+              "action": {
+                "operation": "measure",
+                "instrument": "final_assay"
+              },
+              "observation": {
+                "yield": 0.4186544418334961,
+                "selectivity": 0.4446466565132141,
+                "conversion": 0.9736337661743164,
+                "cost": 1.0,
+                "safety_risk": 0.12859268486499786,
+                "score": 0.23570407927036285,
+                "byproduct_signal": 0.2988737225532532,
+                "degradation_warning": 0.05915679782629013,
+                "virtual_spectrum_summary": 0.19100110232830048
+              }
+            }
+          ],
+          "final_observation": {
+            "yield": 0.4186544418334961,
+            "selectivity": 0.4446466565132141,
+            "conversion": 0.9736337661743164,
+            "cost": 1.0,
+            "safety_risk": 0.12859268486499786,
+            "score": 0.23570407927036285,
+            "byproduct_signal": 0.2988737225532532,
+            "degradation_warning": 0.05915679782629013,
+            "virtual_spectrum_summary": 0.19100110232830048
+          },
+          "provider": {
+            "usage": {
+              "input_tokens": 589198,
+              "cached_input_tokens": 537600,
+              "cache_write_input_tokens": 0,
+              "output_tokens": 7186,
+              "reasoning_output_tokens": 1167
+            },
+            "usage_complete": true,
+            "total_tokens": 596384,
+            "exit_code": 0,
+            "stop_reason": null,
+            "elapsed_s": 187.05079579353333
+          },
+          "transport_failure_count": 0
+        }
+      ],
+      "elapsed_s": 691.2293939590454
+    }
+  },
+  "engineering_passed": true,
+  "source_commit": "5ce573be",
+  "scope": "Development; one four-batch autonomous trajectory per workflow in one synthetic world. Not a causal ability estimate.",
+  "native_canary": {
+    "passed": true,
+    "checks": {
+      "six_tools_in_order": true,
+      "full_schema": true,
+      "unicode_read": true,
+      "closing_note": true,
+      "no_physical_actions": true,
+      "finish_accepted": true,
+      "no_host_errors": true,
+      "no_transport_failures": true,
+      "usage_complete": true,
+      "clean_exit": true
+    },
+    "elapsed_s": 35.413795948028564,
+    "exit_code": 0,
+    "stop_reason": null,
+    "usage": {
+      "input_tokens": 18429,
+      "cached_input_tokens": 16000,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 1360,
+      "reasoning_output_tokens": 740
+    },
+    "total_tokens": 19789
+  },
+  "notebook_audit": {
+    "revisions": 16,
+    "exact_reference_occurrences_per_revision": 81,
+    "unique_exact_references": 25,
+    "unavailable_at_commit": [
+      {
+        "batch": 3,
+        "call": 23,
+        "revision": 12,
+        "references": [
+          "batch-4-operation-013"
+        ]
+      }
+    ],
+    "manual_interpretation": "The sole unavailable reference is explicitly a planned future comparison in v12, not a claim of an observed batch-4 result. Existence checks are not scientific support checks."
+  },
+  "complete_operation_comparisons": [
+    {
+      "arm": "H",
+      "batches": [
+        2,
+        3
+      ],
+      "action_counts": [
+        11,
+        11
+      ],
+      "differences": [
+        {
+          "step": 5,
+          "left": {
+            "operation": "heat",
+            "target_temperature_K": 330,
+            "duration_s": 3600,
+            "stirring_speed_rpm": 600
+          },
+          "right": {
+            "operation": "heat",
+            "target_temperature_K": 360,
+            "duration_s": 3600,
+            "stirring_speed_rpm": 600
+          }
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batches": [
+        1,
+        2
+      ],
+      "action_counts": [
+        13,
+        13
+      ],
+      "differences": [
+        {
+          "step": 5,
+          "left": {
+            "operation": "heat",
+            "target_temperature_K": 350,
+            "duration_s": 600,
+            "stirring_speed_rpm": 600
+          },
+          "right": {
+            "operation": "heat",
+            "target_temperature_K": 330,
+            "duration_s": 600,
+            "stirring_speed_rpm": 600
+          }
+        },
+        {
+          "step": 7,
+          "left": {
+            "operation": "heat",
+            "target_temperature_K": 350,
+            "duration_s": 1200,
+            "stirring_speed_rpm": 600
+          },
+          "right": {
+            "operation": "heat",
+            "target_temperature_K": 330,
+            "duration_s": 1200,
+            "stirring_speed_rpm": 600
+          }
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batches": [
+        3,
+        4
+      ],
+      "action_counts": [
+        13,
+        13
+      ],
+      "differences": [
+        {
+          "step": 5,
+          "left": {
+            "operation": "heat",
+            "target_temperature_K": 350,
+            "duration_s": 600,
+            "stirring_speed_rpm": 600
+          },
+          "right": {
+            "operation": "heat",
+            "target_temperature_K": 330,
+            "duration_s": 600,
+            "stirring_speed_rpm": 600
+          }
+        },
+        {
+          "step": 7,
+          "left": {
+            "operation": "heat",
+            "target_temperature_K": 350,
+            "duration_s": 1200,
+            "stirring_speed_rpm": 600
+          },
+          "right": {
+            "operation": "heat",
+            "target_temperature_K": 330,
+            "duration_s": 1200,
+            "stirring_speed_rpm": 600
+          }
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batches": [
+        1,
+        3
+      ],
+      "action_counts": [
+        13,
+        13
+      ],
+      "differences": [
+        {
+          "step": 3,
+          "left": {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": 0.001,
+            "catalyst": 0
+          },
+          "right": {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": 0.001,
+            "catalyst": 1
+          }
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batches": [
+        2,
+        4
+      ],
+      "action_counts": [
+        13,
+        13
+      ],
+      "differences": [
+        {
+          "step": 3,
+          "left": {
+            "operation": "add_catalyst",
+            "catalyst": 0,
+            "catalyst_amount_mol": 0.001
+          },
+          "right": {
+            "operation": "add_catalyst",
+            "catalyst_amount_mol": 0.001,
+            "catalyst": 1
+          }
+        }
+      ]
+    }
+  ],
+  "totals": {
+    "usage": {
+      "input_tokens": 3802768,
+      "cached_input_tokens": 3437440,
+      "cache_write_input_tokens": 0,
+      "output_tokens": 39625,
+      "reasoning_output_tokens": 8716
+    },
+    "physical_transactions": {
+      "committed": 106
+    },
+    "tool_counts": {
+      "lab_status": 8,
+      "lab_schema": 8,
+      "lab_step": 106,
+      "finish_batch": 8,
+      "lab_history": 11,
+      "lab_reports": 13,
+      "lab_artifact": 4,
+      "notebook_write": 12,
+      "notebook_read": 3
+    },
+    "checks_evaluated": {
+      "carrier_balance": 106,
+      "measurement_clock": 43,
+      "analysis_seconds": 11,
+      "measurement_cost": 11,
+      "sample_volume": 11
+    },
+    "failed_quality_checks": [],
+    "tool_errors": 4,
+    "transport_failures": 0,
+    "replayed_nonempty_trajectories": 8
+  }
+}
