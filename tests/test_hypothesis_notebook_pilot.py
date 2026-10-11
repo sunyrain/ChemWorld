@@ -8,7 +8,12 @@ import time
 from pathlib import Path
 
 import pytest
-from scripts.run_hypothesis_notebook_pilot import PilotHost, collect, dispatch, tool_definitions
+from scripts.run_hypothesis_notebook_pilot import (
+    PilotHost,
+    collect,
+    dispatch,
+    tool_definitions,
+)
 
 
 def batch_actions():
@@ -256,6 +261,10 @@ def test_cited_events_and_selected_artifact_fields_preserve_public_values(tmp_pa
         assert json.loads(response["text"]) == {key: artifact[key] for key in requested}
         assert set(response["available_fields"]) == artifact.keys()
         assert len(response["text"]) < len(original.decode("utf-8"))
+        fit = host.call("lab_artifact", {"event_id": nmr_id, "fields": ["spectral_fit"]})
+        assert (
+            json.loads(fit["text"])["spectral_fit"] == artifact["raw_signal"]["processed_estimates"]
+        )
         # Raw values/arrays stay available and can be reassembled without loss.
         chunks = []
         offset = 0
@@ -293,3 +302,116 @@ def test_cited_events_and_selected_artifact_fields_preserve_public_values(tmp_pa
         assert host.status()["public_history"] == {"event_count": 8, "last_event_id": final_id}
     finally:
         host.close()
+
+
+def test_finish_can_save_author_supplied_note_without_adding_a_physical_action(tmp_path):
+    host = PilotHost(tmp_path, 1)
+    try:
+        host.call("notebook_write", {"text": "Initial question"})
+        for action in batch_actions():
+            host.call("lab_step", {"action": action, "reason": "scripted"})
+        facts = host.docs.authoritative_path.read_bytes()
+        result = host.call(
+            "finish_batch", {"report": "Final report", "notebook_text": "My final interpretation"}
+        )
+        assert result["notebook"]["revision"] == 2
+        assert "text" not in result["notebook"]
+        assert host.steps == 8 and host.docs.authoritative_path.read_bytes() == facts
+        assert host.docs.read_notebook() == "My final interpretation"
+    finally:
+        host.close()
+    next_host = PilotHost(tmp_path, 2)
+    try:
+        assert "My final interpretation" not in json.dumps(next_host.status())
+        assert next_host.call("notebook_read", {})["text"] == "My final interpretation"
+        next_host.call("finish_batch", {"report": "No new note"})
+        assert next_host.docs.read_notebook() == "My final interpretation"
+    finally:
+        next_host.close()
+
+
+def test_mcp_note_text_is_readable_unicode_not_literal_escape_sequences(tmp_path):
+    host = PilotHost(tmp_path, 1)
+    try:
+        original = "连接诊断 — no physical experiment."
+        host.call("notebook_write", {"text": original})
+        reply = dispatch(
+            host,
+            {
+                "jsonrpc": "2.0",
+                "id": 1,
+                "method": "tools/call",
+                "params": {"name": "notebook_read", "arguments": {}},
+            },
+        )
+        wire = json.dumps(reply, ensure_ascii=False).encode("utf-8")
+        content = json.loads(wire)["result"]["content"][0]["text"]
+        assert original in content
+        assert "\\u8fde" not in content and "\\u2014" not in content
+        assert json.loads(content)["text"] == original
+    finally:
+        host.close()
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows delete-sharing semantics")
+@pytest.mark.parametrize("transient", [False, True])
+def test_progress_reader_does_not_break_stdio_and_failures_remain_readable(tmp_path, transient):
+    proc = subprocess.Popen(
+        [
+            sys.executable,
+            "-m",
+            "scripts.run_long_horizon_notebook_review",
+            "--serve",
+            "--output",
+            str(tmp_path),
+            "--campaign",
+            "A",
+            "--batch",
+            "1",
+            "--deadline",
+            str(time.time() + 60),
+        ],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        env={**os.environ, "PYTHONIOENCODING": "gbk"},
+    )
+
+    def query(number, name, arguments):
+        request = {
+            "jsonrpc": "2.0",
+            "id": number,
+            "method": "tools/call",
+            "params": {"name": name, "arguments": arguments},
+        }
+        proc.stdin.write((json.dumps(request) + "\n").encode("utf-8"))
+        proc.stdin.flush()
+
+    try:
+        query(1, "lab_status", {})
+        assert json.loads(proc.stdout.readline())["id"] == 1
+        path = tmp_path / "batch-1/host-summary.json"
+        with path.open(encoding="utf-8") as reader:
+            query(2, "lab_schema", {"operations": ["measure", "terminate"]})
+            if transient:
+                time.sleep(0.05)
+                reader.close()
+                assert json.loads(proc.stdout.readline())["id"] == 2
+                query(3, "lab_status", {})
+                assert json.loads(proc.stdout.readline())["id"] == 3
+            proc.stdin.close()
+            proc.stdin = None
+            _, stderr_bytes = proc.communicate(timeout=30)
+        stderr = stderr_bytes.decode("utf-8")
+        diagnostic = (tmp_path / "mcp-batch-1.stderr.txt").read_text(encoding="utf-8")
+        if transient:
+            assert proc.returncode == 0 and not stderr and not diagnostic
+            events = (tmp_path / "tool-requests.jsonl").read_text(encoding="utf-8").splitlines()
+            assert len(events) == 3  # File commit retry never repeats a tool action.
+        else:
+            assert proc.returncode != 0
+            assert "PermissionError" in diagnostic and "WinError 5" in diagnostic
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+            proc.wait(timeout=10)

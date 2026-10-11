@@ -56,6 +56,18 @@ def test_real_stdio_conditions_keep_facts_and_hide_notes_until_requested(source,
             "method": "tools/call",
             "params": {"name": "notebook_read", "arguments": {}},
         },
+        {
+            "jsonrpc": "2.0",
+            "id": 6,
+            "method": "tools/call",
+            "params": {
+                "name": "finish_batch",
+                "arguments": {
+                    "report": "software test; no new physical batch",
+                    "notebook_text": "FINAL_NOTE_SENTINEL",
+                },
+            },
+        },
     ]
     response = subprocess.run(
         [
@@ -82,9 +94,14 @@ def test_real_stdio_conditions_keep_facts_and_hide_notes_until_requested(source,
     assert "MODEL_REASON_SENTINEL" not in json.dumps(values)
     names = {t["name"] for t in values[1]["tools"]}
     assert ("notebook_read" in names) == (arm != "H")
+    finish_schema = next(
+        t["inputSchema"] for t in values[1]["tools"] if t["name"] == "finish_batch"
+    )
+    assert ("notebook_text" in finish_schema["properties"]) == (arm != "H")
     assert json.loads(values[3]["content"][0]["text"])["total"] == 1
     assert values[4]["isError"] == (arm == "H")
     assert ("NOTE_SENTINEL" in json.dumps(values[4])) == (arm != "H")
+    assert values[5]["isError"] == (arm == "H")
     assert original == {
         p.relative_to(source): p.read_bytes() for p in source.rglob("*") if p.is_file()
     }

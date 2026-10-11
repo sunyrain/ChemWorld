@@ -64,10 +64,14 @@ def test_review_retains_timing_invalid_references_and_missing_slots(tmp_path):
         for action in actions():
             host.call("lab_step", {"action": action, "reason": "scripted reason"})
         host.call(
-            "notebook_write",
-            {"text": "AFTER_SENTINEL batch-1-operation-006; unsupported: batch-6-operation-006"},
+            "finish_batch",
+            {
+                "report": "REPORT_SENTINEL",
+                "notebook_text": (
+                    "AFTER_SENTINEL batch-1-operation-006; unsupported: batch-6-operation-006"
+                ),
+            },
         )
-        host.call("finish_batch", {"report": "REPORT_SENTINEL"})
     finally:
         host.close()
     provider = {

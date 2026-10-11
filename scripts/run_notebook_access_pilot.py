@@ -10,11 +10,9 @@ import json
 import os
 import shutil
 import subprocess
-import sys
 import time
-from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from scripts import run_hypothesis_notebook_pilot as base
 
@@ -52,11 +50,16 @@ CUE = (
 
 
 def definitions(arm: str) -> list[dict[str, Any]]:
-    return [
+    result = [
         tool
         for tool in base.tool_definitions()
         if arm != "H" or not tool["name"].startswith("notebook_")
     ]
+    if arm == "H":
+        next(t for t in result if t["name"] == "finish_batch")["inputSchema"]["properties"].pop(
+            "notebook_text", None
+        )
+    return result
 
 
 class AccessHost(base.PilotHost):
@@ -73,6 +76,8 @@ class AccessHost(base.PilotHost):
     def _call(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         if self.arm == "H" and name.startswith("notebook_"):
             raise ValueError("tool unavailable in this condition")
+        if self.arm == "H" and name == "finish_batch" and "notebook_text" in args:
+            raise ValueError("notebook unavailable in this condition")
         return super()._call(name, args)
 
 
@@ -90,19 +95,7 @@ def dispatch(host: AccessHost, request: dict[str, Any]) -> dict[str, Any] | None
 
 
 def serve(root: Path, arm: str, deadline: float) -> None:
-    cast(TextIOWrapper, sys.stdin).reconfigure(encoding="utf-8", errors="strict")
-    cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8", errors="strict")
-    host = AccessHost(root, arm, deadline)
-    try:
-        for line in sys.stdin:
-            response = dispatch(host, json.loads(line))
-            if response is not None:
-                print(json.dumps(response, ensure_ascii=False), flush=True)
-    except Exception as error:
-        host.result["host_exception"] = {"type": type(error).__name__, "message": str(error)}
-        raise
-    finally:
-        host.close()
+    base.serve_host(root, 2, lambda: AccessHost(root, arm, deadline), dispatcher=dispatch)
 
 
 def prepare(source: Path, target: Path, arm: str) -> None:

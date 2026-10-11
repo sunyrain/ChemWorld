@@ -94,6 +94,16 @@ def test_lifecycle(instrument, extended, seed):
             assert len(packet["axis"]["values"]) == len(packet["raw_signal"]["values"])
             assert np.all(np.isfinite(packet["raw_signal"]["values"]))
             assert packet["processed_estimates"] == fit_packet(packet)
+            view = env.observation_view("tool_json")
+            summary = view["lab_report"]["spectra_summary"]
+            assert summary["has_spectral_packet"]
+            assert summary["sample_count"] == len(packet["axis"]["values"])
+            assert view["spectral_fit"] == packet["processed_estimates"]
+            assert summary["spectral_fit"] == view["spectral_fit"]
+            assert view["raw_signal"] == packet
+            assert view["processed_estimate"] == info["processed_estimate"]
+            assert "sampled points" in view["lab_report"]["text"]
+            assert "standard errors" in view["lab_report"]["text"]
             config = packet["settings"]
             assert env._state.ledger.analysis_time_s == pytest.approx(
                 acquisition_seconds(instrument, config)

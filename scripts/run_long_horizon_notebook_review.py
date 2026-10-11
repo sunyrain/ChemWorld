@@ -10,11 +10,9 @@ import json
 import os
 import re
 import subprocess
-import sys
 import time
-from io import TextIOWrapper
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from scripts import run_hypothesis_notebook_pilot as base
 from scripts.run_notebook_access_pilot import usage_summary
@@ -63,6 +61,10 @@ events; use offset or exact event_ids for additional pages. lab_artifact can sel
 including observation, processed_estimate, uncertainty or raw_signal when present; the
 response lists available_fields. Tool errors are retained; correct them if needed.
 Finish ordinary measurements BEFORE terminate. Then measure(instrument=final_assay).
+You may save your complete updated notebook with finish_batch(notebook_text=...),
+so the terminal interpretation and report can be submitted in one request. This is optional.
+When describing a repeat, distinguish matching recipe/target settings from matching the
+complete operation sequence, including sampling, quench and measurement settings.
 Call finish_batch(report=...) with your evidence-grounded findings and limitations, then
 stop all tool calls. No result is required to be positive. If unable to finish, say what
 is missing. Batch six is the last batch; do not rely on extra future experiments being run.
@@ -91,19 +93,7 @@ class ResearchHost(base.PilotHost):
 
 
 def serve(root: Path, campaign: str, batch: int, deadline: float) -> None:
-    cast(TextIOWrapper, sys.stdin).reconfigure(encoding="utf-8", errors="strict")
-    cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8", errors="strict")
-    host = ResearchHost(root, campaign, batch, deadline)
-    try:
-        for line in sys.stdin:
-            response = base.dispatch(host, json.loads(line))
-            if response is not None:
-                print(json.dumps(response, ensure_ascii=False), flush=True)
-    except Exception as error:
-        host.result["host_exception"] = {"type": type(error).__name__, "message": str(error)}
-        raise
-    finally:
-        host.close()
+    base.serve_host(root, batch, lambda: ResearchHost(root, campaign, batch, deadline))
 
 
 def command(
@@ -154,20 +144,25 @@ def notebook_timeline(root: Path) -> list[dict[str, Any]]:
             continue
         if event["tool"] == "lab_step" and result.get("event_id"):
             available.add(result["event_id"])
-        if event["tool"] in {"notebook_write", "notebook_restore"} and result.get("revision"):
+        revision = (
+            result.get("notebook", {}).get("revision")
+            if event["tool"] == "finish_batch"
+            else result.get("revision")
+        )
+        if event["tool"] in {"notebook_write", "notebook_restore", "finish_batch"} and revision:
             record = base.read_json(
                 root
                 / "research"
                 / "experiment_documents"
                 / "notebook_history"
-                / f"{result['revision']:08d}.json"
+                / f"{revision:08d}.json"
             )
             references = sorted(set(re.findall(r"batch-\d+-operation-\d{3}", record["text"])))
             timeline.append(
                 {
                     "batch": event["batch"],
                     "call": event["call"],
-                    "revision": result["revision"],
+                    "revision": revision,
                     "record": record,
                     "exact_event_references": references,
                     "unavailable_references_at_commit": sorted(set(references) - available),

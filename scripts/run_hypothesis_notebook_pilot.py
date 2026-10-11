@@ -8,12 +8,16 @@ This development adapter does not modify the frozen Work II experiment protocol.
 from __future__ import annotations
 
 import argparse
+import faulthandler
 import json
 import os
 import subprocess
 import sys
 import time
+import traceback
 from collections import Counter
+from collections.abc import Callable
+from contextlib import redirect_stderr
 from io import TextIOWrapper
 from pathlib import Path
 from typing import Any, cast
@@ -99,6 +103,8 @@ def compact_public(view: dict[str, Any]) -> dict[str, Any]:
         ],
         "spectral_configurations": view["spectral_configurations"],
         "processed_estimate": view["processed_estimate"],
+        "uncertainty": view["uncertainty"],
+        "spectral_fit": view["spectral_fit"],
     }
 
 
@@ -210,8 +216,10 @@ def tool_definitions() -> list[dict[str, Any]]:
         ),
         (
             "finish_batch",
-            "End this session after final assay, or explain an early stop.",
-            {"report": string},
+            "End this session after final assay, or explain an early stop. Optionally supply "
+            "notebook_text to save your complete revised notebook with the report; otherwise "
+            "the notebook is unchanged.",
+            {"report": string, "notebook_text": string},
             ["report"],
         ),
     ]
@@ -407,12 +415,18 @@ class PilotHost:
         if name == "finish_batch":
             if not isinstance(args["report"], str):
                 raise ValueError("report must be text")
+            note = None
+            if "notebook_text" in args:
+                note = self.docs.notebook_tool(
+                    "write", text=args["notebook_text"], message="Submitted with final batch report"
+                )
             self.result["report"] = args["report"]
             self.finished = True
             return {
                 "finished": True,
                 "final_assay_completed": bool(self.terminal),
                 "truncated": bool(self.truncated),
+                **({"notebook": note} if note is not None else {}),
             }
         if name != "lab_step":
             raise ValueError("unknown tool")
@@ -499,7 +513,9 @@ def dispatch(host: PilotHost, request: dict[str, Any]) -> dict[str, Any] | None:
             }
         value = host.call(params.get("name", ""), params.get("arguments", {}))
         result = {
-            "content": [{"type": "text", "text": json.dumps(to_builtin(value))}],
+            "content": [
+                {"type": "text", "text": json.dumps(to_builtin(value), ensure_ascii=False)}
+            ],
             "isError": "error" in value,
         }
     else:
@@ -511,22 +527,53 @@ def dispatch(host: PilotHost, request: dict[str, Any]) -> dict[str, Any] | None:
     return {"jsonrpc": "2.0", "id": request_id, "result": result}
 
 
-def serve(root: Path, batch: int, tool_budget: int, deadline: float) -> None:
-    # MCP is UTF-8 even when Windows starts the child with a legacy locale and
-    # does not forward the launcher's PYTHONIOENCODING environment variable.
+def serve_host(
+    root: Path,
+    batch: int,
+    factory: Callable[[], PilotHost],
+    dispatcher: Callable[[Any, dict[str, Any]], dict[str, Any] | None] = dispatch,
+) -> None:
+    """One STDIO boundary for all notebook pilots; retain original exceptions."""
     cast(TextIOWrapper, sys.stdin).reconfigure(encoding="utf-8", errors="strict")
     cast(TextIOWrapper, sys.stdout).reconfigure(encoding="utf-8", errors="strict")
-    host = PilotHost(root, batch, tool_budget=tool_budget, deadline=deadline)
-    try:
-        for line in sys.stdin:
-            response = dispatch(host, json.loads(line))
-            if response is not None:
-                print(json.dumps(response, ensure_ascii=False), flush=True)
-    except Exception as error:
-        host.result["host_exception"] = {"type": type(error).__name__, "message": str(error)}
-        raise
-    finally:
-        host.close()
+    cast(TextIOWrapper, sys.stderr).reconfigure(encoding="utf-8", errors="backslashreplace")
+    root.mkdir(parents=True, exist_ok=True)
+    with (
+        (root / f"mcp-batch-{batch}.stderr.txt").open("a", encoding="utf-8") as diagnostic,
+        redirect_stderr(diagnostic),
+    ):
+        faulthandler.enable(file=diagnostic)
+        host = None
+        try:
+            host = factory()
+            for line in sys.stdin:
+                response = dispatcher(host, json.loads(line))
+                if response is not None:
+                    print(json.dumps(response, ensure_ascii=False), flush=True)
+        except Exception as error:
+            traceback.print_exc(file=diagnostic)
+            diagnostic.flush()
+            if host is not None:
+                host.result["host_exception"] = {
+                    "type": type(error).__name__,
+                    "message": str(error),
+                }
+            raise
+        finally:
+            try:
+                if host is not None:
+                    host.close()
+            except Exception:
+                traceback.print_exc(file=diagnostic)
+                raise
+            finally:
+                faulthandler.disable()
+
+
+def serve(root: Path, batch: int, tool_budget: int, deadline: float) -> None:
+    serve_host(
+        root, batch, lambda: PilotHost(root, batch, tool_budget=tool_budget, deadline=deadline)
+    )
 
 
 def cli_command(

@@ -8,6 +8,7 @@ import math
 import os
 import tempfile
 import threading
+import time
 from collections.abc import Mapping
 from copy import deepcopy
 from pathlib import Path
@@ -376,7 +377,17 @@ def _atomic_write_bytes(path: Path, data: bytes) -> None:
             handle.write(data)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary_path, path)
+        # Windows readers can briefly prevent replacement of an open snapshot.
+        # Retry only this already-written file commit, never the scientific action.
+        deadline = time.monotonic() + 0.25
+        while True:
+            try:
+                os.replace(temporary_path, path)
+                break
+            except PermissionError as error:
+                if getattr(error, "winerror", None) not in {5, 32} or time.monotonic() >= deadline:
+                    raise
+                time.sleep(0.01)
     finally:
         if temporary_path is not None and temporary_path.exists():
             temporary_path.unlink()

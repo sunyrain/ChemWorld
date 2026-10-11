@@ -1545,6 +1545,13 @@ def _area_value(peak: dict[str, Any]) -> float:
     return 0.0
 
 
+def _spectral_fit(info: dict[str, Any]) -> dict[str, Any]:
+    """Expose the existing public fit separately from endpoint proxy estimates."""
+    raw = info.get("raw_signal", {})
+    fit = raw.get("processed_estimates", {}) if isinstance(raw, dict) else {}
+    return to_builtin(fit) if isinstance(fit, dict) else {}
+
+
 def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
     """Summarize public raw signals without exposing hidden mechanism identities."""
 
@@ -1556,6 +1563,17 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
         channels = []
     if isinstance(spectra, dict) and not channels:
         channels = sorted(str(key) for key in spectra)
+    axis = raw_signal_dict.get("axis", {})
+    signal = raw_signal_dict.get("raw_signal", {})
+    axis_values = axis.get("values", []) if isinstance(axis, dict) else []
+    signal_values = signal.get("values", []) if isinstance(signal, dict) else []
+    sample_count = (
+        len(axis_values)
+        if isinstance(axis_values, list)
+        and isinstance(signal_values, list)
+        and len(axis_values) == len(signal_values)
+        else 0
+    )
     peak_tables = _find_peak_tables(raw_signal)
     grouped: dict[str, float] = {
         "target": 0.0,
@@ -1594,8 +1612,15 @@ def spectra_summary(info: dict[str, Any]) -> dict[str, Any]:
         "instrument": info.get("instrument_source") or info.get("instrument"),
         "packet_kind": raw_signal_dict.get("kind"),
         "has_spectral_packet": bool(
-            peak_tables or spectra or channels or raw_signal_dict.get("kind") == "ph_meter_signal"
+            sample_count
+            or peak_tables
+            or spectra
+            or channels
+            or raw_signal_dict.get("kind") == "ph_meter_signal"
         ),
+        "sample_count": sample_count,
+        "axis_unit": axis.get("unit") if isinstance(axis, dict) else None,
+        "spectral_fit": _spectral_fit(info),
         "channels": [str(channel) for channel in channels],
         "channel_count": len(channels),
         "peak_table_count": len(peak_tables),
@@ -1794,11 +1819,23 @@ def lab_report_view(
             f"{final_assay['leaderboard_eligible']}, score={score_text}."
         )
     if summary["has_spectral_packet"]:
-        channels = ", ".join(summary["channels"]) or "public peaks"
-        lines.append(
-            f"Spectra packet: {summary['packet_kind'] or 'instrument_signal'} "
-            f"with {summary['channel_count']} channels ({channels})."
-        )
+        if summary["sample_count"]:
+            lines.append(
+                f"Spectra packet: {summary['packet_kind']} with {summary['sample_count']} "
+                f"sampled points (axis: {summary['axis_unit']})."
+            )
+            if summary["spectral_fit"]:
+                lines.append(
+                    "Public reporter concentration estimates, fit standard errors and "
+                    "missingness are available in spectral_fit; they are separate from "
+                    "endpoint proxy metrics."
+                )
+        else:
+            channels = ", ".join(summary["channels"]) or "public peaks"
+            lines.append(
+                f"Spectra packet: {summary['packet_kind'] or 'instrument_signal'} "
+                f"with {summary['channel_count']} channels ({channels})."
+            )
     dominant = summary["dominant_peak"]
     if dominant["group"] is not None:
         lines.append(
@@ -1947,6 +1984,7 @@ def tool_json_view(env: Any, observation: dict[str, Any], info: dict[str, Any]) 
         },
         "observation": to_builtin(observation),
         "raw_signal": to_builtin(info.get("raw_signal", {})),
+        "spectral_fit": _spectral_fit(info),
         "processed_estimate": to_builtin(info.get("processed_estimate", {})),
         "uncertainty": to_builtin(info.get("uncertainty", {})),
         "observed_keys": to_builtin(info.get("observed_keys", [])),
