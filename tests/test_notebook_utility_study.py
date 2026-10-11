@@ -98,6 +98,27 @@ def test_report_paging_unsubmitted_exclusion_and_arm_isolation(tmp_path):
         third.close()
 
 
+def test_action_lookup_error_points_to_authoritative_history_without_changing_artifact(tmp_path):
+    host = UtilityHost(tmp_path, "H", 1, time.time() + 60)
+    try:
+        action = {"operation": "add_solvent", "solvent": 2, "volume_L": 0.04}
+        event = host.call("lab_step", {"action": action, "reason": "scripted test"})
+        key = event["event_id"]
+        artifact = tmp_path / "public-artifacts" / f"{key}.json"
+        original = artifact.read_bytes()
+        failure = host.call("lab_artifact", {"event_id": key, "fields": ["action", "observation"]})
+        assert failure["error"] == "ValueError"
+        assert f'lab_history(event_ids=["{key}"])' in failure["message"]
+        recovered = host.call("lab_history", {"event_ids": [key]})
+        assert recovered["events"][0]["action"] == action
+        assert artifact.read_bytes() == original and host.steps == 1
+        assert "Action parameters are history fields" in next(
+            t["description"] for t in base.tool_definitions() if t["name"] == "lab_artifact"
+        )
+    finally:
+        host.close()
+
+
 def test_matching_world_noise_and_private_single_actor_command(tmp_path):
     for arm in ("H", "N"):
         host = UtilityHost(tmp_path / arm, arm, 4, time.time() + 60)

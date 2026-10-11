@@ -164,7 +164,9 @@ def tool_definitions() -> list[dict[str, Any]]:
             "Read public observation JSON, paginated by characters. Select top-level "
             "fields such as observation, processed_estimate or raw_signal to avoid "
             "paging unrelated schemas/arrays. Omit fields for the full original JSON. "
-            "Every response lists available_fields; values are unchanged, not summarized.",
+            "Every response lists available_fields; values are unchanged, not summarized. "
+            "Action parameters are history fields, not observation fields: use "
+            "lab_history(event_ids=[event_id]) to read the operation that produced a result.",
             {
                 "event_id": string,
                 "fields": {
@@ -445,8 +447,15 @@ class PilotHost:
                     raise ValueError("fields must be a nonempty list of distinct top-level names")
                 unknown = set(fields) - artifact.keys()
                 if unknown:
+                    hint = (
+                        "; action belongs to public history, not this observation artifact; "
+                        f"use lab_history(event_ids={json.dumps([event_id])})"
+                        if "action" in unknown
+                        else ""
+                    )
                     raise ValueError(
                         f"unknown fields: {sorted(unknown)}; available_fields: {sorted(artifact)}"
+                        + hint
                     )
                 body = json.dumps({key: artifact[key] for key in fields}, ensure_ascii=False)
             offset, limit = args.get("offset", 0), args.get("limit", 8000)
