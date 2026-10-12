@@ -1,0 +1,866 @@
+{
+  "schema_version": "chemworld-notebook-observer-annotations-v1",
+  "method": "Analyst-authored retrospective annotations. Source text is resolved mechanically; no hidden reasoning or provider calls.",
+  "conclusions": [
+    "H 的公开操作理由足以定位过程修订：H3 在第一次 HPLC 后已明确说预期被反驳，随后保持 NMR/复测，而非只在批末承认。",
+    "N 的关键解释也见于共同日志；笔记增加了更早的计划与解释。例如 N2 v7 在终检前提出 Catalyst B 配对，批末报告随后确认。",
+    "N3 v11 更早提出 600 s 可能适合后续优化，但实际仍完成固定 1800 s 对照；N4 v15 增加了有关转化差距的解释，这并非已经验证的机制。",
+    "笔记不一定更完整：N4 v16 的综合/决策段未保留最终报告中明确的高温降解提示量权衡；H4 的三因素交互归因也不能因记录清楚而成立。",
+    "本次只证明能够从两组现有公开记录形成可追溯审查视图；不恢复未表达的想法，不量化阅读节时或笔记的因果收益。"
+  ],
+  "compare_pairs": [
+    [
+      "H2",
+      "H3"
+    ],
+    [
+      "N1",
+      "N2"
+    ],
+    [
+      "N3",
+      "N4"
+    ],
+    [
+      "N1",
+      "N3"
+    ],
+    [
+      "N2",
+      "N4"
+    ]
+  ],
+  "batches": [
+    {
+      "arm": "H",
+      "batch": 1,
+      "title": "阶段探索暴露温度与时间混杂",
+      "overview": "同一釜连续 300→330→360 K，各 1800 s；研究者事前已说明不是三个独立温度实验。",
+      "questions": [
+        {
+          "analysis": "预期适度加热提高转化/产率，过度暴露可能降低选择性；也保留两指标均单调改善的竞争预期。",
+          "sources": [
+            "H1-c3-reason"
+          ],
+          "cutoff": [
+            1,
+            3,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "首次结果关联说明出现在 call 10：HPLC 与 NMR 绝对选择性不同，继续升至 330 K，选择性方向仍未定。此时尚未看到 360 K 结果。",
+          "sources": [
+            "H1-c8-result",
+            "H1-c9-result",
+            "H1-c10-reason"
+          ],
+          "cutoff": [
+            1,
+            10,
+            0
+          ],
+          "status": "保留并限定"
+        },
+        {
+          "analysis": "后续将 360 K 用作压力检验；观察选择性下降后复测 HPLC，随后 quench，未把一次读数直接当独立重复。",
+          "sources": [
+            "H1-c13-reason",
+            "H1-c16-reason",
+            "H1-c16-result",
+            "H1-c17-result"
+          ],
+          "cutoff": [
+            1,
+            17,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "三段加热在同釜连续完成。温度、累计时间和热历史同时变，不能由这条路径识别单独温度效应；终报告亦承认这一点。",
+          "sources": [
+            "H1-c7-result",
+            "H1-c10-result",
+            "H1-c13-result",
+            "H1-c20-report"
+          ],
+          "cutoff": [
+            1,
+            20,
+            1
+          ],
+          "status": "存在混杂"
+        },
+        {
+          "analysis": "支持本路径后段转化提高但选择性下降的描述；不能确证高温本身有害。报告转向下一批独立固定温度基线，后续计划不算已完成。",
+          "sources": [
+            "H1-c18-reason",
+            "H1-c19-result",
+            "H1-c20-report"
+          ],
+          "cutoff": [
+            1,
+            20,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    },
+    {
+      "arm": "H",
+      "batch": 2,
+      "title": "固定 330 K 参照与暂缓温度结论",
+      "overview": "改为新釜 330 K / 3600 s，为下一批完整温度比较准备基线。",
+      "questions": [
+        {
+          "analysis": "预期固定 330 K 保留较高选择性，也考虑此前下降来自热历史或当前反应不足；360 K 对照此时尚未做。",
+          "sources": [
+            "H2-c6-reason"
+          ],
+          "cutoff": [
+            2,
+            6,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "HPLC 显示高转化但选择性一般；模型保留 NMR 检查与固定终点，而没有因读数延长加热。",
+          "sources": [
+            "H2-c11-result",
+            "H2-c12-reason"
+          ],
+          "cutoff": [
+            2,
+            12,
+            0
+          ],
+          "status": "保留判断"
+        },
+        {
+          "analysis": "执行 NMR→HPLC 复测→quench→终检；公开理由强调不加入新的时间混杂。同釜复测不能替代过程重复。",
+          "sources": [
+            "H2-c12-result",
+            "H2-c13-reason",
+            "H2-c14-reason",
+            "H2-c16-result"
+          ],
+          "cutoff": [
+            2,
+            16,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "已完成一个固定温度条件，下一批 360 K 此时只是计划。与 H1 的阶段数据比较仍受累计时间、路径和噪声影响。",
+          "sources": [
+            "H2-c10-result",
+            "H2-c18-report"
+          ],
+          "cutoff": [
+            2,
+            18,
+            1
+          ],
+          "status": "对照待完成"
+        },
+        {
+          "analysis": "报告限定 Catalyst A/当前配方，承认单批不能建立温度关系；明确下一批匹配完整采样顺序。降解提示量未支持低温在所有指标上更好。",
+          "sources": [
+            "H2-c16-result",
+            "H2-c18-report"
+          ],
+          "cutoff": [
+            2,
+            18,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    },
+    {
+      "arm": "H",
+      "batch": 3,
+      "title": "无笔记仍可追踪的预期反转",
+      "overview": "完整 360 K / 3600 s 操作与 H2 配对；修订发生在第一份 HPLC 之后。",
+      "questions": [
+        {
+          "analysis": "实验前预期升温降低选择性并增加副产物；竞争解释是早先下降主要由热历史/噪声造成。",
+          "sources": [
+            "H3-c6-reason"
+          ],
+          "cutoff": [
+            3,
+            6,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "call 12 已明确第一次 HPLC 与预期相反，选择性更高；这是 NMR 和复测之前的同期陈述。",
+          "sources": [
+            "H3-c11-result",
+            "H3-c12-reason"
+          ],
+          "cutoff": [
+            3,
+            12,
+            0
+          ],
+          "status": "明确修订"
+        },
+        {
+          "analysis": "保持 NMR 与 HPLC 复测，随后 quench。修订解释没有导致更换实验终点；实际操作与其公开保留对照的理由一致。",
+          "sources": [
+            "H3-c12-result",
+            "H3-c13-reason",
+            "H3-c13-result",
+            "H3-c14-result"
+          ],
+          "cutoff": [
+            3,
+            14,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "H2/H3 的 11 步完整操作仅热处理温度设定不同，机械比对见下表。仍各只有一釜、不同噪声，不能视为充分重复或已识别机制。",
+          "sources": [
+            "H2-c18-report",
+            "H3-c10-result",
+            "H3-c18-report"
+          ],
+          "cutoff": [
+            3,
+            18,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "终检支持这对已测条件下产率与选择性同时提高，降解提示量也提高；报告明确预期被反驳。建议改变催化剂的范围测试尚未执行。",
+          "sources": [
+            "H2-c16-result",
+            "H3-c16-result",
+            "H3-c18-report"
+          ],
+          "cutoff": [
+            3,
+            18,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    },
+    {
+      "arm": "H",
+      "batch": 4,
+      "title": "有完整说明，但最终交互归因过强",
+      "overview": "最后一批改用 Catalyst B，并在同釜 330→360 K；只能观察该路径的变化。",
+      "questions": [
+        {
+          "analysis": "希望检验 Catalyst A 的温度方向能否延续到 B；预期升温改善，也允许反转，并在事前承认累计时间和历史混杂。",
+          "sources": [
+            "H4-c7-reason"
+          ],
+          "cutoff": [
+            4,
+            7,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "330 K 读数后先保留 NMR 与复测。call 17 在 360 K HPLC 后才明确指出竞争的恶化结果出现，不能把该判断回填到起点。",
+          "sources": [
+            "H4-c12-result",
+            "H4-c13-reason",
+            "H4-c16-result",
+            "H4-c17-reason"
+          ],
+          "cutoff": [
+            4,
+            17,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "完成 NMR 和 HPLC 复测后 quench，再终检。之后四次 artifact 字段查询失败，但没有重做物理操作。",
+          "sources": [
+            "H4-c18-result",
+            "H4-c19-reason",
+            "H4-c21-result",
+            "H4-c24-error",
+            "H4-c27-error"
+          ],
+          "cutoff": [
+            4,
+            27,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "Catalyst B 缺少独立固定温度配对；同釜升温同时增加时间/历史。共有噪声流也不意味着读数误差被控制或消除。",
+          "sources": [
+            "H4-c11-result",
+            "H4-c15-result",
+            "H4-c28-report"
+          ],
+          "cutoff": [
+            4,
+            28,
+            1
+          ],
+          "status": "存在混杂"
+        },
+        {
+          "analysis": "最终报告一边承认混杂，一边声称 temperature × catalyst × thermal-history interaction。现有设计不能辨识该三因素交互；保留原话，将其标为分析者指出的过度归因，不改写为成功机制发现。",
+          "sources": [
+            "H4-c28-report"
+          ],
+          "cutoff": [
+            4,
+            28,
+            1
+          ],
+          "status": "过度归因"
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batch": 1,
+      "title": "时间序列决定 1800 s 终点",
+      "overview": "共同来源已记录停止继续加热的决定；无需笔记才能找到这一转折。",
+      "questions": [
+        {
+          "analysis": "以 350 K 建立基线，预期转化/产率随加热增加，也允许选择性下降。首次共同说明没有承诺具体 3600 s 终点。",
+          "sources": [
+            "N1-c4-reason"
+          ],
+          "cutoff": [
+            1,
+            4,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "600 s 后先继续观察；1800 s 后 call 12 明确决定不再延长并转做 NMR。3600 s 在此时才出现在这段共同记录中，不能反推为首动作前固定计划。",
+          "sources": [
+            "N1-c10-reason",
+            "N1-c11-result",
+            "N1-c12-reason"
+          ],
+          "cutoff": [
+            1,
+            12,
+            0
+          ],
+          "status": "明确停止延长"
+        },
+        {
+          "analysis": "实际追加 NMR，随后 quench、HPLC 和终检，没有继续加热。理由同时保留 NMR/HPLC 不可互换的边界。",
+          "sources": [
+            "N1-c12-result",
+            "N1-c13-reason",
+            "N1-c13-result",
+            "N1-c17-result"
+          ],
+          "cutoff": [
+            1,
+            17,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "只有 350 K 下的时间序列，尚无温度对照。拟在下一批保持操作、只改温度；这个未来计划不能算当前已完成温度检验。",
+          "sources": [
+            "N1-c8-result",
+            "N1-c10-result",
+            "N1-c18-report"
+          ],
+          "cutoff": [
+            1,
+            18,
+            1
+          ],
+          "status": "对照待完成"
+        },
+        {
+          "analysis": "报告支持已测时间段内产率增加、选择性下降，保留方法及处理阶段混杂。关于 initially contemplated 3600 s 的回顾不足以单独证明早期承诺。",
+          "sources": [
+            "N1-c4-reason",
+            "N1-c12-reason",
+            "N1-c18-report"
+          ],
+          "cutoff": [
+            1,
+            18,
+            1
+          ],
+          "status": "边界需核查"
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batch": 2,
+      "title": "降温获益预期被逐步削弱",
+      "overview": "共同操作理由已有反证与保留终点；终报告明确后续 Catalyst B 配对计划。",
+      "questions": [
+        {
+          "analysis": "预期 330 K 或以转化/产率损失换取选择性，也允许仅减慢反应而不提高选择性。计划匹配完整操作。",
+          "sources": [
+            "N2-c7-reason"
+          ],
+          "cutoff": [
+            2,
+            7,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "600 s 后 call 14 已说明较慢转化、更低副产物，但没有选择性优势；仍保留 1800 s 匹配终点。该过程判断可从操作理由直接定位。",
+          "sources": [
+            "N2-c12-result",
+            "N2-c14-reason"
+          ],
+          "cutoff": [
+            2,
+            14,
+            0
+          ],
+          "status": "削弱预期"
+        },
+        {
+          "analysis": "1800 s 后继续匹配 NMR/quench/HPLC/终检；call 17 明确 HPLC 反对降温选择性获益，仍保持测量与采样负担。",
+          "sources": [
+            "N2-c15-result",
+            "N2-c17-reason",
+            "N2-c18-result",
+            "N2-c22-result"
+          ],
+          "cutoff": [
+            2,
+            22,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "N1/N2 的 13 步仅两个加热段的温度参数不同。条件匹配不提供独立重复，也不消除观察噪声。",
+          "sources": [
+            "N2-c11-result",
+            "N2-c14-result",
+            "N2-c23-report"
+          ],
+          "cutoff": [
+            2,
+            23,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "终报告拒绝当前配方的降温选择性获益，保留较低降解提示量的权衡；明确下一步 B 的 350/330 K 配对，并限定当前单次/条件。",
+          "sources": [
+            "N2-c22-result",
+            "N2-c23-report"
+          ],
+          "cutoff": [
+            2,
+            23,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batch": 3,
+      "title": "保留配对设计，区分优化与检验",
+      "overview": "Catalyst B 的 350 K 参照；当前不能声称 B 的温度关系已经得到支持。",
+      "questions": [
+        {
+          "analysis": "为下一批 330 K 保留匹配参照，预期此前温度方向可能延续，也允许反转或权衡。",
+          "sources": [
+            "N3-c8-reason"
+          ],
+          "cutoff": [
+            3,
+            8,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "600 s 仍未完全转化，call 15 保留追加 1200 s 来形成配对终点。该处只表达保持设计，不能据此声称已经发生温度规律修订。",
+          "sources": [
+            "N3-c13-result",
+            "N3-c15-reason"
+          ],
+          "cutoff": [
+            3,
+            15,
+            0
+          ],
+          "status": "保留设计"
+        },
+        {
+          "analysis": "1800 s 完全转化但选择性下降后，停止加热并完成 NMR/quench/终检；没有为了优化读数改用 600 s 最终条件。",
+          "sources": [
+            "N3-c16-result",
+            "N3-c18-result",
+            "N3-c19-reason",
+            "N3-c22-result"
+          ],
+          "cutoff": [
+            3,
+            22,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "与 N1 同温度操作仅催化剂身份不同。Catalyst B 的温度比较尚缺下一批，模型在批末明确这只是高温参照。",
+          "sources": [
+            "N3-c10-result",
+            "N3-c23-report"
+          ],
+          "cutoff": [
+            3,
+            23,
+            1
+          ],
+          "status": "配对待完成"
+        },
+        {
+          "analysis": "报告描述时间/选择性权衡，提醒微小产率差不能过解读，提出较短时间可供未来优化但保持本轮温度问题；没有把未做的 B/330 K 写成事实。",
+          "sources": [
+            "N3-c13-result",
+            "N3-c16-result",
+            "N3-c23-report"
+          ],
+          "cutoff": [
+            3,
+            23,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    },
+    {
+      "arm": "N",
+      "batch": 4,
+      "title": "完成范围配对，保留适用边界",
+      "overview": "B 的 330 K 操作完成后才形成四条件综合；每个条件仍只有一条完整实验流程。",
+      "questions": [
+        {
+          "analysis": "预期 B 的 330 K 产率/选择性低于高温参照；也允许催化剂依赖的反转或选择性—产率权衡。",
+          "sources": [
+            "N4-c7-reason"
+          ],
+          "cutoff": [
+            4,
+            7,
+            0
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "600 s 后 call 14 依据早期同阶段结果暂时保留原假设，并继续固定时程；不是每有新数据都必须改变判断。",
+          "sources": [
+            "N4-c12-result",
+            "N4-c14-reason"
+          ],
+          "cutoff": [
+            4,
+            14,
+            0
+          ],
+          "status": "保留假设"
+        },
+        {
+          "analysis": "继续匹配 NMR/quench/后处理 HPLC/终检。NMR 与后处理读数方向相同，实际没有临时改变条件追逐更高产率。",
+          "sources": [
+            "N4-c17-reason",
+            "N4-c18-reason",
+            "N4-c20-reason",
+            "N4-c21-result"
+          ],
+          "cutoff": [
+            4,
+            21,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "N3/N4 仅两个加热段温度不同；N1/N3 与 N2/N4 仅催化剂身份不同。四个已测条件的结构清楚，但不能因此把批次当充分重复。",
+          "sources": [
+            "N4-c11-result",
+            "N4-c14-result",
+            "N4-c25-report"
+          ],
+          "cutoff": [
+            4,
+            25,
+            1
+          ],
+          "status": "可定位"
+        },
+        {
+          "analysis": "四个已测终点均支持各催化剂内 350 K 产率/选择性更高；报告也明确高温降解提示量更高、固定时程动力学解释及未做等转化率比较，未确证普遍机理。",
+          "sources": [
+            "N4-c21-result",
+            "N4-c25-report"
+          ],
+          "cutoff": [
+            4,
+            25,
+            1
+          ],
+          "status": "可定位"
+        }
+      ]
+    }
+  ],
+  "notebook_delta": [
+    {
+      "revision": 1,
+      "categories": [
+        "较早公开",
+        "补充计划"
+      ],
+      "analysis": "在首动作前一调用写出总体方案、完整操作匹配原则与暂定性；首次操作理由随后重复主要问题/预期，但 v1 的后续批次安排更具体。后续方案会变化，不把旧计划等同最终设计。",
+      "contemporaneous": [],
+      "later": [
+        "N1-c4-reason",
+        "N1-c18-report"
+      ]
+    },
+    {
+      "revision": 2,
+      "categories": [
+        "汇总重复",
+        "较早公开",
+        "边界问题"
+      ],
+      "analysis": "时间权衡、方法偏差和停止延长已见 call 12/13；笔记在终检前更早写出下一批低温匹配 1800 s。所述不延长3600 s不能补成首动作前计划。",
+      "contemporaneous": [
+        "N1-c12-reason",
+        "N1-c13-reason",
+        "N1-c14-result"
+      ],
+      "later": [
+        "N1-c18-report"
+      ]
+    },
+    {
+      "revision": 3,
+      "categories": [
+        "汇总重复"
+      ],
+      "analysis": "与同一次 finish_batch 的报告同步整合终检及330 K计划；独立版本便于集中查阅，没有额外提前量。",
+      "contemporaneous": [
+        "N1-c18-report"
+      ],
+      "later": []
+    },
+    {
+      "revision": 4,
+      "categories": [
+        "较早公开",
+        "补充判断规则"
+      ],
+      "analysis": "首动作前一调用明确终检为主要比较、微小/不清差异保留未决，并给出何种方向支持权衡。首次理由随后重复竞争预期；更细的定性判断规则是额外表达，不是校准统计阈值。",
+      "contemporaneous": [
+        "N1-c18-report"
+      ],
+      "later": [
+        "N2-c7-reason",
+        "N2-c23-report"
+      ]
+    },
+    {
+      "revision": 5,
+      "categories": [
+        "较早公开",
+        "汇总重复"
+      ],
+      "analysis": "600 s 后笔记先写没有选择性收益并保留时程，下一调用14的操作理由重复这一核心判断。增量主要是一次调用的较早表述及集中数值。",
+      "contemporaneous": [
+        "N2-c12-result"
+      ],
+      "later": [
+        "N2-c14-reason"
+      ]
+    },
+    {
+      "revision": 6,
+      "categories": [
+        "较早公开",
+        "汇总重复"
+      ],
+      "analysis": "1800 s 后明确修订降温权衡预期，下一调用17也说明反证并继续匹配NMR。笔记更完整地预告若终检一致则转向范围配对。",
+      "contemporaneous": [
+        "N2-c15-result"
+      ],
+      "later": [
+        "N2-c17-reason",
+        "N2-c23-report"
+      ]
+    },
+    {
+      "revision": 7,
+      "categories": [
+        "较早公开",
+        "补充计划"
+      ],
+      "analysis": "终检前已具体提出 Catalyst B 作为后两批配对的范围变化；此前共同理由只说明完成当前匹配，终报告23才明确该后续安排。不能断言笔记导致了后续行动。",
+      "contemporaneous": [
+        "N2-c18-reason",
+        "N2-c19-result"
+      ],
+      "later": [
+        "N2-c23-report"
+      ]
+    },
+    {
+      "revision": 8,
+      "categories": [
+        "汇总重复"
+      ],
+      "analysis": "与同一次最终报告共同提交，综合终检、范围和B配对；这些主要内容在报告中也有。",
+      "contemporaneous": [
+        "N2-c23-report"
+      ],
+      "later": []
+    },
+    {
+      "revision": 9,
+      "categories": [
+        "较早公开",
+        "补充预测"
+      ],
+      "analysis": "复述已在N2报告宣布的B配对；首动作前额外明确本批600→1800 s产率/转化上升的预期与选择性代价，以及保持配对的例外条件。首次理由8主要谈跨温度预期。",
+      "contemporaneous": [
+        "N2-c23-report"
+      ],
+      "later": [
+        "N3-c8-reason",
+        "N3-c15-reason"
+      ]
+    },
+    {
+      "revision": 10,
+      "categories": [
+        "较早公开",
+        "汇总重复"
+      ],
+      "analysis": "600 s后先说明尚无B温度效应、继续时程。下一调用15重复保持配对终点的理由；不是新增一份独立实验。",
+      "contemporaneous": [
+        "N3-c13-result"
+      ],
+      "later": [
+        "N3-c15-reason"
+      ]
+    },
+    {
+      "revision": 11,
+      "categories": [
+        "较早公开",
+        "补充判断"
+      ],
+      "analysis": "更早明确产率没有随追加暴露增加，提出600 s或值得优化，同时坚持1800 s完成温度检验。共同理由19只明确完全转化和选择性下降，批末报告23才完整说出短时优化机会；不能把小产率差当可靠下降。",
+      "contemporaneous": [
+        "N3-c16-result"
+      ],
+      "later": [
+        "N3-c19-reason",
+        "N3-c23-report"
+      ]
+    },
+    {
+      "revision": 12,
+      "categories": [
+        "汇总重复",
+        "边界问题"
+      ],
+      "analysis": "主要解释与同次报告一致。Next decision里的batch-4-operation-013是待执行比较目标，不是已有观测；笔记的未来引用须保留为计划，不能补判已存在。",
+      "contemporaneous": [
+        "N3-c23-report"
+      ],
+      "later": []
+    },
+    {
+      "revision": 13,
+      "categories": [
+        "较早公开",
+        "汇总重复"
+      ],
+      "analysis": "首动作前汇集前三批和最终配对预期；主要设计已有N3报告，随后首次理由7也复述。把这些信息集中在一个版本主要改善定位。",
+      "contemporaneous": [
+        "N3-c23-report"
+      ],
+      "later": [
+        "N4-c7-reason"
+      ]
+    },
+    {
+      "revision": 14,
+      "categories": [
+        "较早公开",
+        "汇总重复"
+      ],
+      "analysis": "600 s后保持泛化假设，下一调用14几乎同步重复，笔记补充次要副产物差异不足以代表有利权衡。不是被反驳后修订，而是暂时保留。",
+      "contemporaneous": [
+        "N4-c12-result"
+      ],
+      "later": [
+        "N4-c14-reason"
+      ]
+    },
+    {
+      "revision": 15,
+      "categories": [
+        "补充判断",
+        "边界问题"
+      ],
+      "analysis": "笔记明确提出1800 s转化均较高，差异不能简单归于很大的剩余转化差。共同理由17仅称HPLC支持高温；末报告仍保留动力学解释。此处是额外的暂定解释，不是已排除动力学或发现机制。",
+      "contemporaneous": [
+        "N4-c15-result"
+      ],
+      "later": [
+        "N4-c17-reason",
+        "N4-c25-report"
+      ]
+    },
+    {
+      "revision": 16,
+      "categories": [
+        "汇总重复",
+        "信息遗漏"
+      ],
+      "analysis": "四批综合主要重复同次最终报告；但综合/最终决策段没有保留报告中高温在两对终检中降解提示量更高的明确权衡。笔记并非总比报告更完整，不能只读笔记评价全部结论。",
+      "contemporaneous": [
+        "N4-c25-report"
+      ],
+      "later": []
+    }
+  ]
+}
