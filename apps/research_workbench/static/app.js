@@ -10,6 +10,11 @@ const esc = (s) =>
       ],
   );
 const pretty = (value) => JSON.stringify(value, null, 2);
+const hasModelUsage = (r) => Boolean(r.model_calls || r.provider);
+const modelCallCount = (r) => r.model_calls ?? "未提供";
+const modelUsageText = (r, key) => hasModelUsage(r)
+  ? number(key ? r.usage?.[key] || 0 : (r.usage?.input_tokens || 0) + (r.usage?.output_tokens || 0), 0) + (r.usage?.complete ? "" : "（不完整）")
+  : "未调用";
 const state = {
   catalog: null,
   runs: [],
@@ -349,7 +354,7 @@ function renderExplorer(savedScroll = null) {
     </aside>
   </div>
   <section class="execution-dock"><div class="dock-events"><div class="dock-heading"><h3>${isModel?'Agent 执行记录':'实验执行记录'}</h3><button class="text-button" data-tab="timeline">全部 ${r.events.length} 条事件⌄</button></div><div class="execution-events">${actions.map((e,i)=>`<button class="execution-chip ${e.transaction_status==='committed'?'':'rejected'}" data-event="${r.events.length-actions.length+i}"><span class="event-icon">${icon(e.action.operation==='measure'?'chart':e.action.operation==='heat'?'settings':'network')}</span><span class="event-copy"><span class="event-time">${esc(new Date(e.recorded_at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}))}</span><strong>${esc(operations[e.action.operation] || e.action.operation)}</strong><small>${esc(actionLines(e.action).join(' · '))} · ${e.transaction_status==='committed'?'已提交':'拒绝 / 回滚'}</small></span></button>${i<actions.length-1?'<span class="dock-arrow">→</span>':''}`).join('') || '<div class="muted">等待第一条执行记录</div>'}</div></div>
-  <div class="dock-resource"><div>${icon('wrench')}操作预算 <strong>${consumed} / ${r.design.budget}</strong></div><progress max="${r.design.budget}" value="${Math.min(consumed,r.design.budget)}" aria-label="已消耗操作预算"></progress><small>提交 ${r.submitted_steps} · 拒绝 ${r.rejected_steps} · 模型调用 ${r.model_calls} · Token ${r.model_calls?number((r.usage?.input_tokens || 0)+(r.usage?.output_tokens || 0),0)+(r.usage?.complete?'':'（不完整）'):'未调用'}</small></div>
+  <div class="dock-resource"><div>${icon('wrench')}操作预算 <strong>${consumed} / ${r.design.budget}</strong></div><progress max="${r.design.budget}" value="${Math.min(consumed,r.design.budget)}" aria-label="已消耗操作预算"></progress><small>提交 ${r.submitted_steps} · 拒绝 ${r.rejected_steps} · ${r.model_tool_calls != null ? '模型工具 '+r.model_tool_calls+' · ' : ''}模型调用 ${modelCallCount(r)} · Token ${modelUsageText(r)}</small></div>
   <div class="dock-clock">${icon('clock')}<div><span>模拟时间</span><strong>${formatDuration(sim)}</strong></div></div><div class="dock-clock">${icon('clock')}<div><span>${Number.isFinite(r.wall_time_s)?'墙钟':'执行跨度'}</span><strong>${formatDuration(elapsed)}</strong></div></div></section>`;
   drawExplorationGraph($('network-graph'),graph,i=>showDetail('公开事件详情',r.events[i]));
   const zoom=value=>{state.graphZoom=Math.max(.6,Math.min(1.8,value));$('network-graph').className='network-graph zoom-'+Math.round(state.graphZoom*10);$('graph-scale').textContent=Math.round(state.graphZoom*100)+'%';};
@@ -389,16 +394,9 @@ function metrics(r) {
     ["已提交动作", r.submitted_steps],
     ["拒绝 / 回滚", r.rejected_steps],
     ["剩余操作预算", camp.remaining_budget ?? "—"],
-    ["模型调用", r.model_calls],
-    [
-      "模型 token",
-      r.model_calls
-        ? number(
-            (r.usage?.input_tokens || 0) + (r.usage?.output_tokens || 0),
-            0,
-          ) + (r.usage?.complete ? "" : "（不完整）")
-        : "未调用",
-    ],
+    ["模型调用", modelCallCount(r)],
+    ["模型工具请求", r.model_tool_calls ?? "—"],
+    ["模型 token", modelUsageText(r)],
     ["模型费用", "未知 / 以厂商账单为准"],
   ]
     .map(
@@ -593,23 +591,10 @@ async function renderCompare() {
     ["终检", (r) => (r.final_assay_count ? "已完成" : "未完成")],
     ["动作提交", (r) => r.submitted_steps],
     ["拒绝 / 回滚", (r) => r.rejected_steps],
-    ["模型调用", (r) => r.model_calls],
-    [
-      "输入 token",
-      (r) =>
-        r.model_calls
-          ? number(r.usage.input_tokens, 0) +
-            (r.usage.complete ? "" : "（不完整）")
-          : "未调用",
-    ],
-    [
-      "输出 token",
-      (r) =>
-        r.model_calls
-          ? number(r.usage.output_tokens, 0) +
-            (r.usage.complete ? "" : "（不完整）")
-          : "未调用",
-    ],
+    ["模型调用", modelCallCount],
+    ["模型工具请求", (r) => r.model_tool_calls ?? "—"],
+    ["输入 token", (r) => modelUsageText(r, "input_tokens")],
+    ["输出 token", (r) => modelUsageText(r, "output_tokens")],
     [
       "实际返回模型",
       (r) =>
