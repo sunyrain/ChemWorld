@@ -241,13 +241,17 @@ function apparatus(kind, id) {
   return defs + drawing;
 }
 
-export function graphLayout(graph, saved = {}) {
-  const columns = Math.min(4, Math.max(1, graph.nodes.length));
+export function graphLayout(graph, saved = {}, viewport = {width:1000,height:630}) {
+  let columns=1,best=0;
+  for(let count=1;count<=Math.min(6,graph.nodes.length);count++) {
+    const scale=Math.min((viewport.width-56)/(208+(count-1)*264),(viewport.height-56)/(134+(Math.ceil(graph.nodes.length/count)-1)*168));
+    if(scale>best){best=scale;columns=count;}
+  }
   return new Map(graph.nodes.map((node, i) => {
     const row = Math.floor(i / columns), column = i % columns;
     const point = saved[node.id];
     return [node.id, point && Number.isFinite(point.x) && Number.isFinite(point.y)
-      ? { ...point } : { x: 32 + (row % 2 ? columns - 1 - column : column) * 268, y: 32 + row * 184 }];
+      ? { ...point } : { x: 32 + (row % 2 ? columns - 1 - column : column) * 264, y: 32 + row * 168 }];
   }));
 }
 
@@ -263,10 +267,11 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
     const empty = document.createElement('div'); empty.className = 'graph-empty';
     empty.textContent = '等待第一条操作记录。执行轨迹将随实验展开。';
     container.replaceChildren(empty);
-    return { fit() {}, zoomBy() {}, focusLatest() {}, dispose() {}, interacting: false };
+    return { fit() {}, resetLayout() {}, zoomBy() {}, focusLatest() {}, dispose() {}, interacting: false };
   }
   const nodeWidth=208, nodeHeight=134;
-  const positions = graphLayout(graph, options.saved?.positions);
+  let manualLayout=options.saved?.manualLayout || false;
+  let positions = graphLayout(graph,manualLayout?options.saved?.positions:{},{width:container.clientWidth,height:container.clientHeight});
   const svg=make('svg',{role:'group',tabindex:0,'aria-label':graph.title+'。拖动空白平移，滚轮缩放，方向键平移，Home 适应画布。'});
   const scene=make('g',{class:'graph-scene'}), nodeElements=new Map(), edgeElements=[];
   const defs=make('defs');
@@ -323,7 +328,7 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
   drawEdges();
   let width=options.saved?.viewport?.width || 0,height=options.saved?.viewport?.height || 0,drag=null;
   let camera={x:0,y:0,scale:1,autoFit:true,...options.saved?.camera};
-  const emit=()=>options.onChange?.({camera:{...camera},positions:Object.fromEntries(positions),viewport:{width,height}});
+  const emit=()=>options.onChange?.({camera:{...camera},positions:Object.fromEntries(positions),viewport:{width,height},manualLayout});
   function paint() {
     scene.setAttribute('transform',`translate(${camera.x} ${camera.y}) scale(${camera.scale})`);
     emit();
@@ -341,9 +346,14 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
     const oldWidth=width,oldHeight=height;
     width=Math.max(1,container.clientWidth);height=Math.max(1,container.clientHeight);
     svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
-    if(camera.autoFit) fit();
+    if(camera.autoFit) {if(!manualLayout) arrange();fit();}
     else { if(oldWidth) {camera.x+=(width-oldWidth)/2;camera.y+=(height-oldHeight)/2;} paint(); }
   }
+  function arrange() {
+    positions=graphLayout(graph,{}, {width,height});
+    positions.forEach((p,id)=>nodeElements.get(id).setAttribute('transform',`translate(${p.x} ${p.y})`));drawEdges();
+  }
+  function resetLayout() {manualLayout=false;arrange();fit();}
   function zoomBy(factor, anchor={x:width/2,y:height/2}) {
     const scale=Math.max(.02,Math.min(3,camera.scale*factor)),ratio=scale/camera.scale;
     camera={x:anchor.x-(anchor.x-camera.x)*ratio,y:anchor.y-(anchor.y-camera.y)*ratio,scale,autoFit:false};paint();
@@ -370,6 +380,7 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
     if(!drag.moved && Math.hypot(dx,dy)<5) return;
     drag.moved=true;camera.autoFit=false;
     if(drag.id) {
+      manualLayout=true;
       const position={x:drag.position.x+dx/camera.scale,y:drag.position.y+dy/camera.scale};
       positions.set(drag.id,position);nodeElements.get(drag.id).setAttribute('transform',`translate(${position.x} ${position.y})`);drawEdges();
     } else {camera.x=drag.camera.x+dx;camera.y=drag.camera.y+dy;}
@@ -396,7 +407,7 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
   });
   resize();
   const observer=new ResizeObserver(resize);observer.observe(container);
-  return {fit,zoomBy,focusLatest,get interacting(){return Boolean(drag);},dispose(){observer.disconnect();}};
+  return {fit,resetLayout,zoomBy,focusLatest,get interacting(){return Boolean(drag);},dispose(){observer.disconnect();}};
 }
 
 // Public-event summaries never infer an observation from an unexecuted request.
