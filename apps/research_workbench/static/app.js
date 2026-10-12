@@ -1,4 +1,4 @@
-import { drawChart, explorationGraph, drawExplorationGraph, icon, actionLines } from "./charts.js";
+import { drawChart, explorationGraph, drawExplorationGraph, icon, actionLines, eventSummary } from "./charts.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
@@ -22,7 +22,8 @@ const state = {
   page: "home",
   tab: "explore",
   graphMode: "events",
-  graphZoom: 1,
+  graphViews: new Map(),
+  graphController: null,
   previewSignal: null,
   chartObserver: null,
   previewEpoch: 0,
@@ -83,6 +84,11 @@ const fieldNames = {
   catalyst: "催化剂",
   instrument: "仪器",
   sample_volume_L: "取样体积 (L)",
+  flow_rate_mL_min: "流量 (mL/min)",
+  residence_time_s: "请求停留时间 (s)",
+  reagent: "试剂",
+  seed_mass_g: "晶种质量 (g)",
+  cooling_rate_K_min: "降温速率 (K/min)",
 };
 const taskName = (design) =>
   names[design.task_id] ||
@@ -123,8 +129,6 @@ async function refreshRuns() {
   renderSidebar();
 }
 function renderSidebar() {
-  state.chartObserver?.disconnect();
-  state.chartObserver = null;
   document.body.classList.toggle("explore-mode", state.page === "run" && state.tab === "explore");
   $("run-count").textContent = state.runs.length;
   $("compare-count").textContent = state.selected.size;
@@ -152,6 +156,7 @@ function renderSidebar() {
         : "实验工作台";
 }
 function renderHome() {
+  disposeExplorer();
   state.navigation++;
   state.page = "home";
   state.run = null;
@@ -222,16 +227,27 @@ async function openRun(id) {
   history.replaceState(null, "", "?run=" + encodeURIComponent(id));
   renderRun();
 }
+function disposeExplorer() {
+  state.graphController?.dispose();
+  state.graphController = null;
+  state.chartObserver?.disconnect();
+  state.chartObserver = null;
+}
+function runMessage(r) {
+  const rollback = r.events.findLast(e => e.transaction_status === "rolled_back");
+  if (r.status === "failed" && rollback) return eventSummary(rollback).summary;
+  if (r.message === "Native model report saved.") return r.status === "failed" ? "实验未完成，请查看操作记录和模型报告。" : "模型报告已保存。";
+  return r.message;
+}
 function renderRun() {
   const r = state.run;
-  const viewport = $("graph-viewport");
-  const graphScroll = viewport ? { x: viewport.scrollLeft, y: viewport.scrollTop } : null;
+  disposeExplorer();
   state.previewEpoch++;
   renderSidebar();
   const active = ["ready", "running", "cancelling"].includes(r.status);
   $("main").innerHTML = state.tab === "explore" ? renderExploreHeader(r) + `<div id="run-panel"></div>` :
     `<section class="run-heading"><div><div class="eyebrow">${esc(r.project)} / EXPERIMENT</div><h1>${esc(r.name)}</h1>${badge(r.status)} <span class="muted compact">${esc(taskName(r.design))} · seed ${r.design.seed} · ${date(r.created_at)}</span><p>${esc(r.question || "")}</p></div><div class="row-actions"><button class="button secondary small" id="clone-run">新建同条件实验</button>${active ? '<button class="button danger small" id="cancel-run">' + (r.status === "ready" ? "关闭实验" : "取消运行") + "</button>" : ""}<button class="button secondary small" id="replay-run" ${["running", "cancelling"].includes(r.status) ? "disabled" : ""}>精确回放</button><a class="button secondary small" href="/api/runs/${r.id}/export">导出 ZIP ↗</a></div></section>
-  ${r.message && (state.tab !== "explore" || ["failed", "interrupted", "truncated", "cancelled"].includes(r.status)) ? `<div class="notice ${["failed", "interrupted", "truncated"].includes(r.status) ? "warning" : ""}">${esc(r.message)}</div>` : ""}
+  ${r.message && (state.tab !== "explore" || ["failed", "interrupted", "truncated", "cancelled"].includes(r.status)) ? `<div class="notice ${["failed", "interrupted", "truncated"].includes(r.status) ? "warning" : ""}">${esc(runMessage(r))}</div>` : ""}
   ${r.replay ? `<div class="notice">${r.replay.verified ? "✓ 精确回放通过" : "回放未通过"} · 检查 ${r.replay.checked_steps} 步 · 最大绝对误差 ${number(r.replay.max_abs_error, 8)}</div>` : ""}
   <div class="executor-strip"><span class="executor-icon">◇</span><strong>${esc(executorLabel(r))}</strong><span>虚拟实验室</span><span class="executor-help">${r.actor === "reference" ? "固定配方 · 非自主 Agent" : r.actor === "manual" ? "手动实验 · 独立可选模式" : "模型自主选择操作 · 记录按实际执行更新"}</span></div>
   <div class="tabs" role="tablist">${[
@@ -247,7 +263,6 @@ function renderRun() {
     )
     .join("")}</div><div id="run-panel"></div>`;
   if (state.tab === "explore") {
-    renderExplorer(graphScroll);
     if (active) {
       const stop = document.createElement("button");
       stop.id = "cancel-run"; stop.className = "button secondary explore-stop";
@@ -257,8 +272,9 @@ function renderRun() {
     }
     if (r.message && ["failed", "interrupted", "truncated", "cancelled"].includes(r.status)) {
       const message = document.createElement("p"); message.className = "explore-warning";
-      message.textContent = r.message; document.querySelector(".explore-title").append(message);
+      message.textContent = runMessage(r); document.querySelector(".explore-title").append(message);
     }
+    renderExplorer();
   }
   if (state.tab === "timeline") renderTimeline();
   if (state.tab === "spectra") renderSpectra();
@@ -314,10 +330,8 @@ function formatDuration(seconds) {
   if (seconds < 60) return number(seconds,1)+' s';
   return number(seconds/60,1)+' min';
 }
-function renderExplorer(savedScroll = null) {
+function renderExplorer() {
   const r=state.run, epoch=++state.previewEpoch;
-  const previous=$('graph-viewport');
-  const scroll=savedScroll || {x:previous?.scrollLeft || 0,y:previous?.scrollTop || 0};
   const hasNetwork=Boolean(r.view?.component_network?.vessels?.length);
   const graph=explorationGraph(r,hasNetwork?state.graphMode:'events',{...operations,...fieldNames});
   const isModel=!['reference','manual'].includes(r.actor);
@@ -337,32 +351,34 @@ function renderExplorer(savedScroll = null) {
   $('run-panel').innerHTML=`
   <div class="explorer-layout">
     <section class="network-panel panel">
-      <div class="network-heading"><div><h2>${graph.kind==='network'?'Component Network':'Autonomous Canvas'} <span>/ ${esc(graph.title)}</span></h2><p>${isModel?'由 Agent 执行':r.actor==='reference'?'固定参考流程':'手动 / 脚本提交'} · ${graph.nodes.length} / ${graph.total} 个节点</p></div>
+      <div class="network-heading"><div><h2>${graph.kind==='network'?'组件网络':'执行轨迹'}</h2><p>${graph.total} 个节点 · 拖动节点调整排布</p></div>
       <div class="graph-tools">${hasNetwork?'<select id="graph-mode" aria-label="选择网络视图"><option value="events">执行轨迹</option><option value="network">组件网络</option></select>':''}<button class="button secondary small" id="graph-fit">${icon('fit')}适应画布</button><div class="zoom-control"><button id="graph-minus" aria-label="缩小画布">−</button><span id="graph-scale">100%</span><button id="graph-plus" aria-label="放大画布">＋</button></div><button class="button secondary small" id="graph-follow">${icon('target')}定位最近操作</button></div></div>
       <div class="graph-viewport" id="graph-viewport"><div id="network-graph" class="network-graph"></div></div>
-      <div class="graph-legend ${graph.kind}"><span class="line-key"></span>${esc(graph.legend)}<span>${graph.kind==='events'?'点击节点查看实际提交与观测':'公开连接 · 当前容器高亮'}</span></div>
+      <div class="graph-legend ${graph.kind}"><span class="line-key"></span>${esc(graph.legend)}<span>拖动空白平移 · 滚轮缩放</span></div>
     </section>
     <aside class="explorer-inspector">
       <section class="panel research-state"><div class="panel-header"><h3>${icon('agent')} ${isModel?'Agent 研究状态':'实验执行状态'}</h3><span class="model-pill" title="${esc(executorLabel(r))}">${esc(isModel?r.model_configuration?.requested_model || r.actor:r.actor==='reference'?'参考流程':'手动 / 脚本')}</span></div><div class="panel-body">
       <div class="research-row">${icon('target')}<strong>研究目标</strong><p>${esc(r.question || '未填写目标')}</p></div>
-      <div class="research-row">${icon('flask')}<strong>当前实验</strong><div><p>${esc(r.name)}</p><small>${latest?esc(operations[latest.action.operation] || latest.action.operation)+' · '+(latest.transaction_status==='committed'?'已提交':'拒绝 / 回滚'):'尚无操作记录'}</small></div></div>
-      <div class="stage-heading">操作进度 <span>${r.submitted_steps} 次提交 · ${r.rejected_steps} 次拒绝</span></div><div class="research-stages">${stages.map(([label,match])=>{const done=r.events.some(e=>e.transaction_status==='committed'&&match(e));return `<div class="research-stage ${done?'done':''}"><i>${done?'✓':'·'}</i><span>${label}</span><small>${done?'已记录':'未记录'}</small></div>`;}).join('')}</div>
+      <div class="research-row">${icon('flask')}<strong>当前实验</strong><div><p>${esc(r.name)}</p><small>${latest?esc(operations[latest.action.operation] || latest.action.operation)+' · '+eventSummary(latest).status:'尚无操作记录'}</small></div></div>
+      <div class="stage-heading">操作进度 <span>${r.submitted_steps} 次提交 · ${r.rejected_steps} 次拒绝 / 回滚</span></div><div class="research-stages">${stages.map(([label,match])=>{const done=r.events.some(e=>e.transaction_status==='committed'&&match(e));return `<div class="research-stage ${done?'done':''}"><i>${done?'✓':'·'}</i><span>${label}</span><small>${done?'已记录':'未记录'}</small></div>`;}).join('')}</div>
       </div></section>
       <section class="panel observation-preview"><div class="panel-header"><h3>${icon('chart')}环境观测</h3>${selected?`<select id="preview-spectrum" aria-label="选择观测通道">${measurements.map(item=>`<option value="${esc(item.key)}" ${item===selected?'selected':''}>${esc(item.series.label)} · ${esc(item.event.event_id)}</option>`).join('')}</select>`:'<span class="muted">尚无数据</span>'}</div>${selected?'<div id="explore-chart" class="chart"></div>':'<div class="empty">尚无可绘制的仪器信号<br>测量后显示实际观测</div>'}<div class="chart-note"><span id="preview-source">${selected?esc(selected.event.event_id)+' · 虚拟仪器实际信号':'未测量不等于零'}</span><button class="text-button" data-tab="spectra">全部观测 ↗</button></div></section>
       <section class="panel notebook-preview"><div class="panel-header"><h3>${icon('records')}${author==='model'?'Agent 研究笔记':'研究记录'}</h3><button class="text-button" data-agent-notes>${revisions.length?'查看版本':'查看全部'}</button></div><div class="panel-body"><div id="agent-note-preview" class="note-excerpt">${esc(state.noteCache.get(noteKey) || noteFallback)}</div><div class="note-source">${author==='model'?'模型主动记录':revisions.length?'人工笔记 · 非模型记录':'Agent 尚未提交笔记'} · ${revisions.length} 个版本</div></div></section>
       <section class="panel archive-preview"><div class="panel-header"><h3>${icon('flask')}实验档案</h3><button class="text-button" data-tab="report">查看报告 ↗</button></div><div class="archive-facts"><span>世界 <strong>${esc(taskName(r.design))}</strong></span><span>环境 seed <strong>${r.design.seed}</strong></span><span>终检 <strong>${r.final_assay_count?'已完成':'未完成'}</strong></span><span>精确回放 <strong>${r.replay?(r.replay.verified?'已验证':'未通过'):'未检查'}</strong></span></div><div class="archive-actions"><button class="button secondary small" id="clone-run">新建同条件实验</button><button class="button secondary small" id="replay-run" ${['running','cancelling'].includes(r.status)?'disabled':''}>精确回放</button><a class="button secondary small" href="/api/runs/${r.id}/export">导出 ZIP ↗</a></div></section>
     </aside>
   </div>
-  <section class="execution-dock"><div class="dock-events"><div class="dock-heading"><h3>${isModel?'Agent 执行记录':'实验执行记录'}</h3><button class="text-button" data-tab="timeline">全部 ${r.events.length} 条事件⌄</button></div><div class="execution-events">${actions.map((e,i)=>`<button class="execution-chip ${e.transaction_status==='committed'?'':'rejected'}" data-event="${r.events.length-actions.length+i}"><span class="event-icon">${icon(e.action.operation==='measure'?'chart':e.action.operation==='heat'?'settings':'network')}</span><span class="event-copy"><span class="event-time">${esc(new Date(e.recorded_at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}))}</span><strong>${esc(operations[e.action.operation] || e.action.operation)}</strong><small>${esc(actionLines(e.action).join(' · '))} · ${e.transaction_status==='committed'?'已提交':'拒绝 / 回滚'}</small></span></button>${i<actions.length-1?'<span class="dock-arrow">→</span>':''}`).join('') || '<div class="muted">等待第一条执行记录</div>'}</div></div>
-  <div class="dock-resource"><div>${icon('wrench')}操作预算 <strong>${consumed} / ${r.design.budget}</strong></div><progress max="${r.design.budget}" value="${Math.min(consumed,r.design.budget)}" aria-label="已消耗操作预算"></progress><small>提交 ${r.submitted_steps} · 拒绝 ${r.rejected_steps} · ${r.model_tool_calls != null ? '模型工具 '+r.model_tool_calls+' · ' : ''}模型调用 ${modelCallCount(r)} · Token ${modelUsageText(r)}</small></div>
+  <section class="execution-dock"><div class="dock-events"><div class="dock-heading"><h3>${isModel?'Agent 执行记录':'实验执行记录'}</h3><button class="text-button" data-tab="timeline">全部 ${r.events.length} 条事件⌄</button></div><div class="execution-events">${actions.map((e,i)=>`<button class="execution-chip ${e.transaction_status==='committed'?'':'rejected'}" data-event="${r.events.length-actions.length+i}"><span class="event-icon">${icon(e.action.operation==='measure'?'chart':e.action.operation==='heat'?'settings':'network')}</span><span class="event-copy"><span class="event-time">${esc(new Date(e.recorded_at).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}))}</span><strong>${esc(operations[e.action.operation] || e.action.operation)}</strong><small>${esc(actionLines(e.action).join(' · '))} · ${eventSummary(e).status}</small></span></button>${i<actions.length-1?'<span class="dock-arrow">→</span>':''}`).join('') || '<div class="muted">等待第一条执行记录</div>'}</div></div>
+  <div class="dock-resource"><div>${icon('wrench')}操作预算 <strong>${consumed} / ${r.design.budget}</strong></div><progress max="${r.design.budget}" value="${Math.min(consumed,r.design.budget)}" aria-label="已消耗操作预算"></progress><small>提交 ${r.submitted_steps} · 拒绝 / 回滚 ${r.rejected_steps} · ${r.model_tool_calls != null ? '模型工具 '+r.model_tool_calls+' · ' : ''}模型调用 ${modelCallCount(r)} · Token ${modelUsageText(r)}</small></div>
   <div class="dock-clock">${icon('clock')}<div><span>模拟时间</span><strong>${formatDuration(sim)}</strong></div></div><div class="dock-clock">${icon('clock')}<div><span>${Number.isFinite(r.wall_time_s)?'墙钟':'执行跨度'}</span><strong>${formatDuration(elapsed)}</strong></div></div></section>`;
-  drawExplorationGraph($('network-graph'),graph,i=>showDetail('公开事件详情',r.events[i]));
-  const zoom=value=>{state.graphZoom=Math.max(.6,Math.min(1.8,value));$('network-graph').className='network-graph zoom-'+Math.round(state.graphZoom*10);$('graph-scale').textContent=Math.round(state.graphZoom*100)+'%';};
-  zoom(state.graphZoom);
-  $('graph-viewport').scrollLeft=scroll.x; $('graph-viewport').scrollTop=scroll.y;
-  $('graph-fit').onclick=()=>{zoom(1);$('graph-viewport').scrollLeft=0;$('graph-viewport').scrollTop=0;};
-  $('graph-plus').onclick=()=>zoom(state.graphZoom+.2);$('graph-minus').onclick=()=>zoom(state.graphZoom-.2);
-  $('graph-follow').onclick=()=>document.querySelector('.network-node.selected, .network-node.active')?.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});
+  const viewKey=r.id+':'+graph.kind;
+  const controller=drawExplorationGraph($('network-graph'),graph,i=>showEventDetail(i),{
+    saved:state.graphViews.get(viewKey),
+    onChange:view=>{state.graphViews.set(viewKey,view);$('graph-scale').textContent=Math.round(view.camera.scale*100)+'%';},
+  });
+  state.graphController=controller;
+  $('graph-fit').onclick=()=>controller.fit();
+  $('graph-plus').onclick=()=>controller.zoomBy(1.2);$('graph-minus').onclick=()=>controller.zoomBy(1/1.2);
+  $('graph-follow').onclick=()=>controller.focusLatest();
   if($('graph-mode')) {$('graph-mode').value=state.graphMode;$('graph-mode').onchange=()=>{state.graphMode=$('graph-mode').value;renderRun();};}
   document.querySelector('[data-agent-notes]').onclick=()=>{state.author=author;state.tab='notebook';renderRun();};
   if(selected) {
@@ -423,7 +439,7 @@ function renderTimeline() {
     r.events
       .map(
         (e, i) =>
-          `<article class="event ${e.transaction_status === "committed" ? "" : "rejected"}"><div class="event-head"><span>${String(i + 1).padStart(2, "0")} &nbsp; ${esc(operations[e.action.operation] || e.action.operation)}${e.action.instrument ? " · " + esc(e.action.instrument.toUpperCase()) : ""}</span><small>${e.transaction_status === "committed" ? "已提交" : "已拒绝 / 回滚"}</small></div><p>${
+          `<article class="event ${e.transaction_status === "committed" ? "" : "rejected"}"><div class="event-head"><span>${String(i + 1).padStart(2, "0")} &nbsp; ${esc(operations[e.action.operation] || e.action.operation)}${e.action.instrument ? " · " + esc(e.action.instrument.toUpperCase()) : ""}</span><small>${eventSummary(e).status}</small></div><p>${
             esc(
               Object.entries(e.action)
                 .filter(([k]) => !["operation", "instrument"].includes(k))
@@ -559,10 +575,12 @@ async function renderNotebook() {
 }
 function renderReport() {
   const r = state.run;
+  const designFields=[['实验世界',taskName(r.design)],['执行方式',executorLabel(r)],['环境 seed',r.design.seed],['操作预算',r.design.budget],['终检',r.final_assay_count?'已完成':'未完成']];
   $("run-panel").innerHTML =
-    `<div class="chart-grid"><section class="panel"><div class="panel-header"><h3>保存的实验设计</h3></div><div class="panel-body"><pre class="document document-code">${esc(pretty({ design: r.design, actor: r.actor, limits: r.limits, model: r.model_configuration }))}</pre></div></section><section class="panel"><div class="panel-header"><h3>实验报告</h3><span class="muted compact">公开记录</span></div><div class="panel-body"><p class="document">${esc(r.view?.lab_report?.text || "尚无报告。")}</p><hr class="metric-separator"><h3>模型提交的最终报告</h3><p class="document">${esc(r.model_report || "模型尚未主动提交最终报告。")}</p><hr class="metric-separator"><p class="fineprint">${r.submitted_steps} 次提交，${r.rejected_steps} 次拒绝或回滚，${r.final_assay_count} 次终检。保存了全部已提交事件；未终检不等于零产率。环境 seed 不保证不同厂商模型输出相同。</p></div></section></div><div class="section-heading"><h2>物料与设备公开状态</h2></div><section class="panel"><div class="panel-body"><pre class="document document-code">${esc(pretty({ samples: r.view?.sample_inventory, network: r.view?.component_network, routing: r.view?.material_routing, process: r.view?.process_control }))}</pre></div></section>`;
+    `<div class="chart-grid"><section class="panel"><div class="panel-header"><h3>实验设计</h3></div><div class="panel-body"><p class="document">${esc(r.question || '未填写研究目标')}</p><dl class="event-fields">${designFields.map(([label,value])=>`<div><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><details class="event-raw"><summary>完整设计 JSON</summary><pre class="document document-code">${esc(pretty({ design: r.design, actor: r.actor, limits: r.limits, model: r.model_configuration }))}</pre></details></div></section><section class="panel"><div class="panel-header"><h3>实验报告</h3><span class="muted compact">公开记录</span></div><div class="panel-body"><p class="document">${esc(r.view?.lab_report?.text || "尚无报告。")}</p><hr class="metric-separator"><h3>模型提交的最终报告</h3><p class="document">${esc(r.model_report || "模型尚未主动提交最终报告。")}</p><hr class="metric-separator"><p class="fineprint">${r.submitted_steps} 次提交，${r.rejected_steps} 次拒绝或回滚，${r.final_assay_count} 次终检。保存了全部已提交事件；未终检不等于零产率。环境 seed 不保证不同厂商模型输出相同。</p></div></section></div><section class="panel"><div class="panel-body"><details class="event-raw"><summary>物料与设备的公开原始状态</summary><pre class="document document-code">${esc(pretty({ samples: r.view?.sample_inventory, network: r.view?.component_network, routing: r.view?.material_routing, process: r.view?.process_control }))}</pre></details></div></section>`;
 }
 async function renderCompare() {
+  disposeExplorer();
   const navigation = ++state.navigation;
   state.page = "compare";
   state.run = null;
@@ -617,8 +635,25 @@ async function renderCompare() {
 }
 function showDetail(title, content) {
   $("detail-title").textContent = title;
-  $("detail-content").textContent =
-    typeof content === "string" ? content : pretty(content);
+  $("detail-content").innerHTML = `<pre>${esc(typeof content === "string" ? content : pretty(content))}</pre>`;
+  $("detail-dialog").showModal();
+}
+function showEventDetail(index) {
+  const event=state.run.events[index], detail=eventSummary(event);
+  const label=event.action.instrument==='final_assay'?'终检结果':operations[event.action.operation] || event.action.operation;
+  $("detail-title").textContent=label;
+  const fields=detail.parameters.map(([key,value])=>`<div><dt>${esc(fieldNames[key] || key)}</dt><dd>${esc(key==='instrument'?(value==='final_assay'?'终检数据包':String(value).toUpperCase()):typeof value==='object'?pretty(value):value)}</dd></div>`).join('');
+  const delta=detail.resourceDelta;
+  const costs=[['模拟时间',delta?.delta_time_s,'s'],['虚拟成本',delta?.delta_cost,'环境单位'],['样品体积变化',Number.isFinite(delta?.delta_volume_L)?delta.delta_volume_L*1000:null,'mL']].filter(([,value])=>Number.isFinite(value));
+  $("detail-content").innerHTML=`<div class="event-meta"><span class="event-status ${event.transaction_status==='committed'?'success':'failure'}">${detail.status}</span><span>第 ${index+1} 步${event.recorded_at?' · '+esc(date(event.recorded_at)):''}</span></div>
+    <p class="event-summary">${esc(detail.summary)}</p>
+    ${detail.metrics.length?`<div class="event-metrics">${detail.metrics.map(metric=>`<div><span>${esc(metric.label)}</span><strong>${number(metric.value*100,2)}<small>%</small></strong></div>`).join('')}</div>`:''}
+    ${fields?`<section class="event-section"><h3>请求参数</h3><dl class="event-fields">${fields}</dl></section>`:''}
+    ${costs.length?`<section class="event-section"><h3>记录的资源变化</h3><dl class="event-fields">${costs.map(([name,value,unit])=>`<div><dt>${name}</dt><dd>${number(value,3)} ${unit}</dd></div>`).join('')}</dl></section>`:''}
+    ${detail.caveat?`<p class="event-caveat">${esc(detail.caveat)}</p>`:''}
+    ${event.series?.length && event.transaction_status==='committed'?'<button id="event-spectra" class="button secondary small">查看仪器观测 ↗</button>':''}
+    <details class="event-raw"><summary>原始记录 JSON</summary><pre>${esc(pretty(event))}</pre></details>`;
+  if ($('event-spectra')) $('event-spectra').onclick=()=>{$('detail-dialog').close();state.tab='spectra';renderRun();};
   $("detail-dialog").showModal();
 }
 async function perform(work) {
@@ -722,7 +757,7 @@ document.addEventListener("click", (e) => {
     renderRun();
   }
   if (b.dataset.event)
-    showDetail("公开事件详情", state.run.events[Number(b.dataset.event)]);
+    showEventDetail(Number(b.dataset.event));
   if (b.dataset.author) {
     state.author = b.dataset.author;
     renderNotebook();
@@ -852,7 +887,7 @@ async function poll() {
           state.navigation === navigation
         ) {
           state.run = updated;
-          if (state.tab !== "notebook") renderRun();
+          if (state.tab !== "notebook" && !state.graphController?.interacting && !document.querySelector('dialog[open]') && !document.activeElement?.matches('.network-panel select, .network-node, #network-graph svg')) renderRun();
         }
       } else if (state.page === "home") renderHome();
     }

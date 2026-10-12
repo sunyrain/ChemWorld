@@ -167,7 +167,7 @@ export function explorationGraph(run, mode = "events", labels = {}) {
     };
   }
   const events = run.events || [];
-  const offset = Math.max(0, events.length - 12);
+  const offset = 0;
   const nodes = events.slice(offset).map((e, i) => {
     const committed = e.transaction_status === "committed";
     const parameters = Object.entries(e.action || {})
@@ -180,7 +180,7 @@ export function explorationGraph(run, mode = "events", labels = {}) {
       label: labels[e.action?.operation] || e.action?.operation || "操作",
       detail: parameters.join(" · ") || "已保存公开事件",
       state: committed ? "committed" : "rejected",
-      status: committed ? "已提交" : "拒绝 / 回滚",
+      status: committed ? "已执行" : e.transaction_status === "rolled_back" ? "已回滚" : "未执行",
     };
   });
   return {
@@ -241,7 +241,17 @@ function apparatus(kind, id) {
   return defs + drawing;
 }
 
-export function drawExplorationGraph(container, graph, onSelect) {
+export function graphLayout(graph, saved = {}) {
+  const columns = Math.min(4, Math.max(1, graph.nodes.length));
+  return new Map(graph.nodes.map((node, i) => {
+    const row = Math.floor(i / columns), column = i % columns;
+    const point = saved[node.id];
+    return [node.id, point && Number.isFinite(point.x) && Number.isFinite(point.y)
+      ? { ...point } : { x: 32 + (row % 2 ? columns - 1 - column : column) * 268, y: 32 + row * 184 }];
+  }));
+}
+
+export function drawExplorationGraph(container, graph, onSelect, options = {}) {
   const ns = 'http://www.w3.org/2000/svg';
   const make = (tag, attrs = {}, text) => {
     const n = document.createElementNS(ns, tag);
@@ -252,30 +262,24 @@ export function drawExplorationGraph(container, graph, onSelect) {
   if (!graph.nodes.length) {
     const empty = document.createElement('div'); empty.className = 'graph-empty';
     empty.textContent = '等待第一条操作记录。执行轨迹将随实验展开。';
-    container.replaceChildren(empty); return;
+    container.replaceChildren(empty);
+    return { fit() {}, zoomBy() {}, focusLatest() {}, dispose() {}, interacting: false };
   }
-  const nodeWidth=184, nodeHeight=134, width=1000, height=630;
-  const feeds = graph.kind === 'events' ? graph.nodes.findIndex(n=>!['add_solvent','add_reagent','add_catalyst'].includes(n.operation)) : 0;
-  const feedCount = feeds > 0 && feeds <= 3 ? feeds : 0;
-  const positions = new Map(graph.nodes.map((n,i)=>{
-    let x,y;
-    if(feedCount && i<feedCount) { x=26; y=95+i*180; }
-    else if(feedCount) {
-      const j=i-feedCount, row=Math.floor(j/3), col=j%3;
-      x=276+(row%2?2-col:col)*248; y=graph.nodes.length<=6?275:185+row*185;
-      if(graph.nodes.length-feedCount>6) y=75+row*185;
-    } else {
-      const row=Math.floor(i/4),col=i%4;
-      x=25+(row%2?3-col:col)*249; y=110+row*180;
-    }
-    return [n.id,{x,y}];
-  }));
-  const svg=make('svg',{viewBox:`0 0 ${width} ${height}`,role:'group','aria-label':graph.title+'，'+graph.legend});
+  const nodeWidth=208, nodeHeight=134;
+  const positions = graphLayout(graph, options.saved?.positions);
+  const svg=make('svg',{role:'group',tabindex:0,'aria-label':graph.title+'。拖动空白平移，滚轮缩放，方向键平移，Home 适应画布。'});
+  const scene=make('g',{class:'graph-scene'}), nodeElements=new Map(), edgeElements=[];
   const defs=make('defs');
   const marker=make('marker',{id:'graph-arrow',viewBox:'0 0 10 10',refX:8,refY:5,markerWidth:6,markerHeight:6,orient:'auto-start-reverse'});
   marker.append(make('path',{d:'M 2 1 L 7 5 L 2 9',fill:'none',stroke:'var(--graph-link)','stroke-width':1.5}));
-  defs.append(marker);svg.append(defs);
+  defs.append(marker);svg.append(defs,scene);
   graph.edges.forEach(edge=>{
+    const path=make('path',{class:'network-edge '+graph.kind,'marker-end':'url(#graph-arrow)'});
+    const port=make('circle',{r:4.5,class:'network-port'});
+    edgeElements.push({edge,path,port});scene.append(path,port);
+  });
+  function drawEdges() {
+    edgeElements.forEach(({edge,path,port})=>{
     const a=positions.get(edge.source),b=positions.get(edge.target);
     const sameColumn=a.x===b.x,forward=b.x>a.x;
     const x1=sameColumn?a.x+nodeWidth/2:a.x+(forward?nodeWidth:0);
@@ -288,15 +292,17 @@ export function drawExplorationGraph(container, graph, onSelect) {
       const mid=(x1+x2)/2;
       d=`M ${x1} ${y1} C ${mid} ${y1} ${mid} ${y2} ${x2} ${y2}`;
     }
-    svg.append(make('path',{d,class:'network-edge '+graph.kind,'marker-end':'url(#graph-arrow)'}));
-    svg.append(make('circle',{cx:x1,cy:y1,r:4.5,class:'network-port'}));
-  });
+      path.setAttribute('d',d);port.setAttribute('cx',x1);port.setAttribute('cy',y1);
+    });
+  }
   graph.nodes.forEach((n,i)=>{
     const p=positions.get(n.id),interactive=n.eventIndex!==undefined;
     const selected = graph.selectedId === n.id || (!graph.selectedId && interactive && i===graph.nodes.length-1);
     const g=make('g',{transform:`translate(${p.x} ${p.y})`,class:'network-node '+n.state+(selected?' selected':''),
       ...(interactive?{role:'button',tabindex:0,'aria-label':n.label+'，'+n.status+'，查看事件'}:{role:'group','aria-label':n.label+'，'+n.status})});
     g.append(make('rect',{width:nodeWidth,height:nodeHeight,rx:7,class:'node-card'}));
+    g.dataset.nodeId=n.id;
+    if(interactive) g.append(make('text',{x:194,y:18,'text-anchor':'end',class:'node-index'},String(n.eventIndex+1).padStart(2,'0')));
     const device=make('g',{transform:'translate(9 24) scale(.85)',class:'apparatus-icon'});
     device.innerHTML=apparatus(n.operation,'node'+i);g.append(device);
     const label=n.label==='仪器测量'?(n.instrument==='final_assay'?'终检':'测量'):n.label;
@@ -309,10 +315,113 @@ export function drawExplorationGraph(container, graph, onSelect) {
     g.append(make('title',{},n.label+'\n'+n.detail+'\n'+n.status));
     if(interactive) {
       g.dataset.eventIndex=n.eventIndex;
-      g.addEventListener('click',()=>onSelect(n.eventIndex));
       g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();onSelect(n.eventIndex);}});
     }
-    svg.append(g);
+    scene.append(g);nodeElements.set(n.id,g);
   });
   container.replaceChildren(svg);
+  drawEdges();
+  let width=options.saved?.viewport?.width || 0,height=options.saved?.viewport?.height || 0,drag=null;
+  let camera={x:0,y:0,scale:1,autoFit:true,...options.saved?.camera};
+  const emit=()=>options.onChange?.({camera:{...camera},positions:Object.fromEntries(positions),viewport:{width,height}});
+  function paint() {
+    scene.setAttribute('transform',`translate(${camera.x} ${camera.y}) scale(${camera.scale})`);
+    emit();
+  }
+  function fit() {
+    const points=[...positions.values()];
+    const left=Math.min(...points.map(p=>p.x)),top=Math.min(...points.map(p=>p.y));
+    const w=Math.max(...points.map(p=>p.x))+nodeWidth-left;
+    const h=Math.max(...points.map(p=>p.y))+nodeHeight-top;
+    const scale=Math.min(1.2,(width-40)/w,(height-40)/h);
+    camera={scale:Math.max(.02,scale),x:(width-w*scale)/2-left*scale,y:(height-h*scale)/2-top*scale,autoFit:true};
+    paint();
+  }
+  function resize() {
+    const oldWidth=width,oldHeight=height;
+    width=Math.max(1,container.clientWidth);height=Math.max(1,container.clientHeight);
+    svg.setAttribute('viewBox',`0 0 ${width} ${height}`);
+    if(camera.autoFit) fit();
+    else { if(oldWidth) {camera.x+=(width-oldWidth)/2;camera.y+=(height-oldHeight)/2;} paint(); }
+  }
+  function zoomBy(factor, anchor={x:width/2,y:height/2}) {
+    const scale=Math.max(.02,Math.min(3,camera.scale*factor)),ratio=scale/camera.scale;
+    camera={x:anchor.x-(anchor.x-camera.x)*ratio,y:anchor.y-(anchor.y-camera.y)*ratio,scale,autoFit:false};paint();
+  }
+  function focusLatest() {
+    const point=positions.get(graph.nodes.at(-1).id),scale=Math.max(.8,camera.scale);
+    camera={scale,x:width/2-(point.x+nodeWidth/2)*scale,y:height/2-(point.y+nodeHeight/2)*scale,autoFit:false};paint();
+  }
+  const point=e=>{const box=svg.getBoundingClientRect();return {x:e.clientX-box.left,y:e.clientY-box.top};};
+  svg.addEventListener('wheel',e=>{
+    e.preventDefault();zoomBy(Math.exp(-Math.max(-120,Math.min(120,e.deltaY))*.0025),point(e));
+  },{passive:false});
+  svg.addEventListener('pointerdown',e=>{
+    if(drag || ![0,1].includes(e.button)) return;
+    const node=e.button===0?e.target.closest('.network-node'):null;
+    const id=node?.dataset.nodeId;
+    drag={pointer:e.pointerId,start:point(e),camera:{...camera},id,
+      position:id?{...positions.get(id)}:null,moved:false};
+    svg.setPointerCapture(e.pointerId);svg.classList.add('is-dragging');e.preventDefault();
+  });
+  svg.addEventListener('pointermove',e=>{
+    if(!drag || drag.pointer!==e.pointerId) return;
+    const p=point(e),dx=p.x-drag.start.x,dy=p.y-drag.start.y;
+    if(!drag.moved && Math.hypot(dx,dy)<5) return;
+    drag.moved=true;camera.autoFit=false;
+    if(drag.id) {
+      const position={x:drag.position.x+dx/camera.scale,y:drag.position.y+dy/camera.scale};
+      positions.set(drag.id,position);nodeElements.get(drag.id).setAttribute('transform',`translate(${position.x} ${position.y})`);drawEdges();
+    } else {camera.x=drag.camera.x+dx;camera.y=drag.camera.y+dy;}
+    paint();
+  });
+  function release(e) {
+    if(!drag || drag.pointer!==e.pointerId) return;
+    const gesture=drag;drag=null;svg.classList.remove('is-dragging');
+    if(svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId);
+    if(e.type==='pointerup' && !gesture.moved && gesture.id) {
+      const node=graph.nodes.find(n=>n.id===gesture.id);
+      if(node.eventIndex!==undefined) onSelect(node.eventIndex);
+    }
+    emit();
+  }
+  svg.addEventListener('pointerup',release);svg.addEventListener('pointercancel',release);
+  svg.addEventListener('lostpointercapture',release);
+  svg.addEventListener('keydown',e=>{
+    const delta={ArrowLeft:[40,0],ArrowRight:[-40,0],ArrowUp:[0,40],ArrowDown:[0,-40]}[e.key];
+    if(delta) {e.preventDefault();camera.x+=delta[0];camera.y+=delta[1];camera.autoFit=false;paint();}
+    if(e.key==='Home') {e.preventDefault();fit();}
+    if(e.key==='+' || e.key==='=') {e.preventDefault();zoomBy(1.2);}
+    if(e.key==='-') {e.preventDefault();zoomBy(1/1.2);}
+  });
+  resize();
+  const observer=new ResizeObserver(resize);observer.observe(container);
+  return {fit,zoomBy,focusLatest,get interacting(){return Boolean(drag);},dispose(){observer.disconnect();}};
+}
+
+// Public-event summaries never infer an observation from an unexecuted request.
+export function eventSummary(event) {
+  const committed=event.transaction_status==='committed',rollback=event.transaction_status==='rolled_back';
+  const action=event.action || {};
+  const reasons=event.validation?.invalid_reasons || event.report?.failure_summary?.failed_preconditions || [];
+  const reasonText=reason=>({
+    seed_crystals_requires_current_reaction_assay:'添加晶种前，需要对当前反应液做一次测定。',
+    filter_crystals_requires_current_slurry_assay:'过滤前，需要对当前浆料做一次测定。',
+    measure_final_requires_terminated:'终检前需要先终止反应。',
+    run_flow_requires_flow_setup:'运行前需要先配置流动条件。',
+  })[reason] || (reason.startsWith('payload_bounds:')
+    ? ({duration_s:'请求时长不在当时允许的范围内。',target_temperature_K:'请求温度不在当时允许的范围内。'}[reason.split(':')[1]] || '请求参数超出当时允许的范围。')
+    : '当前实验状态不满足这一步的执行条件。');
+  const measured=committed && action.operation==='measure';
+  const labels={yield:'产率',selectivity:'选择性',conversion:'转化率',crystal_yield:'晶体回收',crystal_purity:'晶体纯度',flow_conversion:'流动转化率',purity:'纯度',recovery:'回收率',crystal_fines_fraction:'细粉比例'};
+  const source=event.observation || event.report?.visible_metrics || {};
+  const metrics=measured?Object.entries(labels).filter(([key])=>Number.isFinite(source[key]) && event.observed_mask?.[key]!==false).map(([key,label])=>({key,label,value:source[key]})):[];
+  const summary=rollback?'环境一致性检查未通过，这次操作已回滚，未产生新的有效实验结果。'
+    : !committed?[...new Set(reasons.map(reasonText))].join(' ') || '这次请求未执行，实验记录已保留。'
+    : measured?action.instrument==='final_assay'?'已完成终检，以下为这次实际测得的结果。':'已完成仪器测量，以下为这次实际观测。'
+    : action.operation==='terminate'?'已终止反应；是否完成实验仍以终检记录为准。':'操作已执行，参数和资源变化已保存。';
+  return {status:committed?'已执行':rollback?'已回滚':'未执行',summary,metrics,
+    parameters:Object.entries(action).filter(([key])=>key!=='operation'),
+    resourceDelta:event.delta || null,
+    caveat:rollback?'回滚后仍可能保留虚拟成本；详见记录的资源变化。':!committed?'请求参数不代表已经实际执行。':measured?'虚拟仪器观测；未测指标不会显示为零。':action.residence_time_s!==undefined?'停留时间为请求值，实际值由容器体积和流量决定。':null};
 }
