@@ -20,6 +20,8 @@ uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Pro
 
 当前 Agent 在单个实验内自主选择操作和记录，尚未接入自主创建跨批研究树、可视化拖拽组网或暂停后恢复。页面提供实际取消能力，未执行的计划、未来节点和模型未写下的思考不会补造。设计参考见 [双主题定稿](../../output/imagegen/agent-autonomous-dual-theme-20261012/index.html)。
 
+真实模型档案例：[R63 三组正式尝试及笔记审查](../../workstreams/arxiv_v1/experiments/formal-workbench-model-notes-20261012.md)使用原生 CLI/MCP 会话生成本工作台格式记录，包含 12 个模型笔记版本、两组终检与一组完整保留的失败。该执行入口与下面的网页 BYOK 独立。阅览原生记录时分别显示工具请求数、token 和未提供的底层模型请求数；这些计数不会混用。原生会话可在终检后写笔记和报告，网页 BYOK worker 目前仍会在终检后结束，不能将原生路径的验收套用到网页 worker。
+
 ## 模型接入与临时 key
 
 内置 DeepSeek Chat Completions、OpenAI Responses、Qwen DashScope 北京区兼容接口三个固定目标。用户必须输入厂商实际提供且自己的账号可用的模型 ID，不静默替换模型。页面中的模型建议不是最新版本或账号可用性承诺。
