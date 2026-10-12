@@ -336,6 +336,9 @@ class PilotHost:
         )
         save(self.folder / "host-summary.json", self.result)
 
+    def definitions(self) -> list[dict[str, Any]]:
+        return tool_definitions()
+
     def call(self, name: str, args: dict[str, Any]) -> dict[str, Any]:
         self.calls += 1
         self.result["tool_counts"][name] = self.result["tool_counts"].get(name, 0) + 1
@@ -353,7 +356,7 @@ class PilotHost:
                 raise ValueError("pilot budget exhausted; stop the session")
             if self.finished:
                 raise ValueError("batch session already finished")
-            schema = next((t["inputSchema"] for t in tool_definitions() if t["name"] == name), None)
+            schema = next((t["inputSchema"] for t in self.definitions() if t["name"] == name), None)
             if schema is None:
                 raise ValueError("unknown tool")
             if args.keys() - schema["properties"].keys() or set(schema["required"]) - args.keys():
@@ -494,9 +497,9 @@ class PilotHost:
             }
         if name != "lab_step":
             raise ValueError("unknown tool")
-        action, reason = args["action"], args["reason"]
-        if not isinstance(action, dict) or not isinstance(reason, str):
-            raise ValueError("action must be an object and reason must be text")
+        action, reason = args["action"], args.get("reason")
+        if not isinstance(action, dict) or ("reason" in args and not isinstance(reason, str)):
+            raise ValueError("action must be an object and supplied reason must be text")
         if self.terminal or self.truncated or self.steps >= 24:
             raise ValueError("physical batch closed; finish the session")
         if action.get("operation") not in OPERATIONS:
@@ -515,7 +518,10 @@ class PilotHost:
             terminated=self.terminal,
             truncated=self.truncated,
             info=self.info,
-            agent_metadata={"notebook_revision": revision, "public_reason": reason},
+            agent_metadata={
+                "notebook_revision": revision,
+                **({"public_reason": reason} if reason is not None else {}),
+            },
         )
         assessment = quality(before, self.env._state, action, self.info)
         self.result["quality"].append(assessment)
