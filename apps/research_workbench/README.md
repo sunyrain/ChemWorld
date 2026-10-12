@@ -1,0 +1,45 @@
+# ChemWorld Research Workbench
+
+本机研究工作台，调用当前 ChemWorld 核心。全新界面，不依赖 Student Lab、Blender、Node 构建或外部 CDN。
+
+```powershell
+uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Projects/ChemWorld-local-research/workbench --open
+```
+
+打开 <http://127.0.0.1:8892>。不指定 `--data-dir` 时使用用户目录下的 `ChemWorld-workbench`；将数据目录放在 Git 仓库外。当前从源码运行，尚未纳入 wheel 的应用支持范围。
+
+1. 选择反应、结晶、连续流等参考模板，也可编辑声明式组件组合。设置研究项目、问题、环境 seed 和操作预算。
+2. 选择固定的离线参考流程、手动操作或模型自主研究。参考流程不是自适应 Agent，也不保证适合任意自定义组合；拒绝时会停止并保留原因。
+3. 时间线保留每次提交和拒绝；仪器页画实际信号并提供完整公开数据。缺测显示为空，不用零代替。
+4. 人工笔记与模型笔记分开保存。模型正文按需读取；每个版本对应当时的公开事件游标。可以查看旧版本并将人工正文重新保存为新版本。
+5. 复制设计进行新的独立批次，在结果比较中选择最多六个运行；设计不同会明确提示。终检后可导出 ZIP，并用同一核心精确回放。
+
+## 模型接入与临时 key
+
+内置 DeepSeek Chat Completions、OpenAI Responses、Qwen DashScope 北京区兼容接口三个固定目标。用户必须输入厂商实际提供且自己的账号可用的模型 ID，不静默替换模型。页面中的模型建议不是最新版本或账号可用性承诺。
+
+接口依据包括 [OpenAI 官方 Responses 用量与预算示例](https://developers.openai.com/cookbook/articles/per_run_spending_controller_responses_api)。本轮只做离线协议/异常测试，**没有真实厂商连通性或模型效果验收**。模型必须支持所选协议的 JSON 输出；不支持时停止并显示错误，不自动切换格式或模型。
+
+- API key 通过本机 loopback 请求交给后端，后端用 HTTPS 调用固定厂商地址；不读取环境变量或研究凭据。没有任意 URL 代理，不跟随厂商重定向。
+- key 仅在本次任务内存中存在，接收后清空网页输入，结束后移除引用，不写入日志、运行档案、笔记或导出。操作系统/进程拥有者仍可以访问内存；这不是远程安全沙箱或物理内存擦除承诺。
+- 每次最多 80 个模型请求、2 个并发后台任务，单请求响应体至多 2 MB；无自动重试。模型调用数与 token 包含失败前已知用量；未知用量如实标记并停止。
+- token/墙钟阈值控制后续请求，不能承诺厂商账单的硬上限。取消会阻止后续动作，在途请求可能仍计费；45 秒为网络操作超时，并非可强杀的总请求时限。价格未知，不生成虚构费用。
+- 模型看到当前公开状态、最近六次事件与上次工具结果，能按需读取旧事件、公开谱图和版本笔记。这是本地试用 Agent harness，不等同持续原生工具会话，不构成长程记忆或多模型能力结论。
+
+## 存储与运行边界
+
+本机单用户，绑定 `127.0.0.1`，复用 Host/Origin、请求类型/大小/速率限制。不要用反向代理将其直接开放到公网。正式在线服务的登录、多用户隔离、强制资源隔离、HTTPS、备份/删除生命周期仍需独立交付。
+
+一个数据目录由一个服务进程使用。后台任务采用有界线程；刷新网页不影响运行。最多八个活跃环境、两百条实验记录；达到数量上限后可指定新数据目录，旧记录不会自动删除。谱图与轨迹会占用磁盘，尚无自动总空间配额。
+
+重启后已保存记录、笔记、导出与回放可用；未完成环境标为中断，只读保留。恢复研究时复制设计创建新批次，不隐式重做动作或重新发送模型请求。模型 key 重启后不会保留。导出档案含本机拥有者的精确回放身份，应自行决定是否对外分享；它不会作为模型上下文。
+
+验证命令：
+
+```powershell
+uv run --no-sync pytest tests/test_research_workbench.py -q
+node --check apps/research_workbench/static/app.js
+node --test apps/research_workbench/static/charts.test.mjs
+```
+
+开发验收问题、固定覆盖、结果及未验证范围在 `workstreams/arxiv_v1/experiments/development-research-workbench-20261012.md`。当前环境无可用浏览器控制通道，HTTP/软件测试不等同桌面、移动端或读屏视觉验收。
