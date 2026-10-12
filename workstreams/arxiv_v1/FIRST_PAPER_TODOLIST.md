@@ -456,5 +456,6 @@ Sites 技能所述托管服务端为 Cloudflare Workers（128 MB isolate、HTTP 
 | R56 | Ours | 新设计/运行/笔记/比较网页及本机应用 API；项目分组、持久化运行、后台任务/取消、Host/Origin 边界 | 用户改为本机单用户；不实现公网多租户；无新增项目依赖 | ☑ | ☐ | ☐ | Codex /root；HTTP 路径、谱图 JS 与 6 条 DOM 逻辑检查通过；视觉/移动端/读屏未验 |
 | R57 | Ours | 本机 BYOK 提供商适配：DeepSeek、OpenAI Responses、Qwen；明确用量、失败、停止阈值与临时凭据生命周期 | 用户自行填 key 后试用；当前仅离线协议验收，不使用研究凭据/环境 key、不宣称真实厂商已接通 | ☑ | ☐ | ☐ | Codex /root；协议替身、用量缺失停止、无自动重试、取消后不执行动作、key 不落盘与清除测试通过；真实模型 0 请求 |
 | R58 | Ours | 本机部署：loopback 服务、独占数据目录、仓库外持久记录、启动说明、实际健康/首页与接口检查 | 用户暂缓云端；公网 HTTPS/账号/多租户/强隔离/总空间配额/备份删除另行推进；发行仍并入 R07/R12 | ☑ | ☐ | ☐ | Codex /root；本机 8892 已运行并有终检试用记录；自动审批拒绝最终重启/备用启动，当前进程尚未加载最后后端修正；源码专项通过，视觉未验；详见验收说明 |
+| R59 | Ours | 使用内置 imagegen 探索 10 版研究工作台 UI 与可视化设计；保存完整图片、提示词和可浏览总览 | 用户要求重构展示设计；本项仅设计探索，不代表功能实现或实验证据 | ☑ | ☐ | ☐ | Codex /root — DONE；10/10 PNG（1586 × 992）逐张查看，06 中断任务标记已定向修正；图片完整性、总览资源链接及 JS 语法通过。[图片总览](../../output/imagegen/research-workbench-ui-10-20261012/index.html)、[设计评估](../../output/imagegen/research-workbench-ui-10-20261012/README.md)、[提示词](../../output/imagegen/research-workbench-ui-10-20261012/prompts.json)；现有工作台未改，无新增实验证据 |
 
 本机交付未重新启动 R19/R21/R33，也未进行多模型正式 benchmark；用户自主比较功能保留设计、观测、预算与完整记录。网页/服务均为当前语义的新入口，不修改 Student Lab 或旧论文证据。

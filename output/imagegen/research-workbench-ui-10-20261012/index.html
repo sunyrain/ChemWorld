@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ChemWorld · 10 版界面设计探索</title>
+<style>
+:root{font-family:Inter,"Segoe UI","Microsoft YaHei",sans-serif;color:#182b34;background:#f2f4f3;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}header,main,footer{max-width:1500px;margin:auto;padding:32px}
+header{padding-top:54px}.eyebrow{color:#177464;font-size:13px;font-weight:700;letter-spacing:.15em}
+h1{font-size:clamp(28px,4vw,48px);letter-spacing:-.04em;margin:16px 0}.intro{max-width:880px;color:#56646a;line-height:1.85}
+a{color:#086658;text-underline-offset:4px}.links{display:flex;gap:24px;flex-wrap:wrap;margin:20px 0}
+.recommendation{padding:18px 22px;border-left:3px solid #187360;background:#e8eee9;line-height:1.8;max-width:1040px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}main{padding-top:10px}
+.card{background:white;border:1px solid #dce3df;border-radius:12px;overflow:hidden}
+.preview{display:block;padding:0;border:0;width:100%;cursor:zoom-in;background:#e7ece9}
+.preview img{width:100%;height:auto;display:block;aspect-ratio:1.599;object-fit:contain}
+.caption{padding:22px}.line{display:flex;align-items:center;gap:12px}.number{color:#187360;font-size:13px;font-weight:700;border:1px solid #c6d9ce;border-radius:5px;padding:4px 7px}
+h2{margin:0;font-size:21px}.caption p{line-height:1.75;color:#66736e;font-size:14px}.caption .focus{color:#273a32;font-weight:600;margin:12px 0 6px}.caption a{font-size:13px}
+button:focus-visible,a:focus-visible{outline:3px solid #208d76;outline-offset:4px}
+footer{font-size:13px;color:#67716c;line-height:1.8;padding-bottom:48px}
+dialog{width:96vw;max-width:1800px;padding:0;border:1px solid #526760;border-radius:10px;background:#13241e;color:#fff;max-height:96vh}
+dialog::backdrop{background:rgba(5,15,12,.86)}.viewer-bar{display:flex;align-items:center;gap:12px;padding:12px 16px;flex-wrap:wrap}
+#viewer-title{flex:1;margin:0;font-size:16px;font-weight:600}.viewer-bar button{border:1px solid #51695e;border-radius:5px;background:#233c31;color:#fff;padding:8px 12px;cursor:pointer}
+.viewer-bar a{color:#c4f0df;font-size:13px}.image-wrap{background:#080e0b;overflow:auto;text-align:center;max-height:calc(96vh - 72px)}
+#viewer-image{display:block;width:100%;height:auto;margin:auto}body.viewing{overflow:hidden}
+@media(max-width:850px){.grid{grid-template-columns:1fr}header,main,footer{padding:22px}header{padding-top:30px}.caption{padding:18px}.viewer-bar{gap:8px}#viewer-title{flex-basis:100%}}
+</style>
+</head>
+<body>
+<header>
+<div class="eyebrow">CHEMWORLD / DESIGN EXPLORATION / 2026.10.12</div>
+<h1>十种研究界面，十种观察方式。</h1>
+<p class="intro">面向研究者与 Agent 开发者，探索实验设计、实时运行、研究记录、模型比较与成果展示。点击图片查看大图，使用左右方向键翻页。这些是 imagegen 生成的设计概念，图中内容均为演示，不代表已实现功能或实验证据。</p>
+<div class="links"><a href="README.md">查看设计评估</a><a href="prompts.json">查看完整提示词</a><a href="#design-collection">浏览 10 版设计 ↓</a></div>
+<div class="recommendation"><strong>建议路线：</strong>01 作为工作台基础，结合 03 记录本、07 谱图与 08 研究轨迹；06 做模型比较，09 做启动入口，10 做公开网站首页。04 与 05 可作为后续扩展。</div>
+</header>
+<main id="design-collection"><div class="grid"><article class="card"><button class="preview" data-index="0" aria-label="放大 01 白色仪器台"><img src="01-instrument-console.png" alt="白色仪器台：日常实验与实时观察" loading="eager" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">01</span><h2>白色仪器台</h2></div><p class="focus">日常实验与实时观察</p><p>适合作为日常工作台的基础。主图足够大，操作与样品详情容易定位；需要裁剪生成图自行添加的导航栏目。</p><a href="01-instrument-console.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="1" aria-label="放大 02 暗色运行观测站"><img src="02-live-observatory.png" alt="暗色运行观测站：长程 Agent 运行监控" loading="eager" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">02</span><h2>暗色运行观测站</h2></div><p class="focus">长程 Agent 运行监控</p><p>适合同时观察多个长程任务。时间、预算、失败可见；信息密度偏高，需要按任务折叠。</p><a href="02-live-observatory.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="2" aria-label="放大 03 研究记录本"><img src="03-research-notebook.png" alt="研究记录本：假设、证据与版本化记录" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">03</span><h2>研究记录本</h2></div><p class="focus">假设、证据与版本化记录</p><p>适合持续维护假设和研究报告。来源、版本与证据相邻；作者身份和记录类型需用字段明确。</p><a href="03-research-notebook.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="3" aria-label="放大 04 实验编排画布"><img src="04-experiment-canvas.png" alt="实验编排画布：组件组合与样品流转" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">04</span><h2>实验编排画布</h2></div><p class="focus">组件组合与样品流转</p><p>适合组合实验与样品流转。连线及来源直观；拖拽编辑、扩展设备清单属于未来功能。</p><a href="04-experiment-canvas.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="4" aria-label="放大 05 空间实验室"><img src="05-spatial-laboratory.png" alt="空间实验室：空间理解与设备观察" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">05</span><h2>空间实验室</h2></div><p class="focus">空间理解与设备观察</p><p>适合介绍设备与观察空间关系。吸引力强；3D 场景成本较高，只作为辅助示意。</p><a href="05-spatial-laboratory.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="5" aria-label="放大 06 模型对照台"><img src="06-matched-comparison.png" alt="模型对照台：相同条件下比较过程与成本" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">06</span><h2>模型对照台</h2></div><p class="focus">相同条件下比较过程与成本</p><p>适合公平查看多模型运行。条件、失败、过程和成本并列；不推导能力排名。</p><a href="06-matched-comparison.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="6" aria-label="放大 07 谱图分析室"><img src="07-spectrum-studio.png" alt="谱图分析室：仪器信号与测量历史" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">07</span><h2>谱图分析室</h2></div><p class="focus">仪器信号与测量历史</p><p>适合仔细阅读测量数据。主谱、差值和证据引用清楚；真实图形必须由原始数值绘制。</p><a href="07-spectrum-studio.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="7" aria-label="放大 08 研究演化图"><img src="08-research-map.png" alt="研究演化图：长程研究轨迹与假设修订" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">08</span><h2>研究演化图</h2></div><p class="focus">长程研究轨迹与假设修订</p><p>适合跨批次回顾长程研究。事实、假设与人工批注分开；关系线需来自显式引用。</p><a href="08-research-map.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="8" aria-label="放大 09 实验启动台"><img src="09-experiment-launchpad.png" alt="实验启动台：建实验、接模型与临时密钥" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">09</span><h2>实验启动台</h2></div><p class="focus">建实验、接模型与临时密钥</p><p>适合第一次建实验及接模型。入口和预算直观；启动前的运行清单不能显示为已完成。</p><a href="09-experiment-launchpad.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article>
+<article class="card"><button class="preview" data-index="9" aria-label="放大 10 开放研究展厅"><img src="10-research-showcase.png" alt="开放研究展厅：社区入口、成果展示与可复现浏览" loading="lazy" width="1586" height="992"></button><div class="caption"><div class="line"><span class="number">10</span><h2>开放研究展厅</h2></div><p class="focus">社区入口、成果展示与可复现浏览</p><p>适合作为社区首页与示例入口。用实验故事引导体验；最终文案要明确哪些为模拟示例。</p><a href="10-research-showcase.png" target="_blank" rel="noopener">打开原图 ↗</a></div></article></div></main>
+<footer>10 张独立设计图 · 内置 image_gen 生成 · 06 已修正中断任务的光谱说明。<br>图片中的小字、数值与曲线属于生成式草图；正式实现需使用真实数据，并校正设备支持范围、轴刻度和状态文案。总览为本地图片查看器。</footer>
+<dialog id="viewer" aria-labelledby="viewer-title">
+<div class="viewer-bar"><h2 id="viewer-title"></h2><button id="previous" type="button" aria-label="上一版">← 上一版</button><button id="next" type="button" aria-label="下一版">下一版 →</button><a id="original" target="_blank" rel="noopener">打开原图</a><button id="close" type="button" aria-label="关闭大图">关闭 ×</button></div>
+<div class="image-wrap"><img id="viewer-image" alt=""></div>
+</dialog>
+<script src="gallery.js"></script>
+</body></html>
