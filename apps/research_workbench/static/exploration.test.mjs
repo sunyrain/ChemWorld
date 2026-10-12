@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { explorationGraph } from "./charts.js";
+import { explorationGraph, actionLines } from "./charts.js";
 
 test("action graph preserves rejections and distinguishes chronology from material routing", () => {
   const events = [
@@ -45,4 +45,10 @@ test("bounded graph retains original event indexes; no records means no invented
   assert.equal(graph.nodes[0].eventIndex, 8);
   assert.equal(graph.nodes.at(-1).eventIndex, 19);
   assert.deepEqual(explorationGraph({ events: [], view: {} }, "network").nodes, []);
+});
+
+test("apparatus labels convert public units but keep rejected missing fields explicit", () => {
+  assert.deepEqual(actionLines({ operation: "heat", target_temperature_K: 353.15, duration_s: 480 }), ["80 °C", "8 min"]);
+  assert.deepEqual(actionLines({ operation: "add_solvent", volume_L: 0.025, solvent: 2 }), ["25 mL", "溶剂 2"]);
+  assert.deepEqual(actionLines({ operation: "heat" }), ["温度未提供", "时长未提供"]);
 });

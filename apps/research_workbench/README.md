@@ -2,6 +2,8 @@
 
 本机研究工作台，以 Agent 自主探索虚拟实验室为主流程，调用当前 ChemWorld 核心。浅色与深色模式共用同一布局；主题偏好保存在浏览器中。全新界面，不依赖 Student Lab、Blender、Node 构建或外部 CDN。
 
+当前主视图按定稿复刻为窄导航、全高实验画布、器具节点与端口连线、右侧状态/观测/记录、底部固定执行栏。桌面采用单屏布局，手机保留画布内部滚动；观测下拉可切换真实测量通道。链接中的 `?run=<id>` 可直接定位实验，刷新后保持同一记录。进度条读取核心操作预算，拒绝数单独保留；模拟时间来自公开事件增量，脚本记录的执行跨度与模型运行墙钟分别标示。
+
 ```powershell
 uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Projects/ChemWorld-local-research/workbench --open
 ```
@@ -11,7 +13,7 @@ uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Pro
 1. 点击“开始探索”，选择反应、结晶、连续流等参考模板，也可编辑声明式组件组合。设置研究目标、模型、临时 key、环境 seed 和预算；默认由模型自主选择操作。
 2. 探索画布展示最近 12 条实际提交，连线表示提交顺序。环境提供组件网络时可切换到公开容器与连接；连接不表示已经转移物料。点击或用键盘打开操作详情，缩放画布查看过程。
 3. 右侧显示执行状态、实际仪器信号和 Agent 主动提交的版本笔记，底部保留事件与资源消耗。完整操作记录保留拒绝；缺测显示为空，不用零代替。
-4. Agent 笔记只读、正文按需读取；每个版本对应当时的公开事件游标。人工笔记另存，用户可以查看旧版本并将人工正文重新保存为新版本。
+4. Agent 笔记只读、正文按需读取；每个版本对应当时的公开事件游标。没有模型记录时，画布可展示明确标为人工来源的笔记；“研究记录”导航默认读取模型区。人工笔记另存，用户可以查看旧版本并将人工正文重新保存为新版本。
 5. 复制设计进行新的独立批次，在结果比较中选择最多六个运行；设计不同会明确提示。终检后可导出 ZIP，并用同一核心精确回放。
 
 手动实验有独立可选入口，不需要人与 Agent 共同编排。免 key 的离线参考流程是固定配方，明确标记为非自主 Agent，也不保证适合任意自定义组合；拒绝时会停止并保留原因。
@@ -46,4 +48,4 @@ node --check apps/research_workbench/static/app.js
 node --test apps/research_workbench/static/charts.test.mjs apps/research_workbench/static/exploration.test.mjs
 ```
 
-开发验收问题、固定覆盖、结果及未验证范围在 [开发记录](../../workstreams/arxiv_v1/experiments/development-research-workbench-20261012.md)。双主题已用本机 headless Chrome 检查桌面及 390px 手机布局：既有实验只读路径 9/9、模型/网络浏览器替身路径 5/5，JavaScript 语义测试 5/5 通过；截图已视觉检查。未进行真实厂商调用、读屏器或浏览器下载交互验收。
+首轮验收见 [开发记录](../../workstreams/arxiv_v1/experiments/development-research-workbench-20261012.md)；按参考图进一步复刻及真实试跑见 [R62 记录](../../workstreams/arxiv_v1/experiments/development-workbench-visual-trials-20261012.md)。新版 headless Chrome 真实记录路径 10/10、模型/网络替身 5/5、JavaScript 语义测试 6/6 通过，检查桌面双主题、390px 手机、失败保留、图形交互和观测通道。真实核心五组试跑中四组完成终检，一组加热被核心回滚并停止；原始记录全部保留，五条已执行轨迹均可精确回放。未进行真实厂商调用、读屏器或浏览器下载交互验收。
