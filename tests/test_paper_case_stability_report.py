@@ -33,3 +33,23 @@ def test_directional_counts_keep_missing_repeats_and_strict_ties():
     result = directional_comparison(rows, "A", "B", "score", True)
     assert result["holds"] == 1 and result["observed"] == 2 and result["planned"] == 3
     assert result["by_repeat"]["repeat-03"] is None
+
+
+def test_equilibrium_reference_mean_errors_and_coverage_are_not_lost():
+    row = {
+        "system": "EQ",
+        "prediction_evaluation": {
+            "valid": True,
+            "metrics": {
+                "pH_normalized": {
+                    "mae_to_five_repeat_mean": 0.012,
+                    "empirical_coverage80": 0.95,
+                    "mean_width80": 0.04,
+                },
+            },
+        },
+    }
+    result = measurements(row)
+    assert result["pH_normalized_mae"] == 0.012
+    assert result["pH_normalized_coverage80"] == 0.95
+    assert result["pH_normalized_mean_width80"] == 0.04

@@ -29,8 +29,13 @@ def measurements(row):
     evaluation = row.get("prediction_evaluation") or {}
     if evaluation.get("valid"):
         for name, value in evaluation.get("metrics", {}).items():
-            output[f"{name}_mae"] = value.get("mae")
-            output[f"{name}_coverage80"] = value.get("coverage80")
+            if row["system"] == "EQ":
+                output[f"{name}_mae"] = value.get("mae_to_five_repeat_mean")
+                output[f"{name}_coverage80"] = value.get("empirical_coverage80")
+                output[f"{name}_mean_width80"] = value.get("mean_width80")
+            else:
+                output[f"{name}_mae"] = value.get("mae")
+                output[f"{name}_coverage80"] = value.get("coverage80")
     retests = row.get("retest_batch_metrics", [])
     if row["system"] == "EC":
         output["recommendation_score"] = retests[0].get("score") if len(retests) == 1 else None
@@ -244,6 +249,8 @@ def build(root, destination, previous):
         for repeat in REPEATS[1:]
     }
     summary["reference_values_equal_between_repeats"] = {}
+    startup = root.parent / "startup-accounting.json"
+    summary["startup_attempt_separate"] = read(startup) if startup.exists() else None
     for repeat in REPEATS[1:]:
         relatives = ("references/truth.json", "C/qualification/W05/queries/result.json")
         if all((root / repeat / p).exists() and (first / p).exists() for p in relatives):

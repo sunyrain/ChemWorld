@@ -103,8 +103,10 @@ def plot(summary_path: Path, output: Path):
                     fontsize=8,
                 )
     completed = summary["counts"]["completed_sources"]
+    terminal = summary["counts"]["terminal_sources"]
     fig.suptitle(
-        f"Same case, three fresh Agent sessions\n{completed}/18 completed chains",
+        f"Same case, three fresh Agent sessions\n"
+        f"{terminal}/18 terminal sessions; {completed}/18 complete chains",
         fontsize=16,
         fontweight="bold",
     )
