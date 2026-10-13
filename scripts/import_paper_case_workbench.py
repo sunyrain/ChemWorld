@@ -30,7 +30,9 @@ TITLES = {
 STAGES = {"K1": "机理报告", "Q": "盲预测", "K2": "事后复盘", "EQS": "平衡补充问答"}
 
 
-def import_case(root: Path, reports: Path, destination: Path, case: dict) -> dict:
+def import_case(
+    root: Path, reports: Path, destination: Path, case: dict, *, repeat_label: str | None = None
+) -> dict:
     row = read(reports / f"{case['id']}.json")
     if row["status"] != "completed":
         raise ValueError("This importer accepts completed chains only")
@@ -89,8 +91,13 @@ def import_case(root: Path, reports: Path, destination: Path, case: dict) -> dic
         "import_identity": identity,
         "archive_only": True,
         "case_id": case["id"],
-        "name": TITLES[case["id"]],
-        "project": "论文案例 · 同期笔记复跑 · 2026-10-13",
+        "name": TITLES[case["id"]] + (f" · {repeat_label}" if repeat_label else ""),
+        "project": (
+            "论文案例 · 同世界稳定性 · 2026-10-13"
+            if repeat_label
+            else "论文案例 · 同期笔记复跑 · 2026-10-13"
+        ),
+        "stability_repeat": repeat_label,
         "question": (
             "模型自主探索虚拟实验室；同期笔记与封闭后测分开保存。开发复跑，无新增无笔记对照。"
         ),
@@ -157,11 +164,21 @@ def main():
     parser.add_argument("--root", type=Path, required=True)
     parser.add_argument("--reports", type=Path, required=True)
     parser.add_argument("--data-dir", type=Path, required=True)
+    parser.add_argument("--repeat-label")
     args = parser.parse_args()
     lock = WorkspaceLock(args.data_dir)
     try:
         for case in CASES:
-            print(import_case(args.root.resolve(), args.reports, args.data_dir, case), flush=True)
+            print(
+                import_case(
+                    args.root.resolve(),
+                    args.reports,
+                    args.data_dir,
+                    case,
+                    repeat_label=args.repeat_label,
+                ),
+                flush=True,
+            )
     finally:
         lock.close()
 

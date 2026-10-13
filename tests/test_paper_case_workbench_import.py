@@ -7,8 +7,9 @@ from chemworld.agents.experiment_documents import ExperimentDocumentWorkspace
 from chemworld.workbench.service import ResearchStore, write_json
 
 
+@pytest.mark.parametrize("repeat_label", [None, "Repeat 1"])
 def test_import_preserves_public_events_notes_and_reports_without_private_state(
-    tmp_path, monkeypatch
+    tmp_path, monkeypatch, repeat_label
 ):
     source = tmp_path / "source"
     documents = ExperimentDocumentWorkspace(source / "notebook", versioned_notebook=True)
@@ -65,11 +66,14 @@ def test_import_preserves_public_events_notes_and_reports_without_private_state(
     )
     monkeypatch.setattr(importer, "case_folder", lambda *_: source)
     destination = tmp_path / "store"
-    record = importer.import_case(source, reports, destination, case)
+    record = importer.import_case(source, reports, destination, case, repeat_label=repeat_label)
     store = ResearchStore(destination)
     try:
         run = store.get(record["id"])
         snapshot = run.snapshot()
+        if repeat_label:
+            assert snapshot["name"].endswith(repeat_label)
+            assert "稳定性" in snapshot["project"]
         assert snapshot["batch_count"] == 2 and snapshot["final_assay_count"] == 2
         assert [e["batch"] for e in snapshot["events"]] == [1, 2]
         assert snapshot["events"][0]["observation"] == {"yield": 0.4}
