@@ -1,5 +1,7 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
+Claim: Codex /root — W2-250 — DONE（2026-10-13）。全文精读 W2-249 全部 145 版源笔记，为 48 场分别整理引文与解释，并按相关判断对照 K1/Q/K2、关键动作及三次重复。[综合分析](../flagship_tasks/reports/research-formation-20261013/CLOSE_READING.md)连接局部认识、远端预测、淬灭路径关联及判断与选择的差异；[逐场证据](../flagship_tasks/reports/research-formation-20261013/CASE_READINGS.md)保留全部失败。汇总脚本核对 48 条引文与 216 个结晶批次，统计/284 个本地链接及 Ruff 检查通过。仅事后分析保留数据，未新增模型实验、改变评分或修改稿件。
+
 Claim: Codex /root — W2-249 — DONE（2026-10-13）。48 场均到达终态，44 条完整链，576/576 源批次、162/174 后测、145 版笔记；四并发、失败保留且未补跑。按世界统计 Opaque/Aligned 差异与三次重复波动，导出全部笔记/后测及明确选例的过程解释。见 [完整结果分析](../flagship_tasks/reports/research-formation-20261013/REVIEW.md)。原始数据在仓库外，不替换历史结果、不改稿。
 
 最新研究整理已完成（2026-10-13，Work II W2-248）：按自主科研中认识形成的主线核对当前稿件 300 场研究、历史正式研究及近期笔记开发证据；[实验矩阵与补实验建议](../flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md)保留精确分母、失败和证据地位。建议先整理 105 场已有过程，再补 30 场平衡同期记录研究；18 场结晶补充按主文需要决定。仅完成证据评估与规划，未启动新实验、改稿或刷新冻结资格。

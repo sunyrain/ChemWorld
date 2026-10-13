@@ -2,6 +2,8 @@
 
 Prospective current-core block. Original evidence is preserved. Three repetitions describe variability; they are not controlled model RNG seeds.
 
+Final analyses: [quantitative review](REVIEW.md), [all-session close reading](CLOSE_READING.md), [48 individual interpretations and quotations](CASE_READINGS.md). The latter two are retrospective analyses of the retained records, not new experiment runs.
+
 Terminal: 48/48; full chains: 44/48; source batches: 576/576; sealed stages: 162/174.
 
 Counts here describe exported terminal sessions; active batches are in the runner log.
