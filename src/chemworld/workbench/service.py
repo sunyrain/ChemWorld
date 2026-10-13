@@ -245,6 +245,10 @@ class ResearchRun:
 
     def replay(self) -> dict[str, Any]:
         with self.lock:
+            if self.data.get("archive_only"):
+                raise ValueError(
+                    "Imported campaign: view its recorded replay result; no new replay is run here"
+                )
             if self.data["status"] in {"running", "cancelling"}:
                 raise ValueError("Wait for the worker to stop before replay")
             records = load_jsonl(self.root / "trajectory.jsonl")

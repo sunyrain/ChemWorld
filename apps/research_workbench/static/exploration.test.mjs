@@ -47,6 +47,15 @@ test("graph retains every event and original indexes; no records means no invent
   assert.deepEqual(explorationGraph({ events: [], view: {} }, "network").nodes, []);
 });
 
+test("campaign batch filter keeps global event indices and never links separate batches", () => {
+  const events=Array.from({length:8},(_,i)=>({event_id:String(i),batch:i<3?1:2,action:{operation:'wait'},transaction_status:'committed'}));
+  const graph=explorationGraph({events},'events',{},2);
+  assert.deepEqual(graph.nodes.map(n=>n.eventIndex),[3,4,5,6,7]);
+  assert.equal(graph.total,5);
+  assert.equal(graph.edges.length,4);
+  assert.deepEqual(graph.edges[0],{source:'3',target:'4'});
+});
+
 test("default layout has room for every node; saved positions are copied", () => {
   const graph={nodes:Array.from({length:39},(_,i)=>({id:String(i)}))};
   const points=[...graphLayout(graph).values()];

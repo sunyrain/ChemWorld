@@ -56,6 +56,7 @@ const names = {
   "reaction-to-purification": "反应与纯化",
   "reaction-to-distillation": "反应与蒸馏",
   "electrochemical-conversion": "电化学转化",
+  "equilibrium-characterization": "平衡表征",
 };
 const operations = {
   add_solvent: "加入溶剂",
@@ -74,6 +75,11 @@ const operations = {
   run_flow: "运行连续流",
   set_flow: "设置流量",
   set_flow_rate: "设置流量",
+  set_potential: "设置电位",
+  electrolyze: "电解",
+  add_component: "加入组分",
+  create_container: "创建容器",
+  transfer: "转移物料",
   distill: "蒸馏",
   collect_fraction: "收集馏分",
 };
@@ -174,9 +180,9 @@ function renderHome() {
     `<section class="intro"><div><div class="eyebrow">YOUR RESEARCH, IN MOTION</div><h1>让 Agent 探索虚拟实验室。</h1><p>配置研究目标、模型和预算，观察 Agent 选择操作、读取观测与维护研究记录。</p></div><div class="intro-tag">CHEMWORLD / 本机试用</div></section>
   <section class="stats" aria-label="工作空间概览">${[
     [projects, "研究项目", "个"],
-    [state.runs.length, "独立实验", "批"],
-    [working, "后台运行", "批"],
-    [completed, "已完成终检", "批"],
+    [state.runs.length, "实验记录", "组"],
+    [working, "后台运行", "组"],
+    [completed, "含终检记录", "组"],
   ]
     .map(
       ([v, l, u]) =>
@@ -283,6 +289,7 @@ function renderRun() {
   if (state.tab === "spectra") renderSpectra();
   if (state.tab === "notebook") renderNotebook();
   if (state.tab === "report") renderReport();
+  archiveControls(r);
   if ($("cancel-run"))
     $("cancel-run").onclick = () =>
       perform(async () => {
@@ -317,9 +324,14 @@ function executorLabel(r) {
   if (r.actor === "manual") return "手动实验";
   return "Agent · " + (r.model_configuration?.requested_model || r.actor);
 }
+function archiveControls(r) {
+  if(!r.archive_only) return;
+  if($('clone-run')) { $('clone-run').disabled=true; $('clone-run').title='多批论文协议不能直接复制为网页单批实验'; }
+  if($('replay-run')) { $('replay-run').disabled=true; $('replay-run').textContent=r.replay?.verified?'执行时回放已通过':'查看原回放记录'; }
+}
 function renderExploreHeader(r) {
   const isModel = !['manual','reference'].includes(r.actor);
-  return `<header class="explore-title"><div class="explore-title-line"><h1>${esc(taskName(r.design))}</h1>${badge(r.status)}<span class="environment-tag">${isModel?'Agent 自主探索':r.actor==='reference'?'固定参考流程':'手动实验'}</span><span class="run-title-name" title="${esc(r.name)}">${esc(r.name)}</span></div><p>${esc(r.question || '尚未设置研究目标')}</p></header>`;
+  return `<header class="explore-title"><div class="explore-title-line"><h1>${esc(r.batch_count?r.name:taskName(r.design))}</h1>${badge(r.status)}<span class="environment-tag">${isModel?'Agent 自主探索':r.actor==='reference'?'固定参考流程':'手动实验'}</span><span class="run-title-name" title="${esc(r.name)}">${esc(r.batch_count?r.batch_count+' 批 · 开发复跑':r.name)}</span></div><p>${esc(r.question || '尚未设置研究目标')}</p></header>`;
 }
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds)) return '—';
@@ -329,15 +341,16 @@ function formatDuration(seconds) {
 function renderExplorer() {
   const r=state.run;
   const hasNetwork=Boolean(r.view?.component_network?.vessels?.length);
-  const graph=explorationGraph(r,hasNetwork?state.graphMode:'events',{...operations,...fieldNames});
   const eventIndex=state.eventSelection.get(r.id) ?? r.events.length-1;
+  const batch=r.batch_count?r.events[eventIndex]?.batch:null;
+  const graph=explorationGraph(r,hasNetwork?state.graphMode:'events',{...operations,...fieldNames},batch);
   graph.selectedId=r.events[eventIndex]?.event_id;
   const consumed=r.view?.campaign_state?.operation_count ?? r.executed_steps;
   const elapsed=Number.isFinite(r.wall_time_s)?r.wall_time_s:null;
   const sim=r.events.reduce((sum,e)=>sum+(e.delta?.delta_time_s || 0),0);
   $('run-panel').innerHTML=`<div class="explorer-layout ${state.canvasExpanded?'canvas-expanded':''}">
     <section class="network-panel panel" aria-label="实验执行画布">
-      <div class="network-heading"><div><h2>${graph.kind==='network'?'组件网络':'实验轨迹'} <span>${graph.total} 个节点</span></h2></div>
+      <div class="network-heading"><div class="graph-heading-label"><h2>${graph.kind==='network'?'组件网络':'实验轨迹'} <span>${graph.total} 个节点</span></h2>${r.batch_count?`<select id="graph-batch" aria-label="选择实验批次">${Array.from({length:r.batch_count},(_,i)=>`<option value="${i+1}" ${batch===i+1?'selected':''}>第 ${i+1} / ${r.batch_count} 批</option>`).join('')}</select>`:''}</div>
         <div class="graph-tools">${hasNetwork?'<select id="graph-mode" aria-label="选择网络视图"><option value="events">执行轨迹</option><option value="network">组件网络</option></select>':''}
           <button class="button secondary small" id="graph-reset" title="恢复自动排布并显示全部节点">重新排布</button>
           <button class="button secondary small" id="graph-fit" title="保持节点位置，显示全部">${icon('fit')}全图</button>
@@ -352,7 +365,7 @@ function renderExplorer() {
     <aside class="explorer-inspector panel" aria-label="实验详情"><div id="inspector-content"></div></aside>
   </div>
   <section class="execution-dock" aria-label="运行资源"><button class="text-button" data-tab="timeline">${icon('records')} ${r.events.length} 次提交 <span class="muted">/ ${r.rejected_steps} 次拒绝或回滚</span></button><span>操作预算 <strong>${consumed} / ${r.design.budget}</strong></span><span>模拟时间 <strong>${formatDuration(sim)}</strong></span><span>墙钟 <strong>${formatDuration(elapsed)}</strong></span><span>Token <strong>${modelUsageText(r)}</strong></span></section>`;
-  const viewKey=r.id+':'+graph.kind;
+  const viewKey=r.id+':'+graph.kind+':'+(batch ?? 'all');
   const controller=drawExplorationGraph($('network-graph'),graph,selectEvent,{
     saved:state.graphViews.get(viewKey),
     onChange:view=>{state.graphViews.set(viewKey,view);$('graph-scale').textContent=Math.round(view.camera.scale*100)+'%';},
@@ -361,7 +374,11 @@ function renderExplorer() {
   $('graph-reset').onclick=()=>controller.resetLayout();
   $('graph-fit').onclick=()=>controller.fit();
   $('graph-plus').onclick=()=>controller.zoomBy(1.2);$('graph-minus').onclick=()=>controller.zoomBy(1/1.2);
-  $('graph-follow').onclick=()=>{selectEvent(r.events.length-1);controller.focusLatest();};
+  $('graph-follow').onclick=()=>{selectEvent(graph.nodes.at(-1)?.eventIndex ?? r.events.length-1);controller.focusLatest();};
+  if($('graph-batch')) $('graph-batch').onchange=()=>{
+    state.eventSelection.set(r.id,r.events.findLastIndex(e=>e.batch===Number($('graph-batch').value)));
+    state.inspectorTab='event';state.previewSignal=null;renderRun();
+  };
   $('graph-expand').onclick=()=>{state.canvasExpanded=!state.canvasExpanded;document.querySelector('.explorer-layout').classList.toggle('canvas-expanded',state.canvasExpanded);$('graph-expand').textContent=state.canvasExpanded?'显示详情':'展开画布';$('graph-expand').setAttribute('aria-pressed',String(state.canvasExpanded));};
   if($('graph-mode')) {$('graph-mode').value=state.graphMode;$('graph-mode').onchange=()=>{state.graphMode=$('graph-mode').value;renderRun();};}
   renderInspector();
@@ -369,7 +386,9 @@ function renderExplorer() {
 
 function selectEvent(index) {
   if(index<0 || index>=state.run.events.length) return;
+  const previous=state.eventSelection.get(state.run.id) ?? state.run.events.length-1;
   state.eventSelection.set(state.run.id,index);state.inspectorTab='event';
+  if(state.run.batch_count && state.run.events[previous]?.batch!==state.run.events[index].batch) {renderRun();return;}
   document.querySelectorAll('.network-node').forEach(node=>node.classList.toggle('selected',Number(node.dataset.eventIndex)===index));
   if(state.canvasExpanded) $('graph-expand').click();
   renderInspector();
@@ -378,6 +397,11 @@ function selectEvent(index) {
 
 function noteMarkup(text) {
   return esc(text).split(/\n\s*\n/).map(block=>{
+    const rows=block.split('\n');
+    if(rows.length>1 && rows[0].trim().startsWith('|') && /^\s*\|[\s:|\-]+\|\s*$/.test(rows[1])) {
+      const cells=line=>line.trim().replace(/^\||\|$/g,'').split('|').map(s=>s.trim());
+      return `<div class="table-wrap"><table><thead><tr>${cells(rows[0]).map(c=>`<th>${c}</th>`).join('')}</tr></thead><tbody>${rows.slice(2).map(row=>`<tr>${cells(row).map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+    }
     if(/^#{1,3} /.test(block)) {
       const [heading,...body]=block.split('\n');
       return `<h3>${heading.replace(/^#+ /,'')}</h3>${body.length?`<p>${body.join('\n')}</p>`:''}`;
@@ -401,6 +425,7 @@ function renderInspector() {
   if(state.inspectorTab==='notebook') content=`<h2>Agent 研究笔记</h2><p class="inspector-help">模型主动记录 · ${revisions.length} 个版本 · 只读</p>${revisions.length?`<select id="preview-revision" aria-label="选择笔记版本">${revisions.map(item=>`<option value="${item.revision}" ${item.revision===revision?'selected':''}>版本 ${item.revision}${item.event_count!=null?' · '+item.event_count+' 条事件后':''}</option>`).join('')}</select><div id="agent-note-preview" class="note-reader">${noteMarkup(state.noteCache.get(noteKey) || '正在读取记录…')}</div>`:'<p class="empty">Agent 尚未提交研究笔记。</p>'}<button class="button secondary small" data-agent-notes>完整笔记与版本差异 ↗</button>`;
   if(state.inspectorTab==='archive') content=`<h2>实验档案</h2><p class="inspector-help">${esc(executorLabel(r))}</p><dl class="event-fields">${[['实验',r.name],['世界',taskName(r.design)],['状态',statuses[r.status]],['终检',r.final_assay_count?'已完成':'未完成'],['精确回放',r.replay?(r.replay.verified?'已验证':'未通过'):'未检查'],['环境 seed',r.design.seed],['模型调用',modelCallCount(r)],['工具请求',r.model_tool_calls ?? '—']].map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>${runMessage(r)?`<p class="inspector-help">${esc(runMessage(r))}</p>`:''}<div class="archive-actions"><button class="button secondary small" data-tab="report">研究报告 ↗</button><button class="button secondary small" id="clone-run">新建同条件实验</button><button class="button secondary small" id="replay-run" ${['running','cancelling'].includes(r.status)?'disabled':''}>精确回放</button><a class="button secondary small" href="/api/runs/${r.id}/export">导出 ZIP ↗</a></div>`;
   $('inspector-content').innerHTML=`<div class="inspector-heading"><span>研究详情</span><span class="model-pill" title="${esc(executorLabel(r))}">${esc(r.model_configuration?.requested_model || r.actor)}</span></div><div class="inspector-tabs" role="tablist" aria-label="选择详情内容">${tabs.map(([id,label])=>`<button role="tab" aria-selected="${state.inspectorTab===id}" data-inspector-tab="${id}">${label}${id==='notebook'&&revisions.length?`<small>${revisions.length}</small>`:''}</button>`).join('')}</div><div class="inspector-body">${content}</div>`;
+  archiveControls(r);
   document.querySelectorAll('[data-inspector-tab]').forEach(button=>button.onclick=()=>{state.inspectorTab=button.dataset.inspectorTab;renderInspector();});
   document.querySelectorAll('[data-select-event]').forEach(button=>button.onclick=()=>selectEvent(Number(button.dataset.selectEvent)));
   if($('preview-revision')) $('preview-revision').onchange=()=>{state.previewRevision=Number($('preview-revision').value);renderInspector();};
@@ -591,6 +616,15 @@ async function renderNotebook() {
 }
 function renderReport() {
   const r = state.run;
+  if(r.sealed_reports?.length) {
+    const failures=r.retained_failures || {};
+    $('run-panel').innerHTML=`<div class="notice">${r.final_assay_count} / ${r.batch_count} 批终检完成 · ${r.submitted_steps} 次物理操作 · ${r.model_notebook.total} 版同期笔记。以下为实验结束后的模型报告，与同期笔记分开保存。笔记工具错误 ${failures.notebook_tool_errors ?? '—'} 次，实验工具响应错误 ${failures.laboratory_tool_errors ?? '—'} 次，均保留在原记录中。</div><section class="panel"><div class="panel-header"><h3>封闭后测 · 模型原文</h3><select id="sealed-stage" aria-label="选择后测报告">${r.sealed_reports.map((s,i)=>`<option value="${i}">${s.stage} · ${esc(s.title)}</option>`).join('')}</select></div><div class="panel-body report-reader" id="sealed-report-text"></div></section>`;
+    const show=()=>{
+      const report=r.sealed_reports[Number($('sealed-stage').value)];
+      $('sealed-report-text').innerHTML=noteMarkup(report.text)+`<details class="event-raw"><summary>原始回答 JSON · 完整数值与质量判断</summary><pre class="document document-code">${esc(pretty(report.payload))}</pre></details>`;
+    };
+    $('sealed-stage').onchange=show;show();return;
+  }
   const designFields=[['实验世界',taskName(r.design)],['执行方式',executorLabel(r)],['环境 seed',r.design.seed],['操作预算',r.design.budget],['终检',r.final_assay_count?'已完成':'未完成']];
   $("run-panel").innerHTML =
     `<div class="chart-grid"><section class="panel"><div class="panel-header"><h3>实验设计</h3></div><div class="panel-body"><p class="document">${esc(r.question || '未填写研究目标')}</p><dl class="event-fields">${designFields.map(([label,value])=>`<div><dt>${label}</dt><dd>${esc(value)}</dd></div>`).join('')}</dl><details class="event-raw"><summary>完整设计 JSON</summary><pre class="document document-code">${esc(pretty({ design: r.design, actor: r.actor, limits: r.limits, model: r.model_configuration }))}</pre></details></div></section><section class="panel"><div class="panel-header"><h3>实验报告</h3><span class="muted compact">公开记录</span></div><div class="panel-body"><p class="document">${esc(r.view?.lab_report?.text || "尚无报告。")}</p><hr class="metric-separator"><h3>模型提交的最终报告</h3><p class="document">${esc(r.model_report || "模型尚未主动提交最终报告。")}</p><hr class="metric-separator"><p class="fineprint">${r.submitted_steps} 次提交，${r.rejected_steps} 次拒绝或回滚，${r.final_assay_count} 次终检。保存了全部已提交事件；未终检不等于零产率。环境 seed 不保证不同厂商模型输出相同。</p></div></section></div><section class="panel"><div class="panel-body"><details class="event-raw"><summary>物料与设备的公开原始状态</summary><pre class="document document-code">${esc(pretty({ samples: r.view?.sample_inventory, network: r.view?.component_network, routing: r.view?.material_routing, process: r.view?.process_control }))}</pre></details></div></section>`;
@@ -662,7 +696,7 @@ function eventDetailHTML(index) {
   const costs=[['模拟时间',delta?.delta_time_s,'s'],['虚拟成本',delta?.delta_cost,'环境单位'],['样品体积变化',Number.isFinite(delta?.delta_volume_L)?delta.delta_volume_L*1000:null,'mL']].filter(([,value])=>Number.isFinite(value));
   return `<div class="event-meta"><span class="event-status ${event.transaction_status==='committed'?'success':'failure'}">${detail.status}</span><span>第 ${index+1} 步${event.recorded_at?' · '+esc(date(event.recorded_at)):''}</span></div>
     <p class="event-summary">${esc(detail.summary)}</p>
-    ${detail.metrics.length?`<div class="event-metrics">${detail.metrics.map(metric=>`<div><span>${esc(metric.label)}</span><strong>${number(metric.value*100,2)}<small>%</small></strong></div>`).join('')}</div>`:''}
+    ${detail.metrics.length?`<div class="event-metrics">${detail.metrics.map(metric=>`<div><span>${esc(metric.label)}</span><strong>${number(metric.value*metric.scale,3)}<small>${metric.unit}</small></strong></div>`).join('')}</div>`:''}
     ${fields?`<section class="event-section"><h3>请求参数</h3><dl class="event-fields">${fields}</dl></section>`:''}
     ${costs.length?`<section class="event-section"><h3>记录的资源变化</h3><dl class="event-fields">${costs.map(([name,value,unit])=>`<div><dt>${name}</dt><dd>${number(value,3)} ${unit}</dd></div>`).join('')}</dl></section>`:''}
     ${detail.caveat?`<p class="event-caveat">${esc(detail.caveat)}</p>`:''}
@@ -954,7 +988,8 @@ async function init() {
     $("connection").textContent = "已连接";
     const requested = new URLSearchParams(location.search).get("run");
     const latest = state.runs.find((r) => r.id === requested) || state.runs.find((r) => r.status === "running") || state.runs[0];
-    if (latest) await openRun(latest.id);
+    if (new URLSearchParams(location.search).get('view')==='records') renderHome();
+    else if (latest) await openRun(latest.id);
     else renderHome();
     setInterval(poll, 1800);
   } catch (error) {

@@ -24,6 +24,28 @@ uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Pro
 
 真实模型档案例：[R63 三组正式尝试及笔记审查](../../workstreams/arxiv_v1/experiments/formal-workbench-model-notes-20261012.md)使用原生 CLI/MCP 会话生成本工作台格式记录，包含 12 个模型笔记版本、两组终检与一组完整保留的失败。该执行入口与下面的网页 BYOK 独立。阅览原生记录时分别显示工具请求数、token 和未提供的底层模型请求数；这些计数不会混用。原生会话可在终检后写笔记和报告，网页 BYOK worker 目前仍会在终检后结束，不能将原生路径的验收套用到网页 worker。
 
+## 论文案例档案
+
+R67 已把 2026-10-13 同期笔记复跑的六条完整实验链接入当前本机 8893 工作台。
+[打开实验列表](http://127.0.0.1:8893/?view=records)，选择“论文案例 · 同期笔记复跑”
+项目中的记录；画布左上选择批次，右侧“笔记”读取原版记录，“档案 → 研究报告”
+切换 K1 / Q / K2 / EQS。六案例共 84 批、732 次物理操作、21 版笔记、20 个后测。
+原三条 R63 记录仍保留。本机记录目录与 Git 独立，pull 代码不会自动导入实验数据；
+`output/imagegen/…/index.html` 仅为设计图库，实际工作台在上述 HTTP 地址。
+
+导入已有完整块时，先停止使用目标数据目录的工作台，再运行：
+
+```powershell
+uv run --no-sync python -m scripts.import_paper_case_workbench --root D:/Projects/ChemWorld-local-research/20261013-paper-case-notebooks/attempt-01 --reports workstreams/flagship_tasks/reports/paper-case-notebooks-20261013 --data-dir D:/Projects/ChemWorld-local-research/20261012-formal-workbench-model-notes/attempt-01/store
+uv run --no-sync python -m apps.research_workbench --port 8893 --data-dir D:/Projects/ChemWorld-local-research/20261012-formal-workbench-model-notes/attempt-01/store
+```
+
+导入不调用模型或模拟器，不改变源数据；重复执行不会新增重复记录。阅览副本仅含
+公开操作/仪器包、模型笔记和后测文本，不复制提供方记录、凭据或私有回放轨迹。
+多批论文协议不能由网页单批配置完整表达，因此其“新建同条件实验”和“精确回放”
+按钮禁用；展示的回放状态来自原执行结果。个人批注仍单独保存。
+结果的科学解释与限制见[实验审查](../../workstreams/flagship_tasks/reports/paper-case-notebooks-20261013/REVIEW.md)。
+
 ## 模型接入与临时 key
 
 内置 DeepSeek Chat Completions、OpenAI Responses、Qwen DashScope 北京区兼容接口三个固定目标。用户必须输入厂商实际提供且自己的账号可用的模型 ID，不静默替换模型。页面中的模型建议不是最新版本或账号可用性承诺。

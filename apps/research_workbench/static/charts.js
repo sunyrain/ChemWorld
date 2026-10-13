@@ -146,7 +146,7 @@ export function drawChart(container, series) {
 }
 
 // Build only from saved public facts. Chronology is never presented as material flow.
-export function explorationGraph(run, mode = "events", labels = {}) {
+export function explorationGraph(run, mode = "events", labels = {}, batch = null) {
   const network = run.view?.component_network;
   if (mode === "network" && network?.vessels?.length) {
     const nodes = network.vessels.map((v) => ({
@@ -167,14 +167,14 @@ export function explorationGraph(run, mode = "events", labels = {}) {
     };
   }
   const events = run.events || [];
-  const offset = 0;
-  const nodes = events.slice(offset).map((e, i) => {
+  const entries = events.map((e, i) => ({e, i})).filter(({e}) => batch === null || e.batch === batch);
+  const nodes = entries.map(({e, i}) => {
     const committed = e.transaction_status === "committed";
     const parameters = Object.entries(e.action || {})
       .filter(([key]) => key !== "operation")
       .map(([key, value]) => (labels[key] || key) + ": " + (typeof value === "object" ? JSON.stringify(value) : value));
     return {
-      id: e.event_id, eventIndex: offset + i,
+      id: e.event_id, eventIndex: i,
       operation: e.action?.operation, instrument: e.action?.instrument,
       lines: actionLines(e.action || {}),
       label: labels[e.action?.operation] || e.action?.operation || "操作",
@@ -185,7 +185,7 @@ export function explorationGraph(run, mode = "events", labels = {}) {
   });
   return {
     kind: "events", title: "执行轨迹", legend: "箭头仅表示提交顺序",
-    total: events.length, nodes,
+    total: nodes.length, nodes,
     edges: nodes.slice(1).map((n, i) => ({ source: nodes[i].id, target: n.id })),
   };
 }
@@ -424,9 +424,9 @@ export function eventSummary(event) {
     ? ({duration_s:'请求时长不在当时允许的范围内。',target_temperature_K:'请求温度不在当时允许的范围内。'}[reason.split(':')[1]] || '请求参数超出当时允许的范围。')
     : '当前实验状态不满足这一步的执行条件。');
   const measured=committed && action.operation==='measure';
-  const labels={yield:'产率',selectivity:'选择性',conversion:'转化率',crystal_yield:'晶体回收',crystal_purity:'晶体纯度',flow_conversion:'流动转化率',purity:'纯度',recovery:'回收率',crystal_fines_fraction:'细粉比例'};
+  const labels={yield:'产率',selectivity:'选择性',conversion:'转化率',crystal_yield:'晶体回收',crystal_purity:'晶体纯度',flow_conversion:'流动转化率',purity:'纯度',recovery:'回收率',crystal_fines_fraction:'细粉比例',selective_product_yield:'选择性产物收率',electrochemical_selectivity:'电化学选择性',faradaic_efficiency:'法拉第效率',pH_normalized:'归一化 pH',acid_dissociation_fraction:'酸解离比例',precipitation_signal:'沉淀信号'};
   const source=event.observation || event.report?.visible_metrics || {};
-  const metrics=measured?Object.entries(labels).filter(([key])=>Number.isFinite(source[key]) && event.observed_mask?.[key]!==false).map(([key,label])=>({key,label,value:source[key]})):[];
+  const metrics=measured?Object.entries(labels).filter(([key])=>Number.isFinite(source[key]) && event.observed_mask?.[key]!==false).map(([key,label])=>({key,label,value:source[key],scale:['pH_normalized','precipitation_signal'].includes(key)?1:100,unit:['pH_normalized','precipitation_signal'].includes(key)?'':'%'})):[];
   const summary=rollback?'环境一致性检查未通过，这次操作已回滚，未产生新的有效实验结果。'
     : !committed?[...new Set(reasons.map(reasonText))].join(' ') || '这次请求未执行，实验记录已保留。'
     : measured?action.instrument==='final_assay'?'已完成终检，以下为这次实际测得的结果。':'已完成仪器测量，以下为这次实际观测。'
