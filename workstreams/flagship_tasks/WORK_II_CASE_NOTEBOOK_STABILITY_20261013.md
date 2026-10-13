@@ -128,3 +128,26 @@ is restarted or replaced. If an execution/reference/replay defect occurs, stop n
 launches and retain the results of already in-flight units. Record the switch and
 launches with the raw block, and report that provider concurrency/calendar order
 changed mid-block; do not claim identical service-load conditions across repeats.
+
+## Completed block
+
+All 18 sources reached terminal dispositions, with 252/252 source batches, 17 full
+chains and 58/60 sealed posttests. The first Astra K2 failed and EQS was not run;
+its Q remains valid. No source was retried. All 18 Q submissions are valid, and
+18 source, 69 reference and 12 recommendation trajectories replay exactly. The
+three rounds' fixed inputs and reference answers agree. Keep the startup-only
+attempt's 60 reference assays/548 operations/16 verified trajectories separate.
+
+The 65 notebook versions all have valid cursors; initial notes precede physical
+actions in 18/18 sessions, with zero active notebook reads. Retain 486 rollbacks,
+seven notebook errors and one recovered transport error. A source with 427 rejected
+seed additions illustrates a discrepancy between its notebook's intended doses
+and committed actions; the report includes actual per-batch seed additions.
+
+The full [analysis](reports/paper-case-stability-20261013/REVIEW.md), machine tables,
+all model notebooks/reports and individual-outcome plots are exported. An independent
+viewer at http://127.0.0.1:8894/?view=records contains 24 archives including the previous
+six. API checks verified every archive's latest note and the retained incomplete chain.
+Focused scheduler/report/import checks pass; raw records and credentials remain outside
+Git. This completed descriptive development block does not replace prior evidence or
+modify the manuscript.

@@ -1,6 +1,6 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
-当前新增授权（2026-10-13）：最近六个带笔记论文案例各新增三次同条件独立研究，执行与科学结果由 Work II W2-247 追踪，见 [固定实验说明](../flagship_tasks/WORK_II_CASE_NOTEBOOK_STABILITY_20261013.md)。Codex /root 单 executor；不改变第一篇冻结结果。完成后同步本机工作台阅览，既有六条记录单独保留。
+当前新增授权已完成（2026-10-13，Work II W2-247）：六个带笔记案例各新增三次同条件独立研究，18 条终态、252 批、17 条完整链、58/60 后测、65 版笔记；保留一条 Astra 后测失败，没有补跑。按用户后续要求切换为 4 并发，Codex /root 单 executor。见 [结果分析](../flagship_tasks/reports/paper-case-stability-20261013/REVIEW.md)及[固定实验说明](../flagship_tasks/WORK_II_CASE_NOTEBOOK_STABILITY_20261013.md)。[本机 8894 工作台](http://127.0.0.1:8894/?view=records)含原六条与新十八条；不改变第一篇冻结结果或稿件。
 
 状态：**第一篇冻结工作 DONE；社区发布改良进行中，逐项状态见第 9 节**
 负责人：**第一篇冻结记录 codex-1；社区改良按第 9 节 Ours / LYJ 逐项认领**

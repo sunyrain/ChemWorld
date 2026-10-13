@@ -118,7 +118,12 @@ def plot(summary_path: Path, output: Path):
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     fig.savefig(output.with_suffix(".png"), dpi=180)
-    fig.savefig(output.with_suffix(".svg"))
+    svg = output.with_suffix(".svg")
+    fig.savefig(svg)
+    svg.write_text(
+        "\n".join(line.rstrip() for line in svg.read_text(encoding="utf-8").splitlines()) + "\n",
+        encoding="utf-8",
+    )
     plt.close(fig)
 
 

@@ -1,0 +1,4619 @@
+{
+  "scope": "Three fresh sessions per fixed case; descriptive development evidence",
+  "planned_sources": 18,
+  "planned_source_batches": 252,
+  "planned_posttests": 60,
+  "previous_cases_excluded_from_repeat_statistics": true,
+  "counts": {
+    "terminal_sources": 18,
+    "completed_sources": 17,
+    "completed_batches": 252,
+    "completed_posttests": 58,
+    "source_operations": 3019,
+    "source_rollbacks": 486,
+    "laboratory_tool_failures": 1,
+    "notebook_tool_failures": 7,
+    "source_provider_process_attempts": 18,
+    "recommendation_retest_batches": 12,
+    "recommendation_retest_operations": 149,
+    "recommendation_retests_replayed": 12,
+    "source_replays_verified": 18,
+    "notebook_versions": 65,
+    "notebook_read_calls": 0,
+    "token_accounting_complete_cases": 17,
+    "observed_input_plus_output_tokens": 19205936
+  },
+  "reference_batches": 432,
+  "reference_operations": 2757,
+  "reference_replays_verified": 69,
+  "source_commits": {
+    "repeat-01": "b1f746bb7726b7159581716629723cba7e95ab57",
+    "repeat-02": "b1f746bb7726b7159581716629723cba7e95ab57",
+    "repeat-03": "b1f746bb7726b7159581716629723cba7e95ab57"
+  },
+  "cases": [
+    {
+      "repeat": "repeat-01",
+      "case": "EC-discovery",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 84,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 357.9539999999979,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.0989415454242068,
+        "selective_product_yield_coverage80": 0.16666666666666666,
+        "electrochemical_selectivity_mae": 0.4689292176763216,
+        "electrochemical_selectivity_coverage80": 0.5,
+        "faradaic_efficiency_mae": 0.3534210862914721,
+        "faradaic_efficiency_coverage80": 0.25,
+        "transport_efficiency_mae": 0.3681661938230196,
+        "transport_efficiency_coverage80": 0.3333333333333333,
+        "energy_efficiency_mae": 0.4212333577275276,
+        "energy_efficiency_coverage80": 0.16666666666666666,
+        "score_mae": 0.2799315330957373,
+        "score_coverage80": 0.5,
+        "recommendation_score": 0.28073370456695557
+      },
+      "notebook": {
+        "version_count": 3,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 587713,
+            "cached_input_tokens": 550656,
+            "output_tokens": 5457
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 32580,
+            "cached_input_tokens": 0,
+            "output_tokens": 4197
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 38618,
+            "cached_input_tokens": 0,
+            "output_tokens": 3793
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 42324,
+            "cached_input_tokens": 32384,
+            "output_tokens": 2167
+          }
+        ],
+        "total": {
+          "input_tokens": 701235,
+          "cached_input_tokens": 583040,
+          "output_tokens": 15614,
+          "input_plus_output": 716849
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "case": "EC-optimization",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 85,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 354.0309999999954,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.04698753481715296,
+        "selective_product_yield_coverage80": 0.8333333333333334,
+        "electrochemical_selectivity_mae": 0.0635398065050443,
+        "electrochemical_selectivity_coverage80": 0.9166666666666666,
+        "faradaic_efficiency_mae": 0.09001737356185913,
+        "faradaic_efficiency_coverage80": 0.8333333333333334,
+        "transport_efficiency_mae": 0.11077723691860836,
+        "transport_efficiency_coverage80": 0.8333333333333334,
+        "energy_efficiency_mae": 0.11024743596712748,
+        "energy_efficiency_coverage80": 0.9166666666666666,
+        "score_mae": 0.04718462598075469,
+        "score_coverage80": 0.8333333333333334,
+        "recommendation_score": 0.6689895391464233
+      },
+      "notebook": {
+        "version_count": 3,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 794981,
+            "cached_input_tokens": 749312,
+            "output_tokens": 5481
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 40910,
+            "cached_input_tokens": 0,
+            "output_tokens": 4556
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 47307,
+            "cached_input_tokens": 0,
+            "output_tokens": 4937
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 52157,
+            "cached_input_tokens": 40704,
+            "output_tokens": 1958
+          }
+        ],
+        "total": {
+          "input_tokens": 935355,
+          "cached_input_tokens": 790016,
+          "output_tokens": 16932,
+          "input_plus_output": 952287
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "case": "EQ-Sol",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 63,
+      "source_rollbacks": 3,
+      "source_replay_verified": true,
+      "elapsed_s": 508.25,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.0031784715453783696,
+        "pH_normalized_coverage80": 1.0,
+        "pH_normalized_mean_width80": 0.03870833333333334,
+        "acid_dissociation_fraction_mae": 0.013955998092889789,
+        "acid_dissociation_fraction_coverage80": 1.0,
+        "acid_dissociation_fraction_mean_width80": 0.1415833333333333,
+        "precipitation_signal_mae": 0.014630285259957113,
+        "precipitation_signal_coverage80": 0.9166666666666666,
+        "precipitation_signal_mean_width80": 0.061250000000000006,
+        "minimum_positive_concentration_M": 0.0625,
+        "sampled_below_1mM": 0,
+        "lowest_three_macro_mae": 0.013321408029231764,
+        "lowest_three_covered": 45,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 1.0,
+        "remaining_nine_macro_mae": 0.009677199500578422,
+        "remaining_nine_covered": 130,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9629629629629629,
+        "all_twelve_macro_mae": 0.010588251632741756,
+        "all_twelve_covered": 175,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9722222222222222
+      },
+      "notebook": {
+        "version_count": 2,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 478051,
+            "cached_input_tokens": 431360,
+            "output_tokens": 5605
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 43897,
+            "cached_input_tokens": 0,
+            "output_tokens": 6213
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 105314,
+            "cached_input_tokens": 51456,
+            "output_tokens": 4726
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 56926,
+            "cached_input_tokens": 43776,
+            "output_tokens": 5323
+          },
+          {
+            "stage": "EQS",
+            "input_tokens": 62583,
+            "cached_input_tokens": 0,
+            "output_tokens": 690
+          }
+        ],
+        "total": {
+          "input_tokens": 746771,
+          "cached_input_tokens": 526592,
+          "output_tokens": 22557,
+          "input_plus_output": 769328
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "case": "EQ-Astra",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 63,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 614.2189999999973,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.001137608408927927,
+        "pH_normalized_coverage80": 1.0,
+        "pH_normalized_mean_width80": 0.012999999999999975,
+        "acid_dissociation_fraction_mae": 0.003440747171640396,
+        "acid_dissociation_fraction_coverage80": 0.9833333333333333,
+        "acid_dissociation_fraction_mean_width80": 0.04416666666666666,
+        "precipitation_signal_mae": 0.0043058589366846735,
+        "precipitation_signal_coverage80": 1.0,
+        "precipitation_signal_mean_width80": 0.04,
+        "minimum_positive_concentration_M": 1.8518518518518518e-05,
+        "sampled_below_1mM": 1,
+        "lowest_three_macro_mae": 0.00611347386145241,
+        "lowest_three_covered": 45,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 1.0,
+        "remaining_nine_macro_mae": 0.0019107151649616395,
+        "remaining_nine_covered": 134,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9925925925925926,
+        "all_twelve_macro_mae": 0.0029614048390843323,
+        "all_twelve_covered": 179,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9944444444444445
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": false,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [
+          "K2",
+          "EQS"
+        ],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 415949,
+            "cached_input_tokens": 353792,
+            "output_tokens": 4139
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 59804,
+            "cached_input_tokens": 29440,
+            "output_tokens": 5912
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 75358,
+            "cached_input_tokens": 37248,
+            "output_tokens": 3023
+          }
+        ],
+        "total": {
+          "input_tokens": 551111,
+          "cached_input_tokens": 420480,
+          "output_tokens": 13074,
+          "input_plus_output": 564185
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": false,
+          "failure": "provider_failure",
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": false,
+          "failure": null,
+          "record_present": false
+        }
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "case": "C-12",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 241,
+      "source_rollbacks": 19,
+      "source_replay_verified": true,
+      "elapsed_s": 596.2350000000006,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.02
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          },
+          {
+            "lifecycle_index": 4,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          }
+        ],
+        "rejection_preconditions": {
+          "payload_bounds:seed_mass_g": 19
+        }
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.04144176341297817,
+        "crystal_yield_coverage80": 1.0,
+        "crystal_purity_mae": 0.031115617952944707,
+        "crystal_purity_coverage80": 0.6666666666666666,
+        "crystal_size_mae": 0.04715886052681301,
+        "crystal_size_coverage80": 0.75,
+        "crystal_fines_fraction_mae": 0.2579447137720264,
+        "crystal_fines_fraction_coverage80": 0.4166666666666667,
+        "quality_correct_of_12": 8,
+        "recommendation_true_crystal_yield": 0.4710089860019401,
+        "recommendation_true_crystal_purity": 0.989628481315073,
+        "recommendation_true_crystal_fines_fraction": 0.99993645253893,
+        "recommendation_fines_margin": -0.49993645253893004,
+        "thermal_fines_predicted_delta": 0.43000000000000005,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.3085454747856765,
+        "thermal_fines_direction_correct": 1,
+        "Q07_fines_prediction": 0.25,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.68,
+        "Q08_predicted_feasible": 0
+      },
+      "notebook": {
+        "version_count": 2,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 855919,
+            "cached_input_tokens": 810368,
+            "output_tokens": 9555
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 39839,
+            "cached_input_tokens": 0,
+            "output_tokens": 2591
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 50966,
+            "cached_input_tokens": 0,
+            "output_tokens": 4454
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 55340,
+            "cached_input_tokens": 39680,
+            "output_tokens": 2148
+          }
+        ],
+        "total": {
+          "input_tokens": 1002064,
+          "cached_input_tokens": 850048,
+          "output_tokens": 18748,
+          "input_plus_output": 1020812
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "case": "C-24",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 24,
+      "planned_batches": 24,
+      "source_operations": 425,
+      "source_rollbacks": 8,
+      "source_replay_verified": true,
+      "elapsed_s": 675.6399999999994,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.02
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 5,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 13,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 14,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 15,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 16,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 17,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 18,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 19,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.02
+          },
+          {
+            "lifecycle_index": 21,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 22,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 23,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 24,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          }
+        ],
+        "rejection_preconditions": {}
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.08284865674450649,
+        "crystal_yield_coverage80": 0.75,
+        "crystal_purity_mae": 0.01244245453228097,
+        "crystal_purity_coverage80": 1.0,
+        "crystal_size_mae": 0.037575527193479674,
+        "crystal_size_coverage80": 0.9166666666666666,
+        "crystal_fines_fraction_mae": 0.3215645492798915,
+        "crystal_fines_fraction_coverage80": 0.25,
+        "quality_correct_of_12": 9,
+        "recommendation_true_crystal_yield": 0.45115360147997974,
+        "recommendation_true_crystal_purity": 0.9894827389782285,
+        "recommendation_true_crystal_fines_fraction": 0.48735135333474927,
+        "recommendation_fines_margin": 0.012648646665250729,
+        "thermal_fines_predicted_delta": -0.09999999999999998,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.8385454747856765,
+        "thermal_fines_direction_correct": 0,
+        "Q07_fines_prediction": 0.47,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.37,
+        "Q08_predicted_feasible": 1
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 1208148,
+            "cached_input_tokens": 1127040,
+            "output_tokens": 8747
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 59533,
+            "cached_input_tokens": 0,
+            "output_tokens": 2850
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 70919,
+            "cached_input_tokens": 0,
+            "output_tokens": 3649
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 74488,
+            "cached_input_tokens": 59392,
+            "output_tokens": 2715
+          }
+        ],
+        "total": {
+          "input_tokens": 1413088,
+          "cached_input_tokens": 1186432,
+          "output_tokens": 17961,
+          "input_plus_output": 1431049
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "EC-discovery",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 84,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 501.90699999999924,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.0694415454242068,
+        "selective_product_yield_coverage80": 0.25,
+        "electrochemical_selectivity_mae": 0.13418187449375787,
+        "electrochemical_selectivity_coverage80": 0.8333333333333334,
+        "faradaic_efficiency_mae": 0.061455755035082486,
+        "faradaic_efficiency_coverage80": 0.8333333333333334,
+        "transport_efficiency_mae": 0.06105673501888911,
+        "transport_efficiency_coverage80": 0.9166666666666666,
+        "energy_efficiency_mae": 0.05952732721964519,
+        "energy_efficiency_coverage80": 0.8333333333333334,
+        "score_mae": 0.11274145253250996,
+        "score_coverage80": 0.75,
+        "recommendation_score": 0.5983558297157288
+      },
+      "notebook": {
+        "version_count": 3,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 569224,
+            "cached_input_tokens": 531968,
+            "output_tokens": 6003
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 33121,
+            "cached_input_tokens": 0,
+            "output_tokens": 3908
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 38870,
+            "cached_input_tokens": 0,
+            "output_tokens": 4594
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 43377,
+            "cached_input_tokens": 0,
+            "output_tokens": 2140
+          }
+        ],
+        "total": {
+          "input_tokens": 684592,
+          "cached_input_tokens": 531968,
+          "output_tokens": 16645,
+          "input_plus_output": 701237
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "EC-optimization",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 90,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 449.4060000000027,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.04198060064747309,
+        "selective_product_yield_coverage80": 0.8333333333333334,
+        "electrochemical_selectivity_mae": 0.09998215744892756,
+        "electrochemical_selectivity_coverage80": 0.9166666666666666,
+        "faradaic_efficiency_mae": 0.1031283348798752,
+        "faradaic_efficiency_coverage80": 0.9166666666666666,
+        "transport_efficiency_mae": 0.10816155920426052,
+        "transport_efficiency_coverage80": 0.9166666666666666,
+        "energy_efficiency_mae": 0.13606891830762227,
+        "energy_efficiency_coverage80": 0.75,
+        "score_mae": 0.08672632988045613,
+        "score_coverage80": 0.9166666666666666,
+        "recommendation_score": 0.9195171594619751
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 598671,
+            "cached_input_tokens": 564224,
+            "output_tokens": 6599
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 33202,
+            "cached_input_tokens": 0,
+            "output_tokens": 4045
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 39088,
+            "cached_input_tokens": 0,
+            "output_tokens": 4208
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 43209,
+            "cached_input_tokens": 33024,
+            "output_tokens": 1913
+          }
+        ],
+        "total": {
+          "input_tokens": 714170,
+          "cached_input_tokens": 597248,
+          "output_tokens": 16765,
+          "input_plus_output": 730935
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "EQ-Sol",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 60,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 494.57800000000134,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.005218595325946806,
+        "pH_normalized_coverage80": 1.0,
+        "pH_normalized_mean_width80": 0.058,
+        "acid_dissociation_fraction_mae": 0.014366747081279758,
+        "acid_dissociation_fraction_coverage80": 1.0,
+        "acid_dissociation_fraction_mean_width80": 0.15675,
+        "precipitation_signal_mae": 0.007551353391880793,
+        "precipitation_signal_coverage80": 0.9833333333333333,
+        "precipitation_signal_mean_width80": 0.05791666666666666,
+        "minimum_positive_concentration_M": 0.05,
+        "sampled_below_1mM": 0,
+        "lowest_three_macro_mae": 0.014530840472214757,
+        "lowest_three_covered": 45,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 1.0,
+        "remaining_nine_macro_mae": 0.0072171401977539065,
+        "remaining_nine_covered": 134,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9925925925925926,
+        "all_twelve_macro_mae": 0.00904556526636912,
+        "all_twelve_covered": 179,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9944444444444445
+      },
+      "notebook": {
+        "version_count": 2,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 460385,
+            "cached_input_tokens": 395776,
+            "output_tokens": 5530
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 41758,
+            "cached_input_tokens": 0,
+            "output_tokens": 4542
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 97401,
+            "cached_input_tokens": 47616,
+            "output_tokens": 5834
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 54846,
+            "cached_input_tokens": 41600,
+            "output_tokens": 4596
+          },
+          {
+            "stage": "EQS",
+            "input_tokens": 181952,
+            "cached_input_tokens": 120320,
+            "output_tokens": 1630
+          }
+        ],
+        "total": {
+          "input_tokens": 836342,
+          "cached_input_tokens": 605312,
+          "output_tokens": 22132,
+          "input_plus_output": 858474
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "EQ-Astra",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 63,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 695.2819999999992,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.001383423765500394,
+        "pH_normalized_coverage80": 0.9833333333333333,
+        "pH_normalized_mean_width80": 0.017166666666666646,
+        "acid_dissociation_fraction_mae": 0.0021688933571179674,
+        "acid_dissociation_fraction_coverage80": 1.0,
+        "acid_dissociation_fraction_mean_width80": 0.057583333333333334,
+        "precipitation_signal_mae": 0.0049181017744316085,
+        "precipitation_signal_coverage80": 0.9333333333333333,
+        "precipitation_signal_mean_width80": 0.044,
+        "minimum_positive_concentration_M": 1.8518518518518518e-05,
+        "sampled_below_1mM": 1,
+        "lowest_three_macro_mae": 0.0060681327406265275,
+        "lowest_three_covered": 41,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 0.9111111111111111,
+        "remaining_nine_macro_mae": 0.0017419197073689219,
+        "remaining_nine_covered": 134,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9925925925925926,
+        "all_twelve_macro_mae": 0.0028234729656833237,
+        "all_twelve_covered": 175,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9722222222222222
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 327842,
+            "cached_input_tokens": 298496,
+            "output_tokens": 4012
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 25244,
+            "cached_input_tokens": 0,
+            "output_tokens": 4479
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 31202,
+            "cached_input_tokens": 0,
+            "output_tokens": 3572
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 35055,
+            "cached_input_tokens": 25088,
+            "output_tokens": 4089
+          },
+          {
+            "stage": "EQS",
+            "input_tokens": 39478,
+            "cached_input_tokens": 0,
+            "output_tokens": 989
+          }
+        ],
+        "total": {
+          "input_tokens": 458821,
+          "cached_input_tokens": 323584,
+          "output_tokens": 17141,
+          "input_plus_output": 475962
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "C-12",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 256,
+      "source_rollbacks": 3,
+      "source_replay_verified": true,
+      "elapsed_s": 578.375,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.02
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 4,
+            "committed_calls": 1,
+            "rejected_calls": 3,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 5,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.04
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.03
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          }
+        ],
+        "rejection_preconditions": {
+          "payload_bounds:seed_mass_g": 3
+        }
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.05819486298170928,
+        "crystal_yield_coverage80": 1.0,
+        "crystal_purity_mae": 0.03611561795294472,
+        "crystal_purity_coverage80": 0.8333333333333334,
+        "crystal_size_mae": 0.0221400835771952,
+        "crystal_size_coverage80": 0.8333333333333334,
+        "crystal_fines_fraction_mae": 0.22656454927989153,
+        "crystal_fines_fraction_coverage80": 0.6666666666666666,
+        "quality_correct_of_12": 10,
+        "recommendation_true_crystal_yield": 0.4476323810309683,
+        "recommendation_true_crystal_purity": 0.9891655145708709,
+        "recommendation_true_crystal_fines_fraction": 0.5935370584009516,
+        "recommendation_fines_margin": -0.09353705840095161,
+        "thermal_fines_predicted_delta": 0.45,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.28854547478567655,
+        "thermal_fines_direction_correct": 1,
+        "Q07_fines_prediction": 0.41,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.86,
+        "Q08_predicted_feasible": 0
+      },
+      "notebook": {
+        "version_count": 3,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 924976,
+            "cached_input_tokens": 878080,
+            "output_tokens": 10814
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 41206,
+            "cached_input_tokens": 0,
+            "output_tokens": 3020
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 52762,
+            "cached_input_tokens": 0,
+            "output_tokens": 4070
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 56752,
+            "cached_input_tokens": 41088,
+            "output_tokens": 2163
+          }
+        ],
+        "total": {
+          "input_tokens": 1075696,
+          "cached_input_tokens": 919168,
+          "output_tokens": 20067,
+          "input_plus_output": 1095763
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "case": "C-24",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 24,
+      "planned_batches": 24,
+      "source_operations": 754,
+      "source_rollbacks": 427,
+      "source_replay_verified": true,
+      "elapsed_s": 1458.7810000000027,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 9,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 9,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 4,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 5,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 13,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 14,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 15,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 16,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 17,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 18,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 19,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 20,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 21,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 22,
+            "committed_calls": 1,
+            "rejected_calls": 29,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 23,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 24,
+            "committed_calls": 1,
+            "rejected_calls": 19,
+            "committed_seed_additions_g": 0.05
+          }
+        ],
+        "rejection_preconditions": {
+          "payload_bounds:seed_mass_g": 427
+        }
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.18243199007783983,
+        "crystal_yield_coverage80": 0.25,
+        "crystal_purity_mae": 0.02109849620564373,
+        "crystal_purity_coverage80": 1.0,
+        "crystal_size_mae": 0.08995287533722574,
+        "crystal_size_coverage80": 0.25,
+        "crystal_fines_fraction_mae": 0.35073121594655815,
+        "crystal_fines_fraction_coverage80": 0.4166666666666667,
+        "quality_correct_of_12": 8,
+        "recommendation_true_crystal_yield": 0.6483570161496454,
+        "recommendation_true_crystal_purity": 0.989828314741871,
+        "recommendation_true_crystal_fines_fraction": 0.2808539039588522,
+        "recommendation_fines_margin": 0.21914609604114782,
+        "thermal_fines_predicted_delta": 0.19,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.5485454747856766,
+        "thermal_fines_direction_correct": 1,
+        "Q07_fines_prediction": 0.34,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.53,
+        "Q08_predicted_feasible": 0
+      },
+      "notebook": {
+        "version_count": 6,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 3160665,
+            "cached_input_tokens": 3090048,
+            "output_tokens": 21319
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 56342,
+            "cached_input_tokens": 0,
+            "output_tokens": 2995
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 67873,
+            "cached_input_tokens": 0,
+            "output_tokens": 4747
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 72540,
+            "cached_input_tokens": 56192,
+            "output_tokens": 2246
+          }
+        ],
+        "total": {
+          "input_tokens": 3357420,
+          "cached_input_tokens": 3146240,
+          "output_tokens": 31307,
+          "input_plus_output": 3388727
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "EC-discovery",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 84,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 566.9689999999973,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.0999415454242068,
+        "selective_product_yield_coverage80": 0.3333333333333333,
+        "electrochemical_selectivity_mae": 0.4457264702121417,
+        "electrochemical_selectivity_coverage80": 0.5,
+        "faradaic_efficiency_mae": 0.33550441962480543,
+        "faradaic_efficiency_coverage80": 0.5,
+        "transport_efficiency_mae": 0.33770431309938426,
+        "transport_efficiency_coverage80": 0.5,
+        "energy_efficiency_mae": 0.378199345211188,
+        "energy_efficiency_coverage80": 0.5,
+        "score_mae": 0.25446326851596435,
+        "score_coverage80": 0.5,
+        "recommendation_score": 0.10056369751691818
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 513552,
+            "cached_input_tokens": 475520,
+            "output_tokens": 6359
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 34201,
+            "cached_input_tokens": 0,
+            "output_tokens": 3488
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 81455,
+            "cached_input_tokens": 43008,
+            "output_tokens": 4462
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 44413,
+            "cached_input_tokens": 34048,
+            "output_tokens": 2006
+          }
+        ],
+        "total": {
+          "input_tokens": 673621,
+          "cached_input_tokens": 552576,
+          "output_tokens": 16315,
+          "input_plus_output": 689936
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "EC-optimization",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 86,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 547.8289999999979,
+      "seed_execution": null,
+      "measurements": {
+        "selective_product_yield_mae": 0.09393314762646332,
+        "selective_product_yield_coverage80": 0.5833333333333334,
+        "electrochemical_selectivity_mae": 0.14714128464460374,
+        "electrochemical_selectivity_coverage80": 0.5,
+        "faradaic_efficiency_mae": 0.3918377529581388,
+        "faradaic_efficiency_coverage80": 0.08333333333333333,
+        "transport_efficiency_mae": 0.422999527156353,
+        "transport_efficiency_coverage80": 0.0,
+        "energy_efficiency_mae": 0.44306669106086094,
+        "energy_efficiency_coverage80": 0.16666666666666666,
+        "score_mae": 0.28121899255365135,
+        "score_coverage80": 0.16666666666666666,
+        "recommendation_score": 0.46313658356666565
+      },
+      "notebook": {
+        "version_count": 4,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 961788,
+            "cached_input_tokens": 908544,
+            "output_tokens": 6197
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 47893,
+            "cached_input_tokens": 0,
+            "output_tokens": 4008
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 53742,
+            "cached_input_tokens": 0,
+            "output_tokens": 4667
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 58322,
+            "cached_input_tokens": 47744,
+            "output_tokens": 2378
+          }
+        ],
+        "total": {
+          "input_tokens": 1121745,
+          "cached_input_tokens": 956288,
+          "output_tokens": 17250,
+          "input_plus_output": 1138995
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "EQ-Sol",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 61,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 666.2189999999973,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.0034443924625714626,
+        "pH_normalized_coverage80": 0.9666666666666667,
+        "pH_normalized_mean_width80": 0.03875,
+        "acid_dissociation_fraction_mae": 0.013872664759556454,
+        "acid_dissociation_fraction_coverage80": 1.0,
+        "acid_dissociation_fraction_mean_width80": 0.17525000000000002,
+        "precipitation_signal_mae": 0.01864427905964355,
+        "precipitation_signal_coverage80": 0.9833333333333333,
+        "precipitation_signal_mean_width80": 0.08549999999999999,
+        "minimum_positive_concentration_M": 0.0625,
+        "sampled_below_1mM": 0,
+        "lowest_three_macro_mae": 0.012876963584787321,
+        "lowest_three_covered": 45,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 1.0,
+        "remaining_nine_macro_mae": 0.011690494930302655,
+        "remaining_nine_covered": 132,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9777777777777777,
+        "all_twelve_macro_mae": 0.011987112093923821,
+        "all_twelve_covered": 177,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9833333333333333
+      },
+      "notebook": {
+        "version_count": 2,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 315448,
+            "cached_input_tokens": 281472,
+            "output_tokens": 5557
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 31304,
+            "cached_input_tokens": 3456,
+            "output_tokens": 5264
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 122468,
+            "cached_input_tokens": 79616,
+            "output_tokens": 6603
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 45895,
+            "cached_input_tokens": 31104,
+            "output_tokens": 5122
+          },
+          {
+            "stage": "EQS",
+            "input_tokens": 51351,
+            "cached_input_tokens": 0,
+            "output_tokens": 1440
+          }
+        ],
+        "total": {
+          "input_tokens": 566466,
+          "cached_input_tokens": 395648,
+          "output_tokens": 23986,
+          "input_plus_output": 590452
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "EQ-Astra",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 72,
+      "source_rollbacks": 3,
+      "source_replay_verified": true,
+      "elapsed_s": 903.9839999999967,
+      "seed_execution": null,
+      "measurements": {
+        "pH_normalized_mae": 0.0013430703083674213,
+        "pH_normalized_coverage80": 0.9666666666666667,
+        "pH_normalized_mean_width80": 0.015583333333333305,
+        "acid_dissociation_fraction_mae": 0.003348595182100932,
+        "acid_dissociation_fraction_coverage80": 0.9833333333333333,
+        "acid_dissociation_fraction_mean_width80": 0.046666666666666655,
+        "precipitation_signal_mae": 0.0062053261665278164,
+        "precipitation_signal_coverage80": 0.9166666666666666,
+        "precipitation_signal_mean_width80": 0.04633333333333333,
+        "minimum_positive_concentration_M": 1.2499999999999999e-05,
+        "sampled_below_1mM": 1,
+        "lowest_three_macro_mae": 0.006440804185837306,
+        "lowest_three_covered": 40,
+        "lowest_three_coverage_denominator": 45,
+        "lowest_three_coverage80": 0.8888888888888888,
+        "remaining_nine_macro_mae": 0.0026961726744969736,
+        "remaining_nine_covered": 132,
+        "remaining_nine_coverage_denominator": 135,
+        "remaining_nine_coverage80": 0.9777777777777777,
+        "all_twelve_macro_mae": 0.0036323305523320564,
+        "all_twelve_covered": 172,
+        "all_twelve_coverage_denominator": 180,
+        "all_twelve_coverage80": 0.9555555555555556
+      },
+      "notebook": {
+        "version_count": 5,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 581200,
+            "cached_input_tokens": 538752,
+            "output_tokens": 5148
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 74674,
+            "cached_input_tokens": 36992,
+            "output_tokens": 5579
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 89801,
+            "cached_input_tokens": 44288,
+            "output_tokens": 3496
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 48410,
+            "cached_input_tokens": 37376,
+            "output_tokens": 3966
+          },
+          {
+            "stage": "EQS",
+            "input_tokens": 52710,
+            "cached_input_tokens": 0,
+            "output_tokens": 959
+          }
+        ],
+        "total": {
+          "input_tokens": 846795,
+          "cached_input_tokens": 657408,
+          "output_tokens": 19148,
+          "input_plus_output": 865943
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "EQS": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "C-12",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 12,
+      "planned_batches": 12,
+      "source_operations": 179,
+      "source_rollbacks": 0,
+      "source_replay_verified": true,
+      "elapsed_s": 693.031999999992,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 4,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 5,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          }
+        ],
+        "rejection_preconditions": {}
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.03973866084767494,
+        "crystal_yield_coverage80": 0.9166666666666666,
+        "crystal_purity_mae": 0.086948951286278,
+        "crystal_purity_coverage80": 0.08333333333333333,
+        "crystal_size_mae": 0.01874615931749925,
+        "crystal_size_coverage80": 0.8333333333333334,
+        "crystal_fines_fraction_mae": 0.36823121594655817,
+        "crystal_fines_fraction_coverage80": 0.08333333333333333,
+        "quality_correct_of_12": 7,
+        "recommendation_true_crystal_yield": 0.5098848945310209,
+        "recommendation_true_crystal_purity": 0.9907640656921751,
+        "recommendation_true_crystal_fines_fraction": 0.3589011558399916,
+        "recommendation_fines_margin": 0.1410988441600084,
+        "thermal_fines_predicted_delta": 0.09999999999999998,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.6385454747856766,
+        "thermal_fines_direction_correct": 0,
+        "Q07_fines_prediction": 0.48,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.58,
+        "Q08_predicted_feasible": 0
+      },
+      "notebook": {
+        "version_count": 5,
+        "read_calls": 0,
+        "tool_failures": 0,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 1500118,
+            "cached_input_tokens": 1426432,
+            "output_tokens": 10692
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 71879,
+            "cached_input_tokens": 0,
+            "output_tokens": 3232
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 83647,
+            "cached_input_tokens": 3584,
+            "output_tokens": 5575
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 89142,
+            "cached_input_tokens": 71680,
+            "output_tokens": 2575
+          }
+        ],
+        "total": {
+          "input_tokens": 1744786,
+          "cached_input_tokens": 1501696,
+          "output_tokens": 22074,
+          "input_plus_output": 1766860
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "case": "C-24",
+      "status": "completed",
+      "failure": null,
+      "completed_batches": 24,
+      "planned_batches": 24,
+      "source_operations": 269,
+      "source_rollbacks": 23,
+      "source_replay_verified": true,
+      "elapsed_s": 579.0469999999914,
+      "seed_execution": {
+        "by_batch": [
+          {
+            "lifecycle_index": 1,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 2,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 3,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 4,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 5,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 6,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 7,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 8,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 9,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 10,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.001
+          },
+          {
+            "lifecycle_index": 11,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.01
+          },
+          {
+            "lifecycle_index": 12,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.025
+          },
+          {
+            "lifecycle_index": 13,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.05
+          },
+          {
+            "lifecycle_index": 14,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 15,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 16,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 17,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 18,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 19,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 20,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 21,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 22,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 23,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          },
+          {
+            "lifecycle_index": 24,
+            "committed_calls": 1,
+            "rejected_calls": 0,
+            "committed_seed_additions_g": 0.005
+          }
+        ],
+        "rejection_preconditions": {}
+      },
+      "measurements": {
+        "crystal_yield_mae": 0.16243199007783984,
+        "crystal_yield_coverage80": 0.25,
+        "crystal_purity_mae": 0.01649394714050173,
+        "crystal_purity_coverage80": 1.0,
+        "crystal_size_mae": 0.06657670066703752,
+        "crystal_size_coverage80": 0.5833333333333334,
+        "crystal_fines_fraction_mae": 0.23323121594655818,
+        "crystal_fines_fraction_coverage80": 0.5,
+        "quality_correct_of_12": 11,
+        "recommendation_true_crystal_yield": 0.5610441550279268,
+        "recommendation_true_crystal_purity": 0.9843805522337389,
+        "recommendation_true_crystal_fines_fraction": 0.4445514985108806,
+        "recommendation_fines_margin": 0.055448501489119395,
+        "thermal_fines_predicted_delta": 0.25999999999999995,
+        "thermal_fines_true_delta": 0.7385454747856766,
+        "thermal_fines_absolute_delta_error": 0.4785454747856766,
+        "thermal_fines_direction_correct": 1,
+        "Q07_fines_prediction": 0.34,
+        "Q07_predicted_feasible": 1,
+        "Q08_fines_prediction": 0.6,
+        "Q08_predicted_feasible": 0
+      },
+      "notebook": {
+        "version_count": 5,
+        "read_calls": 0,
+        "tool_failures": 1,
+        "initial_note_before_action": true
+      },
+      "token_accounting": {
+        "valid": true,
+        "complete": true,
+        "basis": "cumulative same-thread snapshots, differenced in original stage order",
+        "missing_stages": [],
+        "stage_deltas": [
+          {
+            "stage": "source",
+            "input_tokens": 1238988,
+            "cached_input_tokens": 1179904,
+            "output_tokens": 7858
+          },
+          {
+            "stage": "K1",
+            "input_tokens": 56807,
+            "cached_input_tokens": 3456,
+            "output_tokens": 1825
+          },
+          {
+            "stage": "Q",
+            "input_tokens": 67168,
+            "cached_input_tokens": 3584,
+            "output_tokens": 3378
+          },
+          {
+            "stage": "K2",
+            "input_tokens": 70466,
+            "cached_input_tokens": 56576,
+            "output_tokens": 1652
+          }
+        ],
+        "total": {
+          "input_tokens": 1433429,
+          "cached_input_tokens": 1243520,
+          "output_tokens": 14713,
+          "input_plus_output": 1448142
+        },
+        "monetary_cost_usd": null
+      },
+      "prediction_valid": true,
+      "posttest_status": {
+        "K1": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "Q": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        },
+        "K2": {
+          "submitted": true,
+          "failure": null,
+          "record_present": true
+        }
+      }
+    }
+  ],
+  "case_statistics": {
+    "EC-discovery": {
+      "completed": 3,
+      "planned": 3,
+      "measurements": {
+        "electrochemical_selectivity_coverage80": {
+          "previous_separate": 1.0,
+          "new_repeats": [
+            0.5,
+            0.8333333333333334,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.6111111111111112,
+          "sample_sd": 0.1924500897298753,
+          "minimum": 0.5,
+          "maximum": 0.8333333333333334
+        },
+        "electrochemical_selectivity_mae": {
+          "previous_separate": 0.05089036415020624,
+          "new_repeats": [
+            0.4689292176763216,
+            0.13418187449375787,
+            0.4457264702121417
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.34961252079407373,
+          "sample_sd": 0.1869287682420779,
+          "minimum": 0.13418187449375787,
+          "maximum": 0.4689292176763216
+        },
+        "energy_efficiency_coverage80": {
+          "previous_separate": 0.5833333333333334,
+          "new_repeats": [
+            0.16666666666666666,
+            0.8333333333333334,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5,
+          "sample_sd": 0.33333333333333337,
+          "minimum": 0.16666666666666666,
+          "maximum": 0.8333333333333334
+        },
+        "energy_efficiency_mae": {
+          "previous_separate": 0.21635893146197002,
+          "new_repeats": [
+            0.4212333577275276,
+            0.05952732721964519,
+            0.378199345211188
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.2863200100527869,
+          "sample_sd": 0.19758333001117437,
+          "minimum": 0.05952732721964519,
+          "maximum": 0.4212333577275276
+        },
+        "faradaic_efficiency_coverage80": {
+          "previous_separate": 0.5,
+          "new_repeats": [
+            0.25,
+            0.8333333333333334,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5277777777777778,
+          "sample_sd": 0.29265704869035386,
+          "minimum": 0.25,
+          "maximum": 0.8333333333333334
+        },
+        "faradaic_efficiency_mae": {
+          "previous_separate": 0.18929647167523703,
+          "new_repeats": [
+            0.3534210862914721,
+            0.061455755035082486,
+            0.33550441962480543
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.25012708698378666,
+          "sample_sd": 0.1636395592776536,
+          "minimum": 0.061455755035082486,
+          "maximum": 0.3534210862914721
+        },
+        "recommendation_score": {
+          "previous_separate": 0.5932989120483398,
+          "new_repeats": [
+            0.28073370456695557,
+            0.5983558297157288,
+            0.10056369751691818
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.32655107726653415,
+          "sample_sd": 0.25203903556905344,
+          "minimum": 0.10056369751691818,
+          "maximum": 0.5983558297157288
+        },
+        "score_coverage80": {
+          "previous_separate": 0.8333333333333334,
+          "new_repeats": [
+            0.5,
+            0.75,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5833333333333334,
+          "sample_sd": 0.14433756729740643,
+          "minimum": 0.5,
+          "maximum": 0.75
+        },
+        "score_mae": {
+          "previous_separate": 0.09064249936491252,
+          "new_repeats": [
+            0.2799315330957373,
+            0.11274145253250996,
+            0.25446326851596435
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.2157120847147372,
+          "sample_sd": 0.09007980597327006,
+          "minimum": 0.11274145253250996,
+          "maximum": 0.2799315330957373
+        },
+        "selective_product_yield_coverage80": {
+          "previous_separate": 0.8333333333333334,
+          "new_repeats": [
+            0.16666666666666666,
+            0.25,
+            0.3333333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.25,
+          "sample_sd": 0.08333333333333333,
+          "minimum": 0.16666666666666666,
+          "maximum": 0.3333333333333333
+        },
+        "selective_product_yield_mae": {
+          "previous_separate": 0.039288804136061416,
+          "new_repeats": [
+            0.0989415454242068,
+            0.0694415454242068,
+            0.0999415454242068
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.08944154542420679,
+          "sample_sd": 0.017327723451163457,
+          "minimum": 0.0694415454242068,
+          "maximum": 0.0999415454242068
+        },
+        "transport_efficiency_coverage80": {
+          "previous_separate": 0.5,
+          "new_repeats": [
+            0.3333333333333333,
+            0.9166666666666666,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5833333333333334,
+          "sample_sd": 0.3004626062886658,
+          "minimum": 0.3333333333333333,
+          "maximum": 0.9166666666666666
+        },
+        "transport_efficiency_mae": {
+          "previous_separate": 0.20044791569312415,
+          "new_repeats": [
+            0.3681661938230196,
+            0.06105673501888911,
+            0.33770431309938426
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.255642413980431,
+          "sample_sd": 0.16920304780646958,
+          "minimum": 0.06105673501888911,
+          "maximum": 0.3681661938230196
+        }
+      }
+    },
+    "EC-optimization": {
+      "completed": 3,
+      "planned": 3,
+      "measurements": {
+        "electrochemical_selectivity_coverage80": {
+          "previous_separate": 1.0,
+          "new_repeats": [
+            0.9166666666666666,
+            0.9166666666666666,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.7777777777777777,
+          "sample_sd": 0.24056261216234404,
+          "minimum": 0.5,
+          "maximum": 0.9166666666666666
+        },
+        "electrochemical_selectivity_mae": {
+          "previous_separate": 0.0380327629049619,
+          "new_repeats": [
+            0.0635398065050443,
+            0.09998215744892756,
+            0.14714128464460374
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.10355441619952521,
+          "sample_sd": 0.04191506365515535,
+          "minimum": 0.0635398065050443,
+          "maximum": 0.14714128464460374
+        },
+        "energy_efficiency_coverage80": {
+          "previous_separate": 0.4166666666666667,
+          "new_repeats": [
+            0.9166666666666666,
+            0.75,
+            0.16666666666666666
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.611111111111111,
+          "sample_sd": 0.393817968854384,
+          "minimum": 0.16666666666666666,
+          "maximum": 0.9166666666666666
+        },
+        "energy_efficiency_mae": {
+          "previous_separate": 0.2582610746224721,
+          "new_repeats": [
+            0.11024743596712748,
+            0.13606891830762227,
+            0.44306669106086094
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.22979434844520355,
+          "sample_sd": 0.18514995633578443,
+          "minimum": 0.11024743596712748,
+          "maximum": 0.44306669106086094
+        },
+        "faradaic_efficiency_coverage80": {
+          "previous_separate": 0.6666666666666666,
+          "new_repeats": [
+            0.8333333333333334,
+            0.9166666666666666,
+            0.08333333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.611111111111111,
+          "sample_sd": 0.4589642122738418,
+          "minimum": 0.08333333333333333,
+          "maximum": 0.9166666666666666
+        },
+        "faradaic_efficiency_mae": {
+          "previous_separate": 0.19461610327164333,
+          "new_repeats": [
+            0.09001737356185913,
+            0.1031283348798752,
+            0.3918377529581388
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.19499448713329104,
+          "sample_sd": 0.17059726786239685,
+          "minimum": 0.09001737356185913,
+          "maximum": 0.3918377529581388
+        },
+        "recommendation_score": {
+          "previous_separate": 0.8311245441436768,
+          "new_repeats": [
+            0.6689895391464233,
+            0.9195171594619751,
+            0.46313658356666565
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.6838810940583547,
+          "sample_sd": 0.22855442747714355,
+          "minimum": 0.46313658356666565,
+          "maximum": 0.9195171594619751
+        },
+        "score_coverage80": {
+          "previous_separate": 0.75,
+          "new_repeats": [
+            0.8333333333333334,
+            0.9166666666666666,
+            0.16666666666666666
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.638888888888889,
+          "sample_sd": 0.4110735718596873,
+          "minimum": 0.16666666666666666,
+          "maximum": 0.9166666666666666
+        },
+        "score_mae": {
+          "previous_separate": 0.10047888127714398,
+          "new_repeats": [
+            0.04718462598075469,
+            0.08672632988045613,
+            0.28121899255365135
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.13837664947162073,
+          "sample_sd": 0.12527504867169809,
+          "minimum": 0.04718462598075469,
+          "maximum": 0.28121899255365135
+        },
+        "selective_product_yield_coverage80": {
+          "previous_separate": 0.8333333333333334,
+          "new_repeats": [
+            0.8333333333333334,
+            0.8333333333333334,
+            0.5833333333333334
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.75,
+          "sample_sd": 0.14433756729740643,
+          "minimum": 0.5833333333333334,
+          "maximum": 0.8333333333333334
+        },
+        "selective_product_yield_mae": {
+          "previous_separate": 0.042145586487992354,
+          "new_repeats": [
+            0.04698753481715296,
+            0.04198060064747309,
+            0.09393314762646332
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.06096709436369646,
+          "sample_sd": 0.02865899244979773,
+          "minimum": 0.04198060064747309,
+          "maximum": 0.09393314762646332
+        },
+        "transport_efficiency_coverage80": {
+          "previous_separate": 0.6666666666666666,
+          "new_repeats": [
+            0.8333333333333334,
+            0.9166666666666666,
+            0.0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5833333333333334,
+          "sample_sd": 0.5068968775248517,
+          "minimum": 0.0,
+          "maximum": 0.9166666666666666
+        },
+        "transport_efficiency_mae": {
+          "previous_separate": 0.21747984240452448,
+          "new_repeats": [
+            0.11077723691860836,
+            0.10816155920426052,
+            0.422999527156353
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.21397944109307396,
+          "sample_sd": 0.18102142891354536,
+          "minimum": 0.10816155920426052,
+          "maximum": 0.422999527156353
+        }
+      }
+    },
+    "EQ-Sol": {
+      "completed": 3,
+      "planned": 3,
+      "measurements": {
+        "acid_dissociation_fraction_coverage80": {
+          "previous_separate": 1.0,
+          "new_repeats": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1.0,
+          "maximum": 1.0
+        },
+        "acid_dissociation_fraction_mae": {
+          "previous_separate": 0.09056999577085177,
+          "new_repeats": [
+            0.013955998092889789,
+            0.014366747081279758,
+            0.013872664759556454
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.014065136644575335,
+          "sample_sd": 0.0002645047310690046,
+          "minimum": 0.013872664759556454,
+          "maximum": 0.014366747081279758
+        },
+        "acid_dissociation_fraction_mean_width80": {
+          "previous_separate": 0.26716666666666666,
+          "new_repeats": [
+            0.1415833333333333,
+            0.15675,
+            0.17525000000000002
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.15786111111111112,
+          "sample_sd": 0.016860813652876828,
+          "minimum": 0.1415833333333333,
+          "maximum": 0.17525000000000002
+        },
+        "all_twelve_coverage80": {
+          "previous_separate": 0.9666666666666667,
+          "new_repeats": [
+            0.9722222222222222,
+            0.9944444444444445,
+            0.9833333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9833333333333334,
+          "sample_sd": 0.011111111111111127,
+          "minimum": 0.9722222222222222,
+          "maximum": 0.9944444444444445
+        },
+        "all_twelve_coverage_denominator": {
+          "previous_separate": 180,
+          "new_repeats": [
+            180,
+            180,
+            180
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 180.0,
+          "sample_sd": 0.0,
+          "minimum": 180,
+          "maximum": 180
+        },
+        "all_twelve_covered": {
+          "previous_separate": 174,
+          "new_repeats": [
+            175,
+            179,
+            177
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 177.0,
+          "sample_sd": 2.0,
+          "minimum": 175,
+          "maximum": 179
+        },
+        "all_twelve_macro_mae": {
+          "previous_separate": 0.04029794342613055,
+          "new_repeats": [
+            0.010588251632741756,
+            0.00904556526636912,
+            0.011987112093923821
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.010540309664344898,
+          "sample_sd": 0.0014713593235252246,
+          "minimum": 0.00904556526636912,
+          "maximum": 0.011987112093923821
+        },
+        "lowest_three_coverage80": {
+          "previous_separate": 1.0,
+          "new_repeats": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1.0,
+          "maximum": 1.0
+        },
+        "lowest_three_coverage_denominator": {
+          "previous_separate": 45,
+          "new_repeats": [
+            45,
+            45,
+            45
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 45.0,
+          "sample_sd": 0.0,
+          "minimum": 45,
+          "maximum": 45
+        },
+        "lowest_three_covered": {
+          "previous_separate": 45,
+          "new_repeats": [
+            45,
+            45,
+            45
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 45.0,
+          "sample_sd": 0.0,
+          "minimum": 45,
+          "maximum": 45
+        },
+        "lowest_three_macro_mae": {
+          "previous_separate": 0.12062169102678696,
+          "new_repeats": [
+            0.013321408029231764,
+            0.014530840472214757,
+            0.012876963584787321
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.013576404028744613,
+          "sample_sd": 0.0008559172912830618,
+          "minimum": 0.012876963584787321,
+          "maximum": 0.014530840472214757
+        },
+        "minimum_positive_concentration_M": {
+          "previous_separate": 0.09999999999999999,
+          "new_repeats": [
+            0.0625,
+            0.05,
+            0.0625
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.05833333333333333,
+          "sample_sd": 0.00721687836487032,
+          "minimum": 0.05,
+          "maximum": 0.0625
+        },
+        "pH_normalized_coverage80": {
+          "previous_separate": 1.0,
+          "new_repeats": [
+            1.0,
+            1.0,
+            0.9666666666666667
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9888888888888889,
+          "sample_sd": 0.01924500897298752,
+          "minimum": 0.9666666666666667,
+          "maximum": 1.0
+        },
+        "pH_normalized_mae": {
+          "previous_separate": 0.01422924739122391,
+          "new_repeats": [
+            0.0031784715453783696,
+            0.005218595325946806,
+            0.0034443924625714626
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.003947153111298879,
+          "sample_sd": 0.0011090998433152097,
+          "minimum": 0.0031784715453783696,
+          "maximum": 0.005218595325946806
+        },
+        "pH_normalized_mean_width80": {
+          "previous_separate": 0.08508333333333334,
+          "new_repeats": [
+            0.03870833333333334,
+            0.058,
+            0.03875
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.045152777777777785,
+          "sample_sd": 0.011126040317567979,
+          "minimum": 0.03870833333333334,
+          "maximum": 0.058
+        },
+        "precipitation_signal_coverage80": {
+          "previous_separate": 0.9,
+          "new_repeats": [
+            0.9166666666666666,
+            0.9833333333333333,
+            0.9833333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9611111111111111,
+          "sample_sd": 0.03849001794597504,
+          "minimum": 0.9166666666666666,
+          "maximum": 0.9833333333333333
+        },
+        "precipitation_signal_mae": {
+          "previous_separate": 0.016094587116315964,
+          "new_repeats": [
+            0.014630285259957113,
+            0.007551353391880793,
+            0.01864427905964355
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.013608639237160484,
+          "sample_sd": 0.00561658885931217,
+          "minimum": 0.007551353391880793,
+          "maximum": 0.01864427905964355
+        },
+        "precipitation_signal_mean_width80": {
+          "previous_separate": 0.08916666666666666,
+          "new_repeats": [
+            0.061250000000000006,
+            0.05791666666666666,
+            0.08549999999999999
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.06822222222222223,
+          "sample_sd": 0.015055529930277492,
+          "minimum": 0.05791666666666666,
+          "maximum": 0.08549999999999999
+        },
+        "remaining_nine_coverage80": {
+          "previous_separate": 0.9555555555555556,
+          "new_repeats": [
+            0.9629629629629629,
+            0.9925925925925926,
+            0.9777777777777777
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9777777777777777,
+          "sample_sd": 0.014814814814814836,
+          "minimum": 0.9629629629629629,
+          "maximum": 0.9925925925925926
+        },
+        "remaining_nine_coverage_denominator": {
+          "previous_separate": 135,
+          "new_repeats": [
+            135,
+            135,
+            135
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 135.0,
+          "sample_sd": 0.0,
+          "minimum": 135,
+          "maximum": 135
+        },
+        "remaining_nine_covered": {
+          "previous_separate": 129,
+          "new_repeats": [
+            130,
+            134,
+            132
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 132.0,
+          "sample_sd": 2.0,
+          "minimum": 130,
+          "maximum": 134
+        },
+        "remaining_nine_macro_mae": {
+          "previous_separate": 0.01352336089257841,
+          "new_repeats": [
+            0.009677199500578422,
+            0.0072171401977539065,
+            0.011690494930302655
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.009528278209544995,
+          "sample_sd": 0.0022403925557804303,
+          "minimum": 0.0072171401977539065,
+          "maximum": 0.011690494930302655
+        },
+        "sampled_below_1mM": {
+          "previous_separate": 0,
+          "new_repeats": [
+            0,
+            0,
+            0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "minimum": 0,
+          "maximum": 0
+        }
+      }
+    },
+    "EQ-Astra": {
+      "completed": 2,
+      "planned": 3,
+      "measurements": {
+        "acid_dissociation_fraction_coverage80": {
+          "previous_separate": 0.6333333333333333,
+          "new_repeats": [
+            0.9833333333333333,
+            1.0,
+            0.9833333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9888888888888889,
+          "sample_sd": 0.009622504486493792,
+          "minimum": 0.9833333333333333,
+          "maximum": 1.0
+        },
+        "acid_dissociation_fraction_mae": {
+          "previous_separate": 0.0766052927772204,
+          "new_repeats": [
+            0.003440747171640396,
+            0.0021688933571179674,
+            0.003348595182100932
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.002986078570286432,
+          "sample_sd": 0.0007092014888308624,
+          "minimum": 0.0021688933571179674,
+          "maximum": 0.003440747171640396
+        },
+        "acid_dissociation_fraction_mean_width80": {
+          "previous_separate": 0.037,
+          "new_repeats": [
+            0.04416666666666666,
+            0.057583333333333334,
+            0.046666666666666655
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.049472222222222216,
+          "sample_sd": 0.007134780486643766,
+          "minimum": 0.04416666666666666,
+          "maximum": 0.057583333333333334
+        },
+        "all_twelve_coverage80": {
+          "previous_separate": 0.6611111111111111,
+          "new_repeats": [
+            0.9944444444444445,
+            0.9722222222222222,
+            0.9555555555555556
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9740740740740742,
+          "sample_sd": 0.019510469912690245,
+          "minimum": 0.9555555555555556,
+          "maximum": 0.9944444444444445
+        },
+        "all_twelve_coverage_denominator": {
+          "previous_separate": 180,
+          "new_repeats": [
+            180,
+            180,
+            180
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 180.0,
+          "sample_sd": 0.0,
+          "minimum": 180,
+          "maximum": 180
+        },
+        "all_twelve_covered": {
+          "previous_separate": 119,
+          "new_repeats": [
+            179,
+            175,
+            172
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 175.33333333333334,
+          "sample_sd": 3.511884584284246,
+          "minimum": 172,
+          "maximum": 179
+        },
+        "all_twelve_macro_mae": {
+          "previous_separate": 0.043430748246370866,
+          "new_repeats": [
+            0.0029614048390843323,
+            0.0028234729656833237,
+            0.0036323305523320564
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.003139069452366571,
+          "sample_sd": 0.00043270796731669794,
+          "minimum": 0.0028234729656833237,
+          "maximum": 0.0036323305523320564
+        },
+        "lowest_three_coverage80": {
+          "previous_separate": 0.0,
+          "new_repeats": [
+            1.0,
+            0.9111111111111111,
+            0.8888888888888888
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9333333333333332,
+          "sample_sd": 0.05879447357921315,
+          "minimum": 0.8888888888888888,
+          "maximum": 1.0
+        },
+        "lowest_three_coverage_denominator": {
+          "previous_separate": 45,
+          "new_repeats": [
+            45,
+            45,
+            45
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 45.0,
+          "sample_sd": 0.0,
+          "minimum": 45,
+          "maximum": 45
+        },
+        "lowest_three_covered": {
+          "previous_separate": 0,
+          "new_repeats": [
+            45,
+            41,
+            40
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 42.0,
+          "sample_sd": 2.6457513110645907,
+          "minimum": 40,
+          "maximum": 45
+        },
+        "lowest_three_macro_mae": {
+          "previous_separate": 0.16266966390182888,
+          "new_repeats": [
+            0.00611347386145241,
+            0.0060681327406265275,
+            0.006440804185837306
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.006207470262638748,
+          "sample_sd": 0.00020334083233787512,
+          "minimum": 0.0060681327406265275,
+          "maximum": 0.006440804185837306
+        },
+        "minimum_positive_concentration_M": {
+          "previous_separate": 0.005555555555555557,
+          "new_repeats": [
+            1.8518518518518518e-05,
+            1.8518518518518518e-05,
+            1.2499999999999999e-05
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.6512345679012345e-05,
+          "sample_sd": 3.474793286789415e-06,
+          "minimum": 1.2499999999999999e-05,
+          "maximum": 1.8518518518518518e-05
+        },
+        "pH_normalized_coverage80": {
+          "previous_separate": 0.6166666666666667,
+          "new_repeats": [
+            1.0,
+            0.9833333333333333,
+            0.9666666666666667
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9833333333333334,
+          "sample_sd": 0.016666666666666663,
+          "minimum": 0.9666666666666667,
+          "maximum": 1.0
+        },
+        "pH_normalized_mae": {
+          "previous_separate": 0.016091350833574946,
+          "new_repeats": [
+            0.001137608408927927,
+            0.001383423765500394,
+            0.0013430703083674213
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.001288034160931914,
+          "sample_sd": 0.00013182575820043456,
+          "minimum": 0.001137608408927927,
+          "maximum": 0.001383423765500394
+        },
+        "pH_normalized_mean_width80": {
+          "previous_separate": 0.013749999999999957,
+          "new_repeats": [
+            0.012999999999999975,
+            0.017166666666666646,
+            0.015583333333333305
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.015249999999999977,
+          "sample_sd": 0.002103238244020662,
+          "minimum": 0.012999999999999975,
+          "maximum": 0.017166666666666646
+        },
+        "precipitation_signal_coverage80": {
+          "previous_separate": 0.7333333333333333,
+          "new_repeats": [
+            1.0,
+            0.9333333333333333,
+            0.9166666666666666
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9500000000000001,
+          "sample_sd": 0.04409585518440985,
+          "minimum": 0.9166666666666666,
+          "maximum": 1.0
+        },
+        "precipitation_signal_mae": {
+          "previous_separate": 0.03759560112831726,
+          "new_repeats": [
+            0.0043058589366846735,
+            0.0049181017744316085,
+            0.0062053261665278164
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.005143095625881366,
+          "sample_sd": 0.0009695156595974315,
+          "minimum": 0.0043058589366846735,
+          "maximum": 0.0062053261665278164
+        },
+        "precipitation_signal_mean_width80": {
+          "previous_separate": 0.03908333333333333,
+          "new_repeats": [
+            0.04,
+            0.044,
+            0.04633333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.043444444444444445,
+          "sample_sd": 0.003203007845644348,
+          "minimum": 0.04,
+          "maximum": 0.04633333333333333
+        },
+        "remaining_nine_coverage80": {
+          "previous_separate": 0.8814814814814815,
+          "new_repeats": [
+            0.9925925925925926,
+            0.9925925925925926,
+            0.9777777777777777
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9876543209876543,
+          "sample_sd": 0.008553337321327802,
+          "minimum": 0.9777777777777777,
+          "maximum": 0.9925925925925926
+        },
+        "remaining_nine_coverage_denominator": {
+          "previous_separate": 135,
+          "new_repeats": [
+            135,
+            135,
+            135
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 135.0,
+          "sample_sd": 0.0,
+          "minimum": 135,
+          "maximum": 135
+        },
+        "remaining_nine_covered": {
+          "previous_separate": 119,
+          "new_repeats": [
+            134,
+            134,
+            132
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 133.33333333333334,
+          "sample_sd": 1.1547005383792515,
+          "minimum": 132,
+          "maximum": 134
+        },
+        "remaining_nine_macro_mae": {
+          "previous_separate": 0.0036844430278848736,
+          "new_repeats": [
+            0.0019107151649616395,
+            0.0017419197073689219,
+            0.0026961726744969736
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.002116269182275845,
+          "sample_sd": 0.0005092533964969494,
+          "minimum": 0.0017419197073689219,
+          "maximum": 0.0026961726744969736
+        },
+        "sampled_below_1mM": {
+          "previous_separate": 0,
+          "new_repeats": [
+            1,
+            1,
+            1
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1,
+          "maximum": 1
+        }
+      }
+    },
+    "C-12": {
+      "completed": 3,
+      "planned": 3,
+      "measurements": {
+        "Q07_fines_prediction": {
+          "previous_separate": 0.36,
+          "new_repeats": [
+            0.25,
+            0.41,
+            0.48
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.37999999999999995,
+          "sample_sd": 0.11789826122551594,
+          "minimum": 0.25,
+          "maximum": 0.48
+        },
+        "Q07_predicted_feasible": {
+          "previous_separate": 1,
+          "new_repeats": [
+            1,
+            1,
+            1
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "Q08_fines_prediction": {
+          "previous_separate": 0.46,
+          "new_repeats": [
+            0.68,
+            0.86,
+            0.58
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.7066666666666667,
+          "sample_sd": 0.14189197769195175,
+          "minimum": 0.58,
+          "maximum": 0.86
+        },
+        "Q08_predicted_feasible": {
+          "previous_separate": 1,
+          "new_repeats": [
+            0,
+            0,
+            0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.0,
+          "sample_sd": 0.0,
+          "minimum": 0,
+          "maximum": 0
+        },
+        "crystal_fines_fraction_coverage80": {
+          "previous_separate": 0.3333333333333333,
+          "new_repeats": [
+            0.4166666666666667,
+            0.6666666666666666,
+            0.08333333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.3888888888888889,
+          "sample_sd": 0.29265704869035386,
+          "minimum": 0.08333333333333333,
+          "maximum": 0.6666666666666666
+        },
+        "crystal_fines_fraction_mae": {
+          "previous_separate": 0.3315645492798915,
+          "new_repeats": [
+            0.2579447137720264,
+            0.22656454927989153,
+            0.36823121594655817
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.28424682633282533,
+          "sample_sd": 0.07440572528362191,
+          "minimum": 0.22656454927989153,
+          "maximum": 0.36823121594655817
+        },
+        "crystal_purity_coverage80": {
+          "previous_separate": 0.08333333333333333,
+          "new_repeats": [
+            0.6666666666666666,
+            0.8333333333333334,
+            0.08333333333333333
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5277777777777778,
+          "sample_sd": 0.393817968854384,
+          "minimum": 0.08333333333333333,
+          "maximum": 0.8333333333333334
+        },
+        "crystal_purity_mae": {
+          "previous_separate": 0.08944895128627801,
+          "new_repeats": [
+            0.031115617952944707,
+            0.03611561795294472,
+            0.086948951286278
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.05139339573072247,
+          "sample_sd": 0.030893335011748835,
+          "minimum": 0.031115617952944707,
+          "maximum": 0.086948951286278
+        },
+        "crystal_size_coverage80": {
+          "previous_separate": 0.9166666666666666,
+          "new_repeats": [
+            0.75,
+            0.8333333333333334,
+            0.8333333333333334
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.8055555555555557,
+          "sample_sd": 0.048112522432468836,
+          "minimum": 0.75,
+          "maximum": 0.8333333333333334
+        },
+        "crystal_size_mae": {
+          "previous_separate": 0.019746159317499252,
+          "new_repeats": [
+            0.04715886052681301,
+            0.0221400835771952,
+            0.01874615931749925
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.02934836780716915,
+          "sample_sd": 0.015517406956624655,
+          "minimum": 0.01874615931749925,
+          "maximum": 0.04715886052681301
+        },
+        "crystal_yield_coverage80": {
+          "previous_separate": 0.8333333333333334,
+          "new_repeats": [
+            1.0,
+            1.0,
+            0.9166666666666666
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9722222222222222,
+          "sample_sd": 0.048112522432468836,
+          "minimum": 0.9166666666666666,
+          "maximum": 1.0
+        },
+        "crystal_yield_mae": {
+          "previous_separate": 0.07919486298170929,
+          "new_repeats": [
+            0.04144176341297817,
+            0.05819486298170928,
+            0.03973866084767494
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.04645842908078746,
+          "sample_sd": 0.010199659313919059,
+          "minimum": 0.03973866084767494,
+          "maximum": 0.05819486298170928
+        },
+        "quality_correct_of_12": {
+          "previous_separate": 7,
+          "new_repeats": [
+            8,
+            10,
+            7
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 8.333333333333334,
+          "sample_sd": 1.5275252316519468,
+          "minimum": 7,
+          "maximum": 10
+        },
+        "recommendation_fines_margin": {
+          "previous_separate": 0.18646680000692234,
+          "new_repeats": [
+            -0.49993645253893004,
+            -0.09353705840095161,
+            0.1410988441600084
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": -0.15079155559329108,
+          "sample_sd": 0.3243302653007189,
+          "minimum": -0.49993645253893004,
+          "maximum": 0.1410988441600084
+        },
+        "recommendation_true_crystal_fines_fraction": {
+          "previous_separate": 0.31353319999307766,
+          "new_repeats": [
+            0.99993645253893,
+            0.5935370584009516,
+            0.3589011558399916
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.6507915555932912,
+          "sample_sd": 0.3243302653007189,
+          "minimum": 0.3589011558399916,
+          "maximum": 0.99993645253893
+        },
+        "recommendation_true_crystal_purity": {
+          "previous_separate": 0.9885582658420892,
+          "new_repeats": [
+            0.989628481315073,
+            0.9891655145708709,
+            0.9907640656921751
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9898526871927062,
+          "sample_sd": 0.0008225221143104743,
+          "minimum": 0.9891655145708709,
+          "maximum": 0.9907640656921751
+        },
+        "recommendation_true_crystal_yield": {
+          "previous_separate": 0.518086327170958,
+          "new_repeats": [
+            0.4710089860019401,
+            0.4476323810309683,
+            0.5098848945310209
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.4761754205213098,
+          "sample_sd": 0.031446190444961046,
+          "minimum": 0.4476323810309683,
+          "maximum": 0.5098848945310209
+        },
+        "thermal_fines_absolute_delta_error": {
+          "previous_separate": 0.6385454747856765,
+          "new_repeats": [
+            0.3085454747856765,
+            0.28854547478567655,
+            0.6385454747856766
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.4118788081190099,
+          "sample_sd": 0.1965536398374076,
+          "minimum": 0.28854547478567655,
+          "maximum": 0.6385454747856766
+        },
+        "thermal_fines_direction_correct": {
+          "previous_separate": 1,
+          "new_repeats": [
+            1,
+            1,
+            0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.6666666666666666,
+          "sample_sd": 0.5773502691896257,
+          "minimum": 0,
+          "maximum": 1
+        },
+        "thermal_fines_predicted_delta": {
+          "previous_separate": 0.10000000000000003,
+          "new_repeats": [
+            0.43000000000000005,
+            0.45,
+            0.09999999999999998
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.32666666666666666,
+          "sample_sd": 0.1965536398374076,
+          "minimum": 0.09999999999999998,
+          "maximum": 0.45
+        },
+        "thermal_fines_true_delta": {
+          "previous_separate": 0.7385454747856766,
+          "new_repeats": [
+            0.7385454747856766,
+            0.7385454747856766,
+            0.7385454747856766
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.7385454747856764,
+          "sample_sd": 0.0,
+          "minimum": 0.7385454747856766,
+          "maximum": 0.7385454747856766
+        }
+      }
+    },
+    "C-24": {
+      "completed": 3,
+      "planned": 3,
+      "measurements": {
+        "Q07_fines_prediction": {
+          "previous_separate": 0.39,
+          "new_repeats": [
+            0.47,
+            0.34,
+            0.34
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.3833333333333333,
+          "sample_sd": 0.07505553499465133,
+          "minimum": 0.34,
+          "maximum": 0.47
+        },
+        "Q07_predicted_feasible": {
+          "previous_separate": 1,
+          "new_repeats": [
+            1,
+            1,
+            1
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1,
+          "maximum": 1
+        },
+        "Q08_fines_prediction": {
+          "previous_separate": 0.69,
+          "new_repeats": [
+            0.37,
+            0.53,
+            0.6
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5,
+          "sample_sd": 0.11789826122551596,
+          "minimum": 0.37,
+          "maximum": 0.6
+        },
+        "Q08_predicted_feasible": {
+          "previous_separate": 0,
+          "new_repeats": [
+            1,
+            0,
+            0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.3333333333333333,
+          "sample_sd": 0.5773502691896257,
+          "minimum": 0,
+          "maximum": 1
+        },
+        "crystal_fines_fraction_coverage80": {
+          "previous_separate": 0.5,
+          "new_repeats": [
+            0.25,
+            0.4166666666666667,
+            0.5
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.3888888888888889,
+          "sample_sd": 0.1272937693043289,
+          "minimum": 0.25,
+          "maximum": 0.5
+        },
+        "crystal_fines_fraction_mae": {
+          "previous_separate": 0.2523978826132249,
+          "new_repeats": [
+            0.3215645492798915,
+            0.35073121594655815,
+            0.23323121594655818
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.3018423270576693,
+          "sample_sd": 0.061182407904862936,
+          "minimum": 0.23323121594655818,
+          "maximum": 0.35073121594655815
+        },
+        "crystal_purity_coverage80": {
+          "previous_separate": 0.9166666666666666,
+          "new_repeats": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 1.0,
+          "sample_sd": 0.0,
+          "minimum": 1.0,
+          "maximum": 1.0
+        },
+        "crystal_purity_mae": {
+          "previous_separate": 0.039448951286278046,
+          "new_repeats": [
+            0.01244245453228097,
+            0.02109849620564373,
+            0.01649394714050173
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.01667829929280881,
+          "sample_sd": 0.00433096451726326,
+          "minimum": 0.01244245453228097,
+          "maximum": 0.02109849620564373
+        },
+        "crystal_size_coverage80": {
+          "previous_separate": 0.5,
+          "new_repeats": [
+            0.9166666666666666,
+            0.25,
+            0.5833333333333334
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5833333333333334,
+          "sample_sd": 0.3333333333333333,
+          "minimum": 0.25,
+          "maximum": 0.9166666666666666
+        },
+        "crystal_size_mae": {
+          "previous_separate": 0.06120287533722574,
+          "new_repeats": [
+            0.037575527193479674,
+            0.08995287533722574,
+            0.06657670066703752
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.06470170106591432,
+          "sample_sd": 0.02623896658161205,
+          "minimum": 0.037575527193479674,
+          "maximum": 0.08995287533722574
+        },
+        "crystal_yield_coverage80": {
+          "previous_separate": 0.9166666666666666,
+          "new_repeats": [
+            0.75,
+            0.25,
+            0.25
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.4166666666666667,
+          "sample_sd": 0.28867513459481287,
+          "minimum": 0.25,
+          "maximum": 0.75
+        },
+        "crystal_yield_mae": {
+          "previous_separate": 0.05150625867778428,
+          "new_repeats": [
+            0.08284865674450649,
+            0.18243199007783983,
+            0.16243199007783984
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.14257087896672874,
+          "sample_sd": 0.05267881804264757,
+          "minimum": 0.08284865674450649,
+          "maximum": 0.18243199007783983
+        },
+        "quality_correct_of_12": {
+          "previous_separate": 10,
+          "new_repeats": [
+            9,
+            8,
+            11
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 9.333333333333334,
+          "sample_sd": 1.5275252316519468,
+          "minimum": 8,
+          "maximum": 11
+        },
+        "recommendation_fines_margin": {
+          "previous_separate": 0.018289119264734754,
+          "new_repeats": [
+            0.012648646665250729,
+            0.21914609604114782,
+            0.055448501489119395
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.09574774806517265,
+          "sample_sd": 0.10898771080097036,
+          "minimum": 0.012648646665250729,
+          "maximum": 0.21914609604114782
+        },
+        "recommendation_true_crystal_fines_fraction": {
+          "previous_separate": 0.48171088073526525,
+          "new_repeats": [
+            0.48735135333474927,
+            0.2808539039588522,
+            0.4445514985108806
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.40425225193482733,
+          "sample_sd": 0.10898771080097036,
+          "minimum": 0.2808539039588522,
+          "maximum": 0.48735135333474927
+        },
+        "recommendation_true_crystal_purity": {
+          "previous_separate": 0.9855408032903139,
+          "new_repeats": [
+            0.9894827389782285,
+            0.989828314741871,
+            0.9843805522337389
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.9878972019846128,
+          "sample_sd": 0.0030504056705371978,
+          "minimum": 0.9843805522337389,
+          "maximum": 0.989828314741871
+        },
+        "recommendation_true_crystal_yield": {
+          "previous_separate": 0.5575488117238848,
+          "new_repeats": [
+            0.45115360147997974,
+            0.6483570161496454,
+            0.5610441550279268
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.5535182575525174,
+          "sample_sd": 0.09881688134601195,
+          "minimum": 0.45115360147997974,
+          "maximum": 0.6483570161496454
+        },
+        "thermal_fines_absolute_delta_error": {
+          "previous_separate": 0.4385454747856766,
+          "new_repeats": [
+            0.8385454747856765,
+            0.5485454747856766,
+            0.4785454747856766
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.62187880811901,
+          "sample_sd": 0.19087517736293874,
+          "minimum": 0.4785454747856766,
+          "maximum": 0.8385454747856765
+        },
+        "thermal_fines_direction_correct": {
+          "previous_separate": 1,
+          "new_repeats": [
+            0,
+            1,
+            1
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.6666666666666666,
+          "sample_sd": 0.5773502691896257,
+          "minimum": 0,
+          "maximum": 1
+        },
+        "thermal_fines_predicted_delta": {
+          "previous_separate": 0.29999999999999993,
+          "new_repeats": [
+            -0.09999999999999998,
+            0.19,
+            0.25999999999999995
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.11666666666666665,
+          "sample_sd": 0.19087517736293874,
+          "minimum": -0.09999999999999998,
+          "maximum": 0.25999999999999995
+        },
+        "thermal_fines_true_delta": {
+          "previous_separate": 0.7385454747856766,
+          "new_repeats": [
+            0.7385454747856766,
+            0.7385454747856766,
+            0.7385454747856766
+          ],
+          "planned": 3,
+          "observed": 3,
+          "missing": 0,
+          "mean": 0.7385454747856764,
+          "sample_sd": 0.0,
+          "minimum": 0.7385454747856766,
+          "maximum": 0.7385454747856766
+        }
+      }
+    }
+  },
+  "directional_comparisons": [
+    {
+      "first": "EC-discovery",
+      "second": "EC-optimization",
+      "metric": "recommendation_score",
+      "test": "second > first",
+      "by_repeat": {
+        "repeat-01": true,
+        "repeat-02": true,
+        "repeat-03": true
+      },
+      "holds": 3,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "EC-discovery",
+      "second": "EC-optimization",
+      "metric": "score_mae",
+      "test": "second < first",
+      "by_repeat": {
+        "repeat-01": true,
+        "repeat-02": true,
+        "repeat-03": false
+      },
+      "holds": 2,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "C-12",
+      "second": "C-24",
+      "metric": "quality_correct_of_12",
+      "test": "second > first",
+      "by_repeat": {
+        "repeat-01": true,
+        "repeat-02": false,
+        "repeat-03": true
+      },
+      "holds": 2,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "C-12",
+      "second": "C-24",
+      "metric": "crystal_yield_mae",
+      "test": "second < first",
+      "by_repeat": {
+        "repeat-01": false,
+        "repeat-02": false,
+        "repeat-03": false
+      },
+      "holds": 0,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "C-12",
+      "second": "C-24",
+      "metric": "crystal_purity_mae",
+      "test": "second < first",
+      "by_repeat": {
+        "repeat-01": true,
+        "repeat-02": true,
+        "repeat-03": true
+      },
+      "holds": 3,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "C-12",
+      "second": "C-24",
+      "metric": "crystal_size_mae",
+      "test": "second < first",
+      "by_repeat": {
+        "repeat-01": true,
+        "repeat-02": false,
+        "repeat-03": false
+      },
+      "holds": 1,
+      "observed": 3,
+      "planned": 3
+    },
+    {
+      "first": "C-12",
+      "second": "C-24",
+      "metric": "crystal_fines_fraction_mae",
+      "test": "second < first",
+      "by_repeat": {
+        "repeat-01": false,
+        "repeat-02": false,
+        "repeat-03": true
+      },
+      "holds": 1,
+      "observed": 3,
+      "planned": 3
+    }
+  ],
+  "block_stop": null,
+  "fixed_inputs_equal_between_repeats": {
+    "repeat-02": true,
+    "repeat-03": true
+  },
+  "reference_values_equal_between_repeats": {
+    "repeat-02": true,
+    "repeat-03": true
+  },
+  "startup_attempt_separate": {
+    "scope": "startup attempt only; excluded from 18 fresh participant sources",
+    "provider_source_sessions": 0,
+    "trajectories": 16,
+    "operations": 548,
+    "final_assays": 60,
+    "verified_replays": 16,
+    "rows": [
+      {
+        "trajectory": "C\\qualification\\W05\\queries\\trajectory.jsonl",
+        "operations": 317,
+        "final_assays": 12,
+        "replay": {
+          "checked_steps": 317,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q01\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q02\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q03\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q04\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q05\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q06\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q07\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q08\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q09\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q10\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q11\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EC\\Q12\\trajectory.jsonl",
+        "operations": 6,
+        "final_assays": 1,
+        "replay": {
+          "checked_steps": 6,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EQ-W01\\repeat-1\\trajectory.jsonl",
+        "operations": 53,
+        "final_assays": 12,
+        "replay": {
+          "checked_steps": 53,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EQ-W01\\repeat-2\\trajectory.jsonl",
+        "operations": 53,
+        "final_assays": 12,
+        "replay": {
+          "checked_steps": 53,
+          "max_abs_error": 0.0,
+          "mismatches": [],
+          "verified": true
+        },
+        "basis": "existing execution replay",
+        "terminal_result_present": true
+      },
+      {
+        "trajectory": "references\\EQ-W01\\repeat-3\\trajectory.jsonl",
+        "operations": 53,
+        "final_assays": 12,
+        "replay": {
+          "verified": true,
+          "checked_steps": 53,
+          "max_abs_error": 0.0,
+          "mismatches": []
+        },
+        "basis": "read-only replay of interrupted retained trajectory",
+        "terminal_result_present": false
+      }
+    ]
+  },
+  "scheduling_amendment": {
+    "authorization": "User requested 4 or 8 concurrent sessions; use 4",
+    "concurrency": 4,
+    "attached": [
+      {
+        "repeat": "repeat-02",
+        "unit": "C-24",
+        "pid": 40704
+      }
+    ],
+    "unstarted_units": [
+      {
+        "repeat": "repeat-03",
+        "unit": "references"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "EC-discovery"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "EC-optimization"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "EQ-Sol"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "EQ-Astra"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "C-12"
+      },
+      {
+        "repeat": "repeat-03",
+        "unit": "C-24"
+      }
+    ],
+    "completed_batches_at_switch": 144,
+    "participant_runtime_changed": false,
+    "source_retries": 0,
+    "on_execution_defect": "stop new launches; drain and retain already active units"
+  }
+}

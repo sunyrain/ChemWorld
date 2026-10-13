@@ -26,6 +26,25 @@ uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Pro
 
 ## 论文案例档案
 
+### 同世界三次重复（最新）
+
+2026-10-13 W2-247 已完成六案例各三次独立会话：18 条终态、252 批、17 条完整链、
+58/60 项后测和 65 版模型笔记。第一轮 Astra 的后段报告失败保留为失败档案，源实验
+与已提交盲预测仍可读；没有补跑。执行途中按用户要求切换为最多 4 并发。
+
+[打开最新实验列表（8894）](http://127.0.0.1:8894/?view=records)，选择“论文案例 ·
+同世界稳定性 · 2026-10-13”项目，名称中的第 1/2/3 次区分重复。该独立目录共 24 条
+档案，包含此前六案例；24 条最新笔记读取、65 个新增笔记版本及失败后测展示已通过
+API 检查。原 8893 服务继续保留。[结果与限制](../../workstreams/flagship_tasks/reports/paper-case-stability-20261013/REVIEW.md)。
+
+如需在服务退出后重新启动此查看页面：
+
+```powershell
+uv run --no-sync python -m apps.research_workbench --port 8894 --data-dir D:/Projects/ChemWorld-local-research/20261013-paper-case-stability/workbench-store
+```
+
+### 前一组单次复跑
+
 R67 已把 2026-10-13 同期笔记复跑的六条完整实验链接入当前本机 8893 工作台。
 [打开实验列表](http://127.0.0.1:8893/?view=records)，选择“论文案例 · 同期笔记复跑”
 项目中的记录；画布左上选择批次，右侧“笔记”读取原版记录，“档案 → 研究报告”

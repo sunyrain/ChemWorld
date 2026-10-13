@@ -1,0 +1,1703 @@
+{
+  "id": "EC-optimization",
+  "system": "EC",
+  "cell": "EC-W01-B12-optimization-E-Opaque",
+  "goal": "optimization",
+  "model": "gpt-5.6-sol",
+  "batches": 12,
+  "status": "completed",
+  "failure": null,
+  "completed_batches": 12,
+  "operations": 86,
+  "exact_replay": {
+    "verified": true,
+    "checked_steps": 86,
+    "max_abs_error": 0.0,
+    "mismatches": []
+  },
+  "rollbacks": [],
+  "batch_outcomes": [
+    {
+      "lifecycle_index": 1,
+      "metrics": {
+        "cost": 0.3147279918193817,
+        "electrochemical_conversion": 0.025782229378819466,
+        "electrochemical_selectivity": 0.599190890789032,
+        "energy_efficiency": 0.09756111353635788,
+        "faradaic_efficiency": 0.20428569614887238,
+        "ohmic_efficiency": 0.9730915427207947,
+        "pH_normalized": 0.23218974471092224,
+        "precipitation_signal": 1.0,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.0,
+        "selective_product_yield": 0.0,
+        "transport_efficiency": 0.1755819320678711
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 100,
+          "electrolyte_profile": 0,
+          "operation": "set_potential",
+          "potential_V": 1.2
+        },
+        {
+          "duration_s": 1800,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "current_mA": 100,
+          "electrolyte_profile": 0,
+          "operation": "set_potential",
+          "potential_V": -1.2
+        },
+        {
+          "duration_s": 1800,
+          "operation": "electrolyze"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 2,
+      "metrics": {
+        "cost": 0.30055201053619385,
+        "electrochemical_conversion": 0.10617496073246002,
+        "electrochemical_selectivity": 0.5294632911682129,
+        "energy_efficiency": 0.04836193844676018,
+        "faradaic_efficiency": 0.20393288135528564,
+        "ohmic_efficiency": 0.9641607999801636,
+        "pH_normalized": 0.2294943928718567,
+        "precipitation_signal": 1.0,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.24240805208683014,
+        "selective_product_yield": 0.06830994784832001,
+        "transport_efficiency": 0.23018969595432281
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 0,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 3,
+      "metrics": {
+        "cost": 0.3205519914627075,
+        "electrochemical_conversion": 0.13134244084358215,
+        "electrochemical_selectivity": 0.4788159430027008,
+        "energy_efficiency": 0.09817713499069214,
+        "faradaic_efficiency": 0.21693849563598633,
+        "ohmic_efficiency": 0.928381085395813,
+        "pH_normalized": 0.20363308489322662,
+        "precipitation_signal": 0.7135193943977356,
+        "safety_risk": 0.08273958414793015,
+        "score": 0.24029482901096344,
+        "selective_product_yield": 0.056529950350522995,
+        "transport_efficiency": 0.23349541425704956
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 4,
+      "metrics": {
+        "cost": 0.35255199670791626,
+        "electrochemical_conversion": 0.11201363801956177,
+        "electrochemical_selectivity": 0.36857303977012634,
+        "energy_efficiency": 0.04812978208065033,
+        "faradaic_efficiency": 0.23515205085277557,
+        "ohmic_efficiency": 0.9076031446456909,
+        "pH_normalized": 0.16724827885627747,
+        "precipitation_signal": 0.0,
+        "safety_risk": 0.10073958337306976,
+        "score": 0.2089368849992752,
+        "selective_product_yield": 0.04679049551486969,
+        "transport_efficiency": 0.20366451144218445
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 2,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 5,
+      "metrics": {
+        "cost": 0.3325519859790802,
+        "electrochemical_conversion": 0.07509814947843552,
+        "electrochemical_selectivity": 0.474351167678833,
+        "energy_efficiency": 0.03015238791704178,
+        "faradaic_efficiency": 0.139044389128685,
+        "ohmic_efficiency": 0.9627838134765625,
+        "pH_normalized": 0.2895091474056244,
+        "precipitation_signal": 0.0,
+        "safety_risk": 0.11333958804607391,
+        "score": 0.20234420895576477,
+        "selective_product_yield": 0.04199112579226494,
+        "transport_efficiency": 0.12853491306304932
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 3,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 6,
+      "metrics": {
+        "cost": 0.30055201053619385,
+        "electrochemical_conversion": 0.15219244360923767,
+        "electrochemical_selectivity": 0.5194199681282043,
+        "energy_efficiency": 0.09651791304349899,
+        "faradaic_efficiency": 0.2921444773674011,
+        "ohmic_efficiency": 0.9589100480079651,
+        "pH_normalized": 0.20073774456977844,
+        "precipitation_signal": 0.8590646982192993,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.2724166810512543,
+        "selective_product_yield": 0.08763503283262253,
+        "transport_efficiency": 0.2674611508846283
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 7,
+      "metrics": {
+        "cost": 0.30055201053619385,
+        "electrochemical_conversion": 0.14967727661132812,
+        "electrochemical_selectivity": 0.4942697584629059,
+        "energy_efficiency": 0.1034683957695961,
+        "faradaic_efficiency": 0.25109684467315674,
+        "ohmic_efficiency": 0.9823555946350098,
+        "pH_normalized": 0.15215446054935455,
+        "precipitation_signal": 0.0,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.26173558831214905,
+        "selective_product_yield": 0.07645786553621292,
+        "transport_efficiency": 0.2544972002506256
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 2,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 8,
+      "metrics": {
+        "cost": 0.30055201053619385,
+        "electrochemical_conversion": 0.09675569087266922,
+        "electrochemical_selectivity": 0.49045106768608093,
+        "energy_efficiency": 0.06956031918525696,
+        "faradaic_efficiency": 0.1898840367794037,
+        "ohmic_efficiency": 0.9848499298095703,
+        "pH_normalized": 0.2721646726131439,
+        "precipitation_signal": 0.00031451715040020645,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.2224835306406021,
+        "selective_product_yield": 0.02964433841407299,
+        "transport_efficiency": 0.18338868021965027
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 3,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 7200,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 9,
+      "metrics": {
+        "cost": 0.316103994846344,
+        "electrochemical_conversion": 0.2981809973716736,
+        "electrochemical_selectivity": 0.5060190558433533,
+        "energy_efficiency": 0.13328079879283905,
+        "faradaic_efficiency": 0.2594348192214966,
+        "ohmic_efficiency": 0.98870849609375,
+        "pH_normalized": 0.2000686377286911,
+        "precipitation_signal": 0.8648538589477539,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.31551507115364075,
+        "selective_product_yield": 0.1718217134475708,
+        "transport_efficiency": 0.2802661061286926
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.8
+        },
+        {
+          "duration_s": 14400,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 10,
+      "metrics": {
+        "cost": 0.3091920018196106,
+        "electrochemical_conversion": 0.3746339976787567,
+        "electrochemical_selectivity": 0.5827277302742004,
+        "energy_efficiency": 0.18612253665924072,
+        "faradaic_efficiency": 0.3299882709980011,
+        "ohmic_efficiency": 0.9364420175552368,
+        "pH_normalized": 0.19775448739528656,
+        "precipitation_signal": 0.8540157079696655,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.3604618012905121,
+        "selective_product_yield": 0.20007707178592682,
+        "transport_efficiency": 0.3313378691673279
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 300,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.4
+        },
+        {
+          "duration_s": 14400,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 11,
+      "metrics": {
+        "cost": 0.3253200054168701,
+        "electrochemical_conversion": 0.625633716583252,
+        "electrochemical_selectivity": 0.561366617679596,
+        "energy_efficiency": 0.19023264944553375,
+        "faradaic_efficiency": 0.33035197854042053,
+        "ohmic_efficiency": 0.9147683382034302,
+        "pH_normalized": 0.19873952865600586,
+        "precipitation_signal": 0.8619048595428467,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.42703649401664734,
+        "selective_product_yield": 0.35052114725112915,
+        "transport_efficiency": 0.3375318944454193
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 500,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.4
+        },
+        {
+          "duration_s": 14400,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 12,
+      "metrics": {
+        "cost": 0.3195599913597107,
+        "electrochemical_conversion": 0.6534252762794495,
+        "electrochemical_selectivity": 0.5788792371749878,
+        "energy_efficiency": 0.22815649211406708,
+        "faradaic_efficiency": 0.32493820786476135,
+        "ohmic_efficiency": 0.9134702086448669,
+        "pH_normalized": 0.19925984740257263,
+        "precipitation_signal": 0.8552408218383789,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.45620834827423096,
+        "selective_product_yield": 0.41041314601898193,
+        "transport_efficiency": 0.34616315364837646
+      },
+      "actions": [
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "current_mA": 500,
+          "electrolyte_profile": 1,
+          "operation": "set_potential",
+          "potential_V": -1.2
+        },
+        {
+          "duration_s": 14400,
+          "operation": "electrolyze"
+        },
+        {
+          "instrument": "uvvis",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    }
+  ],
+  "posttests": {
+    "K1": {
+      "payload": {
+        "report": "## Mechanistic interpretation\n\n### 1. Scope and evidential basis\n\nThis report describes the bounded synthetic electrochemical world explored in 12 completed batches. The solvent and electrolyte labels are anonymous benchmark identities, so statements about S0–S3 and E0–E3 are empirical within this world and are not claims about real chemical substances.\n\nExcept for batch 1, every batch used 0.020 mol limiting reagent in 0.050 L solvent, one constant potential/current-cap setting, and one uninterrupted electrolysis period. Consequently, the campaign identifies useful operating relationships but cannot uniquely identify molecular intermediates, electrode kinetics, stoichiometric electron count, mass-transfer coefficients, or causal solvent properties. Most settings received only one final assay, so differences should not be treated as replicated effects.\n\n### 2. Public objective\n\nAbove the selective-product-yield gate of 0.02, the reported score is consistent with the weighted sum\n\nS = 0.30Y + 0.15Sel + 0.10X + 0.15E + 0.12FE + 0.10TE + 0.08OE,\n\nwhere Y is selective product yield, Sel electrochemical selectivity, X conversion, E energy efficiency, FE faradaic efficiency, TE transport efficiency, and OE ohmic efficiency. Selective yield therefore dominates the objective, but conversion bought through inefficient or unselective electrolysis can be counterproductive. Batch 1 had measured yield 0 and consequently score 0 despite several nonzero efficiency estimates, illustrating the gate.\n\n### 3. Polarity and productive electrochemistry\n\nThe reaction is cathodic in the explored sign convention. In batch 1, S0/E0 was first held at +1.2 V and a 100 mA cap for 1800 s. The intervening UV–vis measurement reported energy, faradaic, and transport efficiencies as zero, with only ohmic efficiency near 0.995. Switching that same vessel to −1.2 V for another 1800 s produced only a weak final response: conversion 0.0258, selectivity 0.599, faradaic efficiency 0.204, transport efficiency 0.176, and measured yield 0. Because both polarities were applied sequentially, the final assay cannot isolate the negative segment quantitatively, but the intermediate measurement strongly indicates that the positive segment was nonproductive.\n\nAll subsequent productive batches used negative potentials. I therefore infer a cathodic activation step, schematically\n\nR + n e− → I → P,\n\ncompeting with unproductive electron transfer, side-product formation, or loss of intermediate I. The identities of R, I, P, and any proton donor are unobservable and should not be inferred from the anonymous labels.\n\n### 4. Charge delivery, potential, and the current cap\n\nA useful qualitative process model is\n\nIcell(t) = min[Icap, Ikinetic(V, medium, composition), Itransport(t)],\n\ndξ/dt ≈ FE(V, medium, ξ) Icell/(nF),\n\nX = f(ξ), and Y ≈ X × chemical selectivity, subject to losses and assay noise.\n\nThe configured current is a ceiling, not evidence that the cell always operated at that current. Electrolysis cost also changed with potential and cap, consistent with different realized current or energy draw.\n\nDuration was clearly important. With S0/E1 at −1.8 V and a 300 mA cap, extending electrolysis from 7200 s in batch 6 to 14400 s in batch 9 increased conversion from 0.152 to 0.298 and selective yield from 0.0876 to 0.1718. The score rose from 0.2724 to 0.3155. Selectivity remained approximately stable within the resolution of single assays (0.519 versus 0.506). Thus this region was substantially charge-limited at 7200 s rather than already at a severe degradation plateau.\n\nPotential magnitude showed a nonmonotonic efficiency tradeoff. At 14400 s and a 300 mA cap, changing from −1.8 V in batch 9 to −1.4 V in batch 10 increased conversion from 0.298 to 0.375, selectivity from 0.506 to 0.583, selective yield from 0.172 to 0.200, energy efficiency from 0.133 to 0.186, faradaic efficiency from 0.259 to 0.330, and score from 0.3155 to 0.3605. The less negative setting was therefore better, not merely cheaper. A plausible explanation is that −1.8 V drives more parasitic reduction or incurs excess overpotential, decreasing the fraction of energy and charge directed to target formation.\n\nThe current cap was also consequential. Batches 10 and 11 differed only in the cap, 300 versus 500 mA, at −1.4 V for 14400 s. Raising the cap increased conversion from 0.375 to 0.626, selective yield from 0.200 to 0.351, transport efficiency from 0.331 to 0.338, and score from 0.3605 to 0.4270. Selectivity changed from 0.583 to 0.561, while ohmic efficiency decreased from 0.936 to 0.915. This pattern suggests that the 300 mA ceiling constrained productive charge throughput. The higher cap accelerated conversion but imposed modest selectivity and ohmic penalties.\n\nAt the 500 mA cap, reducing the potential magnitude again—from −1.4 V in batch 11 to −1.2 V in batch 12—improved the complete balance. Batch 12 gave conversion 0.6534, selectivity 0.5789, selective yield 0.4104, energy efficiency 0.2282, faradaic efficiency 0.3249, transport efficiency 0.3462, ohmic efficiency 0.9135, and score 0.4562. Batch 11 gave 0.6256, 0.5614, 0.3505, 0.1902, 0.3304, 0.3375, 0.9148, and 0.4270, respectively. Faradaic and ohmic efficiencies were essentially similar relative to their assay uncertainties, but the yield and energy-efficiency gains favored −1.2 V.\n\nI interpret these results as an operating window in which decreasing |V| suppresses parasitic pathways and improves energy utilization, while the high current ceiling still permits substantial charge delivery. This does not establish that −1.2 V is the true optimum: the optimum may lie at a still less-negative potential, or a time-varying potential may be superior.\n\n### 5. Medium and electrolyte effects\n\nThe first four-pair screen was confounded because solvent and electrolyte changed together. At −1.8 V, 300 mA, and 7200 s, the observed results were:\n\n- Batch 2, S0/E0: score 0.2424, conversion 0.106, selectivity 0.529, yield 0.0683.\n- Batch 3, S1/E1: score 0.2403, conversion 0.131, selectivity 0.479, yield 0.0565.\n- Batch 4, S2/E2: score 0.2089, conversion 0.112, selectivity 0.369, yield 0.0468.\n- Batch 5, S3/E3: score 0.2023, conversion 0.0751, selectivity 0.474, yield 0.0420.\n\nThis established that S2/E2 and S3/E3 were relatively weak combinations, but it did not show whether solvent or electrolyte caused the differences.\n\nBatches 2, 6, 7, and 8 isolated electrolyte identity in S0 under the same electrical program:\n\n- E0, batch 2: score 0.2424, conversion 0.106, yield 0.0683, FE 0.204, TE 0.230.\n- E1, batch 6: score 0.2724, conversion 0.152, yield 0.0876, FE 0.292, TE 0.267.\n- E2, batch 7: score 0.2617, conversion 0.150, yield 0.0765, FE 0.251, TE 0.254.\n- E3, batch 8: score 0.2225, conversion 0.0968, yield 0.0296, FE 0.190, TE 0.183.\n\nE1 was the best observed electrolyte in S0, with E2 a plausible but slightly inferior alternative. E1 improved both charge utilization and transport rather than only shifting selectivity. A generic explanation is that electrolyte identity changes conductivity, interfacial charge transfer, ion pairing, and reactant delivery to the electrode. Those mechanisms are plausible but not separately identifiable from the measurements.\n\nSolvent effects remain poorly isolated. Only S0 received a full electrolyte comparison; S1–S3 were each tested with a single matching electrolyte. It is therefore unsupported to claim that S0 is intrinsically the best solvent independently of electrolyte. The recommendation properly concerns the tested S0/E1 combination.\n\n### 6. Coupled efficiency losses\n\nThe observations suggest several coupled loss channels:\n\n1. **Activation loss:** At the tested positive polarity, essentially no productive electrochemical response was detected. A sufficiently negative potential is needed to enter the productive regime.\n2. **Parasitic faradaic loss:** FE was only about 0.14–0.33 in final assays, indicating that much of the effective charge proxy was not assigned to target formation. More negative potential did not improve FE and sometimes worsened overall performance.\n3. **Transport limitation:** TE rose from roughly 0.18–0.28 in the lower-throughput screen to 0.338–0.346 in the high-cap batches. E1 performed well on this measure. Transport and conversion therefore appear coupled to electrolyte and current ceiling.\n4. **Ohmic loss:** OE remained high, approximately 0.91–0.99, but declined modestly at high throughput. This is consistent with a tradeoff in which increased current delivers more productive charge while incurring greater resistive loss.\n5. **Energy loss:** Energy efficiency improved as the successful operating point moved from −1.8 toward −1.2 V. This supports excess-overpotential loss at more negative settings.\n6. **Chemical selectivity loss:** Selectivity was typically 0.47–0.60 rather than near unity. It did not collapse at the largest observed conversion, so target loss was not overwhelmingly conversion-driven over the tested range, but secondary chemistry remains plausible.\n\nA compact phenomenological representation would be\n\nrP = kP(V,S,E) C_R gtransport(Icap,E,S),\nrside = kside(V,S,E) C_R + kdeg(V,S,E) C_P,\nFE ≈ nF rP/Icell,\nSel ≈ rP/(rP+rside),\nEeff ≈ useful chemical output/(|V| Icell),\n\nwith heating/resistance lowering OE as realized current rises. The data support the directions of these relationships but do not provide enough independent points to estimate the functions or rate constants.\n\n### 7. pH and precipitation signals\n\nFinal pH-normalized values varied with medium: approximately 0.15–0.29 across the campaign. In the optimized S0/E1 sequence they were stable near 0.198–0.200 in batches 6, 9, 10, 11, and 12. That stability suggests the large electrical-performance changes among batches 9–12 were not driven by a gross pH shift detectable by this channel.\n\nPrecipitation signal was high for S0/E0 and S0/E1 (often about 0.85–1.0), near zero for S0/E2 and S0/E3, and medium-dependent in the paired screen. Because high precipitation coexisted with both poor batch 1 and strong batch 12 performance, it is not by itself a sufficient cause of high yield. It may represent formation or separation of target, an electrolyte salt response, or an unrelated solid phase. No solid was independently isolated or identified, so all such interpretations remain alternatives.\n\n### 8. How the explanation changed during the campaign\n\nThe initial expectation was an interior optimum in potential and time plus strong medium effects. Batch 1 established the productive polarity and caused abandonment of positive-potential exploration. Batches 2–5 revealed meaningful medium dependence but also exposed the solvent/electrolyte confound. Batches 6–8 isolated electrolyte effects and selected E1 in S0. Batch 9 showed that the 7200 s screen was charge-limited. Batch 10 overturned any simple belief that stronger negative potential must improve conversion: −1.4 V outperformed −1.8 V across the main score components. Batch 11 demonstrated that the current ceiling constrained the −1.4 V process. Batch 12 then showed that −1.2 V with the larger cap gave the best observed balance.\n\nThus the final account is not simply “more voltage and current produce more product.” It is “provide sufficient cathodic driving force and charge throughput, but avoid unnecessary overpotential; use a medium that supports productive charge transfer and transport.”\n\n### 9. Recommended procedure and interpretation\n\nThe sealed recommendation is batch 12:\n\n- limiting reagent: 0.020 mol;\n- solvent: 0.050 L S0;\n- electrolyte profile: E1;\n- potential: −1.2 V;\n- current magnitude cap: 500 mA;\n- electrolysis duration: 14400 s;\n- then terminate and assay.\n\nIts observed score was 0.4562 at safety risk 0.0593, well below the public limit of 0.65. It was selected because it had the campaign’s highest score and highest measured selective product yield, not because its molecular mechanism is known.\n\n### 10. Limits, unidentifiable factors, and alternatives\n\n- No condition was replicated, so process variability and final-assay noise cannot be separated from small treatment effects. The batch 12 versus batch 11 advantage is supported by coordinated changes, especially yield, but still needs replication.\n- Potential and current were configured values; actual current-time traces were not observed. Delivered charge and current density are therefore unknown.\n- Electrode area, electrode material, mixing, temperature trajectory, and cell geometry were not public observables. Any of them could be embedded in the synthetic response.\n- The electron stoichiometry n is unknown, so conversion cannot be converted into a physical coulomb balance.\n- Solvent effects were not factorially resolved. E1 could interact specifically with S0 rather than being universally superior.\n- The high precipitation signal could describe target precipitation, electrolyte precipitation, or a correlated proxy. It cannot be assigned mechanistically.\n- The apparent potential optimum remains open. A setting less negative than −1.2 V might improve energy efficiency and selectivity while retaining enough current; alternatively, conversion might fall sharply near a cathodic threshold.\n- A staged program—initially −1.4 V to establish throughput, followed by −1.2 V to preserve selectivity—or feedback control using current/UV–vis information could outperform every constant-potential batch. This is conjecture, not an observed result.\n- Longer than 14400 s might raise conversion, but extrapolation is risky because substrate depletion, product degradation, selectivity loss, and increasing resistive limitation could produce a plateau or decline.\n\nOverall, the most defensible world model is a cathodically activated conversion governed jointly by delivered charge, overpotential-dependent parasitic chemistry, electrolyte-dependent interfacial/transport efficiency, and modest ohmic loss. The experiments locate a favorable tested region at S0/E1, −1.2 V, a 500 mA cap, and 14400 s, while leaving the exact kinetic law and global optimum unidentified."
+      },
+      "failure": null,
+      "elapsed_s": 82.14099999998871,
+      "usage": {
+        "input_tokens": 1009681,
+        "cached_input_tokens": 908544,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 10205,
+        "reasoning_output_tokens": 1785
+      },
+      "method_resources": null
+    },
+    "Q": {
+      "payload": {
+        "predictions": [
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.64,
+              "lower80": 0.5,
+              "upper80": 0.76
+            },
+            "energy_efficiency": {
+              "estimate": 0.16,
+              "lower80": 0.05,
+              "upper80": 0.28
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.21,
+              "lower80": 0.1,
+              "upper80": 0.32
+            },
+            "query_id": "Q01",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.03
+            },
+            "selective_product_yield": {
+              "estimate": 0.004,
+              "lower80": 0.0,
+              "upper80": 0.018
+            },
+            "transport_efficiency": {
+              "estimate": 0.14,
+              "lower80": 0.05,
+              "upper80": 0.24
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.62,
+              "lower80": 0.39,
+              "upper80": 0.78
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.035
+            },
+            "query_id": "Q02",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.014
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.045
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.64,
+              "lower80": 0.53,
+              "upper80": 0.74
+            },
+            "energy_efficiency": {
+              "estimate": 0.23,
+              "lower80": 0.12,
+              "upper80": 0.35
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.25,
+              "lower80": 0.16,
+              "upper80": 0.35
+            },
+            "query_id": "Q03",
+            "score": {
+              "estimate": 0.278,
+              "lower80": 0.21,
+              "upper80": 0.345
+            },
+            "selective_product_yield": {
+              "estimate": 0.052,
+              "lower80": 0.018,
+              "upper80": 0.1
+            },
+            "transport_efficiency": {
+              "estimate": 0.2,
+              "lower80": 0.11,
+              "upper80": 0.29
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.62,
+              "lower80": 0.39,
+              "upper80": 0.78
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.035
+            },
+            "query_id": "Q04",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.014
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.045
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.63,
+              "lower80": 0.52,
+              "upper80": 0.73
+            },
+            "energy_efficiency": {
+              "estimate": 0.27,
+              "lower80": 0.15,
+              "upper80": 0.39
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.32,
+              "lower80": 0.22,
+              "upper80": 0.42
+            },
+            "query_id": "Q05",
+            "score": {
+              "estimate": 0.314,
+              "lower80": 0.245,
+              "upper80": 0.385
+            },
+            "selective_product_yield": {
+              "estimate": 0.08,
+              "lower80": 0.035,
+              "upper80": 0.14
+            },
+            "transport_efficiency": {
+              "estimate": 0.24,
+              "lower80": 0.15,
+              "upper80": 0.34
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.61,
+              "lower80": 0.38,
+              "upper80": 0.78
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.055
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.04
+            },
+            "query_id": "Q06",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.014
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.59,
+              "lower80": 0.46,
+              "upper80": 0.71
+            },
+            "energy_efficiency": {
+              "estimate": 0.17,
+              "lower80": 0.07,
+              "upper80": 0.29
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.18,
+              "lower80": 0.09,
+              "upper80": 0.28
+            },
+            "query_id": "Q07",
+            "score": {
+              "estimate": 0.24,
+              "lower80": 0.0,
+              "upper80": 0.31
+            },
+            "selective_product_yield": {
+              "estimate": 0.03,
+              "lower80": 0.004,
+              "upper80": 0.07
+            },
+            "transport_efficiency": {
+              "estimate": 0.15,
+              "lower80": 0.07,
+              "upper80": 0.24
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.57,
+              "lower80": 0.34,
+              "upper80": 0.75
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.035
+            },
+            "query_id": "Q08",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.014
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.045
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.49,
+              "lower80": 0.36,
+              "upper80": 0.62
+            },
+            "energy_efficiency": {
+              "estimate": 0.17,
+              "lower80": 0.06,
+              "upper80": 0.29
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.2,
+              "lower80": 0.1,
+              "upper80": 0.3
+            },
+            "query_id": "Q09",
+            "score": {
+              "estimate": 0.234,
+              "lower80": 0.16,
+              "upper80": 0.305
+            },
+            "selective_product_yield": {
+              "estimate": 0.04,
+              "lower80": 0.008,
+              "upper80": 0.085
+            },
+            "transport_efficiency": {
+              "estimate": 0.16,
+              "lower80": 0.07,
+              "upper80": 0.26
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.47,
+              "lower80": 0.27,
+              "upper80": 0.67
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.035
+            },
+            "query_id": "Q10",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.014
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.045
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.64,
+              "lower80": 0.53,
+              "upper80": 0.74
+            },
+            "energy_efficiency": {
+              "estimate": 0.34,
+              "lower80": 0.21,
+              "upper80": 0.47
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.28,
+              "lower80": 0.19,
+              "upper80": 0.38
+            },
+            "query_id": "Q11",
+            "score": {
+              "estimate": 0.395,
+              "lower80": 0.31,
+              "upper80": 0.48
+            },
+            "selective_product_yield": {
+              "estimate": 0.24,
+              "lower80": 0.13,
+              "upper80": 0.36
+            },
+            "transport_efficiency": {
+              "estimate": 0.31,
+              "lower80": 0.21,
+              "upper80": 0.41
+            }
+          },
+          {
+            "electrochemical_selectivity": {
+              "estimate": 0.62,
+              "lower80": 0.38,
+              "upper80": 0.79
+            },
+            "energy_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.06
+            },
+            "faradaic_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.04
+            },
+            "query_id": "Q12",
+            "score": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.02
+            },
+            "selective_product_yield": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.015
+            },
+            "transport_efficiency": {
+              "estimate": 0.0,
+              "lower80": 0.0,
+              "upper80": 0.05
+            }
+          }
+        ],
+        "rationale": "The campaign indicated a polarity gate: negative potentials were productive, while the tested positive segment produced essentially zero faradaic, transport, and energy response. For negative-potential queries I scaled charge throughput by duration, current cap, and the smaller reagent inventory, allowed lower overpotential to improve selectivity and energy efficiency, and applied the observed electrolyte ordering E1 > E0 > E3. Q11 is highest because its 500 mA cap should deliver substantially more charge; the 600 s case is expected to remain below the selective-yield score gate. Intervals are widened for extrapolation from −1.2 V to −0.8 V, unreplicated medium effects, unknown realized current, and final-assay/process uncertainty."
+      },
+      "failure": null,
+      "elapsed_s": 124.03200000000652,
+      "usage": {
+        "input_tokens": 1063423,
+        "cached_input_tokens": 908544,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 14872,
+        "reasoning_output_tokens": 4422
+      },
+      "method_resources": null
+    },
+    "K2": {
+      "payload": {
+        "report": "### 1. Status of claims and laws\n\nNo instance-specific prior, nominal property dossier, or supplied mechanistic law was provided. The only supplied quantitative law relevant here was the public score contract: a weighted combination dominated by selective product yield, with a 0.02 yield gate. The observed scores were consistent with that contract; batch 1 had zero reported yield and zero score despite nonzero values for several other components.\n\n**Supported self-developed claims:**\n\n- **Negative polarity is required in the explored sign convention.** In batch 1, the UV–vis measurement after +1.2 V reported zero energy, faradaic, and transport efficiencies. Product-related signals appeared only after the vessel was subsequently operated at −1.2 V. All productive independent batches used negative potential. Because batch 1 mixed both polarities before its final assay, this supports a polarity gate but does not quantify the negative segment cleanly.\n- **Electrolysis was charge/time limited at 7200 s.** With S0/E1, −1.8 V, and a 300 mA cap, extending time from 7200 s in batch 6 to 14400 s in batch 9 increased conversion from 0.152 to 0.298, yield from 0.0876 to 0.1718, and score from 0.2724 to 0.3155.\n- **The 300 mA cap constrained the −1.4 V process.** Raising it to 500 mA between batches 10 and 11 increased conversion from 0.375 to 0.626 and yield from 0.200 to 0.351, while score increased from 0.3605 to 0.4270. The modest declines in selectivity and ohmic efficiency are consistent with a throughput/loss tradeoff.\n- **Excess negative potential was detrimental over the tested high-charge region.** At 300 mA and 14400 s, batch 10 at −1.4 V outperformed batch 9 at −1.8 V in conversion, selectivity, yield, energy efficiency, faradaic efficiency, and score. At 500 mA, batch 12 at −1.2 V also outperformed batch 11 at −1.4 V, with scores 0.4562 versus 0.4270. This supported the proposed coupling between overpotential, parasitic reactions, and energy loss.\n- **Electrolyte identity affects productive charge use and transport.** In S0 at the same −1.8 V/300 mA/7200 s program, E1 in batch 6 gave score 0.2724, compared with E0 at 0.2424 in batch 2, E2 at 0.2617 in batch 7, and E3 at 0.2225 in batch 8. E1 also had the best observed combination of yield, faradaic efficiency, and transport efficiency.\n\n**Contradicted or narrowed claims:**\n\n- Any simple law that “more negative potential produces more conversion or a better score” was contradicted by batches 9–10 and 11–12. Less-negative potentials performed better in both comparisons.\n- The initial paired-material screen did not establish S0/E0 as uniquely best. Batch 2 and batch 3 had nearly equal scores, 0.2424 and 0.2403, and the comparison changed solvent and electrolyte simultaneously. Later electrolyte-isolation batches shifted the preferred formulation to S0/E1.\n- A simple proportional-charge law is inadequate. Changing the current ceiling from 300 to 500 mA produced a large response, but potential changes also altered conversion and efficiency in directions that cannot be explained by nominal charge alone.\n\n**Untested or unresolved claims:**\n\n- An interior potential optimum was not bracketed. Performance improved through the least-negative productive condition tested, −1.2 V, so the optimum could lie at −1.2 V, at a less-negative value, or near an activation threshold.\n- Product degradation at long times was not demonstrated; no duration beyond 14400 s was tested.\n- A staged potential program was not tested.\n- Solvent effects were not separated factorially from electrolyte effects outside S0.\n- The precipitation signal was not identified as product, electrolyte, or an unrelated solid phase.\n- Actual current, transferred charge, electron stoichiometry, and molecular intermediates remained unobserved.\n\nThe evidence that most changed the interpretation was the zero-response positive segment in batch 1, the E1 advantage isolated in batch 6, the duration comparison between batches 6 and 9, the unexpected superiority of −1.4 V over −1.8 V in batches 9–10, and the strong cap effect in batches 10–11.\n\n### 2. Best additional discriminating experiment\n\nI would run one new S0/E1 batch with 0.020 mol reagent in 0.050 L solvent, a 500 mA cap, −1.0 V, and 14400 s, followed by the final assay. This interpolates between the recommended −1.2 V condition and the untested low-overpotential region while holding the other important variables fixed.\n\nThe leading explanation is that −1.8 and −1.4 V incur avoidable overpotential-dependent losses, while a high current ceiling permits productive throughput at a less-negative potential. The principal alternative is that −1.2 V is already close to a cathodic activation threshold and its superiority over −1.4 V partly reflects assay/process variation rather than a continuing potential trend.\n\n- If −1.0 V retained conversion near batch 12 while increasing selectivity or energy efficiency and produced a score above 0.456, I would strengthen the excess-overpotential explanation and move the recommended potential toward −1.0 V.\n- If conversion and yield fell sharply while energy efficiency rose only modestly, I would infer a kinetic/onset threshold between −1.0 and −1.2 V and retain batch 12 as the best supported operating point.\n- If all major metrics were statistically compatible with batch 12, I would regard the optimum as a broad plateau and prefer −1.0 V for lower driving force only after replication.\n- If −1.0 V unexpectedly increased conversion but reduced selectivity enough to lower score, I would revise the model toward potential-dependent competition among multiple productive and side pathways rather than a simple activation-versus-overpotential tradeoff.\n\nA replicate of batch 12 would be better for estimating repeatability, but the proposed −1.0 V experiment has greater ability to distinguish the two leading mechanistic explanations.\n\n### 3. Unused evidence, reliability, and goal effects\n\nSubstantial public evidence was not used fully. The raw final-assay and UV–vis artifacts were not inspected beyond their processed summaries, so peak shapes, baselines, and channel-level consistency did not influence the model. Intermediate UV–vis results were mainly used qualitatively. The pH-normalized and precipitation channels were recorded but did not drive optimization; their chemical assignments were unidentifiable. Cost, temperature changes, sample consumption, and detailed spectral peak coordinates were also not modeled. Actual current-time traces and delivered charge were unavailable rather than merely unused.\n\nThe least reliable predictions are those for the new ±0.8 V batches because −0.8 V was outside the tested negative-potential range and +0.8 V was never tested in an independent final-assay batch. Selectivity is especially ill-defined near zero conversion, making the positive-polarity selectivity predictions weak. Q01 is sensitive to the discontinuous yield gate, Q09 combines S2 with E0 even though that pair was never observed, and Q11 extrapolates the large high-current benefit to a less-negative potential where the 500 mA cap may not be reached. The prediction intervals attempted to reflect these limitations.\n\nThe batch 12 recommendation is reliable as the **best observed** procedure but less reliable as a global optimum. It was not replicated, the potential optimum was not bracketed, solvent S0 was not fully compared with other solvents under E1, and no time beyond 14400 s was studied.\n\nThe assigned goal did affect evidence collection. Maximizing the public score encouraged adaptive exploitation after E1 and the high-current region appeared promising. This produced useful local optimization in batches 9–12 but sacrificed replication, a complete solvent-by-electrolyte factorial design, independent positive-polarity controls, and detailed duration/potential response curves. The early paired-material screen also confounded solvent and electrolyte. There was no direct conflict between the goal and mechanism learning, but the score-maximization objective clearly favored finding a strong operating point over resolving every causal factor."
+      },
+      "failure": null,
+      "elapsed_s": 66.92200000000594,
+      "usage": {
+        "input_tokens": 1121745,
+        "cached_input_tokens": 956288,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 17250,
+        "reasoning_output_tokens": 4938
+      },
+      "method_resources": null
+    }
+  },
+  "posttest_validation": null,
+  "prediction_evaluation": {
+    "valid": true,
+    "metrics": {
+      "selective_product_yield": {
+        "n": 12,
+        "mae": 0.09393314762646332,
+        "coverage80": 0.5833333333333334,
+        "mean_width80": 0.05525
+      },
+      "electrochemical_selectivity": {
+        "n": 12,
+        "mae": 0.14714128464460374,
+        "coverage80": 0.5,
+        "mean_width80": 0.31666666666666665
+      },
+      "faradaic_efficiency": {
+        "n": 12,
+        "mae": 0.3918377529581388,
+        "coverage80": 0.08333333333333333,
+        "mean_width80": 0.1175
+      },
+      "transport_efficiency": {
+        "n": 12,
+        "mae": 0.422999527156353,
+        "coverage80": 0.0,
+        "mean_width80": 0.11666666666666665
+      },
+      "energy_efficiency": {
+        "n": 12,
+        "mae": 0.44306669106086094,
+        "coverage80": 0.16666666666666666,
+        "mean_width80": 0.14375000000000002
+      },
+      "score": {
+        "n": 12,
+        "mae": 0.28121899255365135,
+        "coverage80": 0.16666666666666666,
+        "mean_width80": 0.08750000000000001
+      }
+    },
+    "groups": {
+      "potential_domain:negative": {
+        "selective_product_yield": {
+          "n": 6,
+          "mae": 0.030088639848865565,
+          "coverage80": 1.0,
+          "mean_width80": 0.09633333333333333
+        },
+        "electrochemical_selectivity": {
+          "n": 6,
+          "mae": 0.006052330533663441,
+          "coverage80": 1.0,
+          "mean_width80": 0.2333333333333333
+        },
+        "faradaic_efficiency": {
+          "n": 6,
+          "mae": 0.15995999346176784,
+          "coverage80": 0.16666666666666666,
+          "mean_width80": 0.19833333333333333
+        },
+        "transport_efficiency": {
+          "n": 6,
+          "mae": 0.21488941927750904,
+          "coverage80": 0.0,
+          "mean_width80": 0.18666666666666668
+        },
+        "energy_efficiency": {
+          "n": 6,
+          "mae": 0.1756883679827054,
+          "coverage80": 0.3333333333333333,
+          "mean_width80": 0.235
+        },
+        "score": {
+          "n": 6,
+          "mae": 0.07381890591482321,
+          "coverage80": 0.3333333333333333,
+          "mean_width80": 0.155
+        }
+      },
+      "potential_domain:positive": {
+        "selective_product_yield": {
+          "n": 6,
+          "mae": 0.15777765540406108,
+          "coverage80": 0.16666666666666666,
+          "mean_width80": 0.014166666666666668
+        },
+        "electrochemical_selectivity": {
+          "n": 6,
+          "mae": 0.28823023875554404,
+          "coverage80": 0.0,
+          "mean_width80": 0.39999999999999997
+        },
+        "faradaic_efficiency": {
+          "n": 6,
+          "mae": 0.6237155124545097,
+          "coverage80": 0.0,
+          "mean_width80": 0.036666666666666674
+        },
+        "transport_efficiency": {
+          "n": 6,
+          "mae": 0.6311096350351969,
+          "coverage80": 0.0,
+          "mean_width80": 0.04666666666666667
+        },
+        "energy_efficiency": {
+          "n": 6,
+          "mae": 0.7104450141390165,
+          "coverage80": 0.0,
+          "mean_width80": 0.0525
+        },
+        "score": {
+          "n": 6,
+          "mae": 0.48861907919247943,
+          "coverage80": 0.0,
+          "mean_width80": 0.02
+        }
+      },
+      "context:current_cap": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.15045528382062912,
+          "coverage80": 0.5,
+          "mean_width80": 0.1225
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.15802308440208435,
+          "coverage80": 0.5,
+          "mean_width80": 0.31
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.14,
+          "coverage80": 0.0,
+          "mean_width80": 0.115
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.155,
+          "coverage80": 0.0,
+          "mean_width80": 0.125
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.19568118274211885,
+          "coverage80": 0.0,
+          "mean_width80": 0.16
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.23169792652130128,
+          "coverage80": 0.0,
+          "mean_width80": 0.09499999999999999
+        }
+      },
+      "context:electrolyte_1": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.11920425385236741,
+          "coverage80": 0.5,
+          "mean_width80": 0.059500000000000004
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.14817307353019715,
+          "coverage80": 0.5,
+          "mean_width80": 0.305
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.46916494905948636,
+          "coverage80": 0.5,
+          "mean_width80": 0.12
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.5165590542554855,
+          "coverage80": 0.0,
+          "mean_width80": 0.12000000000000002
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.512432416677475,
+          "coverage80": 0.0,
+          "mean_width80": 0.14750000000000002
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.3380909316539764,
+          "coverage80": 0.5,
+          "mean_width80": 0.08
+        }
+      },
+      "context:electrolyte_3": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.10120194092392922,
+          "coverage80": 0.5,
+          "mean_width80": 0.04
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.15896104097366337,
+          "coverage80": 0.5,
+          "mean_width80": 0.32999999999999996
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.41133909285068515,
+          "coverage80": 0.0,
+          "mean_width80": 0.11250000000000002
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.43373322784900664,
+          "coverage80": 0.0,
+          "mean_width80": 0.10749999999999998
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.547677435874939,
+          "coverage80": 0.0,
+          "mean_width80": 0.13499999999999998
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.32546279311180115,
+          "coverage80": 0.0,
+          "mean_width80": 0.165
+        }
+      },
+      "context:long": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.11130098307132721,
+          "coverage80": 0.5,
+          "mean_width80": 0.048
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.14952240347862245,
+          "coverage80": 0.5,
+          "mean_width80": 0.3
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.4381375163793564,
+          "coverage80": 0.0,
+          "mean_width80": 0.11249999999999999
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.47053165137767794,
+          "coverage80": 0.0,
+          "mean_width80": 0.11249999999999999
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.47240292489528657,
+          "coverage80": 0.5,
+          "mean_width80": 0.13999999999999999
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.32650893783569335,
+          "coverage80": 0.0,
+          "mean_width80": 0.07749999999999999
+        }
+      },
+      "context:short": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.007648066638968885,
+          "coverage80": 1.0,
+          "mean_width80": 0.016
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.14952240347862245,
+          "coverage80": 0.5,
+          "mean_width80": 0.325
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.4979278784990311,
+          "coverage80": 0.0,
+          "mean_width80": 0.1275
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.5403220134973525,
+          "coverage80": 0.0,
+          "mean_width80": 0.1175
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.537496058344841,
+          "coverage80": 0.0,
+          "mean_width80": 0.14
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.19116746820509434,
+          "coverage80": 0.0,
+          "mean_width80": 0.025
+        }
+      },
+      "context:solvent_2": {
+        "selective_product_yield": {
+          "n": 2,
+          "mae": 0.07378835745155811,
+          "coverage80": 0.5,
+          "mean_width80": 0.045500000000000006
+        },
+        "electrochemical_selectivity": {
+          "n": 2,
+          "mae": 0.1186457020044327,
+          "coverage80": 0.5,
+          "mean_width80": 0.33
+        },
+        "faradaic_efficiency": {
+          "n": 2,
+          "mae": 0.39445708096027376,
+          "coverage80": 0.0,
+          "mean_width80": 0.1175
+        },
+        "transport_efficiency": {
+          "n": 2,
+          "mae": 0.42185121595859526,
+          "coverage80": 0.0,
+          "mean_width80": 0.1175
+        },
+        "energy_efficiency": {
+          "n": 2,
+          "mae": 0.39271012783050535,
+          "coverage80": 0.5,
+          "mean_width80": 0.13999999999999999
+        },
+        "score": {
+          "n": 2,
+          "mae": 0.27438589799404145,
+          "coverage80": 0.5,
+          "mean_width80": 0.08249999999999999
+        }
+      }
+    }
+  },
+  "source_usage": {
+    "schema_version": "chemworld-method-resource-usage-0.1",
+    "accounting_complete": false,
+    "provider_usage_pending": false,
+    "in_flight_model_call_count": 0,
+    "provider_usage_accounting_complete": true,
+    "provider_usage_observed": true,
+    "token_counts_observed": true,
+    "provider_call_accounting_complete": true,
+    "provider_token_accounting_complete": true,
+    "provider_cache_accounting_complete": true,
+    "monetary_accounting_complete": false,
+    "usage_source": "codex_cli_completed_experiment_turns",
+    "model_call_count": 1,
+    "provider_session_count": 1,
+    "provider_process_attempt_count": 1,
+    "accepted_provider_session_count": 1,
+    "accepted_participant_model_call_count": 1,
+    "unattributed_pre_action_process_attempt_count": 0,
+    "logical_codex_turn_count": 1,
+    "accepted_turn_continuation_count": 0,
+    "backend_model_response_count": null,
+    "backend_model_response_accounting_complete": false,
+    "input_token_count": 961788,
+    "cached_input_token_count": 908544,
+    "uncached_input_token_count": 53244,
+    "input_cache_hit_ratio": 0.9446406068697052,
+    "output_token_count": 6197,
+    "monetary_cost_usd": 0.0,
+    "training_environment_step_count": 0,
+    "cpu_time_s": 0.0,
+    "gpu_time_s": 0.0,
+    "active_session_elapsed_s": 0.0,
+    "session_elapsed_s": 272.895,
+    "recovered_mcp_tool_failure_count": 0,
+    "maximum_consecutive_mcp_tool_failure_count": 0,
+    "mcp_tool_failure_taxonomy": {
+      "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1",
+      "recovered_mcp_tool_failure_count": 0,
+      "current_consecutive_mcp_tool_failure_count": 0,
+      "maximum_consecutive_mcp_tool_failure_count": 0,
+      "counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "current_consecutive_counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "maximum_consecutive_counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "recovery_episode_taxonomy": {
+        "schema_version": "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2",
+        "grouping_basis": "maximal_consecutive_identical_failed_outcomes_without_an_intervening_success_within_the_frozen_duplicate_burst_window_or_dependent_staged_calls_after_an_unaccepted_begin_in_the_same_batch",
+        "duplicate_failure_burst_window_ms": 1000.0,
+        "dependent_batch_cascade_window_ms": 1000.0,
+        "dependent_batch_cascade_failure_count": 0,
+        "dependent_batch_cascade_group_count": 0,
+        "maximum_dependent_batch_cascade_size": 0,
+        "dependent_batch_cascades": [],
+        "recovery_episode_count": 0,
+        "current_consecutive_recovery_episode_count": 0,
+        "maximum_consecutive_recovery_episode_count": 0,
+        "counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        },
+        "current_consecutive_counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        },
+        "maximum_consecutive_counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        }
+      }
+    },
+    "scientific_compliance_mcp_tool_failure_count": 0,
+    "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+    "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+    "scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "provider_error_event_count": 0,
+    "session_operational_limits": {
+      "session_wall_time_limit_s": 1800.0,
+      "max_recovered_mcp_tool_failures": 12,
+      "max_consecutive_mcp_tool_failures": 6,
+      "max_provider_error_events": 0,
+      "mcp_tool_failure_limit_category": "agent_invalid_recovery_episode"
+    },
+    "model_provenance": {
+      "provider": "OpenAI",
+      "provider_id": "chemworld_openai_https",
+      "provider_base_url": null,
+      "model_id": "gpt-5.6-sol",
+      "model_snapshot_or_access_date": "2026-09-27",
+      "prompt_hash": "f72a0cde06f28050c770dfe033447da7a00ca8e17f8109ba41418fb86aeca0ea",
+      "request_parameters": {
+        "reasoning_effort": "medium",
+        "session_scope": "campaign",
+        "one_turn_per_experiment": false,
+        "one_thread_per_campaign_cell": true,
+        "accepted_turn_continuation_limit": 0,
+        "provider_process_attempt_limit": 1,
+        "workspace_tools": true,
+        "experiment_tool_transport": "host_owned_stdio_mcp",
+        "forced_notebook": false
+      },
+      "tokenizer_or_provider_usage_source": "codex exec turn.completed",
+      "input_token_accounting_semantics": "cumulative_input_across_the_complete_codex_turn; cache hits are reused input tokens, not generated output",
+      "pricing": {
+        "accounting_complete": false,
+        "model_source": "https://developers.openai.com/api/docs/guides/latest-model",
+        "auth_source": "https://learn.chatgpt.com/docs/auth",
+        "pricing_unavailable_reason": "ChatGPT subscription usage has no attributable per-run USD price"
+      },
+      "private_reasoning_retained": false,
+      "completed_session_count": 1
+    }
+  },
+  "elapsed_s": 547.8289999999979,
+  "recommendation": {
+    "selected_experiment_index": 12,
+    "selection_rationale": "Batch 12 achieved the highest observed balanced-efficiency-v2 score (0.4562) with the strongest selective product yield and favorable conversion/efficiency balance at acceptable risk."
+  },
+  "retest": {
+    "passed": null,
+    "failure": null,
+    "exact_replay": {
+      "verified": true,
+      "checked_steps": 7,
+      "max_abs_error": 0.0,
+      "mismatches": []
+    },
+    "truth": null
+  },
+  "retest_operations": 7,
+  "retest_batch_metrics": [
+    {
+      "cost": 0.3195599913597107,
+      "electrochemical_conversion": 0.6687852144241333,
+      "electrochemical_selectivity": 0.5993961095809937,
+      "energy_efficiency": 0.24211035668849945,
+      "faradaic_efficiency": 0.36562204360961914,
+      "ohmic_efficiency": 0.8764163851737976,
+      "pH_normalized": 0.20087966322898865,
+      "precipitation_signal": 0.8577433228492737,
+      "safety_risk": 0.05933958664536476,
+      "score": 0.46313658356666565,
+      "selective_product_yield": 0.39653632044792175,
+      "transport_efficiency": 0.3708324730396271
+    }
+  ],
+  "notebook": {
+    "version_count": 4,
+    "read_calls": 0,
+    "tool_failures": 0,
+    "initial_note_before_action": true,
+    "validation": [
+      {
+        "revision": 1,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      },
+      {
+        "revision": 2,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      },
+      {
+        "revision": 3,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      },
+      {
+        "revision": 4,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      }
+    ],
+    "versions": [
+      {
+        "revision": 1,
+        "recorded_at": "2026-10-13T05:54:23.418004+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 0,
+          "last_event_id": null
+        },
+        "reviewed_through": null,
+        "message": "Pre-experiment hypotheses",
+        "restored_from": null
+      },
+      {
+        "revision": 2,
+        "recorded_at": "2026-10-13T05:56:18.342784+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 37,
+          "last_event_id": "runner-operation-0037"
+        },
+        "reviewed_through": "runner-operation-0037",
+        "message": "Polarity and initial material screen",
+        "restored_from": null
+      },
+      {
+        "revision": 3,
+        "recorded_at": "2026-10-13T05:57:27.919693+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 72,
+          "last_event_id": "runner-operation-0072"
+        },
+        "reviewed_through": "runner-operation-0072",
+        "message": "Electrolyte isolated and charge trend",
+        "restored_from": null
+      },
+      {
+        "revision": 4,
+        "recorded_at": "2026-10-13T05:58:13.575001+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 86,
+          "last_event_id": "runner-operation-0086"
+        },
+        "reviewed_through": "runner-operation-0086",
+        "message": "Final source-stage synthesis",
+        "restored_from": null
+      }
+    ]
+  },
+  "token_accounting": {
+    "valid": true,
+    "complete": true,
+    "basis": "cumulative same-thread snapshots, differenced in original stage order",
+    "missing_stages": [],
+    "stage_deltas": [
+      {
+        "stage": "source",
+        "input_tokens": 961788,
+        "cached_input_tokens": 908544,
+        "output_tokens": 6197
+      },
+      {
+        "stage": "K1",
+        "input_tokens": 47893,
+        "cached_input_tokens": 0,
+        "output_tokens": 4008
+      },
+      {
+        "stage": "Q",
+        "input_tokens": 53742,
+        "cached_input_tokens": 0,
+        "output_tokens": 4667
+      },
+      {
+        "stage": "K2",
+        "input_tokens": 58322,
+        "cached_input_tokens": 47744,
+        "output_tokens": 2378
+      }
+    ],
+    "total": {
+      "input_tokens": 1121745,
+      "cached_input_tokens": 956288,
+      "output_tokens": 17250,
+      "input_plus_output": 1138995
+    },
+    "monetary_cost_usd": null
+  },
+  "equilibrium_diagnostics": null,
+  "crystallization_quality": null
+}
