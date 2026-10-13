@@ -329,7 +329,7 @@ def readable_posttests(case, posttests):
     return "\n".join(lines)
 
 
-def export(root, destination):
+def export(root, destination, *, review_link="REVIEW.md"):
     destination.mkdir(parents=True, exist_ok=True)
     rows = []
     for case in CASES:
@@ -512,7 +512,7 @@ def export(root, destination):
         "is exported by revision, with public evidence cursors. Cursor/citation checks verify "
         "timing and existence only; they do not certify scientific correctness.",
         "",
-        "See [the scientific review](REVIEW.md) for interpretation, limitations and links "
+        f"See [the scientific review]({review_link}) for interpretation, limitations and links "
         "to all six model notebooks and sealed reports; [summary.json](summary.json) "
         "contains the machine-readable counts and metrics.",
         "",

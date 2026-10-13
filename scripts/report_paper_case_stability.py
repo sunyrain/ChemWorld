@@ -107,7 +107,10 @@ def number(value):
 
 def build(root, destination, previous):
     destination.mkdir(parents=True, exist_ok=True)
-    summaries = {repeat: export(root / repeat, destination / repeat) for repeat in REPEATS}
+    summaries = {
+        repeat: export(root / repeat, destination / repeat, review_link="../REVIEW.md")
+        for repeat in REPEATS
+    }
     rows = {}
     for repeat, summary in summaries.items():
         for case in CASES:
