@@ -1,5 +1,7 @@
 # Integrated manuscript: evidence and reproduction
 
+**13 October 2026 — research-formation evidence review:** the [existing Work II experiment matrix](../workstreams/flagship_tasks/WORK_II_EXPERIMENT_MATRIX.md) now maps all 300 current-manuscript campaigns (the original 240 plus 60 targeted EQ campaigns), registered historical formal studies, and the separate 24 notebook-development sessions to the agreed scientific story. It distinguishes existing process analysis from missing contemporaneous evidence and recommends a 30-source EQ block, with an additional 18-source C block conditional on the main-text scope. These are unlaunched design recommendations; the sources, original evidence status, manuscript and PDFs are unchanged. The reproduction bindings and historical analyses below remain preserved.
+
 On 22 September, the NCS draft incorporates the [complete fifteen-campaign EQ/P process review](../workstreams/flagship_tasks/reports/work-ii-evidence-closeout-20260921/EQ_AUTONOMOUS_PROCESS_REVIEW_ZH.md),
 its original-session predictions, and a conceptual preserve/revise synthesis with the retained
 crystallization baselines. The shared supplement adds the full fifteen-row comparison and
