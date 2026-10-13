@@ -234,7 +234,9 @@ def result_path(root, unit):
 
 
 def snapshot(root, active=(), *, started=None):
-    units = read(root / "design.json")["schedule"]
+    design = read(root / "design.json")
+    units = design["schedule"]
+    planned_batches = sum(u["batches"] for u in units)
     rows = []
     for unit in units:
         path = result_path(root, unit)
@@ -275,11 +277,11 @@ def snapshot(root, active=(), *, started=None):
             }
         )
     output = {
-        "mode": MODE,
-        "planned_sources": 48,
-        "planned_source_batches": 576,
-        "planned_posttests": 174,
-        "planned_reference_batches": 336,
+        "mode": design.get("mode", MODE),
+        "planned_sources": len(units),
+        "planned_source_batches": planned_batches,
+        "planned_posttests": sum(4 if u["system"] == "EQ" else 3 for u in units),
+        "planned_reference_batches": design.get("planned_reference_batches", 336),
         "terminal_sources": sum(r["status"] not in {"not_started", "running"} for r in rows),
         "completed_sources": sum(r["status"] == "completed" for r in rows),
         "completed_batches": sum(r["completed_batches"] for r in rows),
@@ -303,7 +305,7 @@ def snapshot(root, active=(), *, started=None):
         output.update(
             elapsed_s=round(elapsed),
             batches_per_minute=60 * completed / elapsed,
-            batch_eta_s=elapsed / completed * (576 - completed) if completed else None,
+            batch_eta_s=elapsed / completed * (planned_batches - completed) if completed else None,
         )
     write(root / "summary.json", output)
     return output
@@ -317,7 +319,7 @@ def launch(root, unit):
     command = [
         sys.executable,
         "-m",
-        "scripts.run_research_formation",
+        read(root / "design.json").get("worker_module", "scripts.run_research_formation"),
         "--root",
         str(root),
         "--unit",
@@ -345,6 +347,11 @@ def launch(root, unit):
 
 def coordinate(root):
     prepare(root)
+    return coordinate_prepared(root)
+
+
+def coordinate_prepared(root):
+    """Execute a prepared, immutable schedule without changing its coverage."""
     started = time.monotonic()
     ref = launch(root, None)
     while ref["process"].poll() is None:
@@ -352,7 +359,7 @@ def coordinate(root):
         emit(
             {
                 "stage": "references",
-                "total_batches": 336,
+                "total_batches": read(root / "design.json")["planned_reference_batches"],
                 "elapsed_s": round(time.monotonic() - started),
                 "log_bytes": (root / "logs/references.log").stat().st_size,
                 "progress": read(progress_path) if progress_path.exists() else {},

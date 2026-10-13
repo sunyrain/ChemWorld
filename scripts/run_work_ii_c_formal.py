@@ -221,6 +221,7 @@ def physics(
     truths,
     envelope=None,
     diagnostics=None,
+    observer=None,
 ):
     envelope = batches if envelope is None else envelope
     return run_agent(
@@ -243,7 +244,11 @@ def physics(
         observation_noise_namespace=NAMESPACE,
         output_path=output,
         step_callback=callback,
-        env_wrapper=lambda env: pilot.TruthCapture(env, truths, diagnostics),
+        env_wrapper=lambda env: (
+            observer(pilot.TruthCapture(env, truths, diagnostics))
+            if observer is not None
+            else pilot.TruthCapture(env, truths, diagnostics)
+        ),
         method_resource_limits={
             "operation_limit": 60 * batches,
             "complete_experiment_limit": batches,
@@ -269,6 +274,7 @@ def fixed(
     observation_seed=101,
     envelope=None,
     capture_diagnostics=False,
+    observer=None,
 ):
     root.mkdir(parents=True, exist_ok=False)
     write(root / "actions.json", actions)
@@ -311,6 +317,7 @@ def fixed(
                 truths=truths,
                 envelope=envelope,
                 diagnostics=diagnostics,
+                observer=observer,
             )
         except Exception as exc:
             failure = {"type": type(exc).__name__, "message": str(exc)}
