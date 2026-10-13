@@ -11,7 +11,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from scripts.run_paper_case_notebooks import read
 
-COLORS = {"Opaque": "#287B8E", "Aligned": "#BE6948"}
+COLORS = {"Opaque": "#287B8E", "Aligned": "#BE6948", "MisIndexed": "#7964A2"}
 PANELS = {
     "EQ": [
         ("Lowest-concentration queries", "Macro MAE", "lowest_three_macro_mae"),
@@ -46,9 +46,16 @@ def plot(path, output):
     plt.rcParams.update({"font.size": 10, "axes.spines.top": False, "axes.spines.right": False})
     for system, panels in PANELS.items():
         worlds = sorted({r["world"] for r in data["cases"] if r["system"] == system})
+        arms = [
+            a for a in COLORS if any(r["system"] == system and r["arm"] == a for r in data["cases"])
+        ]
+        offsets = dict(
+            zip(arms, {1: (0,), 2: (-0.15, 0.15), 3: (-0.23, 0, 0.23)}[len(arms)], strict=True)
+        )
         fig, axes = plt.subplots(2, 2, figsize=(11, 7), constrained_layout=True)
         for ax, (title, ylabel, metric) in zip(axes.flat, panels, strict=True):
-            for arm, color in COLORS.items():
+            for arm in arms:
+                color = COLORS[arm]
                 for row in data["cases"]:
                     if (row["system"], row["arm"]) != (system, arm):
                         continue
@@ -56,7 +63,7 @@ def plot(path, output):
                     if value is None:
                         continue
                     repeat = int(row["repeat"].split("-")[1]) - 1
-                    x = worlds.index(row["world"]) + (-0.15 if arm == "Opaque" else 0.15)
+                    x = worlds.index(row["world"]) + offsets[arm]
                     x += (repeat - 1) * 0.045
                     ax.scatter(
                         x, value, s=43, color=color, marker=("o", "s", "^")[repeat], alpha=0.9
@@ -87,6 +94,61 @@ def plot(path, output):
         for suffix in ("png", "pdf"):
             fig.savefig(output / f"{system.lower()}-individual-outcomes.{suffix}", dpi=180)
         plt.close(fig)
+    pairs_path = path.parent / "quench_pairs.json"
+    if pairs_path.exists():
+        plot_quench(read(pairs_path), output)
+
+
+def plot_quench(pairs, output):
+    complete = [p for p in pairs if p["absent"]["truth"] and p["present"]["truth"]]
+    palette = ("#287B8E", "#BE6948", "#7964A2", "#71863C", "#AF5677")
+    fig, axes = plt.subplots(1, 2, figsize=(11, 5), layout="constrained")
+    for ax, (metric, label, threshold) in zip(
+        axes,
+        (
+            ("crystal_fines_fraction", "Fines fraction", 0.5),
+            ("crystal_yield", "Seed-excluded recovery", 0.1),
+        ),
+        strict=True,
+    ):
+        for world, color in zip((f"W{i:02d}" for i in range(1, 6)), palette, strict=True):
+            for original_world in (False, True):
+                rows = [
+                    p
+                    for p in complete
+                    if p["world"] == world
+                    and (p["world"] == p["recipe_source_world"]) == original_world
+                ]
+                ax.scatter(
+                    [p["absent"]["truth"][metric] for p in rows],
+                    [p["present"]["truth"][metric] for p in rows],
+                    s=45,
+                    edgecolors=color,
+                    facecolors=color if original_world else "none",
+                    alpha=0.8,
+                    label=world if original_world else None,
+                )
+        ax.plot([0, 1], [0, 1], color="#888888", linewidth=1, linestyle="--")
+        ax.axhline(threshold, color="#cccccc", linewidth=0.8, linestyle=":")
+        ax.axvline(threshold, color="#cccccc", linewidth=0.8, linestyle=":")
+        ax.set(
+            title=label,
+            xlabel="Without quench",
+            ylabel="With quench",
+            xlim=(-0.025, 1.025),
+            ylim=(-0.025, 1.025),
+            aspect="equal",
+        )
+    axes[0].legend(frameon=False, fontsize=8, loc="lower right")
+    fig.suptitle(
+        f"Matched operation effects: {len(complete)}/{len(pairs)} pairs with both endpoints\n"
+        "Filled: recipe's original world; open: other worlds. "
+        "Missing endpoints excluded, not zero.",
+        fontsize=11,
+    )
+    for suffix in ("png", "pdf"):
+        fig.savefig(output / f"quench-paired-outcomes.{suffix}", dpi=180)
+    plt.close(fig)
 
 
 if __name__ == "__main__":
