@@ -115,8 +115,10 @@ participant prompt, resource limit, model, environment or stop rule changed.
 
 After ten terminal sessions, while repeat-02/C-12 was running, the user explicitly
 requested 4 or 8 concurrent sessions. Use **four** independent source processes for
-the remaining units. Replace only the serial coordinator, keep its active source
-process running, and attach the replacement scheduler to that process. Skip every
+the remaining units. During implementation, repeat-02/C-12 completed and the original
+coordinator started C-24. The actual handoff occurred with 11 terminal sources and
+144 completed batches: only the serial coordinator stopped, while the active
+repeat-02/C-24 process continued under the replacement scheduler's monitoring. Skip every
 completed source and launch each still-unstarted source exactly once. Finish each
 round's fixed reference calculation before launching its sources.
 

@@ -251,6 +251,8 @@ def build(root, destination, previous):
     summary["reference_values_equal_between_repeats"] = {}
     startup = root.parent / "startup-accounting.json"
     summary["startup_attempt_separate"] = read(startup) if startup.exists() else None
+    amendment = root / "concurrency-amendment.json"
+    summary["scheduling_amendment"] = read(amendment) if amendment.exists() else None
     for repeat in REPEATS[1:]:
         relatives = ("references/truth.json", "C/qualification/W05/queries/result.json")
         if all((root / repeat / p).exists() and (first / p).exists() for p in relatives):
@@ -274,6 +276,10 @@ def build(root, destination, previous):
         f"complete chains {counts['completed_sources']}/18; "
         f"source batches {counts['completed_batches']}/252; sealed posttests "
         f"{counts['completed_posttests']}/60.",
+        "",
+        "Scheduling: initially serial; see scheduling_amendment in summary.json for any "
+        "user-authorized concurrency change. Participant conditions and denominators "
+        "remain fixed; equal provider service load is not assumed.",
         "",
         "| Case | Repeat | Status | Batches | Note versions | Reads | Record |",
         "| --- | --- | --- | ---: | ---: | ---: | --- |",
