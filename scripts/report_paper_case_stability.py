@@ -4,10 +4,11 @@ from __future__ import annotations
 
 import argparse
 import json
+from collections import Counter
 from statistics import fmean, stdev
 
 from scripts.report_paper_case_notebooks import export
-from scripts.run_paper_case_notebooks import CASES, ROOT, read, write
+from scripts.run_paper_case_notebooks import CASES, ROOT, case_folder, read, write
 from scripts.run_paper_case_stability import REPEATS
 
 
@@ -110,6 +111,32 @@ def number(value):
     return "—" if value is None else f"{value:.6g}"
 
 
+def seed_execution(folder):
+    """Separate successful additions from requested/rejected seed operations."""
+    path = folder / "trajectory.jsonl"
+    if not path.exists():
+        return None
+    batches, reasons = {}, Counter()
+    with path.open(encoding="utf-8") as stream:
+        for line in stream:
+            row = json.loads(line)
+            action = row["action"]
+            if action["operation"] != "seed_crystals":
+                continue
+            index = row["experiment_index"] + 1
+            batch = batches.setdefault(index, {
+                "lifecycle_index": index, "committed_calls": 0, "rejected_calls": 0,
+                "committed_seed_additions_g": 0.0,
+            })
+            if row["transaction_status"] == "committed":
+                batch["committed_calls"] += 1
+                batch["committed_seed_additions_g"] += action["seed_mass_g"]
+            else:
+                batch["rejected_calls"] += 1
+                reasons.update(k for k, v in row.get("preconditions", {}).items() if not v)
+    return {"by_batch": list(batches.values()), "rejection_preconditions": dict(reasons)}
+
+
 def build(root, destination, previous):
     destination.mkdir(parents=True, exist_ok=True)
     summaries = {
@@ -132,6 +159,12 @@ def build(root, destination, previous):
                 "failure": row["failure"],
                 "completed_batches": row["completed_batches"],
                 "planned_batches": case["batches"],
+                "source_operations": row["operations"],
+                "source_rollbacks": len(row["rollbacks"]),
+                "source_replay_verified": (row["exact_replay"] or {}).get("verified"),
+                "elapsed_s": row["elapsed_s"],
+                "seed_execution": seed_execution(case_folder(root / repeat, case))
+                if case["system"] == "C" else None,
                 "measurements": measurements(row),
                 "notebook": {
                     k: row["notebook"][k]
@@ -281,14 +314,16 @@ def build(root, destination, previous):
         "user-authorized concurrency change. Participant conditions and denominators "
         "remain fixed; equal provider service load is not assumed.",
         "",
-        "| Case | Repeat | Status | Batches | Note versions | Reads | Record |",
-        "| --- | --- | --- | ---: | ---: | ---: | --- |",
+        "| Case | Repeat | Status | Batches | Operations | Rollbacks | "
+        "Note versions | Reads | Record |",
+        "| --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |",
     ]
     for row in rows.values():
         prefix = f"{row['repeat']}/{row['case']}"
         lines.append(
             f"| {row['case']} | {row['repeat']} | {row['status']} | "
             f"{row['completed_batches']}/{row['planned_batches']} | "
+            f"{row['source_operations']} | {row['source_rollbacks']} | "
             f"{row['notebook']['version_count']} | {row['notebook']['read_calls']} | "
             f"[notes]({prefix}-notebook.md), [reports]({prefix}-reports.md) |"
         )

@@ -1,4 +1,11 @@
-from scripts.report_paper_case_stability import describe, directional_comparison, measurements
+import json
+
+from scripts.report_paper_case_stability import (
+    describe,
+    directional_comparison,
+    measurements,
+    seed_execution,
+)
 
 
 def test_missing_repeat_is_not_imputed_or_counted_as_independent_query():
@@ -53,3 +60,19 @@ def test_equilibrium_reference_mean_errors_and_coverage_are_not_lost():
     assert result["pH_normalized_mae"] == 0.012
     assert result["pH_normalized_coverage80"] == 0.95
     assert result["pH_normalized_mean_width80"] == 0.04
+
+
+def test_rejected_seeding_is_not_counted_as_material_actually_added(tmp_path):
+    rows = [
+        {"action": {"operation": "seed_crystals", "seed_mass_g": 0.05},
+         "experiment_index": 0, "transaction_status": status,
+         "preconditions": {"payload_bounds:seed_mass_g": status == "committed"}}
+        for status in ("committed", "validation_failed", "validation_failed")
+    ]
+    (tmp_path / "trajectory.jsonl").write_text(
+        "\n".join(json.dumps(r) for r in rows), encoding="utf-8"
+    )
+    result = seed_execution(tmp_path)
+    assert result["by_batch"] == [{"lifecycle_index": 1, "committed_calls": 1,
+                                  "rejected_calls": 2, "committed_seed_additions_g": 0.05}]
+    assert result["rejection_preconditions"] == {"payload_bounds:seed_mass_g": 2}
