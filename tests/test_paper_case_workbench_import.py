@@ -8,8 +8,9 @@ from chemworld.workbench.service import ResearchStore, write_json
 
 
 @pytest.mark.parametrize("repeat_label", [None, "Repeat 1"])
+@pytest.mark.parametrize("campaign_status", ["completed", "retained_nonconforming"])
 def test_import_preserves_public_events_notes_and_reports_without_private_state(
-    tmp_path, monkeypatch, repeat_label
+    tmp_path, monkeypatch, repeat_label, campaign_status
 ):
     source = tmp_path / "source"
     documents = ExperimentDocumentWorkspace(source / "notebook", versioned_notebook=True)
@@ -50,7 +51,7 @@ def test_import_preserves_public_events_notes_and_reports_without_private_state(
     write_json(
         reports / "EC-discovery.json",
         {
-            "status": "completed",
+            "status": campaign_status,
             "operations": 2,
             "completed_batches": 2,
             "elapsed_s": 5,
@@ -71,6 +72,7 @@ def test_import_preserves_public_events_notes_and_reports_without_private_state(
     try:
         run = store.get(record["id"])
         snapshot = run.snapshot()
+        assert snapshot["status"] == ("completed" if campaign_status == "completed" else "failed")
         if repeat_label:
             assert snapshot["name"].endswith(repeat_label)
             assert "稳定性" in snapshot["project"]

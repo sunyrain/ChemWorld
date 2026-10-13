@@ -245,6 +245,7 @@ function disposeExplorer() {
   state.chartObserver = null;
 }
 function runMessage(r) {
+  if (r.archive_only && r.message) return r.message;
   const rollback = r.events.findLast(e => e.transaction_status === "rolled_back");
   if (r.status === "failed" && rollback) return eventSummary(rollback).summary;
   if (r.message === "Native model report saved.") return r.status === "failed" ? "实验未完成，请查看操作记录和模型报告。" : "模型报告已保存。";

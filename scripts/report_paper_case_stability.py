@@ -135,6 +135,17 @@ def build(root, destination, previous):
                     )
                 },
                 "token_accounting": row["token_accounting"],
+                "prediction_valid": (row.get("prediction_evaluation") or {}).get("valid"),
+                "posttest_status": {
+                    stage: {
+                        "submitted": bool(
+                            (row.get("posttests", {}).get(stage) or {}).get("payload")
+                        ),
+                        "failure": (row.get("posttests", {}).get(stage) or {}).get("failure"),
+                        "record_present": stage in row.get("posttests", {}),
+                    }
+                    for stage in ("K1", "Q", "K2", *(("EQS",) if case["system"] == "EQ" else ()))
+                },
             }
     groups = {}
     for case in CASES:
@@ -306,6 +317,12 @@ def build(root, destination, previous):
     for row in rows.values():
         if row["failure"]:
             lines.append(f"- {row['repeat']}/{row['case']}: {row['failure']}")
+        for stage, status in row["posttest_status"].items():
+            if status["failure"] or not status["submitted"]:
+                reason = status["failure"] or (
+                    "not executed/recorded" if not status["record_present"] else "no sealed payload"
+                )
+                lines.append(f"- {row['repeat']}/{row['case']}/{stage}: {reason}")
     lines += [
         "",
         "Full errors, notebook citation checks, resource accounts and unchanged model text "

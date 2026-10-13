@@ -97,3 +97,16 @@ participant engines, budgets and measurements are unchanged. Restart the complet
 block in `attempt-02`, from references and the first planned source; no model outcome
 was available for selection. The output root above describes the initial attempt;
 the actual research block is retained under `attempt-02`.
+
+## Reporting implementation while the fixed block runs
+
+The first Astra session completed its 12 source batches and sealed K1/Q, with exact
+source replay, but K2 returned `provider_failure`; EQS was not executed. Retain the
+session as nonconforming without rerunning it. Its valid Q metrics remain available
+for the planned prediction summaries; missing later reports remain explicit. The
+next planned case proceeds under the unchanged provider-failure rule.
+
+The report and workbench importer now display such incomplete terminal chains as
+well as complete chains, preserving source observations, notes, sealed answers,
+posttest failures and unexecuted stages. This is a presentation change only; no
+participant prompt, resource limit, model, environment or stop rule changed.

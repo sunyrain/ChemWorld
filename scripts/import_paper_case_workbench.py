@@ -34,8 +34,9 @@ def import_case(
     root: Path, reports: Path, destination: Path, case: dict, *, repeat_label: str | None = None
 ) -> dict:
     row = read(reports / f"{case['id']}.json")
-    if row["status"] != "completed":
-        raise ValueError("This importer accepts completed chains only")
+    if row["status"] not in {"completed", "retained_nonconforming"}:
+        raise ValueError("This importer accepts terminal chains with retained source records")
+    complete = row["status"] == "completed"
     source = case_folder(root, case)
     documents = list(source.glob("**/notebook/experiment_documents"))
     if len(documents) != 1:
@@ -110,13 +111,14 @@ def import_case(
             "campaign_cell": case["cell"],
             "batches": case["batches"],
         },
-        "status": "completed",
+        "status": "completed" if complete else "failed",
+        "campaign_status": row["status"],
         "actor": case["model"],
         "provider": "native-campaign-archive",
         "model_configuration": {"requested_model": case["model"], "reasoning_effort": "medium"},
         "model_calls": None,
         "model_tool_calls": None,
-        "usage": {**usage["total"], "complete": usage["complete"]},
+        "usage": {**(usage["total"] or {}), "complete": usage["complete"]},
         "wall_time_s": row["elapsed_s"],
         "cost_usd": None,
         "events": events,
@@ -128,6 +130,9 @@ def import_case(
         "replay": row["exact_replay"],
         "message": (
             "已导入完整实验链。回放结果来自原执行；此档案只供阅览，不能直接续跑或复制为同条件实验。"
+            if complete
+            else "已保留不完整实验链：源实验、笔记与已提交报告可读，"
+            "后测失败及未执行阶段均保留；未补跑。"
         ),
         "view": {
             "observation": last.get("observation", {}),
@@ -153,6 +158,17 @@ def import_case(
         "retained_failures": {
             "notebook_tool_errors": row["notebook"]["tool_failures"],
             "laboratory_tool_errors": row["source_usage"]["recovered_mcp_tool_failure_count"],
+            "source_failure": row.get("failure"),
+            "posttest_failures": {
+                stage: turn["failure"]
+                for stage, turn in row["posttests"].items()
+                if turn.get("failure")
+            },
+            "missing_posttests": [
+                stage
+                for stage in ("K1", "Q", "K2", *(("EQS",) if case.get("system") == "EQ" else ()))
+                if stage not in row["posttests"]
+            ],
         },
     }
     write_json(target / "run.json", metadata)
