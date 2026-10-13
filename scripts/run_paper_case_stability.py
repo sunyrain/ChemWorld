@@ -88,7 +88,7 @@ def run(root: Path):
                 while process.poll() is None:
                     summary = snapshot(root, repeat, None if unit == "references" else unit)
                     completed = summary["completed_batches"] + summary["active"].get("batches", 0)
-                    elapsed = time.monotonic() - started
+                    elapsed = max(time.monotonic() - started, 1e-6)
                     emit(
                         {
                             "repeat": repeat,

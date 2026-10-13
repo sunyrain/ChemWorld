@@ -45,15 +45,19 @@ def test_execution_defect_stops_before_another_provider_unit(tmp_path, monkeypat
 
     class FailedProcess:
         returncode = 9
+        polls = 0
 
         def __init__(self, command, **kwargs):
             launched.append(command)
 
         def poll(self):
-            return self.returncode
+            self.polls += 1
+            return None if self.polls == 1 else self.returncode
 
     monkeypatch.setattr(stability, "prepare", prepare)
     monkeypatch.setattr(stability.subprocess, "Popen", FailedProcess)
+    monkeypatch.setattr(stability.time, "monotonic", lambda: 0.0)
+    monkeypatch.setattr(stability.time, "sleep", lambda _: None)
     root = tmp_path / "new-block"
     assert stability.run(root) == 9
     assert prepared == list(stability.REPEATS)

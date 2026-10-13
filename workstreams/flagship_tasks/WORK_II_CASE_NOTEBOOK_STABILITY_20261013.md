@@ -85,3 +85,15 @@ Import completed chains into the local workbench with explicit repeat labels.
 No manuscript rewrite, environment redesign, extra model or extra condition is part
 of this block. Runtime and notebook execution code remain unchanged from W2-246;
 the new coordinator only schedules isolated copies and reports progress.
+
+## Startup correction, before any participant session
+
+The first coordinator launch stopped at its first progress message because the
+monotonic elapsed time was zero and the throughput display divided by zero.
+Only the provider-free reference subprocess was launched; no participant source was
+started. Preserve `attempt-01` and its launcher logs. Bound the display denominator
+away from zero and exercise this case in the scheduler stop test. The fixed design,
+participant engines, budgets and measurements are unchanged. Restart the complete
+block in `attempt-02`, from references and the first planned source; no model outcome
+was available for selection. The output root above describes the initial attempt;
+the actual research block is retained under `attempt-02`.
