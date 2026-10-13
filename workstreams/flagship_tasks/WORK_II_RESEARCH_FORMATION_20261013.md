@@ -96,3 +96,13 @@ Sanitized summaries/notebooks/reports belong under
 `workstreams/flagship_tasks/reports/research-formation-20261013/`; complete available
 archives can be imported into the local workbench. No credentials/raw provider payloads
 enter Git. This task does not rewrite the manuscript or add another model/intervention.
+
+## Execution status
+
+Launched from source commit `68dce156` after 25 focused scheduler/report/import tests,
+Ruff and diff checks. References completed 336/336 batches in 28 exactly replayed
+trajectories, with 2,276 operations. The first four model sessions are active under
+the fixed queue. No change to the participant execution surface after launch.
+The separate `report_research_formation` observer exports terminal sessions without
+provider/simulator calls to the external `20261013-research-formation/reports/` folder,
+before final review and repository integration. The block remains in progress.
