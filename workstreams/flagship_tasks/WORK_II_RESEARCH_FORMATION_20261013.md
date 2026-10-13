@@ -106,3 +106,9 @@ the fixed queue. No change to the participant execution surface after launch.
 The separate `report_research_formation` observer exports terminal sessions without
 provider/simulator calls to the external `20261013-research-formation/reports/` folder,
 before final review and repository integration. The block remains in progress.
+
+## Completed analysis and publication
+
+All 48 sources reached terminal dispositions: 44 complete chains, 576/576 source batches, 162/174 valid sealed stages and 145 notebook versions. Failures are retained, with no replacement source. The user explicitly authorized analysis and main publication after completion. The final exporter checks all planned slots against the raw terminal statuses and prediction evaluations; runtime and source budgets were not modified.
+
+[Review and all records](reports/research-formation-20261013/REVIEW.md) include world-level comparisons and all individual repeats, resource/failure accounting, notebook timing, and four explicitly selected first-round process examples. Signed purity error and structural note timing are retrospective descriptive additions; no uncalibrated LLM judge or new scientific pass threshold was introduced. No manuscript or historical evidence was replaced.
