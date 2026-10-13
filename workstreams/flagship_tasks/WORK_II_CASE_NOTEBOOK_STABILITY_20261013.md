@@ -110,3 +110,19 @@ The report and workbench importer now display such incomplete terminal chains as
 well as complete chains, preserving source observations, notes, sealed answers,
 posttest failures and unexecuted stages. This is a presentation change only; no
 participant prompt, resource limit, model, environment or stop rule changed.
+
+## User-authorized scheduling amendment during execution
+
+After ten terminal sessions, while repeat-02/C-12 was running, the user explicitly
+requested 4 or 8 concurrent sessions. Use **four** independent source processes for
+the remaining units. Replace only the serial coordinator, keep its active source
+process running, and attach the replacement scheduler to that process. Skip every
+completed source and launch each still-unstarted source exactly once. Finish each
+round's fixed reference calculation before launching its sources.
+
+This supersedes the initial serial scheduling instruction, not the tested units,
+models, worlds, priors, budgets, measurements or failure rules. No partial source
+is restarted or replaced. If an execution/reference/replay defect occurs, stop new
+launches and retain the results of already in-flight units. Record the switch and
+launches with the raw block, and report that provider concurrency/calendar order
+changed mid-block; do not claim identical service-load conditions across repeats.
