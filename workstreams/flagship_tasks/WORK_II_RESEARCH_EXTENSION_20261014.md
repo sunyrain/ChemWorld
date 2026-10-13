@@ -98,3 +98,7 @@ Quench raw root: sibling `quench-attempt-01`. Raw provider payloads and credenti
 outside Git. Publish sanitized 42-source and combined 90-source counts, per-session notes
 and posttests, per-pair causal data, failures and readable summaries under
 `reports/research-extension-20261014/`. Existing W2-249 files are never overwritten.
+
+## Completion (2026-10-14)
+
+42/42 new sources terminal; 40 full chains, 503/504 batches, 136/141 stages. Quench: 180/180 trajectories, 90 pairs, 75 valid pairs. All failures retained. [Results](reports/research-extension-20261014/REVIEW.md).

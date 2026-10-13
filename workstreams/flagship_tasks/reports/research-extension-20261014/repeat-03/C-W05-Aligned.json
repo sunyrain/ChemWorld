@@ -1,0 +1,2051 @@
+{
+  "repeat": "repeat-03",
+  "id": "C-W05-Aligned",
+  "system": "C",
+  "world": "W05",
+  "arm": "Aligned",
+  "cell": "C-W05-B12-E-Aligned",
+  "model": "gpt-5.6-sol",
+  "batches": 12,
+  "status": "completed",
+  "failure": null,
+  "completed_batches": 12,
+  "operations": 137,
+  "exact_replay": {
+    "verified": true,
+    "checked_steps": 137,
+    "max_abs_error": 0.0,
+    "mismatches": []
+  },
+  "rollbacks": [],
+  "batch_outcomes": [
+    {
+      "lifecycle_index": 1,
+      "metrics": {
+        "byproduct_signal": 0.37757164239883423,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6363469362258911,
+        "crystal_fines_fraction": 0.5730680227279663,
+        "crystal_purity": 0.9849239587783813,
+        "crystal_size": 0.06844506412744522,
+        "crystal_yield": 0.35503876209259033,
+        "degradation_warning": 0.19319018721580505,
+        "safety_risk": 0.172881618142128,
+        "score": 0.4266918897628784,
+        "selectivity": 0.46781718730926514,
+        "virtual_spectrum_summary": 0.2945999801158905,
+        "yield": 0.4656547009944916
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 373
+        },
+        {
+          "duration_s": 3600,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.02
+        },
+        {
+          "duration_s": 7200,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 280
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 2,
+      "metrics": {
+        "byproduct_signal": 0.5694171190261841,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.5032967329025269,
+        "crystal_fines_fraction": 0.8189677000045776,
+        "crystal_purity": 0.9809492826461792,
+        "crystal_size": 0.0852004885673523,
+        "crystal_yield": 0.22955316305160522,
+        "degradation_warning": 0.4082969129085541,
+        "safety_risk": 0.15941151976585388,
+        "score": 0.3242161273956299,
+        "selectivity": 0.35866233706474304,
+        "virtual_spectrum_summary": 0.49691304564476013,
+        "yield": 0.3472173511981964
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 3,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 373
+        },
+        {
+          "duration_s": 3600,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "duration_s": 3600,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 330
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 7200,
+          "operation": "wait",
+          "stirring_speed_rpm": 250
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 280
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 3,
+      "metrics": {
+        "byproduct_signal": 0.262215793132782,
+        "conversion": 0.9962107539176941,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.7167978882789612,
+        "crystal_fines_fraction": 0.3795948028564453,
+        "crystal_purity": 0.9886478781700134,
+        "crystal_size": 0.07254209369421005,
+        "crystal_yield": 0.388487309217453,
+        "degradation_warning": 0.08052554726600647,
+        "safety_risk": 0.17880991101264954,
+        "score": 0.4916873574256897,
+        "selectivity": 0.5771448016166687,
+        "virtual_spectrum_summary": 0.18045517802238464,
+        "yield": 0.5750434994697571
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 300
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 4,
+      "metrics": {
+        "byproduct_signal": 0.296051025390625,
+        "conversion": 0.9849758148193359,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.7241541147232056,
+        "crystal_fines_fraction": 0.3389744460582733,
+        "crystal_purity": 1.0,
+        "crystal_size": 0.08387038856744766,
+        "crystal_yield": 0.3385280668735504,
+        "degradation_warning": 0.026809167116880417,
+        "safety_risk": 0.16917884349822998,
+        "score": 0.4689059555530548,
+        "selectivity": 0.4818474352359772,
+        "virtual_spectrum_summary": 0.17489218711853027,
+        "yield": 0.4662987291812897
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 5,
+      "metrics": {
+        "byproduct_signal": 0.23872531950473785,
+        "conversion": 0.9954166412353516,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6690298318862915,
+        "crystal_fines_fraction": 0.5184645652770996,
+        "crystal_purity": 0.9750431776046753,
+        "crystal_size": 0.054789405316114426,
+        "crystal_yield": 0.4860253632068634,
+        "degradation_warning": 0.05760809779167175,
+        "safety_risk": 0.1712963581085205,
+        "score": 0.5024394392967224,
+        "selectivity": 0.6541304588317871,
+        "virtual_spectrum_summary": 0.15722256898880005,
+        "yield": 0.6473876237869263
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 6,
+      "metrics": {
+        "byproduct_signal": 0.2900691628456116,
+        "conversion": 0.9916735887527466,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.5137178301811218,
+        "crystal_fines_fraction": 0.7868722081184387,
+        "crystal_purity": 0.9889736175537109,
+        "crystal_size": 0.03998745232820511,
+        "crystal_yield": 0.3453967869281769,
+        "degradation_warning": 0.07414942234754562,
+        "safety_risk": 0.1845555156469345,
+        "score": 0.3905816674232483,
+        "selectivity": 0.5463590025901794,
+        "virtual_spectrum_summary": 0.1929052770137787,
+        "yield": 0.5478247404098511
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 7,
+      "metrics": {
+        "byproduct_signal": 0.21379408240318298,
+        "conversion": 0.9970980286598206,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.5320377945899963,
+        "crystal_fines_fraction": 0.7582034468650818,
+        "crystal_purity": 0.9763904809951782,
+        "crystal_size": 0.07878348231315613,
+        "crystal_yield": 0.4522499442100525,
+        "degradation_warning": 0.039187099784612656,
+        "safety_risk": 0.14237277209758759,
+        "score": 0.4441507160663605,
+        "selectivity": 0.6190698146820068,
+        "virtual_spectrum_summary": 0.1352209448814392,
+        "yield": 0.6409883499145508
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 8,
+      "metrics": {
+        "byproduct_signal": 0.21908888220787048,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6978279948234558,
+        "crystal_fines_fraction": 0.49190616607666016,
+        "crystal_purity": 0.9774675965309143,
+        "crystal_size": 0.10488701611757278,
+        "crystal_yield": 0.495009183883667,
+        "degradation_warning": 0.06182124465703964,
+        "safety_risk": 0.16985560953617096,
+        "score": 0.5174247622489929,
+        "selectivity": 0.6482319235801697,
+        "virtual_spectrum_summary": 0.14831843972206116,
+        "yield": 0.6393338441848755
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 295
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 9,
+      "metrics": {
+        "byproduct_signal": 0.2295384407043457,
+        "conversion": 0.9999351501464844,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6787323355674744,
+        "crystal_fines_fraction": 0.5093303322792053,
+        "crystal_purity": 0.9793151617050171,
+        "crystal_size": 0.05548549070954323,
+        "crystal_yield": 0.48591628670692444,
+        "degradation_warning": 0.05442485213279724,
+        "safety_risk": 0.16947391629219055,
+        "score": 0.5013653635978699,
+        "selectivity": 0.6139638423919678,
+        "virtual_spectrum_summary": 0.15073733031749725,
+        "yield": 0.6270585060119629
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.02
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 295
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 10,
+      "metrics": {
+        "byproduct_signal": 0.2509801387786865,
+        "conversion": 0.985819935798645,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.5595395565032959,
+        "crystal_fines_fraction": 0.6663601994514465,
+        "crystal_purity": 0.9752829074859619,
+        "crystal_size": 0.06520754098892212,
+        "crystal_yield": 0.48223528265953064,
+        "degradation_warning": 0.08997905254364014,
+        "safety_risk": 0.16856805980205536,
+        "score": 0.46013906598091125,
+        "selectivity": 0.6133627891540527,
+        "virtual_spectrum_summary": 0.17852963507175446,
+        "yield": 0.6222869157791138
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 7200,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 285
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 250,
+          "target_temperature_K": 315
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 11,
+      "metrics": {
+        "byproduct_signal": 0.2309301644563675,
+        "conversion": 0.9980968236923218,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6577184796333313,
+        "crystal_fines_fraction": 0.4973308742046356,
+        "crystal_purity": 0.9906041026115417,
+        "crystal_size": 0.0742553249001503,
+        "crystal_yield": 0.46964994072914124,
+        "degradation_warning": 0.042851224541664124,
+        "safety_risk": 0.16904182732105255,
+        "score": 0.5018919706344604,
+        "selectivity": 0.6546429991722107,
+        "virtual_spectrum_summary": 0.14629463851451874,
+        "yield": 0.6345602869987488
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 297.5
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "lifecycle_index": 12,
+      "metrics": {
+        "byproduct_signal": 0.2149316966533661,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6700592637062073,
+        "crystal_fines_fraction": 0.5068862438201904,
+        "crystal_purity": 0.991797924041748,
+        "crystal_size": 0.09619790315628052,
+        "crystal_yield": 0.48094573616981506,
+        "degradation_warning": 0.06460963189601898,
+        "safety_risk": 0.16985560953617096,
+        "score": 0.5078681111335754,
+        "selectivity": 0.6340742111206055,
+        "virtual_spectrum_summary": 0.1472867727279663,
+        "yield": 0.6385233998298645
+      },
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 350
+        },
+        {
+          "duration_s": 1800,
+          "operation": "advance_control"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 295
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 295
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    }
+  ],
+  "posttests": {
+    "K1": {
+      "payload": {
+        "report": "## Mechanistic account\n\n### Process and recommended batch\nThe sealed recommendation is batch 8. It used 0.040 mol reagent, 0.005 mol catalyst C0, 0.080 L solvent S1, reaction control at 350 K for 1800 s, 0.050 g seed, and slow crystallization to 295 K over 14,400 s. Its final assay reported crystal recovery 0.495, purity 0.977, and fines number fraction 0.492.\n\n### Reaction-stage material effects\nConversion was generally near unity, so catalyst and solvent primarily affected selectivity, byproduct formation, and degradation rather than whether reagent disappeared. A useful approximation is\n\nY_rxn ≈ X × S,\n\nwhere X is conversion, S is target selectivity, and Y_rxn is target-product yield before separation.\n\nC0 was the strongest catalyst observed in the relevant screen. With S2 at 350 K for 1800 s, batch 3 gave final reaction yield 0.575 and selectivity 0.577. Under comparable reaction conditions, C2/S2 in batch 4 gave yield 0.466 and selectivity 0.482. C1 and C3 were tested with S2 at the hotter, longer 373 K/3600 s condition: batch 1 gave yield 0.466, selectivity 0.468, and degradation warning 0.193; batch 2 gave yield 0.347, selectivity 0.359, and degradation warning 0.408. These observations support C0, but they do not constitute a clean four-catalyst comparison because C1/C3 experienced a different thermal history. An untested alternative is that C1 or C3 could perform better at the milder C0 conditions.\n\nSolvent affected both reaction selectivity and crystallization behavior. With C0 at 350 K/1800 s, S1 produced high reaction yield/selectivity repeatedly: batch 5 reported 0.647/0.654, batch 8 reported 0.639/0.648, and batch 11 reported 0.635/0.655. S0 also gave substantial reaction yield in batch 7 (0.641), whereas S3 in batch 6 was lower (0.548). Thus reaction yield alone did not determine an acceptable solid product.\n\n### Crystallization and reaction–separation coupling\nCrystal recovery is conditional on the target product present before separation, not on the original reagent charge. Overall seed-excluded isolated target relative to reagent can therefore be approximated as\n\nY_overall ≈ Y_rxn × R_cryst.\n\nFor batch 8 this is approximately 0.639 × 0.495 ≈ 0.316. The same calculation is about 0.223 for batch 3. This shows why both reaction selectivity and crystallization recovery matter even though the formal campaign objective focused on crystallization-stage recovery.\n\nModerate reaction selectivity did not prevent high crystal purity. All important C0 batches produced crystals around 0.975–0.992 purity despite reaction selectivities near 0.58–0.65. This is consistent with preferential incorporation of target product and rejection of reaction byproducts during crystallization. It also means the purity constraint was comparatively inactive; fines were the limiting quality attribute.\n\nThe solvent ranking for particle quality differed from the reaction ranking. At a 290 K endpoint with C0 and 0.050 g seed:\n\n- S1, batch 5: recovery 0.486, purity 0.975, fines 0.518.\n- S0, batch 7: recovery 0.452, purity 0.976, fines 0.758.\n- S3, batch 6: recovery 0.345, purity 0.989, fines 0.787.\n\nS2 gave a more conservative particle distribution: batch 3, crystallized to 300 K, had recovery 0.388, purity 0.989, and fines 0.380. This agrees qualitatively with the nominal dossier, in which S2 had favorable growth, low nucleation tendency, low impurity occlusion, and low solubility. S1 offered greater observed recovery but operated near the fines boundary. S0 and S3 appear to promote excessive secondary nucleation or insufficient growth under the tested cooling program. Those mechanistic assignments are interpretations; microscopy or time-resolved supersaturation data were not available.\n\n### Process-history dependence\nCooling endpoint and history controlled the recovery–fines balance. For the C0/S1 system with 0.050 g seed:\n\n- Batch 5, 290 K: recovery 0.486 and fines 0.518.\n- Batch 8, 295 K: recovery 0.495 and fines 0.492.\n- Batch 11, 297.5 K: recovery 0.470 and fines 0.497.\n- Batch 12, 295 K with an additional 14,400 s crystallization hold: recovery 0.481 and fines 0.507.\n\nThe broad interpretation is that greater supersaturation can improve recovery but risks generating more sub-20 µm particles. The individual results are not strictly monotonic: batch 8 had slightly greater recovery than the colder batch 5. Fixed-world variability, reaction-to-reaction differences, and measurement noise are sufficient alternative explanations, so these batches do not define a precise temperature-response equation.\n\nSeed dose also showed a directional effect. Batch 8 used 0.050 g seed and gave recovery 0.495, fines 0.492, and normalized size 0.105. Batch 9 used 0.020 g under otherwise similar C0/S1/295 K conditions and gave recovery 0.486, fines 0.509, and size 0.055. This is consistent with insufficient seed surface allowing more spontaneous nucleation and less subsequent growth, but it is a single comparison near the measurement-noise scale.\n\nThe tested digestion strategy was unsuccessful. Batch 10 was cooled to 285 K, reheated to about 315 K, and recooled to 290 K. It retained recovery of 0.482 but produced fines of 0.666. Thus reheating did not selectively dissolve fines under that profile; it may instead have erased the controlled seed history and caused renewed nucleation during recooling. Other digestion temperatures, durations, or agitation rates remain untested.\n\nBatch 2 cannot cleanly support a staged-cooling mechanism. Its nominal 330 K hold used an uncontrolled wait operation during which temperature drifted toward 299 K before the final cooling step. Its poor result—recovery 0.230 and fines 0.819—is consequently confounded by unintended thermal history and severe reaction degradation.\n\n### Revisions and uncertainty\nThe initial expectation favored S2 because its nominal properties suggested strong growth, low nucleation, low solubility, and low impurity occlusion. Experiments confirmed that S2 gave robust particle quality, but the study was revised when S1 delivered substantially higher recovery and reaction yield. Subsequent work located a narrow S1 operating region around 295–297.5 K rather than establishing a broad, robust optimum.\n\nThe main unresolved issue is the recovery–fines boundary. Batch 8 passed by only 0.008 in fines fraction. The declared final-assay noise scale for fines was 0.018, larger than that margin; moreover, the in-process particle measurement in batch 8 was 0.504 while its final assay was 0.492. Differences among batches 5, 8, 9, 11, and 12 therefore should not be treated as definitive evidence for small condition effects. Replication would be required to estimate the probability of meeting the 0.50 specification.\n\nPurity is much less uncertain as a constraint because observed values were roughly 0.975–0.992, far above the 0.80 minimum. The outstanding development problem is to preserve the approximately 0.49 crystallization recovery of the S1 process while creating a reproducible fines margin. Untested possibilities include narrower cooling ramps near the supersaturation onset, seed-size control rather than seed mass alone, controlled agitation profiles, and milder digestion followed by feedback-triggered cooling."
+      },
+      "failure": null,
+      "elapsed_s": 74.3289999999979,
+      "usage": {
+        "input_tokens": 1013171,
+        "cached_input_tokens": 923520,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 11934,
+        "reasoning_output_tokens": 3085
+      },
+      "method_resources": null
+    },
+    "Q": {
+      "payload": {
+        "predictions": [
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.3,
+              "lower80": 0.18,
+              "upper80": 0.44
+            },
+            "crystal_purity": {
+              "estimate": 0.96,
+              "lower80": 0.91,
+              "upper80": 0.99
+            },
+            "crystal_size": {
+              "estimate": 0.18,
+              "lower80": 0.11,
+              "upper80": 0.27
+            },
+            "crystal_yield": {
+              "estimate": 0.72,
+              "lower80": 0.6,
+              "upper80": 0.82
+            },
+            "particles_present": true,
+            "quality_feasible": true,
+            "query_id": "Q01"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.56,
+              "lower80": 0.4,
+              "upper80": 0.71
+            },
+            "crystal_purity": {
+              "estimate": 0.91,
+              "lower80": 0.83,
+              "upper80": 0.97
+            },
+            "crystal_size": {
+              "estimate": 0.1,
+              "lower80": 0.05,
+              "upper80": 0.18
+            },
+            "crystal_yield": {
+              "estimate": 0.59,
+              "lower80": 0.44,
+              "upper80": 0.72
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q02"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.7,
+              "lower80": 0.54,
+              "upper80": 0.83
+            },
+            "crystal_purity": {
+              "estimate": 0.91,
+              "lower80": 0.82,
+              "upper80": 0.97
+            },
+            "crystal_size": {
+              "estimate": 0.055,
+              "lower80": 0.02,
+              "upper80": 0.11
+            },
+            "crystal_yield": {
+              "estimate": 0.57,
+              "lower80": 0.42,
+              "upper80": 0.7
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q03"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.43,
+              "lower80": 0.29,
+              "upper80": 0.58
+            },
+            "crystal_purity": {
+              "estimate": 0.93,
+              "lower80": 0.85,
+              "upper80": 0.98
+            },
+            "crystal_size": {
+              "estimate": 0.14,
+              "lower80": 0.08,
+              "upper80": 0.23
+            },
+            "crystal_yield": {
+              "estimate": 0.61,
+              "lower80": 0.47,
+              "upper80": 0.73
+            },
+            "particles_present": true,
+            "quality_feasible": true,
+            "query_id": "Q04"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.4,
+              "lower80": 0.27,
+              "upper80": 0.55
+            },
+            "crystal_purity": {
+              "estimate": 0.93,
+              "lower80": 0.85,
+              "upper80": 0.98
+            },
+            "crystal_size": {
+              "estimate": 0.15,
+              "lower80": 0.09,
+              "upper80": 0.24
+            },
+            "crystal_yield": {
+              "estimate": 0.62,
+              "lower80": 0.48,
+              "upper80": 0.74
+            },
+            "particles_present": true,
+            "quality_feasible": true,
+            "query_id": "Q05"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.64,
+              "lower80": 0.48,
+              "upper80": 0.78
+            },
+            "crystal_purity": {
+              "estimate": 0.9,
+              "lower80": 0.81,
+              "upper80": 0.96
+            },
+            "crystal_size": {
+              "estimate": 0.075,
+              "lower80": 0.035,
+              "upper80": 0.14
+            },
+            "crystal_yield": {
+              "estimate": 0.65,
+              "lower80": 0.51,
+              "upper80": 0.77
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q06"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.38,
+              "lower80": 0.25,
+              "upper80": 0.53
+            },
+            "crystal_purity": {
+              "estimate": 0.94,
+              "lower80": 0.86,
+              "upper80": 0.98
+            },
+            "crystal_size": {
+              "estimate": 0.16,
+              "lower80": 0.09,
+              "upper80": 0.25
+            },
+            "crystal_yield": {
+              "estimate": 0.63,
+              "lower80": 0.49,
+              "upper80": 0.75
+            },
+            "particles_present": true,
+            "quality_feasible": true,
+            "query_id": "Q07"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.66,
+              "lower80": 0.5,
+              "upper80": 0.8
+            },
+            "crystal_purity": {
+              "estimate": 0.94,
+              "lower80": 0.86,
+              "upper80": 0.98
+            },
+            "crystal_size": {
+              "estimate": 0.08,
+              "lower80": 0.035,
+              "upper80": 0.15
+            },
+            "crystal_yield": {
+              "estimate": 0.56,
+              "lower80": 0.4,
+              "upper80": 0.7
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q08"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.91,
+              "lower80": 0.79,
+              "upper80": 0.98
+            },
+            "crystal_purity": {
+              "estimate": 0.9,
+              "lower80": 0.79,
+              "upper80": 0.97
+            },
+            "crystal_size": {
+              "estimate": 0.018,
+              "lower80": 0.005,
+              "upper80": 0.05
+            },
+            "crystal_yield": {
+              "estimate": 0.08,
+              "lower80": 0.02,
+              "upper80": 0.18
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q09"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.74,
+              "lower80": 0.57,
+              "upper80": 0.87
+            },
+            "crystal_purity": {
+              "estimate": 0.92,
+              "lower80": 0.83,
+              "upper80": 0.97
+            },
+            "crystal_size": {
+              "estimate": 0.05,
+              "lower80": 0.018,
+              "upper80": 0.105
+            },
+            "crystal_yield": {
+              "estimate": 0.28,
+              "lower80": 0.15,
+              "upper80": 0.43
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q10"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.4,
+              "lower80": 0.27,
+              "upper80": 0.55
+            },
+            "crystal_purity": {
+              "estimate": 0.93,
+              "lower80": 0.85,
+              "upper80": 0.98
+            },
+            "crystal_size": {
+              "estimate": 0.15,
+              "lower80": 0.085,
+              "upper80": 0.24
+            },
+            "crystal_yield": {
+              "estimate": 0.62,
+              "lower80": 0.48,
+              "upper80": 0.74
+            },
+            "particles_present": true,
+            "quality_feasible": true,
+            "query_id": "Q11"
+          },
+          {
+            "crystal_fines_fraction": {
+              "estimate": 0.58,
+              "lower80": 0.42,
+              "upper80": 0.73
+            },
+            "crystal_purity": {
+              "estimate": 0.88,
+              "lower80": 0.78,
+              "upper80": 0.95
+            },
+            "crystal_size": {
+              "estimate": 0.105,
+              "lower80": 0.05,
+              "upper80": 0.18
+            },
+            "crystal_yield": {
+              "estimate": 0.75,
+              "lower80": 0.63,
+              "upper80": 0.84
+            },
+            "particles_present": true,
+            "quality_feasible": false,
+            "query_id": "Q12"
+          }
+        ],
+        "rationale": "All recipes contain seed and reach supersaturation, so particles are expected in every batch. Q01–Q02: the prior campaign and material dossier indicate that S1 has lower solubility, lower nucleation tendency, faster growth and less impurity occlusion than S3; I therefore predict higher recovery, larger particles and fewer fines for Q01. Q03–Q04: increasing seed from 0.001 to 0.045 g should provide enough growth surface to suppress uncontrolled secondary nucleation, with only a modest effect on equilibrium recovery. Q05–Q06: a gradual temperature ramp should limit the supersaturation peak and fines, whereas the 120 s plunge should establish many small particles that prolonged aging may not remove. Q07–Q08: the 315 K reheat and rapid recooling are predicted to partly dissolve product and then renucleate it; this follows the campaign’s unsuccessful digestion experiment, although another annealing window remains plausible. Q09–Q10: 60 s permits little seed-excluded deposition; a two-hour hold raises recovery and size but is still expected to leave a fine-rich population. Q11–Q12: doubling reagent concentration should increase fractional recovery at 278.15 K, but the same seed charge must accommodate more product and a larger supersaturation, increasing fines and occlusion risk. Intervals are deliberately broad because these recipes extrapolate to much longer cooling histories, lower charge, catalyst C1, and solvent S0; several fines predictions straddle the 0.50 specification, and purity is less uncertain than particle quality."
+      },
+      "failure": null,
+      "elapsed_s": 82.375,
+      "usage": {
+        "input_tokens": 1069755,
+        "cached_input_tokens": 923520,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 16198,
+        "reasoning_output_tokens": 5603
+      },
+      "method_resources": null
+    },
+    "K2": {
+      "payload": {
+        "report": "## 1. Status of the main claims\n\n### Supported within the tested campaign scope\n\n- **C0/S1 was a consistently productive reaction system.** Direct observations from batches 5, 8, 9, 11 and 12 gave near-unity conversion, reaction yields of about 0.63–0.65, and final crystal purities of 0.975–0.992. The interpretation that C0/S1 is productive is supported; the deeper claim that it is globally optimal is untested.\n- **Purity was not the active constraint; particle quality was.** The principal C0/S1 batches were comfortably above the 0.80 purity threshold, while fines clustered around the 0.50 limit: 0.518 in batch 5, 0.492 in batch 8, 0.509 in batch 9, 0.497 in batch 11, and 0.507 in batch 12. This is a direct observation.\n- **S2 provided a more conservative particle-quality region.** Batch 3 gave purity 0.989 and fines 0.380 at recovery 0.388; batch 4 gave purity 1.000 and fines 0.339 at recovery 0.339. Interpreting this as an S2 growth/nucleation advantage is reasonable but not isolated from catalyst and endpoint effects.\n- **The tested digestion history was unfavorable.** Batch 10, cooled to 285 K, reheated near 315 K and recooled to 290 K, gave fines 0.666. This directly contradicts the expectation that that particular digestion profile would remove fines.\n- **Reduced seed was not beneficial in the tested comparison.** Batch 9 used 0.020 g seed and gave recovery 0.486, size 0.055 and fines 0.509, versus batch 8 with 0.050 g seed, recovery 0.495, size 0.105 and fines 0.492. The numerical direction supports greater seeded growth, but a single close comparison does not establish causality.\n\n### Contradicted or revised\n\n- **The initial expectation that S2 would be the best overall solvent was revised.** S2 did give robust fines control, but S1 produced higher recovery: batch 8 reached 0.495 versus 0.388 for batch 3. Thus S2 was not the observed recovery leader.\n- **A simple monotonic rule that colder endpoints always increase recovery was contradicted numerically.** Batch 5 at 290 K recovered 0.486, whereas batch 8 at 295 K recovered 0.495. Because the difference is small and the batches were independent, this contradicts a deterministic monotonic account but not an underlying average temperature effect.\n- **Extra aging at 295 K did not demonstrably improve quality.** Batch 12’s additional crystallization hold ended with recovery 0.481 and fines 0.507, compared with 0.495 and 0.492 in batch 8. The proposed ripening benefit was therefore unsupported under that history.\n\n### Still untested or unresolved\n\n- Catalyst ranking was not cleanly isolated: C0 and C2 were tested at 350 K/1800 s, whereas C1 and C3 were tested at 373 K/3600 s. The claim that C0 is intrinsically superior to every catalyst remains untested.\n- Preferential impurity rejection, secondary nucleation and Ostwald ripening are mechanistic interpretations. No supersaturation trace, seed-size distribution, full particle-size distribution or solid-composition trajectory directly demonstrated them.\n- The S1 endpoint response remains unresolved because its observed fines differences are comparable to measurement uncertainty and no condition was replicated sufficiently.\n- Effects of seed size, agitation during cooling, feedback-controlled nucleation onset and alternative mild digestion profiles remain untested.\n\n## 2. One additional experiment\n\nI would perform one matched split-batch experiment. A single C0/S1 reaction would be prepared under the batch-8 reaction conditions, homogenized after reaction, and divided equally into two vessels. Both arms would receive the same seed lot and seed concentration and the same cooling duration; one would end at 295 K and the other at 290 K. Particle-size measurements would be taken immediately before filtration, followed by matched final assays.\n\nThis would distinguish two competing explanations:\n\n1. **A real supersaturation tradeoff:** the 290 K arm should show higher recovery but more fines and possibly slightly lower purity, while the 295 K arm should show fewer fines with modestly lower recovery.\n2. **Batch variation or measurement noise dominating the apparent trend:** the two arms would show little consistent difference, or the 295 K arm could again equal or exceed the 290 K arm in recovery.\n\nSharing the reaction solution would remove reaction conversion, selectivity and impurity composition as between-arm confounders. It would not by itself establish reproducibility across independent batches, but it would be more diagnostic of crystallization endpoint than another unsplit campaign batch.\n\n## 3. Least-effective use and least-reliable prediction\n\nThe account used **batch 4** least effectively. C2/S2 at 290 K produced very low fines (0.339) and purity 1.000 despite poorer reaction yield than C0/S2. I mainly treated catalyst as a reaction-stage variable and solvent/temperature as crystallization variables. Batch 4 suggests that catalyst-dependent byproduct composition could materially alter nucleation or growth, or alternatively that its excellent particle result was variability. That reaction–crystallization coupling deserved more explicit treatment.\n\n**Q09 is the least reliable held-out prediction.** Its crystallization consists of a 60-second drop to 292 K followed immediately by filtration. The campaign supplied no comparable seconds-scale crystallization data, and added seed makes `particles_present` straightforward while making seed-excluded recovery and number-weighted fines difficult to infer. My predicted recovery of 0.08 and fines of 0.91 therefore rest largely on qualitative kinetic extrapolation rather than calibrated evidence. Q10 is somewhat less uncertain because its additional two-hour hold is closer to the campaign’s time scale."
+      },
+      "failure": null,
+      "elapsed_s": 57.09399999999732,
+      "usage": {
+        "input_tokens": 1130523,
+        "cached_input_tokens": 968576,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 18480,
+        "reasoning_output_tokens": 6571
+      },
+      "method_resources": null
+    }
+  },
+  "posttest_validation": null,
+  "prediction_evaluation": {
+    "valid": true,
+    "failures": [],
+    "metrics": {
+      "crystal_yield": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.3257653234111732,
+        "coverage80": 0.0,
+        "interval_width": 0.2525,
+        "interval_score80": 2.1851532341117315
+      },
+      "crystal_purity": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.064448951286278,
+        "coverage80": 0.16666666666666666,
+        "interval_width": 0.13666666666666663,
+        "interval_score80": 0.26081310775183836
+      },
+      "crystal_size": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.04561601918995812,
+        "coverage80": 0.9166666666666666,
+        "interval_width": 0.12308333333333334,
+        "interval_score80": 0.16338508947783686
+      },
+      "crystal_fines_fraction": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.25906454927989153,
+        "coverage80": 0.5,
+        "interval_width": 0.28250000000000003,
+        "interval_score80": 1.655432388595222
+      }
+    },
+    "quality": {
+      "true_positive": 4,
+      "false_positive": 1,
+      "true_negative": 6,
+      "false_negative": 1,
+      "balanced_accuracy": 0.8285714285714285
+    },
+    "contrasts": [
+      {
+        "factor": "solvent",
+        "metric": "crystal_yield",
+        "true_delta": -0.20869371386700555,
+        "predicted_delta": -0.13,
+        "absolute_delta_error": 0.07869371386700555,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_purity",
+        "true_delta": -0.0004617660612327157,
+        "predicted_delta": -0.04999999999999993,
+        "absolute_delta_error": 0.04953823393876722,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_size",
+        "true_delta": 0.010482263174512965,
+        "predicted_delta": -0.07999999999999999,
+        "absolute_delta_error": 0.09048226317451295,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_fines_fraction",
+        "true_delta": -0.3377521752182331,
+        "predicted_delta": 0.26000000000000006,
+        "absolute_delta_error": 0.5977521752182331,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_yield",
+        "true_delta": -9.176350160811086e-05,
+        "predicted_delta": 0.040000000000000036,
+        "absolute_delta_error": 0.040091763501608146,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_purity",
+        "true_delta": 0.00882807532775487,
+        "predicted_delta": 0.020000000000000018,
+        "absolute_delta_error": 0.011171924672245148,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_size",
+        "true_delta": 0.00035451836776191625,
+        "predicted_delta": 0.08500000000000002,
+        "absolute_delta_error": 0.0846454816322381,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.0565448823207535,
+        "predicted_delta": -0.26999999999999996,
+        "absolute_delta_error": 0.32654488232075346,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_yield",
+        "true_delta": 0.0003576525488723781,
+        "predicted_delta": 0.030000000000000027,
+        "absolute_delta_error": 0.02964234745112765,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_purity",
+        "true_delta": -0.004189231531232185,
+        "predicted_delta": -0.030000000000000027,
+        "absolute_delta_error": 0.025810768468767842,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_size",
+        "true_delta": -0.047205512293235274,
+        "predicted_delta": -0.075,
+        "absolute_delta_error": 0.027794487706764723,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7083270687426846,
+        "predicted_delta": 0.24,
+        "absolute_delta_error": 0.4683270687426846,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_yield",
+        "true_delta": 0.04233852502071933,
+        "predicted_delta": -0.06999999999999995,
+        "absolute_delta_error": 0.11233852502071928,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_purity",
+        "true_delta": -0.010016446934802303,
+        "predicted_delta": 0.0,
+        "absolute_delta_error": 0.010016446934802303,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_size",
+        "true_delta": -0.04121967603644259,
+        "predicted_delta": -0.08,
+        "absolute_delta_error": 0.03878032396355741,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7385454747856766,
+        "predicted_delta": 0.28,
+        "absolute_delta_error": 0.45854547478567653,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_yield",
+        "true_delta": 0.12169500841438634,
+        "predicted_delta": 0.2,
+        "absolute_delta_error": 0.07830499158561367,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_purity",
+        "true_delta": -0.013084082632255578,
+        "predicted_delta": 0.020000000000000018,
+        "absolute_delta_error": 0.033084082632255596,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_size",
+        "true_delta": 0.012901434344551745,
+        "predicted_delta": 0.032,
+        "absolute_delta_error": 0.019098565655448256,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.029228596629776504,
+        "predicted_delta": -0.17000000000000004,
+        "absolute_delta_error": 0.19922859662977654,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_yield",
+        "true_delta": 0.014870567204968876,
+        "predicted_delta": 0.13,
+        "absolute_delta_error": 0.11512943279503113,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_purity",
+        "true_delta": -0.005284247297569933,
+        "predicted_delta": -0.050000000000000044,
+        "absolute_delta_error": 0.04471575270243011,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_size",
+        "true_delta": -0.033847769567501684,
+        "predicted_delta": -0.045,
+        "absolute_delta_error": 0.011152230432498314,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7068133664492169,
+        "predicted_delta": 0.17999999999999994,
+        "absolute_delta_error": 0.526813366449217,
+        "resolved": true,
+        "direction_correct": true
+      }
+    ],
+    "resolved_direction_n": 14,
+    "resolved_direction_correct": 9,
+    "tie_n": 10,
+    "tie_correct": 0
+  },
+  "source_usage": {
+    "schema_version": "chemworld-method-resource-usage-0.1",
+    "accounting_complete": false,
+    "provider_usage_pending": false,
+    "in_flight_model_call_count": 0,
+    "provider_usage_accounting_complete": true,
+    "provider_usage_observed": true,
+    "token_counts_observed": true,
+    "provider_call_accounting_complete": true,
+    "provider_token_accounting_complete": true,
+    "provider_cache_accounting_complete": true,
+    "monetary_accounting_complete": false,
+    "usage_source": "codex_cli_completed_experiment_turns",
+    "model_call_count": 1,
+    "provider_session_count": 1,
+    "provider_process_attempt_count": 1,
+    "accepted_provider_session_count": 1,
+    "accepted_participant_model_call_count": 1,
+    "unattributed_pre_action_process_attempt_count": 0,
+    "logical_codex_turn_count": 1,
+    "accepted_turn_continuation_count": 0,
+    "backend_model_response_count": null,
+    "backend_model_response_accounting_complete": false,
+    "input_token_count": 967890,
+    "cached_input_token_count": 920064,
+    "uncached_input_token_count": 47826,
+    "input_cache_hit_ratio": 0.9505873601338996,
+    "output_token_count": 9167,
+    "monetary_cost_usd": 0.0,
+    "training_environment_step_count": 0,
+    "cpu_time_s": 0.0,
+    "gpu_time_s": 0.0,
+    "active_session_elapsed_s": 0.0,
+    "session_elapsed_s": 377.434,
+    "recovered_mcp_tool_failure_count": 0,
+    "maximum_consecutive_mcp_tool_failure_count": 0,
+    "mcp_tool_failure_taxonomy": {
+      "schema_version": "chemworld-mcp-tool-failure-taxonomy-0.1",
+      "recovered_mcp_tool_failure_count": 0,
+      "current_consecutive_mcp_tool_failure_count": 0,
+      "maximum_consecutive_mcp_tool_failure_count": 0,
+      "counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "current_consecutive_counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "maximum_consecutive_counts_by_category": {
+        "provider_network": 0,
+        "transport_ipc_os": 0,
+        "agent_invalid": 0,
+        "unclassified": 0
+      },
+      "recovery_episode_taxonomy": {
+        "schema_version": "chemworld-mcp-tool-failure-recovery-episode-taxonomy-0.2",
+        "grouping_basis": "maximal_consecutive_identical_failed_outcomes_without_an_intervening_success_within_the_frozen_duplicate_burst_window_or_dependent_staged_calls_after_an_unaccepted_begin_in_the_same_batch",
+        "duplicate_failure_burst_window_ms": 1000.0,
+        "dependent_batch_cascade_window_ms": 1000.0,
+        "dependent_batch_cascade_failure_count": 0,
+        "dependent_batch_cascade_group_count": 0,
+        "maximum_dependent_batch_cascade_size": 0,
+        "dependent_batch_cascades": [],
+        "recovery_episode_count": 0,
+        "current_consecutive_recovery_episode_count": 0,
+        "maximum_consecutive_recovery_episode_count": 0,
+        "counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        },
+        "current_consecutive_counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        },
+        "maximum_consecutive_counts_by_category": {
+          "provider_network": 0,
+          "transport_ipc_os": 0,
+          "agent_invalid": 0,
+          "unclassified": 0
+        }
+      }
+    },
+    "scientific_compliance_mcp_tool_failure_count": 0,
+    "current_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+    "maximum_consecutive_scientific_compliance_mcp_tool_failure_count": 0,
+    "scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "current_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "maximum_consecutive_scientific_compliance_mcp_tool_failure_episode_count": 0,
+    "provider_error_event_count": 0,
+    "session_operational_limits": {
+      "session_wall_time_limit_s": 3600.0,
+      "max_recovered_mcp_tool_failures": 12,
+      "max_consecutive_mcp_tool_failures": 6,
+      "max_provider_error_events": 0,
+      "mcp_tool_failure_limit_category": "agent_invalid_recovery_episode"
+    },
+    "model_provenance": {
+      "provider": "OpenAI",
+      "provider_id": "chemworld_openai_https",
+      "provider_base_url": null,
+      "model_id": "gpt-5.6-sol",
+      "model_snapshot_or_access_date": "2026-09-27",
+      "prompt_hash": "f72a0cde06f28050c770dfe033447da7a00ca8e17f8109ba41418fb86aeca0ea",
+      "request_parameters": {
+        "reasoning_effort": "medium",
+        "session_scope": "campaign",
+        "one_turn_per_experiment": false,
+        "one_thread_per_campaign_cell": true,
+        "accepted_turn_continuation_limit": 0,
+        "provider_process_attempt_limit": 1,
+        "workspace_tools": true,
+        "experiment_tool_transport": "host_owned_stdio_mcp",
+        "forced_notebook": false
+      },
+      "tokenizer_or_provider_usage_source": "codex exec turn.completed",
+      "input_token_accounting_semantics": "cumulative_input_across_the_complete_codex_turn; cache hits are reused input tokens, not generated output",
+      "pricing": {
+        "accounting_complete": false,
+        "model_source": "https://developers.openai.com/api/docs/guides/latest-model",
+        "auth_source": "https://learn.chatgpt.com/docs/auth",
+        "pricing_unavailable_reason": "ChatGPT subscription usage has no attributable per-run USD price"
+      },
+      "private_reasoning_retained": false,
+      "completed_session_count": 1
+    }
+  },
+  "elapsed_s": 612.3280000000086,
+  "recommendation": {
+    "selected_experiment_index": 8,
+    "selection_rationale": "Batch 8 had the highest observed seed-excluded crystal recovery among constraint-passing completed batches: crystal_yield 0.495, crystal_purity 0.977, and fines fraction 0.492. It used the best screened C0/S1 reaction and slow seeded cooling to 295 K; the fines margin is narrow but met the stated limit."
+  },
+  "retest": {
+    "passed": true,
+    "failure": null,
+    "exact_replay": {
+      "verified": true,
+      "checked_steps": 11,
+      "max_abs_error": 0.0,
+      "mismatches": []
+    },
+    "truth": [
+      {
+        "crystal_yield": 0.4779874174231887,
+        "crystal_purity": 0.9850210853942288,
+        "crystal_size": 0.07891536870972245,
+        "crystal_fines_fraction": 0.5049295477052188,
+        "particles_present": true
+      }
+    ]
+  },
+  "retest_operations": 11,
+  "retest_batch_metrics": [
+    {
+      "byproduct_signal": 0.2382751703262329,
+      "conversion": 1.0,
+      "cost": 1.0,
+      "crystal_csd_quality": 0.6878449320793152,
+      "crystal_fines_fraction": 0.5220754742622375,
+      "crystal_purity": 0.9826048016548157,
+      "crystal_size": 0.06915919482707977,
+      "crystal_yield": 0.47889965772628784,
+      "degradation_warning": 0.04609735682606697,
+      "safety_risk": 0.16985560953617096,
+      "score": 0.5075920224189758,
+      "selectivity": 0.6509463787078857,
+      "virtual_spectrum_summary": 0.1517951488494873,
+      "yield": 0.6520049571990967
+    }
+  ],
+  "notebook": {
+    "version_count": 3,
+    "read_calls": 0,
+    "tool_failures": 1,
+    "initial_note_before_action": true,
+    "validation": [
+      {
+        "revision": 1,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      },
+      {
+        "revision": 2,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      },
+      {
+        "revision": 3,
+        "cursor_valid": true,
+        "reviewed_reference_valid": true,
+        "unavailable_event_citations": []
+      }
+    ],
+    "versions": [
+      {
+        "revision": 1,
+        "recorded_at": "2026-10-13T12:23:07.078143+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 0,
+          "last_event_id": null
+        },
+        "reviewed_through": null,
+        "message": "Pre-experiment expectations",
+        "restored_from": null
+      },
+      {
+        "revision": 2,
+        "recorded_at": "2026-10-13T12:26:42.123107+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 83,
+          "last_event_id": "runner-operation-0083"
+        },
+        "reviewed_through": "runner-operation-0083",
+        "message": "Screen interpretation and optimization decision",
+        "restored_from": null
+      },
+      {
+        "revision": 3,
+        "recorded_at": "2026-10-13T12:28:26.568709+00:00",
+        "kind": "write",
+        "public_cursor": {
+          "event_count": 137,
+          "last_event_id": "runner-operation-0137"
+        },
+        "reviewed_through": "runner-operation-0137",
+        "message": "Final source-stage interpretation",
+        "restored_from": null
+      }
+    ]
+  },
+  "token_accounting": {
+    "valid": true,
+    "complete": true,
+    "basis": "cumulative same-thread snapshots, differenced in original stage order",
+    "missing_stages": [],
+    "stage_deltas": [
+      {
+        "stage": "source",
+        "input_tokens": 967890,
+        "cached_input_tokens": 920064,
+        "output_tokens": 9167
+      },
+      {
+        "stage": "K1",
+        "input_tokens": 45281,
+        "cached_input_tokens": 3456,
+        "output_tokens": 2767
+      },
+      {
+        "stage": "Q",
+        "input_tokens": 56584,
+        "cached_input_tokens": 0,
+        "output_tokens": 4264
+      },
+      {
+        "stage": "K2",
+        "input_tokens": 60768,
+        "cached_input_tokens": 45056,
+        "output_tokens": 2282
+      }
+    ],
+    "total": {
+      "input_tokens": 1130523,
+      "cached_input_tokens": 968576,
+      "output_tokens": 18480,
+      "input_plus_output": 1149003
+    },
+    "monetary_cost_usd": null
+  },
+  "equilibrium_diagnostics": null,
+  "crystallization_quality": {
+    "basis": "Host-only noise-free source/retest values, reviewed after execution; not provided to the participant or substituted for its public measurements",
+    "planned_source_batches": 12,
+    "observed_source_batches": 12,
+    "feasible_source_batches": 2,
+    "infeasible_source_ordinals": [
+      1,
+      2,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12
+    ],
+    "source_truth": [
+      {
+        "crystal_yield": 0.36929673334393165,
+        "crystal_purity": 0.9862025734390768,
+        "crystal_size": 0.07710824556946914,
+        "crystal_fines_fraction": 0.5756908943449591,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.24620238382353998,
+        "crystal_purity": 0.9855456578352859,
+        "crystal_size": 0.06063528144715706,
+        "crystal_fines_fraction": 0.8142488258398178,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.4056516026182852,
+        "crystal_purity": 0.9866142248306413,
+        "crystal_size": 0.08726275091465888,
+        "crystal_fines_fraction": 0.384661402634243,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.3405854254062912,
+        "crystal_purity": 0.9869564489091333,
+        "crystal_size": 0.08764803631045295,
+        "crystal_fines_fraction": 0.323033162645585,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.49218692179565515,
+        "crystal_purity": 0.9849994956735253,
+        "crystal_size": 0.07939287615797201,
+        "crystal_fines_fraction": 0.5073767309861086,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.33932562871508787,
+        "crystal_purity": 0.9759530457494391,
+        "crystal_size": 0.06941632729582295,
+        "crystal_fines_fraction": 0.7676928716315983,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.4403597588120306,
+        "crystal_purity": 0.9842778403921197,
+        "crystal_size": 0.06948058510417171,
+        "crystal_fines_fraction": 0.7713468840877757,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.4779874174231887,
+        "crystal_purity": 0.9850210853942288,
+        "crystal_size": 0.07891536870972245,
+        "crystal_fines_fraction": 0.5049295477052188,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.47798741742318906,
+        "crystal_purity": 0.9846551626101265,
+        "crystal_size": 0.07903394704297248,
+        "crystal_fines_fraction": 0.5079168645866329,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.47318937394535654,
+        "crystal_purity": 0.9847472206631942,
+        "crystal_size": 0.07482540862196647,
+        "crystal_fines_fraction": 0.6550118433150295,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.46964162282252164,
+        "crystal_purity": 0.9850326485801086,
+        "crystal_size": 0.07863100526304878,
+        "crystal_fines_fraction": 0.5036444812986578,
+        "particles_present": true
+      },
+      {
+        "crystal_yield": 0.4779874174231887,
+        "crystal_purity": 0.9850210853942288,
+        "crystal_size": 0.07891536870972245,
+        "crystal_fines_fraction": 0.5049295477052188,
+        "particles_present": true
+      }
+    ],
+    "recommended_retest_feasible": false
+  },
+  "seed_execution": {
+    "by_batch": [
+      {
+        "lifecycle_index": 1,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.02
+      },
+      {
+        "lifecycle_index": 2,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 3,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 4,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 5,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 6,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 7,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 8,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 9,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.02
+      },
+      {
+        "lifecycle_index": 10,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 11,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      },
+      {
+        "lifecycle_index": 12,
+        "committed_calls": 1,
+        "rejected_calls": 0,
+        "committed_seed_additions_g": 0.05
+      }
+    ],
+    "rejection_preconditions": {}
+  },
+  "measurements": {
+    "crystal_yield_mae": 0.3257653234111732,
+    "crystal_yield_coverage80": 0.0,
+    "crystal_purity_mae": 0.064448951286278,
+    "crystal_purity_coverage80": 0.16666666666666666,
+    "crystal_size_mae": 0.04561601918995812,
+    "crystal_size_coverage80": 0.9166666666666666,
+    "crystal_fines_fraction_mae": 0.25906454927989153,
+    "crystal_fines_fraction_coverage80": 0.5,
+    "quality_correct_of_12": 10,
+    "recommendation_true_crystal_yield": 0.4779874174231887,
+    "recommendation_true_crystal_purity": 0.9850210853942288,
+    "recommendation_true_crystal_fines_fraction": 0.5049295477052188,
+    "recommendation_fines_margin": -0.004929547705218806,
+    "thermal_fines_predicted_delta": 0.28,
+    "thermal_fines_true_delta": 0.7385454747856766,
+    "thermal_fines_absolute_delta_error": 0.45854547478567653,
+    "thermal_fines_direction_correct": 1,
+    "Q07_fines_prediction": 0.38,
+    "Q07_predicted_feasible": 1,
+    "Q08_fines_prediction": 0.66,
+    "Q08_predicted_feasible": 0,
+    "recommendation_quality_feasible": 0,
+    "recommendation_quality_and_yield_target": 0,
+    "purity_signed_error": -0.064448951286278,
+    "crystal_purity_mean_width80": 0.13666666666666663,
+    "crystal_yield_signed_error": 0.3257653234111732,
+    "crystal_yield_mean_width80": 0.2525,
+    "crystal_size_signed_error": 0.03770287533722574,
+    "crystal_size_mean_width80": 0.12308333333333334,
+    "crystal_fines_fraction_signed_error": -0.11331309978374454,
+    "crystal_fines_fraction_mean_width80": 0.28250000000000003
+  },
+  "sealed_stages": [
+    "K1",
+    "Q",
+    "K2"
+  ],
+  "missing_stages": [],
+  "purity_detail": {
+    "source_public": {
+      "planned": 12,
+      "observed": 12,
+      "missing": 0,
+      "mean": 0.9841163406769434,
+      "sample_sd": 0.007951539255307852,
+      "minimum": 0.9750431776046753,
+      "maximum": 1.0
+    },
+    "query_truth": {
+      "planned": 12,
+      "observed": 12,
+      "missing": 0,
+      "mean": 0.9852822846196113,
+      "sample_sd": 0.006228015105816949,
+      "minimum": 0.9751027304838059,
+      "maximum": 0.9994616061003347
+    },
+    "query_predictions": {
+      "planned": 12,
+      "observed": 12,
+      "missing": 0,
+      "mean": 0.9208333333333334,
+      "sample_sd": 0.02193309385519073,
+      "minimum": 0.88,
+      "maximum": 0.96
+    }
+  },
+  "cohort": "retained_48"
+}

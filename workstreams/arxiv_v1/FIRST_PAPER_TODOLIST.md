@@ -1,6 +1,6 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
-Claim: Codex /root — W2-251 — DOING（2026-10-14）。用户授权补齐 42 场覆盖扩展及匹配淬灭对照。保留既有 48 场，新增 EQ/M 15 场与 C 27 场，合成 90 场三信息臂矩阵；18 条既有推荐配方 × 五世界 × 有/无淬灭共 180 条固定轨迹。沿用四并发、独立模型会话，模型 RNG seed 不可控且不再要求。见[实验说明](../flagship_tasks/WORK_II_RESEARCH_EXTENSION_20261014.md)。完成后分析、保留失败并推送 main。
+Claim: Codex /root — W2-251 — DONE（2026-10-14）。覆盖扩展 42/42 场到达终态，40 条完整链、503/504 批、136/141 后测；与旧 48 场合计 90 场，失败全部保留。匹配淬灭 180/180 轨迹、90/90 配对（有效 75 对），操作效果与 Agent 认识形成分开解释。模型 RNG seed 不可控。见[完成报告](../flagship_tasks/reports/research-extension-20261014/REVIEW.md)。未改稿或替换旧证据。
 
 Claim: Codex /root — W2-250 — DONE（2026-10-13）。全文精读 W2-249 全部 145 版源笔记，为 48 场分别整理引文与解释，并按相关判断对照 K1/Q/K2、关键动作及三次重复。[综合分析](../flagship_tasks/reports/research-formation-20261013/CLOSE_READING.md)连接局部认识、远端预测、淬灭路径关联及判断与选择的差异；[逐场证据](../flagship_tasks/reports/research-formation-20261013/CASE_READINGS.md)保留全部失败。汇总脚本核对 48 条引文与 216 个结晶批次，统计/284 个本地链接及 Ruff 检查通过。仅事后分析保留数据，未新增模型实验、改变评分或修改稿件。
 
