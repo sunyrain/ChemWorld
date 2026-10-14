@@ -395,6 +395,53 @@ def export(root, output, require_complete=False):
         )
     lines += [
         "",
+        "Individual all-query macro MAEs, in repeat order (no query-level pseudoreplication):",
+        "",
+        "| World | Research repeats | NoResearch repeats | Dilute difference | Other difference |",
+        "|---|---|---|---:|---:|",
+    ]
+    for w in result["comparison"]["worlds"]:
+        values = {
+            arm: ", ".join(fmt(v["macro_mae"]) for v in w["arms"][arm]["values"])
+            for arm in ARMS
+        }
+        lines.append(
+            f"| {w['world']} | {values['Research']} | {values['NoResearch']} | "
+            f"{fmt(w['research_minus_no_research']['dilute'])} | "
+            f"{fmt(w['research_minus_no_research']['other'])} |"
+        )
+    lines += [
+        "",
+        "Secondary outcomes, equal-world averages. Coverage is over all five reference",
+        "observations per query; intervals are the participant's stated 80% intervals.",
+        "Lower interval score is better; coverage alone rewards excessively wide intervals.",
+        "",
+        "| Group | Response | Arm | MAE | Coverage | Width | Interval score |",
+        "|---|---|---|---:|---:|---:|---:|",
+    ]
+    for g in ("all", "dilute", "other"):
+        for m in METRICS:
+            for arm in ARMS:
+                scores = means[arm][g]["metrics"][m]
+                values = " | ".join(
+                    fmt(scores[k]) for k in ("mae", "coverage80", "width80", "interval_score80")
+                )
+                lines.append(f"| {g} | {m} | {arm} | {values} |")
+    failures = [r for r in terminal if r["status"] != "completed"]
+    lines += [
+        "",
+        f"Incomplete terminal chains: {len(failures)}/{len(terminal)}.",
+        f"Scientific public-input matches: "
+        f"{sum(c['scientific_input_equal'] for c in checks)}/{len(checks)} available pairs.",
+        "Only the random campaign label is excluded from this comparison.",
+    ]
+    for row in failures:
+        lines.append(
+            f"- {row['repeat']} / {row['id']}: {row['status']}; "
+            f"missing {', '.join(row['missing_stages']) or 'none'}; {row['failure']}"
+        )
+    lines += [
+        "",
         "The package includes source experiments, observation history and notebook opportunity.",
         "Selection, feedback, notebook effects and internal learning are not isolated.",
         "Missing stages are retained. Model sampling seed is not controlled.",
