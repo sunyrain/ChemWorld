@@ -1,13 +1,13 @@
-# ChemWorld：自主科研中的科学判断
+# ChemWorld：自主科研如何将实验经历转化为科学认识
 
 这是按用户授权新建的 Nature 正刊风格独立版本。NCS 源稿、图和现有 PDF 未被覆盖。2026-10-14，用户进一步要求全部图使用 ImageGen，当前 4 张主图和 3 张扩展图因此均为**临时视觉预览**，不可作为投稿定量图。
 
 ## 阅读入口
 
-- [英文双栏阅读版](../../../output/pdf/chemworld-nature-en.pdf)：13 页，开篇引用摘要、正文、参考文献、方法和扩展数据。
-- [英文单栏行号版](../../../output/pdf/chemworld-nature-en-review.pdf)：24 页，12 pt、双倍行距，供逐段讨论。
+- [英文双栏阅读版](../../../output/pdf/chemworld-nature-en.pdf)：14 页，开篇引用摘要、正文、参考文献、方法和扩展数据。
+- [英文单栏行号版](../../../output/pdf/chemworld-nature-en-review.pdf)：26 页，12 pt、双倍行距，供逐段讨论。
 - [中文对照阅读版](../../../output/pdf/chemworld-nature-zh.pdf)：12 页，同步正文、方法和扩展图说明；参考文献与图内标签保持英文。
-- [完整补充材料](../../../output/pdf/chemworld-nature-supplement.pdf)：15 页，90 场逐场数值、全部不完整链、90 个淬灭配对处置、34 张保留结果表及执行过程关系。
+- [完整补充材料](../../../output/pdf/chemworld-nature-supplement.pdf)：21 页，90 场逐场数值与记录清单、9 场结构化主例、全部不完整链、90 个淬灭配对处置、34 张保留结果表及执行过程关系。
 - [全部七张 ImageGen 图](figures/preview/README.md)与[实际使用的提示词](figures/preview/prompts.json)。
 
 正文编辑入口为 [article.md](article.md) 和 [article_zh.md](article_zh.md)；方法为 [methods.md](methods.md) 和 [methods_zh.md](methods_zh.md)；扩展数据为 [extended_data.md](extended_data.md) 和 [extended_data_zh.md](extended_data_zh.md)。`tex/` 是从这些源稿生成的完整 XeLaTeX 文件，不另行手改。
@@ -16,7 +16,20 @@
 
 ## 中心论证与结果组织
 
-中心问题是：智能体如何从自己组织的实验中形成科学判断，又如何将这些判断用于后续研究。现有证据允许连接有依据的局部修订与随后使用的分化；不把所有案例预先解释为一种自我确认机制，也不要求以改进策略成功收束。
+中心问题是：实验自主性如何转化为可靠、可迁移的科学认识。当前稿件以同一平衡研究中的完整轨迹承担中心：先提出并实际检验组分映射猜想，合理修订局部解释，随后又将该实验作为收缩极稀预测的依据。结晶的已述高纯度与后续预测提供互补过程。局部发现与后续使用的分化可以出现在同一段研究中；不预设自我确认机制，也不要求以改进策略成功收束。
+
+2026-10-14 按新主线与对照审稿意见重写标题、摘要、结果连接与讨论。补充材料新增全部 90 场记录可用性清单、9 场结构化主例和 14 条按笔记版本/封存阶段核对的短引文，数据源为 [process_cases.json](process_cases.json)。该表不等于全队列统一机制编码，独立研究者复核尚未完成。
+
+## Recovery 口径核对与结论调整
+
+审稿意见指出的分母问题确实存在，而且不能解释成简单的新旧队列差异：
+
+- [模块内部回收](../../../src/chemworld/runtime/crystallization_services.py)以分离前目标物为分母。
+- [完整流程观测覆盖](../../../src/chemworld/runtime/observation_services.py:394)以 `initial_reactant_amount` 为分母；[该量定义](../../../src/chemworld/runtime/species.py:192)来自所跟踪的初始试剂投料。
+- [TruthCapture](../../../scripts/run_work_ii_c_pilot.py:251)从同一观测内核捕获最终取样前响应；[推荐复测、参考读取与评分](../../../scripts/run_work_ii_c_formal.py:968)沿此路径。不是直接读取结晶模块内部阶段回收率。
+- 两期执行提交 `68dce156` 与 `69337c7d` 中均核实了相同覆盖公式；保存的源指令及 Q 提示却定义为分离前目标物归一化。完整公式和各接口角色已写入中英文方法及补充材料。
+
+原数值不变，但回收误差与质量/回收联合计数改作受协议不一致影响的诊断值，退出中心科学迁移论证；新增颗粒/纯度/细粉合格数 O/A/M 为 10/15、9/15、14/15。高纯度观察、公开识别与后续低估的同研究者对照保留。记录本路径在原指令下形成，不能声称这一问题对 Agent 选择没有影响。若今后要证明定义一致的回收预测或优化能力，需要先统一接口，再另开受影响的固定实验块；本轮未改运行时或重跑。
 
 | 正文推进 | 实验与结果 | 图文位置 |
 | --- | --- | --- |
@@ -51,7 +64,7 @@
 
 采用独立的标题、带引用开篇摘要、四主图、Methods 和 Extended Data 结构。双栏版是受 Nature 阅读布局启发的作者稿，不是官方出版排版，没有期刊标志、卷期或 DOI。单栏行号版用于内部审阅，并非已经具备投稿全部声明的文件。
 
-官方参考：[Nature formatting guide](https://www.nature.com/nature/for-authors/formatting-guide)、[initial submission](https://www.nature.com/nature/for-authors/initial-submission)。本稿开篇英文摘要 189 词，正文不含图注约 2,474 词，方法约 2,217 词；四张组合图的实际占页仍须按最终图稿判断。引用采用顺序上标，超过五名作者以首位加 et al. 表示。作者顺序、单位、共同贡献及通讯信息读取保留 NCS 元数据，资助沿用用户确认原文。
+官方参考：[Nature formatting guide](https://www.nature.com/nature/for-authors/formatting-guide)、[initial submission](https://www.nature.com/nature/for-authors/initial-submission)。本稿开篇英文摘要 195 词，正文不含开篇摘要和图注约 2,540 词，方法约 2,576 词；四张组合图的实际占页仍须按最终图稿判断。引用采用顺序上标，超过五名作者以首位加 et al. 表示。作者顺序、单位、共同贡献及通讯信息读取保留 NCS 元数据，资助沿用用户确认原文。
 
 ```powershell
 uv run --no-sync python paper/tools/build_nature_evidence.py

@@ -534,6 +534,93 @@ def markdown_table(headers, rows):
     )
 
 
+def process_evidence():
+    """Inventory record availability and verify the selected, human-interpreted quotations."""
+    cases = read(DEST / "process_cases.json")["cases"]
+    lines = [
+        "## Record availability across all process sessions",
+        "",
+        "This inventory reports available records, not the presence or absence of a scientific "
+        "mechanism. All initial notes precede physical operations under the prompted notebook "
+        "role. Notes counts include the initial version. K1 is the sealed source account, Q "
+        "the forecast, K2 the retrospective, and EQS the equilibrium supplement. Unavailable "
+        "stages remain missing. A session not selected below has not been classified as a "
+        "negative case. World and arm labels have the same meaning as in the outcome tables.",
+        "",
+        markdown_table(
+            ["System", "World", "Arm", "Repeat", "Notes", "Initial before action", "Stages"],
+            [
+                [
+                    r["system"],
+                    r["world"][1:],
+                    r["arm"][0],
+                    r["repeat"][-1],
+                    r["notebook"]["version_count"],
+                    "Yes" if r["notebook"]["initial_note_before_action"] else "No",
+                    ", ".join(r["sealed_stages"]) or "None",
+                ]
+                for r in sorted(
+                    ROWS,
+                    key=lambda r: (r["system"], r["world"], ARMS.index(r["arm"]), r["repeat"]),
+                )
+            ],
+        ),
+        "",
+        "## Structured focal relationships",
+        "",
+        "Nine selected sessions are organized below by the relationship under examination. "
+        "Cases 4-6 retain all three sessions in one crystallization world/information cell. "
+        "Other cases are selected trajectories or counterexamples, not a random sample. "
+        "Each record separates prior expectation, successful execution, explicit revision, "
+        "evidential scope and later use. A pre-test claim not established by the focal analysis "
+        "is labelled accordingly; it is not scored as absent. Quotations are checked against "
+        "their specified note version or sealed stage. Interpretation remains by one analyst, "
+        "without independent reliability assessment. All figures remain illustrative previews; "
+        "these records and the outcome tables carry the retained evidence.",
+        "",
+    ]
+    checked = 0
+    labels = {
+        "expectation": "Prior expectation",
+        "execution": "Executed test or observations",
+        "revision": "Recorded revision or characterization",
+        "supported_scope": "What the evidence supports",
+        "later_use": "Subsequent use",
+        "coverage": "Extent of support",
+    }
+    for record in cases:
+        row = LOOKUP[(record["repeat"], record["id"])]
+        lines += [
+            f"### Process case {record['number']}: {record['title']}",
+            "",
+            f"{row['system']}, world {int(row['world'][1:])}, {row['arm']}, "
+            f"session {int(row['repeat'].split('-')[1])}. "
+            + ("First cohort." if row["cohort"] == "retained_48" else "Extension cohort."),
+            "",
+        ]
+        for key, label in labels.items():
+            lines += [f"**{label}.** {record[key]}", ""]
+        for quote in record["quotes"]:
+            filename = REPORT / row["repeat"] / f"{row['id']}-{quote['document']}.md"
+            text = filename.read_text(encoding="utf-8")
+            if quote["document"] == "notebook":
+                marker = f"## Revision {quote['revision']}\n"
+                section = text.split(marker, 1)[1].split("\n## Revision ", 1)[0]
+                location = f"note version {quote['revision']}"
+            else:
+                marker = f"## {quote['stage']}\n"
+                section = text.split(marker, 1)[1]
+                section = re.split(r"\n## (?:K1|Q|K2|EQS)\n", section, maxsplit=1)[0]
+                location = quote["stage"]
+            if quote["quote"] not in section:
+                raise ValueError(f"Quotation absent from {filename}: {location}")
+            lines += [f"**Recorded wording ({location}).** \"{quote['quote']}\"", ""]
+            checked += 1
+    print(f"Process evidence: {len(ROWS)}/90 inventories; {len(cases)} focal sessions; "
+          f"{checked} version/stage-specific quotations verified", flush=True)
+    return lines
+
+
 def supplementary():
     lines = [
         "# Supplementary Information",
@@ -550,7 +637,42 @@ def supplementary():
         "stages and 86 valid forecast stages. Notebook reading covers all 284 "
         "revisions, but qualitative "
         "interpretation is by one analyst and selected cases do not establish "
-        "mechanism prevalence.",
+        "mechanism prevalence. The separate main-text PDF and this Supplementary Information "
+        "form one reading package; the main-text file alone does not contain the full tables.",
+        "",
+        "## Recovery definitions and the affected readouts",
+        "",
+        "The full-process observation response used in source assays, recommendation retests "
+        "and prediction references is seed-excluded solid target divided by the tracked "
+        "initial reagent amount, clipped to [0,1]. It is distinct from the internal "
+        "crystallization-stage metric and from the definition in the saved participant prompts.",
+        "",
+        markdown_table(
+            ["Quantity or interface", "Denominator", "Role in the retained study"],
+            [
+                ["Internal crystallization module", "Target product before separation",
+                 "Stage-recovery metric, subsequently overridden for full-process observation"],
+                ["Source final assay", "Tracked initial reagent amount",
+                 "Noisy full-process observation provided to the researcher"],
+                ["Recommendation and query reference", "Tracked initial reagent amount",
+                 "Noiseless full-process response captured before final-assay sampling"],
+                ["Forecast evaluator", "Same captured initial-charge response",
+                 "Original errors and interval coverage; scores retained unchanged"],
+                ["Source and forecast prompts", "Target product before separation",
+                 "Participant-facing description mismatched to the observed/scored output"],
+            ],
+        ),
+        "",
+        "The numerator excludes seed, but matching numerators do not make these denominators "
+        "equivalent. This mismatch occurs in both recorded process execution versions; it is "
+        "not a verified historical-to-current normalization change. Recovery scores and joint "
+        "quality/recovery counts remain reproducible protocol-affected diagnostics. They are "
+        "not evidence of performance on an unambiguously specified recovery target. "
+        "Particle/purity/fines feasibility is reported separately: 10/15 Opaque, 9/15 Aligned "
+        "and 14/15 MisIndexed, compared with retained joint counts 9/15, 7/15 and 14/15. "
+        "Purity and fines do not use the disputed denominator, but the research paths were "
+        "generated under the original instructions. No original prediction, reference or score "
+        "has been changed.",
         "",
         "## Complete equilibrium process outcomes",
         "",
@@ -600,7 +722,9 @@ def supplementary():
         "",
         "All rows have twelve source batches and valid forecasts. Success applies the original "
         "joint recommendation criteria to the noiseless retest. All M sessions, and all W02/W04 "
-        "sessions, belong to the extension cohort. Other O/A sessions belong to the first cohort.",
+        "sessions, belong to the extension cohort. Other O/A sessions belong to the first cohort. "
+        "Recovery MAE and Success retain the implemented initial-charge target under the "
+        "mismatched prompt, as detailed above; neither is a clean recovery-understanding readout.",
         "",
     ]
     cs = []
@@ -661,6 +785,9 @@ def supplementary():
         "locate evidence; they do not define participant subpopulations or "
         "prevalence denominators.",
         "",
+    ]
+    lines += process_evidence()
+    lines += [
         "## All matched quench dispositions",
         "",
         "Donor numbers below identify the eighteen first-cohort recommendations in a fixed "
@@ -784,8 +911,10 @@ def supplementary():
         "## Executed process relationships",
         "",
         "The following equations describe the retained virtual-world laws, not mechanisms "
-        "inferred by the participants. Historical final-assay and current retest recovery "
-        "normalizations are distinct; current process outcomes follow the Methods above.",
+        "inferred by the participants. The initial-charge final-assay recovery formula below "
+        "also describes the checked full-process observation route in the repeated cohort. "
+        "The internal stage-recovery metric and mismatched participant description are "
+        "distinguished above; they must not be substituted for the observed/scored response.",
         "",
     ]
     for start, end in (("## H.1 ", "## H.2 "), ("## H.3 ", "## H.4 ")):

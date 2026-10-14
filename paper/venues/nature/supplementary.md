@@ -2,7 +2,21 @@
 
 ## Study organization
 
-The broad study (300 campaigns), earlier selected notebook studies (24 sessions), and repeated process cohort (90 sessions) retain separate denominators and execution provenance. Reference batches, recommendation retests and fixed-recipe controls are not researcher sessions. The process cohort retains 84 complete chains, 1,079/1,080 source batches, 298/315 assessment stages and 86 valid forecast stages. Notebook reading covers all 284 revisions, but qualitative interpretation is by one analyst and selected cases do not establish mechanism prevalence.
+The broad study (300 campaigns), earlier selected notebook studies (24 sessions), and repeated process cohort (90 sessions) retain separate denominators and execution provenance. Reference batches, recommendation retests and fixed-recipe controls are not researcher sessions. The process cohort retains 84 complete chains, 1,079/1,080 source batches, 298/315 assessment stages and 86 valid forecast stages. Notebook reading covers all 284 revisions, but qualitative interpretation is by one analyst and selected cases do not establish mechanism prevalence. The separate main-text PDF and this Supplementary Information form one reading package; the main-text file alone does not contain the full tables.
+
+## Recovery definitions and the affected readouts
+
+The full-process observation response used in source assays, recommendation retests and prediction references is seed-excluded solid target divided by the tracked initial reagent amount, clipped to [0,1]. It is distinct from the internal crystallization-stage metric and from the definition in the saved participant prompts.
+
+| Quantity or interface | Denominator | Role in the retained study |
+| --- | --- | --- |
+| Internal crystallization module | Target product before separation | Stage-recovery metric, subsequently overridden for full-process observation |
+| Source final assay | Tracked initial reagent amount | Noisy full-process observation provided to the researcher |
+| Recommendation and query reference | Tracked initial reagent amount | Noiseless full-process response captured before final-assay sampling |
+| Forecast evaluator | Same captured initial-charge response | Original errors and interval coverage; scores retained unchanged |
+| Source and forecast prompts | Target product before separation | Participant-facing description mismatched to the observed/scored output |
+
+The numerator excludes seed, but matching numerators do not make these denominators equivalent. This mismatch occurs in both recorded process execution versions; it is not a verified historical-to-current normalization change. Recovery scores and joint quality/recovery counts remain reproducible protocol-affected diagnostics. They are not evidence of performance on an unambiguously specified recovery target. Particle/purity/fines feasibility is reported separately: 10/15 Opaque, 9/15 Aligned and 14/15 MisIndexed, compared with retained joint counts 9/15, 7/15 and 14/15. Purity and fines do not use the disputed denominator, but the research paths were generated under the original instructions. No original prediction, reference or score has been changed.
 
 ## Complete equilibrium process outcomes
 
@@ -58,7 +72,7 @@ Each row is one independent model session within a fixed world and information c
 
 ## Complete crystallization process outcomes
 
-All rows have twelve source batches and valid forecasts. Success applies the original joint recommendation criteria to the noiseless retest. All M sessions, and all W02/W04 sessions, belong to the extension cohort. Other O/A sessions belong to the first cohort.
+All rows have twelve source batches and valid forecasts. Success applies the original joint recommendation criteria to the noiseless retest. All M sessions, and all W02/W04 sessions, belong to the extension cohort. Other O/A sessions belong to the first cohort. Recovery MAE and Success retain the implemented initial-charge target under the mismatched prompt, as detailed above; neither is a clean recovery-understanding readout.
 
 | World | Arm | Repeat | Success | Purity MAE | Recovery MAE | Fines MAE |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -124,6 +138,279 @@ All six incomplete chains are retained. Missing stages do not imply a forecast o
 ## Scope of process cases
 
 Main Figures 2-4 and Extended Data Figures 1-2 connect original public records to executed actions. The equilibrium mapping case is world 4, M, repeat 1; the seed-rescue case world 1, M, repeat 3; the volume-window case world 1, M, repeat 2. The purity comparison retains all three world-4/M sessions. The incorrect cumulative-seed account is world 4, A, repeat 3; the rejection-recognizing counterexample is world 2, A, repeat 2. Risk-choice examples are world 2, A, repeat 3 and world 4, A, repeat 2. These labels locate evidence; they do not define participant subpopulations or prevalence denominators.
+
+## Record availability across all process sessions
+
+This inventory reports available records, not the presence or absence of a scientific mechanism. All initial notes precede physical operations under the prompted notebook role. Notes counts include the initial version. K1 is the sealed source account, Q the forecast, K2 the retrospective, and EQS the equilibrium supplement. Unavailable stages remain missing. A session not selected below has not been classified as a negative case. World and arm labels have the same meaning as in the outcome tables.
+
+| System | World | Arm | Repeat | Notes | Initial before action | Stages |
+| --- | --- | --- | --- | --- | --- | --- |
+| C | 01 | O | 1 | 5 | Yes | K1, Q, K2 |
+| C | 01 | O | 2 | 3 | Yes | K1, Q, K2 |
+| C | 01 | O | 3 | 6 | Yes | K1, Q, K2 |
+| C | 01 | A | 1 | 6 | Yes | K1, Q, K2 |
+| C | 01 | A | 2 | 3 | Yes | K1, Q, K2 |
+| C | 01 | A | 3 | 3 | Yes | K1, Q, K2 |
+| C | 01 | M | 1 | 4 | Yes | K1, Q, K2 |
+| C | 01 | M | 2 | 5 | Yes | K1, Q, K2 |
+| C | 01 | M | 3 | 4 | Yes | K1, Q, K2 |
+| C | 02 | O | 1 | 2 | Yes | K1, Q, K2 |
+| C | 02 | O | 2 | 2 | Yes | K1, Q, K2 |
+| C | 02 | O | 3 | 3 | Yes | K1, Q, K2 |
+| C | 02 | A | 1 | 2 | Yes | K1, Q, K2 |
+| C | 02 | A | 2 | 3 | Yes | K1, Q, K2 |
+| C | 02 | A | 3 | 4 | Yes | K1, Q, K2 |
+| C | 02 | M | 1 | 3 | Yes | K1, Q, K2 |
+| C | 02 | M | 2 | 5 | Yes | K1, Q, K2 |
+| C | 02 | M | 3 | 2 | Yes | K1, Q, K2 |
+| C | 03 | O | 1 | 4 | Yes | K1, Q, K2 |
+| C | 03 | O | 2 | 3 | Yes | K1, Q, K2 |
+| C | 03 | O | 3 | 3 | Yes | K1, Q, K2 |
+| C | 03 | A | 1 | 5 | Yes | K1, Q, K2 |
+| C | 03 | A | 2 | 3 | Yes | K1, Q, K2 |
+| C | 03 | A | 3 | 4 | Yes | K1, Q, K2 |
+| C | 03 | M | 1 | 2 | Yes | K1, Q, K2 |
+| C | 03 | M | 2 | 3 | Yes | K1, Q, K2 |
+| C | 03 | M | 3 | 3 | Yes | K1, Q, K2 |
+| C | 04 | O | 1 | 4 | Yes | K1, Q, K2 |
+| C | 04 | O | 2 | 3 | Yes | K1, Q, K2 |
+| C | 04 | O | 3 | 3 | Yes | K1, Q, K2 |
+| C | 04 | A | 1 | 4 | Yes | K1, Q, K2 |
+| C | 04 | A | 2 | 2 | Yes | K1, Q, K2 |
+| C | 04 | A | 3 | 6 | Yes | K1, Q, K2 |
+| C | 04 | M | 1 | 3 | Yes | K1, Q, K2 |
+| C | 04 | M | 2 | 4 | Yes | K1, Q, K2 |
+| C | 04 | M | 3 | 4 | Yes | K1, Q, K2 |
+| C | 05 | O | 1 | 4 | Yes | K1, Q, K2 |
+| C | 05 | O | 2 | 3 | Yes | K1, Q, K2 |
+| C | 05 | O | 3 | 3 | Yes | K1, Q, K2 |
+| C | 05 | A | 1 | 5 | Yes | K1, Q, K2 |
+| C | 05 | A | 2 | 3 | Yes | K1, Q, K2 |
+| C | 05 | A | 3 | 3 | Yes | K1, Q, K2 |
+| C | 05 | M | 1 | 4 | Yes | K1, Q, K2 |
+| C | 05 | M | 2 | 5 | Yes | K1, Q, K2 |
+| C | 05 | M | 3 | 3 | Yes | K1, Q, K2 |
+| EQ | 01 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 01 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 01 | O | 3 | 2 | Yes | K1 |
+| EQ | 01 | A | 1 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 01 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 01 | A | 3 | 2 | Yes | None |
+| EQ | 01 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 01 | M | 2 | 2 | Yes | None |
+| EQ | 01 | M | 3 | 4 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | O | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | O | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | A | 1 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | A | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 02 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | O | 3 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | M | 1 | 4 | Yes | K1, Q, K2 |
+| EQ | 03 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 03 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | O | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | O | 2 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | O | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | A | 3 | 2 | Yes | K1 |
+| EQ | 04 | M | 1 | 4 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 04 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | O | 2 | 3 | Yes | K1, Q |
+| EQ | 05 | O | 3 | 2 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | A | 2 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | M | 2 | 4 | Yes | K1, Q, K2, EQS |
+| EQ | 05 | M | 3 | 2 | Yes | K1, Q, K2, EQS |
+
+## Structured focal relationships
+
+Nine selected sessions are organized below by the relationship under examination. Cases 4-6 retain all three sessions in one crystallization world/information cell. Other cases are selected trajectories or counterexamples, not a random sample. Each record separates prior expectation, successful execution, explicit revision, evidential scope and later use. A pre-test claim not established by the focal analysis is labelled accordingly; it is not scored as absent. Quotations are checked against their specified note version or sealed stage. Interpretation remains by one analyst, without independent reliability assessment. All figures remain illustrative previews; these records and the outcome tables carry the retained evidence.
+
+### Process case 1: One local test, two evidential roles
+
+EQ, world 4, MisIndexed, session 1. Extension cohort.
+
+**Prior expectation.** Revision 3, before batches 11-12, predicts a substantial response if the alternative component is the active coordinate.
+
+**Executed test or observations.** Batch 11 tests the component alone; batch 12 adds a large component spike to a small reagent charge. Both committed tests remain near the observed response plateau.
+
+**Recorded revision or characterization.** Revision 4 withdraws support for the tested mapping while retaining buffering, saturation and unidentified-coordinate explanations.
+
+**What the evidence supports.** The executed perturbations oppose the specified mapping prediction. They do not determine the low-loading limit or distinguish a persistent plateau from a dilute transition.
+
+**Subsequent use.** The extreme-dilution forecast explicitly invokes the component-only result: dissociation 0.092, interval 0.043-0.155, versus reference mean 0.51730. Retrospective review recognizes unresolved low-loading alternatives without receiving truth.
+
+**Extent of support.** One fully connected focal trajectory; the 45-session equilibrium distribution contextualizes the outcome but does not establish the frequency of this process.
+
+**Recorded wording (note version 3).** "A null component response would instead favor an internally buffered/invariant world."
+
+**Recorded wording (note version 4).** "component-as-active-loading hypothesis rejected in tested form"
+
+**Recorded wording (Q).** "shrink strongly toward the experimentally observed near-invariant baseline because a component-only batch also retained similar responses."
+
+### Process case 2: A prospective seed-rescue expectation is withdrawn
+
+C, world 1, MisIndexed, session 3. Extension cohort.
+
+**Prior expectation.** Revision 3 proposes repeating the concentrated 0.02 L recipe with 0.05 g seed to test whether particle quality can be rescued.
+
+**Executed test or observations.** Batches 10 and 12 share the principal preparation and cooling operations; committed seed changes from 0.02 to 0.05 g. Both assays report fines fraction 1.0.
+
+**Recorded revision or characterization.** Revision 4 explicitly disconfirms this prospective rescue expectation and retains a different recipe as the recommendation.
+
+**What the evidence supports.** The larger of the two executed doses does not rescue the tested condition. No conclusion about all larger doses or every seeding mechanism follows.
+
+**Subsequent use.** The recommendation uses an alternative recipe whose noiseless fines fraction is 0.24744 and which satisfies the recorded feasibility criteria. Recovery rankings remain subject to the disclosed definition mismatch.
+
+**Extent of support.** One prospective dose contrast and recorded revision; no independent repeat of this exact hypothesis test is claimed.
+
+**Recorded wording (note version 3).** "Repeat the 0.02 L high-loading recipe using 0.05 g seed."
+
+**Recorded wording (note version 4).** "disconfirming the final prospective rescue hypothesis."
+
+### Process case 3: A working recipe region guides a new test
+
+C, world 1, MisIndexed, session 2. Extension cohort.
+
+**Prior expectation.** After a feasible 35 ml recipe, revision 4 proposes 32.5 ml as the next boundary test.
+
+**Executed test or observations.** Batches 10-12 use 35, 32.5 and 35 ml, with otherwise matching principal operations. Measured fines fractions are 0.14526, 0.03411 and 0.13587.
+
+**Recorded revision or characterization.** The final note retains a bounded feasible region and selects the repeated 35 ml recipe. It does not claim that small differences among close recovery values are resolved.
+
+**What the evidence supports.** The sequence supports feasibility of the tested recipes. Earlier low-volume failures also changed seed or thermal history, so a sharp concentration threshold is not isolated.
+
+**Subsequent use.** The proposed intermediate-volume test is executed and the final recommendation passes an independent retest, with fines fraction 0.13392. There is no clean causal estimate of a universal volume effect.
+
+**Extent of support.** One prospective test, one same-recipe repeat and one recommendation retest in a single session; these are not independent researcher samples.
+
+**Recorded wording (note version 4).** "Next test at 0.0325 L targets the boundary."
+
+**Recorded wording (note version 5).** "Its 0.035 L recipe was independently repeated in batch 12 and remained compliant"
+
+### Process case 4: Recognized high purity and altered transfer, first session
+
+C, world 4, MisIndexed, session 1. Extension cohort.
+
+**Prior expectation.** A specific pre-test numerical commitment to invariant purity is not established by this focal comparison; the relevant supported judgment appears in the sealed source account.
+
+**Executed test or observations.** Twelve source assays have mean purity 99.09%; the selected recipe passes the recorded retest criteria.
+
+**Recorded revision or characterization.** The source account explicitly recognizes impurity rejection and high crystal purity. This is a documented local characterization, not a quantified pre/post learning gain.
+
+**What the evidence supports.** High purity is observed in the tested recipes. Transfer still requires judging effects of changed conditions; no universal purity law is inferred.
+
+**Subsequent use.** Forecast adjustments for solvent, occlusion, concentration and thermal history yield mean purity 86.92%, versus reference 98.45%. Purity MAE is 0.11529 and 0/12 purity intervals cover the reference.
+
+**Extent of support.** One of all three sessions in the same world/information cell; all three are retained below.
+
+**Recorded wording (K1).** "filtered crystals generally had purity 0.98–1.00"
+
+### Process case 5: Recognized high purity and altered transfer, second session
+
+C, world 4, MisIndexed, session 2. Extension cohort.
+
+**Prior expectation.** A specific pre-test commitment to unchanged purity is not established by this comparison; the source account explicitly characterizes the observed response.
+
+**Executed test or observations.** Twelve source assays have mean purity 98.18%; the recommendation passes the recorded retest criteria.
+
+**Recorded revision or characterization.** The report recognizes high purity and a repeatedly feasible process region. It also contains a separate inaccurate seed-dose account; recognizing purity does not validate every other claim in that report.
+
+**What the evidence supports.** High purity and recipe feasibility are supported locally. The reported large-dose seed comparison requires separate execution checking.
+
+**Subsequent use.** Mean purity forecast is 86.33%, versus common reference 98.45%. No claim of forgetting or a shared psychological mechanism is made.
+
+**Extent of support.** Second of the three same-cell sessions, rather than a second independently sampled world.
+
+**Recorded wording (K1).** "S2 did give high purity and substantial recovery"
+
+### Process case 6: Recognized high purity and altered transfer, third session
+
+C, world 4, MisIndexed, session 3. Extension cohort.
+
+**Prior expectation.** No specific pre-test invariance commitment is assigned; the comparison concerns established source observations and their subsequent use.
+
+**Executed test or observations.** Twelve source assays have mean purity 99.09%; the recommendation passes the recorded retest criteria.
+
+**Recorded revision or characterization.** The source account recognizes that observed S2 purities are generally 0.98-1.00 and acknowledges confounding in solvent comparisons.
+
+**What the evidence supports.** The observed high-purity region is supported; an independent solvent effect is not identified.
+
+**Subsequent use.** Mean purity forecast is 89.92%, versus reference 98.45%. This repeats the recognition/forecast contrast, not necessarily the route that produced it.
+
+**Extent of support.** Third of all three same-cell sessions; no population probability is estimated from three repeats.
+
+**Recorded wording (K1).** "Low impurity occlusion is consistent with the observed final purities, generally 0.98–1.00 in S2 batches."
+
+### Process case 7: An intended large-dose test becomes negative evidence
+
+C, world 4, Aligned, session 3. Extension cohort.
+
+**Prior expectation.** Revision 4 proposes approximately 2 g cumulative seed, treating 0.05 g as a per-operation allowance.
+
+**Executed test or observations.** Batch 10 requests forty additions of 0.05 g; one commits and thirty-nine are rejected. Total committed seed is 0.05 g.
+
+**Recorded revision or characterization.** Revision 5 states that increasing seed to about 2 g did not reduce fines and excludes seed mass as the limiting control. Later notes and sealed accounts retain the claim.
+
+**What the evidence supports.** The trajectory provides no physical test of 2 g. A failed request is not negative evidence for the scientific dose hypothesis.
+
+**Subsequent use.** The claimed exclusion persists in the final account and retrospective review. Its independent influence on subsequent actions has not been tested.
+
+**Extent of support.** One connected execution/report discrepancy, with a rejection-recognizing counterexample in case 8. Rejection counts across the cohort are not error-prevalence estimates.
+
+**Recorded wording (note version 4).** "Test about 2 g cumulative seed"
+
+**Recorded wording (note version 5).** "Seed mass is not the limiting control in this range."
+
+### Process case 8: Rejected additions are correctly recognized
+
+C, world 2, Aligned, session 2. Extension cohort.
+
+**Prior expectation.** The attempted repeated addition is checked against its actual execution status; a separate prospective high-dose scientific expectation is not assigned by this focal analysis.
+
+**Executed test or observations.** Additional seed requests in batch 2 are rejected by payload bounds.
+
+**Recorded revision or characterization.** Revision 2 explicitly records the failed additions and states that one legal seed operation should be used per batch unless the range changes.
+
+**What the evidence supports.** The operational conclusion concerns permitted dosing, not a physical effect of the rejected larger dose.
+
+**Subsequent use.** The recorded decision limits further dosing rather than claiming a successful large-dose test. A causal effect of the note itself is not estimated.
+
+**Extent of support.** A selected counterexample showing that rejection need not become a false experimental claim.
+
+**Recorded wording (note version 2).** "use one legal seed operation per batch unless the current legal range changes."
+
+### Process case 9: Accurate extrapolation with an unresolved mechanism
+
+EQ, world 2, Opaque, session 2. First cohort.
+
+**Prior expectation.** The source account retains multiple explanations for an observed plateau; a directly executed extreme-dilution discriminator is absent from the source action record.
+
+**Executed test or observations.** Twelve source batches characterize a plateau without positive-loading assays at or below 1 mM.
+
+**Recorded revision or characterization.** An effective soluble-concentration ceiling becomes more specific during forecasting, although it had remained one candidate in the source account.
+
+**What the evidence supports.** The source observations do not uniquely identify the ceiling mechanism. Correct extrapolation can use theoretical structure without direct sampling.
+
+**Subsequent use.** The dilute forecast is relatively accurate; retrospective review still recognizes that its intervals underrepresent the competing persistent-plateau explanation.
+
+**Extent of support.** One positive extrapolation counterexample within the first process block; accuracy does not retrospectively make the mechanism experimentally identified.
+
+**Recorded wording (K2).** "This is inconsistent with K1’s explicit statement that solubility pinning, buffering, nonideality, and synthetic mapping were observationally equivalent"
 
 ## All matched quench dispositions
 
@@ -646,7 +933,7 @@ The common dilution anchor is 0.001 mol acid at 298.15 K, with volume increasing
 
 ## Executed process relationships
 
-The following equations describe the retained virtual-world laws, not mechanisms inferred by the participants. Historical final-assay and current retest recovery normalizations are distinct; current process outcomes follow the Methods above.
+The following equations describe the retained virtual-world laws, not mechanisms inferred by the participants. The initial-charge final-assay recovery formula below also describes the checked full-process observation route in the repeated cohort. The internal stage-recovery metric and mismatched participant description are distinguished above; they must not be substituted for the observed/scored response.
 
 ### Equilibrium response model
 

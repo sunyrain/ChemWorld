@@ -96,7 +96,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     meta, article = strip_frontmatter(read("article" + suffix + ".md"))
     if supplement:
         text = read("supplementary.md")
-        title = "Supplementary Information: scientific judgments in autonomous research"
+        title = "Supplementary Information: experimental experience and scientific understanding"
     else:
         title = meta["title"]
         opening, body = article.split("\n\n", 1)
