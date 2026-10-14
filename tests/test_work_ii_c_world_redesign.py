@@ -32,7 +32,7 @@ def test_preconditioned_reference_executes_in_previously_invalid_world(seed, tmp
     for index in (6, 7):
         state = records[index]["agent_view"]["tool_json"]["operational_state"]
         assert state["temperature_K"] == 300
-        assert "target product present before separation" in state["sampling_contract"]
+        assert "tracked initial reagent charge" in state["sampling_contract"]
     assert records[8]["action"]["target_temperature_K"] < 300
 
 

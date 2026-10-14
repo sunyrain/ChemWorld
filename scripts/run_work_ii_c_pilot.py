@@ -29,7 +29,10 @@ from chemworld.data.logging import load_jsonl
 from chemworld.eval.runner import run_agent
 from chemworld.eval.work_ii_truth import _FrozenTruthReplayAgent
 from chemworld.foundation import equipment_settings
-from chemworld.runtime.full_process_contract import FULL_PROCESS_FREE_RESEARCH_CONTRACT
+from chemworld.runtime.full_process_contract import (
+    CRYSTAL_RECOVERY_DEFINITION,
+    FULL_PROCESS_FREE_RESEARCH_CONTRACT,
+)
 from chemworld.tasks import get_task
 from chemworld.world.crystallization_material_family import (
     REACTION_CRYSTALLIZATION_LATENT_MATERIAL_FAMILY,
@@ -49,7 +52,7 @@ GOAL = (
     "A recovery of 0.10 is an initial feasibility target, not an optimization ceiling. "
     "Choose and revise experiments freely; the native composite score is secondary."
 )
-SYSTEM = """You are an autonomous scientist in a simulated reaction-to-crystallization laboratory.
+SYSTEM = f"""You are an autonomous scientist in a simulated reaction-to-crystallization laboratory.
 Use only chemworld_lab and public_numerics. No external access or hidden simulator inspection.
 Read material_information first. The task's research_goal is authoritative. Complete 12
 independent batches with 12 extra instrument uses shared freely across HPLC and particle_size,
@@ -58,8 +61,7 @@ Use the current legal ranges and actual thermometer readings. Choose materials, 
 seeding, cooling, holding, reheating/redissolution, recooling and filtration freely.
 The later prediction domain includes material changes, seed doses, cooling/thermal history,
 stopping versus continuing growth, and upstream loading changes. Exact recipes are withheld.
-crystal_yield is crystallization-stage recovery: seed-excluded recovered product divided
-by the target product present before separation. It is not overall yield from reactant charge.
+{CRYSTAL_RECOVERY_DEFINITION}
 crystal_purity and crystal_fines_fraction are fractions; crystal_size is min(d50/250 um,1),
 a bounded number-weighted size index, not a diameter in micrometres. Fines means below 20 um.
 HPLC consumes a representative sample; particle_size is nondestructive after crystals exist.
@@ -197,9 +199,7 @@ def prediction_question(query_set):
         "specifies all actions, including any intermediate sampling. For each return "
         "query_id, particles_present, quality_feasible, and estimate/lower80/upper80 for "
         "crystal_yield, crystal_purity, crystal_size and crystal_fines_fraction. All metrics "
-        "are 0-1: crystal_yield is seed-excluded crystallization-stage recovery relative to "
-        "target product present before separation, not overall yield from reactant charge; "
-        "crystal_size is "
+        "are 0-1. " + CRYSTAL_RECOVERY_DEFINITION + " crystal_size is "
         "min(number-weighted d50/250 micrometres,1). If no particles are expected, set "
         "particles_present=false and all three size interval fields to null. quality_feasible "
         "means purity>=0.80 and fines<=0.50 with particles present. Give a concise rationale "
@@ -225,10 +225,7 @@ class CAgent(ec.FreeResearchAgent):
                 "operation_attempts": 720,
             },
             prediction_metrics={
-                "crystal_yield": (
-                    "seed-excluded recovered product / target product present before separation; "
-                    "crystallization-stage recovery, not overall yield from reactant charge"
-                ),
+                "crystal_yield": CRYSTAL_RECOVERY_DEFINITION,
                 "crystal_purity": "fraction",
                 "crystal_size": "min(number-weighted d50/250 micrometres,1)",
                 "crystal_fines_fraction": "number fraction below 20 micrometres",

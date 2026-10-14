@@ -18,6 +18,11 @@ FULL_PROCESS_POPULATION_CONTRACT = "phase-resolved-process-v2"
 FULL_PROCESS_THERMAL_CONTRACT = "phase-resolved-process-v3"
 FULL_PROCESS_SEED_CONTRACT = "phase-resolved-process-v4"
 FULL_PROCESS_FREE_RESEARCH_CONTRACT = "phase-resolved-process-v5"
+CRYSTAL_RECOVERY_DEFINITION = (
+    "crystal_yield is seed-excluded solid target product divided by the tracked initial "
+    "reagent charge (both in moles), clipped to [0,1]; it is overall recovery from reagent "
+    "charge, not crystallization-stage recovery relative to product before separation."
+)
 FULL_PROCESS_TASKS = frozenset(
     {
         "reaction-to-purification",

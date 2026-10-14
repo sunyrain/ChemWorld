@@ -1895,7 +1895,11 @@ def full_process_operational_state(env: Any, info: dict[str, Any]) -> dict[str, 
     process = state.process
     has_previous = bool(process is not None and process.last_observation)
     phases = {} if state.phases is None else state.phases.phases
-    from chemworld.runtime.full_process_contract import active, sample_domain
+    from chemworld.runtime.full_process_contract import (
+        CRYSTAL_RECOVERY_DEFINITION,
+        active,
+        sample_domain,
+    )
 
     resolved = active(state)
     return {
@@ -1936,8 +1940,7 @@ def full_process_operational_state(env: Any, info: dict[str, Any]) -> dict[str, 
             "representative analytical slurry group, including after filtration; they are not "
             "separately stored bottles. "
             + (
-                "crystal_yield is seed-excluded recovered target product divided by target "
-                "product present before separation; it is crystallization-stage recovery."
+                CRYSTAL_RECOVERY_DEFINITION
                 if base.task_id == "reaction-to-crystallization"
                 else "Recovery/yield denominators are original reactant charge."
             )

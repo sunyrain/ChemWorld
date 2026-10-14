@@ -750,7 +750,7 @@ def check_public(arm, seed, batches):
                 "particle_available": "particle_size"
                 in agent._task_contract["instrument_contracts"],
                 "metric_contract_consistent": all(
-                    "target product present before separation" in text for text in metric_texts
+                    pilot.CRYSTAL_RECOVERY_DEFINITION in text for text in metric_texts
                 ),
                 "operational_state": operational,
             }
