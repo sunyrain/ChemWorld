@@ -141,6 +141,43 @@ def aggregate(rows):
     }
 
 
+def missing_forecast_bounds(rows):
+    """Posthoc sensitivity, not imputation or a confidence interval.
+
+    A valid forecast and every response are bounded in [0, 1], so a missing
+    session's macro MAE can conservatively range from zero to one.
+    """
+    groups = {}
+    for group in ("all", "dilute", "other"):
+        arms = {}
+        for arm in ARMS:
+            lower, upper, missing = [], [], 0
+            for world in (f"W{x:02d}" for x in range(1, 6)):
+                values = [
+                    r["scores"]["groups"][group]["macro_mae"]
+                    for r in rows
+                    if r["opportunity"] == arm and r["world"] == world and r.get("scores")
+                ]
+                absent = 3 - len(values)
+                missing += absent
+                lower.append(sum(values) / 3)
+                upper.append((sum(values) + absent) / 3)
+            arms[arm] = {"lower": fmean(lower), "upper": fmean(upper), "missing": missing}
+        groups[group] = {
+            "arms": arms,
+            "research_minus_no_research": {
+                "lower": arms["Research"]["lower"] - arms["NoResearch"]["upper"],
+                "upper": arms["Research"]["upper"] - arms["NoResearch"]["lower"],
+            },
+        }
+    return {
+        "basis": "Posthoc conservative [0,1] macro-MAE bounds for missing forecasts; "
+        "fixed 3 sessions per arm/world, then 5 equal worlds. "
+        "Not imputation or sampling uncertainty.",
+        "groups": groups,
+    }
+
+
 def retained_attempt(parent, output):
     root = parent / "attempt-01"
     design = read(root / "design.json")
@@ -355,6 +392,9 @@ def export(root, output, require_complete=False):
         "experiment_note": design["experiment_note"],
         "sessions": rows,
         "comparison": aggregate(rows),
+        "posthoc_missing_forecast_sensitivity": missing_forecast_bounds(rows)
+        if len(terminal) == 30
+        else None,
     }
     write(output / "opportunity_comparison.json", result)
 
@@ -436,10 +476,27 @@ def export(root, output, require_complete=False):
         "Only the random campaign label is excluded from this comparison.",
     ]
     for row in failures:
+        failure = row["failure"] or {
+            stage: resources["failure"]
+            for stage, resources in row["posttest_resources"].items()
+            if resources["failure"]
+        }
         lines.append(
             f"- {row['repeat']} / {row['id']}: {row['status']}; "
-            f"missing {', '.join(row['missing_stages']) or 'none'}; {row['failure']}"
+            f"missing {', '.join(row['missing_stages']) or 'none'}; {failure}"
         )
+    if result["posthoc_missing_forecast_sensitivity"]:
+        sensitivity = result["posthoc_missing_forecast_sensitivity"]
+        lines += [
+            "",
+            sensitivity["basis"],
+            "",
+            "| Group | Difference lower bound | Difference upper bound |",
+            "|---|---:|---:|",
+        ]
+        for group, value in sensitivity["groups"].items():
+            bounds = value["research_minus_no_research"]
+            lines.append(f"| {group} | {fmt(bounds['lower'])} | {fmt(bounds['upper'])} |")
     lines += [
         "",
         "The package includes source experiments, observation history and notebook opportunity.",

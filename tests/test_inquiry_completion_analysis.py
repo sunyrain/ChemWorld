@@ -128,3 +128,24 @@ def test_opportunity_scores_preserve_five_observation_coverage_and_world_weight(
     a = aggregate(rows)
     assert a["equal_world_means"]["Research"]["all"]["macro_mae"] == 0.3
     assert a["equal_world_means"]["NoResearch"]["all"]["macro_mae"] is None
+
+
+def test_missing_forecast_bounds_preserve_planned_world_denominators():
+    from scripts.report_inquiry_completion import missing_forecast_bounds
+
+    rows = [
+        {
+            "world": f"W{world:02d}",
+            "opportunity": arm,
+            "scores": {"groups": {g: {"macro_mae": score} for g in ("all", "dilute", "other")}},
+        }
+        for world in range(1, 6)
+        for arm, score in (("Research", 0.1), ("NoResearch", 0.2))
+        for _ in range(3)
+    ]
+    rows[0]["scores"] = None
+    result = missing_forecast_bounds(rows)["groups"]["all"]
+    assert result["arms"]["Research"]["missing"] == 1
+    bounds = result["research_minus_no_research"]
+    assert abs(bounds["lower"] - (14 * 0.1 / 15 - 0.2)) < 1e-12
+    assert abs(bounds["upper"] - ((14 * 0.1 + 1) / 15 - 0.2)) < 1e-12
