@@ -21,9 +21,24 @@ COHORT = "corrected_recovery_45"
 QUANTITIES = ("crystal_yield", "crystal_purity", "crystal_size", "crystal_fines_fraction")
 REPORT_METRICS = (
     *METRICS["C"],
+    "quality_balanced_accuracy",
     *(f"{name}_coverage80" for name in QUANTITIES),
     *(f"{name}_mean_width80" for name in QUANTITIES),
 )
+
+
+def reference_quality_profile(truth):
+    positive = sum(
+        r["particles_present"] and r["crystal_purity"] >= 0.8 and r["crystal_fines_fraction"] <= 0.5
+        for r in truth
+    )
+    return {
+        "queries": len(truth),
+        "quality_feasible": positive,
+        "quality_infeasible": len(truth) - positive,
+        "always_feasible_correct": positive,
+        "always_infeasible_correct": len(truth) - positive,
+    }
 
 
 def grouped_metrics(rows):
@@ -102,6 +117,12 @@ def build(root, output, *, require_complete=False):
         row = export_case(root, unit, output)
         row["cohort"] = COHORT
         enrich(row, root, unit)
+        evaluation = row["prediction_evaluation"] or {}
+        row["measurements"]["quality_balanced_accuracy"] = (
+            evaluation.get("quality", {}).get("balanced_accuracy")
+            if evaluation.get("valid")
+            else None
+        )
         trajectory = source_timeline(row, root, output)
         row["trajectory_metrics"] = trajectory["metrics"]
         write(output / "sessions" / unit["repeat"] / f"{unit['id']}.json", trajectory)
@@ -127,6 +148,12 @@ def build(root, output, *, require_complete=False):
         "status_counts": dict(Counter(r["status"] for r in rows)),
         "by_arm": {a: counts([r for r in rows if r["arm"] == a]) for a in ARMS},
         "metrics": grouped_metrics(rows),
+        "reference_quality_profiles": {
+            f"W{w:02d}": reference_quality_profile(
+                read(root / "references" / f"C-W{w:02d}" / "result.json")["truth"]
+            )
+            for w in range(1, 6)
+        },
         "failures": [
             {
                 k: r.get(k)
@@ -215,7 +242,27 @@ def render(result, output):
     ]
     for name, detail in result["metrics"].items():
         values = [stat(detail["equal_world_means"][a]) for a in ARMS]
-        lines.append(f"| {LABELS.get(name, name)} | " + " | ".join(values) + " |")
+        label = (
+            "质量分类 balanced accuracy"
+            if name == "quality_balanced_accuracy"
+            else LABELS.get(name, name)
+        )
+        lines.append(f"| {label} | " + " | ".join(values) + " |")
+    lines += [
+        "",
+        "### 查询质量类别构成",
+        "",
+        "这是对既有12题的描述，不改变评分或问题。高分类正确数可能来自多数类别；"
+        "同时报告原评估器的balanced accuracy，不能仅凭正确数推定理解了条件差异。",
+        "",
+        "| 世界 | 合格题 /12 | 不合格题 /12 | 恒预测合格正确数 | 恒预测不合格正确数 |",
+        "| --- | ---: | ---: | ---: | ---: |",
+    ]
+    for world, profile in result["reference_quality_profiles"].items():
+        lines.append(
+            f"| {world} | {profile['quality_feasible']} | {profile['quality_infeasible']} | "
+            f"{profile['always_feasible_correct']} | {profile['always_infeasible_correct']} |"
+        )
     lines += ["", "## 逐世界的三次会话", ""]
     for name in METRICS["C"]:
         lines += [
@@ -271,7 +318,20 @@ def main():
     args = parser.parse_args()
     while True:
         result = build(args.root, args.output, require_complete=args.require_complete)
-        emit(result["counts"])
+        live = read(args.root / "summary.json")
+        emit(
+            {
+                "stage": "scientific_export",
+                "exported_sessions": result["counts"]["terminal_sources"],
+                "planned_sessions": 45,
+                "complete_chains": result["counts"]["complete_chains"],
+                "live_batches": live["completed_batches"],
+                "planned_batches": 540,
+                "sealed_posttests": live["sealed_posttests"],
+                "batches_per_minute": live.get("batches_per_minute"),
+                "batch_eta_s": live.get("batch_eta_s"),
+            }
+        )
         if not args.watch or not result["provisional"]:
             return
         time.sleep(30)

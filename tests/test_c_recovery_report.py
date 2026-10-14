@@ -1,7 +1,25 @@
 """Scientific denominators for a corrected cohort with retained missing sessions."""
 
 import pytest
-from scripts.report_c_recovery_aligned import COHORT, grouped_metrics, source_timeline
+from scripts.report_c_recovery_aligned import (
+    COHORT,
+    grouped_metrics,
+    reference_quality_profile,
+    source_timeline,
+)
+
+
+def test_quality_class_balance_does_not_add_a_recovery_threshold():
+    good = {
+        "particles_present": True,
+        "crystal_purity": 0.98,
+        "crystal_fines_fraction": 0.4,
+        "crystal_yield": 0.0,
+    }
+    bad = {**good, "crystal_fines_fraction": 0.8}
+    profile = reference_quality_profile([good, *[bad] * 11])
+    assert profile["quality_feasible"] == 1
+    assert profile["always_infeasible_correct"] == 11
 
 
 def test_equal_world_weighting_does_not_fill_missing_predictions_with_zero():
