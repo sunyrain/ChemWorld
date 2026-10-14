@@ -1,0 +1,3826 @@
+{
+  "repeat": "repeat-03",
+  "id": "EQ-W01-Research",
+  "system": "EQ",
+  "world": "W01",
+  "arm": "Opaque",
+  "opportunity": "Research",
+  "cell": "EQ-W01--Opaque",
+  "model": "gpt-5.6-sol",
+  "batches": 12,
+  "status": "completed",
+  "failure": null,
+  "source_status": "completed",
+  "source_batches": 12,
+  "operations": 61,
+  "exact_replay": {
+    "verified": true,
+    "checked_steps": 61,
+    "max_abs_error": 0.0,
+    "mismatches": []
+  },
+  "rollbacks": [
+    {
+      "step": 59,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "reason": "campaign_resource_rejected"
+    }
+  ],
+  "sealed_stages": [
+    "K1",
+    "Q",
+    "K2",
+    "EQS"
+  ],
+  "missing_stages": [],
+  "posttests": {
+    "K1": {
+      "payload": {
+        "report": "SCIENTIFIC ACCOUNT\n\nPublic background\nThis is a bounded synthetic weak-acid/precipitation benchmark, not a model of general aqueous chemistry or a named real material. The public measurement definitions are pH_normalized = pH/14, acid_dissociation_fraction as a bounded fraction, and precipitation_signal as a bounded normalized proxy rather than a directly quantified solid concentration. Water has a public identity, but its runtime behavior is a categorical benchmark effect. The final assay is a synthetic reference instrument with declared one-standard-deviation noise of 0.002 for pH_normalized, 0.006 for acid_dissociation_fraction, and 0.006 for precipitation_signal. The pH meter has larger corresponding declared noises of 0.004, 0.015, and 0.020. Equilibrium_confidence is explicitly an environment diagnostic, not scientific confidence in the conclusions. No archival local relationship or task-specific material dossier was supplied.\n\nExperimental design and actual observations\nTwelve room-temperature, water-only batches were completed. No heating, waiting, catalyst, alternate solvent, or electrolyte perturbation was used. Nominal concentration below means reagent amount divided by prepared water volume. A pH-meter measurement consumed 0.00003 L before each final assay, so nominal prepared volumes, rather than the microscopically smaller final volumes, are reported.\n\nBatch | reagent (mol) | water (L) | nominal loading (mol/L) | final pH_normalized | final dissociation fraction | final precipitation proxy\n1 | 0.005 | 0.080 | 0.0625 | 0.25529 | 0.06336 | 0.15942\n2 | 0.010 | 0.080 | 0.125 | 0.25423 | 0.07356 | 0.16183\n3 | 0.020 | 0.080 | 0.250 | 0.25015 | 0.07915 | 0.15777\n4 | 0.030 | 0.080 | 0.375 | 0.25348 | 0.06936 | 0.15901\n5 | 0.040 | 0.080 | 0.500 | 0.25105 | 0.07630 | 0.15923\n6 | 0.005 | 0.040 | 0.125 | 0.25264 | 0.07052 | 0.14423\n7 | 0.010 | 0.040 | 0.250 | 0.25549 | 0.06967 | 0.16126\n8 | 0.015 | 0.040 | 0.375 | 0.25257 | 0.07005 | 0.15395\n9 | 0.040 | 0.040 | 1.000 | 0.25581 | 0.06635 | 0.15097\n10 | 0.020 | 0.080 | 0.250 | 0.25277 | 0.06786 | 0.15651\n11 | 0.010 | 0.040 | 0.250 | 0.25536 | 0.07972 | 0.15141\n12 | 0.020 | 0.040 | 0.500 | 0.25263 | 0.06432 | 0.15123\n\nAcross these final assays, mean pH_normalized was 0.25346, equivalent by the public definition to pH about 3.548. Its observed range was 0.25015–0.25581 and its population scatter was 0.00175. Mean acid_dissociation_fraction was 0.07085, with range 0.06336–0.07972 and scatter 0.00514. Mean precipitation_signal was 0.15557, with range 0.14423–0.16183 and scatter 0.00505. Each full-series scatter is comparable to or smaller than the applicable final-assay noise. Final equilibrium_residual values were 0–0.00770 and equilibrium_confidence values were approximately 0.3685–0.5763; these are reported only as environment diagnostics.\n\nLoading relationship: inference from observations\nThe preregistered qualitative expectation—that increasing concentration would clearly lower pH and dissociation while increasing precipitation—was not supported over 0.0625–1.0 mol/L. All three response channels remained nearly flat and nonmonotonic. A descriptive least-squares model containing an intercept, ln(nominal concentration), and volume gave coefficients per unit ln(concentration) of -0.000666 for pH_normalized, +0.000533 for dissociation, and +0.000274 for precipitation. These changes are small relative to measurement noise and are descriptive coefficients, not mechanistic constants or formal confidence intervals. In particular, the 1.0 mol/L upper-bound batch 9 did not show an evident precipitation threshold: its precipitation_signal was 0.15097, below rather than above the series mean.\n\nVolume and dilution relationship: observations and limits\nThe design included independent matched-concentration comparisons at 0.125, 0.250, and 0.375 mol/L using 0.040 and 0.080 L preparations. At 0.125 mol/L, batches 2 and 6 differed in precipitation_signal by about 0.0176, but comparable contrasts were not reproduced consistently. At 0.375 mol/L, batches 4 and 8 differed by about 0.0051. At 0.250 mol/L, duplicate 0.080 L batches 3 and 10 averaged pH_normalized 0.25146, dissociation 0.07350, and precipitation 0.15714; duplicate 0.040 L batches 7 and 11 averaged 0.25543, 0.07470, and 0.15634. Thus the possible pH scale difference at 0.250 mol/L was not accompanied by corresponding dissociation or precipitation shifts and was not directionally reproduced at the other matched concentrations.\n\nThe same descriptive regression estimated changes across a 0.040 L volume difference of about -0.00156 in pH_normalized, +0.00174 in dissociation, and +0.00691 in precipitation. The design was small, partly confounded, and not randomized, so these estimates do not establish a volume effect. The defensible conclusion is that separate total-amount or volume dependence remains unresolved rather than demonstrated.\n\nNo successful within-vessel dilution trajectory was obtained. Batch 12 was measured at 0.020 mol in 0.040 L; a planned subsequent 0.040 L water addition was rejected because the campaign solvent stock had been exhausted. Its final assay therefore remained a concentrated state. Consequently, reversibility under dilution and the causal effect of dilution cannot be inferred from this campaign; only comparisons between separately prepared batches are available.\n\nEffective account within the supported range\nFor instantaneous, approximately room-temperature water preparations containing 0.005–0.040 mol reagent in 0.040–0.080 L, a local plateau is the simplest effective empirical description:\n\npH_normalized ≈ 0.2535, hence pH ≈ 3.55;\nacid_dissociation_fraction ≈ 0.0709;\nprecipitation_signal ≈ 0.1556.\n\nThese constants summarize this bounded domain and its measurement resolution. They must not be extrapolated to zero loading, outside 0.0625–1.0 mol/L, other temperatures, elapsed equilibration times, alternative solvents, catalysts, or electrolyte conditions. The absence of an observed trend is not proof that the true slopes are exactly zero or that no precipitation threshold exists outside the sampled interval.\n\nRelationship among pH and dissociation\nThe observations do not support identifying the public dissociation fraction with a simple unbuffered monoprotic-acid charge balance. At the mean response, pH about 3.55 corresponds to free hydrogen ion on the order of 3×10^-4 mol/L, whereas 7% of a representative 0.25 mol/L total loading would be on the order of 2×10^-2 mol/L. Because the public mapping from hidden species to observables is deliberately unavailable, this numerical mismatch should not be treated as an error. It instead shows that a one-species relation such as [H+] = fraction × total loading is not identifiable from the public data. Hidden buffering, counterions, activity effects, precipitation, or the benchmark definition of the normalized fraction could all decouple the two channels.\n\nUncertainty and competing explanations\nThe near-constant response is supported as an empirical local approximation, but its mechanism is not identifiable. Equivalent or partly equivalent explanations include: (1) a background buffer that clamps pH while hidden speciation changes; (2) dissociation and precipitation observables lying on shallow normalized plateaus; (3) compensating acid-base, activity, and precipitation equilibria; (4) genuine loading or scale effects smaller than the available resolution; and (5) batch and instrument variation. The occasional larger differences from the pH meter are not strong contrary evidence because that instrument has substantially higher declared noise; for example, some pH-meter dissociation and precipitation estimates differed visibly from their same-batch final assays.\n\nNo formal confidence interval, kinetic equilibration study, solid isolation, direct mass-based precipitation measurement, or independent calibration series was performed. The final-assay replicate scatter supports the plateau description at roughly the stated assay resolution but does not validate a unique chemical mechanism.\n\nConjectures and future discriminating tests\nIt is conjectured, not observed, that a true threshold or curvature may occur below 0.0625 or above 1.0 mol/L, or after changing background electrolyte conditions. A future randomized replicated study should reserve solvent for genuine within-vessel staged dilution, compare equal concentration at several independently varied amounts and volumes, and extend the concentration range. A new water batch inside the studied domain is predicted to fall near pH_normalized 0.2535, dissociation 0.0709, and precipitation 0.1556, subject to process and instrument variation. Reproducible matched-concentration shifts substantially exceeding final-assay noise would overturn the present scale-null description; a reversible within-vessel response would distinguish concentration control from fixed total-loading or batch effects."
+      },
+      "failure": null,
+      "elapsed_s": 65.10899999999674,
+      "usage": {
+        "input_tokens": 601912,
+        "cached_input_tokens": 498688,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 9801,
+        "reasoning_output_tokens": 4045
+      },
+      "method_resources": null
+    },
+    "Q": {
+      "payload": {
+        "predictions": [
+          {
+            "query_id": "Q01",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.255,
+                "lower80": 0.243,
+                "upper80": 0.272
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.035,
+                "upper80": 0.125
+              },
+              "precipitation_signal": {
+                "estimate": 0.154,
+                "lower80": 0.105,
+                "upper80": 0.205
+              }
+            },
+            "rationale": "The endpoint concentration is 0.015 mol/L. This is below the observed 0.0625–1.0 mol/L range, and both amount and volume are below the studied ranges. The point prediction therefore extends the observed plateau with only a small weak-acid-direction shift, while the interval is widened substantially for unobserved low-loading behavior."
+          },
+          {
+            "query_id": "Q02",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.255,
+                "lower80": 0.244,
+                "upper80": 0.27
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.04,
+                "upper80": 0.12
+              },
+              "precipitation_signal": {
+                "estimate": 0.154,
+                "lower80": 0.11,
+                "upper80": 0.2
+              }
+            },
+            "rationale": "This has the same 0.015 mol/L endpoint concentration as Q01, so the concentration-dominated plateau model gives the same center. Its 0.04 L volume reaches the lower observed volume boundary, but its amount remains far below observation; uncertainty includes a possible separate scale effect that the campaign could not resolve."
+          },
+          {
+            "query_id": "Q03",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.259,
+                "lower80": 0.225,
+                "upper80": 0.35
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.08,
+                "lower80": 0.015,
+                "upper80": 0.3
+              },
+              "precipitation_signal": {
+                "estimate": 0.148,
+                "lower80": 0.03,
+                "upper80": 0.26
+              }
+            },
+            "rationale": "The nominal concentration is about 0.000133 mol/L and the amount is 500-fold below the smallest observed amount. The center remains close to the empirical plateau but allows the conjectured weak-acid direction of slightly higher pH and dissociation and lower precipitation upon extreme dilution. The broad interval reflects boundary extrapolation and non-identifiability of background buffering versus a low-loading transition."
+          },
+          {
+            "query_id": "Q04",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.257,
+                "lower80": 0.23,
+                "upper80": 0.32
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.074,
+                "lower80": 0.02,
+                "upper80": 0.22
+              },
+              "precipitation_signal": {
+                "estimate": 0.151,
+                "lower80": 0.05,
+                "upper80": 0.24
+              }
+            },
+            "rationale": "The concentration is about 0.00167 mol/L, still far below the observed domain, and the 0.006 L volume is also an extrapolation. Relative to Q03, the higher concentration motivates a slightly lower pH and dissociation and slightly higher precipitation, but these directional changes are conjectural; the plateau remains the dominant basis for the point estimate."
+          },
+          {
+            "query_id": "Q05",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.254,
+                "lower80": 0.247,
+                "upper80": 0.263
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.045,
+                "upper80": 0.1
+              },
+              "precipitation_signal": {
+                "estimate": 0.155,
+                "lower80": 0.125,
+                "upper80": 0.185
+              }
+            },
+            "rationale": "The final state is 0.002 mol in 0.024 L, or about 0.0833 mol/L, close to the observed concentration range although amount and volume are smaller. The sealed account found no robust loading trend, so the plateau is used. Because no waiting or intermediate assay occurs, an equilibrium endpoint model predicts no persistent effect from interleaving the additions."
+          },
+          {
+            "query_id": "Q06",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.254,
+                "lower80": 0.247,
+                "upper80": 0.263
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.045,
+                "upper80": 0.1
+              },
+              "precipitation_signal": {
+                "estimate": 0.155,
+                "lower80": 0.125,
+                "upper80": 0.185
+              }
+            },
+            "rationale": "Q06 has exactly the same final water volume, reagent amount, and nominal concentration as Q05. Path independence is not directly demonstrated by the campaign, but it is the simplest equilibrium explanation, so identical predictions are assigned. Intervals include model uncertainty from the smaller-than-observed amount and volume."
+          },
+          {
+            "query_id": "Q07",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.254,
+                "lower80": 0.247,
+                "upper80": 0.263
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.045,
+                "upper80": 0.1
+              },
+              "precipitation_signal": {
+                "estimate": 0.155,
+                "lower80": 0.125,
+                "upper80": 0.185
+              }
+            },
+            "rationale": "The final endpoint again equals Q05 and Q06: 0.002 mol in 0.024 L. With no evidence for irreversible history dependence, the equilibrium endpoint prediction is identical. The interval remains wider than an interior interpolation because the final volume and amount lie below the experimentally supported ranges."
+          },
+          {
+            "query_id": "Q08",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.262,
+                "lower80": 0.22,
+                "upper80": 0.42
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.085,
+                "lower80": 0.01,
+                "upper80": 0.6
+              },
+              "precipitation_signal": {
+                "estimate": 0.145,
+                "lower80": 0.01,
+                "upper80": 0.28
+              }
+            },
+            "rationale": "At about 0.0000133 mol/L, this is the most extreme dilute trace-loading extrapolation. The slightly higher pH and dissociation and lower precipitation are chemically plausible directions, but they were not observed in K1. The very wide intervals cover both continuation of the measured plateau and a substantial low-loading transition."
+          },
+          {
+            "query_id": "Q09",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.259,
+                "lower80": 0.225,
+                "upper80": 0.36
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.078,
+                "lower80": 0.012,
+                "upper80": 0.4
+              },
+              "precipitation_signal": {
+                "estimate": 0.149,
+                "lower80": 0.02,
+                "upper80": 0.27
+              }
+            },
+            "rationale": "The concentration is about 0.000167 mol/L, higher than Q08 but still far outside the observed range, while the 0.006 L volume is unobserved. The point is consequently closer to the plateau than Q08. Wide intervals represent uncertainty about buffering, scale effects, and whether trace loading suppresses the precipitation proxy."
+          },
+          {
+            "query_id": "Q10",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.251,
+                "lower80": 0.205,
+                "upper80": 0.29
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.068,
+                "lower80": 0.015,
+                "upper80": 0.16
+              },
+              "precipitation_signal": {
+                "estimate": 0.165,
+                "lower80": 0.06,
+                "upper80": 0.45
+              }
+            },
+            "rationale": "The amount is observed, but 0.006 L produces about 6.67 mol/L, well above the 1.0 mol/L upper bound. The observed series showed no threshold through 1.0 mol/L, so the center stays near the plateau with only a modest lower-pH/lower-dissociation/higher-precipitation shift. The interval is broad, especially for precipitation, because an unseen high-concentration threshold remains plausible."
+          },
+          {
+            "query_id": "Q11",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.253,
+                "lower80": 0.249,
+                "upper80": 0.258
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.0715,
+                "lower80": 0.06,
+                "upper80": 0.083
+              },
+              "precipitation_signal": {
+                "estimate": 0.157,
+                "lower80": 0.145,
+                "upper80": 0.168
+              }
+            },
+            "rationale": "This endpoint, 0.04 mol in 0.075 L or about 0.533 mol/L, lies essentially inside the observed amount, volume, and concentration domain and is close to batch 5. The plateau estimate is therefore strongly applicable, and the interval mainly combines final-assay noise, observed batch scatter, and modest local model uncertainty."
+          },
+          {
+            "query_id": "Q12",
+            "metrics": {
+              "pH_normalized": {
+                "estimate": 0.2535,
+                "lower80": 0.249,
+                "upper80": 0.258
+              },
+              "acid_dissociation_fraction": {
+                "estimate": 0.071,
+                "lower80": 0.06,
+                "upper80": 0.082
+              },
+              "precipitation_signal": {
+                "estimate": 0.155,
+                "lower80": 0.144,
+                "upper80": 0.166
+              }
+            },
+            "rationale": "The nominal concentration is about 0.136 mol/L, an interior concentration close to batches 2 and 6. Amount and volume are just below their observed bounds, so the campaign-wide plateau is the best predictor. The intervals are only moderately enlarged and include both final-assay observation noise and the unresolved small volume effect."
+          }
+        ],
+        "rationale": "All centers begin from the sealed K1 empirical plateau: pH_normalized about 0.2535, acid_dissociation_fraction about 0.0709, and precipitation_signal about 0.1556. Intervals are tightest for Q11 and Q12, which interpolate the observed domain; moderately wider for the equivalent-endpoint Q05–Q07 series; and much wider for trace-loading or high-concentration extrapolations. Small directional shifts outside the domain reflect weak-acid and precipitation conjectures, not new observations. Dosing order is treated as irrelevant when final amount and volume coincide because no evidence for path dependence was obtained. Equilibrium_confidence is not used as prediction confidence."
+      },
+      "failure": null,
+      "elapsed_s": 103.23399999999674,
+      "usage": {
+        "input_tokens": 659131,
+        "cached_input_tokens": 502272,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 15289,
+        "reasoning_output_tokens": 7454
+      },
+      "method_resources": null
+    },
+    "K2": {
+      "payload": {
+        "report": "1. Supported, contradicted, and untested relationships\n\nSupported within the sampled domain: For water-only, approximately room-temperature batches containing 0.005–0.040 mol reagent in 0.040–0.080 L, corresponding to 0.0625–1.0 mol/L nominal loading, the final responses are adequately described by a local plateau: pH_normalized about 0.2535, acid_dissociation_fraction about 0.0709, and precipitation_signal about 0.1556. Their across-batch scatter was comparable to or smaller than the declared final-assay noise. Matched-concentration comparisons did not establish a reproducible independent volume or total-amount effect.\n\nContradicted in this domain: The initial expectation that increasing concentration would clearly lower pH and dissociation while increasing precipitation was not observed. No precipitation threshold appeared through 1.0 mol/L. A simple unbuffered monoprotic-acid interpretation linking free hydrogen concentration directly to dissociated fraction times total loading was also unsupported by the public channels.\n\nUntested: True within-vessel dilution and reversibility, concentrations below 0.0625 or above 1.0 mol/L, a zero-reagent control, longer equilibration times, temperature dependence, alternate solvents, electrolyte or ionic-strength effects, catalysts, and direct solid quantification were not tested. Addition-order equivalence was assumed for Q05–Q07 but was not experimentally established.\n\n2. Observations that changed the account\n\nActual observations did change the account during the campaign. Batches 1–5 produced nearly constant and nonmonotonic final responses over 0.0625–0.50 mol/L, contradicting the initial monotonic concentration hypothesis. Batches 6–8 supplied matched-concentration, smaller-volume comparisons; their differences were inconsistent across concentrations rather than evidence of a stable scale effect. Batch 9 extended the range to 1.0 mol/L and still showed no elevated precipitation proxy. Replicate 0.25 mol/L batches 10 and 11 reinforced that observed variability was close to assay noise. Batch 12 was intended to provide within-vessel dilution evidence, but the dilution addition was rejected because solvent stock was exhausted, so it did not test dilution.\n\nNo observations, prediction truths, or scores were supplied after K1 and Q were sealed. Therefore nothing after sealing changed the scientific account or allowed retrospective adjustment of the forecasts.\n\n3. Remaining competing explanations\n\nThe available observations do not distinguish among a background-buffered equilibrium, response channels on shallow normalized plateaus, compensating hidden acid-base/activity/precipitation equilibria, or genuine effects smaller than instrumental and batch variation. These explanations are distinguishable in principle but unresolved here.\n\nA buffer-dominated explanation predicts little response to dilution until buffer capacity is crossed. A concentration-controlled equilibrium predicts reversible changes in pH, dissociation, and possibly precipitation following dilution. A precipitation or hysteresis explanation could retain a pre-dilution signature or respond slowly after dilution. A measurement-proxy plateau could remain flat even when hidden composition changes and would require a different observable, such as direct solid mass or another composition-sensitive assay, to identify. Because the hidden mechanism-to-species mapping is unavailable, the public pH, dissociation, and precipitation channels alone cannot select a unique mechanism.\n\n4. Preferred next legal experiment\n\nI would choose one within-vessel dilution experiment: add 0.040 L water and 0.040 mol reagent, measure with the pH meter, add another 0.040 L water, measure again with the pH meter, terminate, and obtain the required final assay. This changes nominal concentration from approximately 1.0 to 0.5 mol/L while holding total reagent and batch history fixed. The small volume removed by the first meter measurement would be included in the calculation.\n\nIf all channels remain unchanged within their declared uncertainties and the final result agrees with the existing plateau, that would support a buffered or proxy-plateau account. If dilution raises pH_normalized and dissociation while lowering precipitation, reproducibly beyond measurement uncertainty, that would support concentration-controlled weak-acid/precipitation behavior. If the post-dilution state differs from independently prepared 0.5 mol/L batches or changes only partly, that would support path dependence, slow equilibration, or irreversible precipitation. This experiment would not by itself distinguish buffering from an insensitive proxy if it remained flat, but it directly addresses the campaign’s most important missing causal comparison.\n\n5. Limits of the characterization evidence\n\nThe evidence comprises only twelve synthetic water batches in a narrow amount, volume, temperature, and time regime. The design was not fully randomized, formal confidence intervals were not estimated, and some matched comparisons had only one or two batches per condition. All chemical results came from bounded normalized proxy channels; no solid was isolated or weighed, and no hidden species concentrations were public. The pH meter was noisier than the final assay, while a final assay could only be taken after termination. No successful staged dilution, zero-loading baseline, kinetic trajectory, or independent buffer perturbation was obtained.\n\nThe observed flatness supports an effective local description, not proof of exactly zero slopes or a universal equilibrium law. Equilibrium_confidence is an environment diagnostic and cannot be used as epistemic confidence. Real chemical identities and general real-world behavior cannot be inferred from this anonymous synthetic benchmark.\n\n6. Least reliable Q forecasts\n\nQ08 is least reliable because its concentration, about 1.33×10^-5 mol/L, and reagent amount are orders of magnitude below observation. Q03 and Q09 are similarly extreme trace-loading extrapolations. Q04 is also outside both the amount and volume ranges. Their directional adjustments toward higher pH or dissociation and lower precipitation were conjectural, not learned relationships.\n\nQ10 is comparably unreliable in the opposite direction: 0.040 mol in 0.006 L is about 6.67 mol/L, far above the observed 1.0 mol/L boundary. Its predicted precipitation increase was a cautious conjecture about a possible unseen threshold.\n\nQ01 and Q02 share a concentration below the supported range, so their equal centers depend on an unresolved concentration-versus-scale assumption. Q05–Q07 have near-domain final concentrations, but their identical forecasts assume path-independent equilibrium despite no addition-order or successful dilution experiment. Q11 is the most defensible interpolation because its amount, volume, and concentration are essentially within the observed domain. Q12 is also relatively defensible, although its amount and volume are slightly below the observed limits.\n\n7. Limits on generalization\n\nGeneralization to new loading is limited by the observed 0.0625–1.0 mol/L concentration range and 0.005–0.040 mol amount range. Generalization to dilution is limited because all successful evidence came from independently prepared endpoint batches, not causal within-vessel dilution. Generalization across paths is limited because no interleaved-versus-solvent-first-versus-reagent-first comparison was performed and no waiting-time dependence was measured. Generalization across worlds is especially limited: solvent runtime behavior, anonymous reagent identity, hidden equilibria, normalization functions, and instrument mappings are benchmark-specific.\n\nAccordingly, the plateau is a supported interpolation rule for the sampled water domain. It is not a demonstrated law for trace loading, highly concentrated states, alternate operation sequences, other solvents or temperatures, or real aqueous systems."
+      },
+      "failure": null,
+      "elapsed_s": 51.296999999991385,
+      "usage": {
+        "input_tokens": 721845,
+        "cached_input_tokens": 554112,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 17539,
+        "reasoning_output_tokens": 8144
+      },
+      "method_resources": null
+    },
+    "EQS": {
+      "payload": {
+        "effective_pka": {
+          "identifiable": false,
+          "estimate": null,
+          "lower80": null,
+          "upper80": null,
+          "rationale": "Effective pKa is not identifiable from these observations. Although pH_normalized gives pH and the assay reports a dissociation fraction, the public mapping from hidden species to that fraction is unavailable. The measured pH and fraction do not satisfy an identifiable simple, unbuffered monoprotic-acid charge balance across known total loading. Background buffering, activity effects, hidden counterions, precipitation, and normalized-channel definitions are confounded. The responses were also nearly flat over the sampled range, with no zero-loading control or successful dilution trajectory. Any numerical pKa would therefore depend on an unsupported mechanistic assumption, so no estimate or 80% interval is reported."
+        },
+        "path_dependence": {
+          "assessment": "indeterminate",
+          "rationale": "No reproducible staged-addition comparison was observed. The completed batches were independently prepared endpoint states, and matched-concentration batches were broadly consistent with a final-state plateau but cannot test path dependence. Batch 12 was intended to undergo staged dilution, but the second solvent addition was rejected by the stock limit; it therefore supplied no dilution-path evidence. Q05–Q07 assumed endpoint equivalence only as a conjecture, and no prediction truth was revealed. Thus there is no observed path effect, but final-state dominance over staged history is not established."
+        },
+        "dissociation_precipitation": {
+          "assessment": "indeterminate",
+          "supported_range": "Water-only batches with 0.005–0.040 mol reagent, 0.040–0.080 L prepared volume, and 0.0625–1.0 mol/L nominal loading at approximately room temperature.",
+          "competing_explanation": "Within the supported range, dissociation and precipitation were both nearly flat at about 0.0709 and 0.1556, with scatter comparable to final-assay noise; no threshold was observed through 1.0 mol/L. Because neither channel changed resolvably, their functional relationship cannot be classified as continuous coupling, threshold behavior, or a mixed regime. The most important competing explanation is a buffered or normalized-proxy plateau that masks underlying speciation or precipitation changes; alternatively, a genuine threshold may lie outside the studied range."
+        }
+      },
+      "failure": null,
+      "elapsed_s": 24.046999999991385,
+      "usage": {
+        "input_tokens": 787148,
+        "cached_input_tokens": 557696,
+        "cache_write_input_tokens": 0,
+        "output_tokens": 18417,
+        "reasoning_output_tokens": 8552
+      },
+      "method_resources": null
+    }
+  },
+  "posttest_validation": {
+    "K1": {
+      "valid": true,
+      "failure": null
+    },
+    "Q": {
+      "valid": true,
+      "failure": null
+    },
+    "K2": {
+      "valid": true,
+      "failure": null
+    },
+    "EQS": {
+      "valid": true,
+      "failure": null
+    }
+  },
+  "posttest_resources": {
+    "K1": {
+      "exit_code": 0,
+      "failure": null,
+      "elapsed_s": 65.10899999999674,
+      "numerics_budget": {
+        "version": "public-numerics-budget-v1",
+        "limit": 128,
+        "on_exhaustion": "continue_answer"
+      },
+      "numerics_attempts": 0
+    },
+    "Q": {
+      "exit_code": 0,
+      "failure": null,
+      "elapsed_s": 103.23399999999674,
+      "numerics_budget": {
+        "version": "public-numerics-budget-v1",
+        "limit": 128,
+        "on_exhaustion": "continue_answer"
+      },
+      "numerics_attempts": 0
+    },
+    "K2": {
+      "exit_code": 0,
+      "failure": null,
+      "elapsed_s": 51.296999999991385,
+      "numerics_budget": {
+        "version": "public-numerics-budget-v1",
+        "limit": 128,
+        "on_exhaustion": "continue_answer"
+      },
+      "numerics_attempts": 0
+    },
+    "EQS": {
+      "exit_code": 0,
+      "failure": null,
+      "elapsed_s": 24.046999999991385,
+      "numerics_budget": {
+        "version": "public-numerics-budget-v1",
+        "limit": 128,
+        "on_exhaustion": "continue_answer"
+      },
+      "numerics_attempts": 0
+    }
+  },
+  "notebook_versions": [
+    {
+      "revision": 1,
+      "text": "# Source-stage hypotheses\n\n## H1 [tentative; pre-experiment]\nWithin the bounded aqueous system, increasing total reagent concentration (loading divided by liquid volume) will lower pH and lower the dissociated fraction as expected for a weak monoprotic-acid-like response, while the precipitation proxy will rise chiefly above a concentration threshold. Equal concentration prepared by different amount/volume pairs should give similar responses if concentration alone is sufficient; systematic differences would support separate total-loading or volume effects.\n\n## Planned discrimination\nUse water-only batches spanning concentration, matched-concentration pairs at different scales, dilution trajectories measured before closeout, replicates, and selected non-water solvent controls. Interpret differences against declared channel noise and replicate behavior; do not treat equilibrium diagnostics as epistemic confidence.",
+      "recorded_at": "2026-10-14T17:40:43.735716+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      },
+      "reviewed_through": null,
+      "message": "Pre-experiment testable expectation and design.",
+      "restored_from": null
+    },
+    {
+      "revision": 2,
+      "text": "# Source-stage hypotheses\n\n## H1 [not supported over 0.0625–0.50 mol/L water series]\nThe preregistered monotonic concentration expectation is not evident in completed batches 1–5. Final-assay pH_normalized stays about 0.250–0.255, dissociation about 0.063–0.079, and precipitation about 0.158–0.162 across an eight-fold nominal concentration span (final-assay events runner-operation-0005, -0010, -0015, -0020, -0025). Differences are small/nonmonotonic relative to declared assay noise, especially precipitation. Thus a concentration-only trend is unresolved rather than established; batch-5 ph-meter/final-assay disagreement in dissociation also cautions against over-reading single lower-precision measurements.\n\n## H2 [tentative]\nResponse may depend separately on total loading and liquid volume, or may be nearly buffered/flat in this slice, with the environment diagnostics varying for reasons not equivalent to chemistry confidence. Matched-concentration, different-scale batches will discriminate concentration-only from scale dependence; an extreme 1 mol/L point tests whether a threshold lies above the initial range.\n\n## Decision\nContinue water-only factorial/replicate design to preserve interpretability. A reproducible matched-concentration difference exceeding instrument noise would revise toward separate amount/volume dependence; flat matched pairs and extreme point would support a locally invariant effective response.",
+      "recorded_at": "2026-10-14T17:41:36.063818+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 25,
+        "last_event_id": "runner-operation-0025"
+      },
+      "reviewed_through": "runner-operation-0025",
+      "message": "Initial concentration series narrows H1.",
+      "restored_from": null
+    },
+    {
+      "revision": 3,
+      "text": "# Source-stage conclusions\n\n## H1 [rejected in sampled scope]\nThe preregistered claim that more concentrated reagent would clearly lower pH and dissociation and raise precipitation is not supported for water batches spanning nominal 0.0625–1.0 mol/L. Across all 12 final assays, pH_normalized averaged 0.25346 (pH about 3.548) with population scatter 0.00175, acid_dissociation_fraction averaged 0.07085 with scatter 0.00514, and precipitation_signal averaged 0.15557 with scatter 0.00505. These scatters are comparable to or smaller than the declared single-assay standard noises (0.002, 0.006, 0.006). Evidence: final assays runner-operation-0005 through -0061 at five-operation intervals, with the 1.0 mol/L extreme at runner-operation-0045.\n\nA descriptive least-squares model using intercept, ln(nominal concentration), and volume gave concentration coefficients per ln unit of -0.000666 (pH_normalized), +0.000533 (dissociation), and +0.000274 (precipitation): effectively flat at this resolution. This is a compact description, not a mechanistic law or formal interval estimate.\n\n## H2 [unresolved; no robust scale effect]\nMatched nominal concentrations at 0.125, 0.25, and 0.375 mol/L compare 0.08 versus 0.04 L batches (runner-operation-0010 vs -0030; -0015/-0050 vs -0035/-0055; -0020 vs -0040). One 0.125 mol/L precipitation contrast is numerically sizable (0.1618 vs 0.1442), but analogous contrasts do not repeat consistently and the full-set scatter is at assay-noise scale. Separate amount/volume dependence therefore remains unresolved, not demonstrated. Descriptive fitted volume coefficients imply changes over 0.04 L of only about -0.00156 pH_normalized, +0.00174 dissociation, and +0.00691 precipitation, with confounded/nonrandom design and no claimed significance.\n\n## H3 [supported only as an effective local plateau]\nWithin room-temperature, water-only, unstirred instantaneous preparations using 0.005–0.04 mol reagent and 0.04–0.08 L liquid, the three public chemical response channels are usefully represented by near-constant means above. Equivalent explanations include a strongly buffered/background-dominated equilibrium, a normalized observable already on a shallow plateau, or compensating hidden equilibria/precipitation; the public channels do not identify among them. The equilibrium diagnostic channels vary with conditions but are not epistemic confidence and are excluded from this causal interpretation.\n\n## Measurement and scope cautions\nPaired ph-meter readings are noisier and sometimes disagree with final assays in dissociation/precipitation as expected from their larger declared noise (for example runner-operation-0023 vs -0025 and -0043 vs -0045). A planned within-batch dilution after runner-operation-0058 was rejected at runner-operation-0059 by the solvent-stock limit; batch 12 therefore remained the concentrated state and supplies no dilution trajectory. No solvent-identity, temperature, waiting-time, electrolyte, or catalyst inference is supported.\n\n## Testable consequences\nA future randomized replicated design should (i) predict final pH_normalized near 0.2535, dissociation near 0.0709, and precipitation near 0.1556 for new water batches inside the stated amount/volume domain; (ii) use true staged dilution with reserved stock to test reversibility within a vessel; and (iii) extend below 0.0625 and above 1 mol/L or perturb background electrolyte to locate curvature/thresholds. Reproducible shifts larger than assay noise at matched concentration would overturn the local-plateau/scale-null description.",
+      "recorded_at": "2026-10-14T17:43:23.464386+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 61,
+        "last_event_id": "runner-operation-0061"
+      },
+      "reviewed_through": "runner-operation-0061",
+      "message": "Final source-stage interpretation after all 12 completed batches.",
+      "restored_from": null
+    }
+  ],
+  "notebook_validation": [
+    {
+      "revision": 1,
+      "cursor_valid": true,
+      "reviewed_reference_valid": true,
+      "unavailable_event_citations": []
+    },
+    {
+      "revision": 2,
+      "cursor_valid": true,
+      "reviewed_reference_valid": true,
+      "unavailable_event_citations": []
+    },
+    {
+      "revision": 3,
+      "cursor_valid": true,
+      "reviewed_reference_valid": true,
+      "unavailable_event_citations": []
+    }
+  ],
+  "public_events": [
+    {
+      "cursor": 1,
+      "batch": 1,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 2,
+      "batch": 1,
+      "action": {
+        "amount_mol": 0.005,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 3,
+      "batch": 1,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07058899849653244,
+        "cost": 0.05220000073313713,
+        "equilibrium_confidence": 0.43128201365470886,
+        "equilibrium_residual": 0.021122070029377937,
+        "pH_normalized": 0.2562894821166992,
+        "precipitation_signal": 0.16914334893226624,
+        "safety_risk": 0.03798678517341614,
+        "score": 0.25391462445259094
+      }
+    },
+    {
+      "cursor": 4,
+      "batch": 1,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 5,
+      "batch": 1,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06336121261119843,
+        "cost": 0.21220000088214874,
+        "equilibrium_confidence": 0.43265682458877563,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2552903890609741,
+        "precipitation_signal": 0.1594172567129135,
+        "safety_risk": 0.03798678517341614,
+        "score": 0.25680944323539734
+      }
+    },
+    {
+      "cursor": 6,
+      "batch": 2,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 7,
+      "batch": 2,
+      "action": {
+        "amount_mol": 0.01,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 8,
+      "batch": 2,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0704728364944458,
+        "cost": 0.06719999760389328,
+        "equilibrium_confidence": 0.48450279235839844,
+        "equilibrium_residual": 0.015732770785689354,
+        "pH_normalized": 0.2578522861003876,
+        "precipitation_signal": 0.14046144485473633,
+        "safety_risk": 0.04014495760202408,
+        "score": 0.2750420868396759
+      }
+    },
+    {
+      "cursor": 9,
+      "batch": 2,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 10,
+      "batch": 2,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07355976849794388,
+        "cost": 0.2272000014781952,
+        "equilibrium_confidence": 0.4677184820175171,
+        "equilibrium_residual": 0.0005543403676711023,
+        "pH_normalized": 0.25423070788383484,
+        "precipitation_signal": 0.16183434426784515,
+        "safety_risk": 0.04014495760202408,
+        "score": 0.2747449278831482
+      }
+    },
+    {
+      "cursor": 11,
+      "batch": 3,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 12,
+      "batch": 3,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 13,
+      "batch": 3,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07923430949449539,
+        "cost": 0.09719999879598618,
+        "equilibrium_confidence": 0.5643883347511292,
+        "equilibrium_residual": 0.0006527380901388824,
+        "pH_normalized": 0.24931278824806213,
+        "precipitation_signal": 0.15605546534061432,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3179980218410492
+      }
+    },
+    {
+      "cursor": 14,
+      "batch": 3,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 15,
+      "batch": 3,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07914905995130539,
+        "cost": 0.2572000026702881,
+        "equilibrium_confidence": 0.5762515664100647,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.250150203704834,
+        "precipitation_signal": 0.1577708125114441,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3238236606121063
+      }
+    },
+    {
+      "cursor": 16,
+      "batch": 4,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 17,
+      "batch": 4,
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 18,
+      "batch": 4,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06866370141506195,
+        "cost": 0.12720000743865967,
+        "equilibrium_confidence": 0.4690815210342407,
+        "equilibrium_residual": 0.018113335594534874,
+        "pH_normalized": 0.25756391882896423,
+        "precipitation_signal": 0.1825910061597824,
+        "safety_risk": 0.056705228984355927,
+        "score": 0.27343612909317017
+      }
+    },
+    {
+      "cursor": 19,
+      "batch": 4,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 20,
+      "batch": 4,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06935756653547287,
+        "cost": 0.287200003862381,
+        "equilibrium_confidence": 0.4616474211215973,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2534812390804291,
+        "precipitation_signal": 0.15900547802448273,
+        "safety_risk": 0.056705228984355927,
+        "score": 0.2708117961883545
+      }
+    },
+    {
+      "cursor": 21,
+      "batch": 5,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 22,
+      "batch": 5,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 23,
+      "batch": 5,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.054115649312734604,
+        "cost": 0.15719999372959137,
+        "equilibrium_confidence": 0.37503698468208313,
+        "equilibrium_residual": 0.007309590466320515,
+        "pH_normalized": 0.2533078193664551,
+        "precipitation_signal": 0.17196963727474213,
+        "safety_risk": 0.072194404900074,
+        "score": 0.228888601064682
+      }
+    },
+    {
+      "cursor": 24,
+      "batch": 5,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 25,
+      "batch": 5,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07630263268947601,
+        "cost": 0.3172000050544739,
+        "equilibrium_confidence": 0.3824905455112457,
+        "equilibrium_residual": 0.004254302009940147,
+        "pH_normalized": 0.2510453462600708,
+        "precipitation_signal": 0.1592252254486084,
+        "safety_risk": 0.072194404900074,
+        "score": 0.2353060096502304
+      }
+    },
+    {
+      "cursor": 26,
+      "batch": 6,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 27,
+      "batch": 6,
+      "action": {
+        "amount_mol": 0.005,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 28,
+      "batch": 6,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.05491287633776665,
+        "cost": 0.04259999841451645,
+        "equilibrium_confidence": 0.4694419801235199,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2512245774269104,
+        "precipitation_signal": 0.1864570677280426,
+        "safety_risk": 0.04014495760202408,
+        "score": 0.27532246708869934
+      }
+    },
+    {
+      "cursor": 29,
+      "batch": 6,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 30,
+      "batch": 6,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07052336633205414,
+        "cost": 0.20260000228881836,
+        "equilibrium_confidence": 0.46956318616867065,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.25264444947242737,
+        "precipitation_signal": 0.14422903954982758,
+        "safety_risk": 0.04014495760202408,
+        "score": 0.2723069190979004
+      }
+    },
+    {
+      "cursor": 31,
+      "batch": 7,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 32,
+      "batch": 7,
+      "action": {
+        "amount_mol": 0.01,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 33,
+      "batch": 7,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.09611471742391586,
+        "cost": 0.0575999990105629,
+        "equilibrium_confidence": 0.5804685354232788,
+        "equilibrium_residual": 0.008469901047647,
+        "pH_normalized": 0.2513822019100189,
+        "precipitation_signal": 0.13589346408843994,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3238385319709778
+      }
+    },
+    {
+      "cursor": 34,
+      "batch": 7,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 35,
+      "batch": 7,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06967209279537201,
+        "cost": 0.2176000028848648,
+        "equilibrium_confidence": 0.5629532337188721,
+        "equilibrium_residual": 0.0077022952027618885,
+        "pH_normalized": 0.2554920017719269,
+        "precipitation_signal": 0.16126425564289093,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.31507664918899536
+      }
+    },
+    {
+      "cursor": 36,
+      "batch": 8,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 37,
+      "batch": 8,
+      "action": {
+        "amount_mol": 0.015,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 38,
+      "batch": 8,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.05759718269109726,
+        "cost": 0.07259999960660934,
+        "equilibrium_confidence": 0.46012696623802185,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2557521462440491,
+        "precipitation_signal": 0.15861789882183075,
+        "safety_risk": 0.056705228984355927,
+        "score": 0.26794445514678955
+      }
+    },
+    {
+      "cursor": 39,
+      "batch": 8,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 40,
+      "batch": 8,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07004724442958832,
+        "cost": 0.23260000348091125,
+        "equilibrium_confidence": 0.4821997284889221,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.25256800651550293,
+        "precipitation_signal": 0.1539543718099594,
+        "safety_risk": 0.056705228984355927,
+        "score": 0.27934926748275757
+      }
+    },
+    {
+      "cursor": 41,
+      "batch": 9,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 42,
+      "batch": 9,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 43,
+      "batch": 9,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.04251193627715111,
+        "cost": 0.147599995136261,
+        "equilibrium_confidence": 0.36811283230781555,
+        "equilibrium_residual": 0.000817966356407851,
+        "pH_normalized": 0.24983245134353638,
+        "precipitation_signal": 0.1708686500787735,
+        "safety_risk": 0.1743035763502121,
+        "score": 0.22456221282482147
+      }
+    },
+    {
+      "cursor": 44,
+      "batch": 9,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 45,
+      "batch": 9,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06634935736656189,
+        "cost": 0.3075999915599823,
+        "equilibrium_confidence": 0.3685034513473511,
+        "equilibrium_residual": 0.0007081532385200262,
+        "pH_normalized": 0.25580787658691406,
+        "precipitation_signal": 0.15097349882125854,
+        "safety_risk": 0.1743035763502121,
+        "score": 0.2271461933851242
+      }
+    },
+    {
+      "cursor": 46,
+      "batch": 10,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 47,
+      "batch": 10,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 48,
+      "batch": 10,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.05832531303167343,
+        "cost": 0.09719999879598618,
+        "equilibrium_confidence": 0.5529735684394836,
+        "equilibrium_residual": 0.01692108064889908,
+        "pH_normalized": 0.2574763596057892,
+        "precipitation_signal": 0.17284156382083893,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3079467713832855
+      }
+    },
+    {
+      "cursor": 49,
+      "batch": 10,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 50,
+      "batch": 10,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06785563379526138,
+        "cost": 0.2572000026702881,
+        "equilibrium_confidence": 0.5762175917625427,
+        "equilibrium_residual": 0.0019511431455612183,
+        "pH_normalized": 0.2527709901332855,
+        "precipitation_signal": 0.15651005506515503,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.32113486528396606
+      }
+    },
+    {
+      "cursor": 51,
+      "batch": 11,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 52,
+      "batch": 11,
+      "action": {
+        "amount_mol": 0.01,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 53,
+      "batch": 11,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06967316567897797,
+        "cost": 0.0575999990105629,
+        "equilibrium_confidence": 0.5520371794700623,
+        "equilibrium_residual": 0.007355305831879377,
+        "pH_normalized": 0.2528586983680725,
+        "precipitation_signal": 0.17573809623718262,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.31215912103652954
+      }
+    },
+    {
+      "cursor": 54,
+      "batch": 11,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 55,
+      "batch": 11,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07972390949726105,
+        "cost": 0.2176000028848648,
+        "equilibrium_confidence": 0.5760155916213989,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2553642690181732,
+        "precipitation_signal": 0.1514141857624054,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3234003484249115
+      }
+    },
+    {
+      "cursor": 56,
+      "batch": 12,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 57,
+      "batch": 12,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 58,
+      "batch": 12,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.05048773065209389,
+        "cost": 0.08760000020265579,
+        "equilibrium_confidence": 0.38070446252822876,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.24944263696670532,
+        "precipitation_signal": 0.1464356929063797,
+        "safety_risk": 0.072194404900074,
+        "score": 0.22832417488098145
+      }
+    },
+    {
+      "cursor": 59,
+      "batch": 12,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "campaign_resource_rejected",
+      "observations": {}
+    },
+    {
+      "cursor": 60,
+      "batch": 12,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 61,
+      "batch": 12,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06431695818901062,
+        "cost": 0.25760000944137573,
+        "equilibrium_confidence": 0.3735622763633728,
+        "equilibrium_residual": 0.0019546530675143003,
+        "pH_normalized": 0.252625435590744,
+        "precipitation_signal": 0.1512315273284912,
+        "safety_risk": 0.072194404900074,
+        "score": 0.2284250259399414
+      }
+    }
+  ],
+  "initial_public_context": {
+    "task_contract": {
+      "schema_version": "chemworld-public-interactive-task-contract-0.1",
+      "env_id": "ChemWorld",
+      "research_brief": {
+        "schema_version": "chemworld-research-brief-0.1",
+        "card": "EQ",
+        "prior_record": null,
+        "commission": "Characterize the bounded aqueous acid-dissociation and precipitation response. Report identifiable effective relationships, uncertainty, and equivalent explanations.",
+        "measurement_contract": "pH_normalized = pH/14. Acid dissociation is a fraction, precipitation_signal is a bounded normalized proxy. This is a weak-acid/precipitation slice, not general aqueous chemistry. equilibrium_confidence is an environment diagnostic, not your confidence.",
+        "prior_status": "A local archival estimate, if present, can be checked and revised. It is not a complete mechanism and does not constrain your model representation.",
+        "deliverable": "Use free text, equations, diagrams or optional code. Distinguish supported relationships, competing explanations, uncertainty and testable predictions.",
+        "score_status": "The native scalar score is a diagnostic, not the research objective.",
+        "sensor_contract": "Ideal temperature, pressure, volume and clock telemetry is public. Chemical composition is available only through purchased instruments."
+      },
+      "task_id": "equilibrium-characterization",
+      "task_contract_hash": "d090160740b91e60b13834b9a2d4fde1cdc221d0eebe76390b42a8c548b72d90",
+      "objective": "balanced",
+      "description": "Characterize this bounded aqueous-equilibrium world. Identify effective relationships among total loading, liquid volume or dilution, pH, acid dissociation, and the public precipitation proxy. Test the supplied local relationship if one exists, revise or reject it when observations warrant, distinguish equivalent explanations, and state uncertainty and scope. This is not a yield-optimization or product-process task.",
+      "budget": 180,
+      "official_budget": 24,
+      "episode_mode": "campaign",
+      "contract_profile": "extended-research",
+      "safety_limit": 0.65,
+      "success_metrics": [
+        "pH_normalized",
+        "acid_dissociation_fraction",
+        "precipitation_signal",
+        "equilibrium_residual",
+        "equilibrium_confidence"
+      ],
+      "termination_policy": "budget",
+      "observation_policy": "partial-instrument-observation",
+      "observation_contract": {
+        "success_metrics": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ],
+        "score_family": "equilibrium_characterization",
+        "required_observation_keys": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ],
+        "instrument_observable_keys": {
+          "final_assay": [
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence"
+          ],
+          "ph_meter": [
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence"
+          ],
+          "uvvis": []
+        },
+        "public_species_label_policy": [
+          "reactant_public",
+          "target_public",
+          "impurity_public",
+          "degradation_public"
+        ],
+        "mapping_visibility_policy": "hidden mechanism-to-species mapping is not public",
+        "contract_hash": "a56fb1a0a258a3e946c2b3ecf5f8df2cf77267428650ec134c0969c6c506aeb6"
+      },
+      "observation_contract_hash": "a56fb1a0a258a3e946c2b3ecf5f8df2cf77267428650ec134c0969c6c506aeb6",
+      "allowed_operations": [
+        "add_catalyst",
+        "add_component",
+        "add_reagent",
+        "add_solvent",
+        "advance_control",
+        "configure_control",
+        "configure_instrument",
+        "create_container",
+        "discard_batch",
+        "heat",
+        "measure",
+        "pause_control",
+        "quench",
+        "queue_control_stage",
+        "resume_control",
+        "sample",
+        "set_control_feedback",
+        "terminate",
+        "transfer_material",
+        "wait"
+      ],
+      "allowed_instruments": [
+        "final_assay",
+        "ph_meter",
+        "uvvis"
+      ],
+      "method_budget_contract": {
+        "operation_limit": 180,
+        "complete_experiment_limit": 12
+      },
+      "campaign_resources": {
+        "schema_version": "chemworld-public-campaign-resource-state-0.1",
+        "state": {
+          "operation_attempts": 0,
+          "vessel_starts": 0,
+          "final_assays": 0,
+          "discarded_batches": 0,
+          "closed_batches": 0,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {},
+          "stocks_used": {},
+          "remaining": {
+            "operation_attempts": 180,
+            "vessel_starts": 12,
+            "final_assays": 12,
+            "nonfinal_instrument_uses": 12,
+            "stocks": {
+              "reagent_mol": 0.24,
+              "solvent_L": 0.72
+            },
+            "per_instrument": {},
+            "process_time_s": null,
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0,
+            "physical_cost": 0.0,
+            "accumulated_risk": 0.0,
+            "peak_risk": 0.0
+          }
+        },
+        "ledger_sha256": "63b49aa6a991d08edde3b68c25f7b51d8673f5b0a2c3b12f99a8a1c42ca03c86",
+        "last_event_id": null,
+        "current_experiment": {
+          "experiment_index": 0,
+          "vessel_started": false
+        },
+        "campaign_terminal": false,
+        "campaign_terminal_reason": null,
+        "latest_receipt": null,
+        "card": {
+          "schema_version": "chemworld-campaign-resource-card-0.1",
+          "card_id": "eq-bounded-equilibrium-v1-12",
+          "hard_limits": {
+            "operation_attempts": 180,
+            "vessel_starts": 12,
+            "final_assays": 12,
+            "nonfinal_instrument_uses": 12,
+            "stocks": {
+              "reagent_mol": 0.24,
+              "solvent_L": 0.72
+            },
+            "per_instrument": {}
+          },
+          "metadata": {},
+          "card_sha256": "652e3233c5a8b63bc9f25525cacd12593394eacf4f10451dcf31f1f99962d5eb"
+        }
+      },
+      "scoring_contract": {
+        "contract_id": "task-derived-scoring-v1",
+        "objective": "balanced",
+        "success_metrics": [
+          "pH_normalized",
+          "acid_dissociation_fraction",
+          "precipitation_signal",
+          "equilibrium_residual",
+          "equilibrium_confidence"
+        ],
+        "score_family": "equilibrium_characterization",
+        "component_weights": {
+          "equilibrium_confidence": 0.45,
+          "acid_dissociation_fraction": 0.2,
+          "precipitation_signal": 0.15,
+          "pH_normalized": 0.1,
+          "equilibrium_residual": -0.25
+        },
+        "multiplicative_gates": {},
+        "contract_hash": "5f5585ea2d9c1ed5edfff066e73206297eea41aa7dafbec511f9b8a99806686d"
+      },
+      "scoring_contract_hash": "5f5585ea2d9c1ed5edfff066e73206297eea41aa7dafbec511f9b8a99806686d",
+      "experiment_lifecycle": {
+        "schema_version": "chemworld-public-experiment-lifecycle-0.1",
+        "planned_complete_experiments": 12,
+        "explicit_terminate_required": true,
+        "final_assay_required": true,
+        "final_assay_after_terminate": true,
+        "automatic_closeout": false,
+        "terminate_action_template": "{\"operation\":\"terminate\"}",
+        "final_assay_action_template": "{\"operation\":\"measure\",\"instrument\":\"final_assay\"}"
+      },
+      "free_research_campaign": true,
+      "research_goal": "Characterize this bounded aqueous-equilibrium world. Identify effective relationships among total loading, liquid volume or dilution, pH, acid dissociation, and the public precipitation proxy. Test the supplied local relationship if one exists, revise or reject it when observations warrant, distinguish equivalent explanations, and state uncertainty and scope. This is not a yield-optimization or product-process task.",
+      "instrument_contracts": {
+        "ph_meter": {
+          "instrument_id": "ph_meter",
+          "observable_keys": [
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence"
+          ],
+          "input_state_schema": {
+            "physical_state": "virtual_liquid_sample",
+            "required_public_fields": [
+              "sample_basis_volume_L",
+              "replicate_count"
+            ],
+            "forbidden_fields": [
+              "hidden_species_amounts",
+              "private_seed",
+              "provider_parameters"
+            ]
+          },
+          "axis_contract": {
+            "key": "replicate_index",
+            "unit": "index",
+            "range": null
+          },
+          "raw_signal_schema": {
+            "type": "object",
+            "required": [
+              "kind",
+              "pH",
+              "electrode_mV",
+              "sample_state",
+              "axis",
+              "raw_signal",
+              "processed_estimates",
+              "uncertainty",
+              "calibration",
+              "missingness",
+              "metadata"
+            ],
+            "properties": {
+              "kind": {
+                "const": "ph_meter_signal"
+              },
+              "pH": {
+                "type": "number",
+                "minimum": 0.0,
+                "maximum": 14.0
+              },
+              "hydrogen_mol_L": {
+                "type": "number",
+                "minimum": 0.0
+              },
+              "electrode_mV": {
+                "type": "number"
+              },
+              "replicate_pH": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "processed_estimates": {
+                "type": "object"
+              },
+              "uncertainty": {
+                "type": "object"
+              },
+              "sample_state": {
+                "type": "object"
+              },
+              "axis": {
+                "type": "object"
+              },
+              "raw_signal": {
+                "type": "object"
+              },
+              "peaks": {
+                "type": "array"
+              },
+              "assignments": {
+                "type": "array"
+              },
+              "calibration": {
+                "type": "object"
+              },
+              "missingness": {
+                "type": "object"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "visibility": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          },
+          "processed_estimate_schema": {
+            "type": "object",
+            "properties": {
+              "pH_normalized": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "acid_dissociation_fraction": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "precipitation_signal": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "equilibrium_residual": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "equilibrium_confidence": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "additionalProperties": false
+          },
+          "uncertainty_model": "instrument_noise_std_plus_process_proxy",
+          "noise_model": {
+            "pH_normalized": 0.004,
+            "acid_dissociation_fraction": 0.015,
+            "precipitation_signal": 0.02,
+            "equilibrium_residual": 0.01,
+            "equilibrium_confidence": 0.012
+          },
+          "calibration_contract": {
+            "profile": "nernstian_public_ph_calibration_v2",
+            "method": "Nernstian electrode response at declared temperature",
+            "status": "synthetic_reference_calibration"
+          },
+          "detection_contract": {
+            "lod_mol_L": null,
+            "loq_mol_L": null,
+            "below_lod": "null_processed_estimate_with_missingness_reason"
+          },
+          "saturation_contract": {
+            "policy": "clip_and_flag_outside_declared_linear_range",
+            "upper_linear_range_mol_L": null
+          },
+          "baseline_drift_contract": {
+            "baseline": "declared_in_public_packet",
+            "drift": "linear_axis_drift_declared_in_public_packet"
+          },
+          "missingness_contract": {
+            "below_lod": "processed value is null; raw trace remains available",
+            "failed_measurement": "no signal packet and no instrument charge",
+            "masking": "removes spectral evidence only; does not alter world state"
+          },
+          "cost": 0.018,
+          "latency_s": 0.0,
+          "clock_semantics": "instantaneous_snapshot",
+          "sample_consumption_L": 3e-05,
+          "destructive": true,
+          "requires_terminated": false,
+          "calibration_profile": "nernstian_public_ph_calibration_v2",
+          "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device. Sampling and results share the current simulation time; measurement does not advance chemistry, temperature, or energy. Chromatogram retention times are signal coordinates, not elapsed world time."
+        },
+        "uvvis": {
+          "instrument_id": "uvvis",
+          "observable_keys": [
+            "yield",
+            "conversion",
+            "selectivity",
+            "phase_ratio",
+            "flow_conversion",
+            "energy_efficiency",
+            "faradaic_efficiency",
+            "transport_efficiency",
+            "ohmic_efficiency"
+          ],
+          "input_state_schema": {
+            "physical_state": "virtual_liquid_sample",
+            "required_public_fields": [
+              "sample_basis_volume_L",
+              "replicate_count"
+            ],
+            "forbidden_fields": [
+              "hidden_species_amounts",
+              "private_seed",
+              "provider_parameters"
+            ]
+          },
+          "axis_contract": {
+            "key": "wavelength_nm",
+            "unit": "nm",
+            "range": [
+              320.0,
+              760.0
+            ]
+          },
+          "raw_signal_schema": {
+            "type": "object",
+            "required": [
+              "schema_version",
+              "kind",
+              "instrument_id",
+              "wavelength_nm",
+              "absorbance",
+              "sample_state",
+              "axis",
+              "raw_signal",
+              "peaks",
+              "assignments",
+              "processed_estimates",
+              "uncertainty",
+              "calibration",
+              "missingness",
+              "metadata"
+            ],
+            "properties": {
+              "kind": {
+                "type": "string"
+              },
+              "wavelength_nm": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "absorbance": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "replicate_signals": {
+                "type": "array"
+              },
+              "replicate_count": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "peaks": {
+                "type": "array"
+              },
+              "bands": {
+                "type": "array"
+              },
+              "processed_estimates": {
+                "type": "object"
+              },
+              "uncertainty": {
+                "type": "object"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "sample_state": {
+                "type": "object"
+              },
+              "axis": {
+                "type": "object"
+              },
+              "raw_signal": {
+                "type": "object"
+              },
+              "assignments": {
+                "type": "array"
+              },
+              "calibration": {
+                "type": "object"
+              },
+              "missingness": {
+                "type": "object"
+              },
+              "instrument_id": {
+                "const": "uvvis"
+              },
+              "schema_version": {
+                "const": "chemworld-public-synthetic-signal-0.2"
+              },
+              "source": {
+                "type": "string"
+              },
+              "visibility": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          },
+          "processed_estimate_schema": {
+            "type": "object",
+            "properties": {
+              "yield": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "conversion": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "selectivity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "phase_ratio": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "flow_conversion": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "energy_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "faradaic_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "transport_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "ohmic_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "additionalProperties": false
+          },
+          "uncertainty_model": "instrument_noise_std_plus_process_proxy",
+          "noise_model": {
+            "yield": 0.045,
+            "conversion": 0.035,
+            "selectivity": 0.04,
+            "phase_ratio": 0.04,
+            "flow_conversion": 0.04,
+            "faradaic_efficiency": 0.025,
+            "transport_efficiency": 0.03,
+            "ohmic_efficiency": 0.02,
+            "energy_efficiency": 0.045
+          },
+          "calibration_contract": {
+            "profile": "beer_lambert_public_calibration_v2",
+            "method": "Beer-Lambert absorbance with blank, path length, and dilution",
+            "status": "synthetic_reference_calibration"
+          },
+          "detection_contract": {
+            "lod_mol_L": 0.0025,
+            "loq_mol_L": 0.007575757575757576,
+            "below_lod": "null_processed_estimate_with_missingness_reason"
+          },
+          "saturation_contract": {
+            "policy": "clip_and_flag_outside_declared_linear_range",
+            "upper_linear_range_mol_L": 5.0
+          },
+          "baseline_drift_contract": {
+            "baseline": "declared_in_public_packet",
+            "drift": "linear_axis_drift_declared_in_public_packet"
+          },
+          "missingness_contract": {
+            "below_lod": "processed value is null; raw trace remains available",
+            "failed_measurement": "no signal packet and no instrument charge",
+            "masking": "removes spectral evidence only; does not alter world state"
+          },
+          "cost": 0.025,
+          "latency_s": 0.0,
+          "clock_semantics": "instantaneous_snapshot",
+          "sample_consumption_L": 5e-05,
+          "destructive": true,
+          "requires_terminated": false,
+          "calibration_profile": "beer_lambert_public_calibration_v2",
+          "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device. Sampling and results share the current simulation time; measurement does not advance chemistry, temperature, or energy. Chromatogram retention times are signal coordinates, not elapsed world time."
+        },
+        "final_assay": {
+          "instrument_id": "final_assay",
+          "observable_keys": [
+            "yield",
+            "selectivity",
+            "conversion",
+            "byproduct_signal",
+            "degradation_warning",
+            "purity",
+            "recovery",
+            "phase_ratio",
+            "product_in_organic",
+            "product_in_aqueous",
+            "impurity_signal",
+            "solvent_loss",
+            "process_mass_balance_error",
+            "crystal_yield",
+            "crystal_purity",
+            "crystal_size",
+            "distillate_purity",
+            "distillate_recovery",
+            "flow_conversion",
+            "selective_product_yield",
+            "electrochemical_conversion",
+            "electrochemical_selectivity",
+            "energy_efficiency",
+            "pH_normalized",
+            "acid_dissociation_fraction",
+            "precipitation_signal",
+            "equilibrium_residual",
+            "equilibrium_confidence",
+            "crystal_csd_quality",
+            "crystal_fines_fraction",
+            "faradaic_efficiency",
+            "transport_efficiency",
+            "ohmic_efficiency"
+          ],
+          "input_state_schema": {
+            "physical_state": "virtual_liquid_sample",
+            "required_public_fields": [
+              "sample_basis_volume_L",
+              "replicate_count"
+            ],
+            "forbidden_fields": [
+              "hidden_species_amounts",
+              "private_seed",
+              "provider_parameters"
+            ]
+          },
+          "axis_contract": {
+            "key": "channel_specific",
+            "unit": "declared_per_channel",
+            "range": null
+          },
+          "raw_signal_schema": {
+            "type": "object",
+            "required": [
+              "kind",
+              "channels",
+              "spectra",
+              "mass_balance",
+              "metadata"
+            ],
+            "properties": {
+              "kind": {
+                "const": "final_assay_packet"
+              },
+              "channels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "spectra": {
+                "type": "object"
+              },
+              "mass_balance": {
+                "type": "object"
+              },
+              "metadata": {
+                "type": "object"
+              },
+              "visibility": {
+                "type": "string"
+              },
+              "source": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": true
+          },
+          "processed_estimate_schema": {
+            "type": "object",
+            "properties": {
+              "yield": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "selectivity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "conversion": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "byproduct_signal": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "degradation_warning": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "purity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "recovery": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "phase_ratio": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "product_in_organic": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "product_in_aqueous": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "impurity_signal": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "solvent_loss": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "process_mass_balance_error": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "crystal_yield": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "crystal_purity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "crystal_size": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "distillate_purity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "distillate_recovery": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "flow_conversion": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "selective_product_yield": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "electrochemical_conversion": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "electrochemical_selectivity": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "energy_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "pH_normalized": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "acid_dissociation_fraction": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "precipitation_signal": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "equilibrium_residual": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "equilibrium_confidence": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "crystal_csd_quality": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "crystal_fines_fraction": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "faradaic_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "transport_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              },
+              "ohmic_efficiency": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0.0,
+                "maximum": 1.0
+              }
+            },
+            "additionalProperties": false
+          },
+          "uncertainty_model": "instrument_noise_std_plus_process_proxy",
+          "noise_model": {
+            "yield": 0.006,
+            "selectivity": 0.01,
+            "conversion": 0.008,
+            "byproduct_signal": 0.008,
+            "degradation_warning": 0.008,
+            "purity": 0.008,
+            "recovery": 0.01,
+            "phase_ratio": 0.012,
+            "product_in_organic": 0.01,
+            "product_in_aqueous": 0.01,
+            "impurity_signal": 0.008,
+            "solvent_loss": 0.012,
+            "process_mass_balance_error": 0.004,
+            "crystal_yield": 0.01,
+            "crystal_purity": 0.01,
+            "crystal_size": 0.025,
+            "crystal_csd_quality": 0.018,
+            "crystal_fines_fraction": 0.018,
+            "distillate_purity": 0.01,
+            "distillate_recovery": 0.012,
+            "flow_conversion": 0.012,
+            "selective_product_yield": 0.01,
+            "electrochemical_conversion": 0.01,
+            "electrochemical_selectivity": 0.012,
+            "faradaic_efficiency": 0.012,
+            "transport_efficiency": 0.014,
+            "ohmic_efficiency": 0.012,
+            "energy_efficiency": 0.016,
+            "pH_normalized": 0.002,
+            "acid_dissociation_fraction": 0.006,
+            "precipitation_signal": 0.006,
+            "equilibrium_residual": 0.004,
+            "equilibrium_confidence": 0.006
+          },
+          "calibration_contract": {
+            "profile": "synthetic_multichannel_public_calibration_v2",
+            "method": "independent declared calibration for each synthetic channel",
+            "status": "synthetic_reference_calibration"
+          },
+          "detection_contract": {
+            "lod_mol_L": null,
+            "loq_mol_L": null,
+            "below_lod": "null_processed_estimate_with_missingness_reason"
+          },
+          "saturation_contract": {
+            "policy": "clip_and_flag_outside_declared_linear_range",
+            "upper_linear_range_mol_L": null
+          },
+          "baseline_drift_contract": {
+            "baseline": "declared_in_public_packet",
+            "drift": "linear_axis_drift_declared_in_public_packet"
+          },
+          "missingness_contract": {
+            "below_lod": "processed value is null; raw trace remains available",
+            "failed_measurement": "no signal packet and no instrument charge",
+            "masking": "removes spectral evidence only; does not alter world state"
+          },
+          "cost": 0.16,
+          "latency_s": 0.0,
+          "clock_semantics": "instantaneous_snapshot",
+          "sample_consumption_L": 0.0003,
+          "destructive": true,
+          "requires_terminated": true,
+          "calibration_profile": "synthetic_multichannel_public_calibration_v2",
+          "synthetic_boundary": "Bounded synthetic benchmark instrument; it does not predict real samples, replace an empirical spectral library, or emulate a physical device. Sampling and results share the current simulation time; measurement does not advance chemistry, temperature, or energy. Chromatogram retention times are signal coordinates, not elapsed world time."
+        }
+      },
+      "operation_contracts": {
+        "add_reagent": {
+          "operation_id": "add_reagent",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "amount_mol"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "add_component": {
+          "operation_id": "add_component",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "component",
+            "amount_mol"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "add_solvent": {
+          "operation_id": "add_solvent",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "volume_L",
+            "solvent"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "add_catalyst": {
+          "operation_id": "add_catalyst",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "catalyst_amount_mol",
+            "catalyst"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "heat": {
+          "operation_id": "heat",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "target_temperature_K",
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ]
+        },
+        "wait": {
+          "operation_id": "wait",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "duration_s",
+            "stirring_speed_rpm"
+          ],
+          "preconditions": [
+            "has_volume",
+            "has_material"
+          ]
+        },
+        "sample": {
+          "operation_id": "sample",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "sample_volume_L"
+          ],
+          "preconditions": [
+            "has_volume"
+          ]
+        },
+        "quench": {
+          "operation_id": "quench",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [],
+          "preconditions": [
+            "has_volume"
+          ]
+        },
+        "create_container": {
+          "operation_id": "create_container",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "container",
+            "capacity_L"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "transfer_material": {
+          "operation_id": "transfer_material",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "source_container",
+            "destination_container",
+            "transfer_fraction",
+            "mixing"
+          ],
+          "preconditions": [
+            "not_terminated",
+            "material_routing_valid"
+          ]
+        },
+        "configure_instrument": {
+          "operation_id": "configure_instrument",
+          "module": "observation",
+          "kind": "primitive",
+          "required_fields": [
+            "instrument",
+            "scan_count",
+            "resolution_factor",
+            "dilution_factor"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "configure_control": {
+          "operation_id": "configure_control",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "target_temperature_K",
+            "pressure_Pa",
+            "atmosphere",
+            "ramp_rate_K_s",
+            "control_interval_s",
+            "headspace_L"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "queue_control_stage": {
+          "operation_id": "queue_control_stage",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "target_temperature_K",
+            "pressure_Pa",
+            "atmosphere",
+            "ramp_rate_K_s",
+            "stage_duration_s"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "set_control_feedback": {
+          "operation_id": "set_control_feedback",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "feedback_sensor",
+            "feedback_threshold",
+            "feedback_direction",
+            "feedback_response"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "advance_control": {
+          "operation_id": "advance_control",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [
+            "duration_s"
+          ],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "pause_control": {
+          "operation_id": "pause_control",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "resume_control": {
+          "operation_id": "resume_control",
+          "module": "reaction",
+          "kind": "primitive",
+          "required_fields": [],
+          "preconditions": [
+            "not_terminated"
+          ]
+        },
+        "terminate": {
+          "operation_id": "terminate",
+          "module": "reaction",
+          "kind": "terminal",
+          "required_fields": [],
+          "preconditions": [
+            "has_material",
+            "not_terminated"
+          ]
+        },
+        "measure": {
+          "operation_id": "measure",
+          "module": "observation",
+          "kind": "primitive",
+          "required_fields": [
+            "instrument"
+          ],
+          "preconditions": [
+            "has_volume",
+            "instrument_specific"
+          ]
+        }
+      },
+      "study_budget": {
+        "complete_batches": 12,
+        "intermediate_measurements": 12,
+        "final_assays": 12
+      },
+      "posttests": [
+        "free mechanism report",
+        "blind quantitative prediction",
+        "retrospective interview"
+      ]
+    },
+    "initial_public_state": {
+      "schema_version": "chemworld-interactive-codex-experiment-0.6",
+      "step": 1,
+      "stage": "experiment_setup",
+      "remaining_operations": 180,
+      "campaign_state": {
+        "best_score": null,
+        "budget": 180,
+        "campaign_id": "episode-df59086c2d9f4c20923775c2e7d9d550",
+        "closed_batch_count": 0,
+        "completed_experiment_count": 0,
+        "done": false,
+        "episode_mode": "campaign",
+        "experiment_index": 1,
+        "experiment_index_base": 1,
+        "final_assay_count": 0,
+        "last_terminal_summary": null,
+        "operation_count": 0,
+        "remaining_budget": 180,
+        "scenario_id": "equilibrium-characterization",
+        "task_id": "equilibrium-characterization",
+        "completed_batches": [],
+        "discarded_batches": [],
+        "experiment_summaries": []
+      },
+      "campaign_resources": {
+        "schema_version": "chemworld-public-campaign-resource-state-0.1",
+        "state": {
+          "operation_attempts": 0,
+          "vessel_starts": 0,
+          "final_assays": 0,
+          "discarded_batches": 0,
+          "closed_batches": 0,
+          "nonfinal_instrument_uses": 0,
+          "instrument_uses": {},
+          "operation_committed_counts": {},
+          "stocks_used": {},
+          "remaining": {
+            "operation_attempts": 180,
+            "vessel_starts": 12,
+            "final_assays": 12,
+            "nonfinal_instrument_uses": 12,
+            "stocks": {
+              "reagent_mol": 0.24,
+              "solvent_L": 0.72
+            },
+            "per_instrument": {},
+            "operation_repeats": {}
+          },
+          "report_only": {
+            "process_time_s": 0.0,
+            "sample_consumed_L": 0.0,
+            "physical_cost": 0.0,
+            "accumulated_risk": 0.0,
+            "peak_risk": 0.0
+          }
+        },
+        "ledger_sha256": "63b49aa6a991d08edde3b68c25f7b51d8673f5b0a2c3b12f99a8a1c42ca03c86",
+        "current_experiment": {
+          "experiment_index": 1,
+          "vessel_started": false,
+          "experiment_index_base": 1
+        },
+        "campaign_terminal": false
+      },
+      "recipe_coverage_contract": null,
+      "visible_metrics": {
+        "cost": 0.0,
+        "safety_risk": 0.0,
+        "score": 0.0
+      },
+      "operational_state": {
+        "schema_version": "chemworld-research-operational-state-0.1",
+        "temperature_K": 297.20518738046667,
+        "pressure_Pa": 101118.49138848243,
+        "active_volume_L": 0.0,
+        "process_time_s": 0.0,
+        "state_scope": "current_batch",
+        "measurement_scope": "no_new_measurement",
+        "phases": {
+          "reactor_liquid": {
+            "volume_L": 0.0,
+            "selected": false,
+            "settled": false
+          }
+        },
+        "flow": {},
+        "geometry": {}
+      },
+      "latest_measurement": {
+        "available": false
+      },
+      "characterization_artifact": null,
+      "active_constraint_flags": {},
+      "uncertainty": {},
+      "legal_actions": [
+        {
+          "operation": "add_reagent",
+          "amount_mol": {
+            "unit": "mol",
+            "range": [
+              0.0,
+              0.04
+            ]
+          }
+        },
+        {
+          "operation": "add_component",
+          "component": {
+            "unit": "unitless",
+            "choices": [
+              0
+            ]
+          },
+          "amount_mol": {
+            "unit": "mol",
+            "range": [
+              0.0,
+              0.04
+            ]
+          }
+        },
+        {
+          "operation": "add_solvent",
+          "volume_L": {
+            "unit": "L",
+            "range": [
+              0.0,
+              0.08
+            ]
+          },
+          "solvent": {
+            "unit": "categorical",
+            "choices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "choice_labels": {
+              "0": "Water · H2O · reference identity",
+              "1": "Ethanol · C2H6O · reference identity",
+              "2": "Acetonitrile · benchmark",
+              "3": "Toluene · C7H8 · reference identity"
+            }
+          }
+        },
+        {
+          "operation": "add_catalyst",
+          "catalyst_amount_mol": {
+            "unit": "mol",
+            "range": [
+              0.0,
+              0.005
+            ]
+          },
+          "catalyst": {
+            "unit": "categorical",
+            "choices": [
+              0,
+              1,
+              2,
+              3
+            ],
+            "choice_labels": {
+              "0": "Catalyst A · benchmark",
+              "1": "Catalyst B · benchmark",
+              "2": "Catalyst C · benchmark",
+              "3": "Catalyst D · benchmark"
+            }
+          }
+        },
+        {
+          "operation": "create_container",
+          "container": {
+            "unit": "categorical",
+            "choice_labels": {
+              "1": "container-01",
+              "2": "container-02",
+              "3": "container-03",
+              "4": "container-04",
+              "5": "container-05",
+              "6": "container-06",
+              "7": "container-07",
+              "8": "container-08",
+              "9": "container-09",
+              "10": "container-10",
+              "11": "container-11",
+              "12": "container-12",
+              "13": "container-13",
+              "14": "container-14",
+              "15": "container-15",
+              "16": "container-16"
+            }
+          },
+          "capacity_L": {
+            "unit": "L",
+            "range": [
+              0.0001,
+              0.1
+            ]
+          }
+        },
+        {
+          "operation": "configure_control",
+          "target_temperature_K": {
+            "unit": "K",
+            "range": [
+              250.0,
+              430.0
+            ]
+          },
+          "pressure_Pa": {
+            "unit": "Pa",
+            "range": [
+              50000.0,
+              400000.0
+            ]
+          },
+          "atmosphere": {
+            "unit": "categorical",
+            "choices": [
+              0,
+              1,
+              2
+            ],
+            "choice_labels": {
+              "0": "nitrogen",
+              "1": "argon",
+              "2": "air"
+            }
+          },
+          "ramp_rate_K_s": {
+            "unit": "K/s",
+            "range": [
+              0.001,
+              1.0
+            ]
+          },
+          "control_interval_s": {
+            "unit": "s",
+            "range": [
+              1.0,
+              60.0
+            ]
+          },
+          "headspace_L": {
+            "unit": "L",
+            "range": [
+              0.001,
+              0.1
+            ]
+          }
+        }
+      ]
+    },
+    "material_information": {
+      "material_catalog": {
+        "catalog_version": "chemworld-public-materials-0.2",
+        "catalysts": [
+          {
+            "canonical_id": "cat_a",
+            "display_name": "Catalyst A",
+            "identity_kind": "anonymous_benchmark_formulation",
+            "index": 0,
+            "reference_status": "no_real_material_identity_claimed",
+            "runtime_coupling": "latent_categorical_activity_profile"
+          },
+          {
+            "canonical_id": "cat_b",
+            "display_name": "Catalyst B",
+            "identity_kind": "anonymous_benchmark_formulation",
+            "index": 1,
+            "reference_status": "no_real_material_identity_claimed",
+            "runtime_coupling": "latent_categorical_activity_profile"
+          },
+          {
+            "canonical_id": "cat_c",
+            "display_name": "Catalyst C",
+            "identity_kind": "anonymous_benchmark_formulation",
+            "index": 2,
+            "reference_status": "no_real_material_identity_claimed",
+            "runtime_coupling": "latent_categorical_activity_profile"
+          },
+          {
+            "canonical_id": "cat_d",
+            "display_name": "Catalyst D",
+            "identity_kind": "anonymous_benchmark_formulation",
+            "index": 3,
+            "reference_status": "no_real_material_identity_claimed",
+            "runtime_coupling": "latent_categorical_activity_profile"
+          }
+        ],
+        "electrolyte_profiles": [
+          {
+            "canonical_id": "low_support_acetate",
+            "display_name": "Low Support Acetate",
+            "identity_kind": "anonymous_aqueous_electrolyte_formulation",
+            "index": 0,
+            "reference_status": "bounded_benchmark_formulation_not_a_named_product",
+            "runtime_coupling": "conductivity_diffusion_layer_acid_base_and_precipitation_profile"
+          },
+          {
+            "canonical_id": "high_support_acetate",
+            "display_name": "High Support Acetate",
+            "identity_kind": "anonymous_aqueous_electrolyte_formulation",
+            "index": 1,
+            "reference_status": "bounded_benchmark_formulation_not_a_named_product",
+            "runtime_coupling": "conductivity_diffusion_layer_acid_base_and_precipitation_profile"
+          },
+          {
+            "canonical_id": "acidic_high_transport",
+            "display_name": "Acidic High Transport",
+            "identity_kind": "anonymous_aqueous_electrolyte_formulation",
+            "index": 2,
+            "reference_status": "bounded_benchmark_formulation_not_a_named_product",
+            "runtime_coupling": "conductivity_diffusion_layer_acid_base_and_precipitation_profile"
+          },
+          {
+            "canonical_id": "precipitation_prone",
+            "display_name": "Precipitation Prone",
+            "identity_kind": "anonymous_aqueous_electrolyte_formulation",
+            "index": 3,
+            "reference_status": "bounded_benchmark_formulation_not_a_named_product",
+            "runtime_coupling": "conductivity_diffusion_layer_acid_base_and_precipitation_profile"
+          }
+        ],
+        "interpretation_policy": "Real solvent names identify selectable materials, but current reaction-task kinetic effects are calibrated categorical benchmark effects rather than predictions from the curated property correlations. Catalysts and reaction species remain anonymous; do not infer a real catalyst or named synthesis.",
+        "reagent": {
+          "canonical_id": "limiting_reagent",
+          "display_name": "Anonymous limiting reagent",
+          "identity_kind": "mechanism_role",
+          "reference_status": "mechanism_specific_not_a_real_identity"
+        },
+        "solvents": [
+          {
+            "canonical_id": "water",
+            "cas_number": "7732-18-5",
+            "display_name": "Water",
+            "formula": "H2O",
+            "identity_kind": "real_reference_component",
+            "index": 0,
+            "reference_status": "curated_identity_and_local_property_correlations",
+            "runtime_coupling": "categorical_benchmark_effect"
+          },
+          {
+            "canonical_id": "ethanol",
+            "cas_number": "64-17-5",
+            "display_name": "Ethanol",
+            "formula": "C2H6O",
+            "identity_kind": "real_reference_component",
+            "index": 1,
+            "reference_status": "curated_identity_and_local_property_correlations",
+            "runtime_coupling": "categorical_benchmark_effect"
+          },
+          {
+            "canonical_id": "acetonitrile",
+            "cas_number": null,
+            "display_name": "Acetonitrile",
+            "formula": null,
+            "identity_kind": "real_named_component",
+            "index": 2,
+            "reference_status": "identity_only_not_in_curated_property_subset",
+            "runtime_coupling": "categorical_benchmark_effect"
+          },
+          {
+            "canonical_id": "toluene",
+            "cas_number": "108-88-3",
+            "display_name": "Toluene",
+            "formula": "C7H8",
+            "identity_kind": "real_reference_component",
+            "index": 3,
+            "reference_status": "curated_identity_and_local_property_correlations",
+            "runtime_coupling": "categorical_benchmark_effect"
+          }
+        ]
+      },
+      "material_information": {
+        "availability": "opaque_identifiers_only",
+        "dossier": null,
+        "interpretation": "No task-specific nominal property dossier is supplied. Experimental evidence is authoritative."
+      },
+      "schema_version": "chemworld-env-owned-material-information-reference-0.1"
+    }
+  },
+  "scores": {
+    "queries": [
+      {
+        "query_id": "Q01",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.255,
+            "lower80": 0.243,
+            "upper80": 0.272,
+            "reference_mean": 0.25995042324066164,
+            "reference_observations": [
+              0.2617228925228119,
+              0.25920212268829346,
+              0.2589799463748932,
+              0.2591908574104309,
+              0.26065629720687866
+            ],
+            "mae": 0.004950423240661639,
+            "coverage80": 1.0,
+            "width80": 0.029000000000000026,
+            "interval_score80": 0.029000000000000026
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.035,
+            "upper80": 0.125,
+            "reference_mean": 0.0861680656671524,
+            "reference_observations": [
+              0.09319845587015152,
+              0.08408941328525543,
+              0.09348829090595245,
+              0.07877133041620255,
+              0.08129283785820007
+            ],
+            "mae": 0.015168065667152411,
+            "coverage80": 1.0,
+            "width80": 0.09,
+            "interval_score80": 0.09
+          },
+          "precipitation_signal": {
+            "estimate": 0.154,
+            "lower80": 0.105,
+            "upper80": 0.205,
+            "reference_mean": 0.14947408735752105,
+            "reference_observations": [
+              0.14734208583831787,
+              0.14816245436668396,
+              0.1355551779270172,
+              0.16128545999526978,
+              0.15502525866031647
+            ],
+            "mae": 0.004525912642478952,
+            "coverage80": 1.0,
+            "width80": 0.09999999999999999,
+            "interval_score80": 0.09999999999999999
+          }
+        }
+      },
+      {
+        "query_id": "Q02",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.255,
+            "lower80": 0.244,
+            "upper80": 0.27,
+            "reference_mean": 0.2609623193740845,
+            "reference_observations": [
+              0.26416295766830444,
+              0.26018092036247253,
+              0.2602229416370392,
+              0.26082825660705566,
+              0.25941652059555054
+            ],
+            "mae": 0.005962319374084479,
+            "coverage80": 1.0,
+            "width80": 0.026000000000000023,
+            "interval_score80": 0.026000000000000023
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.04,
+            "upper80": 0.12,
+            "reference_mean": 0.08584973365068435,
+            "reference_observations": [
+              0.09152868390083313,
+              0.08364585787057877,
+              0.08600782603025436,
+              0.08993132412433624,
+              0.07813497632741928
+            ],
+            "mae": 0.014849733650684357,
+            "coverage80": 1.0,
+            "width80": 0.07999999999999999,
+            "interval_score80": 0.07999999999999999
+          },
+          "precipitation_signal": {
+            "estimate": 0.154,
+            "lower80": 0.11,
+            "upper80": 0.2,
+            "reference_mean": 0.15429877936840058,
+            "reference_observations": [
+              0.15511485934257507,
+              0.15289556980133057,
+              0.1564856767654419,
+              0.15413610637187958,
+              0.15286168456077576
+            ],
+            "mae": 0.00029877936840058683,
+            "coverage80": 1.0,
+            "width80": 0.09000000000000001,
+            "interval_score80": 0.09000000000000001
+          }
+        }
+      },
+      {
+        "query_id": "Q03",
+        "dilute": true,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.259,
+            "lower80": 0.225,
+            "upper80": 0.35,
+            "reference_mean": 0.31368871331214904,
+            "reference_observations": [
+              0.3138948082923889,
+              0.31444352865219116,
+              0.31371405720710754,
+              0.3134681284427643,
+              0.31292304396629333
+            ],
+            "mae": 0.05468871331214903,
+            "coverage80": 1.0,
+            "width80": 0.12499999999999997,
+            "interval_score80": 0.12499999999999997
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.08,
+            "lower80": 0.015,
+            "upper80": 0.3,
+            "reference_mean": 0.3634855210781097,
+            "reference_observations": [
+              0.3607231080532074,
+              0.3634454011917114,
+              0.36502331495285034,
+              0.3599766492843628,
+              0.36825913190841675
+            ],
+            "mae": 0.2834855210781097,
+            "coverage80": 0.0,
+            "width80": 0.285,
+            "interval_score80": 0.9198552107810976
+          },
+          "precipitation_signal": {
+            "estimate": 0.148,
+            "lower80": 0.03,
+            "upper80": 0.26,
+            "reference_mean": 0.0017669811379164458,
+            "reference_observations": [
+              0.0,
+              0.0034511464182287455,
+              0.0,
+              0.0,
+              0.005383759271353483
+            ],
+            "mae": 0.14623301886208354,
+            "coverage80": 0.0,
+            "width80": 0.23,
+            "interval_score80": 0.5123301886208356
+          }
+        }
+      },
+      {
+        "query_id": "Q04",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.257,
+            "lower80": 0.23,
+            "upper80": 0.32,
+            "reference_mean": 0.2780984103679657,
+            "reference_observations": [
+              0.2791997790336609,
+              0.27708593010902405,
+              0.2756624221801758,
+              0.28081634640693665,
+              0.27772757411003113
+            ],
+            "mae": 0.02109841036796567,
+            "coverage80": 1.0,
+            "width80": 0.09,
+            "interval_score80": 0.09
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.074,
+            "lower80": 0.02,
+            "upper80": 0.22,
+            "reference_mean": 0.14472221136093139,
+            "reference_observations": [
+              0.14641818404197693,
+              0.13518741726875305,
+              0.14602352678775787,
+              0.14179719984531403,
+              0.1541847288608551
+            ],
+            "mae": 0.07072221136093139,
+            "coverage80": 1.0,
+            "width80": 0.2,
+            "interval_score80": 0.2
+          },
+          "precipitation_signal": {
+            "estimate": 0.151,
+            "lower80": 0.05,
+            "upper80": 0.24,
+            "reference_mean": 0.13666812479496002,
+            "reference_observations": [
+              0.1405145823955536,
+              0.13149893283843994,
+              0.13603883981704712,
+              0.14047321677207947,
+              0.13481505215168
+            ],
+            "mae": 0.014331875205039979,
+            "coverage80": 1.0,
+            "width80": 0.19,
+            "interval_score80": 0.19
+          }
+        }
+      },
+      {
+        "query_id": "Q05",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.254,
+            "lower80": 0.247,
+            "upper80": 0.263,
+            "reference_mean": 0.25356701016426086,
+            "reference_observations": [
+              0.2565139830112457,
+              0.25429782271385193,
+              0.2514432370662689,
+              0.25150740146636963,
+              0.2540726065635681
+            ],
+            "mae": 0.0004329898357391393,
+            "coverage80": 1.0,
+            "width80": 0.016000000000000014,
+            "interval_score80": 0.016000000000000014
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.045,
+            "upper80": 0.1,
+            "reference_mean": 0.06971781402826309,
+            "reference_observations": [
+              0.07313919067382812,
+              0.06794889271259308,
+              0.07653282582759857,
+              0.06299708783626556,
+              0.06797107309103012
+            ],
+            "mae": 0.0012821859717369044,
+            "coverage80": 1.0,
+            "width80": 0.05500000000000001,
+            "interval_score80": 0.05500000000000001
+          },
+          "precipitation_signal": {
+            "estimate": 0.155,
+            "lower80": 0.125,
+            "upper80": 0.185,
+            "reference_mean": 0.15555851757526398,
+            "reference_observations": [
+              0.15660753846168518,
+              0.15847204625606537,
+              0.1547301709651947,
+              0.16242824494838715,
+              0.1455545872449875
+            ],
+            "mae": 0.0005585175752639837,
+            "coverage80": 1.0,
+            "width80": 0.06,
+            "interval_score80": 0.06
+          }
+        }
+      },
+      {
+        "query_id": "Q06",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.254,
+            "lower80": 0.247,
+            "upper80": 0.263,
+            "reference_mean": 0.2541127324104309,
+            "reference_observations": [
+              0.25575050711631775,
+              0.25429144501686096,
+              0.25402384996414185,
+              0.2530151903629303,
+              0.2534826695919037
+            ],
+            "mae": 0.00011273241043091575,
+            "coverage80": 1.0,
+            "width80": 0.016000000000000014,
+            "interval_score80": 0.016000000000000014
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.045,
+            "upper80": 0.1,
+            "reference_mean": 0.07383093535900116,
+            "reference_observations": [
+              0.07286158949136734,
+              0.0677141323685646,
+              0.07876920700073242,
+              0.0747985765337944,
+              0.07501117140054703
+            ],
+            "mae": 0.0028309353590011688,
+            "coverage80": 1.0,
+            "width80": 0.05500000000000001,
+            "interval_score80": 0.05500000000000001
+          },
+          "precipitation_signal": {
+            "estimate": 0.155,
+            "lower80": 0.125,
+            "upper80": 0.185,
+            "reference_mean": 0.1525018483400345,
+            "reference_observations": [
+              0.15674437582492828,
+              0.15388432145118713,
+              0.15370698273181915,
+              0.14967599511146545,
+              0.1484975665807724
+            ],
+            "mae": 0.002498151659965503,
+            "coverage80": 1.0,
+            "width80": 0.06,
+            "interval_score80": 0.06
+          }
+        }
+      },
+      {
+        "query_id": "Q07",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.254,
+            "lower80": 0.247,
+            "upper80": 0.263,
+            "reference_mean": 0.25309552550315856,
+            "reference_observations": [
+              0.2518959045410156,
+              0.2537648379802704,
+              0.25125280022621155,
+              0.25423625111579895,
+              0.25432783365249634
+            ],
+            "mae": 0.0009044744968414453,
+            "coverage80": 1.0,
+            "width80": 0.016000000000000014,
+            "interval_score80": 0.016000000000000014
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.045,
+            "upper80": 0.1,
+            "reference_mean": 0.07478502839803695,
+            "reference_observations": [
+              0.0836130678653717,
+              0.06876705586910248,
+              0.07291500270366669,
+              0.06798803061246872,
+              0.0806419849395752
+            ],
+            "mae": 0.0037850283980369603,
+            "coverage80": 1.0,
+            "width80": 0.05500000000000001,
+            "interval_score80": 0.05500000000000001
+          },
+          "precipitation_signal": {
+            "estimate": 0.155,
+            "lower80": 0.125,
+            "upper80": 0.185,
+            "reference_mean": 0.14945878982543945,
+            "reference_observations": [
+              0.15341344475746155,
+              0.14953884482383728,
+              0.1459115892648697,
+              0.148252934217453,
+              0.15017713606357574
+            ],
+            "mae": 0.005541210174560551,
+            "coverage80": 1.0,
+            "width80": 0.06,
+            "interval_score80": 0.06
+          }
+        }
+      },
+      {
+        "query_id": "Q08",
+        "dilute": true,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.262,
+            "lower80": 0.22,
+            "upper80": 0.42,
+            "reference_mean": 0.3627346336841583,
+            "reference_observations": [
+              0.36154207587242126,
+              0.3638656437397003,
+              0.3637767434120178,
+              0.3637225329875946,
+              0.3607661724090576
+            ],
+            "mae": 0.1007346336841583,
+            "coverage80": 1.0,
+            "width80": 0.19999999999999998,
+            "interval_score80": 0.19999999999999998
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.085,
+            "lower80": 0.01,
+            "upper80": 0.6,
+            "reference_mean": 0.7160323023796081,
+            "reference_observations": [
+              0.7158061861991882,
+              0.7139105200767517,
+              0.710700273513794,
+              0.7150411009788513,
+              0.7247034311294556
+            ],
+            "mae": 0.6310323023796082,
+            "coverage80": 0.0,
+            "width80": 0.59,
+            "interval_score80": 1.7503230237960818
+          },
+          "precipitation_signal": {
+            "estimate": 0.145,
+            "lower80": 0.01,
+            "upper80": 0.28,
+            "reference_mean": 0.0002466271165758371,
+            "reference_observations": [
+              0.0,
+              0.0,
+              0.0012331355828791857,
+              0.0,
+              0.0
+            ],
+            "mae": 0.14475337288342416,
+            "coverage80": 0.0,
+            "width80": 0.27,
+            "interval_score80": 0.3675337288342416
+          }
+        }
+      },
+      {
+        "query_id": "Q09",
+        "dilute": true,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.259,
+            "lower80": 0.225,
+            "upper80": 0.36,
+            "reference_mean": 0.31219383478164675,
+            "reference_observations": [
+              0.31338921189308167,
+              0.311062753200531,
+              0.31008878350257874,
+              0.3122645914554596,
+              0.31416383385658264
+            ],
+            "mae": 0.05319383478164674,
+            "coverage80": 1.0,
+            "width80": 0.13499999999999998,
+            "interval_score80": 0.13499999999999998
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.078,
+            "lower80": 0.012,
+            "upper80": 0.4,
+            "reference_mean": 0.3347137212753296,
+            "reference_observations": [
+              0.3314512073993683,
+              0.33549201488494873,
+              0.3310733437538147,
+              0.3385772407054901,
+              0.3369747996330261
+            ],
+            "mae": 0.2567137212753296,
+            "coverage80": 1.0,
+            "width80": 0.388,
+            "interval_score80": 0.388
+          },
+          "precipitation_signal": {
+            "estimate": 0.149,
+            "lower80": 0.02,
+            "upper80": 0.27,
+            "reference_mean": 0.01905755400657654,
+            "reference_observations": [
+              0.015766125172376633,
+              0.018759554252028465,
+              0.021720387041568756,
+              0.019310588017106056,
+              0.01973111554980278
+            ],
+            "mae": 0.12994244599342344,
+            "coverage80": 0.2,
+            "width80": 0.25,
+            "interval_score80": 0.26286523401737216
+          }
+        }
+      },
+      {
+        "query_id": "Q10",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.251,
+            "lower80": 0.205,
+            "upper80": 0.29,
+            "reference_mean": 0.25409920811653136,
+            "reference_observations": [
+              0.252829372882843,
+              0.2540047764778137,
+              0.25488606095314026,
+              0.25145062804222107,
+              0.2573252022266388
+            ],
+            "mae": 0.00309920811653136,
+            "coverage80": 1.0,
+            "width80": 0.08499999999999999,
+            "interval_score80": 0.08499999999999999
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.068,
+            "lower80": 0.015,
+            "upper80": 0.16,
+            "reference_mean": 0.06969298869371414,
+            "reference_observations": [
+              0.06994783133268356,
+              0.07359585911035538,
+              0.06499731540679932,
+              0.0737246721982956,
+              0.06619926542043686
+            ],
+            "mae": 0.0016929886937141342,
+            "coverage80": 1.0,
+            "width80": 0.14500000000000002,
+            "interval_score80": 0.14500000000000002
+          },
+          "precipitation_signal": {
+            "estimate": 0.165,
+            "lower80": 0.06,
+            "upper80": 0.45,
+            "reference_mean": 0.15899649262428284,
+            "reference_observations": [
+              0.16282515227794647,
+              0.16862554848194122,
+              0.14717158675193787,
+              0.15504395961761475,
+              0.16131621599197388
+            ],
+            "mae": 0.006003507375717171,
+            "coverage80": 1.0,
+            "width80": 0.39,
+            "interval_score80": 0.39
+          }
+        }
+      },
+      {
+        "query_id": "Q11",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.253,
+            "lower80": 0.249,
+            "upper80": 0.258,
+            "reference_mean": 0.25375038385391235,
+            "reference_observations": [
+              0.2557247281074524,
+              0.25576210021972656,
+              0.2510937750339508,
+              0.25316038727760315,
+              0.25301092863082886
+            ],
+            "mae": 0.0007503838539123509,
+            "coverage80": 1.0,
+            "width80": 0.009000000000000008,
+            "interval_score80": 0.009000000000000008
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.0715,
+            "lower80": 0.06,
+            "upper80": 0.083,
+            "reference_mean": 0.06843323409557342,
+            "reference_observations": [
+              0.07087035477161407,
+              0.0725167915225029,
+              0.06620486825704575,
+              0.0645638182759285,
+              0.06801033765077591
+            ],
+            "mae": 0.0030667659044265744,
+            "coverage80": 1.0,
+            "width80": 0.023000000000000007,
+            "interval_score80": 0.023000000000000007
+          },
+          "precipitation_signal": {
+            "estimate": 0.157,
+            "lower80": 0.145,
+            "upper80": 0.168,
+            "reference_mean": 0.15260404646396636,
+            "reference_observations": [
+              0.14741145074367523,
+              0.1585702896118164,
+              0.1427307277917862,
+              0.16460126638412476,
+              0.14970649778842926
+            ],
+            "mae": 0.004395953536033642,
+            "coverage80": 0.8,
+            "width80": 0.02300000000000002,
+            "interval_score80": 0.027538544416427613
+          }
+        }
+      },
+      {
+        "query_id": "Q12",
+        "dilute": false,
+        "metrics": {
+          "pH_normalized": {
+            "estimate": 0.2535,
+            "lower80": 0.249,
+            "upper80": 0.258,
+            "reference_mean": 0.2540795147418976,
+            "reference_observations": [
+              0.2507617175579071,
+              0.2551344037055969,
+              0.2516244053840637,
+              0.255139023065567,
+              0.25773802399635315
+            ],
+            "mae": 0.0005795147418976021,
+            "coverage80": 1.0,
+            "width80": 0.009000000000000008,
+            "interval_score80": 0.009000000000000008
+          },
+          "acid_dissociation_fraction": {
+            "estimate": 0.071,
+            "lower80": 0.06,
+            "upper80": 0.082,
+            "reference_mean": 0.07172849476337433,
+            "reference_observations": [
+              0.06342945992946625,
+              0.0647570788860321,
+              0.07778668403625488,
+              0.07602216303348541,
+              0.076647087931633
+            ],
+            "mae": 0.0007284947633743322,
+            "coverage80": 1.0,
+            "width80": 0.022000000000000006,
+            "interval_score80": 0.022000000000000006
+          },
+          "precipitation_signal": {
+            "estimate": 0.155,
+            "lower80": 0.144,
+            "upper80": 0.166,
+            "reference_mean": 0.15524907112121583,
+            "reference_observations": [
+              0.1528845876455307,
+              0.16258355975151062,
+              0.14478661119937897,
+              0.16538803279399872,
+              0.1506025642156601
+            ],
+            "mae": 0.0002490711212158325,
+            "coverage80": 1.0,
+            "width80": 0.02200000000000002,
+            "interval_score80": 0.02200000000000002
+          }
+        }
+      }
+    ],
+    "groups": {
+      "all": {
+        "queries": 12,
+        "metrics": {
+          "pH_normalized": {
+            "mae": 0.020542303184668223,
+            "coverage80": 1.0,
+            "width80": 0.063,
+            "interval_score80": 0.063
+          },
+          "acid_dissociation_fraction": {
+            "mae": 0.10711316287517547,
+            "coverage80": 0.8333333333333334,
+            "width80": 0.16566666666666666,
+            "interval_score80": 0.31526485288143163
+          },
+          "precipitation_signal": {
+            "mae": 0.038277651366467276,
+            "coverage80": 0.75,
+            "width80": 0.14541666666666667,
+            "interval_score80": 0.17852230799073976
+          }
+        },
+        "macro_mae": 0.05531103914210366
+      },
+      "dilute": {
+        "queries": 3,
+        "metrics": {
+          "pH_normalized": {
+            "mae": 0.06953906059265136,
+            "coverage80": 1.0,
+            "width80": 0.15333333333333332,
+            "interval_score80": 0.15333333333333332
+          },
+          "acid_dissociation_fraction": {
+            "mae": 0.3904105149110158,
+            "coverage80": 0.3333333333333333,
+            "width80": 0.421,
+            "interval_score80": 1.0193927448590598
+          },
+          "precipitation_signal": {
+            "mae": 0.14030961257964372,
+            "coverage80": 0.06666666666666667,
+            "width80": 0.25,
+            "interval_score80": 0.3809097171574831
+          }
+        },
+        "macro_mae": 0.2000863960277703
+      },
+      "other": {
+        "queries": 9,
+        "metrics": {
+          "pH_normalized": {
+            "mae": 0.0042100507153405116,
+            "coverage80": 1.0,
+            "width80": 0.0328888888888889,
+            "interval_score80": 0.0328888888888889
+          },
+          "acid_dissociation_fraction": {
+            "mae": 0.012680712196562026,
+            "coverage80": 1.0,
+            "width80": 0.08055555555555556,
+            "interval_score80": 0.08055555555555556
+          },
+          "precipitation_signal": {
+            "mae": 0.0042669976287418,
+            "coverage80": 0.9777777777777779,
+            "width80": 0.11055555555555557,
+            "interval_score80": 0.11105983826849196
+          }
+        },
+        "macro_mae": 0.007052586846881446
+      }
+    }
+  },
+  "token_accounting": {
+    "valid": true,
+    "complete": true,
+    "basis": "cumulative same-thread snapshots, differenced in original stage order",
+    "missing_stages": [],
+    "stage_deltas": [
+      {
+        "stage": "source",
+        "input_tokens": 549847,
+        "cached_input_tokens": 495232,
+        "output_tokens": 6094
+      },
+      {
+        "stage": "K1",
+        "input_tokens": 52065,
+        "cached_input_tokens": 3456,
+        "output_tokens": 3707
+      },
+      {
+        "stage": "Q",
+        "input_tokens": 57219,
+        "cached_input_tokens": 3584,
+        "output_tokens": 5488
+      },
+      {
+        "stage": "K2",
+        "input_tokens": 62714,
+        "cached_input_tokens": 51840,
+        "output_tokens": 2250
+      },
+      {
+        "stage": "EQS",
+        "input_tokens": 65303,
+        "cached_input_tokens": 3584,
+        "output_tokens": 878
+      }
+    ],
+    "total": {
+      "input_tokens": 787148,
+      "cached_input_tokens": 557696,
+      "output_tokens": 18417,
+      "input_plus_output": 805565
+    },
+    "monetary_cost_usd": null
+  }
+}
