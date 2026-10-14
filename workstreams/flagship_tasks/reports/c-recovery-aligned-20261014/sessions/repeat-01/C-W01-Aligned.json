@@ -1,0 +1,223 @@
+{
+  "repeat": "repeat-01",
+  "id": "C-W01-Aligned",
+  "system": "C",
+  "world": "W01",
+  "arm": "Aligned",
+  "cohort": "corrected_recovery_45",
+  "status": "failed",
+  "failure": {
+    "stage": "source",
+    "type": "InteractiveCodexExperimentError",
+    "message": "Codex session crossed a frozen operational limit before the next executable operation; no fallback action was emitted: max_provider_error_events"
+  },
+  "missing_stages": [
+    "K1",
+    "Q",
+    "K2"
+  ],
+  "source_checks": {
+    "operations": true,
+    "final_assays": true,
+    "measurements": true,
+    "notebook_cursors": true
+  },
+  "metrics": {
+    "source_operations": 7,
+    "completed_batches": 0,
+    "rejected_attempts": 0,
+    "distinct_committed_operation_types": 7,
+    "distinct_solvents": 1,
+    "intermediate_measurements": 1,
+    "exact_sequence_repeat_batches": 0,
+    "minimum_positive_nominal_concentration_M": 0.5,
+    "maximum_positive_nominal_concentration_M": 0.5,
+    "quench_batches": 0,
+    "notebook_versions": 1,
+    "structural_feedback_opportunities": 0,
+    "versions_with_subsequent_experiment": 1,
+    "versions_with_new_final_assays": 0
+  },
+  "versions": [
+    {
+      "revision": 1,
+      "public_cursor": 0,
+      "text": "# Hypothesis notebook\n\n## Pre-experiment expectations\n\n**H1 [tentative] — material choice.** The nominal dossier suggests solvent S2 should favor recovery, purity, and coarse growth (low relative solubility and impurity occlusion; high growth), though its low nucleation tendency may require seeding. Catalyst C1 is the initial reaction choice because its nominal activity is high with less variability than C2/C3. Hidden fixed residuals could reverse either ranking.\n\n**H2 [tentative] — thermal sequence.** For a 0.04 mol reagent / 0.08 L batch, heating near 360–380 K long enough for reaction, then controlled cooling with modest seed and a low-temperature hold should increase seed-excluded recovery. Slower cooling/holding should reduce fines relative to abrupt cooling, while excessive high-temperature exposure may increase degradation.\n\n**Initial testable expectation.** A C1/S2 batch reacted near 370 K, then seeded during controlled cooling and held cold, will produce detectable crystals with purity above 0.80 and fines below 0.50. If reaction conversion is poor, test catalyst identity/temperature/time; if yield is adequate but fines high, reduce supersaturation rate or increase growth hold; if recovery is low with acceptable quality, lower terminal temperature or extend hold.\n\nThe first batches will establish feasibility and material ranking; later batches will vary seed dose and thermal history around the best observed process. Numerical differences from single noisy assays will be treated as provisional unless large or repeated.",
+      "new_final_assays_since_previous_note": [],
+      "next_revision": null,
+      "following_interval_end": 7,
+      "following_action_cursors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "following_final_assay_cursors": [],
+      "following_committed_research_actions": 6,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    }
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "first_cursor": 1,
+      "last_cursor": 7,
+      "completed": false,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        2
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "create_container",
+        "heat",
+        "measure"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 1,
+          "operation": "create_container"
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 370
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 370
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "cursor": 1,
+      "batch": 1,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 1,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 2,
+      "batch": 1,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 3,
+      "batch": 1,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 4,
+      "batch": 1,
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 5,
+      "batch": 1,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 370
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 6,
+      "batch": 1,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 370
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 7,
+      "batch": 1,
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3297599256038666,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_purity": 0.009455623105168343,
+        "safety_risk": 0.1913708746433258,
+        "score": 0.08726894855499268,
+        "selectivity": 0.5898482203483582,
+        "yield": 0.5837838649749756
+      }
+    }
+  ]
+}

@@ -1,0 +1,116 @@
+{
+  "repeat": "repeat-03",
+  "id": "C-W04-MisIndexed",
+  "system": "C",
+  "world": "W04",
+  "arm": "MisIndexed",
+  "cohort": "corrected_recovery_45",
+  "status": "failed",
+  "failure": {
+    "stage": "source",
+    "type": "InteractiveCodexExperimentError",
+    "message": "Codex session crossed a frozen operational limit before the next executable operation; no fallback action was emitted: max_provider_error_events"
+  },
+  "missing_stages": [
+    "K1",
+    "Q",
+    "K2"
+  ],
+  "source_checks": {
+    "operations": true,
+    "final_assays": true,
+    "measurements": true,
+    "notebook_cursors": true
+  },
+  "metrics": {
+    "source_operations": 2,
+    "completed_batches": 0,
+    "rejected_attempts": 0,
+    "distinct_committed_operation_types": 2,
+    "distinct_solvents": 1,
+    "intermediate_measurements": 0,
+    "exact_sequence_repeat_batches": 0,
+    "minimum_positive_nominal_concentration_M": 0.5,
+    "maximum_positive_nominal_concentration_M": 0.5,
+    "quench_batches": 0,
+    "notebook_versions": 1,
+    "structural_feedback_opportunities": 0,
+    "versions_with_subsequent_experiment": 1,
+    "versions_with_new_final_assays": 0
+  },
+  "versions": [
+    {
+      "revision": 1,
+      "public_cursor": 0,
+      "text": "# Initial hypotheses\n\n**H1 [tentative].** Solvent S2 should favor high recovery and acceptable purity/fines because its nominal solubility and nucleation tendency are low while growth is high and occlusion low. Slow seeded cooling after a productive reaction should outperform abrupt unseeded cooling in particle size/fines. This may fail if fixed-world residuals reverse the dossier ranking.\n\n**H2 [tentative].** Catalyst C1 is the best initial reaction choice from nominal activity; moderate temperature/time should raise conversion without excessive degradation. I will screen material choices and thermal histories, then replicate/refine promising conditions. A final result meeting purity >=0.80 and fines <=0.50 will be prioritized by crystal_yield.",
+      "new_final_assays_since_previous_note": [],
+      "next_revision": null,
+      "following_interval_end": 2,
+      "following_action_cursors": [
+        1,
+        2
+      ],
+      "following_final_assay_cursors": [],
+      "following_committed_research_actions": 2,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    }
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "first_cursor": 1,
+      "last_cursor": 2,
+      "completed": false,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        2
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "cursor": 1,
+      "batch": 1,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 2,
+      "batch": 1,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    }
+  ]
+}
