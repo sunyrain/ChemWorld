@@ -212,7 +212,7 @@ export function icon(name) {
 
 export function actionLines(action) {
   const fmt = n => Number(n.toPrecision(4)).toString();
-  if (action.operation === 'heat') return [
+  if (['heat', 'cool_crystallize'].includes(action.operation)) return [
     Number.isFinite(action.target_temperature_K) ? fmt(action.target_temperature_K - 273.15) + ' °C' : '温度未提供',
     Number.isFinite(action.duration_s) ? fmt(action.duration_s / 60) + ' min' : '时长未提供',
   ];
