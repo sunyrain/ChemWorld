@@ -61,6 +61,7 @@ def test_common_posttests_disable_laboratory_and_preserve_thread(tmp_path, monke
     for command, _, kw in calls:
         assert "mcp_servers.chemworld_lab.enabled=false" in command
         assert "mcp_servers.research_notebook.enabled=false" in command
+        assert any(x.startswith("mcp_servers.research_notebook.command=") for x in command)
         assert kw["numerics_budget"] == s.FOLLOWUP_NUMERICS
     assert "no laboratory observations" in calls[0][1]
     assert calls[1][1] == s.K2
@@ -71,6 +72,29 @@ def test_missing_prediction_is_missing_not_zero():
     result = s.eq.evaluate_predictions(None, s.eq.queries(s.eq.load_config()), {})
     assert result["valid"] is False
     assert "metrics" not in result
+
+
+def test_startup_exit_retains_receipt_and_stderr(tmp_path):
+    import os
+    import sys
+
+    from scripts.run_work_ii_final_diagnostic import launch
+
+    result = launch(
+        [sys.executable, "-c", "import sys; sys.stderr.write('invalid transport'); sys.exit(1)"],
+        "x" * 1_000_000,
+        tmp_path,
+        dict(os.environ),
+        tmp_path / "receipt",
+        10,
+        False,
+        tmp_path / "audit.jsonl",
+        {},
+    )
+    assert result["failure"] == "provider_startup_failure"
+    assert result["exit_code"] == 1
+    assert (tmp_path / "receipt/receipt.json").exists()
+    assert (tmp_path / "receipt/stderr.txt").read_text() == "invalid transport"
 
 
 def test_prepare_binds_only_prospective_comparison(tmp_path):

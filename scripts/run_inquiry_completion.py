@@ -190,6 +190,8 @@ def posttest(agent, folder, private_folder, stage, thread_id, progress, query_ro
         "-c",
         "mcp_servers.research_notebook.enabled=false",
         "-c",
+        f"mcp_servers.research_notebook.command={json.dumps(sys.executable)}",
+        "-c",
         f"model_instructions_file={json.dumps(instructions.as_posix())}",
     ]
     raw = eq.shared.launch(
@@ -205,7 +207,7 @@ def posttest(agent, folder, private_folder, stage, thread_id, progress, query_ro
         numerics_budget=FOLLOWUP_NUMERICS,
     )
     write(private_folder / stage / "receipt.json", raw)
-    if thread_id and raw.get("thread_id") != thread_id:
+    if thread_id and raw.get("thread_id") and raw["thread_id"] != thread_id:
         raise RuntimeError("Evaluation thread changed")
     agent.last_thread_id = raw.get("thread_id")
     result = {

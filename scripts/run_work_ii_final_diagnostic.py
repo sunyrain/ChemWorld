@@ -336,8 +336,13 @@ def launch(
     failure = None
     try:
         assert process.stdin is not None
-        process.stdin.write(message)
-        process.stdin.close()
+        try:
+            process.stdin.write(message)
+            process.stdin.close()
+        except BrokenPipeError:
+            # A startup failure can close stdin before a large prompt is delivered.
+            # Retain stderr and the normal terminal receipt instead of losing both.
+            failure = "provider_startup_failure"
         last = started
         while process.poll() is None:
             elapsed = time.monotonic() - started

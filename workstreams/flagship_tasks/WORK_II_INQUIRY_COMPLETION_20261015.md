@@ -73,3 +73,19 @@ No credentials or raw provider payloads enter Git. Do not change manuscript conc
 in advance of outcomes. Independent review needs a second researcher; supply fixed cases
 with public evidence before showing truth/outcomes, retain disagreements. Analyst self-checks
 and provenance validation are not independent scientific review.
+
+## Execution incident, retained attempt 01
+
+Attempt 01 stopped after launching four sessions: the disabled notebook MCP entry lacked
+a transport command, causing the evaluator CLI to exit before K1. The two research sources
+remain intact; no posttest was produced. Missing thread IDs were a consequence of that
+startup failure, not evidence of a changed research conversation. This is an executor defect;
+scientifically the source trajectories and 300 reference batches remain reusable historical
+records. Under this block's fixed restart rule, the formal comparison restarts from session
+one at `attempt-02`; attempt 01 is not substituted or pooled with it.
+
+Repair supplies the disabled server's transport, retains a receipt when stdin closes during
+startup, and distinguishes absent from changed thread IDs. A transport-only real-provider
+check (no chemistry task) completed a new JSON report and a same-thread recall using the
+production evaluation launcher. It is runtime qualification, not participant evidence.
+Coverage, prompts, budgets and failure rules are unchanged.
