@@ -1,0 +1,351 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[margin=19mm,headheight=15pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+
+\usepackage{xeCJK}
+\setCJKmainfont[AutoFakeBold=2.2]{SimSun}
+\setCJKsansfont{Microsoft YaHei}
+
+\usepackage{microtype,graphicx,booktabs,array,longtable,calc,float,placeins,needspace}
+\usepackage{amsmath,amssymb,xcolor,caption,fancyhdr,titlesec,setspace}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{lineno}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small ChemWorld | Author manuscript}
+\fancyhead[R]{\sffamily\small ImageGen preview}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\setlength{\columnsep}{7mm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.1}
+\clubpenalty=10000
+\widowpenalty=10000
+\titleformat{\section}{\large\bfseries\sffamily\raggedright}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\sffamily\raggedright}{}{0pt}{}
+\titleformat{\subsubsection}{\small\bfseries\sffamily\raggedright}{}{0pt}{}
+\titlespacing*{\section}{0pt}{10pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt}{4pt}
+\captionsetup{font=small,labelformat=empty,justification=justified}
+\renewcommand{\topfraction}{.95}
+\renewcommand{\bottomfraction}{.9}
+\renewcommand{\textfraction}{.04}
+\renewcommand{\floatpagefraction}{.75}
+\renewcommand{\dbltopfraction}{.95}
+\renewcommand{\dblfloatpagefraction}{.75}
+\makeatletter\setlength{\@fptop}{0pt}\setlength{\@dblfptop}{0pt}\makeatother
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\pandocbounded}[1]{#1}
+\newlength{\cslhangindent}\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}\setlength{\csllabelwidth}{2em}
+\newenvironment{CSLReferences}[2]{\small\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}}{\par}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\par\noindent\makebox[\csllabelwidth][l]{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\dimexpr\linewidth-\csllabelwidth\relax}{#1}\par}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\hypersetup{pdftitle={自主科研中科学判断的形成与使用},pdfauthor={Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang}}
+\begin{document}
+
+\twocolumn[
+{\sffamily\small ARTICLE\hfill 14 October 2026\par}
+\vspace{8pt}
+{\sffamily\LARGE\bfseries\raggedright\hyphenpenalty=10000 自主科研中科学判断的形成与使用\par}
+\vspace{8pt}
+{\normalsize Jiangjie Qiu\textsuperscript{1,*}, Yijun Li\textsuperscript{1,*}, Yaotian Yang\textsuperscript{1,*}, Honghao Chen\textsuperscript{1}, Wentao Li\textsuperscript{1}, Xiaonan Wang\textsuperscript{1,\textdagger}\par}
+{\footnotesize\textsuperscript{1}Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China.\par}
+{\footnotesize * Jiangjie Qiu, Yijun Li and Yaotian Yang contributed equally.\par}
+{\footnotesize $\dagger$ Correspondence: \href{mailto:wangxiaonan@tsinghua.edu.cn}{wangxiaonan@tsinghua.edu.cn}.\par}
+\vspace{6pt}
+{\sffamily\footnotesize 图像为 ImageGen 临时预览；图形位置仅作示意，定量结果以正文和补充表为准。\par}
+\vspace{8pt}
+\textbf{自主实验室扩大了机器选择和执行实验的能力\textsuperscript{1,2}。其科学价值还取决于：自主选择的实验经历如何成为后续判断的依据。我们利用可编程化学世界，连接智能体的自主实验选择、同期科学记录与新干预下的预测。跨体系研究表明，操作成功与预测准确性可以分离。随后开展的平衡与结晶重复研究揭示，智能体能够提出区分性检验、修订预期，并建立有适用范围的工作关系。这些成果可以与随后使用证据时的偏离并存：削弱某种解释的局部检验，可能被用于支持实验尚未区分的外推；成功的工艺与明确的高纯度认识，可以与显著偏低的纯度预测同时出现。在另一些案例中，被拒绝的操作进入后续报告，成为已经完成的阴性检验。我们将这些过程与范围适当的结论、以及未经直接采样的成功外推加以区分。研究由此将科学判断放回产生其证据的自主科研过程：实验自主性能够支持有效关系的形成，而这些关系的证据范围与后续用途，需要分别考察。}
+
+
+\vspace{8pt}]
+
+
+
+科学研究改变了研究者能够对一个系统作出何种有依据的判断。实验揭示结果，但选择解释、界定适用范围并据此指导下一次干预，仍需要进一步判断。随着机器获得更大的实验自主性，这些判断越来越多地建立在它自己选择获取的证据之上。由此形成的研究经历决定了哪些可能性已经接受检验，哪些仍然未决。
+
+机器人科学家和自主实验室已经展示了假说检验、材料发现与反应优化能力\textsuperscript{3--6}。语言模型智能体进一步连接科学指令、工具与实验操作\textsuperscript{7,8}。然而，有效的操作方案本身不能确定研究者学到了什么，准确预测也不能唯一确定其推断和证据依据\textsuperscript{9,10}。理解自主科研，需要沿着判断在研究中获得支持并被实际采用的过程展开。
+
+ChemWorld 为这一研究提供了条件。智能体围绕持续演化的虚拟样品组织实验，评价者则独立控制兼容的过程规律和公开信息。我们把操作与预测的广泛比较，连接到带同期记录本的重复研究。这些记录展示了有价值的修订、尚未解决的竞争解释，以及实际检验内容与随后被当作已建立关系之间的具体差异。核心问题是：实验经历如何成为科学关系，以及当这项关系被用于超出原有证据的判断时，会发生什么。
+
+\begin{figure*}[t]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/figure01.png}}
+\caption{图 1 \textbar{} ImageGen 临时预览：自主研究与科学判断的形成和使用。生成图形位置仅作示意，数值证据以正文和补充表为准。a，研究者自主操作持续状态的虚拟样品，评价者分别核对成功操作、公开观测与参考结果。b，同期笔记之后依次进行封存报告、新条件预测和事后反思；全部参与者阶段均看不到参考真值。c，旧广度研究与重复过程队列分别计数。每个世界和信息条件包含三次会话；总数保留六条不完整链。相同世界跨信息条件重复出现，不构成各臂独立的新世界样本。}
+\end{figure*}
+
+\subsection{自主研究成为可以核对的实验过程}\label{ux81eaux4e3bux7814ux7a76ux6210ux4e3aux53efux4ee5ux6838ux5bf9ux7684ux5b9eux9a8cux8fc7ux7a0b}
+
+ChemWorld 将材料、操作与仪器组合成具有持续状态的可编程化学体系。研究者自主选择用量、操作顺序、测量、重复与后续实验；操作可能不可逆地改变样品、消耗资源，也可能在改变物理状态之前被拒绝。评价者保留实际执行的状态转移及其底层响应。这些是受控的虚拟化学世界，不代表对物理实验室中特定真实物质的预测已经获得验证。
+
+这一安排扩展了知识测验和给定数据型发现任务能够提供的证据\textsuperscript{11,12}。既有交互式发现环境也已经连接了行动与观测\textsuperscript{13--16}。在这里，可组合的化学操作使同一研究者的取证选择、逐步形成的公开解释和关系使用能够被共同考察（图 1）。
+
+保留的广度研究包括六类体系的 240 场研究，以及其他四种模型配置的 60 场平衡研究，提供操作与预测比较的背景。在电化学 30 个匹配比较中，优化任务有 26 次给出更高分的推荐，但其中预测更好与更差各有 13 次。研究资源和先验信息也在部分条件下表现出正向作用：增加分配体系的实验预算，使有机相份额预测误差从 0.08291 降至 0.02379；相符的反应先验在两种研究目标下均改善五个世界中的四个。这些是独立研究之间的比较，并非同一研究者的纵向学习曲线。
+
+为考察实验期间的判断形成，另一队列覆盖平衡与结晶，每种体系包含五个世界、三种信息条件、每条件三次全新会话。智能体分别获得不附加实例信息、相符的部分先验或指定的错配先验。全部使用相同的 Sol-medium 配置和十二批研究预算。90 场均到达终态，其中 84 条研究与后测链完整，保留 284 版笔记。失败保留在计划分母中。实验结束后，智能体封存科学报告，在无法继续操作实验室的条件下预测固定的新干预，随后在不见预测真值的情况下反思。重复固定世界参数和观测映射，但未控制模型采样随机性。
+
+\begin{figure*}[t]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/figure02.png}}
+\caption{图 2 \textbar{} ImageGen 临时预览：前瞻检验与有范围的工作关系。图中点位和几何仅作示意。a，平衡研究者在最后两批之前记录组分映射猜想，执行扰动后收窄解释。b，种量拯救猜想接受两种实际剂量检验，随后被撤回；虚线为细粉上限。c，32.5 ml 的前瞻检验之后进行 35 ml 重复和独立推荐复测。连线表示实验顺序，不代表拟合规律；复测为无噪参考。案例为事后选择，完整会话结果保留在补充表中。}
+\end{figure*}
+
+\subsection{实验能够建立和修订局部关系}\label{ux5b9eux9a8cux80fdux591fux5efaux7acbux548cux4feeux8ba2ux5c40ux90e8ux5173ux7cfb}
+
+记录本展示了研究者提出可检验预期，并在看到结果之后修订它。在一项错配先验的平衡研究中，近乎平坦的试剂装料响应引出了另一种解释：另一个可访问组分可能才是有效的活性坐标。在最后两批实验之前，智能体预测，若该解释成立，这个组分应带来显著响应。它随后测量仅含该组分的样品，以及在少量试剂上大幅加标该组分的样品。两者仍接近原平台。随后的笔记撤回了对所测映射的支持，同时保留多个平台解释（图 2a）。这是公开猜想得到实际检验的过程，但没有唯一识别隐藏机制。
+
+结晶研究提供了更直接的前瞻检验。高浓度配方未达到细粉要求后，研究者提出增加种量以改善颗粒质量。相关两批保持主要准备与冷却操作相同，成功加入的种量分别为 0.02 和 0.05 g。两批细粉份额均为 1.0。下一版笔记明确撤回该条件下的拯救预期（图 2b）。智能体最终推荐另一条独立复测合格的工艺。另一项研究在降低装料反而加重细粉后，撤回了预期的单调装料效应。因此，即使改善操作的提议失败，科学判断的修订仍可观察。
+
+实验关系也能够成为继续研究的工作依据。在另一项结晶会话中，成功和失败工艺促成了体积窗口探索。研究者在 35 ml 获得可行工艺后，明确提出下一批检验 32.5 ml。新检验保留其他主要操作且仍然合格，随后重复 35 ml，最终推荐另经独立复测（图 2c）。该序列建立了可用配方，并支持一项后续检验。更早的低体积失败同时改变了种量或热历史，因此不能据此独立识别浓度阈值。
+
+记录中也包含适当的范围限定。研究者会区分观测到的配方趋势与单独识别的温度系数、有证据支持的区域与普遍溶剂排序，以及未决的小差异与可重复改善。这些限定本身就是正在形成的科学判断。它们也提供了进一步的问题：当研究者随后作出另一类决策时，同样的限定是否仍然发挥作用。
+
+\begin{figure*}[t]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/figure03.png}}
+\caption{图 3 \textbar{} ImageGen 临时预览：局部证据与后续外推。生成图形仅作示意。a，映射研究的公开解离率观测、封存极稀预测、原始 80\% 区间与五次参考观测均值。b，极稀三题和其余九题的五世界等权 MAE，以及极稀区间覆盖；缺失预测不记零。Opaque、Aligned、MisIndexed 各计划 15 场，有效预测分别为 14、13、14；错配臂来自后一期。c，同一固定世界每信息条件三次全新会话的预测与共同参考。重复是模型会话，不是新的独立世界或测量噪声样本。}
+\end{figure*}
+
+\subsection{局部证据进入不同的外推判断}\label{ux5c40ux90e8ux8bc1ux636eux8fdbux5165ux4e0dux540cux7684ux5916ux63a8ux5224ux65ad}
+
+上述平衡映射研究还显示，有效的局部修订可以伴随后续缺乏充分支持的扩展。最终报告仍将缓冲、饱和与未识别耦合列为竞争解释。然而，面对极稀查询时，智能体明确援引``仅加入另一组分仍近平台''的结果，将预测强烈收缩到实验基线。解离率预测为 0.092，80\% 区间为 0.043--0.155，参考均值为 0.51730（图 3a）。局部组分检验削弱了某种活性坐标解释，却没有确定平台是否延续到极稀条件。事后反思中，智能体承认区间没有充分表示这些未决可能。
+
+这比没有注意到不确定性更具体。科学报告承认不确定性，数值预测却给某一种关系延续赋予了更大的实际权重。公开理由连接了早先观测与这次选择，但没有证明写下笔记的因果作用，也不直接揭示内部推理。
+
+重复队列将该案例放入更广的结果分布。相符先验使其余九题的五世界平均误差从 0.00907 降至 0.00512，却使极稀三题误差从 0.09880 增至 0.13205（图 3b）。局部改善在五个世界均出现，极稀区恶化在四个世界出现。极稀区名义 80\% 区间的实际覆盖从 73.85\% 降至 19.48\%。错配先验对应误差为 0.00531 和 0.14848，极稀覆盖为 14.89\%。错配臂全部在后一期执行，不能视为与先前信息臂同期随机化的比较。原研究约 8.7 倍的收益反转幅度没有在本轮稳定重复；本轮相符相对不附加先验的比值约为 1.34。
+
+全部 45 场平衡研究的正装料源期测量均未进入 1 mM 及以下区域。尽管如此，相近的平台观测仍可支持不同的预测构造。在同一世界的重复中，不附加先验会话既出现近平台预测，也出现较大且准确的解离率预测；相符先验会话则持续更接近平台（图 3c）。另一场不附加先验会话在回答预测题时引入有效可溶浓度上限，给出较准确的稀释预测，随后承认该机制在先前报告中只是候选之一。
+
+因此，直接采样不是合理或成功外推的必要条件。在独立的五模型研究中，Sol/Opaque 未进入稀释区却准确外推；另一场 Astra 研究则先在低浓度自主观测到显著上升，再准确预测新的稀释条件。这些路径区分了预测准确、研究期获得证据，以及通过实验区分解释。单一终点分数会压缩这些差别。
+
+\begin{figure*}[t]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/figure04.png}}
+\caption{图 4 \textbar{} ImageGen 临时预览：工艺成功与各响应的迁移表现。图形位置和生成散点仅为示意。a，同世界同信息条件的三次结晶会话，展示源期与预测纯度、各自均值和参考均值；三项推荐均通过复测。b，全部 45 场的推荐成功数。c，各信息臂纯度和回收预测误差的五世界等权均值，逐场数值见补充表。两期研究分别保留来源。成功要求有颗粒、纯度至少 0.80、细粉最多 0.50、扣除种晶后的回收至少 0.10。}
+\end{figure*}
+
+\subsection{可用工艺能够与不可靠的迁移同时存在}\label{ux53efux7528ux5de5ux827aux80fdux591fux4e0eux4e0dux53efux9760ux7684ux8fc1ux79fbux540cux65f6ux5b58ux5728}
+
+结晶揭示了互补问题：研究者可以正确识别稳定响应，却在预测新条件时大幅修改它。在同一世界和错配信息下的三次会话中，每个智能体均找到了复测合格的配方，也均在科学报告中识别出高纯度。源期平均纯度分别为 99.09\%、98.18\%、99.09\%，对新配方的平均预测却为 86.92\%、86.33\%、89.92\%；共同参考均值为 98.45\%（图 4a）。
+
+第一次会话尤其清楚地展示了同一研究中的分化。源期报告描述了显著杂质排除和有范围的可行工艺区域。进入预测后，智能体分别对溶剂、杂质包埋、浓度和热历史作出调整。回收率 MAE 为 0.04371，纯度 MAE 却为 0.11529，十二个纯度区间无一覆盖参考。新配方确实要求判断条件变化；这并不意味着直接重复源期均值总是正确。但在这里，尽管公开报告准确描述了源期高纯度，后续调整仍明显偏离当前世界。
+
+全部 45 场结晶会话中，Opaque、Aligned、MisIndexed 同时满足质量和回收目标的推荐分别为 9/15、7/15、14/15；五世界平均纯度 MAE 分别为 0.01537、0.04120、0.05964（图 4b,c）。错配臂的较高操作成功率不能解释为错误知识的收益：它仅交换两个溶剂描述，保留了频繁使用的 S2 描述，且在后一期执行。同一臂较低的回收误差与较高的纯度误差，说明各响应对应的判断仍需分别呈现。指定热条件对比的细粉方向预测正确次数分别为 7/15、9/15、6/15。
+
+这些结果延伸了较早的结晶发现：尽管源期与参考纯度均接近 98.5\%，360 个纯度预测中仍有 335 个偏低。同期记录现在进一步显示，同一研究者可以同时拥有有效工艺知识、明确的高纯度描述和不准确的迁移判断。这些证据没有确定遗忘、上下文丢失或某种共同机制是原因。
+
+\subsection{判断的证据地位本身也可能偏离执行记录}\label{ux5224ux65adux7684ux8bc1ux636eux5730ux4f4dux672cux8eabux4e5fux53efux80fdux504fux79bbux6267ux884cux8bb0ux5f55}
+
+某些偏离发生在迁移之前。一名智能体将剂量上限理解为每次操作而非每批上限，提出检验约 2 g 累积种量。它请求四十次 0.05 g 加入，但只有第一次成功，其余三十九次均被拒绝。后续笔记仍声称，种量从 0.05 增至约 2 g 没有降低细粉，据此排除种量作为限制因素。最终报告和事后反思保留了这一结论（扩展数据图 1）。
+
+所声称的剂量比较并未完成，因而不能提供大剂量无效的阴性证据。该轨迹定位了预期检验成为看似已建立排除结论的过程。另一个智能体则正确记录追加被拒绝，并据此限制后续剂量。执行失败并不必然成为科学记述错误。前一个案例涉及执行状态解释，不能单独解释其他概括错误，也没有证明错误笔记对随后行动的因果作用。
+
+同样，认识到不确定性并不自动决定操作选择。一名研究者表示偏好细粉余量，最终却选择观测中最高回收的边界可行配方，无噪复测失败；另一名研究者放弃部分观测回收以保留余量，复测通过（扩展数据图 2）。任务奖励观测合格条件下的回收，因此边界选择并非自动不合理，但它与研究者公开表达的决策原则之间的关系仍有意义。
+
+\subsection{将科学判断作为研究过程的结果}\label{ux5c06ux79d1ux5b66ux5224ux65adux4f5cux4e3aux7814ux7a76ux8fc7ux7a0bux7684ux7ed3ux679c}
+
+这些发现赋予自主科研的核心承诺以具体内容：实验自由能够支持科学理解的发展。智能体提出检验、修订预期并建立有范围的工作关系。沿着同一关系进入后续报告与预测，又能看到不同偏离：尚未区分的延续方式获得数值权重，已识别的稳定响应未被充分保留，或者未执行的检验成为排除理由。这些结果可以发生在同一段研究经历中。
+
+共同研究对象是证据与其使用之间的关系，而非唯一失败机制。实验设计和强推断提供选择信息性检验的原则\textsuperscript{17--19}，本研究还涉及已完成检验如何被表述，以及不确定性如何进入后续判断\textsuperscript{20,21}。匹配淬灭对照独立核实了某项操作在保留虚拟配方中的整体效果（扩展数据图 3），但没有确定智能体为何采用某种解释。对这些转变作因果解释，需要针对性比较，不能预设所有错误都通过选择性采样维持自身。
+
+过程队列只有一种模型配置，使用重复固定世界和带记录本的工作流程。案例由单一分析者事后解释，公开表述并非内部信念的直接测量。较早的跨模型证据涉及研究路径与终点，而非已完成的跨模型同期认识形成分析。这些限制界定了本研究的结论：自主研究能够产生有实验支持的局部知识，但一项关系被声称具有的证据、其表述的适用范围与新判断中的实际用途，仍然可以分离。使这些转变可被观察，为理解实验自主性如何成为科学认识提供了基础。
+
+\clearpage
+\onecolumn
+
+\section{参考文献}\label{ux53c2ux8003ux6587ux732e}
+
+\protect\phantomsection\label{refs}
+\begin{CSLReferences}{0}{1}
+\hypertarget{ref-tom2024selfdriving}{}
+\CSLLeftMargin{1. }%
+\CSLRightInline{G. Tom et al. {Self-Driving Laboratories for Chemistry and Materials Science}. \emph{Chemical Reviews} \textbf{124} 9633--9732 (2024). https://doi.org/\href{https://doi.org/10.1021/acs.chemrev.4c00055}{10.1021/acs.chemrev.4c00055}.}
+
+\hypertarget{ref-boiko2023autonomous}{}
+\CSLLeftMargin{2. }%
+\CSLRightInline{D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. \emph{Nature} \textbf{624} 570--578 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06792-0}{10.1038/s41586-023-06792-0}.}
+
+\hypertarget{ref-king2009automation}{}
+\CSLLeftMargin{3. }%
+\CSLRightInline{R. D. King et al. {The Automation of Science}. \emph{Science} \textbf{324} 85--89 (2009). https://doi.org/\href{https://doi.org/10.1126/science.1165620}{10.1126/science.1165620}.}
+
+\hypertarget{ref-burger2020mobile}{}
+\CSLLeftMargin{4. }%
+\CSLRightInline{B. Burger et al. {A mobile robotic chemist}. \emph{Nature} \textbf{583} 237--241 (2020). https://doi.org/\href{https://doi.org/10.1038/s41586-020-2442-2}{10.1038/s41586-020-2442-2}.}
+
+\hypertarget{ref-macleod2020selfdriving}{}
+\CSLLeftMargin{5. }%
+\CSLRightInline{B. P. MacLeod et al. {Self-driving laboratory for accelerated discovery of thin-film materials}. \emph{Science Advances} \textbf{6} eaaz8867 (2020). https://doi.org/\href{https://doi.org/10.1126/sciadv.aaz8867}{10.1126/sciadv.aaz8867}.}
+
+\hypertarget{ref-szymanski2023alab}{}
+\CSLLeftMargin{6. }%
+\CSLRightInline{{N. J. Szymanski et al.} An autonomous laboratory for the accelerated synthesis of inorganic materials. \emph{Nature} \textbf{624} 86--91 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06734-w}{10.1038/s41586-023-06734-w}.}
+
+\hypertarget{ref-bran2024augmenting}{}
+\CSLLeftMargin{7. }%
+\CSLRightInline{A. M. Bran et al. Augmenting large language models with chemistry tools. \emph{Nature Machine Intelligence} \textbf{6} 525--535 (2024). https://doi.org/\href{https://doi.org/10.1038/s42256-024-00832-8}{10.1038/s42256-024-00832-8}.}
+
+\hypertarget{ref-dai2024mobile}{}
+\CSLLeftMargin{8. }%
+\CSLRightInline{T. Dai et al. {Autonomous mobile robots for exploratory synthetic chemistry}. \emph{Nature} \textbf{635} 890--897 (2024). https://doi.org/\href{https://doi.org/10.1038/s41586-024-08173-7}{10.1038/s41586-024-08173-7}.}
+
+\hypertarget{ref-elmachtoub2022spo}{}
+\CSLLeftMargin{9. }%
+\CSLRightInline{A. N. Elmachtoub and P. Grigas. Smart {Predict, then Optimize}. \emph{Management Science} \textbf{68} 9--26 (2022). https://doi.org/\href{https://doi.org/10.1287/mnsc.2020.3922}{10.1287/mnsc.2020.3922}.}
+
+\hypertarget{ref-shmueli2010explain}{}
+\CSLLeftMargin{10. }%
+\CSLRightInline{G. Shmueli. {To Explain or to Predict?} \emph{Statistical Science} \textbf{25} 289--310 (2010). https://doi.org/\href{https://doi.org/10.1214/10-sts330}{10.1214/10-sts330}.}
+
+\hypertarget{ref-mirza2025chembench}{}
+\CSLLeftMargin{11. }%
+\CSLRightInline{A. Mirza et al. {A framework for evaluating the chemical knowledge and reasoning abilities of large language models against the expertise of chemists}. \emph{Nature Chemistry} \textbf{17} 1027--1034 (2025). https://doi.org/\href{https://doi.org/10.1038/s41557-025-01815-x}{10.1038/s41557-025-01815-x}.}
+
+\hypertarget{ref-majumder2025discoverybench}{}
+\CSLLeftMargin{12. }%
+\CSLRightInline{B. P. Majumder et al. {DiscoveryBench: Towards Data-Driven Discovery with Large Language Models}. \emph{{International Conference on Learning Representations}} \textbf{2025} 4556--4579 (2025). \url{https://proceedings.iclr.cc/paper_files/paper/2025/file/0d70af566e69f1dfb687791ecf955e28-Paper-Conference.pdf}.}
+
+\hypertarget{ref-wang2022scienceworld}{}
+\CSLLeftMargin{13. }%
+\CSLRightInline{R. Wang, P. Jansen, M.-A. Côté, and P. Ammanabrolu. {ScienceWorld: Is your Agent Smarter than a 5th Grader?} \emph{Proceedings of the 2022 conference on empirical methods in natural language processing} 11279--11298 (2022). https://doi.org/\href{https://doi.org/10.18653/v1/2022.emnlp-main.775}{10.18653/v1/2022.emnlp-main.775}.}
+
+\hypertarget{ref-jansen2024discoveryworld}{}
+\CSLLeftMargin{14. }%
+\CSLRightInline{P. Jansen et al. {DiscoveryWorld}: A virtual environment for developing and evaluating automated scientific discovery agents. \emph{Advances in neural information processing systems} \textbf{37} (2024). https://doi.org/\href{https://doi.org/10.52202/079017-0324}{10.52202/079017-0324}.}
+
+\hypertarget{ref-gandhi2025boxinggym}{}
+\CSLLeftMargin{15. }%
+\CSLRightInline{K. Gandhi et al. {BoxingGym}: Benchmarking progress in automated experimental design and model discovery. (2025). \url{https://arxiv.org/abs/2501.01540}.}
+
+\hypertarget{ref-chen2025physgym}{}
+\CSLLeftMargin{16. }%
+\CSLRightInline{Y. Chen, P. Piękos, M. Ostaszewski, F. Laakom, and J. Schmidhuber. {PhysGym: Benchmarking LLMs in Interactive Physics Discovery with Controlled Priors}. \emph{{Advances in Neural Information Processing Systems}} \textbf{38} (2025). https://doi.org/\href{https://doi.org/10.52202/085713-1556}{10.52202/085713-1556}.}
+
+\hypertarget{ref-lindley1956information}{}
+\CSLLeftMargin{17. }%
+\CSLRightInline{D. V. Lindley. {On a Measure of the Information Provided by an Experiment}. \emph{The Annals of Mathematical Statistics} \textbf{27} 986--1005 (1956). https://doi.org/\href{https://doi.org/10.1214/aoms/1177728069}{10.1214/aoms/1177728069}.}
+
+\hypertarget{ref-chaloner1995design}{}
+\CSLLeftMargin{18. }%
+\CSLRightInline{K. Chaloner and I. Verdinelli. {Bayesian Experimental Design: A Review}. \emph{Statistical Science} \textbf{10} 273--304 (1995). https://doi.org/\href{https://doi.org/10.1214/ss/1177009939}{10.1214/ss/1177009939}.}
+
+\hypertarget{ref-platt1964inference}{}
+\CSLLeftMargin{19. }%
+\CSLRightInline{J. R. Platt. {Strong Inference}. \emph{Science} \textbf{146} 347--353 (1964). https://doi.org/\href{https://doi.org/10.1126/science.146.3642.347}{10.1126/science.146.3642.347}.}
+
+\hypertarget{ref-gneiting2007scoring}{}
+\CSLLeftMargin{20. }%
+\CSLRightInline{T. Gneiting and A. E. Raftery. {Strictly Proper Scoring Rules, Prediction, and Estimation}. \emph{Journal of the American Statistical Association} \textbf{102} 359--378 (2007). https://doi.org/\href{https://doi.org/10.1198/016214506000001437}{10.1198/016214506000001437}.}
+
+\hypertarget{ref-ovadia2019uncertainty}{}
+\CSLLeftMargin{21. }%
+\CSLRightInline{Y. Ovadia et al. {Can you trust your model's uncertainty? Evaluating predictive uncertainty under dataset shift}. \emph{{Advances in Neural Information Processing Systems}} \textbf{32} (2019). \url{https://proceedings.neurips.cc/paper_files/paper/2019/file/8558cb408c1d76621371888657d2eb1d-Paper.pdf}.}
+
+\end{CSLReferences}
+
+\clearpage
+
+\section{方法}\label{ux65b9ux6cd5}
+
+\subsection{实验世界与公开接口}\label{ux5b9eux9a8cux4e16ux754cux4e0eux516cux5f00ux63a5ux53e3}
+
+ChemWorld 将兼容的过程组件编译为有状态化学环境。公开契约界定可用操作、合法范围、仪器、资源核算和任务目标；私有参数决定实例响应。研究者可以访问实验室接口及公开记录，不能访问评价者状态、模拟器源码、私有参数或封存真值。样品保留此前操作的后果，测量可以消耗材料。候选状态转移在提交前验证；被拒绝操作不产生物理干预，但可能按契约消耗尝试额度。精确重放验证环境状态转移，不要求重新生成模型的决策。
+
+广度研究的六类体系为电化学、相分配、反应与热过程、水相平衡、反应耦合结晶和纯化。这些虚拟体系具有明确受限的范围；匿名材料和定性化学机制不能证明对特定真实物质的预测有效性。平衡响应与结晶模型的执行关系保留在协议证据和补充材料中。过程队列沿用相关早期世界规律、信息契约与查询定义，并在该队列固定的执行面上生成参考。
+
+\subsection{广度研究与证据层次}\label{ux5e7fux5ea6ux7814ux7a76ux4e0eux8bc1ux636eux5c42ux6b21}
+
+原跨体系研究包含 240 场 Sol-medium 会话：电化学 60、分配 30、反应 60、平衡 45、结晶 30、纯化 15。平衡的实体、参数和结构三个先验位置各十五场。电化学、分配和结晶包含十二批与二十四批预算；反应和电化学包含发现及优化任务。每个相关比较在五个实例世界重复三个信息条件。
+
+240 场中 238 场完全符合协议；保留 3,597/3,600 次计划最终测定与全部 720 个科学报告、预测、反思阶段。一场结晶在十一批测定后耗尽溶剂，一场纯化启动十二批但只有十批接受最终测定；有效预测仍纳入。另有 Luna、Terra、GPT-5.5、Astra 各十五场平衡研究，均请求 medium 推理配置，共 720 批与 240 个后测阶段。因此总计为 300 场，不能再额外加上``75 场五模型比较''，因为其中 Sol 的十五场已包含在原 240 场。公开模型名表示请求的配置，不代表实际计算量相等。
+
+较早的记录本可行性与选例研究用于发展过程测量。六案例及其十八次新重复共 24 场，不与广度研究或当前 90 场合并。保留研究包含开发和探索性证据；纳入稿件不会改变原资格身份。完整块计数、早期恢复和过程队列处置见补充材料。
+
+\subsection{重复过程队列}\label{ux91cdux590dux8fc7ux7a0bux961fux5217}
+
+队列由两个事前确定的实验块构成。第一块有三十场平衡研究：五世界、Opaque/Aligned、各三次；另有十八场结晶，覆盖原索引的首、中、末三个世界和相同两臂、重复数。结晶世界在执行前固定，不按误差选择。扩展块加入十五场 MisIndexed 平衡、十五场 MisIndexed 结晶，以及剩余两个结晶世界的十二场 Opaque/Aligned。描述性合并后为两体系、五世界、三信息条件、三次会话，共九十场。
+
+各源研究均使用全新工作区与模型上下文、Sol-medium 配置和十二批额度。模型自主选择配方、测量、重复和操作分组。世界参数、初态与按键固定的观测映射跨重复不变。模型采样 seed 不可用，因此这是固定世界的重复会话，不是受控模型 seed 实验。相同配方可能得到相同固定测量，不能当作新增独立噪声实现。
+
+四个隔离工作进程消费预先确定的队列。第一块交错体系，并跨轮次改变世界和信息臂顺序；扩展块先轮换顺序再移除已覆盖单元。完成顺序不必与启动顺序一致。每条源研究只启动一次，不替换失败，不依据有利结果纳入。服务商或参与者失败保留为终态；执行、参考或重放缺陷按停止规则处置。平衡源期时限为 5,400 s，结晶为 3,600 s，沿用固定原引擎资源限制。平衡允许 180 次操作尝试、12 次中间仪器测量、12 次最终测定、0.24 mol 试剂和 0.72 L 溶剂。结晶沿用十二批资源范围、720 次尝试上限及各自材料、仪器额度。
+
+第一块完成 576/576 批和 162/174 个后测阶段，44 条完整链、145 版笔记；扩展块完成 503/504 批和 136/141 个阶段，40 条完整链、139 版笔记。合计 1,079/1,080 批、298/315 个阶段、84 条完整链；86 个有效预测包括平衡 41 和结晶 45。六条不完整链保留在补充表中。九十条源轨迹和四十五条结晶推荐复测均通过精确重放。
+
+\subsection{信息条件与同期记录}\label{ux4fe1ux606fux6761ux4ef6ux4e0eux540cux671fux8bb0ux5f55}
+
+Opaque 提供操作接口、任务与公共背景，不附加实例档案；Aligned 提供固定的部分信息。平衡包括有效酸度区间及给定锚点的局部稀释关系。MisIndexed 使用相同格式、限定词与精度，替换为另一世界的档案关系。结晶 Aligned 提供匿名名义材料描述，并非完整实例定律；MisIndexed 只交换溶剂 S1/S3 描述，S0、S2 和催化剂描述不变，并未破坏研究者可能使用的全部性质。
+
+两个实验块前后执行。全部错配先验来源于扩展期，而 Opaque/Aligned 结晶跨两个时期。因此涉及这些来源的信息臂差异可能包含时间或服务商漂移；这里只描述结果，不估计同期随机化的错配信息因果效应。
+
+全部研究提供相同记录角色与版本工具，要求在首次物理操作前，在存在可检验预期时写下简洁初始判断。后续更新由模型选择，不要求逐批写作；笔记不自动注入，也不提示稀释、淬灭、既往结果或对照研究。记录角色可能影响研究，不称为被动测量。全部九十条初始笔记早于物理动作；284 版记录保留事件位置与时间，以确定当时可用观测。没有显式笔记读取调用，但这不证明笔记内容在上下文中不可访问或未被使用。
+
+\subsection{封存后测与参考结果}\label{ux5c01ux5b58ux540eux6d4bux4e0eux53c2ux8003ux7ed3ux679c}
+
+源研究与所需推荐封存之后，智能体先提交自由形式科学报告，再预测十二个固定新批次配方，随后回答反思问题。平衡另有结构化补充阶段。证据记录将上述阶段分别记为 K1、Q、K2 和 EQS。预测题不在源期公开；预测阶段不允许实验室操作，所有参与者阶段均不可见参考真值。反思中首次提出的实验不计为已执行，也不回溯为源期计划。
+
+过程队列的平衡参考共 300 批，覆盖五世界、十二题和五次固定观测重复；结晶为五世界、十二题，共六十批。扩展复用前期 336 个参考，只增加缺失的二十四批结晶参考。参考保存于参与者工作区之外，提前生成不意味着向参与者反馈。每项结晶推荐由成功提交的配方独立复测；被请求但被拒绝的动作不成为已成功投料。
+
+平衡点误差与五次参考均值比较，区间覆盖逐一核对五个观测；结晶误差与区间使用无噪底层响应。回收率为扣除种晶的回收目标物除以分离前存在的目标物，不是相对于初始试剂的总体产率。质量要求有颗粒、纯度至少 0.80、细粉最多 0.50；联合成功还要求回收至少 0.10。热方向比较使用原指定配方对与固定评分规则。
+
+\subsection{定量与定性分析}\label{ux5b9aux91cfux4e0eux5b9aux6027ux5206ux6790}
+
+每场研究的 MAE 对相应题目误差取均值。平衡宏观误差等权包含归一化 pH、解离份额与沉淀信号。最稀三题与其余九题的分组沿用过程说明中的既定规则；该分组在原广度研究中为事后探索，其余九题不保证全部处于分布内。源期 1 mM 覆盖阈值只是描述性指标，不是物理边界或成功标准。浓度按名义试剂总加入量除以溶剂总加入量计算，不推定实际溶解浓度。
+
+过程队列先在每世界内平均有效会话，再对五世界等权平均，同时保留逐场值与有效分母。世界跨信息臂和重复共享；批次、查询、响应与参考观测相互嵌套且相关，不能替代独立研究者样本做推断检验。展示区间是智能体原始预测区间，不是总体均值的置信区间。每单元三次会话描述波动，但不足以确定总体成功概率。
+
+单一分析者阅读全部 284 版源期笔记，对照相关封存报告并核对关键动作。前期 48 场与新增 42 场阅读分别保留，涵盖全部九十场及版本特定引文。精读区分世界响应、表述当时的信息、所提出关系及其范围、随后公开用途，保留合理修订、适当未决、范围扩展、未采用和执行记述差异，不生成自动推理分数。缺失中间记录限制时间分辨率。目前没有第二位独立编码者或一致性估计，不从选例推断机制发生率。
+
+主例按能够观察到事前预期、相应执行检验与后续报告，或源期关系与预测之间的明确连接事后选择。反例保留正确外推、正确处理操作拒绝及范围适当的判断。源期动作表可能含拒绝尝试；成功种量由事务状态核对。四十次 0.05 g 请求不代表加入 2 g。公开理由及时间对应支持解释一条已观察轨迹，不证明公开表述的因果中介作用，也不直接测量内部认识。
+
+\subsection{匹配淬灭干预}\label{ux5339ux914dux6decux706dux5e72ux9884}
+
+对照块在观察干预结果前固定前期全部十八条结晶推荐，每条在五个原世界分别执行有、无淬灭，形成九十对、一百八十条轨迹。原配方包含淬灭时删除原位置的该操作；否则在首次种晶或结晶冷却之前插入。移除这一操作后，两臂动作列表相同。两臂从相同世界与初态开始，使用相同固定观测身份，保留材料、时长、测量和其他操作参数；期间没有智能体适应。
+
+全部 180 条轨迹保留并通过重放。75 对有两臂最终测量；5 对无淬灭臂没有可测颗粒，10 对有淬灭臂使下一步固定冷却目标高于当前温度。失败动作不修复，缺失终态不插补。因此完整配对效果描述受限子集，同时呈现全部失败。主要对比使用无噪细粉与回收。淬灭改变温度、反应停止状态、时间和后续物理条件；整体效果不单独识别冷却速率或成核。共享世界和供体也意味着九十对不是九十名独立研究者。
+
+75 对中，有减无的平均细粉变化为 0.30937，回收为 0.00741；联合成功数由 34 降为 4。原世界的十八对中十五对完整，与跨世界运输分别报告。前期热程切换主例的原世界插入淬灭会导致后续操作失败，因此没有该案例的终态配对细粉效果。新增扩展配方不是该块供体。这项干预解释环境结果，不解释智能体为何形成某种科学认识。
+
+\subsection{数据可用性}\label{ux6570ux636eux53efux7528ux6027}
+
+研究所用源期观测、版本科学记录、封存后测与评价者摘要保留在项目证据记录中。补充材料提供全部过程会话结果、失败处置和既有广度研究表。整合后的公开归档与永久标识符尚未最终确定；早期公开平台发布不包含这些后续研究队列。
+
+\subsection{代码可用性}\label{ux4ee3ux7801ux53efux7528ux6027}
+
+环境、执行、重放、评分和分析代码由 ChemWorld 项目维护。本稿分析只读取保留结果，不新增参与者或模拟器调用。准确执行版本与各展示来源保留于配套证据组织中。覆盖整合研究的公开版本归档仍须在投稿前确定。
+
+\subsection{资助}\label{ux8d44ux52a9}
+
+This work was supported by the Shenzhen Science and Technology Program (AI2026004), the Tsinghua University Initiative Scientific Research Program and the Scientific Research Innovation Capability Support Project for Young Faculty (ZYGXQNJSKYCXNLZCXM-E7).
+
+\clearpage
+
+\section{扩展数据}\label{ux6269ux5c55ux6570ux636e}
+
+\begin{figure}[H]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/extended01.png}}
+\caption{扩展数据图 1 \textbar{} ImageGen 临时预览：计划中的干预成为被声称的阴性检验。图中文字是公开记录的概括而非逐字引文，箭头只表示顺序。a，研究者提出约 2 g 累积种量；四十次 0.05 g 请求中仅一次成功，三十九次被拒绝。b，后续笔记、封存报告与反思仍保留大剂量无效的说法。c，另一个智能体正确识别追加失败，限制后续剂量与结论。没有执行 2 g，因此本例不确定其物理效果。}
+\end{figure}
+
+\clearpage\begin{figure}[H]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/extended02.png}}
+\caption{扩展数据图 2 \textbar{} ImageGen 临时预览：公开的不确定性与操作选择。生成点位仅作示意。a，一名研究者表达保留细粉余量的偏好，却选择最高观测可行回收；公开读数与无噪复测落在细粉上限两侧。b，另一名研究者实际放弃部分回收以保留余量，推荐仍合格。蓝色圆点表示公开测量，深色菱形表示无噪复测。两例是说明性比较，不能估计策略效果；任务允许选择最高观测可行回收。}
+\end{figure}
+
+\clearpage\begin{figure}[H]
+\centering
+\pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/preview/extended03.png}}
+\caption{扩展数据图 3 \textbar{} ImageGen 临时预览：匹配淬灭效果与不完整配对。生成散点与分布不是实测点位。a，75 个完整配对的有无淬灭细粉比较及方向计数。b，有减无的平均细粉与回收变化，以及同时成功数。c，全部 90 对分别为 75 对完整测量、5 对无淬灭臂无颗粒、10 对有淬灭臂后续冷却非法。对照采用前期 18 条固定推荐，在五世界分别执行；新增队列配方不是供体。淬灭比较操作的整体后果，不单独识别降温或停止反应的作用。}
+\end{figure}
+
+\end{document}

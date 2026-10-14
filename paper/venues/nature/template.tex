@@ -1,0 +1,70 @@
+\documentclass[$if(review)$12pt$else$10pt$endif$,a4paper]{article}
+\usepackage[$if(review)$margin=25mm$else$margin=19mm$endif$,headheight=15pt]{geometry}
+\usepackage{fontspec}
+\setmainfont{Times New Roman}
+\setsansfont{Arial}
+\setmonofont{Consolas}
+$if(chinese)$
+\usepackage{xeCJK}
+\setCJKmainfont[AutoFakeBold=2.2]{SimSun}
+\setCJKsansfont{Microsoft YaHei}
+$endif$
+\usepackage{microtype,graphicx,booktabs,array,longtable,calc,float,placeins,needspace}
+\usepackage{amsmath,amssymb,xcolor,caption,fancyhdr,titlesec,setspace}
+\usepackage[hidelinks,breaklinks=true]{hyperref}
+\usepackage{lineno}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\sffamily\small ChemWorld | Author manuscript}
+\fancyhead[R]{\sffamily\small $runninglabel$}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+\setlength{\columnsep}{7mm}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{3em}
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.1}
+\clubpenalty=10000
+\widowpenalty=10000
+\titleformat{\section}{\large\bfseries\sffamily\raggedright}{}{0pt}{}
+\titleformat{\subsection}{\normalsize\bfseries\sffamily\raggedright}{}{0pt}{}
+\titleformat{\subsubsection}{\small\bfseries\sffamily\raggedright}{}{0pt}{}
+\titlespacing*{\section}{0pt}{10pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt}{4pt}
+\captionsetup{font=small,labelformat=empty,justification=justified}
+\renewcommand{\topfraction}{.95}
+\renewcommand{\bottomfraction}{.9}
+\renewcommand{\textfraction}{.04}
+\renewcommand{\floatpagefraction}{.75}
+\renewcommand{\dbltopfraction}{.95}
+\renewcommand{\dblfloatpagefraction}{.75}
+\makeatletter\setlength{\@fptop}{0pt}\setlength{\@dblfptop}{0pt}\makeatother
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\pandocbounded}[1]{#1}
+\newlength{\cslhangindent}\setlength{\cslhangindent}{1.5em}
+\newlength{\csllabelwidth}\setlength{\csllabelwidth}{2em}
+\newenvironment{CSLReferences}[2]{\small\setlength{\parindent}{0pt}\setlength{\parskip}{4pt}}{\par}
+\newcommand{\CSLBlock}[1]{#1\hfill\break}
+\newcommand{\CSLLeftMargin}[1]{\par\noindent\makebox[\csllabelwidth][l]{#1}}
+\newcommand{\CSLRightInline}[1]{\parbox[t]{\dimexpr\linewidth-\csllabelwidth\relax}{#1}\par}
+\newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
+\hypersetup{pdftitle={$title$},pdfauthor={$pdfauthors$}}
+\begin{document}
+$if(review)$\doublespacing$endif$
+$if(twocolumn)$\twocolumn[$endif$
+$if(review)$\begingroup\singlespacing$endif$
+{\sffamily\small ARTICLE\hfill 14 October 2026\par}
+\vspace{8pt}
+{\sffamily\LARGE\bfseries\raggedright\hyphenpenalty=10000 $title$\par}
+\vspace{8pt}
+$authorblock$
+\vspace{6pt}
+{\sffamily\footnotesize $previewnotice$\par}
+\vspace{8pt}
+$if(review)$\endgroup$endif$
+$opening$
+$if(twocolumn)$\vspace{8pt}]$endif$
+$if(review)$\linenumbers$endif$
+$body$
+\end{document}
