@@ -1,0 +1,1523 @@
+{
+  "repeat": "repeat-01",
+  "id": "EQ-W02-Opaque",
+  "system": "EQ",
+  "world": "W02",
+  "arm": "Opaque",
+  "cohort": "retained_48",
+  "status": "completed",
+  "failure": null,
+  "missing_stages": [],
+  "source_checks": {
+    "operations": true,
+    "final_assays": true,
+    "measurements": true,
+    "notebook_cursors": true
+  },
+  "metrics": {
+    "source_operations": 61,
+    "completed_batches": 12,
+    "rejected_attempts": 0,
+    "distinct_committed_operation_types": 4,
+    "distinct_solvents": 1,
+    "intermediate_measurements": 12,
+    "exact_sequence_repeat_batches": 0,
+    "minimum_positive_nominal_concentration_M": 0.09999999999999999,
+    "maximum_positive_nominal_concentration_M": 0.7999999999999999,
+    "quench_batches": 0,
+    "notebook_versions": 3,
+    "structural_feedback_opportunities": 1,
+    "versions_with_subsequent_experiment": 2,
+    "versions_with_new_final_assays": 2
+  },
+  "versions": [
+    {
+      "revision": 1,
+      "public_cursor": 0,
+      "text": "# Aqueous-equilibrium hypothesis notebook\n\n## Pre-experiment expectations (committed before physical work)\n**H1 [tentative].** In water at ambient conditions, increasing analytical loading at fixed volume should lower pH and reduce the weak-acid dissociation fraction; dilution at fixed moles should raise both pH and dissociation fraction. If a simple monoprotic weak-acid regime dominates, the qualitative scaling should track concentration rather than total moles separately.\n\n**H2 [tentative].** The precipitation proxy may show a concentration threshold or smooth saturation; comparing equal concentrations prepared from different mole/volume pairs will test concentration sufficiency versus separate amount/volume effects.\n\nPlan: span roughly 0.1–0.8 mol/L, include a fixed-loading dilution series, equal-concentration cross-pairs, one recipe repeat, and a staged dilution. One pH-meter reading per batch will precede termination; every batch will then receive its required final assay. Differences smaller than the declared channel noise or lacking replication will remain unresolved. Evidence that equal-concentration pairs disagree materially would narrow or reject H1's concentration-only scope.",
+      "new_final_assays_since_previous_note": [],
+      "next_revision": 2,
+      "following_interval_end": 40,
+      "following_action_cursors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40
+      ],
+      "following_final_assay_cursors": [
+        5,
+        10,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "following_committed_research_actions": 16,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": 41,
+      "structural_feedback_opportunity": true,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    },
+    {
+      "revision": 2,
+      "public_cursor": 40,
+      "text": "# Aqueous-equilibrium hypothesis notebook\n\n## Pre-experiment expectation\nH1 predicted lower pH/dissociation with loading and higher values on dilution under a simple weak-acid concentration law. H2 allowed a precipitation threshold or smooth concentration response.\n\n## Interim interpretation (batches 1–8)\n**H1 [not supported over the tested range; alternative unresolved].** Final assays spanning nominal 0.1–0.8 mol/L show pH_normalized only about 0.264–0.269 and acid_dissociation_fraction about 0.066–0.086, with no monotone loading pattern apparent (events runner-operation-0005, -0010, -0015, -0020, -0025, -0030, -0035, -0040). The numerical spread in dissociation is comparable to a few declared final-assay noise standard deviations and lacks monotonicity, so it is not persuasive evidence of a concentration effect. A buffered/regulated effective response, a hidden saturation regime, or an observable weakly coupled to analytical concentration are equivalent current explanations. A recipe repeat and equal-concentration cross-pairs remain needed.\n\n**H2 [unresolved; no threshold observed].** Final precipitation signals remain roughly 0.147–0.163 across the same span, with no obvious threshold (same events). Single pH-meter readings fluctuate more than final assays, consistent with their larger declared channel noise; disagreement is treated as measurement scatter, not time evolution because measurements are instantaneous and no controlled aging occurred.\n\n**Testable consequence.** If concentration alone is sufficient, nominal 0.5 mol/L batches made as 0.025/0.05 and 0.030/0.06 mol/L should agree within measurement resolution; a 0.4 mol/L recipe repeat should resemble the earlier 0.020/0.05 result. A staged fourfold dilution should produce little change if the regulated-response alternative is correct, but an increase in pH/dissociation under the original weak-acid hypothesis.",
+      "new_final_assays_since_previous_note": [
+        5,
+        10,
+        15,
+        20,
+        25,
+        30,
+        35,
+        40
+      ],
+      "next_revision": 3,
+      "following_interval_end": 61,
+      "following_action_cursors": [
+        41,
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61
+      ],
+      "following_final_assay_cursors": [
+        45,
+        50,
+        55,
+        61
+      ],
+      "following_committed_research_actions": 9,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    },
+    {
+      "revision": 3,
+      "public_cursor": 61,
+      "text": "# Aqueous-equilibrium hypothesis notebook\n\n## Final source-stage interpretation\n\n**H1 [rejected as a detectable trend in this tested scope].** For water, ambient preparation, nominal final analytical concentrations 0.10–0.80 mol/L, the 12 final assays do not support the pre-specified simple weak-acid prediction that dilution measurably raises pH and dissociation. Across all final assays, means are pH_normalized 0.26627 (pH ≈3.728), dissociation fraction 0.07005, and precipitation proxy 0.15552. Descriptive least-squares slopes per mol/L are only −0.00212, +0.00251, and +0.00268, respectively; these are descriptive, not uncertainty-calibrated effect estimates. Evidence: final-assay events runner-operation-0005 through -0061 at each batch endpoint.\n\n**H3 [supported only as an empirical plateau].** Within the above scope, a concentration-insensitive plateau is the most economical effective relationship: pH_normalized ≈0.266, dissociation ≈0.070, precipitation proxy ≈0.156. “Buffered/regulated response,” a saturated hidden equilibrium, and an observation mapping weakly coupled to analytical loading remain observationally equivalent; the campaign cannot identify species or a unique mechanism.\n\nEqual-concentration checks do not expose a large independent amount/volume effect. At nominal 0.5 mol/L, final pH_normalized values are 0.26907, 0.26596, 0.26836 and precipitation values 0.14808, 0.14782, 0.16244 (events runner-operation-0020, -0035, -0055). Numerical scatter exists, especially in precipitation, but with only three preparations and declared assay noise it is not firm evidence of a separate total-moles or volume term. The 0.4 mol/L repeat (events -0015 and -0050) likewise shows close final pH/dissociation/precipitation.\n\n**Staged dilution [inconclusive but consistent with plateau].** Batch 12 changed from nominal 1.0 to 0.25 mol/L. Its pre-dilution pH-meter result (event -0058) and post-dilution final assay (-0061) differ, but instrument precisions differ and the shifts are not compelling relative to declared noise; this is not a clean same-instrument paired estimate. The final 0.25 mol/L endpoint is broadly compatible with batch 9 at the same concentration (-0045).\n\n**Precipitation claim [bounded].** No threshold or monotone concentration response was observed from 0.10–0.80 mol/L; this only supports a near-constant public proxy in this aqueous ambient slice, not absence of physical precipitation or behavior outside range.\n\n**Uncertainty and next tests.** Final-assay noise is declared per channel, but preparation-to-preparation variance and mechanistic non-identifiability dominate interpretation. More same-recipe replicates and pre/post dilution measurements with the same instrument would quantify small effects. Extending below 0.10 and above 0.80 mol/L, if legal in a future study, would test whether this is a local plateau. Temperature or formulation perturbations would discriminate buffering from a generic saturated readout.",
+      "new_final_assays_since_previous_note": [
+        45,
+        50,
+        55,
+        61
+      ],
+      "next_revision": null,
+      "following_interval_end": 61,
+      "following_action_cursors": [],
+      "following_final_assay_cursors": [],
+      "following_committed_research_actions": 0,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    }
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "first_cursor": 1,
+      "last_cursor": 5,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.005,
+      "nominal_reagent_per_added_solvent_M": 0.09999999999999999,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.005,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 2,
+      "first_cursor": 6,
+      "last_cursor": 10,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.01,
+      "nominal_reagent_per_added_solvent_M": 0.19999999999999998,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.01,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 3,
+      "first_cursor": 11,
+      "last_cursor": 15,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.015,
+      "nominal_reagent_per_added_solvent_M": 0.3,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.015,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 4,
+      "first_cursor": 16,
+      "last_cursor": 20,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.025,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.025,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 5,
+      "first_cursor": 21,
+      "last_cursor": 25,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.035,
+      "nominal_reagent_per_added_solvent_M": 0.7000000000000001,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.035,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 6,
+      "first_cursor": 26,
+      "last_cursor": 30,
+      "completed": true,
+      "nominal_solvent_added_L": 0.025,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.7999999999999999,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.025
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 7,
+      "first_cursor": 31,
+      "last_cursor": 35,
+      "completed": true,
+      "nominal_solvent_added_L": 0.04,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 8,
+      "first_cursor": 36,
+      "last_cursor": 40,
+      "completed": true,
+      "nominal_solvent_added_L": 0.06,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.33333333333333337,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.06
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 9,
+      "first_cursor": 41,
+      "last_cursor": 45,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.25,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 10,
+      "first_cursor": 46,
+      "last_cursor": 50,
+      "completed": true,
+      "nominal_solvent_added_L": 0.05,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.39999999999999997,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.05
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 11,
+      "first_cursor": 51,
+      "last_cursor": 55,
+      "completed": true,
+      "nominal_solvent_added_L": 0.06,
+      "nominal_reagent_added_mol": 0.03,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.06
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 12,
+      "first_cursor": 56,
+      "last_cursor": 61,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.02,
+      "nominal_reagent_per_added_solvent_M": 0.25,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0,
+      "quench_committed": false,
+      "operation_types": [
+        "add_reagent",
+        "add_solvent",
+        "measure",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.02
+        },
+        {
+          "amount_mol": 0.02,
+          "operation": "add_reagent"
+        },
+        {
+          "instrument": "ph_meter",
+          "operation": "measure"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.06
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "cursor": 1,
+      "batch": 1,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 2,
+      "batch": 1,
+      "action": {
+        "amount_mol": 0.005,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 3,
+      "batch": 1,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06726596504449844,
+        "cost": 0.04500000178813934,
+        "equilibrium_confidence": 0.4433787167072296,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.27131932973861694,
+        "precipitation_signal": 0.14294371008872986,
+        "safety_risk": 0.03921448439359665,
+        "score": 0.2615470886230469
+      }
+    },
+    {
+      "cursor": 4,
+      "batch": 1,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 5,
+      "batch": 1,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0780608281493187,
+        "cost": 0.20499999821186066,
+        "equilibrium_confidence": 0.4721982479095459,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26551827788352966,
+        "precipitation_signal": 0.14691893756389618,
+        "safety_risk": 0.03921448439359665,
+        "score": 0.2766910493373871
+      }
+    },
+    {
+      "cursor": 6,
+      "batch": 2,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 7,
+      "batch": 2,
+      "action": {
+        "amount_mol": 0.01,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 8,
+      "batch": 2,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07600688934326172,
+        "cost": 0.05999999865889549,
+        "equilibrium_confidence": 0.5358980298042297,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26889923214912415,
+        "precipitation_signal": 0.14649857580661774,
+        "safety_risk": 0.0435752347111702,
+        "score": 0.30522021651268005
+      }
+    },
+    {
+      "cursor": 9,
+      "batch": 2,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 10,
+      "batch": 2,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06824071705341339,
+        "cost": 0.2199999988079071,
+        "equilibrium_confidence": 0.5324997901916504,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2688770890235901,
+        "precipitation_signal": 0.16231252253055573,
+        "safety_risk": 0.0435752347111702,
+        "score": 0.30450764298439026
+      }
+    },
+    {
+      "cursor": 11,
+      "batch": 3,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 12,
+      "batch": 3,
+      "action": {
+        "amount_mol": 0.015,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 13,
+      "batch": 3,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08948776125907898,
+        "cost": 0.07500000298023224,
+        "equilibrium_confidence": 0.5391802191734314,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2727731764316559,
+        "precipitation_signal": 0.1305650919675827,
+        "safety_risk": 0.05003528296947479,
+        "score": 0.3073907494544983
+      }
+    },
+    {
+      "cursor": 14,
+      "batch": 3,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 15,
+      "batch": 3,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0701591819524765,
+        "cost": 0.23499999940395355,
+        "equilibrium_confidence": 0.5351754426956177,
+        "equilibrium_residual": 0.003794007236137986,
+        "pH_normalized": 0.26909783482551575,
+        "precipitation_signal": 0.15058541297912598,
+        "safety_risk": 0.05003528296947479,
+        "score": 0.3034098744392395
+      }
+    },
+    {
+      "cursor": 16,
+      "batch": 4,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 17,
+      "batch": 4,
+      "action": {
+        "amount_mol": 0.025,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 18,
+      "batch": 4,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.07535330206155777,
+        "cost": 0.10499999672174454,
+        "equilibrium_confidence": 0.3697846829891205,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.265505313873291,
+        "precipitation_signal": 0.1340211033821106,
+        "safety_risk": 0.072194404900074,
+        "score": 0.22812746465206146
+      }
+    },
+    {
+      "cursor": 19,
+      "batch": 4,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 20,
+      "batch": 4,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06615064293146133,
+        "cost": 0.26499998569488525,
+        "equilibrium_confidence": 0.3712223172187805,
+        "equilibrium_residual": 0.0031691091135144234,
+        "pH_normalized": 0.2690736949443817,
+        "precipitation_signal": 0.14807863533496857,
+        "safety_risk": 0.072194404900074,
+        "score": 0.22860705852508545
+      }
+    },
+    {
+      "cursor": 21,
+      "batch": 5,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 22,
+      "batch": 5,
+      "action": {
+        "amount_mol": 0.035,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 23,
+      "batch": 5,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08458799868822098,
+        "cost": 0.13500000536441803,
+        "equilibrium_confidence": 0.35974130034446716,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26050329208374023,
+        "precipitation_signal": 0.14329677820205688,
+        "safety_risk": 0.10923106968402863,
+        "score": 0.22634603083133698
+      }
+    },
+    {
+      "cursor": 24,
+      "batch": 5,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 25,
+      "batch": 5,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0713767409324646,
+        "cost": 0.29499998688697815,
+        "equilibrium_confidence": 0.36402830481529236,
+        "equilibrium_residual": 0.004478357266634703,
+        "pH_normalized": 0.2645558714866638,
+        "precipitation_signal": 0.16240285336971283,
+        "safety_risk": 0.10923106968402863,
+        "score": 0.22778451442718506
+      }
+    },
+    {
+      "cursor": 26,
+      "batch": 6,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.025
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 27,
+      "batch": 6,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 28,
+      "batch": 6,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.09472960978746414,
+        "cost": 0.08399999886751175,
+        "equilibrium_confidence": 0.3854775130748749,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26224952936172485,
+        "precipitation_signal": 0.1522887498140335,
+        "safety_risk": 0.13163022696971893,
+        "score": 0.2414790689945221
+      }
+    },
+    {
+      "cursor": 29,
+      "batch": 6,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 30,
+      "batch": 6,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0688541829586029,
+        "cost": 0.24400000274181366,
+        "equilibrium_confidence": 0.3729272186756134,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2640455365180969,
+        "precipitation_signal": 0.15340375900268555,
+        "safety_risk": 0.13163022696971893,
+        "score": 0.23100319504737854
+      }
+    },
+    {
+      "cursor": 31,
+      "batch": 7,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 32,
+      "batch": 7,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 33,
+      "batch": 7,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06785330176353455,
+        "cost": 0.08760000020265579,
+        "equilibrium_confidence": 0.3639269769191742,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26881083846092224,
+        "precipitation_signal": 0.1625097095966339,
+        "safety_risk": 0.072194404900074,
+        "score": 0.22859534621238708
+      }
+    },
+    {
+      "cursor": 34,
+      "batch": 7,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 35,
+      "batch": 7,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08563564717769623,
+        "cost": 0.2476000040769577,
+        "equilibrium_confidence": 0.3700126111507416,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26595866680145264,
+        "precipitation_signal": 0.14781735837459564,
+        "safety_risk": 0.072194404900074,
+        "score": 0.2324012815952301
+      }
+    },
+    {
+      "cursor": 36,
+      "batch": 8,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.06
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 37,
+      "batch": 8,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 38,
+      "batch": 8,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.0627792477607727,
+        "cost": 0.09239999949932098,
+        "equilibrium_confidence": 0.5081469416618347,
+        "equilibrium_residual": 0.004510527942329645,
+        "pH_normalized": 0.26628991961479187,
+        "precipitation_signal": 0.19443197548389435,
+        "safety_risk": 0.052782732993364334,
+        "score": 0.29588812589645386
+      }
+    },
+    {
+      "cursor": 39,
+      "batch": 8,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 40,
+      "batch": 8,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06834086030721664,
+        "cost": 0.2524000108242035,
+        "equilibrium_confidence": 0.49775850772857666,
+        "equilibrium_residual": 0.004854416009038687,
+        "pH_normalized": 0.2638026177883148,
+        "precipitation_signal": 0.16301384568214417,
+        "safety_risk": 0.052782732993364334,
+        "score": 0.2872782349586487
+      }
+    },
+    {
+      "cursor": 41,
+      "batch": 9,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 42,
+      "batch": 9,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 43,
+      "batch": 9,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08937795460224152,
+        "cost": 0.09719999879598618,
+        "equilibrium_confidence": 0.5593011379241943,
+        "equilibrium_residual": 0.0036541535519063473,
+        "pH_normalized": 0.268489271402359,
+        "precipitation_signal": 0.15664935111999512,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.3189938962459564
+      }
+    },
+    {
+      "cursor": 44,
+      "batch": 9,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 45,
+      "batch": 9,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06360014528036118,
+        "cost": 0.2572000026702881,
+        "equilibrium_confidence": 0.5774237513542175,
+        "equilibrium_residual": 0.00021142372861504555,
+        "pH_normalized": 0.26614296436309814,
+        "precipitation_signal": 0.1529017835855484,
+        "safety_risk": 0.0464978851377964,
+        "score": 0.32205742597579956
+      }
+    },
+    {
+      "cursor": 46,
+      "batch": 10,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 47,
+      "batch": 10,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 48,
+      "batch": 10,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08098943531513214,
+        "cost": 0.09000000357627869,
+        "equilibrium_confidence": 0.4243985712528229,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2592558264732361,
+        "precipitation_signal": 0.12922324240207672,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.25248631834983826
+      }
+    },
+    {
+      "cursor": 49,
+      "batch": 10,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 50,
+      "batch": 10,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06965851038694382,
+        "cost": 0.25,
+        "equilibrium_confidence": 0.44766005873680115,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.2658381164073944,
+        "precipitation_signal": 0.155921071767807,
+        "safety_risk": 0.05933958664536476,
+        "score": 0.26535069942474365
+      }
+    },
+    {
+      "cursor": 51,
+      "batch": 11,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.06
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 52,
+      "batch": 11,
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 53,
+      "batch": 11,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08146411180496216,
+        "cost": 0.12240000069141388,
+        "equilibrium_confidence": 0.37697699666023254,
+        "equilibrium_residual": 0.0037324801087379456,
+        "pH_normalized": 0.2631705701351166,
+        "precipitation_signal": 0.17321133613586426,
+        "safety_risk": 0.072194404900074,
+        "score": 0.23729810118675232
+      }
+    },
+    {
+      "cursor": 54,
+      "batch": 11,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 55,
+      "batch": 11,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06855467706918716,
+        "cost": 0.2824000120162964,
+        "equilibrium_confidence": 0.37215331196784973,
+        "equilibrium_residual": 0.0,
+        "pH_normalized": 0.26835936307907104,
+        "precipitation_signal": 0.16243869066238403,
+        "safety_risk": 0.072194404900074,
+        "score": 0.232381671667099
+      }
+    },
+    {
+      "cursor": 56,
+      "batch": 12,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.02
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 57,
+      "batch": 12,
+      "action": {
+        "amount_mol": 0.02,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 58,
+      "batch": 12,
+      "action": {
+        "instrument": "ph_meter",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.08726710081100464,
+        "cost": 0.0828000009059906,
+        "equilibrium_confidence": 0.37076371908187866,
+        "equilibrium_residual": 0.001397433108650148,
+        "pH_normalized": 0.2691401541233063,
+        "precipitation_signal": 0.15868929028511047,
+        "safety_risk": 0.1743035763502121,
+        "score": 0.2346651405096054
+      }
+    },
+    {
+      "cursor": 59,
+      "batch": 12,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.06
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 60,
+      "batch": 12,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 61,
+      "batch": 12,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "acid_dissociation_fraction": 0.06198328360915184,
+        "cost": 0.2572000026702881,
+        "equilibrium_confidence": 0.5736356377601624,
+        "equilibrium_residual": 0.0005293241119943559,
+        "pH_normalized": 0.2639738619327545,
+        "precipitation_signal": 0.16049939393997192,
+        "safety_risk": 0.046479806303977966,
+        "score": 0.3208726644515991
+      }
+    }
+  ]
+}

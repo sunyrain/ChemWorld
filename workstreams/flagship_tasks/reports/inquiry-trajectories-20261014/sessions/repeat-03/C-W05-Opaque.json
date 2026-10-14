@@ -1,0 +1,3282 @@
+{
+  "repeat": "repeat-03",
+  "id": "C-W05-Opaque",
+  "system": "C",
+  "world": "W05",
+  "arm": "Opaque",
+  "cohort": "retained_48",
+  "status": "completed",
+  "failure": null,
+  "missing_stages": [],
+  "source_checks": {
+    "operations": true,
+    "final_assays": true,
+    "measurements": true,
+    "notebook_cursors": true
+  },
+  "metrics": {
+    "source_operations": 152,
+    "completed_batches": 12,
+    "rejected_attempts": 3,
+    "distinct_committed_operation_types": 12,
+    "distinct_solvents": 3,
+    "intermediate_measurements": 2,
+    "exact_sequence_repeat_batches": 0,
+    "minimum_positive_nominal_concentration_M": 0.5,
+    "maximum_positive_nominal_concentration_M": 0.5,
+    "quench_batches": 0,
+    "notebook_versions": 3,
+    "structural_feedback_opportunities": 1,
+    "versions_with_subsequent_experiment": 2,
+    "versions_with_new_final_assays": 2
+  },
+  "versions": [
+    {
+      "revision": 1,
+      "public_cursor": 0,
+      "text": "# Pre-experiment hypotheses\n\nH1 [tentative] Reaction performance will vary strongly with anonymous catalyst and solvent; initial batches will screen combinations at full common loading (0.04 mol reagent, 0.005 mol catalyst, 0.08 L solvent) under otherwise comparable thermal history. A supported combination should give higher conversion/selectivity by HPLC and acceptable final crystal purity.\n\nH2 [tentative] For crystallization, moderate seed loading near 1 g, controlled cooling from a fully dissolved hot state, and a cold growth hold should reduce fines versus unseeded rapid cooling. Slower cooling/longer hold is expected to improve recovery and size until degradation or secondary nucleation intervenes.\n\nDecision: use early batches for broad material/process screening, then spend later batches on promising conditions and thermal-history refinements. Revise if particle or assay evidence contradicts these expectations.",
+      "new_final_assays_since_previous_note": [],
+      "next_revision": 2,
+      "following_interval_end": 42,
+      "following_action_cursors": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13,
+        14,
+        15,
+        16,
+        17,
+        18,
+        19,
+        20,
+        21,
+        22,
+        23,
+        24,
+        25,
+        26,
+        27,
+        28,
+        29,
+        30,
+        31,
+        32,
+        33,
+        34,
+        35,
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42
+      ],
+      "following_final_assay_cursors": [
+        17,
+        30,
+        42
+      ],
+      "following_committed_research_actions": 31,
+      "following_rejected_actions": 3,
+      "first_research_action_after_next_revision": 43,
+      "structural_feedback_opportunity": true,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    },
+    {
+      "revision": 2,
+      "public_cursor": 42,
+      "text": "# Working hypotheses\n\nH1 [supported only for process feasibility] Full loading at 360 K gives near-complete conversion for tested C0/S0, C1/S0, and C2/S1 combinations, but selectivity differs and is confounded with solvent and catalyst changes (final assays in events runner-operation-0017, -0030, -0042). Do not assign a catalyst ranking yet.\n\nH2 [supported in tested scope] Deep cooling of S0 material to 270–280 K produced high recovery (~0.45) but overwhelmingly fine crystals (fines ~0.96–0.98), failing the <=0.50 constraint (events -0017, -0030). In contrast, slow 14,400 s cooling of C2/S1 material to 300 K gave feasible fines ~0.436, purity ~0.988, and recovery ~0.350 (event -0042). Solvent identity is confounded with endpoint/rate, so the improvement cannot yet be assigned to either.\n\nPrediction: near the S1/300 K process, modestly lower endpoints may raise recovery while approaching the fines limit. Test 295 and 290 K under otherwise matched conditions; if fines remain <=0.50, prefer the higher-recovery endpoint. Also screen remaining solvents at 300 K.",
+      "new_final_assays_since_previous_note": [
+        17,
+        30,
+        42
+      ],
+      "next_revision": 3,
+      "following_interval_end": 152,
+      "following_action_cursors": [
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        49,
+        50,
+        51,
+        52,
+        53,
+        54,
+        55,
+        56,
+        57,
+        58,
+        59,
+        60,
+        61,
+        62,
+        63,
+        64,
+        65,
+        66,
+        67,
+        68,
+        69,
+        70,
+        71,
+        72,
+        73,
+        74,
+        75,
+        76,
+        77,
+        78,
+        79,
+        80,
+        81,
+        82,
+        83,
+        84,
+        85,
+        86,
+        87,
+        88,
+        89,
+        90,
+        91,
+        92,
+        93,
+        94,
+        95,
+        96,
+        97,
+        98,
+        99,
+        100,
+        101,
+        102,
+        103,
+        104,
+        105,
+        106,
+        107,
+        108,
+        109,
+        110,
+        111,
+        112,
+        113,
+        114,
+        115,
+        116,
+        117,
+        118,
+        119,
+        120,
+        121,
+        122,
+        123,
+        124,
+        125,
+        126,
+        127,
+        128,
+        129,
+        130,
+        131,
+        132,
+        133,
+        134,
+        135,
+        136,
+        137,
+        138,
+        139,
+        140,
+        141,
+        142,
+        143,
+        144,
+        145,
+        146,
+        147,
+        148,
+        149,
+        150,
+        151,
+        152
+      ],
+      "following_final_assay_cursors": [
+        54,
+        66,
+        78,
+        90,
+        102,
+        114,
+        128,
+        140,
+        152
+      ],
+      "following_committed_research_actions": 92,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    },
+    {
+      "revision": 3,
+      "public_cursor": 152,
+      "text": "# Final source-stage hypotheses and decision\n\nH1 [supported in tested scope] Solvent S1 with catalyst C2 and a 0.05 g seed, followed by a single slow 14,400 s cooling stage, defines a broad feasible crystallization window. From 300 to 260 K, observed recovery increased from ~0.350 to ~0.480 while fines stayed ~0.42–0.44 and purity stayed well above 0.80 (events runner-operation-0042, -0054, -0066, -0078, -0090, -0102). The monotonic recovery trend is larger than assay noise over the full range; small adjacent differences are not individually decisive.\n\nH2 [supported] Material choice dominates fines behavior in the tested recipes: S0 deep-cooling batches had fines ~0.96–0.98 (events -0017, -0030), while matched-style slow cooling with S1 gave feasible fines. S2 at 260 K also met constraints but had lower recovery (~0.392; event -0140). Catalyst effects remain confounded and are not separately claimed.\n\nH3 [unresolved] At 250–255 K and with two-stage cooling, observed recovery remained near 0.472–0.484 but fines approached the 0.50 limit (events -0114, -0128, -0152). Differences among the highest observed recoveries are smaller than the stated crystal-yield assay noise (~0.01), so there is no persuasive recovery advantage over the single-stage 260 K batch.\n\nDecision: recommend batch 8 (event -0102): recovery 0.4797, purity 0.9777, fines 0.4172. It sacrifices no demonstrated recovery relative to nominally higher batches 9/10 while retaining materially more fines margin and a simpler one-stage cooling history. This preference would change if replicated assays established a real recovery gain for the 250 K/two-stage process without raising true fines above 0.50.",
+      "new_final_assays_since_previous_note": [
+        54,
+        66,
+        78,
+        90,
+        102,
+        114,
+        128,
+        140,
+        152
+      ],
+      "next_revision": null,
+      "following_interval_end": 152,
+      "following_action_cursors": [],
+      "following_final_assay_cursors": [],
+      "following_committed_research_actions": 0,
+      "following_rejected_actions": 0,
+      "first_research_action_after_next_revision": null,
+      "structural_feedback_opportunity": false,
+      "semantic_update": "not_inferred_from_temporal_structure"
+    }
+  ],
+  "batches": [
+    {
+      "batch": 1,
+      "first_cursor": 1,
+      "last_cursor": 17,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate",
+        "wait"
+      ],
+      "rejected_attempts": 3,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 1,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 7200,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 280
+        },
+        {
+          "duration_s": 7200,
+          "operation": "wait",
+          "stirring_speed_rpm": 200
+        },
+        {
+          "instrument": "particle_size",
+          "operation": "measure"
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 2,
+      "first_cursor": 18,
+      "last_cursor": 30,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        0
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate",
+        "wait"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 2,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.05,
+          "target_temperature_K": 270
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 7200,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 270
+        },
+        {
+          "duration_s": 7200,
+          "operation": "wait",
+          "stirring_speed_rpm": 150
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 3,
+      "first_cursor": 31,
+      "last_cursor": 42,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 3,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 300
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 300
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 4,
+      "first_cursor": 43,
+      "last_cursor": 54,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 4,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 295
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 295
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 5,
+      "first_cursor": 55,
+      "last_cursor": 66,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 5,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 290
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 6,
+      "first_cursor": 67,
+      "last_cursor": 78,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 6,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 280
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 280
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 7,
+      "first_cursor": 79,
+      "last_cursor": 90,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 7,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 270
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 270
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 8,
+      "first_cursor": 91,
+      "last_cursor": 102,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 8,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 260
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 260
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 9,
+      "first_cursor": 103,
+      "last_cursor": 114,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 9,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 250
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 250
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 10,
+      "first_cursor": 115,
+      "last_cursor": 128,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 10,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 300
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 7200,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 300
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 250
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 250
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 11,
+      "first_cursor": 129,
+      "last_cursor": 140,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        2
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 11,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 260
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 260
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    },
+    {
+      "batch": 12,
+      "first_cursor": 141,
+      "last_cursor": 152,
+      "completed": true,
+      "nominal_solvent_added_L": 0.08,
+      "nominal_reagent_added_mol": 0.04,
+      "nominal_reagent_per_added_solvent_M": 0.5,
+      "solvents": [
+        1
+      ],
+      "seed_added_g": 0.05,
+      "quench_committed": false,
+      "operation_types": [
+        "add_catalyst",
+        "add_reagent",
+        "add_solvent",
+        "configure_control",
+        "cool_crystallize",
+        "create_container",
+        "filter_crystals",
+        "heat",
+        "measure",
+        "seed_crystals",
+        "terminate"
+      ],
+      "rejected_attempts": 0,
+      "committed_action_sequence": [
+        {
+          "capacity_L": 0.1,
+          "container": 12,
+          "operation": "create_container"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.2,
+          "target_temperature_K": 360
+        },
+        {
+          "duration_s": 3600,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "atmosphere": 0,
+          "control_interval_s": 10,
+          "headspace_L": 0.02,
+          "operation": "configure_control",
+          "pressure_Pa": 101325,
+          "ramp_rate_K_s": 0.004,
+          "target_temperature_K": 255
+        },
+        {
+          "operation": "seed_crystals",
+          "seed_mass_g": 0.05
+        },
+        {
+          "duration_s": 14400,
+          "operation": "cool_crystallize",
+          "target_temperature_K": 255
+        },
+        {
+          "operation": "filter_crystals"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ]
+    }
+  ],
+  "events": [
+    {
+      "cursor": 1,
+      "batch": 1,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 1,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 2,
+      "batch": 1,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 3,
+      "batch": 1,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 4,
+      "batch": 1,
+      "action": {
+        "catalyst": 0,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 5,
+      "batch": 1,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 6,
+      "batch": 1,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 7,
+      "batch": 1,
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.2613595724105835,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_purity": 0.009455623105168343,
+        "safety_risk": 0.13910484313964844,
+        "score": 0.09637782722711563,
+        "selectivity": 0.6210085153579712,
+        "yield": 0.6149417161941528
+      }
+    },
+    {
+      "cursor": 8,
+      "batch": 1,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 9,
+      "batch": 1,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "validation_failed",
+      "observations": {}
+    },
+    {
+      "cursor": 10,
+      "batch": 1,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "validation_failed",
+      "observations": {}
+    },
+    {
+      "cursor": 11,
+      "batch": 1,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "validation_failed",
+      "observations": {}
+    },
+    {
+      "cursor": 12,
+      "batch": 1,
+      "action": {
+        "duration_s": 7200,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 280
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 13,
+      "batch": 1,
+      "action": {
+        "duration_s": 7200,
+        "operation": "wait",
+        "stirring_speed_rpm": 200
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 14,
+      "batch": 1,
+      "action": {
+        "instrument": "particle_size",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "cost": 1.0,
+        "crystal_csd_quality": 0.4582117199897766,
+        "crystal_fines_fraction": 0.9862529039382935,
+        "crystal_size": 0.039075154811143875,
+        "safety_risk": 0.1455988585948944,
+        "score": 0.0
+      }
+    },
+    {
+      "cursor": 15,
+      "batch": 1,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 16,
+      "batch": 1,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 17,
+      "batch": 1,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.2808154225349426,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.4751053750514984,
+        "crystal_fines_fraction": 0.9620864391326904,
+        "crystal_purity": 0.9840744137763977,
+        "crystal_size": 0.0526953786611557,
+        "crystal_yield": 0.4501873254776001,
+        "degradation_warning": 0.12232807278633118,
+        "safety_risk": 0.14492979645729065,
+        "score": 0.4060494005680084,
+        "selectivity": 0.6103153824806213,
+        "virtual_spectrum_summary": 0.20949611067771912,
+        "yield": 0.6081528067588806
+      }
+    },
+    {
+      "cursor": 18,
+      "batch": 2,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 2,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 19,
+      "batch": 2,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 20,
+      "batch": 2,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 21,
+      "batch": 2,
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 22,
+      "batch": 2,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 23,
+      "batch": 2,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 24,
+      "batch": 2,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.05,
+        "target_temperature_K": 270
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 25,
+      "batch": 2,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 26,
+      "batch": 2,
+      "action": {
+        "duration_s": 7200,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 270
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 27,
+      "batch": 2,
+      "action": {
+        "duration_s": 7200,
+        "operation": "wait",
+        "stirring_speed_rpm": 150
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 28,
+      "batch": 2,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 29,
+      "batch": 2,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 30,
+      "batch": 2,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.2948513329029083,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.463973730802536,
+        "crystal_fines_fraction": 0.9808484315872192,
+        "crystal_purity": 0.9857049584388733,
+        "crystal_size": 0.08660628646612167,
+        "crystal_yield": 0.4505070745944977,
+        "degradation_warning": 0.11908983439207077,
+        "safety_risk": 0.1442204862833023,
+        "score": 0.4009990990161896,
+        "selectivity": 0.5909611582756042,
+        "virtual_spectrum_summary": 0.21575866639614105,
+        "yield": 0.5795161128044128
+      }
+    },
+    {
+      "cursor": 31,
+      "batch": 3,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 3,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 32,
+      "batch": 3,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 33,
+      "batch": 3,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 34,
+      "batch": 3,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 35,
+      "batch": 3,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 36,
+      "batch": 3,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 37,
+      "batch": 3,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 300
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 38,
+      "batch": 3,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 39,
+      "batch": 3,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 300
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 40,
+      "batch": 3,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 41,
+      "batch": 3,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 42,
+      "batch": 3,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3010845184326172,
+        "conversion": 0.9983177781105042,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6701831221580505,
+        "crystal_fines_fraction": 0.43626028299331665,
+        "crystal_purity": 0.9875909686088562,
+        "crystal_size": 0.0683365911245346,
+        "crystal_yield": 0.34984081983566284,
+        "degradation_warning": 0.11097398400306702,
+        "safety_risk": 0.15660792589187622,
+        "score": 0.4619086980819702,
+        "selectivity": 0.5446773767471313,
+        "virtual_spectrum_summary": 0.2155347764492035,
+        "yield": 0.5437900424003601
+      }
+    },
+    {
+      "cursor": 43,
+      "batch": 4,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 4,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 44,
+      "batch": 4,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 45,
+      "batch": 4,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 46,
+      "batch": 4,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 47,
+      "batch": 4,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 48,
+      "batch": 4,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 49,
+      "batch": 4,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 295
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 50,
+      "batch": 4,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 51,
+      "batch": 4,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 295
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 52,
+      "batch": 4,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 53,
+      "batch": 4,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 54,
+      "batch": 4,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.29513269662857056,
+        "conversion": 0.9889963269233704,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6780338883399963,
+        "crystal_fines_fraction": 0.44483664631843567,
+        "crystal_purity": 1.0,
+        "crystal_size": 0.07910682260990143,
+        "crystal_yield": 0.38222265243530273,
+        "degradation_warning": 0.08098877966403961,
+        "safety_risk": 0.1581907570362091,
+        "score": 0.47301748394966125,
+        "selectivity": 0.5482333898544312,
+        "virtual_spectrum_summary": 0.19876794517040253,
+        "yield": 0.5346035957336426
+      }
+    },
+    {
+      "cursor": 55,
+      "batch": 5,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 5,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 56,
+      "batch": 5,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 57,
+      "batch": 5,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 58,
+      "batch": 5,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 59,
+      "batch": 5,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 60,
+      "batch": 5,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 61,
+      "batch": 5,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 290
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 62,
+      "batch": 5,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 63,
+      "batch": 5,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 290
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 64,
+      "batch": 5,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 65,
+      "batch": 5,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 66,
+      "batch": 5,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3152499198913574,
+        "conversion": 0.9963377118110657,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6810862421989441,
+        "crystal_fines_fraction": 0.4331682324409485,
+        "crystal_purity": 0.975507378578186,
+        "crystal_size": 0.058266058564186096,
+        "crystal_yield": 0.3935515284538269,
+        "degradation_warning": 0.0986643135547638,
+        "safety_risk": 0.15962500870227814,
+        "score": 0.4734066128730774,
+        "selectivity": 0.557479977607727,
+        "virtual_spectrum_summary": 0.21778640151023865,
+        "yield": 0.5513269305229187
+      }
+    },
+    {
+      "cursor": 67,
+      "batch": 6,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 6,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 68,
+      "batch": 6,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 69,
+      "batch": 6,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 70,
+      "batch": 6,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 71,
+      "batch": 6,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 72,
+      "batch": 6,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 73,
+      "batch": 6,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 280
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 74,
+      "batch": 6,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 75,
+      "batch": 6,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 280
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 76,
+      "batch": 6,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 77,
+      "batch": 6,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 78,
+      "batch": 6,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3127248287200928,
+        "conversion": 0.9924333691596985,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.662683367729187,
+        "crystal_fines_fraction": 0.4433654248714447,
+        "crystal_purity": 0.9984049797058105,
+        "crystal_size": 0.05390825867652893,
+        "crystal_yield": 0.4319974184036255,
+        "degradation_warning": 0.10320021212100983,
+        "safety_risk": 0.16210338473320007,
+        "score": 0.4794652760028839,
+        "selectivity": 0.5374875068664551,
+        "virtual_spectrum_summary": 0.2184387445449829,
+        "yield": 0.5393730401992798
+      }
+    },
+    {
+      "cursor": 79,
+      "batch": 7,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 7,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 80,
+      "batch": 7,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 81,
+      "batch": 7,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 82,
+      "batch": 7,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 83,
+      "batch": 7,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 84,
+      "batch": 7,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 85,
+      "batch": 7,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 270
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 86,
+      "batch": 7,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 87,
+      "batch": 7,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 270
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 88,
+      "batch": 7,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 89,
+      "batch": 7,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 90,
+      "batch": 7,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3027414083480835,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6652228832244873,
+        "crystal_fines_fraction": 0.43284058570861816,
+        "crystal_purity": 0.9774266481399536,
+        "crystal_size": 0.0937524065375328,
+        "crystal_yield": 0.45853590965270996,
+        "degradation_warning": 0.09617232531309128,
+        "safety_risk": 0.16409865021705627,
+        "score": 0.4871131181716919,
+        "selectivity": 0.5188444256782532,
+        "virtual_spectrum_summary": 0.2097853124141693,
+        "yield": 0.5454915761947632
+      }
+    },
+    {
+      "cursor": 91,
+      "batch": 8,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 8,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 92,
+      "batch": 8,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 93,
+      "batch": 8,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 94,
+      "batch": 8,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 95,
+      "batch": 8,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 96,
+      "batch": 8,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 97,
+      "batch": 8,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 260
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 98,
+      "batch": 8,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 99,
+      "batch": 8,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 260
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 100,
+      "batch": 8,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 101,
+      "batch": 8,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 102,
+      "batch": 8,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.29505133628845215,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.7035894989967346,
+        "crystal_fines_fraction": 0.4172368049621582,
+        "crystal_purity": 0.977695643901825,
+        "crystal_size": 0.10938440263271332,
+        "crystal_yield": 0.47971311211586,
+        "degradation_warning": 0.10274020582437515,
+        "safety_risk": 0.16566529870033264,
+        "score": 0.5046379566192627,
+        "selectivity": 0.5500273108482361,
+        "virtual_spectrum_summary": 0.2085113227367401,
+        "yield": 0.5417219400405884
+      }
+    },
+    {
+      "cursor": 103,
+      "batch": 9,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 9,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 104,
+      "batch": 9,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 105,
+      "batch": 9,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 106,
+      "batch": 9,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 107,
+      "batch": 9,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 108,
+      "batch": 9,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 109,
+      "batch": 9,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 250
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 110,
+      "batch": 9,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 111,
+      "batch": 9,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 250
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 112,
+      "batch": 9,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 113,
+      "batch": 9,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 114,
+      "batch": 9,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.30550089478492737,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6513522863388062,
+        "crystal_fines_fraction": 0.4857661724090576,
+        "crystal_purity": 0.9798480868339539,
+        "crystal_size": 0.05913528800010681,
+        "crystal_yield": 0.482764333486557,
+        "degradation_warning": 0.09534381330013275,
+        "safety_risk": 0.16686341166496277,
+        "score": 0.482097327709198,
+        "selectivity": 0.5282599329948425,
+        "virtual_spectrum_summary": 0.2109302133321762,
+        "yield": 0.5419358015060425
+      }
+    },
+    {
+      "cursor": 115,
+      "batch": 10,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 10,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 116,
+      "batch": 10,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 117,
+      "batch": 10,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 118,
+      "batch": 10,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 119,
+      "batch": 10,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 120,
+      "batch": 10,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 121,
+      "batch": 10,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 300
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 122,
+      "batch": 10,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 123,
+      "batch": 10,
+      "action": {
+        "duration_s": 7200,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 300
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 124,
+      "batch": 10,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 250
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 125,
+      "batch": 10,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 250
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 126,
+      "batch": 10,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 127,
+      "batch": 10,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 128,
+      "batch": 10,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.29837802052497864,
+        "conversion": 0.9858240485191345,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6295626759529114,
+        "crystal_fines_fraction": 0.4838687777519226,
+        "crystal_purity": 0.9757044315338135,
+        "crystal_size": 0.0709921196103096,
+        "crystal_yield": 0.4838813841342926,
+        "degradation_warning": 0.10675016045570374,
+        "safety_risk": 0.16686372458934784,
+        "score": 0.4796949625015259,
+        "selectivity": 0.5393408536911011,
+        "virtual_spectrum_summary": 0.21214547753334045,
+        "yield": 0.5482675433158875
+      }
+    },
+    {
+      "cursor": 129,
+      "batch": 11,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 11,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 130,
+      "batch": 11,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 131,
+      "batch": 11,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 132,
+      "batch": 11,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 133,
+      "batch": 11,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 134,
+      "batch": 11,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 135,
+      "batch": 11,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 260
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 136,
+      "batch": 11,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 137,
+      "batch": 11,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 260
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 138,
+      "batch": 11,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 139,
+      "batch": 11,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 140,
+      "batch": 11,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.3540237843990326,
+        "conversion": 0.9990193247795105,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6806322336196899,
+        "crystal_fines_fraction": 0.37039902806282043,
+        "crystal_purity": 0.9922871589660645,
+        "crystal_size": 0.08315709233283997,
+        "crystal_yield": 0.3916817307472229,
+        "degradation_warning": 0.0998595729470253,
+        "safety_risk": 0.17448477447032928,
+        "score": 0.46791020035743713,
+        "selectivity": 0.47997963428497314,
+        "virtual_spectrum_summary": 0.23964989185333252,
+        "yield": 0.46048930287361145
+      }
+    },
+    {
+      "cursor": 141,
+      "batch": 12,
+      "action": {
+        "capacity_L": 0.1,
+        "container": 12,
+        "operation": "create_container"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 142,
+      "batch": 12,
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 143,
+      "batch": 12,
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 144,
+      "batch": 12,
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 145,
+      "batch": 12,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.2,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 146,
+      "batch": 12,
+      "action": {
+        "duration_s": 3600,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 147,
+      "batch": 12,
+      "action": {
+        "atmosphere": 0,
+        "control_interval_s": 10,
+        "headspace_L": 0.02,
+        "operation": "configure_control",
+        "pressure_Pa": 101325,
+        "ramp_rate_K_s": 0.004,
+        "target_temperature_K": 255
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 148,
+      "batch": 12,
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.05
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 149,
+      "batch": 12,
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 255
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 150,
+      "batch": 12,
+      "action": {
+        "operation": "filter_crystals"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 151,
+      "batch": 12,
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "observations": {}
+    },
+    {
+      "cursor": 152,
+      "batch": 12,
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "observations": {
+        "byproduct_signal": 0.29089415073394775,
+        "conversion": 1.0,
+        "cost": 1.0,
+        "crystal_csd_quality": 0.6633580923080444,
+        "crystal_fines_fraction": 0.4570356011390686,
+        "crystal_purity": 0.9919951558113098,
+        "crystal_size": 0.09886442124843597,
+        "crystal_yield": 0.4721633195877075,
+        "degradation_warning": 0.10552859306335449,
+        "safety_risk": 0.16630658507347107,
+        "score": 0.4915059804916382,
+        "selectivity": 0.5358695983886719,
+        "virtual_spectrum_summary": 0.20747965574264526,
+        "yield": 0.5409114956855774
+      }
+    }
+  ]
+}

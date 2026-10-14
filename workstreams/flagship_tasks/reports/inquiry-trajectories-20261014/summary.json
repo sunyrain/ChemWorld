@@ -1,0 +1,3306 @@
+{
+  "scope": "Retrospective public statement/action/observation alignment; no new runs",
+  "counts": {
+    "sessions": 90,
+    "operations": 10774,
+    "completed_batches": 1079,
+    "notebook_versions": 284,
+    "structural_feedback_opportunities": 105,
+    "sessions_with_structural_opportunity": 69,
+    "source_validation_passed": 90
+  },
+  "cohorts": {
+    "retained_48": 48,
+    "extension_42": 42
+  },
+  "original_failures": [
+    {
+      "cohort": "retained_48",
+      "repeat": "repeat-02",
+      "id": "EQ-W05-Opaque",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "K2",
+        "EQS"
+      ],
+      "posttest_validation": {
+        "K1": {
+          "valid": true,
+          "failure": null
+        },
+        "Q": {
+          "valid": true,
+          "failure": null
+        },
+        "K2": {
+          "valid": false,
+          "failure": "missing_payload"
+        }
+      }
+    },
+    {
+      "cohort": "retained_48",
+      "repeat": "repeat-03",
+      "id": "EQ-W01-Opaque",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "posttest_validation": {
+        "K1": {
+          "valid": true,
+          "failure": null
+        },
+        "Q": {
+          "valid": false,
+          "failure": "missing_payload"
+        }
+      }
+    },
+    {
+      "cohort": "retained_48",
+      "repeat": "repeat-03",
+      "id": "EQ-W01-Aligned",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "K1",
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "posttest_validation": {
+        "K1": {
+          "valid": false,
+          "failure": "missing_payload"
+        }
+      }
+    },
+    {
+      "cohort": "retained_48",
+      "repeat": "repeat-03",
+      "id": "EQ-W04-Aligned",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "posttest_validation": {
+        "K1": {
+          "valid": true,
+          "failure": null
+        },
+        "Q": {
+          "valid": false,
+          "failure": "missing_payload"
+        }
+      }
+    },
+    {
+      "cohort": "extension_42",
+      "repeat": "repeat-01",
+      "id": "EQ-W03-MisIndexed",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "EQS"
+      ],
+      "posttest_validation": {
+        "K1": {
+          "valid": true,
+          "failure": null
+        },
+        "Q": {
+          "valid": true,
+          "failure": null
+        },
+        "K2": {
+          "valid": true,
+          "failure": null
+        },
+        "EQS": {
+          "valid": false,
+          "failure": "missing_payload"
+        }
+      }
+    },
+    {
+      "cohort": "extension_42",
+      "repeat": "repeat-02",
+      "id": "EQ-W01-MisIndexed",
+      "status": "retained_nonconforming",
+      "failure": {
+        "type": "ValueError",
+        "message": "online model resource accounting must be complete unless provider call/token usage is explicitly complete and only uncapped monetary accounting is incomplete, or exactly one bounded experiment session has explicitly deferred usage"
+      },
+      "missing_stages": [
+        "K1",
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "posttest_validation": {}
+    }
+  ],
+  "grouped": {
+    "EQ/Opaque": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 8,
+      "cohorts": {
+        "retained_48": 15
+      },
+      "world_equal_means": {
+        "source_operations": 60.8,
+        "completed_batches": 12.0,
+        "rejected_attempts": 0.0,
+        "distinct_committed_operation_types": 4.066666666666666,
+        "distinct_solvents": 1.0,
+        "intermediate_measurements": 12.0,
+        "exact_sequence_repeat_batches": 0.6,
+        "minimum_positive_nominal_concentration_M": 0.06448412698412699,
+        "maximum_positive_nominal_concentration_M": 1.0494444444444444,
+        "quench_batches": 0.0,
+        "notebook_versions": 2.5333333333333337,
+        "structural_feedback_opportunities": 0.5333333333333333,
+        "versions_with_subsequent_experiment": 1.5333333333333332,
+        "versions_with_new_final_assays": 1.5333333333333332
+      }
+    },
+    "EQ/Aligned": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 8,
+      "cohorts": {
+        "retained_48": 15
+      },
+      "world_equal_means": {
+        "source_operations": 61.666666666666664,
+        "completed_batches": 12.0,
+        "rejected_attempts": 0.0,
+        "distinct_committed_operation_types": 4.133333333333333,
+        "distinct_solvents": 1.0,
+        "intermediate_measurements": 12.0,
+        "exact_sequence_repeat_batches": 0.9333333333333333,
+        "minimum_positive_nominal_concentration_M": 0.01654265459862661,
+        "maximum_positive_nominal_concentration_M": 1.17009603718099,
+        "quench_batches": 0.0,
+        "notebook_versions": 2.533333333333333,
+        "structural_feedback_opportunities": 0.5333333333333333,
+        "versions_with_subsequent_experiment": 1.5333333333333334,
+        "versions_with_new_final_assays": 1.5333333333333334
+      }
+    },
+    "EQ/MisIndexed": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 14,
+      "cohorts": {
+        "extension_42": 15
+      },
+      "world_equal_means": {
+        "source_operations": 62.2,
+        "completed_batches": 11.933333333333334,
+        "rejected_attempts": 0.0,
+        "distinct_committed_operation_types": 4.6,
+        "distinct_solvents": 1.0,
+        "intermediate_measurements": 12.0,
+        "exact_sequence_repeat_batches": 1.1333333333333333,
+        "minimum_positive_nominal_concentration_M": 0.017129629629629627,
+        "maximum_positive_nominal_concentration_M": 1.1074074074074074,
+        "quench_batches": 0.0,
+        "notebook_versions": 3.1333333333333337,
+        "structural_feedback_opportunities": 1.2,
+        "versions_with_subsequent_experiment": 2.2,
+        "versions_with_new_final_assays": 2.1333333333333337
+      }
+    },
+    "C/Opaque": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 13,
+      "cohorts": {
+        "retained_48": 9,
+        "extension_42": 6
+      },
+      "world_equal_means": {
+        "source_operations": 184.8,
+        "completed_batches": 12.0,
+        "rejected_attempts": 10.6,
+        "distinct_committed_operation_types": 12.4,
+        "distinct_solvents": 3.8,
+        "intermediate_measurements": 11.266666666666667,
+        "exact_sequence_repeat_batches": 0.0,
+        "minimum_positive_nominal_concentration_M": 0.45027777777777783,
+        "maximum_positive_nominal_concentration_M": 0.7022222222222222,
+        "quench_batches": 4.8,
+        "notebook_versions": 3.4,
+        "structural_feedback_opportunities": 1.4,
+        "versions_with_subsequent_experiment": 2.4,
+        "versions_with_new_final_assays": 2.4
+      }
+    },
+    "C/Aligned": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 13,
+      "cohorts": {
+        "retained_48": 9,
+        "extension_42": 6
+      },
+      "world_equal_means": {
+        "source_operations": 172.6,
+        "completed_batches": 12.0,
+        "rejected_attempts": 6.666666666666667,
+        "distinct_committed_operation_types": 12.8,
+        "distinct_solvents": 3.2666666666666666,
+        "intermediate_measurements": 12.0,
+        "exact_sequence_repeat_batches": 0.0,
+        "minimum_positive_nominal_concentration_M": 0.34849415204678363,
+        "maximum_positive_nominal_concentration_M": 0.6906432748538013,
+        "quench_batches": 5.133333333333334,
+        "notebook_versions": 3.7333333333333334,
+        "structural_feedback_opportunities": 1.7333333333333332,
+        "versions_with_subsequent_experiment": 2.7333333333333334,
+        "versions_with_new_final_assays": 2.7333333333333334
+      }
+    },
+    "C/MisIndexed": {
+      "sessions": 15,
+      "sessions_with_structural_opportunity": 13,
+      "cohorts": {
+        "extension_42": 15
+      },
+      "world_equal_means": {
+        "source_operations": 176.2,
+        "completed_batches": 12.0,
+        "rejected_attempts": 7.2666666666666675,
+        "distinct_committed_operation_types": 12.6,
+        "distinct_solvents": 2.8666666666666667,
+        "intermediate_measurements": 11.933333333333334,
+        "exact_sequence_repeat_batches": 0.0,
+        "minimum_positive_nominal_concentration_M": 0.4363888888888889,
+        "maximum_positive_nominal_concentration_M": 1.1222222222222222,
+        "quench_batches": 3.6666666666666665,
+        "notebook_versions": 3.6,
+        "structural_feedback_opportunities": 1.6,
+        "versions_with_subsequent_experiment": 2.6,
+        "versions_with_new_final_assays": 2.6
+      }
+    }
+  },
+  "sessions": [
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W01-Opaque",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W01-Aligned",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W01-Opaque",
+      "system": "C",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 199,
+        "completed_batches": 12,
+        "rejected_attempts": 42,
+        "distinct_committed_operation_types": 11,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0125,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W01-Aligned",
+      "system": "C",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 171,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.125,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 6,
+        "structural_feedback_opportunities": 4,
+        "versions_with_subsequent_experiment": 5,
+        "versions_with_new_final_assays": 5
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W02-Opaque",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.09999999999999999,
+        "maximum_positive_nominal_concentration_M": 0.7999999999999999,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W02-Aligned",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W03-Opaque",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.025,
+        "maximum_positive_nominal_concentration_M": 0.7999999999999999,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W03-Aligned",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 72,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W03-Opaque",
+      "system": "C",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 163,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.6666666666666667,
+        "maximum_positive_nominal_concentration_M": 1.3333333333333335,
+        "quench_batches": 12,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W03-Aligned",
+      "system": "C",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 170,
+        "completed_batches": 12,
+        "rejected_attempts": 1,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.13333333333333333,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W04-Opaque",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 62,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W04-Aligned",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W05-Opaque",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 62,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W05-Aligned",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W05-Opaque",
+      "system": "C",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 343,
+        "completed_batches": 12,
+        "rejected_attempts": 25,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 11,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 12,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W05-Aligned",
+      "system": "C",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 139,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W03-Aligned",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W03-Opaque",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.08333333333333334,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W03-Aligned",
+      "system": "C",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 224,
+        "completed_batches": 12,
+        "rejected_attempts": 5,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 5,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W03-Opaque",
+      "system": "C",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 165,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 11,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W04-Aligned",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.01388888888888889,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W04-Opaque",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 0.8750000000000001,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W05-Aligned",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 71,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.01665833749791771,
+        "maximum_positive_nominal_concentration_M": 0.7403294466037388,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W05-Opaque",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "K2",
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.07142857142857142,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W05-Aligned",
+      "system": "C",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 133,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W05-Opaque",
+      "system": "C",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 235,
+        "completed_batches": 12,
+        "rejected_attempts": 19,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.25,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W01-Aligned",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.7999999999999999,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W01-Opaque",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 64,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.1,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W01-Aligned",
+      "system": "C",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 185,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W01-Opaque",
+      "system": "C",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 146,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W02-Aligned",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.4,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W02-Opaque",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.05,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W05-Opaque",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.05,
+        "maximum_positive_nominal_concentration_M": 0.8,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W05-Aligned",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.009259259259259259,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666666,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W05-Opaque",
+      "system": "C",
+      "world": "W05",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 152,
+        "completed_batches": 12,
+        "rejected_attempts": 3,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 3,
+        "intermediate_measurements": 2,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W05-Aligned",
+      "system": "C",
+      "world": "W05",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 137,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W01-Opaque",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W01-Aligned",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "K1",
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.01851851851851852,
+        "maximum_positive_nominal_concentration_M": 1.3333333333333335,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W01-Opaque",
+      "system": "C",
+      "world": "W01",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 165,
+        "completed_batches": 12,
+        "rejected_attempts": 30,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 6,
+        "structural_feedback_opportunities": 4,
+        "versions_with_subsequent_experiment": 5,
+        "versions_with_new_final_assays": 5
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W01-Aligned",
+      "system": "C",
+      "world": "W01",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 148,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W02-Opaque",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W02-Aligned",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 2.2222222222222223,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W03-Opaque",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.05,
+        "maximum_positive_nominal_concentration_M": 1.7999999999999998,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W03-Aligned",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.01388888888888889,
+        "maximum_positive_nominal_concentration_M": 1.1111111111111112,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W03-Opaque",
+      "system": "C",
+      "world": "W03",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 163,
+        "completed_batches": 12,
+        "rejected_attempts": 9,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W03-Aligned",
+      "system": "C",
+      "world": "W03",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 156,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 3,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W04-Opaque",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "retained_48",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 3,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W04-Aligned",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "retained_48",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.009259259259259259,
+        "maximum_positive_nominal_concentration_M": 1.1111111111111112,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W01-MisIndexed",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.0125,
+        "maximum_positive_nominal_concentration_M": 1.1111111111111112,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W01-MisIndexed",
+      "system": "C",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 149,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W02-MisIndexed",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 67,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.01851851851851852,
+        "maximum_positive_nominal_concentration_M": 0.5555555555555556,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W02-Opaque",
+      "system": "C",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 192,
+        "completed_batches": 12,
+        "rejected_attempts": 19,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.125,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W02-Aligned",
+      "system": "C",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 220,
+        "completed_batches": 12,
+        "rejected_attempts": 30,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W02-MisIndexed",
+      "system": "C",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 147,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 4.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W03-MisIndexed",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "retained_nonconforming",
+      "failure": null,
+      "missing_stages": [
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.5999999999999999,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W03-MisIndexed",
+      "system": "C",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 209,
+        "completed_batches": 12,
+        "rejected_attempts": 20,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.125,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 12,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W04-MisIndexed",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.888888888888889,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W04-Opaque",
+      "system": "C",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 159,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W04-Aligned",
+      "system": "C",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 160,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W04-MisIndexed",
+      "system": "C",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 135,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5333333333333333,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "EQ-W05-MisIndexed",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 72,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-01",
+      "id": "C-W05-MisIndexed",
+      "system": "C",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 160,
+        "completed_batches": 12,
+        "rejected_attempts": 4,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.6666666666666667,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W03-MisIndexed",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.008333333333333333,
+        "maximum_positive_nominal_concentration_M": 0.8,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W03-MisIndexed",
+      "system": "C",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 253,
+        "completed_batches": 12,
+        "rejected_attempts": 43,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 3,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.125,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W04-MisIndexed",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.6,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W04-MisIndexed",
+      "system": "C",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 228,
+        "completed_batches": 12,
+        "rejected_attempts": 19,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 2,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W04-Aligned",
+      "system": "C",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 138,
+        "completed_batches": 12,
+        "rejected_attempts": 1,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.22499999999999998,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W04-Opaque",
+      "system": "C",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 215,
+        "completed_batches": 12,
+        "rejected_attempts": 6,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W05-MisIndexed",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 72,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 6,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W05-MisIndexed",
+      "system": "C",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 144,
+        "completed_batches": 12,
+        "rejected_attempts": 9,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W01-MisIndexed",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "retained_nonconforming",
+      "failure": {
+        "type": "ValueError",
+        "message": "online model resource accounting must be complete unless provider call/token usage is explicitly complete and only uncapped monetary accounting is incomplete, or exactly one bounded experiment session has explicitly deferred usage"
+      },
+      "missing_stages": [
+        "K1",
+        "Q",
+        "K2",
+        "EQS"
+      ],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 59,
+        "completed_batches": 11,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W01-MisIndexed",
+      "system": "C",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 157,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 1,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "EQ-W02-MisIndexed",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 0.5555555555555556,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W02-MisIndexed",
+      "system": "C",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 219,
+        "completed_batches": 12,
+        "rejected_attempts": 9,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5333333333333333,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 4,
+        "notebook_versions": 5,
+        "structural_feedback_opportunities": 3,
+        "versions_with_subsequent_experiment": 4,
+        "versions_with_new_final_assays": 4
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W02-Aligned",
+      "system": "C",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 193,
+        "completed_batches": 12,
+        "rejected_attempts": 24,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 3,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.13157894736842105,
+        "maximum_positive_nominal_concentration_M": 0.5263157894736842,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-02",
+      "id": "C-W02-Opaque",
+      "system": "C",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 184,
+        "completed_batches": 12,
+        "rejected_attempts": 6,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.6666666666666667,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W05-MisIndexed",
+      "system": "EQ",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W05-MisIndexed",
+      "system": "C",
+      "world": "W05",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 183,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W01-MisIndexed",
+      "system": "EQ",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 2.2222222222222223,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W01-MisIndexed",
+      "system": "C",
+      "world": "W01",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 134,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 2.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W02-MisIndexed",
+      "system": "EQ",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 61,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 1,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 2.2222222222222223,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W02-Aligned",
+      "system": "C",
+      "world": "W02",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 166,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 3,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.6666666666666667,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W02-Opaque",
+      "system": "C",
+      "world": "W02",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 144,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5333333333333333,
+        "maximum_positive_nominal_concentration_M": 0.5333333333333333,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W02-MisIndexed",
+      "system": "C",
+      "world": "W02",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 168,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 11,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 2,
+        "structural_feedback_opportunities": 0,
+        "versions_with_subsequent_experiment": 1,
+        "versions_with_new_final_assays": 1
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W03-MisIndexed",
+      "system": "EQ",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 5,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 2,
+        "minimum_positive_nominal_concentration_M": 0.01388888888888889,
+        "maximum_positive_nominal_concentration_M": 0.888888888888889,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W03-MisIndexed",
+      "system": "C",
+      "world": "W03",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 186,
+        "completed_batches": 12,
+        "rejected_attempts": 5,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 11,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.0625,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 12,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "EQ-W04-MisIndexed",
+      "system": "EQ",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 60,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 4,
+        "distinct_solvents": 1,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.018518518518518517,
+        "maximum_positive_nominal_concentration_M": 1.6666666666666667,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W04-Aligned",
+      "system": "C",
+      "world": "W04",
+      "arm": "Aligned",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 249,
+        "completed_batches": 12,
+        "rejected_attempts": 39,
+        "distinct_committed_operation_types": 14,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.05,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 12,
+        "notebook_versions": 6,
+        "structural_feedback_opportunities": 4,
+        "versions_with_subsequent_experiment": 5,
+        "versions_with_new_final_assays": 5
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W04-Opaque",
+      "system": "C",
+      "world": "W04",
+      "arm": "Opaque",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 147,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 12,
+        "distinct_solvents": 4,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 0.5,
+        "quench_batches": 0,
+        "notebook_versions": 3,
+        "structural_feedback_opportunities": 1,
+        "versions_with_subsequent_experiment": 2,
+        "versions_with_new_final_assays": 2
+      }
+    },
+    {
+      "repeat": "repeat-03",
+      "id": "C-W04-MisIndexed",
+      "system": "C",
+      "world": "W04",
+      "arm": "MisIndexed",
+      "cohort": "extension_42",
+      "status": "completed",
+      "failure": null,
+      "missing_stages": [],
+      "source_checks": {
+        "operations": true,
+        "final_assays": true,
+        "measurements": true,
+        "notebook_cursors": true
+      },
+      "metrics": {
+        "source_operations": 171,
+        "completed_batches": 12,
+        "rejected_attempts": 0,
+        "distinct_committed_operation_types": 13,
+        "distinct_solvents": 2,
+        "intermediate_measurements": 12,
+        "exact_sequence_repeat_batches": 0,
+        "minimum_positive_nominal_concentration_M": 0.5,
+        "maximum_positive_nominal_concentration_M": 1.0,
+        "quench_batches": 0,
+        "notebook_versions": 4,
+        "structural_feedback_opportunities": 2,
+        "versions_with_subsequent_experiment": 3,
+        "versions_with_new_final_assays": 3
+      }
+    }
+  ],
+  "interpretation": [
+    "Temporal windows measure available evidence, not semantic changes or cognition.",
+    "Judgments may be unchanged despite a new version; absent notes are not absent beliefs.",
+    "Nonmeasurement committed actions include preparation; an opportunity is not proof of a new discriminating test.",
+    "Exact repeated command sequences include container identifiers and are conservative descriptions, not verified controlled replication.",
+    "Nominal additions are not effective concentration, dissolved inventory or post-treatment volume.",
+    "Fixed-world sessions have uncontrolled model RNG and nested, dependent batches.",
+    "MisIndexed was run later; between-arm path differences are descriptive, not causal.",
+    "Recovery instructions and observations differ; no clean recovery-understanding claim.",
+    "Independent semantic case review remains outstanding."
+  ],
+  "focal_checks": {
+    "chains_verified": 5,
+    "exact_quotes_verified": 17
+  }
+}
