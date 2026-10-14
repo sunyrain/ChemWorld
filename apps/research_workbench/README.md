@@ -2,9 +2,32 @@
 
 本机研究工作台，以 Agent 自主探索虚拟实验室为主流程，调用当前 ChemWorld 核心。浅色与深色模式共用同一布局；主题偏好保存在浏览器中。全新界面，不依赖 Student Lab、Blender、Node 构建或外部 CDN。
 
+2026-10-14 连续研究阅读改造（R68，实际浏览器走查待完成）：多批档案默认进入“研究演化”，
+先看整组逐批终检曲线，再沿同一页面阅读每批加工条件改变、结果变化和同期笔记更新。
+单批记录仍使用操作画布；批次里的“细看本批操作”可进入原画布，再返回所选批次。
+
+本轮结构检查定位了四个阅读障碍：默认落在最后一批的操作节点、批次藏在下拉框内、
+结果与笔记需要跨页签记忆，以及笔记预览默认最新版本而未与所选批次对齐。新入口将
+研究档案提前，提供名称/项目/模型搜索；模板移到档案之后。三项主要结果同时绘制，
+数值来自该批成功终检的公开观测，缺测留空，纵轴独立，批次连线不表示因果关系。
+
+逐批阅读的左侧显示成功加工动作相对上一批的参数差异及终检数值变化，右侧按公开操作
+游标放置模型实际写入的笔记。实验前、批次中途与批次结束后的版本分开标注；无新版本
+时显示沿用记录。笔记可就地展开新增/删去段落及完整原文；文字差异不自动解释为假设
+改变。拒绝与回滚单列保留，不进入成功加工配方，仪器测量另见操作记录。画布的观测
+预览限定当前批次，笔记预览限定所选操作时已经存在的版本，结束报告另有独立入口。
+
+已完成 17/17 JavaScript 检查，并经 8894 本地 API 核对 24 条既有档案、336 批、3,751 次
+操作和 86 版笔记的结果/游标对齐及逐版读取；无新模型调用或物理实验。数据核对摘要在
+仓库外 `D:/Projects/ChemWorld-local-research/20261014-campaign-reading/data-check.json`。
+本次会话的浏览器控制未连接（内置浏览器、Chrome 与 Opera 连接均不可用），因此尚未
+完成用户要求的全程实际点击、多尺寸与双主题视觉验收；此前的浏览器通过数不能沿用
+为 R68 的验证。待连接后，按“搜索一组 12 批 → 看趋势 → 顺读 12 批 → 展开笔记增删 →
+进入第 6 批画布 → 返回原位置 → 查看结束报告 → 手机/双主题复查”完成走查。
+
 2026-10-13 布局重构（R66）已用三个真实档案、2485×1188 至 390×844 五种窗口与双主题验收；30 个布局组合及 10 项交互检查通过，JavaScript 测试 9/9。检查包括自适应排布、节点拖动与重置、详情切换、笔记版本、观测通道、画布扩展、复制设计、轮询保位和手机阅读。截图及机器摘要在仓库外 `D:/Projects/ChemWorld-local-research/20261013-workbench-redesign/`；只使用已有实验记录。
 
-当前主视图采用紧凑任务标题、自适应实验画布、统一详情栏和底部资源条。详情栏在操作、观测、笔记、档案之间切换，节点点击后就地阅读摘要。常规桌面窗口只有详情内容滚动；手机改为纵向排列。画布支持鼠标和触摸拖动，观测下拉可切换真实测量通道。链接中的 `?run=<id>` 可直接定位实验，刷新后保持同一记录。资源条读取核心操作预算，拒绝与回滚一并保留；模拟时间来自公开事件增量，脚本记录的执行跨度与模型运行墙钟分别标示。
+操作画布视图采用紧凑任务标题、自适应实验画布、统一详情栏和底部资源条。详情栏在操作、观测、笔记、档案之间切换，节点点击后就地阅读摘要。常规桌面窗口只有详情内容滚动；手机改为纵向排列。画布支持鼠标和触摸拖动，观测下拉可切换真实测量通道。链接中的 `?run=<id>` 可直接定位实验，刷新后保持同一记录。资源条读取核心操作预算，拒绝与回滚一并保留；模拟时间来自公开事件增量，脚本记录的执行跨度与模型运行墙钟分别标示。
 
 ```powershell
 uv run --no-sync python -m apps.research_workbench --port 8892 --data-dir D:/Projects/ChemWorld-local-research/workbench --open
@@ -47,7 +70,7 @@ uv run --no-sync python -m apps.research_workbench --port 8894 --data-dir D:/Pro
 
 R67 已把 2026-10-13 同期笔记复跑的六条完整实验链接入当前本机 8893 工作台。
 [打开实验列表](http://127.0.0.1:8893/?view=records)，选择“论文案例 · 同期笔记复跑”
-项目中的记录；画布左上选择批次，右侧“笔记”读取原版记录，“档案 → 研究报告”
+项目中的记录；默认顺读整组演化，需要细查时进入操作画布；“结束报告”或“档案 → 研究报告”
 切换 K1 / Q / K2 / EQS。六案例共 84 批、732 次物理操作、21 版笔记、20 个后测。
 原三条 R63 记录仍保留。本机记录目录与 Git 独立，pull 代码不会自动导入实验数据；
 `output/imagegen/…/index.html` 仅为设计图库，实际工作台在上述 HTTP 地址。
@@ -90,7 +113,7 @@ uv run --no-sync python -m apps.research_workbench --port 8893 --data-dir D:/Pro
 ```powershell
 uv run --no-sync pytest tests/test_research_workbench.py -q
 node --check apps/research_workbench/static/app.js
-node --test apps/research_workbench/static/charts.test.mjs apps/research_workbench/static/exploration.test.mjs
+node --test apps/research_workbench/static/charts.test.mjs apps/research_workbench/static/exploration.test.mjs apps/research_workbench/static/campaign.test.mjs
 ```
 
 首轮验收见 [开发记录](../../workstreams/arxiv_v1/experiments/development-research-workbench-20261012.md)；按参考图进一步复刻及真实试跑见 [R62 记录](../../workstreams/arxiv_v1/experiments/development-workbench-visual-trials-20261012.md)。新版 headless Chrome 真实记录路径 10/10、模型/网络替身 5/5、JavaScript 语义测试 6/6 通过，检查桌面双主题、390px 手机、失败保留、图形交互和观测通道。真实核心五组试跑中四组完成终检，一组加热被核心回滚并停止；原始记录全部保留，五条已执行轨迹均可精确回放。未进行真实厂商调用、读屏器或浏览器下载交互验收。

@@ -411,6 +411,111 @@ export function drawExplorationGraph(container, graph, onSelect, options = {}) {
 }
 
 // Public-event summaries never infer an observation from an unexecuted request.
+// A campaign is a chronological series of independent batches, not one apparatus graph.
+export function campaignModel(run) {
+  const events = run.events || [];
+  const count = Math.max(run.batch_count || 1, ...events.map(e => e.batch || 1));
+  const batches = Array.from({length: count}, (_, i) => ({number: i + 1, events: [], revisions: []}));
+  events.forEach((event, index) => {
+    const batch = batches[(event.batch || 1) - 1];
+    batch.events.push({event, index, cursor: index + 1});
+  });
+  const revisions = [...(run.model_notebook?.revisions || [])].sort((a,b) => a.revision - b.revision);
+  const initial = [], unplaced = [];
+  for (const revision of revisions) {
+    const cursor = revision.public_cursor?.event_count;
+    if (cursor === 0) initial.push(revision);
+    else {
+      const batch = batches.find(b => b.events.some(e => e.cursor === cursor));
+      if (batch) batch.revisions.push(revision);
+      else unplaced.push(revision);
+    }
+  }
+  const metric = (key, label, percent = true) => ({key, label, scale: percent ? 100 : 1, unit: percent ? '%' : ''});
+  const task = run.design?.task_id;
+  const metrics = task === 'reaction-to-crystallization'
+    ? [metric('crystal_yield','晶体回收'),metric('crystal_purity','晶体纯度'),metric('crystal_fines_fraction','细粉比例')]
+    : task === 'equilibrium-characterization'
+      ? [metric('pH_normalized','归一化 pH',false),metric('acid_dissociation_fraction','酸解离比例'),metric('precipitation_signal','沉淀信号',false)]
+      : task === 'electrochemical-conversion'
+        ? [metric('score','操作得分',false),metric('selective_product_yield','选择性产物收率'),metric('electrochemical_selectivity','电化学选择性')]
+        : [metric('yield','产率'),metric('selectivity','选择性'),metric('conversion','转化率')];
+  let latest = initial.at(-1) || null;
+  for (const batch of batches) {
+    batch.startCursor = batch.events[0]?.cursor ?? null;
+    batch.endCursor = batch.events.at(-1)?.cursor ?? null;
+    batch.assay = batch.events.findLast(({event:e}) => e.transaction_status === 'committed' && e.action?.operation === 'measure' && e.action?.instrument === 'final_assay');
+    batch.failures = batch.events.filter(({event:e}) => e.transaction_status !== 'committed');
+    batch.values = Object.fromEntries(metrics.map(({key}) => {
+      const e = batch.assay?.event;
+      const value = e?.observation?.[key];
+      return [key, Number.isFinite(value) && e.observed_mask?.[key] !== false ? value : null];
+    }));
+    // Only committed processing actions enter the recipe comparison. Measurements stay in the audit.
+    batch.recipe = batch.events.filter(({event:e}) => e.transaction_status === 'committed' && e.action?.operation !== 'measure').map(({event:e}) => e.action);
+    batch.beforeRevision = latest;
+    latest = batch.revisions.at(-1) || latest;
+    batch.latestRevision = latest;
+  }
+  return {batches, metrics, revisions, initial, unplaced};
+}
+
+export function recipeChanges(previous, current) {
+  const keyed = actions => {
+    const counts = new Map();
+    return new Map(actions.map(action => {
+      const key = action.operation + ':' + (counts.get(action.operation) || 0);
+      counts.set(action.operation, (counts.get(action.operation) || 0) + 1);
+      return [key, action];
+    }));
+  };
+  const before = keyed(previous), after = keyed(current), changes = [];
+  const canonical = value => JSON.stringify(value && typeof value === 'object' && !Array.isArray(value)
+    ? Object.fromEntries(Object.keys(value).sort().map(k => [k,value[k]])) : value);
+  for (const key of new Set([...before.keys(), ...after.keys()])) {
+    const a = before.get(key), b = after.get(key);
+    const fields = [...new Set([...Object.keys(a || {}), ...Object.keys(b || {})])].filter(k => k !== 'operation' && canonical(a?.[k]) !== canonical(b?.[k]));
+    if (!a || !b || fields.length) changes.push({operation: (b || a).operation, before:a, after:b, fields});
+  }
+  const reordered = [...before.keys()].filter(k=>after.has(k)).join('|') !== [...after.keys()].filter(k=>before.has(k)).join('|');
+  return {changes, reordered};
+}
+
+// Exact paragraph additions/removals. These are text edits, never generated scientific claims.
+export function noteChanges(before, after) {
+  const paragraphs = text => String(text || '').replace(/\r\n/g,'\n').split(/\n\s*\n/).filter(p=>p.trim());
+  const a = paragraphs(before), b = paragraphs(after);
+  if (a.length*b.length > 250000) return {added:b, removed:a, unchanged:[], wholeReplacement:true};
+  const table = Array.from({length:a.length+1},()=>new Uint16Array(b.length+1));
+  for(let i=a.length-1;i>=0;i--) for(let j=b.length-1;j>=0;j--)
+    table[i][j] = a[i]===b[j] ? table[i+1][j+1]+1 : Math.max(table[i+1][j],table[i][j+1]);
+  const added=[], removed=[], unchanged=[];
+  let i=0,j=0;
+  while(i<a.length || j<b.length) {
+    if(i<a.length && j<b.length && a[i]===b[j]) {unchanged.push(a[i++]);j++;}
+    else if(j<b.length && (i===a.length || table[i][j+1]>=table[i+1][j])) added.push(b[j++]);
+    else removed.push(a[i++]);
+  }
+  return {added,removed,unchanged,wholeReplacement:false};
+}
+
+const campaignEscape = value => String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+export function campaignPlot(batches, metric) {
+  const values=batches.map(b=>b.values[metric.key]), finite=values.filter(Number.isFinite);
+  if(!finite.length) return '<p class="campaign-no-data">尚无此项终检观测</p>';
+  const low=Math.min(...finite), high=Math.max(...finite), pad=Math.max((high-low)*.15,.002/metric.scale);
+  const ymin=low-pad, ymax=high+pad;
+  const x=i=>48+i*328/Math.max(1,batches.length-1), y=v=>111-(v-ymin)/(ymax-ymin)*86;
+  const fmt=v=>Number((v*metric.scale).toPrecision(4)).toString();
+  let path='', open=false;
+  values.forEach((v,i)=>{if(Number.isFinite(v)){path+=`${open?'L':'M'}${x(i)} ${y(v)} `;open=true;}else open=false;});
+  return `<svg viewBox="0 0 400 150" role="group" aria-label="${campaignEscape(metric.label)}随批次的变化，点击数据点定位批次">
+    ${[low,high].filter((v,i,a)=>a.indexOf(v)===i).map(v=>`<line x1="48" x2="376" y1="${y(v)}" y2="${y(v)}" class="campaign-gridline"/><text x="40" y="${y(v)+4}" text-anchor="end" class="campaign-axis">${fmt(v)}</text>`).join('')}
+    <path d="${path}" class="campaign-trend-line"/>
+    ${batches.map((b,i)=>`<text x="${x(i)}" y="137" text-anchor="middle" class="campaign-axis">${b.number}</text>${Number.isFinite(values[i])?`<g role="button" tabindex="0" data-campaign-jump="${b.number}" aria-label="第 ${b.number} 批，${campaignEscape(metric.label)} ${fmt(values[i])}${metric.unit}"><circle class="campaign-hit" cx="${x(i)}" cy="${y(values[i])}" r="11"/><circle class="campaign-point" cx="${x(i)}" cy="${y(values[i])}" r="3.5"/><title>第 ${b.number} 批 · ${campaignEscape(metric.label)} ${fmt(values[i])}${metric.unit}</title></g>`:''}`).join('')}
+  </svg>`;
+}
+
 export function eventSummary(event) {
   const committed=event.transaction_status==='committed',rollback=event.transaction_status==='rolled_back';
   const action=event.action || {};

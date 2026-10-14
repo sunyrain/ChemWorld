@@ -1,4 +1,4 @@
-import { drawChart, explorationGraph, drawExplorationGraph, icon, eventSummary } from "./charts.js";
+import { drawChart, explorationGraph, drawExplorationGraph, icon, eventSummary, campaignModel, campaignPlot, recipeChanges, noteChanges } from "./charts.js";
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) =>
@@ -20,7 +20,9 @@ const state = {
   runs: [],
   run: null,
   page: "home",
-  tab: "explore",
+  tab: "auto",
+  campaignSelection: new Map(),
+  campaignReturn: false,
   graphMode: "events",
   graphViews: new Map(),
   inspectorTab: "event",
@@ -37,6 +39,7 @@ const state = {
   polling: false,
   navigation: 0,
   notebookVersion: 0,
+  listSearch: '',
 };
 const statuses = {
   ready: "待操作",
@@ -99,6 +102,11 @@ const fieldNames = {
   reagent: "试剂",
   seed_mass_g: "晶种质量 (g)",
   cooling_rate_K_min: "降温速率 (K/min)",
+  potential_V: "电位 (V)",
+  current_limit_A: "电流上限 (A)",
+  container: "容器",
+  capacity_L: "容积 (L)",
+  component: "组分",
 };
 const taskName = (design) =>
   names[design.task_id] ||
@@ -140,6 +148,7 @@ async function refreshRuns() {
 }
 function renderSidebar() {
   document.body.classList.toggle("explore-mode", state.page === "run" && state.tab === "explore");
+  document.body.classList.toggle("campaign-mode", state.page === "run" && state.tab === "campaign");
   $("run-count").textContent = state.runs.length;
   $("compare-count").textContent = state.selected.size;
   $("recent-runs").innerHTML =
@@ -177,7 +186,7 @@ function renderHome() {
   ).length;
   const projects = new Set(state.runs.map((r) => r.project)).size;
   $("main").innerHTML =
-    `<section class="intro"><div><div class="eyebrow">YOUR RESEARCH, IN MOTION</div><h1>让 Agent 探索虚拟实验室。</h1><p>配置研究目标、模型和预算，观察 Agent 选择操作、读取观测与维护研究记录。</p></div><div class="intro-tag">CHEMWORLD / 本机试用</div></section>
+    `<section class="intro"><div><div class="eyebrow">RESEARCH JOURNEYS</div><h1>回看一组完整的研究。</h1><p>从最初的假设到逐批结果，连续阅读 Agent 的实验与笔记变化。</p></div><div class="intro-tag">CHEMWORLD / 虚拟实验室</div></section>
   <section class="stats" aria-label="工作空间概览">${[
     [projects, "研究项目", "个"],
     [state.runs.length, "实验记录", "组"],
@@ -189,7 +198,8 @@ function renderHome() {
         `<div class="stat"><div class="stat-label">${l}<span>↗</span></div><div class="stat-value">${v}<span class="stat-unit">${u}</span></div></div>`,
     )
     .join("")}</section>
-  <div class="section-heading"><h2>选择一个起点</h2><span>虚拟环境 · 当前核心执行</span></div><section class="template-grid">
+  <div class="section-heading"><h2>研究档案</h2><span>未完成与失败，一并保留</span></div><label class="campaign-search">查找研究<input id="research-search" type="search" placeholder="按名称、项目或模型查找…" value="${esc(state.listSearch)}"></label><section class="panel" id="research-list">${runTable(state.runs)}</section>
+  <details class="campaign-new-study"><summary>新建一组探索 · 选择实验模板</summary><section class="template-grid">
   ${[
     [
       "reaction-to-assay",
@@ -220,19 +230,27 @@ function renderHome() {
       ([id, symbol, kicker, title, copy, tools]) =>
         `<button class="template-card" data-template="${id}"><div class="template-top"><span class="template-symbol">${symbol}</span><span>${kicker}</span></div><h3>${title}</h3><p>${copy}</p><div class="template-bottom"><span>${tools}</span><b>开始设计 ↗</b></div></button>`,
     )
-    .join("")}</section>
-  <div class="section-heading"><h2>实验记录</h2><span>运行、未完成与失败，一并保留</span></div><section class="panel">${runTable(state.runs)}</section>`;
+    .join("")}</section></details>`;
+  const filter=()=>{
+    state.listSearch=$('research-search').value;
+    const query=state.listSearch.trim().toLowerCase();
+    const matches=state.runs.filter(r=>[r.name,r.project,r.actor,r.model_configuration?.requested_model,taskName(r.design)].join(' ').toLowerCase().includes(query));
+    $('research-list').innerHTML=matches.length?runTable(matches):'<p class="empty">没有符合条件的研究，试试其他名称或清空搜索。</p>';
+  };
+  $('research-search').oninput=filter;
+  if(state.listSearch) filter();
 }
 function runTable(runs) {
   if (!runs.length)
-    return '<div class="empty"><div class="empty-icon">⌬</div>还没有实验记录<br>选择上方模板，几步完成你的第一次实验。</div>';
-  return `<div class="table-wrap"><table><thead><tr><th>实验 / 项目</th><th>执行方式</th><th>状态</th><th>动作提交</th><th>创建时间</th><th>比较</th></tr></thead><tbody>${runs.map((r) => `<tr><td><button class="run-name" data-run="${r.id}">${esc(r.name)}</button><div class="subline">${esc(r.project)} · ${esc(taskName(r.design))}</div></td><td>${esc(r.actor === "reference" ? "离线参考流程" : r.actor === "manual" ? "手动实验" : r.actor)}</td><td>${badge(r.status)}</td><td>${r.submitted_steps}<span class="muted"> / ${r.design.budget}</span></td><td class="muted">${date(r.created_at)}</td><td><label class="compare-check"><input type="checkbox" data-compare="${r.id}" ${state.selected.has(r.id) ? "checked" : ""}> 加入</label></td></tr>`).join("")}</tbody></table></div>`;
+    return '<div class="empty"><div class="empty-icon">⌬</div>还没有实验记录<br>从“开始探索”或下方模板创建第一次实验。</div>';
+  return `<div class="table-wrap"><table><thead><tr><th>研究 / 项目</th><th>执行者</th><th>状态</th><th>终检进度</th><th>创建时间</th><th>比较</th></tr></thead><tbody>${runs.map((r) => `<tr><td><button class="run-name" data-run="${r.id}">${esc(r.name)}</button><div class="subline">${esc(r.project)} · ${esc(taskName(r.design))}</div></td><td>${esc(r.actor === "reference" ? "离线参考流程" : r.actor === "manual" ? "手动实验" : r.model_configuration?.requested_model || r.actor)}</td><td>${badge(r.status)}</td><td>${r.final_assay_count || 0}<span class="muted"> / ${r.batch_count || 1} 批</span></td><td class="muted">${date(r.created_at)}</td><td><label class="compare-check"><input type="checkbox" data-compare="${r.id}" ${state.selected.has(r.id) ? "checked" : ""}> 加入</label></td></tr>`).join("")}</tbody></table></div>`;
 }
 async function openRun(id) {
   const navigation = ++state.navigation;
   const run = await api(`/api/runs/${id}`);
   if (navigation !== state.navigation) return;
   if (state.run?.id !== run.id) state.previewRevision = null;
+  if (state.tab === 'auto' || (state.tab === 'campaign' && !run.batch_count)) state.tab = run.batch_count ? 'campaign' : 'explore';
   state.run = run;
   state.page = "run";
   history.replaceState(null, "", "?run=" + encodeURIComponent(id));
@@ -257,6 +275,7 @@ function renderRun() {
   disposeExplorer();
   state.previewEpoch++;
   renderSidebar();
+  if (state.tab === 'campaign') { renderCampaign(); return; }
   const active = ["ready", "running", "cancelling"].includes(r.status);
   $("main").innerHTML = state.tab === "explore" ? renderExploreHeader(r) + `<div id="run-panel"></div>` :
     `<section class="run-heading"><div><div class="eyebrow">${esc(r.project)} / EXPERIMENT</div><h1>${esc(r.name)}</h1>${badge(r.status)} <span class="muted compact">${esc(taskName(r.design))} · seed ${r.design.seed} · ${date(r.created_at)}</span><p>${esc(r.question || "")}</p></div><div class="row-actions"><button class="button secondary small" id="clone-run">新建同条件实验</button>${active ? '<button class="button danger small" id="cancel-run">' + (r.status === "ready" ? "关闭实验" : "取消运行") + "</button>" : ""}<button class="button secondary small" id="replay-run" ${["running", "cancelling"].includes(r.status) ? "disabled" : ""}>精确回放</button><a class="button secondary small" href="/api/runs/${r.id}/export">导出 ZIP ↗</a></div></section>
@@ -264,6 +283,7 @@ function renderRun() {
   ${r.replay ? `<div class="notice">${r.replay.verified ? "✓ 精确回放通过" : "回放未通过"} · 检查 ${r.replay.checked_steps} 步 · 最大绝对误差 ${number(r.replay.max_abs_error, 8)}</div>` : ""}
   <div class="executor-strip"><span class="executor-icon">◇</span><strong>${esc(executorLabel(r))}</strong><span>虚拟实验室</span><span class="executor-help">${r.actor === "reference" ? "固定配方 · 非自主 Agent" : r.actor === "manual" ? "手动实验 · 独立可选模式" : "模型自主选择操作 · 记录按实际执行更新"}</span></div>
   <div class="tabs" role="tablist">${[
+    ...(r.batch_count ? [["campaign", "研究演化"]] : []),
     ["explore", "探索画布"],
     ["timeline", "操作记录"],
     ["spectra", "仪器观测"],
@@ -330,9 +350,116 @@ function archiveControls(r) {
   if($('clone-run')) { $('clone-run').disabled=true; $('clone-run').title='多批论文协议不能直接复制为网页单批实验'; }
   if($('replay-run')) { $('replay-run').disabled=true; $('replay-run').textContent=r.replay?.verified?'执行时回放已通过':'查看原回放记录'; }
 }
+function campaignValue(value, metric) {
+  return Number.isFinite(value) ? number(value * metric.scale, 3) + metric.unit : '未测';
+}
+function campaignRecipe(batch, previous) {
+  const describe = action => `${operations[action.operation] || action.operation} · ${Object.entries(action).filter(([k])=>k!=='operation').map(([k,v])=>`${fieldNames[k] || k} ${typeof v==='object'?pretty(v):v}`).join(' · ') || '无额外参数'}`;
+  if (!batch.events.length) return '<p class="campaign-muted">尚无执行记录</p>';
+  if (!previous) return `<p class="campaign-row-caption">起始条件</p><div class="campaign-recipe-chips">${batch.recipe.map(action=>`<span>${esc(describe(action))}</span>`).join('') || '未执行加工操作'}</div>`;
+  const {changes,reordered}=recipeChanges(previous.recipe,batch.recipe);
+  if (!changes.length && !reordered) return '<p class="campaign-same">加工配方与上一批相同</p>';
+  const line = change => {
+    if(!change.before) return `新增 ${describe(change.after)}`;
+    if(!change.after) return `移除 ${describe(change.before)}`;
+    return `${operations[change.operation] || change.operation}：${change.fields.map(k=>`${fieldNames[k] || k} ${change.before[k]===undefined?'未设置':pretty(change.before[k])} → ${change.after[k]===undefined?'未设置':pretty(change.after[k])}`).join('；')}`;
+  };
+  return `<p class="campaign-row-caption">相对第 ${previous.number} 批的加工条件</p><ul class="campaign-changes">${changes.slice(0,3).map(c=>`<li>${esc(line(c))}</li>`).join('')}${reordered?'<li>加工操作顺序改变</li>':''}</ul>${changes.length>3?`<details class="campaign-more"><summary>另 ${changes.length-3} 项改变</summary><ul class="campaign-changes">${changes.slice(3).map(c=>`<li>${esc(line(c))}</li>`).join('')}</ul></details>`:''}`;
+}
+function campaignNoteCard(revision, model, batch = null) {
+  const cursor=revision.public_cursor?.event_count;
+  const position=cursor===0?'实验开始前':batch?cursor===batch.endCursor?`第 ${batch.number} 批结束后`:`第 ${batch.number} 批的第 ${cursor-batch.startCursor+1} 次操作后`:'写入位置未能对齐';
+  return `<section class="campaign-note-card" id="campaign-note-${revision.revision}" aria-label="笔记版本 ${revision.revision}"><div class="campaign-note-heading"><strong>v${revision.revision}</strong><span>${position}</span></div><div class="campaign-note-content" data-note-content="${revision.revision}"><p class="campaign-muted">正在读取模型原文…</p></div></section>`;
+}
+function renderCampaign() {
+  const r=state.run, model=campaignModel(r), epoch=state.previewEpoch;
+  const restore=state.campaignReturn;state.campaignReturn=false;
+  const selected=state.campaignSelection.get(r.id) || 1;
+  const finished=model.batches.filter(b=>b.assay).length;
+  const failures=model.batches.reduce((n,b)=>n+b.failures.length,0);
+  $('main').innerHTML=`<header class="campaign-header">
+    <button class="campaign-back" data-nav="records">← 所有研究</button>
+    <div class="campaign-title-row"><div><p class="eyebrow">${esc(r.project)} · 虚拟实验室</p><h1>${esc(r.name)}</h1></div><div class="campaign-model">${esc(r.model_configuration?.requested_model || r.actor)}<span>Agent 自主探索</span></div></div>
+    <div class="campaign-summary"><span><strong>${finished} / ${model.batches.length}</strong> 批终检</span><span><strong>${model.revisions.length}</strong> 版同期笔记</span><span><strong>${r.events.length}</strong> 次操作记录</span>${failures?`<span class="campaign-warning">${failures} 次拒绝或回滚</span>`:''}${r.status==='failed'?'<span class="campaign-warning">保留未完成或失败阶段</span>':''}</div>
+    <details class="campaign-question"><summary>研究目标与运行说明</summary><p>${esc(r.question || '尚未填写研究目标')}</p><p class="campaign-muted">${esc(runMessage(r) || '')}</p></details>
+  </header>
+  <nav class="campaign-views" aria-label="研究视图"><button class="active" aria-current="page">研究演化</button><button data-tab="explore">操作画布</button><button data-tab="spectra">仪器原始观测</button><button data-tab="notebook">完整笔记</button><button data-tab="report">结束报告</button></nav>
+  <section class="campaign-overview" id="campaign-overview"><div class="campaign-section-heading"><div><h2>这一组实验，发生了什么变化？</h2><p>横轴为批次，点为该批终检观测。点击数据点可定位对应记录。</p></div><span class="campaign-source">公开观测 · 含测量噪声</span></div>
+    <div class="campaign-charts">${model.metrics.map(metric=>`<section class="campaign-chart"><div><h3>${metric.label}</h3><span>${metric.unit || '归一化数值'}</span></div>${campaignPlot(model.batches,metric)}</section>`).join('')}</div>
+    <p class="campaign-chart-footnote">各图独立纵轴 · 连线仅表示批次顺序 · 缺测留空 · 条件与结果同时变化不等于因果关系</p>
+  </section>
+  <nav class="campaign-batch-nav" aria-label="按批次定位"><span>研究进程</span><div>${model.batches.map(b=>`<button data-campaign-jump="${b.number}" aria-label="第 ${b.number} 批${b.revisions.length?'，有笔记更新':''}" aria-current="${b.number===selected?'step':'false'}" class="${b.assay?'':'incomplete'}">${String(b.number).padStart(2,'0')}${b.revisions.length?'<i aria-hidden="true"></i>':''}</button>`).join('')}</div><a href="#campaign-overview">↑ 趋势</a></nav>
+  <div class="campaign-lane-labels"><span>批次</span><span>条件与结果</span><span>Agent 笔记 · 紫点代表实际更新</span></div>
+  ${model.initial.length?`<section class="campaign-initial"><div><span class="campaign-phase">开始之前</span><h3>最初准备检验什么？</h3><p>模型在第一次操作前写下的记录。</p></div><div>${model.initial.map(v=>campaignNoteCard(v,model)).join('')}</div></section>`:''}
+  <div class="campaign-story">${model.batches.map((batch,i)=>{
+    const previous=model.batches[i-1];
+    return `<article class="campaign-batch ${batch.number===selected?'selected':''}" id="campaign-batch-${batch.number}" tabindex="-1" data-story-batch="${batch.number}">
+      <div class="campaign-ordinal"><span>批次</span><strong>${String(batch.number).padStart(2,'0')}</strong><small class="${batch.assay?'':'campaign-warning'}">${batch.assay?'已终检':batch.events.length?'未终检':'未执行'}</small></div>
+      <section class="campaign-outcome" aria-label="第 ${batch.number} 批条件与结果">${campaignRecipe(batch,previous)}
+        <div class="campaign-result-cards">${model.metrics.map(metric=>{
+          const value=batch.values[metric.key], prev=previous?.values[metric.key];
+          const delta=Number.isFinite(value)&&Number.isFinite(prev)?(value-prev)*metric.scale:null;
+          return `<div><span>${metric.label}</span><strong>${campaignValue(value,metric)}</strong><small>${delta===null?previous?'上一批不可比':'首次观测':`${delta>0?'+':''}${number(delta,3)}${metric.unit==='%'?' 个百分点':''} · 较上一批`}</small></div>`;
+        }).join('')}</div>
+        ${batch.failures.length?`<p class="campaign-warning">${batch.failures.length} 次请求未执行或回滚，未计为成功加工。</p>`:''}
+        <div class="campaign-row-actions"><button class="campaign-link" data-campaign-canvas="${batch.number}" ${batch.events.length?'':'disabled'}>细看本批操作 ↗</button><details class="campaign-operations"><summary>${batch.events.length} 次操作 · 测量与失败记录</summary><ol>${batch.events.map(({event,index})=>`<li><button data-event="${index}"><span>${esc(operations[event.action?.operation] || event.action?.operation)}${event.action?.instrument?' · '+esc(event.action.instrument):''}</span><small>${eventSummary(event).status}</small></button></li>`).join('')}</ol></details></div>
+      </section>
+      <section class="campaign-notes-lane" aria-label="第 ${batch.number} 批笔记变化">${batch.revisions.length?batch.revisions.map(v=>campaignNoteCard(v,model,batch)).join(''):`<div class="campaign-note-carried"><span>本批没有新笔记</span>${batch.beforeRevision?`<button data-campaign-note-jump="${batch.beforeRevision.revision}">沿用 v${batch.beforeRevision.revision} · 回看记录 ↑</button>`:'<small>此前尚无模型记录</small>'}</div>`}</section>
+    </article>`;
+  }).join('')}</div>
+  ${model.unplaced.length?`<section class="campaign-unplaced"><h2>尚未对齐到批次的笔记</h2>${model.unplaced.map(v=>campaignNoteCard(v,model)).join('')}</section>`:''}
+  <section class="campaign-ending"><div><p class="eyebrow">源实验结束之后</p><h2>模型最终如何解释这些结果？</h2><p>机理报告、盲预测和事后复盘独立于上面的同期笔记。</p></div><button class="button secondary" data-tab="report">阅读结束报告 →</button></section>`;
+  document.querySelectorAll('[data-campaign-jump]').forEach(button=>{
+    const jump=()=>focusCampaignBatch(Number(button.dataset.campaignJump));
+    button.onclick=jump;
+    if(button.tagName.toLowerCase()==='g') button.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();jump();}};
+  });
+  document.querySelectorAll('[data-campaign-canvas]').forEach(button=>button.onclick=()=>{
+    const batch=model.batches[Number(button.dataset.campaignCanvas)-1];
+    state.campaignSelection.set(r.id,batch.number);state.eventSelection.set(r.id,batch.events.at(-1).index);state.tab='explore';renderRun();
+  });
+  document.querySelectorAll('[data-campaign-note-jump]').forEach(button=>button.onclick=()=>{
+    const card=$('campaign-note-'+button.dataset.campaignNoteJump);card?.scrollIntoView({block:'center',behavior:'smooth'});
+    card?.querySelector('summary')?.focus({preventScroll:true});
+  });
+  loadCampaignNotes(r,model,epoch,restore);
+}
+function focusCampaignBatch(batch) {
+  state.campaignSelection.set(state.run.id,batch);
+  document.querySelectorAll('[data-story-batch]').forEach(row=>row.classList.toggle('selected',Number(row.dataset.storyBatch)===batch));
+  document.querySelectorAll('.campaign-batch-nav [data-campaign-jump]').forEach(button=>button.setAttribute('aria-current',Number(button.dataset.campaignJump)===batch?'step':'false'));
+  const row=$('campaign-batch-'+batch);
+  row?.focus({preventScroll:true});row?.scrollIntoView({block:'start',behavior:globalThis.matchMedia?.('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+}
+async function loadCampaignNotes(r,model,epoch,restore=false) {
+  const key=revision=>r.id+':model:'+revision;
+  const outcomes=await Promise.allSettled(model.revisions.map(async v=>{
+    if(!state.noteCache.has(key(v.revision))) {
+      const note=await api('/api/runs/'+r.id+'/notebook',{author:'model',operation:'read',arguments:{revision:v.revision,limit:16000}});
+      state.noteCache.set(key(v.revision),note.text || '');
+    }
+  }));
+  if(state.run?.id!==r.id || state.tab!=='campaign' || state.previewEpoch!==epoch) return;
+  model.revisions.forEach((v,i)=>{
+    const target=document.querySelector(`[data-note-content="${v.revision}"]`);
+    if(!target) return;
+    if(outcomes[i].status==='rejected') {
+      target.innerHTML='<p class="campaign-warning">笔记读取失败，记录尚未加载。</p><button class="campaign-link" data-note-retry>重试读取</button>';
+      target.querySelector('button').onclick=()=>loadCampaignNotes(r,model,epoch);return;
+    }
+    const text=state.noteCache.get(key(v.revision)), previous=model.revisions[i-1];
+    const before=previous?state.noteCache.get(key(previous.revision)):'';
+    const diff=before===undefined?null:noteChanges(before,text);
+    const excerpt=(diff?.added || [text]).find(p=>p.trim()&&!/^#{1,6}[^\n]*$/.test(p)) || (diff?.removed.length?'本次删除了部分原文，见下方文字变化。':'本版没有文字新增。');
+    target.innerHTML=`<p class="campaign-note-message">${esc(v.message || '模型笔记更新')}</p><span class="campaign-excerpt-label">${diff?.added.length?'新增原文节选':'版本记录'}</span><div class="campaign-note-excerpt">${noteMarkup(excerpt)}</div>
+      ${diff?`<details class="campaign-note-diff"><summary>${previous?`与 v${previous.revision} 比较`:'首次记录'} · 新增 ${diff.added.length} 段 / 删去 ${diff.removed.length} 段</summary><p class="campaign-muted">按原文段落比较；文字新增或删去不等于假设被证实或否定。</p>${diff.wholeReplacement?'<p>文本较长，按整版替换展示。</p>':''}${diff.added.map(p=>`<div class="campaign-added"><span>＋ 新增</span>${noteMarkup(p)}</div>`).join('')}${diff.removed.map(p=>`<div class="campaign-removed"><span>− 删去</span>${noteMarkup(p)}</div>`).join('')}${!diff.added.length&&!diff.removed.length?'<p>文字未改变。</p>':''}</details>`:'<p class="campaign-warning">上一版尚未加载，暂不计算变化。</p>'}
+      <details class="campaign-note-full"><summary>阅读 v${v.revision} 完整笔记</summary><div class="note-reader">${noteMarkup(text || '本版为空。')}</div></details>`;
+  });
+  if(restore) focusCampaignBatch(state.campaignSelection.get(r.id) || 1);
+}
 function renderExploreHeader(r) {
   const isModel = !['manual','reference'].includes(r.actor);
-  return `<header class="explore-title"><div class="explore-title-line"><h1>${esc(r.batch_count?r.name:taskName(r.design))}</h1>${badge(r.status)}<span class="environment-tag">${isModel?'Agent 自主探索':r.actor==='reference'?'固定参考流程':'手动实验'}</span><span class="run-title-name" title="${esc(r.name)}">${esc(r.batch_count?r.batch_count+' 批 · 开发复跑':r.name)}</span></div><p>${esc(r.question || '尚未设置研究目标')}</p></header>`;
+  return `<header class="explore-title">${r.batch_count?'<button class="campaign-back" data-tab="campaign">← 返回整组研究演化</button>':''}<div class="explore-title-line"><h1>${esc(r.batch_count?r.name:taskName(r.design))}</h1>${badge(r.status)}<span class="environment-tag">${isModel?'Agent 自主探索':r.actor==='reference'?'固定参考流程':'手动实验'}</span><span class="run-title-name" title="${esc(r.name)}">${esc(r.batch_count?r.batch_count+' 批 · 开发复跑':r.name)}</span></div><p>${esc(r.question || '尚未设置研究目标')}</p></header>`;
 }
 function formatDuration(seconds) {
   if (!Number.isFinite(seconds)) return '—';
@@ -416,14 +543,15 @@ function renderInspector() {
   const r=state.run,epoch=++state.previewEpoch;
   const index=state.eventSelection.get(r.id) ?? r.events.length-1,event=r.events[index];
   const tabs=[['event','操作'],['observation','观测'],['notebook','笔记'],['archive','档案']];
-  const measurements=r.events.flatMap((e,eventIndex)=>(e.series || []).map((series,seriesIndex)=>({event:e,eventIndex,series,key:eventIndex+':'+seriesIndex})));
+  const measurements=r.events.flatMap((e,eventIndex)=>(e.transaction_status==='committed' && e.action?.operation==='measure' && (!r.batch_count || e.batch===event?.batch)?e.series || []:[]).map((series,seriesIndex)=>({event:e,eventIndex,series,key:eventIndex+':'+seriesIndex})));
   const selected=measurements.find(item=>r.id+':'+item.key===state.previewSignal) || measurements.findLast(item=>item.eventIndex===index) || measurements.at(-1);
-  const revisions=r.model_notebook?.revisions || [],revision=state.previewRevision ?? revisions[0]?.revision ?? 0;
+  const revisions=(r.model_notebook?.revisions || []).filter(v=>!r.batch_count || v.public_cursor?.event_count<=index+1);
+  const revision=revisions.find(v=>v.revision===state.previewRevision)?.revision ?? revisions[0]?.revision ?? 0;
   const noteKey=r.id+':model:'+revision;
   let content='';
   if(state.inspectorTab==='event') content=event?`<div class="inspector-step"><button class="button secondary small" data-select-event="${index-1}" ${index===0?'disabled':''} aria-label="上一步">←</button><span>第 ${index+1} / ${r.events.length} 步</span><button class="button secondary small" data-select-event="${index+1}" ${index===r.events.length-1?'disabled':''} aria-label="下一步">→</button></div><h2 class="inspector-operation">${esc(event.action.instrument==='final_assay'?'终检结果':operations[event.action.operation] || event.action.operation)}</h2>${eventDetailHTML(index)}`:'<div class="empty">等待 Agent 的第一条操作。</div>';
   if(state.inspectorTab==='observation') content=`<h2>仪器观测</h2><p class="inspector-help">来自虚拟仪器的已保存测量</p>${selected?`<select id="preview-spectrum" aria-label="选择观测通道">${measurements.map(item=>`<option value="${esc(item.key)}" ${item===selected?'selected':''}>第 ${item.eventIndex+1} 步 · ${esc(item.series.label)}</option>`).join('')}</select><div id="explore-chart" class="chart"></div><p class="inspector-help" id="preview-source">第 ${selected.eventIndex+1} 步 · 已记录的仪器信号</p>`:'<p class="empty">尚无仪器信号，缺测不代表零。</p>'}<button class="button secondary small" data-tab="spectra">查看全部观测 ↗</button>`;
-  if(state.inspectorTab==='notebook') content=`<h2>Agent 研究笔记</h2><p class="inspector-help">模型主动记录 · ${revisions.length} 个版本 · 只读</p>${revisions.length?`<select id="preview-revision" aria-label="选择笔记版本">${revisions.map(item=>`<option value="${item.revision}" ${item.revision===revision?'selected':''}>版本 ${item.revision}${item.event_count!=null?' · '+item.event_count+' 条事件后':''}</option>`).join('')}</select><div id="agent-note-preview" class="note-reader">${noteMarkup(state.noteCache.get(noteKey) || '正在读取记录…')}</div>`:'<p class="empty">Agent 尚未提交研究笔记。</p>'}<button class="button secondary small" data-agent-notes>完整笔记与版本差异 ↗</button>`;
+  if(state.inspectorTab==='notebook') content=`<h2>Agent 研究笔记</h2><p class="inspector-help">${r.batch_count?'截至所选操作的记录':'模型主动记录'} · ${revisions.length} 个版本 · 只读</p>${revisions.length?`<select id="preview-revision" aria-label="选择笔记版本">${revisions.map(item=>`<option value="${item.revision}" ${item.revision===revision?'selected':''}>版本 ${item.revision}${item.public_cursor?.event_count!=null?' · '+item.public_cursor.event_count+' 条事件后':''}</option>`).join('')}</select><div id="agent-note-preview" class="note-reader">${noteMarkup(state.noteCache.get(noteKey) || '正在读取记录…')}</div>`:'<p class="empty">截至此时，Agent 尚未提交研究笔记。</p>'}<button class="button secondary small" data-agent-notes>完整笔记与版本差异 ↗</button>`;
   if(state.inspectorTab==='archive') content=`<h2>实验档案</h2><p class="inspector-help">${esc(executorLabel(r))}</p><dl class="event-fields">${[['实验',r.name],['世界',taskName(r.design)],['状态',statuses[r.status]],['终检',r.final_assay_count?'已完成':'未完成'],['精确回放',r.replay?(r.replay.verified?'已验证':'未通过'):'未检查'],['环境 seed',r.design.seed],['模型调用',modelCallCount(r)],['工具请求',r.model_tool_calls ?? '—']].map(([k,v])=>`<div><dt>${k}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>${runMessage(r)?`<p class="inspector-help">${esc(runMessage(r))}</p>`:''}<div class="archive-actions"><button class="button secondary small" data-tab="report">研究报告 ↗</button><button class="button secondary small" id="clone-run">新建同条件实验</button><button class="button secondary small" id="replay-run" ${['running','cancelling'].includes(r.status)?'disabled':''}>精确回放</button><a class="button secondary small" href="/api/runs/${r.id}/export">导出 ZIP ↗</a></div>`;
   $('inspector-content').innerHTML=`<div class="inspector-heading"><span>研究详情</span><span class="model-pill" title="${esc(executorLabel(r))}">${esc(r.model_configuration?.requested_model || r.actor)}</span></div><div class="inspector-tabs" role="tablist" aria-label="选择详情内容">${tabs.map(([id,label])=>`<button role="tab" aria-selected="${state.inspectorTab===id}" data-inspector-tab="${id}">${label}${id==='notebook'&&revisions.length?`<small>${revisions.length}</small>`:''}</button>`).join('')}</div><div class="inspector-body">${content}</div>`;
   archiveControls(r);
@@ -793,14 +921,14 @@ document.addEventListener("click", (e) => {
   if (b.id === "replay-run") perform(async()=>{const id=state.run.id;toast("正在精确回放…");await api(`/api/runs/${id}/replay`,{});await openRun(id);toast("回放检查已完成");});
   if (b.dataset.run)
     perform(() => {
-      state.tab = "explore";
+      state.tab = "auto";
       return openRun(b.dataset.run);
     });
   if (b.dataset.template) openDesign(b.dataset.template);
   if (b.dataset.nav) {
     if (b.dataset.nav === "home") {
       const latest = state.run || state.runs.find((r) => r.status === "running" && r.actor !== "reference") || state.runs[0];
-      if (latest) { state.tab = "explore"; perform(() => openRun(latest.id)); }
+      if (latest) { state.tab = "auto"; perform(() => openRun(latest.id)); }
       else renderHome();
     } else if (b.dataset.nav === "records") renderHome();
     else if (b.dataset.nav === "notes") {
@@ -811,6 +939,7 @@ document.addEventListener("click", (e) => {
   }
   if (b.dataset.tab) {
     $("detail-dialog").close();
+    if(b.dataset.tab==='campaign') state.campaignReturn=true;
     state.tab = b.dataset.tab;
     renderRun();
   }
@@ -959,7 +1088,7 @@ async function poll() {
 async function init() {
   try {
     const navIcons = { home: "flask", records: "records", notes: "book", compare: "compare" };
-    const navLabels = { home: "探索", records: "实验", notes: "研究记录", compare: "结果比较" };
+    const navLabels = { home: "当前研究", records: "研究档案", notes: "模型笔记", compare: "结果比较" };
     document.querySelectorAll("[data-nav]").forEach(button => {
       const label = navLabels[button.dataset.nav];
       button.setAttribute("aria-label", label);
@@ -988,7 +1117,7 @@ async function init() {
     await refreshRuns();
     $("connection").textContent = "已连接";
     const requested = new URLSearchParams(location.search).get("run");
-    const latest = state.runs.find((r) => r.id === requested) || state.runs.find((r) => r.status === "running") || state.runs[0];
+    const latest = state.runs.find((r) => r.id === requested) || state.runs.find((r) => r.status === "running");
     if (new URLSearchParams(location.search).get('view')==='records') renderHome();
     else if (latest) await openRun(latest.id);
     else renderHome();
