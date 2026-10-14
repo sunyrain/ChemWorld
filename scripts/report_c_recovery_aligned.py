@@ -67,6 +67,39 @@ def grouped_metrics(rows):
     return output
 
 
+def retest_stability(rows):
+    cells = []
+    for name in sorted({r["id"] for r in rows}):
+        group = sorted((r for r in rows if r["id"] == name), key=lambda r: r["repeat"])
+        values = [r["measurements"].get("recommendation_quality_and_yield_target") for r in group]
+        observed = [v for v in values if v is not None]
+        if len(observed) != 3:
+            state = "incomplete"
+        elif all(observed):
+            state = "all_pass"
+        elif not any(observed):
+            state = "all_fail"
+        else:
+            state = "mixed"
+        cells.append(
+            {
+                "id": name,
+                "repeats": [r["repeat"] for r in group],
+                "joint_pass_values": values,
+                "state": state,
+                "observed": len(observed),
+                "passes": sum(observed),
+                "recovery_mae": describe(
+                    [r["measurements"].get("crystal_yield_mae") for r in group]
+                ),
+                "fines_mae": describe(
+                    [r["measurements"].get("crystal_fines_fraction_mae") for r in group]
+                ),
+            }
+        )
+    return {"state_counts": dict(Counter(c["state"] for c in cells)), "cells": cells}
+
+
 def source_timeline(row, root, output):
     folder = case_folder(root / row["repeat"], row)
     if (folder / "trajectory.jsonl").exists():
@@ -148,6 +181,7 @@ def build(root, output, *, require_complete=False):
         "status_counts": dict(Counter(r["status"] for r in rows)),
         "by_arm": {a: counts([r for r in rows if r["arm"] == a]) for a in ARMS},
         "metrics": grouped_metrics(rows),
+        "retest_stability": retest_stability(rows),
         "reference_quality_profiles": {
             f"W{w:02d}": reference_quality_profile(
                 read(root / "references" / f"C-W{w:02d}" / "result.json")["truth"]
@@ -236,6 +270,8 @@ def render(result, output):
         "括号为有观测世界数/5。逐世界表另给三场会话的均值、样本标准差及实测分母。",
         "质量合格只要求存在颗粒、纯度≥0.80和细粉≤0.50；联合合格另要求回收≥0.10。"
         "缺失预测/复测不计零，不以未完成代替预测错误。",
+        "四个响应均使用公开的0–1尺度；粒径为min(数目加权d50/250微米,1)指数，"
+        "其MAE不是以微米计的直径误差。",
         "",
         "| 指标 | Opaque | Aligned | MisIndexed |",
         "| --- | ---: | ---: | ---: |",
@@ -262,6 +298,38 @@ def render(result, output):
         lines.append(
             f"| {world} | {profile['quality_feasible']} | {profile['quality_infeasible']} | "
             f"{profile['always_feasible_correct']} | {profile['always_infeasible_correct']} |"
+        )
+    lines += [
+        "",
+        "## 同条件三次会话的稳定性",
+        "",
+        "下表按repeat-01/02/03列出推荐复测是否同时满足质量与回收≥0.10。"
+        "只有三次都有复测，才归为三次均达标、均未达标或混合；缺失不按失败填充。"
+        "三次会话描述本次路径波动，不提供受控模型seed或总体稳定概率。",
+        "",
+        "| 条件 | 三次联合达标 | 复测覆盖 | 状态 | 回收MAE范围 | 细粉MAE范围 |",
+        "| --- | --- | ---: | --- | ---: | ---: |",
+    ]
+    states = {
+        "incomplete": "复测不全",
+        "all_pass": "三次达标",
+        "all_fail": "三次未达标",
+        "mixed": "有成有败",
+    }
+    for cell in result["retest_stability"]["cells"]:
+        values = [
+            "缺失" if v is None else "达标" if v else "未达标" for v in cell["joint_pass_values"]
+        ]
+        ranges = [
+            f"{num(cell[k]['minimum'])}–{num(cell[k]['maximum'])}"
+            for k in ("recovery_mae", "fines_mae")
+        ]
+        lines.append(
+            f"| {cell['id']} | "
+            + " / ".join(values)
+            + f" | {cell['observed']}/3 | {states[cell['state']]} | "
+            + " | ".join(ranges)
+            + " |"
         )
     lines += ["", "## 逐世界的三次会话", ""]
     for name in METRICS["C"]:

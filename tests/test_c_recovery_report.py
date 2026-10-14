@@ -5,8 +5,24 @@ from scripts.report_c_recovery_aligned import (
     COHORT,
     grouped_metrics,
     reference_quality_profile,
+    retest_stability,
     source_timeline,
 )
+
+
+def test_two_successes_and_missing_retest_are_not_three_successes():
+    rows = [
+        {
+            "id": "C-W01-Aligned",
+            "repeat": f"repeat-0{i}",
+            "measurements": {"recommendation_quality_and_yield_target": value},
+        }
+        for i, value in enumerate((1, None, 1), 1)
+    ]
+    cell = retest_stability(rows)["cells"][0]
+    assert cell["state"] == "incomplete" and cell["passes"] == 2
+    rows[1]["measurements"]["recommendation_quality_and_yield_target"] = 0
+    assert retest_stability(rows)["cells"][0]["state"] == "mixed"
 
 
 def test_quality_class_balance_does_not_add_a_recovery_threshold():
