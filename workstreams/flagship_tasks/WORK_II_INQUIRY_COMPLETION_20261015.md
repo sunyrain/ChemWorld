@@ -89,3 +89,17 @@ startup, and distinguishes absent from changed thread IDs. A transport-only real
 check (no chemistry task) completed a new JSON report and a same-thread recall using the
 production evaluation launcher. It is runtime qualification, not participant evidence.
 Coverage, prompts, budgets and failure rules are unchanged.
+
+## Analysis implementation and review assignment
+
+Solvent-set matching counts committed `add_solvent` and `resuspend_crystals` additions;
+failed additions do not change the set. Cumulative added volume is not the final liquid
+volume. Source-reference fitting receives no evaluator outcomes. Preparation repetition
+ignores measurements/end markers and renames container IDs while preserving topology.
+Public-input parity excludes only the randomly generated campaign label; all chemical,
+instrument, operation and budget values are compared. Exact byte equality is also retained.
+
+The user subsequently assigned all review to our workflow. Deliver a complete internal
+scientific review and machine-checkable quotations/action anchors. This is a single-analyst
+reassessment, not an independent second-researcher judgment; no external-review blocker is
+imposed on experiment completion. Independence remains a description of what was done.

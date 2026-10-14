@@ -98,7 +98,11 @@ def validate_record(record, session):
 
 
 def build(output):
-    summary = read(output / "summary.json")
+    summary = (
+        read(output / "summary.json")
+        if (output / "summary.json").exists()
+        else {"sessions": read(output / "analysis.json")["cases"]}
+    )
     coding = read(output / "semantic_coding.json")
     sessions = {
         (r["repeat"], r["id"]): read(output / "sessions" / r["repeat"] / f"{r['id']}.json")
@@ -167,6 +171,10 @@ def build(output):
         ],
     }
     if not pending:
+        column_counts = [("all", len(expected), len(complete_sessions))] + [
+            (system, values["planned_windows"], values["sessions_all_available_windows_coded"])
+            for system, values in sorted(coverage.items())
+        ]
         result["descriptive_code_counts"] = {
             "action_links": dict(Counter(r["action_link"] for r in verified)),
             "public_update_types_overlapping": dict(
@@ -228,18 +236,23 @@ def build(output):
             "## 完整覆盖后的描述性计数",
             "",
             "会话列表示至少有一个该标签窗口的会话数，分母仅为具有窗口的会话；",
-            "21场无窗口会话单独保留。窗口嵌套于会话，不能作为105个独立样本。",
+            f"{len(no_window_sessions)}场无窗口会话单独保留。"
+            f"窗口嵌套于会话，不能作为{len(expected)}个独立样本。",
             "公开更新标签允许重叠；同一会话也可有不同执行标签，因此会话列不可相加。",
             "matched仅评估所选即时计划；不表示新发现、反馈导致行动或计划的全部内容均执行。",
             "",
-            "| 标签 | 全部窗口 /105 | 涉及会话 /69 | C窗口 /71 | C会话 /39 | "
-            "EQ窗口 /34 | EQ会话 /30 |",
-            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+            "| 标签 | "
+            + " | ".join(
+                f"{system}窗口 /{windows} | {system}会话 /{sessions}"
+                for system, windows, sessions in column_counts
+            )
+            + " |",
+            "| --- | " + " | ".join(["---:"] * (2 * (1 + len(coverage)))) + " |",
         ]
         for field, labels in (("action_link", LINKS), ("update_types", UPDATES)):
             for label in sorted(labels):
                 values = []
-                for system in ("all", "C", "EQ"):
+                for system in ("all", *sorted(coverage)):
                     count = (
                         result["descriptive_by_system"]
                         .get(system, {})
@@ -251,7 +264,8 @@ def build(output):
                         str(count.get("sessions_at_least_once", 0)),
                     ]
                 lines.append(f"| {field}: {label} | " + " | ".join(values) + " |")
-        lines += ["", "完整解释见[研究过程综合分析](SYNTHESIS.md)。"]
+        synthesis = "SYNTHESIS.md" if (output / "SYNTHESIS.md").exists() else "REVIEW.md"
+        lines += ["", f"完整解释见[研究过程综合分析]({synthesis})。"]
     lines += [
         "",
         "## 已完成窗口",
