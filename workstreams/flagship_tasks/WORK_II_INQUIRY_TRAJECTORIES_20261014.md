@@ -90,22 +90,17 @@ and checked. Positive, negative and ambiguous links all satisfy completion; miss
 unverified quotations do not. Tests check temporal boundaries and committed/rejected semantics.
 Keep this coverage status separate from independent review and any new crystallization block.
 
-### Semantic coding progress
+### Semantic coding completion
 
-43/105 windows have been read and coded, with 84 exact version-specific quotations verified.
-All 34 EQ windows in 30 sessions are covered; the other 15 EQ sessions retain the no-window
-disposition. C coverage is 9/71 windows in the three first-repeat W01 sessions; 62 windows
-remain pending. No aggregate update/action-label prevalence is published at partial coverage.
+All 105/105 windows are coded; 208 exact version-specific quotations and temporal anchors
+validate. EQ covers 34 windows in 30 sessions; C covers 71 in 39 sessions. The other 21
+sessions remain explicitly without an observable complete window. Selected immediate plans:
+89 matched, 12 partly matched, two rejected, two without an explicit plan. These are nested
+window descriptions, not a learning-success rate or evidence of causal adaptation.
 
-The codes retain measurement-order adaptation, continued preplanned scans, component-coordinate
-tests, general statements without explicit next-test commitments, incomplete repeats, and
-scientific-reporting discrepancies. For example, EQ W01/M/repeat-02 describes an opposite pH
-direction although the cited endpoint rises; C W01/O/repeat-01 describes a 300 K growth condition
-whose cooling request was rejected. These remain public-record discrepancies, not a newly
-established common causal mechanism. Recovery retains its existing protocol limitation.
-
-`scripts/analyze_inquiry_semantics.py` validates quotations, new-evidence timing and immediate
-action intervals and writes the [readable progress](reports/inquiry-trajectories-20261014/SEMANTIC_ANALYSIS.md)
-and machine output. Five additional tests cover future evidence, next-note boundaries, rejected
-requests, no-plan interpretation and suppression of category frequencies before complete coverage;
-together with the four extraction tests, 9/9 pass. Independent semantic review is still unfinished.
+The readable distribution separates windows from sessions. The accompanying
+[SYNTHESIS](reports/inquiry-trajectories-20261014/SYNTHESIS.md) connects positive local tests,
+preplanned scans, measurement-order adaptation, unexecuted dosage claims and the historical
+recovery limitation. Nine focused tests and Ruff pass. This single-analyst block is complete;
+independent semantic review remains unfinished and is not supplied by automated validation.
+The new 45-session corrected-recovery cohort is a separate prospective block.

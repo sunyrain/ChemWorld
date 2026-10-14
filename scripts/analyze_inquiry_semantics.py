@@ -173,6 +173,28 @@ def build(output):
                 Counter(label for r in verified for label in r["update_types"])
             ),
         }
+        result["descriptive_by_system"] = {}
+        for system in ("all", *sorted(coverage)):
+            group = [
+                r
+                for r in verified
+                if system == "all" or sessions[r["repeat"], r["id"]]["system"] == system
+            ]
+            session_keys = {(r["repeat"], r["id"]) for r in group}
+            counts = {"windows": len(group), "sessions_with_windows": len(session_keys)}
+            for field, labels in (("action_link", LINKS), ("update_types", UPDATES)):
+                counts[field] = {}
+                for label in sorted(labels):
+                    selected = [
+                        r
+                        for r in group
+                        if (r[field] == label if field == "action_link" else label in r[field])
+                    ]
+                    counts[field][label] = {
+                        "windows": len(selected),
+                        "sessions_at_least_once": len({(r["repeat"], r["id"]) for r in selected}),
+                    }
+            result["descriptive_by_system"][system] = counts
     (output / "semantic_analysis.json").write_text(
         json.dumps(result, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
     )
@@ -181,7 +203,9 @@ def build(output):
         "",
         f"已编码 {len(verified)}/{len(expected)} 个预先列出的结构窗口，"
         f"逐字核对 {result['verified_quotes']} 条指定版本引文。",
-        "全部窗口完成前不报告各语义标签的总体分布。标注来自单一分析者，尚未独立复核。",
+        "标注来自单一分析者，尚未独立复核。"
+        if not pending
+        else "全部窗口完成前不报告各语义标签的总体分布。标注来自单一分析者，尚未独立复核。",
         "",
         "匹配表示选定的公开计划与实际动作相符；初始既定设计与反馈调整在解释中分别说明。",
         "更新类型表示研究者公开作出了怎样的判断，不等于关系已被科学证实。",
@@ -198,6 +222,36 @@ def build(output):
             f"{counts['sessions_all_available_windows_coded']} | "
             f"{counts['sessions_without_observable_complete_window']} |"
         )
+    if not pending:
+        lines += [
+            "",
+            "## 完整覆盖后的描述性计数",
+            "",
+            "会话列表示至少有一个该标签窗口的会话数，分母仅为具有窗口的会话；",
+            "21场无窗口会话单独保留。窗口嵌套于会话，不能作为105个独立样本。",
+            "公开更新标签允许重叠；同一会话也可有不同执行标签，因此会话列不可相加。",
+            "matched仅评估所选即时计划；不表示新发现、反馈导致行动或计划的全部内容均执行。",
+            "",
+            "| 标签 | 全部窗口 /105 | 涉及会话 /69 | C窗口 /71 | C会话 /39 | "
+            "EQ窗口 /34 | EQ会话 /30 |",
+            "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+        ]
+        for field, labels in (("action_link", LINKS), ("update_types", UPDATES)):
+            for label in sorted(labels):
+                values = []
+                for system in ("all", "C", "EQ"):
+                    count = (
+                        result["descriptive_by_system"]
+                        .get(system, {})
+                        .get(field, {})
+                        .get(label, {})
+                    )
+                    values += [
+                        str(count.get("windows", 0)),
+                        str(count.get("sessions_at_least_once", 0)),
+                    ]
+                lines.append(f"| {field}: {label} | " + " | ".join(values) + " |")
+        lines += ["", "完整解释见[研究过程综合分析](SYNTHESIS.md)。"]
     lines += [
         "",
         "## 已完成窗口",
@@ -214,6 +268,8 @@ def build(output):
             f"{labels} | {r['action_link']} | {explanation} |"
         )
     lines += ["", "## 未完成窗口", ""]
+    if not pending:
+        lines += ["无；105个窗口均有逐版本引文、证据与执行时序检查。"]
     for repeat, name, revision in pending:
         lines.append(f"- {repeat}/{name}: v{revision}→v{revision + 1}")
     lines += ["", "## 无完整观察窗口的会话", ""]
