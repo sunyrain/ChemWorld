@@ -1,0 +1,454 @@
+# 新增 42 场研究笔记逐场精读
+
+覆盖全部新增 42 场、139 版源笔记。引文逐字核对到指定版本；中文解释由分析者撰写。
+既有 48 场、145 版的精读保留在[原分析](../research-formation-20261013/CASE_READINGS.md)。
+数值由保留科学导出生成，缺测不填零；R1–R3 是同世界的新会话，不是受控模型随机种子。
+[最终稿证据族与补实验判断](EVIDENCE_FAMILIES.md)；[全部失败和分母](ANALYSIS.md)。
+
+## C-W01-MisIndexed repeat-01
+
+初始档案S2/C1排序经实际筛选被拆开：S2获得跨溶剂支持，C0/C1/C3差别仍在噪声内。v3明确提出0.055L加分段冷却的最后一次检验和失败退回规则，v4报告合格但改进幅度仅为数值差。推荐第12批属于边界内工艺选择，不是证明已分离种量、降温、回热的各自作用。
+
+> If it fails the fines constraint, retain batch 11 (or batch 6) rather than extrapolating.
+
+出处：[笔记 v3](repeat-01/C-W01-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/C-W01-MisIndexed-reports.md)；[执行与结果](repeat-01/C-W01-MisIndexed.json)。
+
+推荐复测：回收 0.57090、细粉 0.47993，达到质量与回收目标；纯度预测 MAE 0.04269；热对比方向错误。
+
+## C-W01-MisIndexed repeat-02
+
+五版笔记形成最清晰的浓度边界搜索：0.04L可行、0.02/0.03L失败，v4据0.035L可行提出0.0325L下一检验，最后重复0.035L确认可行并不追逐高回收失败批。需对照动作核对0.0325L结果和种量/淬灭混杂；‘大种量不宜’的初批与后来热程不同，不能只归因于种量。
+
+> Next test at 0.0325 L targets the boundary.
+
+出处：[笔记 v4](repeat-02/C-W01-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-02/C-W01-MisIndexed-reports.md)；[执行与结果](repeat-02/C-W01-MisIndexed.json)。
+
+动作核对：第11批0.0325L细粉0.03411/回收0.66798，合格；第10/12批0.035L细粉0.14526/0.13587。第10→11批保持种量及热程，只改体积；第9→10还同时改了种量和热程，故0.030L失败不能单归于体积。
+
+推荐复测：回收 0.66719、细粉 0.13392，达到质量与回收目标；纯度预测 MAE 0.06712；热对比方向错误。
+
+## C-W01-MisIndexed repeat-03
+
+v3在0.02L细粉失败、0.03L较大种量可行之后提出增加种量拯救0.02L的末次检验；v4观察仍细粉1.0，明确撤回拯救假说并选择0.04L。该正反结果链可与旧C-W03/Aligned R1的装料单调性撤回共同承担‘研究改变认识’，不需要干预提高Agent分数作为结局。需核对两批仅种量/测量调用差异。
+
+> Thus extra seed did not rescue the excessive-nucleation regime, disconfirming the final prospective rescue hypothesis.
+
+出处：[笔记 v4](repeat-03/C-W01-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-03/C-W01-MisIndexed-reports.md)；[执行与结果](repeat-03/C-W01-MisIndexed.json)。
+
+动作核对：第10/12批均为0.02L、0.04mol、C0、365K反应、250K冷却，成功种量0.02→0.05g；两批公共细粉均1.0。保留测量噪声与单次对照限制，可支持这一次拯救预期未实现。
+
+推荐复测：回收 0.55777、细粉 0.24744，达到质量与回收目标；纯度预测 MAE 0.04295；热对比方向错误。
+
+## C-W02-Aligned repeat-01
+
+终态拒绝档案S2粒度优势，改为S3改善细粉但仍未达到0.50门槛；同时承认加种与冷却史混杂、两个低温候选差值在噪声内。推荐最接近可行的第11批并明示不合格。只有两版不能宣称中途何时已形成该原因，且‘延伸到250K以下’是未来建议而非已执行证据。
+
+> The dossier-based expectation that S2 would give the best particle distribution was contradicted.
+
+出处：[笔记 v2](repeat-01/C-W02-Aligned-notebook.md#revision-2)；[K1 Q K2](repeat-01/C-W02-Aligned-reports.md)；[执行与结果](repeat-01/C-W02-Aligned.json)。
+
+动作核对：第10批成功加种0.05g，19次追加被拒；所谓1g对比未执行，不能只称它与热史混杂。
+
+推荐复测：回收 0.45094、细粉 0.51925，未同时达标；纯度预测 MAE 0.00615；热对比方向正确。
+
+## C-W02-Aligned repeat-02
+
+v2明确承认种量动作被拒，随后提出回热溶解细粉的预期；v3承认所试慢冷、去种、回热、重悬、延长停留均未解决细粉。末尾明确推荐不合格，保留产品高纯/高回收与粒度失败的分离。支持负面研究结果与动作失败被识别，不支持把未成功执行的大种量算为真正试验。
+
+> repeated attempts to add more than one 0.05 g seed charge in batch 2 failed payload bounds
+
+出处：[笔记 v2](repeat-02/C-W02-Aligned-notebook.md#revision-2)；[K1 Q K2](repeat-02/C-W02-Aligned-reports.md)；[执行与结果](repeat-02/C-W02-Aligned.json)。
+
+推荐复测：回收 0.67854、细粉 0.99937，未同时达标；纯度预测 MAE 0.07982；热对比方向正确。
+
+## C-W02-Aligned repeat-03
+
+v2提出混合溶剂兼顾回收与细粉并实际探索，v3更偏S2的混合物有更大余量且重复；v4却按最高观测回收选择细粉0.496的1:1批7，同时承认另一混比更稳健。公开的余量偏好与最后选择不同，复测结果决定其实际后果。不能把这一选择直接认定不懂风险，委托本身强调最高已测合格回收。
+
+> Final decisions should favor a margin under the fines constraint rather than the borderline 1:1 result.
+
+出处：[笔记 v3](repeat-03/C-W02-Aligned-notebook.md#revision-3)；[K1 Q K2](repeat-03/C-W02-Aligned-reports.md)；[执行与结果](repeat-03/C-W02-Aligned.json)。
+
+推荐第7批公共细粉0.496245，无噪复测0.509388，不合格；其高回收优先选择与v3余量优先的公开规则不同。并非没有注意不确定性。
+
+推荐复测：回收 0.53484、细粉 0.50939，未同时达标；纯度预测 MAE 0.00551；热对比方向正确。
+
+## C-W02-MisIndexed repeat-01
+
+四批后有可行S2起点，后续对比快冷/再热、较慢冷却和多个体积；v3记录0.02–0.04L合格而0.01L细粉1.0的边界，并排除回收略高但不合格的末批。重复0.04L的回收差被当噪声，推荐第8批。能承担‘经验窗口及明确反例’证据，冷却速度的独立因果贡献仍须固定其他操作核对。
+
+> Thus the useful concentration window is bounded away from 0.01 L.
+
+出处：[笔记 v3](repeat-01/C-W02-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/C-W02-MisIndexed-reports.md)；[执行与结果](repeat-01/C-W02-MisIndexed.json)。
+
+推荐复测：回收 0.53642、细粉 0.28783，达到质量与回收目标；纯度预测 MAE 0.07148；热对比方向正确。
+
+## C-W02-MisIndexed repeat-02
+
+第一批后v2已提出淬灭/深冷触发细粉的假说，并计划改变种量与热程；第五批取消淬灭同时分段冷却后合格，v3承认无法隔离淬灭。随后前瞻检验更低终温、过浓反例与中间体积，形成0.070–0.075L工作区间。它补上旧W03案例缺少的早期公开假说，但仍不证明淬灭是唯一原因；本次匹配对照配方仅来自旧18场，未直接覆盖这条新配方。
+
+> The abrupt post-reaction quench/deep cooling likely triggers excessive secondary nucleation.
+
+出处：[笔记 v2](repeat-02/C-W02-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-02/C-W02-MisIndexed-reports.md)；[执行与结果](repeat-02/C-W02-MisIndexed.json)。
+
+动作核对：第1/4批包含淬灭，第5批去淬灭且改变配置速率、搅拌、冷却分段及终温，细粉0.39367。后续推荐复测细粉0.38384/回收0.52163；不是单因素比较。
+
+推荐复测：回收 0.52163、细粉 0.38384，达到质量与回收目标；纯度预测 MAE 0.07898；热对比方向错误。
+
+## C-W02-MisIndexed repeat-03
+
+只有初始/终态两版。最终认为分段C0/S1比已试直接冷却流程更好，但明确没有匹配C0/S1直接冷却，不能单归因于分段。额外冷停留仅提高观测回收0.003却仍按任务选择最高值，同时提出短流程替代；这是知道效应未决仍作操作选择，不自动等于误认效果已确立。
+
+> extra cold residence is not established as a true recovery gain.
+
+出处：[笔记 v2](repeat-03/C-W02-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-03/C-W02-MisIndexed-reports.md)；[执行与结果](repeat-03/C-W02-MisIndexed.json)。
+
+推荐复测：回收 0.61846、细粉 0.22412，达到质量与回收目标；纯度预测 MAE 0.01983；热对比方向错误。
+
+## C-W02-Opaque repeat-01
+
+只有事前/终态两版；初始预期慢冷、种晶或退火降低细粉，终态如实记录全程细粉近1、无可行方案，未把高回收包装成成功。种量、热程的实际执行与模型叙述需要动作核对，不能仅按‘尝试1g种晶’文字推定成功加入。可作‘形成负面范围认识但未完成操作目标’的反向例，不说明策略转换的时点。
+
+> No completed batch meets the fines constraint (<=0.50)
+
+出处：[笔记 v2](repeat-01/C-W02-Opaque-notebook.md#revision-2)；[K1 Q K2](repeat-01/C-W02-Opaque-reports.md)；[执行与结果](repeat-01/C-W02-Opaque.json)。
+
+动作核对：第11批成功加种仅0.05g，19次追加被拒；终态所说约1g并未执行。因此大种量阴性结论没有对应实验支持。
+
+推荐复测：回收 0.57092、细粉 0.99989，未同时达标；纯度预测 MAE 0.02065；热对比方向正确。
+
+## C-W02-Opaque repeat-02
+
+终态归纳S2小种量/慢冷/部分再溶解的可行工艺，0.04L相比0.06L细粉失败，两个合格末段方案回收近噪声。它与其他会话‘回热有害’构成范围对照：不同起始配方下再热工艺可行，不能作一刀切工艺规则。只有两版笔记，过程内转变时点缺失，使用动作顺序只能补执行史而非未记录的判断。
+
+> which thermal variant is intrinsically superior remains unresolved.
+
+出处：[笔记 v2](repeat-02/C-W02-Opaque-notebook.md#revision-2)；[K1 Q K2](repeat-02/C-W02-Opaque-reports.md)；[执行与结果](repeat-02/C-W02-Opaque.json)。
+
+推荐复测：回收 0.60565、细粉 0.29001，达到质量与回收目标；纯度预测 MAE 0.02067；热对比方向错误。
+
+## C-W02-Opaque repeat-03
+
+v2预告将C1/S1的温和热程移到反应更强的C0/S0；v3记录该迁移仍细粉失败，转回C1/S1并逐级降温。是实际尝试迁移后收窄适用范围的例子。最终选深冷最高观测回收并公开更稳健替代，区分任务目标权衡与认识错误。
+
+> C0/S0 under the batch-2 thermal profile will retain purity >=0.80 and fines <=0.50, with recovery at least comparable to 0.47.
+
+出处：[笔记 v2](repeat-03/C-W02-Opaque-notebook.md#revision-2)；[K1 Q K2](repeat-03/C-W02-Opaque-reports.md)；[执行与结果](repeat-03/C-W02-Opaque.json)。
+
+推荐复测：回收 0.59047、细粉 0.46923，达到质量与回收目标；纯度预测 MAE 0.01292；热对比方向错误。
+
+## C-W03-MisIndexed repeat-01
+
+初始预计S2加种慢冷可行；最终在十二批全部不合格后明确撤回，并记录低装料改善但仍未达标、重悬/回热也未奏效。保留最接近可行的末批而不冒充成功。仅两版不能识别何时更换工作解释；低装料进一步降低细粉仍是未检验的未来外推，需与已完成的负面检验区分。
+
+> this is not a claim that it satisfies the quality constraints.
+
+出处：[笔记 v2](repeat-01/C-W03-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-01/C-W03-MisIndexed-reports.md)；[执行与结果](repeat-01/C-W03-MisIndexed.json)。
+
+动作核对：第3批只成功加种0.05g，19次追加被拒；笔记称high seed attempts，需保留“尝试”与成功执行的区别。
+
+推荐复测：回收 0.37532、细粉 0.86314，未同时达标；纯度预测 MAE 0.04944；热对比方向正确。
+
+## C-W03-MisIndexed repeat-02
+
+六批后低装料首次合格，v2预告0.0125mol检验；v3记录0.0125失败、0.011合格但保持更保守0.01mol，另以逐级更冷提高回收并重复最终配方。重要反例：该会话在含淬灭配方中仍形成可行工艺，反对把‘不淬灭’当必要条件。笔记种量0.10g需以成功动作核实，机制归因仍不能脱离装料/热程混杂。
+
+> a conservative recommendation retains 0.01 mol.
+
+出处：[笔记 v3](repeat-02/C-W03-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-02/C-W03-MisIndexed-reports.md)；[执行与结果](repeat-02/C-W03-MisIndexed.json)。
+
+动作核对：推荐第10批成功种量0.05g，一次追加被拒，笔记0.10g不符；复测基于成功配方。含淬灭的低装料合格结果仍成立，但种量叙述必须纠正。
+
+推荐复测：回收 0.56970、细粉 0.27936，达到质量与回收目标；纯度预测 MAE 0.04319；热对比方向错误。
+
+## C-W03-MisIndexed repeat-03
+
+两批后的v2拒绝S2慢冷可以抑制细粉的预期，提出热循环或溶剂检验；终态低装料得到细粉合格但回收极低，0.01mol获得回收0.281/细粉0.188，增加至0.015mol并细分冷却后细粉回到1.0。能支持已试条件下的工艺窗口及迁移失败；装料与种量比例等仍混杂，不足以独立识别装料机制。
+
+> Thus loading, not merely ramp subdivision, bounds the successful regime.
+
+出处：[笔记 v3](repeat-03/C-W03-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-03/C-W03-MisIndexed-reports.md)；[执行与结果](repeat-03/C-W03-MisIndexed.json)。
+
+推荐复测：回收 0.28081、细粉 0.19441，达到质量与回收目标；纯度预测 MAE 0.06485；热对比方向正确。
+
+## C-W04-Aligned repeat-01
+
+四版笔记从S2可行出发，因多个体积/种量组合反例修订简单浓缩增益预期；v3提出后续种量检验并承诺保留现候选。最终第10/12批同配方均合格，明确不把回收0.006差异当真正优越。这里支持局部工艺重复及不确定性保留；多变量改变不能识别单独的浓度机制。
+
+> The ~0.006 recovery difference is smaller than the stated 0.01 final-assay recovery noise, so batch 10 is selected on observed value but not claimed superior to its replicate.
+
+出处：[笔记 v4](repeat-01/C-W04-Aligned-notebook.md#revision-4)；[K1 Q K2](repeat-01/C-W04-Aligned-reports.md)；[执行与结果](repeat-01/C-W04-Aligned.json)。
+
+推荐复测：回收 0.44150、细粉 0.38624，达到质量与回收目标；纯度预测 MAE 0.09446；热对比方向正确。
+
+## C-W04-Aligned repeat-02
+
+只有初始/终态两版，但终态明确让风险判断进入选择：拒绝细粉0.497的最高回收批10，选细粉0.488、回收较低的批12。应对照无噪复测验证该选择实际是否合格，而不是把主观称robust等同于真正稳健。与旧W01/Opaque最高数值选择形成正反对照；两者都不构成总体策略效果比较。
+
+> Batch 10 has the highest feasible observed recovery (0.373) but only ~0.003 fines margin, smaller than measurement/process uncertainty, so it is not the robust recommendation.
+
+出处：[笔记 v2](repeat-02/C-W04-Aligned-notebook.md#revision-2)；[K1 Q K2](repeat-02/C-W04-Aligned-reports.md)；[执行与结果](repeat-02/C-W04-Aligned.json)。
+
+推荐第12批公共细粉0.487801，无噪复测0.485844，合格；比第10批放弃部分回收换取余量，不能从单例推得风险策略的平均因果收益。
+
+推荐复测：回收 0.35469、细粉 0.48584，达到质量与回收目标；纯度预测 MAE 0.04029；热对比方向错误。
+
+## C-W04-Aligned repeat-03
+
+六版笔记依次提出热循环、减装料、大累积种量及重结晶检验，终态承认没有合格工艺。其中热循环和低装料确有执行，大种量检验却未执行成功，后来仍被写成已排除的解释。应分别呈现如实承认操作失败与错误记录证据范围，不能把整场归为完全正确的负面学习。
+
+> Seed mass is not the limiting control in this range.
+
+出处：[笔记 v5](repeat-03/C-W04-Aligned-notebook.md#revision-5)；[K1 Q K2](repeat-03/C-W04-Aligned-reports.md)；[执行与结果](repeat-03/C-W04-Aligned.json)。
+
+第10批请求40次×0.05g，但仅一次提交成功，其余39次payload_bounds拒绝。v4先提出约2g检验，v5/v6却将未执行的剂量对比写成阴性结论；K1与K2继续采用它。这是执行经历被错误记述并用于排除解释的具体案例，不是2g种量无效的实验证据。
+
+推荐复测：回收 0.52322、细粉 0.99993，未同时达标；纯度预测 MAE 0.00994；热对比方向正确。
+
+## C-W04-MisIndexed repeat-01
+
+v2见深冷比278K有更高回收但承认终温/时长混杂；v3定位0.055–0.060L可行、0.04L细粉失败，且推荐第8批后用第12批重复支持可行。可作为有范围工艺关系被测试和使用的正例。种量效应和S3比较都保留未决，不能据该组高成功率推定对所有响应的理解准确。
+
+> the claim is about the tested recipes rather than an isolated temperature coefficient.
+
+出处：[笔记 v3](repeat-01/C-W04-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/C-W04-MisIndexed-reports.md)；[执行与结果](repeat-01/C-W04-MisIndexed.json)。
+
+推荐复测：回收 0.47788、细粉 0.39270，达到质量与回收目标；纯度预测 MAE 0.11529；热对比方向错误。
+
+## C-W04-MisIndexed repeat-02
+
+从S2直接冷却失败转向S3热态分段冷却，v2预期后续分段抑制细粉，v3/v4以多批可行结果限定新工艺家族。最后比较浓度、种量、停留和S2，选有更多细粉余量的S3。它公开承认热程与溶剂混杂；早期‘种量1g无效’仍须核对真实成功投种量，不能把被拒动作当阴性实验。
+
+> Solvent and thermal history were not fully factorial, so their individual contributions remain partly confounded.
+
+出处：[笔记 v4](repeat-02/C-W04-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-02/C-W04-MisIndexed-reports.md)；[执行与结果](repeat-02/C-W04-MisIndexed.json)。
+
+动作核对：第2批成功加种0.05g，19次追加被拒。v2及K1的0.05→1g阴性比较未执行；之后有效分段工艺结果与这一错误归因分别保留。
+
+推荐复测：回收 0.48364、细粉 0.13617，达到质量与回收目标；纯度预测 MAE 0.12113；热对比方向正确。
+
+## C-W04-MisIndexed repeat-03
+
+v2形成S2分段冷却工艺，v3根据过度热处理失败收窄解释并预告0.045–0.055L窗口检验；最终0.045、0.055和0.060L在各自热程下失败，0.050L三批合格。保留热程与体积混杂，限定回热结论范围，是工作关系经后续检验收窄并被推荐使用的正例。
+
+> The reheat result is confounded with 0.04 L solvent and should not be generalized beyond this scope.
+
+出处：[笔记 v4](repeat-03/C-W04-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-03/C-W04-MisIndexed-reports.md)；[执行与结果](repeat-03/C-W04-MisIndexed.json)。
+
+推荐复测：回收 0.45723、细粉 0.43991，达到质量与回收目标；纯度预测 MAE 0.08529；热对比方向正确。
+
+## C-W04-Opaque repeat-01
+
+v2把材料与分段冷却共同改善视为值得继续使用的配方家族，同时承认混杂；v3提前安排三段冷却/冷停留/重复，v4报告更低细粉并未提升回收。保留小种量因果作用未决和低细粉备用方案。‘分段冷却必要’仍只适用于此研究所试配方，不可扩成环境普遍条件。
+
+> replicate before claiming a causal seed effect.
+
+出处：[笔记 v4](repeat-01/C-W04-Opaque-notebook.md#revision-4)；[K1 Q K2](repeat-01/C-W04-Opaque-reports.md)；[执行与结果](repeat-01/C-W04-Opaque.json)。
+
+推荐复测：回收 0.43437、细粉 0.24503，达到质量与回收目标；纯度预测 MAE 0.01027；热对比方向正确。
+
+## C-W04-Opaque repeat-02
+
+v2从极小种量不能冷却的合法反馈修订为需有效种群，提出温和生长后仍见细粉失败；转向S3取得较好但不合格的工艺并重复。最终清楚区分有改善与已达标。两次同配方差异未被吹成机制，适合负面结果/有限发现的证据族；‘必须种晶’只能限于此配方与状态。
+
+> This is not a compliant process recommendation
+
+出处：[笔记 v3](repeat-02/C-W04-Opaque-notebook.md#revision-3)；[K1 Q K2](repeat-02/C-W04-Opaque-reports.md)；[执行与结果](repeat-02/C-W04-Opaque.json)。
+
+推荐复测：回收 0.39808、细粉 0.73147，未同时达标；纯度预测 MAE 0.01105；热对比方向错误。
+
+## C-W04-Opaque repeat-03
+
+六批后发现S1细粉更低，后续降低终温提高回收，回热反而细粉失败；终态明确小种量差异未决。按最高已测合格回收选择接近门槛的第10批，同时保留更保守第9批。任务目标允许这种权衡，不能将边界选择自动写成忽略风险；稳健合格仍需独立复测。
+
+> additional replication would be required to establish robust compliance at the boundary.
+
+出处：[笔记 v3](repeat-03/C-W04-Opaque-notebook.md#revision-3)；[K1 Q K2](repeat-03/C-W04-Opaque-reports.md)；[执行与结果](repeat-03/C-W04-Opaque.json)。
+
+推荐复测：回收 0.46533、细粉 0.46700，达到质量与回收目标；纯度预测 MAE 0.02029；热对比方向正确。
+
+## C-W05-MisIndexed repeat-01
+
+v3根据多个合格S1和失败S0/S3结果推翻最初S2优先，并从超长冷停留失败形成适用范围，安排末批较短停留。v4确认较短停留仍可行而无回收提升，推荐原候选，明确种量/催化剂小差未分离。具有先验排序修订、负面边界和后续采用三部分；不能将全部改善归因于单一操作。
+
+> S1, not the nominally favored S2, gives the best feasible recovery under staged cooling.
+
+出处：[笔记 v3](repeat-01/C-W05-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/C-W05-MisIndexed-reports.md)；[执行与结果](repeat-01/C-W05-MisIndexed.json)。
+
+动作核对：第10批成功加种0.05g，一次追加被拒。v3的0.05→0.10g比较没有实际剂量差，不能作种量无效证据。
+
+推荐复测：回收 0.52043、细粉 0.41638，达到质量与回收目标；纯度预测 MAE 0.02927；热对比方向错误。
+
+## C-W05-MisIndexed repeat-02
+
+v4在末批前明确预计再加冷停留会提高回收，v5见回收反降且差值接近噪声，选择较简单批8，保留停留效应未决。这是从预期、反向结果到实际选择的完整链，可与旧W01/Opaque明知未决仍选更复杂流程相对照。文中十倍种量比较先按动作核对，不能用叙述替代实际执行。
+
+> the extra cold period adds time without observed benefit, so it is not recommended.
+
+出处：[笔记 v5](repeat-02/C-W05-MisIndexed-notebook.md#revision-5)；[K1 Q K2](repeat-02/C-W05-MisIndexed-reports.md)；[执行与结果](repeat-02/C-W05-MisIndexed.json)。
+
+动作核对：第11批只成功加种0.05g，9次追加被拒，不能认定十倍种量真正受检；末批延长冷停留的预期与结果仍可独立核对。
+
+推荐复测：回收 0.48330、细粉 0.42540，达到质量与回收目标；纯度预测 MAE 0.04528；热对比方向错误。
+
+## C-W05-MisIndexed repeat-03
+
+前四批S2细粉失败后v2收窄先验并安排溶剂筛选；终态记录高温加种及S1配方改善，347K加种/270K终温进一步改变回收与细粉，但两个因素同时改变。形成了局部有效工艺，并保留归因未决；温热加种转向前没有中间笔记，不可将终态解释倒填为事前判断。
+
+> attribution between those factors remains unresolved.
+
+出处：[笔记 v3](repeat-03/C-W05-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-03/C-W05-MisIndexed-reports.md)；[执行与结果](repeat-03/C-W05-MisIndexed.json)。
+
+推荐复测：回收 0.50800、细粉 0.42620，达到质量与回收目标；纯度预测 MAE 0.01778；热对比方向正确。
+
+## EQ-W01-MisIndexed repeat-01
+
+初始承诺检验档案稀释量与浓度控制；v2 在四批后区分方向与幅度，v3 用条件性的有效 pKa≈4.64 拒绝档案5.33–5.43。浓度匹配对的尺度残差没有被升级为定律，而是保留未决。这里存在对先验的实质修订，不能把后测极稀失准写成始终照搬错误档案；需另追踪局部拟合怎样被外推。
+
+> Thus strict concentration-only invariance is unresolved, not established.
+
+出处：[笔记 v3](repeat-01/EQ-W01-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/EQ-W01-MisIndexed-reports.md)；[执行与结果](repeat-01/EQ-W01-MisIndexed.json)。
+
+最低名义浓度 0.0125 M；极稀三题 MAE 0.18631。
+
+## EQ-W01-MisIndexed repeat-02
+
+九批后的v2将单调弱酸预期收窄为平台，既没有确认小到噪声内的档案效应，也没有用等浓度相似直接证明浓度控制。笔记安排高浓度尺度匹配和重复，但来源在第11批因用量记账校验中断；没有最终笔记或后测。只能描述已有中期修订，不外推其最终理解或把缺测计为预测错误。
+
+> However, broad response invariance also fits a weakly coupled or misidentified loading variable, so concentration control is not uniquely identified.
+
+出处：[笔记 v2](repeat-02/EQ-W01-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-02/EQ-W01-MisIndexed-reports.md)；[执行与结果](repeat-02/EQ-W01-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 缺测。
+缺失阶段：K1, Q, K2, EQS。
+
+## EQ-W01-MisIndexed repeat-03
+
+四版笔记保留两次独立稀释对、十批后提出最后尺度匹配检验、终态解释。公开修订从拒绝档案效应幅度，到拒绝其pKa区间，仍不把条件性参数变成分子机制。末对无显著尺度差也没有被写成精确等价；可和同世界R1的相似修订、R2的技术中断并列。
+
+> That summary is phenomenological, not proof of an ideal monoprotic mechanism.
+
+出处：[笔记 v4](repeat-03/EQ-W01-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-03/EQ-W01-MisIndexed-reports.md)；[执行与结果](repeat-03/EQ-W01-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.17253。
+
+## EQ-W02-MisIndexed repeat-01
+
+v2 在24步后提出 component 0 才是有效酸坐标的竞争解释，随后执行该坐标的稀释与浓度匹配检验；v3 没有发现更强响应，搁置映射解释。明确注意破坏性采样及前后仪器不同，未将微小数值差当成动力学证据。是有预期、有行动、有保留判断的正例；不说明真实隐变量已被识别。
+
+> The suspected indexing ambiguity remains observationally equivalent to strong buffering/weak coupling here.
+
+出处：[笔记 v3](repeat-01/EQ-W02-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/EQ-W02-MisIndexed-reports.md)；[执行与结果](repeat-01/EQ-W02-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.17803。
+
+## EQ-W02-MisIndexed repeat-02
+
+v2在六批后将后半程改为component 0的装料×体积交叉设计；v3报告仍近平台，没有找到替代活性坐标。对档案从不支持改为重复均值方向相容但未精确验证，说明判断并非单向变得更笃定。后测外推应与这种公开的局部不确定性逐项核对，不能以修改假说次数代理学到了多少。
+
+> A monotonic response with component concentration would support this mapping; continued flatness would favor a bounded response insensitive to both accessible loadings in this scope.
+
+出处：[笔记 v2](repeat-02/EQ-W02-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-02/EQ-W02-MisIndexed-reports.md)；[执行与结果](repeat-02/EQ-W02-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.18604。
+
+## EQ-W02-MisIndexed repeat-03
+
+首对解离差值碰巧贴近档案，重复/稀释终点方向改变，v3明确未建立可重复局部效应；同时用有效pKa约4.838与档案5.149–5.249的不一致提出多种解释。component替换也未识别活性坐标。该场展示数字相符并未必被当成确认，后测仍需单独判断。
+
+> Report near-flat empirical responses over the explored grid rather than force the archival dilution law or an ideal weak-acid concentration model.
+
+出处：[笔记 v3](repeat-03/EQ-W02-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-03/EQ-W02-MisIndexed-reports.md)；[执行与结果](repeat-03/EQ-W02-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.18310。
+
+## EQ-W03-MisIndexed repeat-01
+
+v2 认为局部稀释均值支持档案，v3 看到高装料平台后挑战全局浓度定律，并在后续匹配对中检验尺度等价性。最终同时保留局部方向、平台描述和机制未决，未宣布统一定律。适合研究文字范围限定如何进入Q；最后EQS缺失不抹去已存在的源笔记、K1/Q/K2。
+
+> It should not be extrapolated as a universal law.
+
+出处：[笔记 v4](repeat-01/EQ-W03-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-01/EQ-W03-MisIndexed-reports.md)；[执行与结果](repeat-01/EQ-W03-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.13845。
+缺失阶段：EQS。
+
+## EQ-W03-MisIndexed repeat-02
+
+该场把档案局部差分和参数解释拆开：稀释方向/幅度近似相容，但条件性的pKa估算均值5.015不落在4.609–4.709。又用多个尺度匹配对保留局部浓度近似，拒绝强全局弱酸斜率；末次跨仪器反向差分未被当作决定性反证。适合展示同一份先验可以部分有用、部分被修订。
+
+> Thus the archival delta can remain locally predictive while its stated pKa interval is not supported by these public channels.
+
+出处：[笔记 v3](repeat-02/EQ-W03-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-02/EQ-W03-MisIndexed-reports.md)；[执行与结果](repeat-02/EQ-W03-MisIndexed.json)。
+
+最低名义浓度 0.00833333 M；极稀三题 MAE 0.15885。
+
+## EQ-W03-MisIndexed repeat-03
+
+前四批重复支持局部档案差分，六点装料扫掠未支持强弱酸浓度律，末尾component检查一项方向保持、一项未保持，均被限制解释范围。这个同世界第三次会话再次保留局部经验而不确认全局机理；局部重复读数与R1相同来自固定噪声映射，不算新的随机测量独立证据。
+
+> This is a local empirical response, not evidence for a universal law.
+
+出处：[笔记 v3](repeat-03/EQ-W03-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-03/EQ-W03-MisIndexed-reports.md)；[执行与结果](repeat-03/EQ-W03-MisIndexed.json)。
+
+最低名义浓度 0.0138889 M；极稀三题 MAE 0.15848。
+
+## EQ-W04-MisIndexed repeat-01
+
+这是新块最清楚的竞争检验之一：v2 区分pH符合档案与解离变化未决，v3 在40步后预测 component 0 应显著改变响应；最后两批分别做组分替换和大剂量加标。v4 记录响应仍在原范围，撤回所检验的组分映射解释。后测是否正确是另一读出，不能用后测误差否认此次实际修订，也不能将文本—行动时序当作文本的因果效果。
+
+> A null component response would instead favor an internally buffered/invariant world.
+
+出处：[笔记 v3](repeat-01/EQ-W04-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/EQ-W04-MisIndexed-reports.md)；[执行与结果](repeat-01/EQ-W04-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.14234。
+
+## EQ-W04-MisIndexed repeat-02
+
+v2在十批后提出两点component检验及预期；v3报告没有较大有序变化，因而不支持新映射。笔记明确两点检验、单对档案检验的分辨率限制，并保留潜在背景/缓冲等多解。是另一独立会话中的假说提出—检验—未获支持链，不是对真实机制的唯一识别。
+
+> In batches 11–12 I will hold water volume at 0.060 L and vary component 0 from 0.012 to 0.036 mol.
+
+出处：[笔记 v2](repeat-02/EQ-W04-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-02/EQ-W04-MisIndexed-reports.md)；[执行与结果](repeat-02/EQ-W04-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.14730。
+
+## EQ-W04-MisIndexed repeat-03
+
+v2因单个锚点的微小反向差分直接标记档案关系被拒绝，证据强度并不充分；v3看到三个较高装料稀释对解离方向一致，又收窄为特定范围内的定性趋势。此例同时有修订和对局部反证强度的过度表述，应保留为认识形成中的边界案例，而非仅挑错误先验被拒绝作正例。
+
+> therefore the specific archival local relationship is rejected for this campaign rather than generalized.
+
+出处：[笔记 v2](repeat-03/EQ-W04-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-03/EQ-W04-MisIndexed-reports.md)；[执行与结果](repeat-03/EQ-W04-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.10860。
+
+## EQ-W05-MisIndexed repeat-01
+
+初始将匿名试剂视为档案酸坐标；v2 在九批后质疑该映射并安排 component 0 替换，末三批仍给近平台，v3 因而反对重映射。最终承认稀释方向很弱、pKa未独立建立，并限制水相和温度范围。形成的是受限的经验与排除，而非全局机理；保留它与极稀预测之间的差异。
+
+> Therefore the prior is at most local and cannot be used as a broad concentration law here.
+
+出处：[笔记 v3](repeat-01/EQ-W05-MisIndexed-notebook.md#revision-3)；[K1 Q K2](repeat-01/EQ-W05-MisIndexed-reports.md)；[执行与结果](repeat-01/EQ-W05-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.06752。
+
+## EQ-W05-MisIndexed repeat-02
+
+前两组低装料对支持稀释方向，较高装料解离对比反向后v3收窄规律，并安排最后四批component交叉检验。最终分别拒绝档案pKa映射、保留弱局部pH方向及平台、多解解释。这里有证据改变判断的正向过程；笔记自称pre-registered仅为其事前公开承诺，不是作者新增预注册实验。
+
+> The archive therefore appears mis-indexed or based on a different effective coordinate; it should be rejected for this observed channel pairing.
+
+出处：[笔记 v4](repeat-02/EQ-W05-MisIndexed-notebook.md#revision-4)；[K1 Q K2](repeat-02/EQ-W05-MisIndexed-reports.md)；[执行与结果](repeat-02/EQ-W05-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.11362。
+
+## EQ-W05-MisIndexed repeat-03
+
+仅初始和终态两版，不能定位中间何时改变策略。终态把档案pKa和定性稀释方向拆开，条件性有效值5.30–5.42与档案4.609–4.709不符；重复差异使浓度塌缩保持未决。可以证明终态的有范围修订，不能倒填其逐批形成时点。
+
+> Decision: reject the archival pKa interval as a direct joint-channel descriptor in this sampled scope, while retaining its qualitative dilution prediction.
+
+出处：[笔记 v2](repeat-03/EQ-W05-MisIndexed-notebook.md#revision-2)；[K1 Q K2](repeat-03/EQ-W05-MisIndexed-reports.md)；[执行与结果](repeat-03/EQ-W05-MisIndexed.json)。
+
+最低名义浓度 0.0185185 M；极稀三题 MAE 0.10662。
