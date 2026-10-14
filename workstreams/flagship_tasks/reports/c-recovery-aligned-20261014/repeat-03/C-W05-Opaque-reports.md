@@ -14,7 +14,7 @@ The measured seed-excluded crystal recovery is
 
 A useful approximate decomposition is
 
-**Y_crystal ≈ Y_reaction × F_capture**, 
+**Y_crystal ≈ Y_reaction × F_capture**,
 
 where `Y_reaction` is the chemically produced target yield and `F_capture` is the fraction subsequently crystallized and retained. This is an interpretive mass-balance relation rather than a fitted kinetic law; assay noise and impurities prevent exact factorization.
 

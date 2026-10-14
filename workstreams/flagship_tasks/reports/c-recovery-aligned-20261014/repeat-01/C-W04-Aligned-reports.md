@@ -29,7 +29,7 @@ A minimal conceptual reaction model is
 
 **dR/dt = −k(T,C,S)R**
 
-**dP/dt = k₁(T,C,S)R − k₂(T,C,S)P**, 
+**dP/dt = k₁(T,C,S)R − k₂(T,C,S)P**,
 
 where the second term represents conversion of target product to byproducts or degradation products. The experiments do not identify these rate laws, but they explain why temperature and residence time must be considered together rather than independently.
 
