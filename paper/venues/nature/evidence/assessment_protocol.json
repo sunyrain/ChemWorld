@@ -1,0 +1,336 @@
+{
+  "queries": [
+    {
+      "query_id": "Q01",
+      "coverage": [
+        "near_domain",
+        "low_loading"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.02
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.0003
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "coverage": [
+        "concentration_volume_decoupling",
+        "same_concentration_pair"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.0006
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "coverage": [
+        "concentration_volume_decoupling",
+        "fixed_amount_dilute"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.075
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 1e-05
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "coverage": [
+        "concentration_volume_decoupling",
+        "fixed_amount_concentrated"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.006
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 1e-05
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "coverage": [
+        "two_stage_dosing",
+        "interleaved_accumulation"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.001
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.001
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "coverage": [
+        "two_stage_dosing",
+        "solvent_first_accumulation",
+        "equivalent_explanation"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.001
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.001
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "coverage": [
+        "two_stage_dosing",
+        "reagent_before_final_dilution",
+        "equivalent_explanation"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.002
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.012
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "coverage": [
+        "dissociation_precipitation_competition",
+        "dilute_trace_loading"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.075
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 1e-06
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "coverage": [
+        "dissociation_precipitation_competition",
+        "concentrated_trace_loading"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.006
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 1e-06
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "coverage": [
+        "boundary_extrapolation",
+        "high_concentration_high_amount"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.006
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.04
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "coverage": [
+        "boundary_extrapolation",
+        "high_volume_high_amount"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.075
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.04
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "coverage": [
+        "interval_calibration",
+        "interior_holdout"
+      ],
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.033
+        },
+        {
+          "operation": "add_reagent",
+          "amount_mol": 0.0045
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "operation": "measure",
+          "instrument": "final_assay"
+        }
+      ]
+    }
+  ],
+  "evaluation_prompts": {
+    "K1": "Using only the information available to you, submit a complete scientific account in English\nof this bounded aqueous-equilibrium world: loading, volume or dilution, pH, acid dissociation,\nprecipitation, possible relationships, uncertainty, supported ranges and competing explanations.\nDistinguish public background information, actual observations, inference and conjecture. Cite\nbatch numbers and values only if you actually observed them; if you have no experimental\nobservations, say so explicitly and do not invent evidence. No additional laboratory access.\nReturn the JSON report field. Prediction questions will be revealed only after this report seals.",
+    "Q": "Using only available information and your sealed K1 account, predict the final outcomes\nof these twelve independent new batches. Each starts independently from the same world.\nReturn all requested point estimates, 80% prediction intervals and substantive English rationales.\nAccount for model and observation uncertainty. No experiments or revisions to K1 are permitted.\nequilibrium_confidence is an environment diagnostic, not your uncertainty or a task score.",
+    "K2": "K1 and Q are sealed; no prediction truth or scores have been shown. In English discuss:\n1. What relationships are supported, contradicted or untested by the information available?\n2. Which actual observations changed your account, if any? Explicitly state if there were none.\n3. Which competing explanations remain distinguishable or unresolved?\n4. What single legal experiment would you choose next, and how would possible results differ?\n5. What are the limits of the available evidence for the characterization objective?\n6. Which Q forecasts are least reliable or inconsistent with your stated scope?\n7. What limits generalization to new loading, dilution, paths and worlds?\nDo not invent experiments, run new ones or rewrite K1/Q. Return the JSON report field.",
+    "EQS": "K1, Q, and K2 are sealed, and no prediction truth, hidden parameter, arm label, or score has been shown. Complete the EQ-specific structured supplement in English using only information available to you; explicitly state when there are no observations. Do not run an experiment and do not revise K1, Q, or K2.\n\n1. Give one estimate and an 80% interval for the world's effective pKa if it is identifiable from your evidence. If it is not identifiable, abstain explicitly and explain the principal confounding factors.\n2. Assess whether the final public responses are predominantly determined by the final amount/volume state or show reproducible dependence on staged-addition path. Cite actual batches only if observed and distinguish evidence from conjecture.\n3. Assess whether the observed dissociation–precipitation relationship is continuous, threshold-like, mixed, or not identifiable within the studied range. State the supported range and the most important competing explanation.\n\nReturn the complete EQ supplement JSON. All rationale fields must be in English."
+  },
+  "source": "Public assessment subset of the retained execution design"
+}

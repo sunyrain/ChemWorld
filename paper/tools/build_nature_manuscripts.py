@@ -109,7 +109,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         refs = "参考文献" if chinese else "References"
         text = opening + "\n\n\\MainStart\n\n" + body
         text += "\n\n\\clearpage\n\\onecolumn\n\n# " + refs + "\n\n::: {#refs}\n:::\n\n"
-        text += "\\clearpage\n\n" + methods + "\n\n\\clearpage\n\n" + extended
+        text += "\\clearpage\n\n" + methods + "\n\n\\Needspace{.70\\textheight}\n\n" + extended
     source = BUILD / (stem + ".md")
     source.write_text(text, encoding="utf-8")
     body_path = BUILD / (stem + "-body.tex")
@@ -134,7 +134,8 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     else:
         opening_tex, latex = latex.split(r"\MainStart", 1)
     latex = re.sub(
-        r"\\includegraphics(?:\[[^\]]*\])?\{(figures/[^}]+)\}",
+        # Pandoc's alt text can itself contain brackets (e.g. prediction intervals).
+        r"\\includegraphics(?:\[[^\n]*?\])?\{(figures/[^}]+)\}",
         r"\\includegraphics[width=\\linewidth,height=.68\\textheight,keepaspectratio]{../\1}",
         latex,
     )

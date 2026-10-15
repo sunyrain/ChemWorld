@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 import json
 import re
 from collections import Counter
@@ -16,6 +17,122 @@ METRICS = {
     "crystal_size": "Size index",
     "crystal_fines_fraction": "Fines",
 }
+EQ_RESPONSES = {
+    "pH_normalized": "Normalized pH",
+    "acid_dissociation_fraction": "Dissociation",
+    "precipitation_signal": "Precipitation",
+}
+
+
+def response_tables(means):
+    """Expose response contributions and repeat variation, retaining missing cells."""
+    with (DEST / "evidence/opportunity_session_responses.csv").open(
+        encoding="utf-8", newline=""
+    ) as stream:
+        sessions = list(csv.DictReader(stream))
+    with (DEST / "evidence/opportunity_world_responses.csv").open(
+        encoding="utf-8", newline=""
+    ) as stream:
+        worlds = list(csv.DictReader(stream))
+    assert len(sessions) == 270 and len(worlds) == 90
+    lines = [
+        "### Response-specific point errors",
+        "",
+        "Within each world, valid sessions receive equal weight; worlds then receive equal "
+        "weight. The macro error averages the three response errors. Differences are "
+        "Research minus NoResearch, so positive values favour NoResearch. All/dilute/other "
+        "contain twelve/three/nine queries. These are descriptive repeated-session results, "
+        "not estimates from independent world samples.",
+        "",
+        table(
+            ["Group", "Response", "Research", "NoResearch", "Difference"],
+            [
+                [
+                    group,
+                    label,
+                    fmt(means["Research"][group]["metrics"][response]["mae"]),
+                    fmt(means["NoResearch"][group]["metrics"][response]["mae"]),
+                    fmt(
+                        means["Research"][group]["metrics"][response]["mae"]
+                        - means["NoResearch"][group]["metrics"][response]["mae"]
+                    ),
+                ]
+                for group in ("all", "dilute", "other")
+                for response, label in EQ_RESPONSES.items()
+            ],
+        ),
+        "",
+        "Dissociation accounts for 85.2% of the dilute macro-MAE increase, calculated "
+        "as its response difference divided by the sum of the three response differences. "
+        "This decomposition is not a claim that every session or query deteriorates. "
+        "Interval outcomes below also distinguish point prediction from uncertainty quality.",
+        "",
+    ]
+    for group in ("all", "dilute", "other"):
+        lookup = {
+            (r["world"], r["opportunity"], r["response"]): r
+            for r in worlds
+            if r["query_group"] == group
+        }
+        lines += [
+            f"### Within-world response means: {group} queries",
+            "",
+            table(
+                ["World", "Arm", "Valid n/3", *EQ_RESPONSES.values()],
+                [
+                    [
+                        world[1:],
+                        arm,
+                        lookup[world, arm, "pH_normalized"]["valid_sessions"],
+                        *[
+                            fmt(float(lookup[world, arm, response]["mae"]))
+                            for response in EQ_RESPONSES
+                        ],
+                    ]
+                    for world in ("W01", "W02", "W03", "W04", "W05")
+                    for arm in ("Research", "NoResearch")
+                ],
+            ),
+            "",
+        ]
+    for group in ("all", "dilute"):
+        lookup = {
+            (r["world"], r["opportunity"], r["repeat"], r["response"]): r
+            for r in sessions
+            if r["query_group"] == group
+        }
+        lines += [
+            f"### Every planned session: {group} response errors",
+            "",
+            table(
+                ["World", "Arm", "Repeat", *EQ_RESPONSES.values()],
+                [
+                    [
+                        world[1:],
+                        arm,
+                        repeat[-1],
+                        *[
+                            fmt(float(r["mae"]) if r["mae"] else None)
+                            for response in EQ_RESPONSES
+                            for r in [lookup[world, arm, repeat, response]]
+                        ],
+                    ]
+                    for world in ("W01", "W02", "W03", "W04", "W05")
+                    for arm in ("Research", "NoResearch")
+                    for repeat in ("repeat-01", "repeat-02", "repeat-03")
+                ],
+            ),
+            "",
+        ]
+    lines += [
+        "The review archive also supplies every session's other-query results, coverage, "
+        "interval width and interval score. Its 1,044 query-response rows retain the point "
+        "estimate, stated 80% interval and withheld reference mean for all 29 valid forecasts. "
+        "Nine empty session/group/response cells belong to the single missing forecast; "
+        "they are neither zero errors nor additional failed sessions.",
+        "",
+    ]
+    return lines
 
 
 def read(path):
@@ -186,6 +303,7 @@ def main():
     assert len(references["sessions"]) == 45 and references["valid_sessions"] == 42
     assert sum(not r["missing_stages"] for r in current) == 80
     assert sum("Q" in r["sealed_stages"] for r in current) == 83
+    review = read(DEST / "evidence/summary.json")
     lines = [
         "# Supplementary Information",
         "",
@@ -200,6 +318,12 @@ def main():
         "sessions and opportunity sessions are not pooled into one performance estimate. "
         "Reference batches, recipe retests, windows and repeated observations do not add "
         "researcher sessions. All failures remain in planned denominators.",
+        "",
+        "A portable review archive accompanies these tables. It contains the full public "
+        "initial contexts, exact query/session/world response tables, the continuous "
+        "equilibrium study, every adjacent notebook pair, quotation/action anchors and all "
+        "ninety current public process histories. The package supports source inspection; "
+        "it is not an independent recoding or a persistent public deposit.",
         "",
         table(
             ["Evidence layer", "Planned sessions", "Complete chains", "Valid forecasts"],
@@ -296,6 +420,27 @@ def main():
             ],
         ),
         "",
+        "### Initial choices in corrected crystallization",
+        "",
+        table(
+            ["Information", "Planned sessions", "First solvent counts", "First catalyst counts"],
+            [
+                [
+                    g["arm"],
+                    g["n"],
+                    *[
+                        "; ".join(
+                            ("None" if k == "None" else prefix + k) + f": {v}"
+                            for k, v in sorted(g["first_choices"][field].items())
+                        )
+                        for field, prefix in (("first_solvent", "S"), ("first_catalyst", "C"))
+                    ],
+                ]
+                for g in paths["groups"]
+                if g["system"] == "C"
+            ],
+        ),
+        "",
         "## Current process windows",
         "",
         "All 34 equilibrium and 58 corrected crystallization windows are included below. "
@@ -304,6 +449,34 @@ def main():
         "Public statements, new observations and committed actions are checked separately. "
         "Matched plans do not prove causal effects of notebook text. Review is single-analyst; "
         "there is no independent second-rater estimate.",
+        "",
+        "### Eligibility before semantic plan matching",
+        "",
+        "All 268 notebook versions yield 178 adjacent pairs, each with at least one new "
+        "committed final assay between notes. A pair enters the action-linked analysis "
+        "only when a committed research operation follows the later note; measurement "
+        "and termination alone do not count. This timing rule is evaluated before "
+        "matching the meaning of a selected plan to an action. It does not require that "
+        "plan to succeed, but it does condition the sample on continued committed research.",
+        "",
+        table(
+            ["System", "Adjacent pairs", "Included", "No later research action"],
+            [
+                [system, v["adjacent_pairs"], v["included"], v["no_continuation"]]
+                for system, v in review["by_system"].items()
+            ]
+            + [["Total", 178, 92, 86]],
+        ),
+        "",
+        "All 92 eligible windows are coded: 83 selected plans match, seven partly match "
+        "and two have no explicit next plan. A label concerns one selected immediate "
+        "plan, not every proposal in that note. Full records retain rejected, abandoned "
+        "and changed proposals, including those in otherwise matched windows. Terminal "
+        "revisions in the 86 excluded pairs remain inspectable and are not designated "
+        "as failures to learn. All 182 quotations and their temporal anchors are checked "
+        "against the recorded versions.",
+        "",
+        "### All eligible windows",
         "",
         table(
             ["System", "Session", "Versions", "New batches", "Action link"],
@@ -358,12 +531,12 @@ def main():
                     "Revision without operational improvement",
                 ],
                 [
-                    "Corrected C, 02/A/2",
+                    "Seed case B: corrected C, 02/A/2",
                     "Only 0.05 g seed commits; high-dose test withdrawn",
                     "Correctly recognizes unexecuted intervention",
                 ],
                 [
-                    "Corrected C, 03/A/3",
+                    "Seed case C: corrected C, 03/A/3",
                     "Rejected seed additions described as a 1 g test",
                     "Negative evidence lacks the claimed intervention",
                 ],
@@ -378,7 +551,7 @@ def main():
                     "Uncertainty awareness and recommendation failure coexist",
                 ],
                 [
-                    "Opportunity, world 1, Research repeat 1",
+                    "Equilibrium study A: opportunity world 1, Research repeat 1",
                     "Initial trend revised; component tests; dilute forecast",
                     "Bounded local relation weighted in unresolved extrapolation",
                 ],
@@ -394,7 +567,10 @@ def main():
         "supported fixed acidic background”. The world-1 Research repeat-1 dilute estimate "
         "is 0.085 [0.035, 0.350], versus reference mean 0.716032; the corresponding NoResearch "
         "estimate is 0.569 [0.040, 0.980]. The researcher acknowledges the untested boundary. "
-        "This does not establish a self-confirmation cycle.",
+        "This is the new opportunity-comparison case, not the historical case with "
+        "prediction 0.092 and reference 0.51730. The archive preserves both matched "
+        "study-A sessions with full notes, operations and assessments. Neither the "
+        "single trajectory nor its matched outcome establishes a self-confirmation cycle.",
         "",
         "## Source-only forecast references",
         "",
@@ -461,6 +637,20 @@ def main():
         "network stream failure. All source records and K1 are retained. No replacement "
         "was made. This is a total research-package effect, not a notebook ablation.",
         "",
+        "### Initial scientific information",
+        "",
+        "All thirty sessions use Opaque information. The exact public inputs contain "
+        "the task and goals, response definitions, material catalogue, legal operations "
+        "and instruments, resource limits and initial public state. The instance archival "
+        "prior is null: no additional fitted local law or world-specific dossier is supplied. "
+        "This does not remove public chemical framing or the model's pretrained knowledge. "
+        "The archive includes all thirty full initial contexts. Fifteen within-world/repeat "
+        "comparisons verify equality after removing only the campaign identifier. Research "
+        "then receives twelve source batches and the notebook opportunity; NoResearch "
+        "receives no source observations. Assessment prompts, order and restrictions match.",
+        "",
+        "### Session-level macro errors",
+        "",
         table(
             ["World", "Repeat", "Opportunity", "Batches", "All MAE", "Dilute MAE", "Other MAE"],
             [
@@ -494,6 +684,7 @@ def main():
             ],
         ),
         "",
+        *response_tables(means),
         "### Interval outcomes",
         "",
         "Nominal 80% intervals; equal-world means. Lower interval score is better. "
