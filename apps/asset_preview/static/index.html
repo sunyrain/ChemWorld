@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>ChemWorld · 仪器预览</title>
+  <link rel="stylesheet" href="/style.css">
+  <script type="importmap">{"imports":{"three":"/vendor/three.module.js"}}</script>
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <header class="topbar"><a class="brand" href="/">C<span>·</span> <strong>ChemWorld</strong><small>仪器预览</small></a><div class="toplinks"><span class="badge">本地 · 可选资产</span><a href="https://github.com/mbzuai-nlp/ChemLab-Assets" target="_blank" rel="noreferrer">ChemLab-Assets ↗</a></div></header>
+  <main>
+    <section class="heading"><div><p class="eyebrow">THE INSTRUMENT BENCH</p><h1>把实验里的仪器，看清楚。</h1><p class="intro">转动视角，查看部件，试着打开样品舱。已有实验的公开记录可在下方同步阅览。</p></div><div class="count"><strong>03</strong><span>首批仪器<br>本地按需加载</span></div></section>
+    <div class="workspace">
+      <aside class="library"><h2>仪器架 <span>3</span></h2><div id="instruments"></div><div class="library-note"><span class="dot"></span> 几何与部件来自 ChemLab-Assets<p>手动关节仅展示外观动作。型号名称用于标识资产，不表示 ChemWorld 已模拟该型号的性能。</p></div></aside>
+      <section class="stage-card" aria-label="三维仪器查看器"><div class="stage-heading"><div><p id="maker" class="eyebrow">CHEMLAB-ASSETS</p><h2 id="model-title">正在准备仪器…</h2></div><span id="model-status" class="badge">载入中</span></div>
+        <div id="viewport" tabindex="0" aria-label="三维模型：拖动旋转，滚轮缩放，点击部件"><div id="loading" role="status">正在连接本地资产…</div><div id="pick-label" hidden></div></div>
+        <div class="stage-tools"><span>拖动旋转 · 滚轮缩放 · 点击部件</span><div><button id="fit">重置视角</button><button id="wire" aria-pressed="false">线框</button><button id="rotate" aria-pressed="false">自动旋转</button></div></div>
+        <div class="model-stats" id="model-stats"></div>
+        <p class="model-caption">屏幕文字为资产原始外观；ChemWorld 实际观测在下方公开记录中显示。</p>
+      </section>
+      <aside class="inspector"><div class="inspector-title"><h2>部件与动作</h2><button id="reset-joints">复位</button></div><label for="component">选择部件</label><select id="component"><option value="">点击模型或在这里选择</option></select><p id="component-description">选择一个部件，查看上游提供的用途说明。</p><h3>关节试用 <span>外观示意</span></h3><div id="joints"></div><p class="muted">旋钮、舱盖与按键的动作不会提交实验，也不会生成测量值。</p><details><summary>资产来源与使用范围</summary><p>模型及部件元数据 © 2026 Zirui Song, Jiadong Zhang, Jiahao Zhang, Xiaojun Chang, Xiaosong Ma, Xiuying Chen / MBZUAI。</p><p>原模型未修改；本页增加独立查看器与公开记录映射。资产仅按 CC BY-NC 4.0 用于非商业用途。</p><a href="/licenses/LICENSE-ASSETS.md" target="_blank">资产许可</a> · <a href="/licenses/NOTICE.md" target="_blank">第三方说明</a><p>加载器与关节适配参考上游 MIT 代码；Three.js 为 MIT。本页不是实体仪器控制器。</p></details></aside>
+    </div>
+    <section class="record-card"><div class="record-heading"><div><p class="eyebrow">PUBLIC OBSERVATIONS</p><h2>用一段已有实验，试试显示联动</h2><p>读取仓库已有的 8 步 Core 开发示例；拖动只改变阅览时点。</p></div><button id="record-toggle" class="primary" aria-expanded="false">查看公开记录</button></div><div id="record-body" hidden><div class="timeline-controls"><button id="previous" aria-label="上一步">←</button><input id="timeline" aria-label="实验记录步骤" type="range" min="0" max="8" step="1" value="0"><button id="next" aria-label="下一步">→</button><output id="step-label">0 / 8</output></div><div class="record-content"><div><span class="eyebrow">所选记录</span><h3 id="operation">初始状态</h3><p id="mapping"></p></div><div><span class="eyebrow">截至本步的公开观测 · 包含沿用值</span><div id="observations"></div></div></div><details><summary>查看本步原始公开报告</summary><pre id="public-report"></pre></details></div></section>
+    <footer><span>CHEMWORLD × CHEMLAB-ASSETS</span><p>资产预览与实验记录分别保留来源。几何外观、关节动作与仪器型号不构成新的化学验证。</p><a href="https://huggingface.co/datasets/MBZUAI/ChemLab-Assets" target="_blank" rel="noreferrer">数据集与引用 ↗</a></footer>
+  </main>
+</body>
+</html>

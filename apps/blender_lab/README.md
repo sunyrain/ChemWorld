@@ -1,5 +1,10 @@
 # Blender laboratory
 
+Optional external instruments: [ChemLab-Assets three-instrument preview](../asset_preview/README.md)
+provides a separate local viewer for a hotplate stirrer, pH meter and UV-Vis instrument.
+It uses an optional CC BY-NC asset cache and existing public example records; it does not
+replace this scene or its chemistry/logistics behavior.
+
 An optional local 3D interface for ChemWorld, with a mobile manipulator, a sealed demonstration
 sample, and generic environment contracts. The editable scene has 36 addressable assets.
 
