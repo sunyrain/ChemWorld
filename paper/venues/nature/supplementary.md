@@ -1,420 +1,646 @@
 # Supplementary Information
 
-## Study organization
+## Evidence organization and units
 
-The broad study (300 campaigns), earlier selected notebook studies (24 sessions), and repeated process cohort (90 sessions) retain separate denominators and execution provenance. Reference batches, recommendation retests and fixed-recipe controls are not researcher sessions. The process cohort retains 84 complete chains, 1,079/1,080 source batches, 298/315 assessment stages and 86 valid forecast stages. Notebook reading covers all 284 revisions, but qualitative interpretation is by one analyst and selected cases do not establish mechanism prevalence. The separate main-text PDF and this Supplementary Information form one reading package; the main-text file alone does not contain the full tables.
+The main manuscript follows experimental tractability, organization of inquiry, formation of judgments and scientific progress. Tables below use retained machine summaries. Current process evidence combines original equilibrium (45) and corrected-recovery crystallization (45), not old plus new crystallization. A separate thirty-session opportunity comparison uses a common assessment protocol. The 300 historical campaigns, 24 earlier selected notebook sessions, current process sessions and opportunity sessions are not pooled into one performance estimate. Reference batches, recipe retests, windows and repeated observations do not add researcher sessions. All failures remain in planned denominators.
 
-## Recovery definitions and the affected readouts
+| Evidence layer | Planned sessions | Complete chains | Valid forecasts |
+| --- | --- | --- | --- |
+| Current equilibrium | 45 | 39 | 41 |
+| Corrected crystallization | 45 | 41 | 42 |
+| Current process total | 90 | 80 | 83 |
+| Opportunity: Research | 15 | 14 | 14 |
+| Opportunity: NoResearch | 15 | 15 | 15 |
 
-The full-process observation response used in source assays, recommendation retests and prediction references is seed-excluded solid target divided by the tracked initial reagent amount, clipped to [0,1]. It is distinct from the internal crystallization-stage metric and from the definition in the saved participant prompts.
+O/A/M denote Opaque/Aligned/MisIndexed. A session label is world/information/repeat. Dashes indicate missing values, never zero error. All point errors are descriptive. Worlds are fixed and repeated; model sampling seeds are unavailable.
 
-| Quantity or interface | Denominator | Role in the retained study |
-| --- | --- | --- |
-| Internal crystallization module | Target product before separation | Stage-recovery metric, subsequently overridden for full-process observation |
-| Source final assay | Tracked initial reagent amount | Noisy full-process observation provided to the researcher |
-| Recommendation and query reference | Tracked initial reagent amount | Noiseless full-process response captured before final-assay sampling |
-| Forecast evaluator | Same captured initial-charge response | Original errors and interval coverage; scores retained unchanged |
-| Source and forecast prompts | Target product before separation | Participant-facing description mismatched to the observed/scored output |
+## All current process sessions
 
-The numerator excludes seed, but matching numerators do not make these denominators equivalent. This mismatch occurs in both recorded process execution versions; it is not a verified historical-to-current normalization change. Recovery scores and joint quality/recovery counts remain reproducible protocol-affected diagnostics. They are not evidence of performance on an unambiguously specified recovery target. Particle/purity/fines feasibility is reported separately: 10/15 Opaque, 9/15 Aligned and 14/15 MisIndexed, compared with retained joint counts 9/15, 7/15 and 14/15. Purity and fines do not use the disputed denominator, but the research paths were generated under the original instructions. No original prediction, reference or score has been changed.
+### Equilibrium
 
-## Complete equilibrium process outcomes
+| Session | Batches /12 | Missing stages | All MAE | Dilute MAE | Other MAE |
+| --- | --- | --- | --- | --- | --- |
+| 01/A/1 | 12 | - | 0.052668 | 0.191398 | 0.006425 |
+| 01/A/2 | 12 | - | 0.013366 | 0.042342 | 0.003707 |
+| 01/A/3 | 12 | K1, Q, K2, EQS | - | - | - |
+| 01/M/1 | 12 | - | 0.051005 | 0.186309 | 0.005904 |
+| 01/M/2 | 11 | K1, Q, K2, EQS | - | - | - |
+| 01/M/3 | 12 | - | 0.047303 | 0.172531 | 0.005561 |
+| 01/O/1 | 12 | - | 0.055468 | 0.202375 | 0.006500 |
+| 01/O/2 | 12 | - | 0.034889 | 0.092235 | 0.015774 |
+| 01/O/3 | 12 | Q, K2, EQS | - | - | - |
+| 02/A/1 | 12 | - | 0.046184 | 0.169094 | 0.005213 |
+| 02/A/2 | 12 | - | 0.047423 | 0.166094 | 0.007866 |
+| 02/A/3 | 12 | - | 0.009328 | 0.013497 | 0.007938 |
+| 02/M/1 | 12 | - | 0.048791 | 0.178027 | 0.005712 |
+| 02/M/2 | 12 | - | 0.051751 | 0.186038 | 0.006989 |
+| 02/M/3 | 12 | - | 0.049981 | 0.183097 | 0.005609 |
+| 02/O/1 | 12 | - | 0.047968 | 0.175761 | 0.005371 |
+| 02/O/2 | 12 | - | 0.012009 | 0.015010 | 0.011009 |
+| 02/O/3 | 12 | - | 0.011507 | 0.014509 | 0.010506 |
+| 03/A/1 | 12 | - | 0.044575 | 0.162870 | 0.005144 |
+| 03/A/2 | 12 | - | 0.041547 | 0.153247 | 0.004313 |
+| 03/A/3 | 12 | - | 0.041469 | 0.155036 | 0.003613 |
+| 03/M/1 | 12 | EQS | 0.037336 | 0.138447 | 0.003632 |
+| 03/M/2 | 12 | - | 0.042584 | 0.158847 | 0.003830 |
+| 03/M/3 | 12 | - | 0.042863 | 0.158481 | 0.004323 |
+| 03/O/1 | 12 | - | 0.042162 | 0.141447 | 0.009067 |
+| 03/O/2 | 12 | - | 0.022738 | 0.012732 | 0.026073 |
+| 03/O/3 | 12 | - | 0.005889 | 0.011582 | 0.003992 |
+| 04/A/1 | 12 | - | 0.039170 | 0.142718 | 0.004655 |
+| 04/A/2 | 12 | - | 0.038560 | 0.140118 | 0.004707 |
+| 04/A/3 | 12 | Q, K2, EQS | - | - | - |
+| 04/M/1 | 12 | - | 0.039321 | 0.142340 | 0.004982 |
+| 04/M/2 | 12 | - | 0.042595 | 0.147296 | 0.007695 |
+| 04/M/3 | 12 | - | 0.029881 | 0.108596 | 0.003643 |
+| 04/O/1 | 12 | - | 0.015746 | 0.048096 | 0.004963 |
+| 04/O/2 | 12 | - | 0.040583 | 0.141429 | 0.006968 |
+| 04/O/3 | 12 | - | 0.033470 | 0.111207 | 0.007558 |
+| 05/A/1 | 12 | - | 0.034775 | 0.126396 | 0.004235 |
+| 05/A/2 | 12 | - | 0.035891 | 0.132063 | 0.003834 |
+| 05/A/3 | 12 | - | 0.036006 | 0.127640 | 0.005461 |
+| 05/M/1 | 12 | - | 0.023039 | 0.067523 | 0.008211 |
+| 05/M/2 | 12 | - | 0.032169 | 0.113618 | 0.005019 |
+| 05/M/3 | 12 | - | 0.028762 | 0.106618 | 0.002809 |
+| 05/O/1 | 12 | - | 0.039402 | 0.146302 | 0.003769 |
+| 05/O/2 | 12 | K2, EQS | 0.027960 | 0.087302 | 0.008179 |
+| 05/O/3 | 12 | - | 0.037545 | 0.134729 | 0.005150 |
 
-Each row is one independent model session within a fixed world and information condition. O/A/M denote Opaque/Aligned/MisIndexed. A dash is a missing forecast. All M sessions belong to the extension cohort; O/A sessions belong to the first cohort. MAEs average the three equilibrium response channels. The other-nine group is not an in-distribution control.
+### Crystallization with consistent recovery definition
 
-| World | Arm | Repeat | Batches | Other-nine MAE | Dilute MAE | Dilute coverage |
+Recovery means seed-excluded solid target divided by tracked initial reagent charge, clipped to [0,1]. It is not recovery relative to product before separation. Old predictions made under a different description are not substituted here. Size is the normalized public index, not micrometres.
+
+| Session | Batches /12 | Missing stages | Recovery MAE | Purity MAE | Fines MAE |
+| --- | --- | --- | --- | --- | --- |
+| 01/A/1 | 0 | K1, Q, K2 | - | - | - |
+| 01/A/2 | 12 | - | 0.115339 | 0.055450 | 0.295189 |
+| 01/A/3 | 12 | - | 0.133330 | 0.089617 | 0.324406 |
+| 01/M/1 | 12 | - | 0.124581 | 0.012121 | 0.415640 |
+| 01/M/2 | 12 | - | 0.069362 | 0.085450 | 0.282257 |
+| 01/M/3 | 12 | - | 0.040496 | 0.092117 | 0.281022 |
+| 01/O/1 | 12 | - | 0.022292 | 0.014601 | 0.473923 |
+| 01/O/2 | 12 | - | 0.042862 | 0.006213 | 0.374807 |
+| 01/O/3 | 12 | - | 0.077293 | 0.013302 | 0.263090 |
+| 02/A/1 | 12 | - | 0.111759 | 0.017250 | 0.169885 |
+| 02/A/2 | 12 | - | 0.076759 | 0.061482 | 0.315399 |
+| 02/A/3 | 12 | - | 0.129746 | 0.038149 | 0.263572 |
+| 02/M/1 | 12 | - | 0.149746 | 0.008048 | 0.355366 |
+| 02/M/2 | 12 | - | 0.093995 | 0.049815 | 0.379533 |
+| 02/M/3 | 12 | - | 0.080208 | 0.040649 | 0.324533 |
+| 02/O/1 | 12 | K2 | 0.045769 | 0.022334 | 0.372738 |
+| 02/O/2 | 12 | - | 0.091829 | 0.018565 | 0.390399 |
+| 02/O/3 | 12 | - | 0.196412 | 0.015380 | 0.395238 |
+| 03/A/1 | 12 | - | 0.123152 | 0.082770 | 0.397820 |
+| 03/A/2 | 12 | - | 0.134469 | 0.052404 | 0.329070 |
+| 03/A/3 | 12 | - | 0.034869 | 0.007131 | 0.339471 |
+| 03/M/1 | 12 | - | 0.065694 | 0.033687 | 0.342820 |
+| 03/M/2 | 12 | - | 0.078031 | 0.015796 | 0.325304 |
+| 03/M/3 | 12 | - | 0.126364 | 0.079853 | 0.307820 |
+| 03/O/1 | 12 | - | 0.195531 | 0.013328 | 0.305874 |
+| 03/O/2 | 12 | - | 0.108864 | 0.020796 | 0.380304 |
+| 03/O/3 | 12 | - | 0.145116 | 0.007203 | 0.306685 |
+| 04/A/1 | 12 | - | 0.078039 | 0.034210 | 0.291282 |
+| 04/A/2 | 12 | - | 0.108295 | 0.119460 | 0.346388 |
+| 04/A/3 | 12 | - | 0.034721 | 0.023627 | 0.317115 |
+| 04/M/1 | 12 | - | 0.032967 | 0.078627 | 0.379615 |
+| 04/M/2 | 12 | - | 0.073123 | 0.088627 | 0.227948 |
+| 04/M/3 | 0 | K1, Q, K2 | - | - | - |
+| 04/O/1 | 12 | - | 0.144967 | 0.015497 | 0.279968 |
+| 04/O/2 | 12 | - | 0.134807 | 0.014460 | 0.239615 |
+| 04/O/3 | 12 | - | 0.114550 | 0.008962 | 0.273462 |
+| 05/A/1 | 12 | - | 0.040578 | 0.056949 | 0.268231 |
+| 05/A/2 | 12 | - | 0.138265 | 0.018616 | 0.326565 |
+| 05/A/3 | 12 | - | 0.156345 | 0.040282 | 0.349065 |
+| 05/M/1 | 12 | - | 0.049862 | 0.064449 | 0.340731 |
+| 05/M/2 | 6 | K1, Q, K2 | - | - | - |
+| 05/M/3 | 12 | - | 0.181599 | 0.016077 | 0.319898 |
+| 05/O/1 | 12 | - | 0.094099 | 0.036949 | 0.292398 |
+| 05/O/2 | 12 | - | 0.112432 | 0.016594 | 0.209065 |
+| 05/O/3 | 12 | - | 0.164099 | 0.019449 | 0.282389 |
+
+### All incomplete current process chains
+
+| System | Session | Missing stages | Retained failure |
+| --- | --- | --- | --- |
+| EQ | 05/O/2 | K2, EQS | Assessment payload missing |
+| EQ | 01/O/3 | Q, K2, EQS | Assessment payload missing |
+| EQ | 01/A/3 | K1, Q, K2, EQS | Assessment payload missing |
+| EQ | 04/A/3 | Q, K2, EQS | Assessment payload missing |
+| EQ | 03/M/1 | EQS | Assessment payload missing |
+| EQ | 01/M/2 | K1, Q, K2, EQS | Source stopped when resource accounting could not be validated |
+| C | 01/A/1 | K1, Q, K2 | Source stopped at the configured provider-error limit |
+| C | 02/O/1 | K2 | Provider failure during K2 |
+| C | 05/M/2 | K1, Q, K2 | Source stopped at the configured provider-error limit |
+| C | 04/M/3 | K1, Q, K2 | Source stopped at the configured provider-error limit |
+
+## Research paths
+
+All 150 path records and fifty within-world contrasts are retained separately from the forecast cohorts. Counts use committed operations, including resuspension. Group means are descriptive and do not identify exploration as a cause.
+
+| System | Goal | Budget | Arm | Sessions | Solvents | Measurements |
 | --- | --- | --- | --- | --- | --- | --- |
-| 01 | O | 1 | 12 | 0.00650 | 0.20238 | 0.44444 |
-| 01 | O | 2 | 12 | 0.01577 | 0.09224 | 1.00000 |
-| 01 | O | 3 | 12 | - | - | - |
-| 01 | A | 1 | 12 | 0.00642 | 0.19140 | 0.00000 |
-| 01 | A | 2 | 12 | 0.00371 | 0.04234 | 0.77778 |
-| 01 | A | 3 | 12 | - | - | - |
-| 01 | M | 1 | 12 | 0.00590 | 0.18631 | 0.11111 |
-| 01 | M | 2 | 11 | - | - | - |
-| 01 | M | 3 | 12 | 0.00556 | 0.17253 | 0.00000 |
-| 02 | O | 1 | 12 | 0.00537 | 0.17576 | 1.00000 |
-| 02 | O | 2 | 12 | 0.01101 | 0.01501 | 0.91111 |
-| 02 | O | 3 | 12 | 0.01051 | 0.01451 | 1.00000 |
-| 02 | A | 1 | 12 | 0.00521 | 0.16909 | 0.00000 |
-| 02 | A | 2 | 12 | 0.00787 | 0.16609 | 0.11111 |
-| 02 | A | 3 | 12 | 0.00794 | 0.01350 | 1.00000 |
-| 02 | M | 1 | 12 | 0.00571 | 0.17803 | 0.00000 |
-| 02 | M | 2 | 12 | 0.00699 | 0.18604 | 0.00000 |
-| 02 | M | 3 | 12 | 0.00561 | 0.18310 | 0.00000 |
-| 03 | O | 1 | 12 | 0.00907 | 0.14145 | 0.11111 |
-| 03 | O | 2 | 12 | 0.02607 | 0.01273 | 0.91111 |
-| 03 | O | 3 | 12 | 0.00399 | 0.01158 | 1.00000 |
-| 03 | A | 1 | 12 | 0.00514 | 0.16287 | 0.00000 |
-| 03 | A | 2 | 12 | 0.00431 | 0.15325 | 0.00000 |
-| 03 | A | 3 | 12 | 0.00361 | 0.15504 | 0.00000 |
-| 03 | M | 1 | 12 | 0.00363 | 0.13845 | 0.60000 |
-| 03 | M | 2 | 12 | 0.00383 | 0.15885 | 0.00000 |
-| 03 | M | 3 | 12 | 0.00432 | 0.15848 | 0.00000 |
-| 04 | O | 1 | 12 | 0.00496 | 0.04810 | 0.80000 |
-| 04 | O | 2 | 12 | 0.00697 | 0.14143 | 0.66667 |
-| 04 | O | 3 | 12 | 0.00756 | 0.11121 | 0.80000 |
-| 04 | A | 1 | 12 | 0.00465 | 0.14272 | 0.00000 |
-| 04 | A | 2 | 12 | 0.00471 | 0.14012 | 0.00000 |
-| 04 | A | 3 | 12 | - | - | - |
-| 04 | M | 1 | 12 | 0.00498 | 0.14234 | 0.00000 |
-| 04 | M | 2 | 12 | 0.00769 | 0.14730 | 0.00000 |
-| 04 | M | 3 | 12 | 0.00364 | 0.10860 | 0.33333 |
-| 05 | O | 1 | 12 | 0.00377 | 0.14630 | 0.71111 |
-| 05 | O | 2 | 12 | 0.00818 | 0.08730 | 1.00000 |
-| 05 | O | 3 | 12 | 0.00515 | 0.13473 | 0.00000 |
-| 05 | A | 1 | 12 | 0.00424 | 0.12640 | 0.64444 |
-| 05 | A | 2 | 12 | 0.00383 | 0.13206 | 0.00000 |
-| 05 | A | 3 | 12 | 0.00546 | 0.12764 | 0.00000 |
-| 05 | M | 1 | 12 | 0.00821 | 0.06752 | 0.88889 |
-| 05 | M | 2 | 12 | 0.00502 | 0.11362 | 0.00000 |
-| 05 | M | 3 | 12 | 0.00281 | 0.10662 | 0.24444 |
+| C | optimization | 12 | Aligned | 15 | 2.933333 | 11.266667 |
+| C | optimization | 12 | MisIndexed | 15 | 2.400000 | 10.400000 |
+| C | optimization | 12 | Opaque | 15 | 4.000000 | 11.333333 |
+| EC | discovery | 12 | Aligned | 5 | 4.000000 | 12.000000 |
+| EC | discovery | 12 | MisIndexed | 5 | 3.800000 | 12.000000 |
+| EC | discovery | 12 | Opaque | 5 | 4.000000 | 12.000000 |
+| EC | discovery | 24 | Aligned | 5 | 4.000000 | 24.000000 |
+| EC | discovery | 24 | MisIndexed | 5 | 4.000000 | 24.000000 |
+| EC | discovery | 24 | Opaque | 5 | 4.000000 | 24.000000 |
+| EC | optimization | 12 | Aligned | 5 | 4.000000 | 7.600000 |
+| EC | optimization | 12 | MisIndexed | 5 | 3.200000 | 12.000000 |
+| EC | optimization | 12 | Opaque | 5 | 4.000000 | 12.000000 |
+| EC | optimization | 24 | Aligned | 5 | 4.000000 | 24.000000 |
+| EC | optimization | 24 | MisIndexed | 5 | 4.000000 | 24.000000 |
+| EC | optimization | 24 | Opaque | 5 | 4.000000 | 24.000000 |
+| EQ | characterization | 12 | Aligned | 15 | 1.000000 | 12.000000 |
+| EQ | characterization | 12 | MisIndexed | 15 | 1.000000 | 12.000000 |
+| EQ | characterization | 12 | Opaque | 15 | 1.000000 | 12.000000 |
 
-## Complete crystallization process outcomes
+## Current process windows
 
-All rows have twelve source batches and valid forecasts. Success applies the original joint recommendation criteria to the noiseless retest. All M sessions, and all W02/W04 sessions, belong to the extension cohort. Other O/A sessions belong to the first cohort. Recovery MAE and Success retain the implemented initial-charge target under the mismatched prompt, as detailed above; neither is a clean recovery-understanding readout.
+All 34 equilibrium and 58 corrected crystallization windows are included below. They occur in 30 and 35 sessions, respectively; fifteen and ten other sessions have no complete observable window. This is a recording denominator, not learning prevalence. Public statements, new observations and committed actions are checked separately. Matched plans do not prove causal effects of notebook text. Review is single-analyst; there is no independent second-rater estimate.
 
-| World | Arm | Repeat | Success | Purity MAE | Recovery MAE | Fines MAE |
-| --- | --- | --- | --- | --- | --- | --- |
-| 01 | O | 1 | No | 0.01514 | 0.07036 | 0.49144 |
-| 01 | O | 2 | Yes | 0.01494 | 0.19041 | 0.37607 |
-| 01 | O | 3 | Yes | 0.01529 | 0.05894 | 0.26897 |
-| 01 | A | 1 | No | 0.06045 | 0.20875 | 0.39186 |
-| 01 | A | 2 | No | 0.07045 | 0.08237 | 0.35256 |
-| 01 | A | 3 | Yes | 0.00811 | 0.16938 | 0.41231 |
-| 01 | M | 1 | Yes | 0.04269 | 0.07619 | 0.29191 |
-| 01 | M | 2 | Yes | 0.06712 | 0.14437 | 0.17320 |
-| 01 | M | 3 | Yes | 0.04295 | 0.05451 | 0.41392 |
-| 02 | O | 1 | No | 0.02065 | 0.05299 | 0.34607 |
-| 02 | O | 2 | Yes | 0.02067 | 0.21933 | 0.29524 |
-| 02 | O | 3 | Yes | 0.01292 | 0.15573 | 0.41107 |
-| 02 | A | 1 | No | 0.00615 | 0.12426 | 0.24719 |
-| 02 | A | 2 | No | 0.07982 | 0.22558 | 0.37703 |
-| 02 | A | 3 | No | 0.00551 | 0.11615 | 0.36440 |
-| 02 | M | 1 | Yes | 0.07148 | 0.10312 | 0.51203 |
-| 02 | M | 2 | Yes | 0.07898 | 0.06437 | 0.26370 |
-| 02 | M | 3 | Yes | 0.01983 | 0.17259 | 0.38024 |
-| 03 | O | 1 | No | 0.00939 | 0.17261 | 0.39280 |
-| 03 | O | 2 | Yes | 0.02235 | 0.05261 | 0.30280 |
-| 03 | O | 3 | Yes | 0.03235 | 0.12178 | 0.33864 |
-| 03 | A | 1 | No | 0.02652 | 0.15761 | 0.24197 |
-| 03 | A | 2 | Yes | 0.08319 | 0.07243 | 0.35403 |
-| 03 | A | 3 | Yes | 0.03569 | 0.05836 | 0.32115 |
-| 03 | M | 1 | No | 0.04944 | 0.06940 | 0.30115 |
-| 03 | M | 2 | Yes | 0.04319 | 0.06980 | 0.27032 |
-| 03 | M | 3 | Yes | 0.06485 | 0.05317 | 0.32115 |
-| 04 | O | 1 | Yes | 0.01027 | 0.04411 | 0.24413 |
-| 04 | O | 2 | No | 0.01105 | 0.11431 | 0.24150 |
-| 04 | O | 3 | Yes | 0.02029 | 0.15714 | 0.26580 |
-| 04 | A | 1 | Yes | 0.09446 | 0.07348 | 0.21295 |
-| 04 | A | 2 | Yes | 0.04029 | 0.10416 | 0.22004 |
-| 04 | A | 3 | No | 0.00994 | 0.05034 | 0.29795 |
-| 04 | M | 1 | Yes | 0.11529 | 0.04371 | 0.26628 |
-| 04 | M | 2 | Yes | 0.12113 | 0.04513 | 0.19711 |
-| 04 | M | 3 | Yes | 0.08529 | 0.07505 | 0.26128 |
-| 05 | O | 1 | No | 0.00534 | 0.09232 | 0.14739 |
-| 05 | O | 2 | No | 0.00543 | 0.24727 | 0.31748 |
-| 05 | O | 3 | Yes | 0.01443 | 0.05151 | 0.32656 |
-| 05 | A | 1 | Yes | 0.01246 | 0.07328 | 0.28195 |
-| 05 | A | 2 | Yes | 0.02060 | 0.08932 | 0.29656 |
-| 05 | A | 3 | No | 0.06445 | 0.32577 | 0.25906 |
-| 05 | M | 1 | Yes | 0.02927 | 0.11660 | 0.28520 |
-| 05 | M | 2 | Yes | 0.04528 | 0.10225 | 0.32187 |
-| 05 | M | 3 | Yes | 0.01778 | 0.13283 | 0.24990 |
-
-## Incomplete chains
-
-All six incomplete chains are retained. Missing stages do not imply a forecast of zero. K1 is the scientific account, Q the prediction, K2 the retrospective, and EQS the structured equilibrium supplement. Five chains lose one or more assessment payloads. The extension W01/M repeat 2 terminates after eleven batches on a resource-accounting validation failure; none of its assessment stages is available.
-
-| World | Arm | Repeat | Cohort | Missing stages |
+| System | Session | Versions | New batches | Action link |
 | --- | --- | --- | --- | --- |
-| 05 | O | 2 | First | K2, EQS |
-| 01 | O | 3 | First | Q, K2, EQS |
-| 01 | A | 3 | First | K1, Q, K2, EQS |
-| 04 | A | 3 | First | Q, K2, EQS |
-| 03 | M | 1 | Extension | EQS |
-| 01 | M | 2 | Extension | K1, Q, K2, EQS |
+| EQ | 01/M/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 02/O/1 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8 | matched |
+| EQ | 02/M/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 03/A/1 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 03/M/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 03/M/1 | 2 to 3 | 5, 6, 7, 8 | matched |
+| EQ | 04/O/1 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| EQ | 04/A/1 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8 | matched |
+| EQ | 04/M/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 04/M/1 | 2 to 3 | 5, 6, 7, 8 | matched |
+| EQ | 05/A/1 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 05/M/1 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8, 9 | matched |
+| EQ | 01/M/2 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8, 9 | partly_matched |
+| EQ | 01/O/2 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 02/A/2 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 02/M/2 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 02/O/2 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7 | matched |
+| EQ | 03/M/2 | 1 to 2 | 1, 2, 3, 4 | no_explicit_plan |
+| EQ | 03/O/2 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8 | matched |
+| EQ | 04/M/2 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 | matched |
+| EQ | 05/A/2 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 05/M/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 05/M/2 | 2 to 3 | 5, 6, 7, 8 | matched |
+| EQ | 05/O/2 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8 | matched |
+| EQ | 01/M/3 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 01/M/3 | 2 to 3 | 5, 6, 7, 8, 9, 10 | matched |
+| EQ | 02/A/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | no_explicit_plan |
+| EQ | 02/M/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 02/O/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 03/A/3 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 03/M/3 | 1 to 2 | 1, 2, 3, 4 | matched |
+| EQ | 04/M/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 04/O/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
+| EQ | 05/A/3 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7 | matched |
+| C | 01/M/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 01/O/1 | 1 to 2 | 6, 8 | matched |
+| C | 02/M/1 | 1 to 2 | 3, 4, 5 | matched |
+| C | 02/O/1 | 1 to 2 | 2, 3, 4, 5 | matched |
+| C | 02/O/1 | 2 to 3 | 6, 7, 8, 9, 10, 11 | matched |
+| C | 03/A/1 | 1 to 2 | 1, 2, 7 | partly_matched |
+| C | 03/O/1 | 1 to 2 | 1, 2 | matched |
+| C | 04/A/1 | 1 to 2 | 7, 8 | matched |
+| C | 04/O/1 | 1 to 2 | 1, 2 | matched |
+| C | 04/O/1 | 2 to 3 | 4, 5, 6, 7 | matched |
+| C | 05/A/1 | 1 to 2 | 1, 2 | matched |
+| C | 05/A/1 | 2 to 3 | 3, 4, 5, 6 | matched |
+| C | 05/A/1 | 3 to 4 | 7, 8, 9 | matched |
+| C | 05/A/1 | 4 to 5 | 10, 11 | matched |
+| C | 05/M/1 | 1 to 2 | 1, 2, 3, 4, 5, 6 | partly_matched |
+| C | 05/O/1 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 01/A/2 | 1 to 2 | 8, 9 | matched |
+| C | 01/O/2 | 1 to 2 | 1 | matched |
+| C | 01/O/2 | 2 to 3 | 2, 7, 8 | matched |
+| C | 02/A/2 | 1 to 2 | 1, 2, 3 | matched |
+| C | 02/A/2 | 2 to 3 | 4, 5, 6 | partly_matched |
+| C | 02/A/2 | 3 to 4 | 7, 8, 9, 10, 11 | matched |
+| C | 03/A/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 03/A/2 | 2 to 3 | 5, 8, 9, 10 | matched |
+| C | 03/M/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 03/M/2 | 2 to 3 | 5, 6, 7 | matched |
+| C | 03/O/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 03/O/2 | 2 to 3 | 5, 6, 7, 8, 9, 10 | matched |
+| C | 04/A/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 04/A/2 | 2 to 3 | 5, 6, 7 | matched |
+| C | 04/A/2 | 3 to 4 | 8, 9, 10 | matched |
+| C | 04/M/2 | 1 to 2 | 1, 2, 3 | matched |
+| C | 04/M/2 | 2 to 3 | 4, 5, 6, 7 | matched |
+| C | 04/O/2 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 05/A/2 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 05/A/2 | 2 to 3 | 6, 7, 8, 9, 10, 11 | matched |
+| C | 05/M/2 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 05/O/2 | 1 to 2 | 1, 2 | matched |
+| C | 05/O/2 | 2 to 3 | 3, 4, 5, 6, 7, 8 | matched |
+| C | 05/O/2 | 3 to 4 | 9, 10, 11 | matched |
+| C | 01/A/3 | 1 to 2 | 1, 2 | matched |
+| C | 01/M/3 | 1 to 2 | 1, 2 | matched |
+| C | 01/M/3 | 2 to 3 | 3, 4, 5 | matched |
+| C | 01/M/3 | 3 to 4 | 6, 7, 8 | partly_matched |
+| C | 01/M/3 | 4 to 5 | 9, 10, 11 | matched |
+| C | 01/O/3 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 02/M/3 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 02/O/3 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 03/A/3 | 1 to 2 | 1, 2 | matched |
+| C | 03/A/3 | 2 to 3 | 3, 4, 5, 6, 7 | partly_matched |
+| C | 03/M/3 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 03/M/3 | 2 to 3 | 6, 7, 8, 9, 10, 11 | matched |
+| C | 04/A/3 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7 | matched |
+| C | 04/O/3 | 1 to 2 | 1, 2, 3, 4, 5, 6, 7, 8 | partly_matched |
+| C | 05/A/3 | 1 to 2 | 1, 2, 3, 4 | matched |
+| C | 05/A/3 | 2 to 3 | 5, 6, 7, 8, 9 | matched |
+| C | 05/M/3 | 1 to 2 | 1, 2, 3, 4, 5 | matched |
+| C | 05/O/3 | 1 to 2 | 1, 2, 3, 4, 5, 6 | matched |
 
-## Scope of process cases
+### Quotations from the current coded windows
 
-Main Figures 2-4 and Extended Data Figures 1-2 connect original public records to executed actions. The equilibrium mapping case is world 4, M, repeat 1; the seed-rescue case world 1, M, repeat 3; the volume-window case world 1, M, repeat 2. The purity comparison retains all three world-4/M sessions. The incorrect cumulative-seed account is world 4, A, repeat 3; the rejection-recognizing counterexample is world 2, A, repeat 2. Risk-choice examples are world 2, A, repeat 3 and world 4, A, repeat 2. These labels locate evidence; they do not define participant subpopulations or prevalence denominators.
+The following are checked public quotations, not analyst reconstructions of private reasoning. Each numbered pair follows the order of the window inventory above. The update and next plan must be interpreted with the executed-action anchors, including rejected actions, in the retained coding records.
 
-## Record availability across all process sessions
+**Window 1.** Update: “archival magnitude not supported; direction supported locally” Next plan: “Test 0.222 M and 0.556 M at two total scales, plus high and low concentration endpoints.”
 
-This inventory reports available records, not the presence or absence of a scientific mechanism. All initial notes precede physical operations under the prompted notebook role. Notes counts include the initial version. K1 is the sealed source account, Q the forecast, K2 the retrospective, and EQS the equilibrium supplement. Unavailable stages remain missing. A session not selected below has not been classified as a negative case. World and arm labels have the same meaning as in the outcome tables.
+**Window 2.** Update: “not supported over the tested range; alternative unresolved” Next plan: “nominal 0.5 mol/L batches made as 0.025/0.05 and 0.030/0.06 mol/L should agree within measurement resolution”
 
-| System | World | Arm | Repeat | Notes | Initial before action | Stages |
+**Window 3.** Update: “opposed for nominal reagent as acid-loading coordinate” Next plan: “Next batches will vary component-0 concentration, include dilution and concentration-matched conditions.”
+
+**Window 4.** Update: “supported locally, provisional” Next plan: “Prediction before the remaining tests: concentrations of roughly 0.67–1.0 mol/L should increase the proxy if a concentration threshold lies inside the sampled slice.”
+
+**Window 5.** Update: “supported in the tested local scope” Next plan: “A higher-loading series will test for threshold-like growth.”
+
+**Window 6.** Update: “challenged / unresolved globally” Next plan: “Prediction before batches 9–12: if concentration alone controls responses, 0.8 M and 0.5 M matched pairs should agree within measurement variability despite different total amount and volume.”
+
+**Window 7.** Update: “H1's strong monotonic form is rejected in this range.” Next plan: “Next test: replicate 0.020/0.040, then matched concentration pairs at different total volume; a volume effect at equal concentration would contradict a concentration-only equilibrium description.”
+
+**Window 8.** Update: “unresolved at available resolution” Next plan: “Continue the preregistered grid to the highest loading before deciding whether the proxy is effectively flat in this scope.”
+
+**Window 9.** Update: “revised; pH component supported locally, dissociation component unresolved” Next plan: “map a wider fixed-volume concentration series”
+
+**Window 10.** Update: “simple reagent-concentration control rejected over tested range” Next plan: “Decision: retain two matched-reagent-concentration scale tests for absolute-scale confounding, then use the final two batches to test component 0 alone and as a spike.”
+
+**Window 11.** Update: “unresolved; simple concentration-only model under strain” Next plan: “Remaining batches will include three nominal 0.5 mol/L conditions at different total moles/volumes, providing a stronger collapse test.”
+
+**Window 12.** Update: “rejected as mapped to `add_reagent`” Next plan: “Remaining batches will test component 0 at the archival paired volumes and a higher loading.”
+
+**Window 13.** Update: “unresolved / narrowed” Next plan: “Remaining batches will include a high-concentration scale match and exact repeats to estimate cross-batch repeatability.”
+
+**Window 14.** Update: “not supported over tested reagent-only range” Next plan: “Next, test component-only batches at matched 0.10 mol/L across volumes, then vary its concentration at fixed volume.”
+
+**Window 15.** Update: “supported qualitatively; quantitative form unresolved” Next plan: “repeat anchor conditions are planned.”
+
+**Window 16.** Update: “not supported for anonymous reagent loading; scope narrowed” Next plan: “Remaining batches will use a crossed component-loading × volume series (0.001, 0.010, 0.020 mol at 0.018 and 0.054 L).”
+
+**Window 17.** Update: “supported locally, provisional” Next plan: “Add a second 0.20 M volume condition, a 0.40 M replicate, and extend to 0.05 and 0.8–1.0 M.”
+
+**Window 18.** Update: “supported locally, still noisy” No explicit next-plan quotation is available.
+
+**Window 19.** Update: “not supported over 0.005–0.040 mol at nominal 0.060 L” Next plan: “The fixed-amount volume series is the discriminating next test”
+
+**Window 20.** Update: “not supported for nominal reagent loading in tested scope” Next plan: “In batches 11–12 I will hold water volume at 0.060 L and vary component 0 from 0.012 to 0.036 mol.”
+
+**Window 21.** Update: “unresolved; revised after batches 1–6” Next plan: “For remaining batches, measure pH-meter and final assay at the same post-dilution state.”
+
+**Window 22.** Update: “supported locally, provisional” Next plan: “Higher loadings are the planned discriminator.”
+
+**Window 23.** Update: “narrowed / unresolved mechanism” Next plan: “the last four batches will test component loading in a crossed 0.001/0.009 mol by 0.018/0.054 L design.”
+
+**Window 24.** Update: “revised: plateau/background alternative” Next plan: “A staged dilution will test path versus final-state behavior, with its pre-dilution snapshot compared to direct high-loading batches and its final assay compared to direct dilute batches.”
+
+**Window 25.** Update: “supported direction; archival magnitude rejected” Next plan: “Wider loading contrasts will test monotonicity and whether a single concentration relationship remains adequate.”
+
+**Window 26.** Update: “not supported across the full tested range” Next plan: “Use two equal nominal concentrations (~0.556 mol/L) at different absolute scales (0.020/0.036 and 0.040/0.072 mol/L-volume).”
+
+**Window 27.** Update: “qualitatively supported; magnitude unresolved” No explicit next-plan quotation is available.
+
+**Window 28.** Update: “initially tentative; now challenged” Next plan: “The remaining high-loading points and replicate/staged dilution will test whether there is a threshold or reproducible local response.”
+
+**Window 29.** Update: “partly opposed; aqueous concentration scope” Next plan: “Complete matched-concentration pairs at different total amounts/volumes”
+
+**Window 30.** Update: “supported locally, provisional” Next plan: “Testable consequence: a concentration series at fixed 0.036 L should order pH/dissociation smoothly if concentration is primary.”
+
+**Window 31.** Update: “supported locally” Next plan: “Use the remaining concentration sweep and a matched-concentration/different-total pair.”
+
+**Window 32.** Update: “rejected at the archival anchor” Next plan: “The remaining higher-load grid will test whether total loading independently shifts responses and whether equal-concentration pairs agree.”
+
+**Window 33.** Update: “not supported over tested aqueous scope” Next plan: “Prediction before remaining tests: replicated center and low-loading points should remain in the same narrow response bands.”
+
+**Window 34.** Update: “unresolved; narrower than expected” Next plan: “Higher concentration, matched-concentration, and repeats remain planned.”
+
+**Window 35.** Update: “Solvent S2 gives high-purity feasible crystals across catalysts.” Next plan: “holding C0 and the thermal history fixed, S2 should remain best for recovery and fines”
+
+**Window 36.** Update: “Solvent is a confound, so a general thermal-history effect remains unresolved.” Next plan: “use remaining batches to vary reaction temperature/time”
+
+**Window 37.** Update: “The nominal activity prior favoring C1 did not predict the realized best catalyst.” Next plan: “Next tests will keep full charge and C0 while varying solvent and reaction temperature/time”
+
+**Window 38.** Update: “Slow cooling/hold is not sufficient by itself to suppress fines” Next plan: “Continue catalyst screening in S1”
+
+**Window 39.** Update: “This supports a broad feasible window rather than a precise monotonic effect” Next plan: “A modestly milder reaction (370 K rather than 380 K) may reduce byproduct/degradation”
+
+**Window 40.** Update: “Thus purity is robust in the tested region, while acceptable fines are not.” Next plan: “repeat the promising particle history with explicit control configuration and intermediate particle measurement”
+
+**Window 41.** Update: “Because catalyst/loading also changed and uncertainty/repeatability are unknown, causality is unresolved.” Next plan: “Test C1 across other solvents and thermal conditions.”
+
+**Window 42.** Update: “The comparisons are single batches and therefore numerical, not yet repeatability evidence.” Next plan: “Use remaining batches to replicate/refine the S1/C1 process.”
+
+**Window 43.** Update: “This is a numerical difference across confounded thermal/seed changes, not yet an isolated seed effect.” Next plan: “hold C0/S0 chemistry constant for one cleaner seed/thermal test”
+
+**Window 44.** Update: “Single batches and assay noise mean the small C1/C3 difference is unresolved.” Next plan: “Next, screen S1–S3 with C1 and the established qualifying crystallization schedule.”
+
+**Window 45.** Update: “the causal contribution of seed dose versus cooling history remains unresolved.” Next plan: “I will retain the batch-2 crystallization protocol while screening catalysts.”
+
+**Window 46.** Update: “S2 alone is insufficient to ensure the fines limit.” Next plan: “Next tests will change solvent while keeping C3 and the simpler 0.01 g seed slow cool.”
+
+**Window 47.** Update: “The dossier nucleation prior is therefore contradicted for these realized processes” Next plan: “A high seed dose plus a cooling–reheat–recooling cycle may dissolve fines and regrow remaining crystals”
+
+**Window 48.** Update: “Batch 10's high-seed thermal cycle worsened fines to 0.819, rejecting that remedy in the tested scope.” Next plan: “A further reduction to 0.02 mol at unchanged solvent, catalyst, seed, and slow cool is predicted to cross the fines limit”
+
+**Window 49.** Update: “The initial claim that a modest seed dose plus slow cooling necessarily suppresses fines is not supported.” Next plan: “Next test: C3/S2 with lower reagent loading and more solvent, followed by partial reheat and slow recooling.”
+
+**Window 50.** Update: “Seed/cooling effects are solvent-dependent.” Next plan: “screen S2/S3 with C0, then catalysts C1–C3 in the best solvent.”
+
+**Window 51.** Update: “thus the usable concentration window has a sharp morphology boundary between 0.03 and 0.04 L” Next plan: “Optimize morphology/recovery near the 0.04 L concentration boundary”
+
+**Window 52.** Update: “The subsequent 3600 s wait warmed the slurry to 291.2 K” Next plan: “first test dilution + 0.05 g seed + staged slow cooling while retaining C0/S0 reaction chemistry.”
+
+**Window 53.** Update: “but those changes are confounded.” Next plan: “Lower reaction temperature with longer time, or reduced catalyst loading, may preserve conversion”
+
+**Window 54.** Update: “Thus the nominal low nucleation tendency is not sufficient at 0.04 mol in 0.08 L.” Next plan: “a 0.02 mol batch seeded at 0.05 g and slowly cooled should have fewer fines”
+
+**Window 55.** Update: “These histories were not all controlled comparisons” Next plan: “batch 7 will test repeated seed additions totaling about 1 g.”
+
+**Window 56.** Update: “Thus their outcomes cannot support a high-dose-seed effect.” Next plan: “Use C0/S2 and extend cooling to 250 K.”
+
+**Window 57.** Update: “Simply slowing cooling and varying seed from 0.005 to 0.05 g did not control secondary fines” Next plan: “Next test: crystallize at 290 K, reheat only to ~295 K, hold, and gently recool.”
+
+**Window 58.** Update: “increasing S3 seed from 0.05 g to 1.0 g left fines near 0.85–0.87” Next plan: “Test multiple successive maximum-duration warm holds on S3/295 K”
+
+**Window 59.** Update: “solvent identity is confounded with reaction response and there are no replicates.” Next plan: “Under S2, screen C0/C2/C3 at the same thermal/crystallization history.”
+
+**Window 60.** Update: “Single runs and assay noise mean the small C3-C0 difference is unresolved” Next plan: “A milder/shorter reaction may improve selectivity enough to raise recoverable target”
+
+**Window 61.** Update: “Thus reaction feasibility is established, but particle control is the limiting constraint.” Next plan: “hold C1 fixed and screen solvents”
+
+**Window 62.** Update: “Differences in recovery are not resolved relative to assay/process noise” Next plan: “lower the final crystallization endpoint to 250 K at otherwise preferred 350 K conditions.”
+
+**Window 63.** Update: “The seed effect is not isolated because cooling profile and catalyst also differed.” Next plan: “Next test C1 at lower temperature/longer time with the low-seed S2 process”
+
+**Window 64.** Update: “This contradicts the prior concern that lower temperature would suppress degradation in this world.” Next plan: “C1/S2 at 420 K for about 900 s should continue the observed trend”
+
+**Window 65.** Update: “Changing final cooling target from 265 to 270 K did not restore recovery.” Next plan: “An intermediate reaction at 430 K/750 s should test the boundary.”
+
+**Window 66.** Update: “exact constraint compliance is unresolved near instrument noise.” Next plan: “Batch 4 will test 0.001 g seed and additional cold-growth time at otherwise batch-3 conditions.”
+
+**Window 67.** Update: “Lower seed dose and extra cold time did not clearly reduce fines” Next plan: “C2 then C3 will be compared”
+
+**Window 68.** Update: “increasing seed from 0.02 g to 0.5 g did not solve fines” Next plan: “Next tests will screen S1–S3 with a retained catalyst and controlled slow cooling”
+
+**Window 69.** Update: “this is a large single-run contrast, not yet a repeatability estimate.” Next plan: “Screen solvents with C0, holding reaction and 270 K crystallization broadly fixed.”
+
+**Window 70.** Update: “Because these are single runs with assay noise, exact monotonicity is unresolved.” Next plan: “an intermediate 0.065 L loading with the established 270 K slow cooling should preserve most recovery gain while bringing fines below 0.50.”
+
+**Window 71.** Update: “no exact recipe replicate yet separates catalyst effects from run-to-run crystallization response.” Next plan: “lengthening and splitting the cooling trajectory should lower fines enough to qualify”
+
+**Window 72.** Update: “Simple low seed plus slow cooling is insufficient in this scope.” Next plan: “Test substantially shallower crystallization endpoints, staged growth, and/or a heat–redissolve–recool cycle.”
+
+**Window 73.** Update: “A mild single heat cycle is therefore suspended.” Next plan: “Test a finely staged 320→315→310→305→300 K cooling path”
+
+**Window 74.** Update: “unreplicated and still just outside the stated fines limit.” Next plan: “Use 0.018 mol reagent in 0.08 L S1, proportional C3 catalyst, 0.001 g seed, and 5 K/14400 s cooling stages from 320 to 290 K.”
+
+**Window 75.** Update: “Temperature and time are confounded, so the causal driver is unresolved.” Next plan: “screen catalysts/nearby temperatures while retaining S2 crystallization.”
+
+**Window 76.** Update: “This is not an isolated seed-dose estimate” Next plan: “Next test much lower seed with staged slow cooling”
+
+**Window 77.** Update: “Seed dose alone is not a useful lever in this tested slow/deep-cooling regime.” Next plan: “Next use partial reheating/redissolution after initial crystallization and a shallower recool”
+
+**Window 78.** Update: “assay noise and process repeatability matter.” Next plan: “Next compare shorter versus longer warm holding and a slightly lower endpoint”
+
+**Window 79.** Update: “no monotonic hold-time effect is established.” Next plan: “use the last batch as an exact 310 K/two-hold repeat.”
+
+**Window 80.** Update: “Exact solvent causality is confounded with catalyst” Next plan: “screen catalysts in S2 and vary late thermal history around the fines limit.”
+
+**Window 81.** Update: “The nominal catalyst ranking was misleading.” Next plan: “deliberately vary solvent, seed dose/timing, endpoint, and thermal cycling.”
+
+**Window 82.** Update: “numerical catalyst differences remain provisional.” Next plan: “Screen S1–S3 with C0 before fixing upstream conditions.”
+
+**Window 83.** Update: “Seed-dose benefit is therefore not supported in this range.” Next plan: “A much slower multistage cooling profile with a minimal seed charge should reduce fines”
+
+**Window 84.** Update: “Neither 1 g seed plus extended holding/reheat nor very slow multistage cooling materially resolved the extreme fines in S2” Next plan: “a larger seed population combined with extended low-temperature growth and a mild reheat/recool ripening cycle”
+
+**Window 85.** Update: “Upstream impurity profile, catalyst identity, and seed effectiveness are confounded.” Next plan: “a larger seed dose and slightly warmer endpoint should reduce fines”
+
+**Window 86.** Update: “an endpoint effect is unresolved.” Next plan: “repeating the 350 K/1800 s upstream window with a 265 K endpoint may slightly raise recovery”
+
+**Window 87.** Update: “Differences between C0/C1/C3 are not yet repeat-confirmed.” Next plan: “A crystallization heat-cycle in S0 may ripen the fines enough to approach the <=0.50 constraint”
+
+**Window 88.** Update: “they do not isolate mechanism.” Next plan: “Remaining batches will test a slightly colder stop, catalyst choice, and seed/thermal-history robustness”
+
+**Window 89.** Update: “its numerical advantage over C3 (0.408) and C1 (0.388) is not yet repeatability evidence” Next plan: “use C0/S2 to map reaction temperature, then compare solvents.”
+
+**Window 90.** Update: “the numerical gain over batch 6 is small relative to unknown run variability.” Next plan: “Test deeper cooling plus a growth/ripening hold”
+
+**Window 91.** Update: “the cooling interpretation remains provisional.” Next plan: “screen solvent identity at fixed C3”
+
+**Window 92.** Update: “These are numerical single-batch comparisons; replication is still needed.” Next plan: “For S1, slightly warmer endpoints, longer ripening, or mild thermal cycling should plausibly move fines below 0.50”
+
+### Focal cases in the current narrative
+
+| Case | Observable sequence | Scope |
+| --- | --- | --- |
+| Corrected C, 05/A/1 | Lower charge proposed, then executed | Local improvement; catalyst ratio also changes |
+| Corrected C, 05/A/2 | 0.065 L interpolation fails; expectation retracted | Revision without operational improvement |
+| Corrected C, 02/A/2 | Only 0.05 g seed commits; high-dose test withdrawn | Correctly recognizes unexecuted intervention |
+| Corrected C, 03/A/3 | Rejected seed additions described as a 1 g test | Negative evidence lacks the claimed intervention |
+| Corrected C, 04/A/2 | 430 K test follows claimed 440 K boundary | Earlier cold-target requests were rejected |
+| Corrected C, 01/M/3 | Noise acknowledged; 310 K recipe repeated | Uncertainty awareness and recommendation failure coexist |
+| Opportunity, world 1, Research repeat 1 | Initial trend revised; component tests; dilute forecast | Bounded local relation weighted in unresolved extrapolation |
+| Opportunity, world 2, Research repeats 1 and 2 | Plateau research followed by different dilute forecasts | Accurate extrapolation need not directly sample the target region |
+
+The exact opportunity quote is: “The point estimate still favors the experimentally supported fixed acidic background”. The world-1 Research repeat-1 dilute estimate is 0.085 [0.035, 0.350], versus reference mean 0.716032; the corresponding NoResearch estimate is 0.569 [0.040, 0.980]. The researcher acknowledges the untested boundary. This does not establish a self-confirmation cycle.
+
+## Source-only forecast references
+
+Each reference fits only the session's source final assays. Same-solvent matching uses exact sets of committed solvent IDs and falls back to the overall mean. It does not match quantities or thermal history. Five-world-equal errors and session wins are distinct summaries.
+
+### all: 42/45 valid sessions
+
+| Response | Agent | Source mean | Same solvent | Wins vs mean |
+| --- | --- | --- | --- | --- |
+| Recovery | 0.101292 | 0.204430 | 0.201849 | 39/42 |
+| Purity | 0.038535 | 0.005099 | 0.006810 | 0/42 |
+| Size index | 0.076867 | 0.023611 | 0.023732 | 5/42 |
+| Fines | 0.319726 | 0.307554 | 0.290161 | 23/42 |
+
+Fallback queries: 186/504.
+
+### Opaque: 15/15 valid sessions
+
+| Response | Agent | Source mean | Same solvent | Wins vs mean |
+| --- | --- | --- | --- | --- |
+| Recovery | 0.112728 | 0.201029 | 0.180902 | 13/15 |
+| Purity | 0.016242 | 0.004742 | 0.006001 | 0/15 |
+| Size index | 0.062510 | 0.019649 | 0.018896 | 1/15 |
+| Fines | 0.322664 | 0.306509 | 0.280942 | 8/15 |
+
+Fallback queries: 1/180.
+
+### Aligned: 14/15 valid sessions
+
+| Response | Agent | Source mean | Same solvent | Wins vs mean |
+| --- | --- | --- | --- | --- |
+| Recovery | 0.102667 | 0.195220 | 0.201526 | 13/14 |
+| Purity | 0.051329 | 0.005525 | 0.006997 | 0/14 |
+| Size index | 0.094661 | 0.032278 | 0.031455 | 2/14 |
+| Fines | 0.309550 | 0.307566 | 0.301415 | 8/14 |
+
+Fallback queries: 95/168.
+
+### MisIndexed: 13/15 valid sessions
+
+| Response | Agent | Source mean | Same solvent | Wins vs mean |
+| --- | --- | --- | --- | --- |
+| Recovery | 0.088987 | 0.219352 | 0.226733 | 13/13 |
+| Purity | 0.052614 | 0.005112 | 0.007631 | 0/13 |
+| Size index | 0.073908 | 0.018435 | 0.020434 | 2/13 |
+| Fines | 0.327772 | 0.309612 | 0.290930 | 7/13 |
+
+Fallback queries: 90/156.
+
+### Session-level source-reference comparisons
+
+| Session | Recovery: agent / mean | Purity: agent / mean | Size: agent / mean | Fines: agent / mean |
+| --- | --- | --- | --- | --- |
+| 01/O/1 | 0.022292 / 0.116932 | 0.014601 / 0.004324 | 0.084466 / 0.015104 | 0.473923 / 0.266733 |
+| 01/A/1 | - / - | - / - | - / - | - / - |
+| 01/M/1 | 0.124581 / 0.156698 | 0.012121 / 0.004324 | 0.068216 / 0.015104 | 0.415640 / 0.271286 |
+| 02/O/1 | 0.045769 / 0.216456 | 0.022334 / 0.004468 | 0.035234 / 0.015674 | 0.372738 / 0.325952 |
+| 02/A/1 | 0.111759 / 0.243664 | 0.017250 / 0.007786 | 0.046134 / 0.024788 | 0.169885 / 0.172576 |
+| 02/M/1 | 0.149746 / 0.330325 | 0.008048 / 0.005389 | 0.073799 / 0.016439 | 0.355366 / 0.361589 |
+| 03/O/1 | 0.195531 / 0.235699 | 0.013328 / 0.007809 | 0.067725 / 0.042411 | 0.305874 / 0.368773 |
+| 03/A/1 | 0.123152 / 0.091364 | 0.082770 / 0.007528 | 0.215642 / 0.162261 | 0.397820 / 0.354471 |
+| 03/M/1 | 0.065694 / 0.137113 | 0.033687 / 0.004251 | 0.077693 / 0.021677 | 0.342820 / 0.354471 |
+| 04/O/1 | 0.144967 / 0.206832 | 0.015497 / 0.004613 | 0.027652 / 0.017750 | 0.279968 / 0.345542 |
+| 04/A/1 | 0.078039 / 0.182599 | 0.034210 / 0.005028 | 0.168319 / 0.015686 | 0.291282 / 0.261551 |
+| 04/M/1 | 0.032967 / 0.163220 | 0.078627 / 0.004937 | 0.131236 / 0.015686 | 0.379615 / 0.276100 |
+| 05/O/1 | 0.094099 / 0.252777 | 0.036949 / 0.004898 | 0.017929 / 0.020096 | 0.292398 / 0.349524 |
+| 05/A/1 | 0.040578 / 0.202158 | 0.056949 / 0.004257 | 0.184953 / 0.019398 | 0.268231 / 0.329264 |
+| 05/M/1 | 0.049862 / 0.174004 | 0.064449 / 0.005223 | 0.074659 / 0.019350 | 0.340731 / 0.322389 |
+| 03/M/2 | 0.078031 / 0.336216 | 0.015796 / 0.004948 | 0.030984 / 0.021677 | 0.325304 / 0.354471 |
+| 03/A/2 | 0.134469 / 0.135442 | 0.052404 / 0.004308 | 0.154776 / 0.023586 | 0.329070 / 0.354471 |
+| 03/O/2 | 0.108864 / 0.218553 | 0.020796 / 0.004223 | 0.063526 / 0.021677 | 0.380304 / 0.354471 |
+| 04/M/2 | 0.073123 / 0.158264 | 0.088627 / 0.005464 | 0.030819 / 0.015686 | 0.227948 / 0.261547 |
+| 04/A/2 | 0.108295 / 0.155999 | 0.119460 / 0.007838 | 0.058893 / 0.070322 | 0.346388 / 0.409689 |
+| 04/O/2 | 0.134807 / 0.185897 | 0.014460 / 0.004915 | 0.040237 / 0.015686 | 0.239615 / 0.252701 |
+| 05/M/2 | - / - | - / - | - / - | - / - |
+| 05/A/2 | 0.138265 / 0.227770 | 0.018616 / 0.004233 | 0.027319 / 0.019633 | 0.326565 / 0.329424 |
+| 05/O/2 | 0.112432 / 0.108109 | 0.016594 / 0.005038 | 0.029829 / 0.019504 | 0.209065 / 0.322389 |
+| 01/M/2 | 0.069362 / 0.282098 | 0.085450 / 0.005232 | 0.010132 / 0.024230 | 0.282257 / 0.471447 |
+| 01/A/2 | 0.115339 / 0.236957 | 0.055450 / 0.006620 | 0.059466 / 0.020167 | 0.295189 / 0.379030 |
+| 01/O/2 | 0.042862 / 0.266549 | 0.006213 / 0.004457 | 0.038130 / 0.021977 | 0.374807 / 0.411871 |
+| 02/M/2 | 0.093995 / 0.227423 | 0.049815 / 0.008309 | 0.186033 / 0.015657 | 0.379533 / 0.179860 |
+| 02/A/2 | 0.076759 / 0.158562 | 0.061482 / 0.006310 | 0.030086 / 0.015950 | 0.315399 / 0.172568 |
+| 02/O/2 | 0.091829 / 0.196159 | 0.018565 / 0.004265 | 0.056715 / 0.015657 | 0.390399 / 0.170517 |
+| 05/A/3 | 0.156345 / 0.234339 | 0.040282 / 0.004684 | 0.026100 / 0.020194 | 0.349065 / 0.348953 |
+| 05/O/3 | 0.164099 / 0.263613 | 0.019449 / 0.004300 | 0.057159 / 0.019570 | 0.282389 / 0.329931 |
+| 05/M/3 | 0.181599 / 0.310636 | 0.016077 / 0.004747 | 0.095370 / 0.020794 | 0.319898 / 0.358571 |
+| 01/A/3 | 0.133330 / 0.192868 | 0.089617 / 0.005111 | 0.040880 / 0.015412 | 0.324406 / 0.339995 |
+| 01/O/3 | 0.077293 / 0.179813 | 0.013302 / 0.005061 | 0.045299 / 0.015104 | 0.263090 / 0.240610 |
+| 01/M/3 | 0.040496 / 0.114985 | 0.092117 / 0.004761 | 0.076966 / 0.017125 | 0.281022 / 0.221309 |
+| 02/A/3 | 0.129746 / 0.256290 | 0.038149 / 0.004217 | 0.121866 / 0.021626 | 0.263572 / 0.172575 |
+| 02/O/3 | 0.196412 / 0.286884 | 0.015380 / 0.004345 | 0.181866 / 0.015657 | 0.395238 / 0.245791 |
+| 02/M/3 | 0.080208 / 0.205242 | 0.040649 / 0.004217 | 0.067688 / 0.015657 | 0.324533 / 0.247360 |
+| 03/A/3 | 0.034869 / 0.202875 | 0.007131 / 0.005021 | 0.014927 / 0.021677 | 0.339471 / 0.354471 |
+| 03/O/3 | 0.145116 / 0.180109 | 0.007203 / 0.004257 | 0.133980 / 0.023181 | 0.306685 / 0.360130 |
+| 03/M/3 | 0.126364 / 0.290994 | 0.079853 / 0.004696 | 0.018982 / 0.021677 | 0.307820 / 0.354471 |
+| 04/A/3 | 0.034721 / 0.192497 | 0.023627 / 0.004074 | 0.220377 / 0.015686 | 0.317115 / 0.274940 |
+| 04/O/3 | 0.114550 / 0.101050 | 0.008962 / 0.004164 | 0.057902 / 0.015686 | 0.273462 / 0.252701 |
+| 04/M/3 | - / - | - / - | - / - | - / - |
+
+## Separate research-opportunity comparison
+
+Thirty sessions, 180/180 source batches, 117/120 assessment stages and 29 valid forecasts. The world-3 third Research session lost Q and later stages after a network stream failure. All source records and K1 are retained. No replacement was made. This is a total research-package effect, not a notebook ablation.
+
+| World | Repeat | Opportunity | Batches | All MAE | Dilute MAE | Other MAE |
 | --- | --- | --- | --- | --- | --- | --- |
-| C | 01 | O | 1 | 5 | Yes | K1, Q, K2 |
-| C | 01 | O | 2 | 3 | Yes | K1, Q, K2 |
-| C | 01 | O | 3 | 6 | Yes | K1, Q, K2 |
-| C | 01 | A | 1 | 6 | Yes | K1, Q, K2 |
-| C | 01 | A | 2 | 3 | Yes | K1, Q, K2 |
-| C | 01 | A | 3 | 3 | Yes | K1, Q, K2 |
-| C | 01 | M | 1 | 4 | Yes | K1, Q, K2 |
-| C | 01 | M | 2 | 5 | Yes | K1, Q, K2 |
-| C | 01 | M | 3 | 4 | Yes | K1, Q, K2 |
-| C | 02 | O | 1 | 2 | Yes | K1, Q, K2 |
-| C | 02 | O | 2 | 2 | Yes | K1, Q, K2 |
-| C | 02 | O | 3 | 3 | Yes | K1, Q, K2 |
-| C | 02 | A | 1 | 2 | Yes | K1, Q, K2 |
-| C | 02 | A | 2 | 3 | Yes | K1, Q, K2 |
-| C | 02 | A | 3 | 4 | Yes | K1, Q, K2 |
-| C | 02 | M | 1 | 3 | Yes | K1, Q, K2 |
-| C | 02 | M | 2 | 5 | Yes | K1, Q, K2 |
-| C | 02 | M | 3 | 2 | Yes | K1, Q, K2 |
-| C | 03 | O | 1 | 4 | Yes | K1, Q, K2 |
-| C | 03 | O | 2 | 3 | Yes | K1, Q, K2 |
-| C | 03 | O | 3 | 3 | Yes | K1, Q, K2 |
-| C | 03 | A | 1 | 5 | Yes | K1, Q, K2 |
-| C | 03 | A | 2 | 3 | Yes | K1, Q, K2 |
-| C | 03 | A | 3 | 4 | Yes | K1, Q, K2 |
-| C | 03 | M | 1 | 2 | Yes | K1, Q, K2 |
-| C | 03 | M | 2 | 3 | Yes | K1, Q, K2 |
-| C | 03 | M | 3 | 3 | Yes | K1, Q, K2 |
-| C | 04 | O | 1 | 4 | Yes | K1, Q, K2 |
-| C | 04 | O | 2 | 3 | Yes | K1, Q, K2 |
-| C | 04 | O | 3 | 3 | Yes | K1, Q, K2 |
-| C | 04 | A | 1 | 4 | Yes | K1, Q, K2 |
-| C | 04 | A | 2 | 2 | Yes | K1, Q, K2 |
-| C | 04 | A | 3 | 6 | Yes | K1, Q, K2 |
-| C | 04 | M | 1 | 3 | Yes | K1, Q, K2 |
-| C | 04 | M | 2 | 4 | Yes | K1, Q, K2 |
-| C | 04 | M | 3 | 4 | Yes | K1, Q, K2 |
-| C | 05 | O | 1 | 4 | Yes | K1, Q, K2 |
-| C | 05 | O | 2 | 3 | Yes | K1, Q, K2 |
-| C | 05 | O | 3 | 3 | Yes | K1, Q, K2 |
-| C | 05 | A | 1 | 5 | Yes | K1, Q, K2 |
-| C | 05 | A | 2 | 3 | Yes | K1, Q, K2 |
-| C | 05 | A | 3 | 3 | Yes | K1, Q, K2 |
-| C | 05 | M | 1 | 4 | Yes | K1, Q, K2 |
-| C | 05 | M | 2 | 5 | Yes | K1, Q, K2 |
-| C | 05 | M | 3 | 3 | Yes | K1, Q, K2 |
-| EQ | 01 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 01 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 01 | O | 3 | 2 | Yes | K1 |
-| EQ | 01 | A | 1 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 01 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 01 | A | 3 | 2 | Yes | None |
-| EQ | 01 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 01 | M | 2 | 2 | Yes | None |
-| EQ | 01 | M | 3 | 4 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | O | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | O | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | A | 1 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | A | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 02 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | O | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | O | 3 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | M | 1 | 4 | Yes | K1, Q, K2 |
-| EQ | 03 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 03 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | O | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | O | 2 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | O | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | A | 2 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | A | 3 | 2 | Yes | K1 |
-| EQ | 04 | M | 1 | 4 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | M | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 04 | M | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | O | 1 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | O | 2 | 3 | Yes | K1, Q |
-| EQ | 05 | O | 3 | 2 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | A | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | A | 2 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | A | 3 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | M | 1 | 3 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | M | 2 | 4 | Yes | K1, Q, K2, EQS |
-| EQ | 05 | M | 3 | 2 | Yes | K1, Q, K2, EQS |
-
-## Structured focal relationships
-
-Nine selected sessions are organized below by the relationship under examination. Cases 4-6 retain all three sessions in one crystallization world/information cell. Other cases are selected trajectories or counterexamples, not a random sample. Each record separates prior expectation, successful execution, explicit revision, evidential scope and later use. A pre-test claim not established by the focal analysis is labelled accordingly; it is not scored as absent. Quotations are checked against their specified note version or sealed stage. Interpretation remains by one analyst, without independent reliability assessment. All figures remain illustrative previews; these records and the outcome tables carry the retained evidence.
-
-### Process case 1: One local test, two evidential roles
-
-EQ, world 4, MisIndexed, session 1. Extension cohort.
-
-**Prior expectation.** Revision 3, before batches 11-12, predicts a substantial response if the alternative component is the active coordinate.
-
-**Executed test or observations.** Batch 11 tests the component alone; batch 12 adds a large component spike to a small reagent charge. Both committed tests remain near the observed response plateau.
-
-**Recorded revision or characterization.** Revision 4 withdraws support for the tested mapping while retaining buffering, saturation and unidentified-coordinate explanations.
-
-**What the evidence supports.** The executed perturbations oppose the specified mapping prediction. They do not determine the low-loading limit or distinguish a persistent plateau from a dilute transition.
-
-**Subsequent use.** The extreme-dilution forecast explicitly invokes the component-only result: dissociation 0.092, interval 0.043-0.155, versus reference mean 0.51730. Retrospective review recognizes unresolved low-loading alternatives without receiving truth.
-
-**Extent of support.** One fully connected focal trajectory; the 45-session equilibrium distribution contextualizes the outcome but does not establish the frequency of this process.
-
-**Recorded wording (note version 3).** "A null component response would instead favor an internally buffered/invariant world."
-
-**Recorded wording (note version 4).** "component-as-active-loading hypothesis rejected in tested form"
-
-**Recorded wording (Q).** "shrink strongly toward the experimentally observed near-invariant baseline because a component-only batch also retained similar responses."
-
-### Process case 2: A prospective seed-rescue expectation is withdrawn
-
-C, world 1, MisIndexed, session 3. Extension cohort.
-
-**Prior expectation.** Revision 3 proposes repeating the concentrated 0.02 L recipe with 0.05 g seed to test whether particle quality can be rescued.
-
-**Executed test or observations.** Batches 10 and 12 share the principal preparation and cooling operations; committed seed changes from 0.02 to 0.05 g. Both assays report fines fraction 1.0.
-
-**Recorded revision or characterization.** Revision 4 explicitly disconfirms this prospective rescue expectation and retains a different recipe as the recommendation.
-
-**What the evidence supports.** The larger of the two executed doses does not rescue the tested condition. No conclusion about all larger doses or every seeding mechanism follows.
-
-**Subsequent use.** The recommendation uses an alternative recipe whose noiseless fines fraction is 0.24744 and which satisfies the recorded feasibility criteria. Recovery rankings remain subject to the disclosed definition mismatch.
-
-**Extent of support.** One prospective dose contrast and recorded revision; no independent repeat of this exact hypothesis test is claimed.
-
-**Recorded wording (note version 3).** "Repeat the 0.02 L high-loading recipe using 0.05 g seed."
-
-**Recorded wording (note version 4).** "disconfirming the final prospective rescue hypothesis."
-
-### Process case 3: A working recipe region guides a new test
-
-C, world 1, MisIndexed, session 2. Extension cohort.
-
-**Prior expectation.** After a feasible 35 ml recipe, revision 4 proposes 32.5 ml as the next boundary test.
-
-**Executed test or observations.** Batches 10-12 use 35, 32.5 and 35 ml, with otherwise matching principal operations. Measured fines fractions are 0.14526, 0.03411 and 0.13587.
-
-**Recorded revision or characterization.** The final note retains a bounded feasible region and selects the repeated 35 ml recipe. It does not claim that small differences among close recovery values are resolved.
-
-**What the evidence supports.** The sequence supports feasibility of the tested recipes. Earlier low-volume failures also changed seed or thermal history, so a sharp concentration threshold is not isolated.
-
-**Subsequent use.** The proposed intermediate-volume test is executed and the final recommendation passes an independent retest, with fines fraction 0.13392. There is no clean causal estimate of a universal volume effect.
-
-**Extent of support.** One prospective test, one same-recipe repeat and one recommendation retest in a single session; these are not independent researcher samples.
-
-**Recorded wording (note version 4).** "Next test at 0.0325 L targets the boundary."
-
-**Recorded wording (note version 5).** "Its 0.035 L recipe was independently repeated in batch 12 and remained compliant"
-
-### Process case 4: Recognized high purity and altered transfer, first session
-
-C, world 4, MisIndexed, session 1. Extension cohort.
-
-**Prior expectation.** A specific pre-test numerical commitment to invariant purity is not established by this focal comparison; the relevant supported judgment appears in the sealed source account.
-
-**Executed test or observations.** Twelve source assays have mean purity 99.09%; the selected recipe passes the recorded retest criteria.
-
-**Recorded revision or characterization.** The source account explicitly recognizes impurity rejection and high crystal purity. This is a documented local characterization, not a quantified pre/post learning gain.
-
-**What the evidence supports.** High purity is observed in the tested recipes. Transfer still requires judging effects of changed conditions; no universal purity law is inferred.
-
-**Subsequent use.** Forecast adjustments for solvent, occlusion, concentration and thermal history yield mean purity 86.92%, versus reference 98.45%. Purity MAE is 0.11529 and 0/12 purity intervals cover the reference.
-
-**Extent of support.** One of all three sessions in the same world/information cell; all three are retained below.
-
-**Recorded wording (K1).** "filtered crystals generally had purity 0.98–1.00"
-
-### Process case 5: Recognized high purity and altered transfer, second session
-
-C, world 4, MisIndexed, session 2. Extension cohort.
-
-**Prior expectation.** A specific pre-test commitment to unchanged purity is not established by this comparison; the source account explicitly characterizes the observed response.
-
-**Executed test or observations.** Twelve source assays have mean purity 98.18%; the recommendation passes the recorded retest criteria.
-
-**Recorded revision or characterization.** The report recognizes high purity and a repeatedly feasible process region. It also contains a separate inaccurate seed-dose account; recognizing purity does not validate every other claim in that report.
-
-**What the evidence supports.** High purity and recipe feasibility are supported locally. The reported large-dose seed comparison requires separate execution checking.
-
-**Subsequent use.** Mean purity forecast is 86.33%, versus common reference 98.45%. No claim of forgetting or a shared psychological mechanism is made.
-
-**Extent of support.** Second of the three same-cell sessions, rather than a second independently sampled world.
-
-**Recorded wording (K1).** "S2 did give high purity and substantial recovery"
-
-### Process case 6: Recognized high purity and altered transfer, third session
-
-C, world 4, MisIndexed, session 3. Extension cohort.
-
-**Prior expectation.** No specific pre-test invariance commitment is assigned; the comparison concerns established source observations and their subsequent use.
-
-**Executed test or observations.** Twelve source assays have mean purity 99.09%; the recommendation passes the recorded retest criteria.
-
-**Recorded revision or characterization.** The source account recognizes that observed S2 purities are generally 0.98-1.00 and acknowledges confounding in solvent comparisons.
-
-**What the evidence supports.** The observed high-purity region is supported; an independent solvent effect is not identified.
-
-**Subsequent use.** Mean purity forecast is 89.92%, versus reference 98.45%. This repeats the recognition/forecast contrast, not necessarily the route that produced it.
-
-**Extent of support.** Third of all three same-cell sessions; no population probability is estimated from three repeats.
-
-**Recorded wording (K1).** "Low impurity occlusion is consistent with the observed final purities, generally 0.98–1.00 in S2 batches."
-
-### Process case 7: An intended large-dose test becomes negative evidence
-
-C, world 4, Aligned, session 3. Extension cohort.
-
-**Prior expectation.** Revision 4 proposes approximately 2 g cumulative seed, treating 0.05 g as a per-operation allowance.
-
-**Executed test or observations.** Batch 10 requests forty additions of 0.05 g; one commits and thirty-nine are rejected. Total committed seed is 0.05 g.
-
-**Recorded revision or characterization.** Revision 5 states that increasing seed to about 2 g did not reduce fines and excludes seed mass as the limiting control. Later notes and sealed accounts retain the claim.
-
-**What the evidence supports.** The trajectory provides no physical test of 2 g. A failed request is not negative evidence for the scientific dose hypothesis.
-
-**Subsequent use.** The claimed exclusion persists in the final account and retrospective review. Its independent influence on subsequent actions has not been tested.
-
-**Extent of support.** One connected execution/report discrepancy, with a rejection-recognizing counterexample in case 8. Rejection counts across the cohort are not error-prevalence estimates.
-
-**Recorded wording (note version 4).** "Test about 2 g cumulative seed"
-
-**Recorded wording (note version 5).** "Seed mass is not the limiting control in this range."
-
-### Process case 8: Rejected additions are correctly recognized
-
-C, world 2, Aligned, session 2. Extension cohort.
-
-**Prior expectation.** The attempted repeated addition is checked against its actual execution status; a separate prospective high-dose scientific expectation is not assigned by this focal analysis.
-
-**Executed test or observations.** Additional seed requests in batch 2 are rejected by payload bounds.
-
-**Recorded revision or characterization.** Revision 2 explicitly records the failed additions and states that one legal seed operation should be used per batch unless the range changes.
-
-**What the evidence supports.** The operational conclusion concerns permitted dosing, not a physical effect of the rejected larger dose.
-
-**Subsequent use.** The recorded decision limits further dosing rather than claiming a successful large-dose test. A causal effect of the note itself is not estimated.
-
-**Extent of support.** A selected counterexample showing that rejection need not become a false experimental claim.
-
-**Recorded wording (note version 2).** "use one legal seed operation per batch unless the current legal range changes."
-
-### Process case 9: Accurate extrapolation with an unresolved mechanism
-
-EQ, world 2, Opaque, session 2. First cohort.
-
-**Prior expectation.** The source account retains multiple explanations for an observed plateau; a directly executed extreme-dilution discriminator is absent from the source action record.
-
-**Executed test or observations.** Twelve source batches characterize a plateau without positive-loading assays at or below 1 mM.
-
-**Recorded revision or characterization.** An effective soluble-concentration ceiling becomes more specific during forecasting, although it had remained one candidate in the source account.
-
-**What the evidence supports.** The source observations do not uniquely identify the ceiling mechanism. Correct extrapolation can use theoretical structure without direct sampling.
-
-**Subsequent use.** The dilute forecast is relatively accurate; retrospective review still recognizes that its intervals underrepresent the competing persistent-plateau explanation.
-
-**Extent of support.** One positive extrapolation counterexample within the first process block; accuracy does not retrospectively make the mechanism experimentally identified.
-
-**Recorded wording (K2).** "This is inconsistent with K1’s explicit statement that solubility pinning, buffering, nonideality, and synthetic mapping were observationally equivalent"
-
-## All matched quench dispositions
-
-Donor numbers below identify the eighteen first-cohort recommendations in a fixed sorted order. Five worlds are reused for each donor. A dash is a missing final paired effect, with the failed arm retained. Effects are present minus absent and use noiseless fines. They describe the complete pairs, not all planned recipes. Invalid arms are not repaired.
+| 01 | 1 | Research | 12 | 0.056735 | 0.203531 | 0.007803 |
+| 01 | 1 | NoResearch | 0 | 0.097477 | 0.047073 | 0.114278 |
+| 02 | 1 | NoResearch | 0 | 0.086437 | 0.007813 | 0.112645 |
+| 02 | 1 | Research | 12 | 0.062682 | 0.162872 | 0.029285 |
+| 03 | 1 | Research | 12 | 0.044852 | 0.151336 | 0.009358 |
+| 03 | 1 | NoResearch | 0 | 0.097565 | 0.023106 | 0.122385 |
+| 04 | 1 | NoResearch | 0 | 0.314567 | 0.279467 | 0.326267 |
+| 04 | 1 | Research | 12 | 0.035504 | 0.107984 | 0.011344 |
+| 05 | 1 | Research | 12 | 0.009812 | 0.015225 | 0.008008 |
+| 05 | 1 | NoResearch | 0 | 0.110002 | 0.057774 | 0.127411 |
+| 03 | 2 | NoResearch | 0 | 0.094482 | 0.011265 | 0.122222 |
+| 03 | 2 | Research | 12 | 0.021299 | 0.011932 | 0.024421 |
+| 04 | 2 | Research | 12 | 0.041674 | 0.148329 | 0.006122 |
+| 04 | 2 | NoResearch | 0 | 0.107223 | 0.026615 | 0.134092 |
+| 05 | 2 | NoResearch | 0 | 0.104525 | 0.030523 | 0.129193 |
+| 05 | 2 | Research | 12 | 0.037601 | 0.134996 | 0.005136 |
+| 01 | 2 | NoResearch | 0 | 0.104395 | 0.047076 | 0.123501 |
+| 01 | 2 | Research | 12 | 0.059241 | 0.208909 | 0.009352 |
+| 02 | 2 | Research | 12 | 0.011292 | 0.014620 | 0.010182 |
+| 02 | 2 | NoResearch | 0 | 0.098404 | 0.028613 | 0.121667 |
+| 05 | 3 | Research | 12 | 0.010708 | 0.015587 | 0.009082 |
+| 05 | 3 | NoResearch | 0 | 0.089775 | 0.030412 | 0.109563 |
+| 01 | 3 | Research | 12 | 0.055311 | 0.200086 | 0.007053 |
+| 01 | 3 | NoResearch | 0 | 0.321575 | 0.278683 | 0.335872 |
+| 02 | 3 | NoResearch | 0 | 0.118238 | 0.028397 | 0.148185 |
+| 02 | 3 | Research | 12 | 0.047534 | 0.083833 | 0.035434 |
+| 03 | 3 | Research | 12 | - | - | - |
+| 03 | 3 | NoResearch | 0 | 0.116623 | 0.011366 | 0.151708 |
+| 04 | 3 | NoResearch | 0 | 0.119995 | 0.013826 | 0.155385 |
+| 04 | 3 | Research | 12 | 0.007154 | 0.014283 | 0.004778 |
+
+| Query group | Research | NoResearch | Difference |
+| --- | --- | --- | --- |
+| all | 0.035632 | 0.132086 | -0.096454 |
+| dilute | 0.103677 | 0.061467 | 0.042210 |
+| other | 0.012950 | 0.155625 | -0.142675 |
+
+### Interval outcomes
+
+Nominal 80% intervals; equal-world means. Lower interval score is better. Coverage alone rewards broad intervals.
+
+| Group | Response | Arm | Coverage | Width | Interval score |
+| --- | --- | --- | --- | --- | --- |
+| all | Normalized pH | Research | 0.918333 | 0.056723 | 0.077467 |
+| all | Dissociation | Research | 0.900556 | 0.172358 | 0.338802 |
+| all | Precipitation | Research | 0.782778 | 0.095436 | 0.202354 |
+| dilute | Normalized pH | Research | 0.722222 | 0.128060 | 0.210358 |
+| dilute | Dissociation | Research | 0.655556 | 0.440189 | 1.104098 |
+| dilute | Precipitation | Research | 0.524444 | 0.131811 | 0.421346 |
+| other | Normalized pH | Research | 0.983704 | 0.032944 | 0.033170 |
+| other | Dissociation | Research | 0.982222 | 0.083081 | 0.083703 |
+| other | Precipitation | Research | 0.868889 | 0.083311 | 0.129356 |
+| all | Normalized pH | NoResearch | 0.983333 | 0.353500 | 0.355774 |
+| all | Dissociation | NoResearch | 0.901111 | 0.471515 | 0.500389 |
+| all | Precipitation | NoResearch | 0.915556 | 0.620167 | 0.727575 |
+| dilute | Normalized pH | NoResearch | 1.000000 | 0.370889 | 0.370889 |
+| dilute | Dissociation | NoResearch | 1.000000 | 0.872733 | 0.872733 |
+| dilute | Precipitation | NoResearch | 0.933333 | 0.357111 | 0.417828 |
+| other | Normalized pH | NoResearch | 0.977778 | 0.347704 | 0.350736 |
+| other | Dissociation | NoResearch | 0.868148 | 0.337775 | 0.376274 |
+| other | Precipitation | NoResearch | 0.909630 | 0.707852 | 0.830824 |
+
+### Missing-forecast sensitivity
+
+Posthoc conservative [0,1] macro-MAE bounds for missing forecasts; fixed 3 sessions per arm/world, then 5 equal worlds. Not imputation or sampling uncertainty.
+
+| Group | Difference lower | Difference upper |
+| --- | --- | --- |
+| all | -0.098659 | -0.031992 |
+| dilute | 0.036768 | 0.103434 |
+| other | -0.143801 | -0.077134 |
+
+The failed initial execution attempt is retained separately: four launched sessions, two completed source histories totalling 24 batches and no K1. An assessment-transport defect was fixed before the entire block restarted. Final-block recorded usage is 13,428,656 input-plus-output tokens, with 29/30 complete ledgers and one partial record; unavailable cost is not zero.
+
+## Retained matched-quench dispositions
+
+Ninety planned pairs, 75 complete, all 180 trajectories replayed. Eighteen donor recipes are historical and not corrected-block participants. Effects are present minus absent, conditional on both final assays. Failed arms are not repaired. No agent receives the control outcomes.
 
 | Donor | Source world | Information | Repeat |
 | --- | --- | --- | --- |
@@ -440,27 +666,27 @@ Donor numbers below identify the eighteen first-cohort recommendations in a fixe
 | Donor | World 1 | World 2 | World 3 | World 4 | World 5 |
 | --- | --- | --- | --- | --- | --- |
 | 1 | Absent fails | Absent fails | Absent fails | Absent fails | Absent fails |
-| 2 | 0.00000 | 0.00000 | 0.00000 | 0.00000 | 0.00000 |
-| 3 | -0.07193 | 0.08121 | -0.06641 | -0.03122 | -0.11081 |
-| 4 | 0.30483 | 0.25054 | 0.26820 | 0.29006 | 0.00016 |
-| 5 | 0.36050 | 0.75196 | 0.74491 | 0.70227 | 0.74283 |
-| 6 | 0.00000 | 0.00000 | 0.00000 | 0.00000 | 0.00000 |
-| 7 | 0.00000 | -0.00147 | 0.00000 | 0.00000 | 0.00000 |
-| 8 | 0.73643 | 0.67614 | 0.65346 | 0.61596 | 0.62552 |
+| 2 | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| 3 | -0.071933 | 0.081214 | -0.066411 | -0.031221 | -0.110806 |
+| 4 | 0.304827 | 0.250542 | 0.268204 | 0.290060 | 0.000164 |
+| 5 | 0.360502 | 0.751956 | 0.744909 | 0.702271 | 0.742834 |
+| 6 | 0.000000 | 0.000000 | 0.000000 | 0.000000 | 0.000000 |
+| 7 | 0.000000 | -0.001465 | 0.000000 | 0.000000 | 0.000000 |
+| 8 | 0.736430 | 0.676139 | 0.653463 | 0.615961 | 0.625517 |
 | 9 | Present fails | Present fails | Present fails | Present fails | Present fails |
 | 10 | Present fails | Present fails | Present fails | Present fails | Present fails |
-| 11 | 0.17751 | 0.52630 | 0.52558 | 0.49988 | 0.57637 |
-| 12 | 0.21897 | 0.14705 | 0.14699 | 0.07543 | 0.06037 |
-| 13 | 0.00558 | -0.05076 | -0.09236 | -0.08477 | -0.21882 |
-| 14 | 0.71771 | 0.64406 | 0.68547 | 0.62873 | 0.64872 |
-| 15 | 0.60226 | 0.00022 | 0.61733 | 0.55273 | 0.34794 |
-| 16 | 0.54132 | 0.42409 | 0.56943 | 0.54616 | 0.59024 |
-| 17 | 0.57332 | 0.37074 | 0.54879 | 0.55370 | 0.49501 |
-| 18 | 0.43274 | 0.47053 | 0.50706 | 0.52815 | 0.56957 |
+| 11 | 0.177509 | 0.526305 | 0.525578 | 0.499879 | 0.576374 |
+| 12 | 0.218968 | 0.147053 | 0.146991 | 0.075429 | 0.060371 |
+| 13 | 0.005577 | -0.050757 | -0.092365 | -0.084775 | -0.218822 |
+| 14 | 0.717709 | 0.644063 | 0.685473 | 0.628726 | 0.648716 |
+| 15 | 0.602261 | 0.000216 | 0.617332 | 0.552729 | 0.347936 |
+| 16 | 0.541322 | 0.424093 | 0.569429 | 0.546157 | 0.590242 |
+| 17 | 0.573320 | 0.370738 | 0.548793 | 0.553698 | 0.495009 |
+| 18 | 0.432735 | 0.470529 | 0.507058 | 0.528147 | 0.569570 |
 
-## Retained broad-study tables
+## Historical broad-study tables
 
-The following numerical tables retain the earlier cross-system and targeted-model results without pooling them with the process cohort. Their original descriptive groupings, task-specific response scales and sample units remain unchanged. E, P and S as information loci denote entity, parameter and structure information; P as a system denotes purification. EC is electrochemistry, PA partitioning, RX reaction, EQ equilibrium and C crystallization. Tables with example trajectories refer to the earlier study, not to the new process cases. SD is descriptive variation, not a confidence interval.
+These 34 tables preserve the original numerical cells and denominators. They do not describe the corrected crystallization or opportunity cohorts. Historical crystallization recovery diagnostics retain their original protocol limitations. The original broad study comprises 300 campaigns; the five-model equilibrium subset overlaps that count. Earlier figure labels in table captions refer to the historical report, not current preview figures.
 
 ### Retained table 1: A.1 Complete study matrix
 

@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 VENUE = ROOT / "paper/venues/nature"
 OUT = ROOT / "output/pdf"
 TEX = VENUE / "tex"
-BUILD = ROOT.parent / "ChemWorld-local-research/manuscript-nature-20261014/build"
+BUILD = ROOT.parent / "ChemWorld-local-research/manuscript-nature-20261015/build"
 
 
 def run(args: list[str], cwd: Path, label: str) -> str:
@@ -96,12 +96,16 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     meta, article = strip_frontmatter(read("article" + suffix + ".md"))
     if supplement:
         text = read("supplementary.md")
-        title = "Supplementary Information: experimental experience and scientific understanding"
+        title = "Supplementary Information: how autonomous research shapes scientific understanding"
     else:
         title = meta["title"]
         opening, body = article.split("\n\n", 1)
         methods = read("methods" + suffix + ".md")
         extended = read("extended_data" + suffix + ".md")
+        funding_heading = "\n## " + ("资助" if chinese else "Funding") + "\n"
+        if funding_heading in methods:
+            methods, funding = methods.split(funding_heading, 1)
+            body += "\n" + funding_heading + funding
         refs = "参考文献" if chinese else "References"
         text = opening + "\n\n\\MainStart\n\n" + body
         text += "\n\n\\clearpage\n\\onecolumn\n\n# " + refs + "\n\n::: {#refs}\n:::\n\n"
