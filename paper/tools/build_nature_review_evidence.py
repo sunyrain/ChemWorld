@@ -11,6 +11,8 @@ from pathlib import Path
 from statistics import fmean
 from zipfile import ZIP_DEFLATED, ZipFile
 
+from build_abductive_evidence import main as build_explanation_evidence
+
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
 from scripts.analyze_inquiry_semantics import validate_record  # noqa: E402
@@ -362,10 +364,17 @@ def main():
         "Reproduce from repository: uv run --no-sync python "
         "paper/tools/build_nature_review_evidence.py. "
         "The producer recomputes world means and window eligibility, checks all 182 quotations and "
-        "their temporal anchors, and preserves the missing forecast. ImageGen previews use these "
-        "numerical anchors but their generated geometry remains illustrative.\n",
+        "their temporal anchors, and preserves the missing forecast. "
+        "This producer also invokes build_abductive_evidence.py for the seven selected "
+        "judgment histories (explanation_histories.json), focal_equilibrium_assays.csv and "
+        "corrected_c_source_assays.csv, corrected_c_query_responses.csv, "
+        "corrected_c_session_responses.csv and corrected_c_distribution_summary.json. "
+        "These are retrospective, single-analyst derived analyses, not new experiments "
+        "or full-cohort explanatory coding. Run plot_abductive_evidence.py for the six "
+        "new data-derived figures; the conceptual Figure 1 remains ImageGen.\n",
         encoding="utf-8",
     )
+    build_explanation_evidence()
     archive = ROOT / "output/paper/chemworld-review-evidence.zip"
     archive.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:

@@ -1,22 +1,18 @@
-# Current integrated figure map
+# Current manuscript figure sources
 
-The integrated bilingual manuscript uses seven main figures and three Extended Data figures. Native quantitative artwork and ImageGen previews have distinct status. All numerical evidence and cohort boundaries are unchanged.
+Five main figures and five Extended Data figures. Only main Figure 1 is an ImageGen concept; all quantitative figures use retained data.
 
-| Figure | Role | Asset and source | Status |
-| --- | --- | --- | --- |
-| 1 | Abduction, deduction, experimental evaluation and revision | [PNG](abductive_inquiry.png); edited from the previous framework using the built-in ImageGen tool; [exact prompt](prompts.json) | Concept illustration; no quantitative evidence |
-| 2 | Research goals, operating trajectories and predictions | [PDF](research_objectives.pdf), [PNG](research_objectives.png); NCS narrative-final figure03 | Native quantitative export, copied without changing data geometry |
-| 3 | Continuous equilibrium expectation, alternative test and extrapolation | [PNG](../preview-20261015/figure02.png) | ImageGen data preview; generated geometry illustrative |
-| 4 | Local improvement, warranted retraction and execution evidence | [PNG](../preview-20261015/figure03.png) | ImageGen data preview; generated geometry illustrative |
-| 5 | Five-model evidence acquisition and two prediction paths | [PDF](evidence_paths.pdf), [PNG](evidence_paths.png); NCS narrative-final figure05 | Native quantitative export; small researcher icon is illustrative |
-| 6 | Original prior effects across conditions and models | [PDF](priors_and_transfer.pdf), [PNG](priors_and_transfer.png); NCS narrative-final figure04 | Native quantitative export; historical partition was post hoc |
-| 7 | Matched research opportunity | [PNG](../preview-20261015/figure04.png) | ImageGen data preview; generated geometry illustrative |
-| Extended 1 | Observable process windows | [PNG](../preview-20261015/extended01.png) | ImageGen data preview |
-| Extended 2 | Corrected-crystallization source-only references | [PNG](../preview-20261015/extended02.png) | ImageGen data preview |
-| Extended 3 | Fixed-recipe quench comparison | [PNG](../preview-20261015/extended03.png) | ImageGen data preview |
+| Position | Asset | Source and status |
+| --- | --- | --- |
+| Figure 1 | abductive_inquiry.png | Existing ImageGen concept, prompts.json |
+| Figure 2 | explanation_history.pdf | Twelve actual source assays, complete focal EQ history and matched Q08 forecasts |
+| Figure 3 | tests_and_revision.pdf | Retained lower-charge/interpolation measurements and bounded history comparison |
+| Figure 4 | evidence_paths.pdf | Unchanged native NCS figure05.pdf |
+| Extended 1 | research_objectives.pdf | Unchanged native NCS figure03.pdf |
+| Extended 2 | priors_and_transfer.pdf | Unchanged native NCS figure04.pdf |
+| Figure 5 | consequences_of_inquiry.pdf | Actual research/no-research sessions and corrected-C references/distributions |
+| Extended 3 | process_coverage.pdf | Existing session, window and selected-plan denominators |
+| Extended 4 | corrected_c_distributions.pdf | All source/target/prediction distributions and signed errors for 42 valid corrected-C sessions |
+| Extended 5 | quench_control.pdf | Retained 90-pair physical control, including 15 failed pairs |
 
-The donor [figure documentation](../../../../figures/narrative-final/README.md) describes native exports, boxplots, logarithmic bar baselines and underlying [source data](../../../../figures/narrative-final/source-data.json). NCS Figure 3 becomes main Figure 2; Figure 5 becomes main Figure 5; Figure 4 becomes main Figure 6. Captions and panel references follow this mapping. Donor files and their editable PowerPoint collection remain unchanged.
-
-Main Figure 2 quadrant labels compare optimization with discovery; positive vertical values mean lower prediction error for optimization. Main Figure 5 retains post-experiment accounts, not newly contemporaneous hypotheses. Main Figure 6 preserves the original cohort and does not merge subsequent repetitions. Main Figure 3 instead uses the new opportunity-comparison session. Full numerical tables and failures remain in the supplement and review archive.
-
-The new framework was visually inspected after generation. Existing process previews retain their original numerical anchors and illustrative geometry; the captions do not promote them to exact plots. The previous preview directories retain generation provenance but no longer define current numbering.
+New quantitative assets are produced by `paper/tools/plot_abductive_evidence.py`, reading the review evidence and retained report. Paired PNGs are inspection derivatives; PDF artwork is vector. Derived data are produced by `paper/tools/build_abductive_evidence.py`, invoked by the review-evidence producer. Figures contain no generated quantitative geometry. Earlier preview assets remain historical and are no longer included in current PDFs. Donor NCS figures and sources remain unchanged. All counts retain their original cohort boundaries.
