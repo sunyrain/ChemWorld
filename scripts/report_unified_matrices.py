@@ -418,11 +418,35 @@ def build_report(root):
     sessions, metrics, failures = collect(root, units, live_summary)
     totals = grouped_counts(sessions, ())[0]
     terminal = totals["terminal_sessions"] == 300
+    retries, retry_issue = read_optional(root / "service-retries.json")
+    retry_final = retries.get("final", {})
+    retry_state = retries.get("status", "pending" if design.get("service_retry_policy") else "none")
+    service = {
+        "status": retry_state,
+        "ledger_path": str(root / "service-retries.json") if retries else None,
+        "ledger_issue": retry_issue if (root / "service-retries.json").exists() else None,
+        **{
+            key: retry_final.get(key)
+            for key in (
+                "effective_units",
+                "service_retry_attempts",
+                "retried_units",
+                "service_interruptions_remaining",
+                "needs_review",
+                "scientific_failures_retained",
+                "completed_units",
+            )
+        },
+    }
+    service_finished = retry_state in {"none", "completed"}
+    phase = "terminal" if service_finished else "service_retries"
     summary = {
         "schema_version": "unified-matrices-descriptive-report-1",
         "generated_at": datetime.now(UTC).isoformat(),
-        "phase": "terminal" if terminal else "partial",
-        "execution_complete": terminal,
+        "phase": phase if terminal else "partial",
+        "execution_complete": terminal and service_finished,
+        "primary_units_terminal": terminal,
+        "service_retries": service,
         "all_sessions_completed": totals["completed_sessions"] == 300,
         "input_root": str(root),
         "design_path": str(root / "design.json"),
@@ -454,6 +478,8 @@ def build_report(root):
         "interpretation": [
             "Descriptive native evaluator readouts, not scientific-success or abduction rates.",
             "All sessions stay in denominators; absent/invalid metrics are null, never zero.",
+            "User-directed service retries retain every interrupted attempt separately; "
+            "the effective 300-unit analysis uses the resolved attempt without score selection.",
             "Usable Q responses from otherwise incomplete sessions are retained and flagged.",
             "Means average sessions within each world, then weight observed worlds equally.",
             "Complete-grid means are null until all planned session responses are available.",
@@ -493,6 +519,18 @@ def markdown(summary):
         "| System | Planned | Terminal | Completed | Usable Q | Missing Q | Source assays |",
         "| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
     ]
+    service = summary.get("service_retries", {})
+    if service.get("status", "none") != "none":
+        insert_at = lines.index("## Coverage")
+        lines[insert_at:insert_at] = [
+            f"Service retry phase: {service['status']}; additional technical attempts: "
+            f"{service.get('service_retry_attempts')}; units retried: "
+            f"{service.get('retried_units')}; service interruptions remaining: "
+            f"{service.get('service_interruptions_remaining')}. "
+            "Interrupted originals remain in the service-retries.json ledger. "
+            "These technical attempts do not enlarge the 300-unit scientific denominator.",
+            "",
+        ]
     for row in summary["by_system"]:
         lines.append(
             f"| {row['system']} | {row['planned_sessions']} | {row['terminal_sessions']} | "

@@ -30,7 +30,7 @@
   },
   "work_ii": {
     "w2_267_unified_matrices": {
-      "status": "runtime_recovery_short_path_prepared",
+      "status": "running_primary_then_service_retries",
       "experiment_note": "workstreams/flagship_tasks/WORK_II_UNIFIED_MATRICES_20261016.md",
       "run_root": "D:/CW267/a2",
       "live_summary": "D:/CW267/a2/summary.json",
@@ -47,8 +47,12 @@
       "source_commit": "d2b05e98",
       "worker_cap": 24,
       "model_rng_seed_controlled": false,
-      "interpretation": "Execution state comes from live_summary; registration does not declare completion. Existing150 retain original cohorts and missingness. Fixed new EC90/RX90/PA45/P45/C-opportunity30; no outcome-conditioned replacement. Short-path recovery restarts RX90 only; 22 started non-RX units retained, including provider failures. P resource canonicalization is a posthoc validation correction, not new execution. Original RX8 attempts retained separately.",
-      "original_attempt_root": "D:/Projects/ChemWorld-local-research/20261016-unified-matrices/attempt-01"
+      "interpretation": "Live summary describes effective planned units, not scientific success rates. Existing150 retain original cohorts and missingness. Fixed new EC90/RX90/PA45/P45/C-opportunity30. Short-path recovery restarts RX90 only;22 started non-RX units retained, two with derived P resource canonicalization corrections. Original RX8 preserved separately. User-directed service interruptions are rerun after the primary queue and accounted as technical attempts, never selected by scores.",
+      "original_attempt_root": "D:/Projects/ChemWorld-local-research/20261016-unified-matrices/attempt-01",
+      "recovery_runtime_commit": "775e4587f25e21a480c63fb4a92c05dbe95f8532",
+      "service_retry_policy": "user_requested_after_primary_queue; explicit server interruptions only; all attempts retained",
+      "service_retry_runner": "scripts/complete_unified_service_retries.py",
+      "service_retry_ledger": "D:/CW267/a2/service-retries.json"
     },
     "w2_263_abductive_completion": {
       "status": "completed_fixed_scope_analysis_and_participant_attempt_02",

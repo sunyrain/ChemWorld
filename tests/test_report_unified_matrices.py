@@ -111,6 +111,38 @@ def test_retained_units_read_original_outputs_without_replacement(tmp_path):
     assert not (current / units[0]["repeat"]).exists()
 
 
+def test_service_retry_attempts_are_separate_from_planned_units(tmp_path):
+    design(tmp_path)
+    write(
+        tmp_path / "service-retries.json",
+        {
+            "status": "running",
+            "final": {"service_retry_attempts": 7, "retried_units": 5},
+            "rounds": [{"failure": "PRIVATE_PROVIDER_PAYLOAD"}],
+        },
+    )
+    summary, _, _ = report.build_report(tmp_path)
+    assert summary["counts"]["planned_sessions"] == 300
+    assert summary["service_retries"]["service_retry_attempts"] == 7
+    assert summary["service_retries"]["retried_units"] == 5
+    assert not summary["execution_complete"]
+    assert "PRIVATE_PROVIDER_PAYLOAD" not in json.dumps(summary)
+    assert "additional technical attempts: 7" in report.markdown(summary)
+
+
+def test_terminal_primary_is_not_complete_while_service_retries_are_pending(tmp_path):
+    units = design(tmp_path)
+    for unit in units:
+        base = tmp_path / unit["repeat"] / unit["id"]
+        write(base / "status.json", {"status": "incomplete"})
+        write(base / "result.json", {"status": "failed", "source": {}})
+    write(tmp_path / "service-retries.json", {"status": "running", "final": {}})
+    summary, _, _ = report.build_report(tmp_path)
+    assert summary["primary_units_terminal"]
+    assert summary["phase"] == "service_retries"
+    assert not summary["execution_complete"]
+
+
 def test_available_world_means_do_not_weight_world_by_completion_count(tmp_path):
     units = design(tmp_path)
     selected = [u for u in units if u["system"] == "PA" and u["arm"] == "Opaque"]

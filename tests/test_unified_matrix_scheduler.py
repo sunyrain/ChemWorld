@@ -181,3 +181,31 @@ def test_persisted_worker_failure_keeps_existing_manual_hold(tmp_path):
     runner.persist_hold(path, blocked, "zero-operation MCP startup")
     assert runner.read(path)["systems"] == ["P", "RX"]
     assert blocked == {"P", "RX"}
+
+
+@pytest.mark.parametrize(
+    ("service_round", "manual_hold", "exit_code"),
+    [(True, False, 0), (False, False, 2), (True, True, 2)],
+)
+def test_retry_view_does_not_reactivate_historical_errors(
+    tmp_path, service_round, manual_hold, exit_code
+):
+    unit = runner.schedule()[0]
+    original = tmp_path / "original"
+    runner.write(original / "status.json", {"status": "execution_error"})
+    runner.write(original / "result.json", {})
+    runner.write(tmp_path / "prepared.json", {})
+    runner.write(
+        tmp_path / "design.json",
+        {
+            "schedule": [unit],
+            "workers": 1,
+            "retained_units": {runner.unit_key(unit): str(original)},
+            "service_retry": {"round": 1} if service_round else None,
+        },
+    )
+    if manual_hold:
+        runner.write(tmp_path / "block-stop.json", {"systems": [unit["system"]]})
+    assert runner.run(tmp_path) == exit_code
+    assert runner.read(original / "status.json")["status"] == "execution_error"
+    assert not (tmp_path / unit["repeat"]).exists()

@@ -524,7 +524,12 @@ def run(root):
         ) in TERMINAL:
             state = read(path / "status.json")
             result = read(path / "result.json") if (path / "result.json").exists() else {}
-            if state["status"] == "execution_error" or startup_infrastructure_failure(path, result):
+            historical_retry_view = bool(design.get("service_retry")) and unit_key(
+                unit
+            ) in design.get("retained_units", {})
+            if not historical_retry_view and (
+                state["status"] == "execution_error" or startup_infrastructure_failure(path, result)
+            ):
                 blocked.add(unit["system"])
             continue
         else:
