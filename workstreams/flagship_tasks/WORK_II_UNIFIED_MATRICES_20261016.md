@@ -90,3 +90,44 @@ Readable live report and machine summary are generated there during execution;
 sanitized final results go to reports/unified-matrices-20261016/. Credentials and
 raw provider data never enter Git. Final analysis must distinguish complete execution
 from valid scientific outcomes and provide exact failures, not just success totals.
+
+## Runtime recovery, 2026-10-16
+
+The original queue started 30 units before its launcher was held. Windows MAX_PATH
+prevented five RX notebooks from initializing (zero scientific operations); three
+shorter RX source paths also exposed longer downstream output paths. The original
+eight RX attempts remain intact. Under the fixed affected-block restart rule, RX90
+restarts from its first unit at D:/CW267/a2. This is a runtime/path repair, not a change
+to world laws, prompts, native cell/noise namespaces, coverage or outcome rules.
+All 22 started non-RX units are retained, including provider disconnections, and the
+remaining non-RX units run only once. The short-root design records their original
+locations explicitly. All running units drained before the old coordinator stopped.
+The 540 prepared reference batches and public inputs are reused without new simulation.
+
+Two P source resource checks also exposed an interpretation defect: the posthoc
+validator omitted the runtime action canonicalization, so integer/float forms could
+produce different action hashes despite identical resource states. Canonicalized
+readback passes all 172 and 207 respective records. Correct only this derived
+validation, retain the original result and failure, and do not rerun these sessions.
+The two independent provider disconnections remain recorded as technical interruptions.
+No provider call or new scientific measurement is needed for this validation repair.
+
+The effective 300-session schedule and live report now reside at D:/CW267/a2;
+the original root remains provenance for retained units and the defective RX attempt.
+Manual system holds are read during scheduling; zero-action MCP initialization
+failures stop new launches of the affected system while in-flight work drains.
+
+## User-directed service retry amendment, 2026-10-16
+
+After the initial interruptions were reported, the user explicitly instructed that
+all server interruptions be rerun at the end and excluded as scientific failures.
+This supersedes the no-replacement rule above for positively identified service
+failures only. Finish the primary 300-unit queue first, then rerun affected units
+under unchanged scientific conditions in separately retained short-root attempts.
+Keep the interrupted attempt, its acquired evidence and resource usage; report
+planned units, technical attempts and effective scientific outcomes separately.
+Scientific negative results, invalid participant answers, exhausted scientific
+budgets and missing required recommendations are not retry triggers. A recovered
+transport message inside an otherwise valid session is not a retry trigger either.
+Ambiguous failures require diagnosis before reclassification. Technical reruns
+follow the fixed unit order and never depend on scores or scientific direction.

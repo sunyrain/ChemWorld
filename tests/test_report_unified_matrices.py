@@ -95,6 +95,22 @@ def test_partial_report_retains_all_300_and_missing_metrics(tmp_path):
     assert absent["metric_available"] is False
 
 
+def test_retained_units_read_original_outputs_without_replacement(tmp_path):
+    current = tmp_path / "current"
+    original = tmp_path / "original"
+    units = design(current)
+    base, _ = result(original, units[0])
+    path = current / "design.json"
+    metadata = json.loads(path.read_text())
+    metadata["retained_units"] = {f"{units[0]['repeat']}/{units[0]['id']}": str(base)}
+    write(path, metadata)
+    summary, rows, _ = report.build_report(current)
+    assert summary["counts"]["terminal_sessions"] == 1
+    retained_row = next(r for r in rows if r["id"] == units[0]["id"])
+    assert retained_row["result_path"] == str(base / "result.json")
+    assert not (current / units[0]["repeat"]).exists()
+
+
 def test_available_world_means_do_not_weight_world_by_completion_count(tmp_path):
     units = design(tmp_path)
     selected = [u for u in units if u["system"] == "PA" and u["arm"] == "Opaque"]

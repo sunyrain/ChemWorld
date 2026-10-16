@@ -108,8 +108,69 @@ def schedule(research_cases=None, opportunity_cases=None):
     return units
 
 
-def folder(root, unit):
-    return root / unit["repeat"] / unit["id"]
+def unit_key(unit):
+    return f"{unit['repeat']}/{unit['id']}"
+
+
+def folder(root, unit, design=None):
+    """Retained units remain in place; only never-started units use the new root."""
+    root = Path(root)
+    if design is None:
+        path = root / "design.json"
+        design = read(path) if path.exists() else {}
+    retained = design.get("retained_units", {}).get(unit_key(unit))
+    return Path(retained) if retained is not None else root / unit["repeat"] / unit["id"]
+
+
+def startup_infrastructure_failure(path, result=None):
+    """Recognize one observed startup boundary, never generic provider failures."""
+    evidence = None
+    for stderr in path.rglob("source-stderr.txt"):
+        text = stderr.read_text(encoding="utf-8", errors="replace").casefold()
+        if "required mcp servers failed to initialize" in text and any(
+            server in text for server in ("research_notebook", "chemworld_lab", "public_numerics")
+        ):
+            evidence = stderr
+            break
+    if evidence is None:
+        return None
+    result = result or {}
+    source = result.get("source") or result
+    if source.get("operations") or source.get("batches"):
+        return None
+    for calls in path.rglob("notebook-calls.jsonl"):
+        if calls.stat().st_size:
+            return None
+    if live_counts(path)[0]:
+        return None
+    return {
+        "type": "required_mcp_initialization_failed",
+        "stage": "source_startup",
+        "zero_scientific_operations": True,
+        "evidence_path": str(evidence),
+    }
+
+
+def read_holds(path):
+    if not path.exists():
+        return set()
+    value = read(path).get("systems")
+    if not isinstance(value, list) or any(s not in {"EC", "RX", "PA", "P", "C"} for s in value):
+        raise RuntimeError("Invalid operational block-stop systems")
+    return set(value)
+
+
+def persist_hold(path, blocked, reason):
+    blocked.update(read_holds(path))
+    write(
+        path,
+        {
+            "systems": sorted(blocked),
+            "at": now(),
+            "reason": reason,
+            "drain_in_flight": True,
+        },
+    )
 
 
 def prepare(root, workers):
@@ -184,8 +245,8 @@ def live_counts(path):
     return operations, batches
 
 
-def status_row(root, unit, active_keys=()):
-    path = folder(root, unit)
+def status_row(root, unit, active_keys=(), design=None):
+    path = folder(root, unit, design)
     state_path = path / "status.json"
     state = read(state_path) if state_path.exists() else {}
     result_path = path / "result.json"
@@ -263,7 +324,7 @@ def eta_estimate(rows, workers):
 
 def snapshot(root, active_keys=(), started=None, blocked=(), baseline=(0, 0)):
     design = read(root / "design.json")
-    rows = [status_row(root, u, active_keys) for u in design["schedule"]]
+    rows = [status_row(root, u, active_keys, design) for u in design["schedule"]]
     terminal = sum(r["status"] in TERMINAL for r in rows)
     summary = {
         "updated_at": now(),
@@ -353,6 +414,9 @@ def snapshot(root, active_keys=(), started=None, blocked=(), baseline=(0, 0)):
 
 
 def worker(root, unit):
+    design = read(root / "design.json")
+    if unit_key(unit) in design.get("retained_units", {}):
+        raise RuntimeError("Retained unit cannot be relaunched")
     path = folder(root, unit)
     if path.exists():
         raise FileExistsError(f"Unit already started; no replacement: {path}")
@@ -384,6 +448,10 @@ def worker(root, unit):
         row = status_row(root, unit)
         source = result.get("source", result)
         replay = source.get("exact_replay")
+        infrastructure = startup_infrastructure_failure(path, result)
+        if infrastructure:
+            write(path / "infrastructure-failure.json", infrastructure)
+            raise RuntimeError("Required MCP failed to initialize before scientific operations")
         if result.get("fatal_execution_error") or result.get("status") == "execution_error":
             raise RuntimeError(f"Adapter execution defect: {result.get('failure')}")
         if row["operations"] and not (replay or {}).get("verified"):
@@ -444,21 +512,26 @@ def run(root):
             process = psutil.Process(previous["pid"])
             if process.create_time() == previous.get("process_created_epoch"):
                 raise RuntimeError("This study already has a live coordinator")
-    pending = []
+    pending, blocked = [], set()
     for unit in design["schedule"]:
-        path = folder(root, unit)
+        path = folder(root, unit, design)
         if not path.exists():
+            if unit_key(unit) in design.get("retained_units", {}):
+                raise RuntimeError(f"Retained unit missing; will not replace it: {path}")
             pending.append(unit)
         elif (path / "status.json").exists() and read(path / "status.json").get(
             "status"
         ) in TERMINAL:
+            state = read(path / "status.json")
+            result = read(path / "result.json") if (path / "result.json").exists() else {}
+            if state["status"] == "execution_error" or startup_infrastructure_failure(path, result):
+                blocked.add(unit["system"])
             continue
         else:
             raise RuntimeError(f"Ambiguous or active unit; will not relaunch: {path}")
-    active, blocked = {}, set()
+    active = {}
     stop_path = root / "block-stop.json"
-    if stop_path.exists():
-        blocked.update(read(stop_path)["systems"])
+    blocked.update(read_holds(stop_path))
     started = time.monotonic()
     initial = snapshot(root)
     baseline = (initial["terminal_sessions"], initial["completed_source_batches"])
@@ -473,27 +546,42 @@ def run(root):
     )
     last_report = 0.0
     while pending or active:
+        # Operational holds are read while the queue is alive, without signalling
+        # in-flight workers or changing scientific outcomes.
+        blocked.update(read_holds(stop_path))
         for key, record in list(active.items()):
             code = record["process"].poll()
             if code is None:
+                if record["unit"]["system"] not in blocked:
+                    path = folder(root, record["unit"], design)
+                    result_path = path / "result.json"
+                    native = read(result_path) if result_path.exists() else {}
+                    infrastructure = startup_infrastructure_failure(path, native)
+                    if infrastructure:
+                        write(path / "infrastructure-failure.json", infrastructure)
+                        blocked.add(record["unit"]["system"])
+                        persist_hold(stop_path, blocked, f"MCP startup boundary failed: {key}")
                 continue
             record["stream"].close()
             del active[key]
-            if code:
+            path = folder(root, record["unit"], design)
+            state = read(path / "status.json") if (path / "status.json").exists() else {}
+            native = read(path / "result.json") if (path / "result.json").exists() else {}
+            infrastructure = startup_infrastructure_failure(path, native)
+            if infrastructure:
+                write(path / "infrastructure-failure.json", infrastructure)
+            if code or state.get("status") == "execution_error" or infrastructure:
                 blocked.add(record["unit"]["system"])
-                write(
+                persist_hold(
                     stop_path,
-                    {
-                        "systems": sorted(blocked),
-                        "at": now(),
-                        "reason": f"worker exit {code}: {key}",
-                        "drain_in_flight": True,
-                    },
+                    blocked,
+                    f"worker exit {code}, status {state.get('status')}: {key}",
                 )
         launch_cap = (
             min(6, design["workers"]) if time.monotonic() - started < 60 else design["workers"]
         )
         while len(active) < launch_cap and psutil.virtual_memory().available > 8 * 1024**3:
+            blocked.update(read_holds(stop_path))
             index = next((i for i, u in enumerate(pending) if u["system"] not in blocked), None)
             if index is None:
                 break

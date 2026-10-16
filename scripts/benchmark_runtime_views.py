@@ -7,6 +7,7 @@ import json
 import statistics
 import threading
 import time
+from contextlib import suppress
 from pathlib import Path
 from unittest.mock import patch
 
@@ -14,6 +15,7 @@ import gymnasium as gym
 from scripts import run_work_ii_c_formal as formal
 from scripts import run_work_ii_c_pilot as pilot
 
+from chemworld.action_codec import ActionCodec
 from chemworld.agent_interface import agent_view_bundle
 from chemworld.campaign_resources import (
     CampaignResourceCard,
@@ -21,6 +23,7 @@ from chemworld.campaign_resources import (
     campaign_resource_event_id,
 )
 from chemworld.data.logging import load_jsonl, to_builtin
+from chemworld.envs.chemworld_env import CAMPAIGN_OPERATION_TYPES
 from chemworld.runtime.full_process_contract import FULL_PROCESS_FREE_RESEARCH_CONTRACT
 from chemworld.tasks import list_tasks
 
@@ -59,6 +62,7 @@ def verify_resources(records):
     ledger = CampaignResourceLedger(
         CampaignResourceCard.from_dict(records[0]["campaign_resource_card"])
     )
+    codec = ActionCodec(operation_types=CAMPAIGN_OPERATION_TYPES)
     for index, record in enumerate(records, 1):
         campaign = record["agent_view"]["tool_json"]["campaign_state"]
         resources = campaign["campaign_resources"]
@@ -66,11 +70,18 @@ def verify_resources(records):
         event_id = receipt["event_id"]
         assert event_id == campaign_resource_event_id(campaign["campaign_id"], index)
         starts = receipt["preflight"]["proposed_delta"]["vessel_starts"] == 1
-        preflight = ledger.preflight(event_id, record["action"], starts_vessel=starts)
+        # The runner retains the requested action; env.step canonicalizes it before
+        # resource admission. In particular integer-valued control fields become
+        # floats, which changes their canonical JSON hash without changing physics.
+        # Match the environment's invalid-action fallback as well as valid actions.
+        action = record["action"]
+        with suppress(IndexError, OverflowError, TypeError, ValueError):
+            action = codec.canonicalize(action)
+        preflight = ledger.preflight(event_id, action, starts_vessel=starts)
         assert preflight.to_dict() == receipt["preflight"]
         delta = ledger.record_outcome(
             event_id,
-            record["action"],
+            action,
             {
                 "operation_committed": receipt["operation_committed"],
                 "campaign_resource_report_delta": receipt["outcome_delta"]["report_only"],

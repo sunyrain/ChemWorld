@@ -201,13 +201,16 @@ def native_metric(system, value):
 
 def collect(root, units, live_summary):
     sessions, metric_rows, failures = [], [], []
+    design, _ = read_optional(root / "design.json")
+    retained = design.get("retained_units", {})
     projected = {
         (r.get("repeat"), r.get("id")): r
         for r in live_summary.get("cases", [])
         if isinstance(r, dict)
     }
     for unit in units:
-        base = root / unit["repeat"] / unit["id"]
+        key = f"{unit['repeat']}/{unit['id']}"
+        base = Path(retained[key]) if key in retained else root / unit["repeat"] / unit["id"]
         result_path, status_path = base / "result.json", base / "status.json"
         result, result_issue = read_optional(result_path)
         state, state_issue = read_optional(status_path)

@@ -1,5 +1,7 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
+W2-267 runtime update (2026-10-16): preparation540 passed; original30 started units drained. Windows MAX_PATH requires RX90 restart at D:/CW267/a2, retaining original RX8 and all22 non-RX units. Two P resource checks are posthoc canonicalization corrections only; no P rerun. Coverage and scientific inputs remain fixed. See the existing W2-267 note below.
+
 Claim: Codex /root — W2-267 — DOING（2026-10-16）。用户批准六体系、四矩阵、新增300场，按最快可靠并行推进。固定EC90、RX90、PA45、P45、C研究机会30；已有150场保留来源与失败。并行实现270场研究适配、30场C对照、运行时复核；全局24进程上限、每30秒进度与ETA。先通过定向公共契约/覆盖/隔离/回放检查并记录稳定执行提交，再启动模型；无结果导向替换。见[固定实验说明](../flagship_tasks/WORK_II_UNIFIED_MATRICES_20261016.md)。
 
 Claim: Codex /root — W2-266 — DONE（2026-10-16）。按用户要求，内置ImageGen重新设计六主图六扩展图，统一1536×1024预览；保存完整提示词、针对性修订、原生参照修订及全尺寸图库。校正坐标含义、试剂/催化剂、预测/误差及过程阶段，双语图注/方法/首页明确生成几何不是精确观测。三PDF为英文22、中文20、行号39页，81页全部渲染检查；24处插图引用、摘要不变、构建Ruff与diff检查通过。原生数据图、34张历史表、证据ZIP、补充PDF及重要历史归档不变。单执行者，无新增科学实验。[预览图与提示词](../../paper/venues/nature/figures/imagegen-preview-20261016/README.md)。
