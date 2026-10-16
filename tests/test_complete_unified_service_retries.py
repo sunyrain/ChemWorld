@@ -10,6 +10,26 @@ from scripts import complete_unified_service_retries as service
 from scripts import run_unified_matrices as runner
 
 
+def test_completion_counts_follow_effective_summary_after_service_reruns(tmp_path):
+    runner.write(
+        tmp_path / "summary.json",
+        {"complete_chains": 288, "valid_forecasts": 298, "cases": [{"status": "completed"}]},
+    )
+    runner.write(
+        tmp_path / "completion-status.json", {"complete_chains": 284, "valid_forecasts": 294}
+    )
+    service.publish_phase(
+        tmp_path,
+        {"status": "completed", "rounds": [{}], "final": {"completed_units": 288}},
+    )
+    completion = runner.read(tmp_path / "completion-status.json")
+    assert completion["complete_chains"] == 288
+    assert completion["valid_forecasts"] == 298
+    assert completion["service_retries"]["completed_units"] == 288
+    assert completion["stage"] == "terminal"
+    assert "cases" not in completion
+
+
 def unit():
     return {
         "id": "P-W01-B12-optimization-E-Opaque",

@@ -420,11 +420,15 @@ def publish_phase(root, ledger, progress=None):
         **(progress or {}),
     }
     stage = "terminal" if ledger["status"] == "completed" else "service_retries_" + ledger["status"]
-    for name in ("summary.json", "completion-status.json"):
-        path = root / name
-        summary = runner.read(path) if path.exists() else {}
-        summary.update(stage=stage, service_retries=value)
-        runner.write(path, summary)
+    path = root / "summary.json"
+    summary = runner.read(path) if path.exists() else {}
+    summary.update(stage=stage, service_retries=value)
+    runner.write(path, summary)
+    # Both views use the effective-unit counts refreshed after each retry round.
+    # Updating only the phase of the old completion file retained first-pass totals.
+    runner.write(
+        root / "completion-status.json", {k: v for k, v in summary.items() if k != "cases"}
+    )
 
 
 def update_final(root, ledger, decisions):
