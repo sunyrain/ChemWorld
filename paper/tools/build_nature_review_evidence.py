@@ -13,6 +13,7 @@ from zipfile import ZIP_DEFLATED, ZipFile
 
 from build_abductive_evidence import main as build_explanation_evidence
 from build_matched_inquiry_evidence import main as build_matched_evidence
+from build_unified_manuscript_evidence import main as build_unified_evidence
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -372,16 +373,43 @@ def main():
         "corrected_c_session_responses.csv and corrected_c_distribution_summary.json. "
         "These are retrospective, single-analyst derived analyses, not new experiments "
         "or full-cohort explanatory coding. Run plot_abductive_evidence.py for the six "
-        "new data-derived figures; the conceptual Figure 1 remains ImageGen.\n",
+        "retained data-derived figures. All current main and Extended Data artwork is "
+        "explicitly labelled ImageGen preview; new matrices are governed by their exact tables.\n",
         encoding="utf-8",
     )
     build_explanation_evidence()
     build_matched_evidence()
+    build_unified_evidence()
+    unified = read(ROOT / "configs/current.json")["work_ii"]["w2_267_unified_matrices"]
+    unified_root = ROOT / unified["report_root"]
+    with (DEST / "README.md").open("a", encoding="utf-8") as stream:
+        stream.write(
+            "\n## Integrated matrices and new 300-session evidence\n\n"
+            "The new primary block is separate from the older evidence described above. "
+            "Four matrices cover 450 planned sessions: 300 new and 150 retained. "
+            "The new block retains 288 complete chains, 298 valid forecasts, "
+            "3,379/3,420 source assays and 898/900 valid stages. Ten material-exhausted "
+            "purification histories and two absent/invalid reaction forecasts remain included. "
+            "Four service-only retries preserve their interrupted attempts.\n\n"
+            "unified_matrices_summary.json supplies machine-recomputed main contrasts and "
+            "coverage. In the ZIP, unified_matrices/ contains the entire curated report "
+            "tree: 1,380 planned session-response rows, recommendations, all failures, "
+            "all 300 public-history readings and their scientific source extracts. "
+            "No raw provider envelopes or credentials are included. Reading spans 873 "
+            "notes, 31,922 operations and 1,363 verified quotations; it is not an "
+            "abduction rate or independent human coding.\n\n"
+            "Repository source: ../../../../" + unified["report_root"] + "/PROCESS_REVIEW.md. "
+            "Compilation does not rerun experiments or change evidence status.\n"
+        )
     archive = ROOT / "output/paper/chemworld-review-evidence.zip"
     archive.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:
-        for path in sorted(DEST.iterdir()):
-            bundle.write(path, path.name)
+        for path in sorted(DEST.rglob("*")):
+            if path.is_file():
+                bundle.write(path, path.relative_to(DEST).as_posix())
+        for path in sorted(unified_root.rglob("*")):
+            if path.is_file() and path.suffix in {".md", ".json", ".csv"}:
+                bundle.write(path, "unified_matrices/" + path.relative_to(unified_root).as_posix())
     print(
         f"Retained evidence: {len(queries)} query rows; {len(sessions)} session-response cells; "
         f"{len(eligibility)} adjacent pairs / {len(windows)} windows; 182 checked quotes; "

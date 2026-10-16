@@ -330,7 +330,7 @@ def main():
         table(
             ["Evidence layer", "Planned sessions", "Complete chains", "Valid forecasts"],
             [
-                ["Current equilibrium", 45, 39, 41],
+                ["Retained equilibrium", 45, 39, 41],
                 ["Corrected crystallization", 45, 41, 42],
                 ["Current process total", 90, 80, 83],
                 ["Opportunity: Research", 15, 14, 14],
@@ -498,7 +498,7 @@ def main():
             ],
         ),
         "",
-        "### Quotations from the current coded windows",
+        "### Quotations from the retained coded windows",
         "",
         "The following are checked public quotations, not analyst reconstructions of private "
         "reasoning. Each numbered pair follows the order of the window inventory above. "
@@ -517,7 +517,7 @@ def main():
             "",
         ]
     lines += [
-        "### Focal cases in the current narrative",
+        "### Selected cases from the retained cohorts",
         "",
         table(
             ["Case", "Observable sequence", "Scope"],
@@ -771,10 +771,25 @@ def main():
     lines += ["", (DEST / "explanation_analysis.md").read_text(encoding="utf-8"), ""]
     lines += ["", (DEST / "matched_inquiry_analysis.md").read_text(encoding="utf-8"), ""]
     lines += legacy
-    (DEST / "supplementary.md").write_text("\n".join(lines), encoding="utf-8")
+    text = "\n".join(lines)
+    text = text.replace(
+        "## Evidence organization and units", "## Retained evidence organization and units"
+    )
+    text = text.replace("Current process", "Retained process").replace(
+        "current process", "retained process"
+    )
+    text = text.replace("current 90", "retained 90").replace("ninety current", "ninety retained")
+    text = text.replace(
+        "# Supplementary Information\n\n",
+        "# Supplementary Information\n\n"
+        + (DEST / "unified_matrices_analysis.md").read_text(encoding="utf-8")
+        + "\n\n",
+        1,
+    )
+    (DEST / "supplementary.md").write_text(text, encoding="utf-8")
     coverage = Counter(r["id"].split("-")[0] for r in windows)
     print(
-        f"Complete: {len(current)} current sessions; {dict(coverage)} windows; "
+        f"Complete: {len(current)} retained process sessions; {dict(coverage)} windows; "
         f"{opportunity['terminal']} opportunity sessions; {len(pairs)} quench pairs; "
         f"{count} unchanged historical tables. No new experiments or plots.",
         flush=True,
