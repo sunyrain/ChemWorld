@@ -309,8 +309,10 @@ def main():
         "",
         "## Evidence organization and units",
         "",
-        "The main manuscript follows experimental tractability, organization of inquiry, "
-        "formation of judgments and scientific progress. Tables below use retained machine "
+        "The main manuscript connects the organization of inquiry to the formation, testing, "
+        "revision and application of scientific explanations. Abduction is an interpretive "
+        "framework; the retained process counts are not rates of abductive success. "
+        "Tables below use retained machine "
         "summaries. Current process evidence combines original equilibrium (45) and "
         "corrected-recovery crystallization (45), not old plus new crystallization. "
         "A separate thirty-session opportunity comparison uses a common assessment protocol. "

@@ -1,4 +1,6 @@
-# Expanded empirical previews
+# Previous empirical previews
+
+Current numbering and sources are in the [integrated figure map](../integrated-20261016/README.md). The table below records the previous manuscript layout.
 
 Two additional built-in ImageGen data-layout previews for the broadened inquiry manuscript. Generated geometry remains illustrative; the numerical values and denominators are retained evidence, not new experiments. Main Figures 2 and 3 restore research-objective, prior and cross-model comparisons. Other main and extended figures retain the 2026-10-15 artwork.
 

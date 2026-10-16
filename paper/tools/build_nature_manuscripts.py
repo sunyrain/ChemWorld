@@ -96,7 +96,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     meta, article = strip_frontmatter(read("article" + suffix + ".md"))
     if supplement:
         text = read("supplementary.md")
-        title = "Supplementary Information: how autonomous research shapes scientific understanding"
+        title = "Supplementary Information: " + meta["title"]
     else:
         title = meta["title"]
         opening, body = article.split("\n\n", 1)
@@ -145,6 +145,9 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         main = main.replace(r"\begin{figure}", r"\begin{figure*}[t]")
         main = main.replace(r"\end{figure}", r"\end{figure*}")
         latex = main + r"\onecolumn" + rest
+    # Prevent main figures drifting beyond the scientific argument into Discussion.
+    discussion_marker = r"\subsection{" + ("讨论" if chinese else "Discussion") + "}"
+    latex = latex.replace(discussion_marker, r"\FloatBarrier" + "\n" + discussion_marker)
     latex = latex.replace(r"\begin{figure}", r"\begin{figure}[htbp]")
     # Keep each Extended Data figure and its own caption on one page.
     ed_marker = "扩展数据" if chinese else "Extended Data"
@@ -162,10 +165,10 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         latex = latex.replace(r"\end{longtable}", r"\end{longtable}\normalsize")
     authorblock, pdfauthors = authors()
     notice = (
-        "图像为 ImageGen 临时预览；图形位置仅作示意，定量结果以正文和补充表为准。"  # noqa: RUF001 - Chinese prose punctuation
+        "图 2、5、6 为保留的定量原图；其余图为 ImageGen 概念图或数据预览，生成几何仅作示意。"  # noqa: RUF001 - Chinese prose punctuation
         if chinese
-        else "Temporary ImageGen figure preview. Generated geometry is illustrative; "
-        "quantitative evidence is in the text and tables."
+        else "Figures 2, 5 and 6 retain quantitative artwork. Other figures are labelled "
+        "ImageGen concepts or data previews; generated geometry is illustrative."
     )
     if supplement:
         notice = (
@@ -183,7 +186,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
             "authorblock": authorblock,
             "pdfauthors": pdfauthors,
             "previewnotice": notice,
-            "runninglabel": "Supplementary evidence" if supplement else "ImageGen preview",
+            "runninglabel": "Supplementary evidence" if supplement else "Integrated research draft",
         }
     )
     tex_path = TEX / (stem + ".tex")
@@ -205,7 +208,12 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     info = run(["pdfinfo", str(OUT / (stem + ".pdf"))], VENUE, "PDF metadata")
     pages = int(re.search(r"Pages:\s+(\d+)", info)[1])
     print(f"Built {stem}: {pages} pages", flush=True)
-    return {"file": stem + ".pdf", "pages": pages, "imagegen_preview": not supplement}
+    return {
+        "file": stem + ".pdf",
+        "pages": pages,
+        "contains_imagegen_previews": not supplement,
+        "native_quantitative_main_figures": [] if supplement else [2, 5, 6],
+    }
 
 
 def main() -> None:
