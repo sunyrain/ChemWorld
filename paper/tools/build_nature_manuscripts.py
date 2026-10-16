@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[2]
 VENUE = ROOT / "paper/venues/nature"
 OUT = ROOT / "output/pdf"
 TEX = VENUE / "tex"
-BUILD = ROOT.parent / "ChemWorld-local-research/manuscript-nature-20261015/build"
+BUILD = ROOT.parent / "ChemWorld-local-research/manuscript-nature-20261016/build"
 
 
 def run(args: list[str], cwd: Path, label: str) -> str:

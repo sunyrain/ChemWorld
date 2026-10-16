@@ -1,5 +1,7 @@
 # ImageGen framework and data previews
 
+The numbering below records the 2026-10-15 layout. The current manuscript retains these assets with revised main-figure numbers and two additional empirical previews; use the [current nine-figure map](../preview-20261016/README.md).
+
 Seven temporary figures generated with the built-in ImageGen tool on 2026-10-15. Main Figure 1 is a framework illustration. The other six are data-layout previews, as requested by the user, with quantitative axes, comparisons, trajectories and predictive intervals. Real retained values anchor the prompts; generated mark positions, dot inventories and geometry remain illustrative. These are preview artwork, not final numerical plots.
 
 | Figure | Content | Preview |
