@@ -1,5 +1,7 @@
 # Historical PDF recovery
 
+The earlier Nature inquiry manuscript, **How autonomous research shapes scientific understanding / 自主研究如何塑造科学认识**, is directly available in the [historical reading folder](nature-inquiry-20261016/README.md). It contains the unchanged English, Chinese, line-numbered and supplementary PDFs from commit `745fa69a`, before the abductive-inquiry revision. The tag `manuscript/nature-inquiry-20261016` preserves the corresponding source, figures and evidence state.
+
 Current reading files are the [English complete PDF](../chemworld-ncs-en-authors.pdf),
 [中文完整 PDF](../chemworld-ncs-zh-authors.pdf) and the separately retained
 [ICLR edition](../chemworld-iclr2027.pdf). See the

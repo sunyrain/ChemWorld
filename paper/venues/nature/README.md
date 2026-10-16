@@ -10,6 +10,7 @@
 - [英文单栏行号版](../../../output/pdf/chemworld-nature-en-review.pdf)
 - [中文对照版](../../../output/pdf/chemworld-nature-zh.pdf)
 - [完整补充材料](../../../output/pdf/chemworld-nature-supplement.pdf)
+- [重要历史版本：How autonomous research shapes scientific understanding / 自主研究如何塑造科学认识](../../../output/pdf/archive/nature-inquiry-20261016/README.md)（原版中英文PDF、行号版及补充材料）
 - [可复核证据包](../../../output/paper/chemworld-review-evidence.zip)及[数据说明](evidence/README.md)
 - [当前十图来源与状态](figures/integrated-20261016/README.md)、[新框架图提示词](figures/integrated-20261016/prompts.json)
 
