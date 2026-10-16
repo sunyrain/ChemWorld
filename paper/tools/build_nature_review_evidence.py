@@ -12,6 +12,7 @@ from statistics import fmean
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from build_abductive_evidence import main as build_explanation_evidence
+from build_matched_inquiry_evidence import main as build_matched_evidence
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -375,6 +376,7 @@ def main():
         encoding="utf-8",
     )
     build_explanation_evidence()
+    build_matched_evidence()
     archive = ROOT / "output/paper/chemworld-review-evidence.zip"
     archive.parent.mkdir(parents=True, exist_ok=True)
     with ZipFile(archive, "w", ZIP_DEFLATED) as bundle:

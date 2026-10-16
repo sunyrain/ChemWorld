@@ -213,7 +213,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         "pages": pages,
         "contains_imagegen_data_previews": False,
         "contains_imagegen_concept": not supplement,
-        "native_quantitative_main_figures": [] if supplement else [2, 3, 4, 5],
+        "native_quantitative_main_figures": [] if supplement else [2, 3, 4, 5, 6],
     }
 
 

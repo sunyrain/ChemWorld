@@ -769,6 +769,7 @@ def main():
     legacy, count = retained_tables()
     assert count == 34
     lines += ["", (DEST / "explanation_analysis.md").read_text(encoding="utf-8"), ""]
+    lines += ["", (DEST / "matched_inquiry_analysis.md").read_text(encoding="utf-8"), ""]
     lines += legacy
     (DEST / "supplementary.md").write_text("\n".join(lines), encoding="utf-8")
     coverage = Counter(r["id"].split("-")[0] for r in windows)

@@ -45,14 +45,14 @@
 \newcommand{\CSLLeftMargin}[1]{\par\noindent\makebox[\csllabelwidth][l]{#1}}
 \newcommand{\CSLRightInline}[1]{\parbox[t]{\dimexpr\linewidth-\csllabelwidth\relax}{#1}\par}
 \newcommand{\CSLIndent}[1]{\hspace{\cslhangindent}#1}
-\hypersetup{pdftitle={Supplementary Information: Abductive inquiry in autonomous science},pdfauthor={Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang}}
+\hypersetup{pdftitle={Supplementary Information: How autonomous research shapes scientific understanding},pdfauthor={Jiangjie Qiu; Yijun Li; Yaotian Yang; Honghao Chen; Wentao Li; Xiaonan Wang}}
 \begin{document}
 
 
 
 {\sffamily\small ARTICLE\hfill 16 October 2026\par}
 \vspace{8pt}
-{\sffamily\LARGE\bfseries\raggedright\hyphenpenalty=10000 Supplementary Information: Abductive inquiry in autonomous science\par}
+{\sffamily\LARGE\bfseries\raggedright\hyphenpenalty=10000 Supplementary Information: How autonomous research shapes scientific understanding\par}
 \vspace{8pt}
 {\normalsize Jiangjie Qiu\textsuperscript{1,*}, Yijun Li\textsuperscript{1,*}, Yaotian Yang\textsuperscript{1,*}, Honghao Chen\textsuperscript{1}, Wentao Li\textsuperscript{1}, Xiaonan Wang\textsuperscript{1,\textdagger}\par}
 {\footnotesize\textsuperscript{1}Beijing Key Laboratory of Artificial Intelligence for Advanced Chemical Engineering Materials, State Key Laboratory of Chemical Engineering and Low-Carbon Technology, Department of Chemical Engineering, Tsinghua University, Beijing 100084, China.\par}
@@ -1359,13 +1359,129 @@ The current 42 valid-forecast sessions supply 504 source final assays and 504 qu
 
 \subsection{Research objectives and prior knowledge organize inquiry}\label{research-objectives-and-prior-knowledge-organize-inquiry}
 
-Research starts from goals, available information and a constrained action space. The historical electrochemical and reaction studies ask agents either to develop and test scientific understanding or to optimize a public operating score. These commissions lead to genuine experimental achievements, but operating and predictive gains are not interchangeable (Extended Data Fig. 1a,b). Optimization produces the better retested electrochemical procedure in 26 of 30 matched comparisons; among those 26, prediction error is lower in thirteen and higher in thirteen. In reaction processing, discovery produces both the better procedure and more accurate score predictions in seventeen of thirty pairs. The relation between a research objective and its scientific consequences therefore depends on what the inquiry actually establishes.
+Research starts from goals, available information and a constrained action space. The historical electrochemical and reaction studies ask agents either to develop and test scientific understanding or to optimize a public operating score. These commissions lead to genuine experimental achievements, but operating and predictive gains are not interchangeable (Fig. 2a,b). Optimization produces the better retested electrochemical procedure in 26 of 30 matched comparisons; among those 26, prediction error is lower in thirteen and higher in thirteen. In reaction processing, discovery produces both the better procedure and more accurate score predictions in seventeen of thirty pairs. The relation between a research objective and its scientific consequences therefore depends on what the inquiry actually establishes.
 
-One electrochemical pair makes the distinction concrete (Extended Data Fig. 1c,d). Discovery compares materials and conditions before increasing duration and current cap; optimization screens material combinations and then refines operating conditions for a promising pair. The optimization recommendation retests at 0.756 against discovery's 0.718, but its prediction mean absolute error (MAE) is 0.229 against 0.088. Its later prediction rationale describes several poorly performing cross-pair combinations as low-activity. That account accompanies a forecast of 0.070 against a reference of 0.494 for one combination under new conditions, while another forecast remains accurate at 0.570 against 0.572. The histories expose what a single endpoint obscures: success in developing a procedure can coexist with uneven judgments about the broader experimental space.
+One electrochemical pair makes the distinction concrete (Fig. 2c,d). Discovery compares materials and conditions before increasing duration and current cap; optimization screens material combinations and then refines operating conditions for a promising pair. The optimization recommendation retests at 0.756 against discovery's 0.718, but its prediction mean absolute error (MAE) is 0.229 against 0.088. Its later prediction rationale describes several poorly performing cross-pair combinations as low-activity. That account accompanies a forecast of 0.070 against a reference of 0.494 for one combination under new conditions, while another forecast remains accurate at 0.570 against 0.572. The histories expose what a single endpoint obscures: success in developing a procedure can coexist with uneven judgments about the broader experimental space.
 
 Prior information provides another entry into the organization of inquiry. In corrected crystallization, all fifteen aligned-information sessions start with solvent S2 and catalyst C1, whereas all fifteen sessions without an instance dossier start with S0 and C0. Under the specified mismatched dossier, thirteen start with S2 and fourteen with C1. Mean committed solvent coverage is 2.93, 4.00 and 2.40 for Aligned, Opaque and MisIndexed, respectively. These descriptive differences locate how supplied information enters material selection; wider coverage alone does not establish better learning. In reaction processing, partial parameter knowledge has a clear predictive benefit: Aligned reduces macro MAE from 0.102 to 0.057 under discovery and from 0.139 to 0.084 under optimization, improving on Opaque in four of five worlds under each commission.
 
-The equilibrium prior comparison contrasts with the positive reaction results. In the original Sol campaigns, correct partial information lowers macro MAE on nine queries from 0.01008 to 0.00465, yet increases it on the three most dilute queries from 0.01833 to 0.15862. Both directions occur in all five worlds. A separate repeated cohort shows the same aggregate directions with different magnitudes: 0.00907 to 0.00512 on nine queries and 0.09880 to 0.13205 on the dilute subset. These cohorts are reported separately. The model comparison further limits the interpretation (Extended Data Fig. 2c): Luna and Terra improve with Aligned information in both regions, GPT-5.5 changes little, and Astra retains low dilute error across all three arms. The effect of partial knowledge is therefore conditional on both the researcher and the condition being judged; a local benefit does not determine its value elsewhere.
+The equilibrium prior comparison contrasts with the positive reaction results. In the original Sol campaigns, correct partial information lowers macro MAE on nine queries from 0.01008 to 0.00465, yet increases it on the three most dilute queries from 0.01833 to 0.15862. Both directions occur in all five worlds. A separate repeated cohort shows the same aggregate directions with different magnitudes: 0.00907 to 0.00512 on nine queries and 0.09880 to 0.13205 on the dilute subset. These cohorts are reported separately. The model comparison further limits the interpretation (Extended Data Fig. 1c): Luna and Terra improve with Aligned information in both regions, GPT-5.5 changes little, and Astra retains low dilute error across all three arms. The effect of partial knowledge is therefore conditional on both the researcher and the condition being judged; a local benefit does not determine its value elsewhere.
+
+\subsection{Matched-world investigations and explanatory histories}\label{matched-world-investigations-and-explanatory-histories}
+
+Thirty additional investigations cover five matched parameter pairs, two networks and three fresh sessions per world. All complete twelve source batches and three sealed stages. These sessions are separate from the historical 300, current process 90 and research-opportunity 30. Shared keyed observations are not independent noise replications. Neither physical separation nor an accurate forecast constitutes unique mechanism identification.
+
+{\def\LTcaptype{table} % do not increment counter
+\small\begin{longtable}[]{@{}ll@{}}
+\toprule\noalign{}
+Quantity & Observed/planned \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Full research and assessment chains & 30/30 \\
+Final assays & 360/360 \\
+Sealed account/forecast/retrospective stages & 90/90 \\
+Query-response predictions & 1,080/1,080 \\
+Notebook versions & 80 \\
+Source replays & 30/30 \\
+Own/partner-world replay trajectories & 60/60 \\
+Assays separating \textgreater=1 / \textgreater=2 channels by 3 SD & 326/360; 158/360 \\
+Sessions with \textgreater=2-channel separating assay & 30/30 \\
+\end{longtable}\normalsize
+}
+
+\Needspace{9\baselineskip}\subsubsection{Physical information and prediction by world}\label{physical-information-and-prediction-by-world}
+
+Errors average twelve queries within sessions and three sessions within each world. The fraction is the proportion of actual final assays with at least two channels separated by three declared assay standard deviations under fixed-action paired-world replay. It is neither a significance test nor an agent success rate.
+
+{\def\LTcaptype{table} % do not increment counter
+\small\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.2000}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Pair/network
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Separating fraction
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Normalized pH
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Free dissociation
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Precipitation
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+P01-A & 0.556 & 0.00191 & 0.00309 & 0.00253 \\
+P01-B & 0.444 & 0.00248 & 0.00572 & 0.00267 \\
+P02-A & 0.472 & 0.00270 & 0.00430 & 0.00387 \\
+P02-B & 0.500 & 0.00196 & 0.00248 & 0.00164 \\
+P03-A & 0.556 & 0.00314 & 0.00289 & 0.00272 \\
+P03-B & 0.444 & 0.00134 & 0.00358 & 0.00147 \\
+P04-A & 0.472 & 0.00122 & 0.00195 & 0.00250 \\
+P04-B & 0.472 & 0.00185 & 0.00307 & 0.00173 \\
+P05-A & 0.278 & 0.00187 & 0.00210 & 0.00394 \\
+P05-B & 0.194 & 0.00112 & 0.00199 & 0.00123 \\
+\end{longtable}\normalsize
+}
+
+\Needspace{9\baselineskip}\subsubsection{Forecast intervals}\label{forecast-intervals}
+
+The following average worlds equally. High coverage must be interpreted with widths; these values do not establish nominal calibration. Reference observations repeat across the three sessions within a world.
+
+{\def\LTcaptype{table} % do not increment counter
+\small\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Response & MAE & 80\% coverage & Mean width \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Normalized pH & 0.00196 & 0.99333 & 0.02167 \\
+Free dissociation & 0.00312 & 0.96000 & 0.01986 \\
+Precipitation & 0.00243 & 0.98056 & 0.02096 \\
+\end{longtable}\normalsize
+}
+
+\Needspace{9\baselineskip}\subsubsection{Selected process anchors}\label{selected-process-anchors}
+
+Identifiers below locate evidence, not independent explanation counts. All thirty sessions were read; the selection illustrates distinct transitions rather than estimating their frequency. Public histories include all notes and sealed payloads.
+
+{\def\LTcaptype{table} % do not increment counter
+\small\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Session
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Transition
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Temporal anchors
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Repeat 3 / pair 3A & Threshold versus smooth relation; prospective tests; scoped forecast & Notes 0,36,72; subsequent batches 7-12; Q \\
+Repeat 2 / pair 1A & Prospective dilution distinguishes concentration from persistence & Note 50; actions 51-56; final note 61; Q09 \\
+Repeat 1 / pair 2B & Rejected solvent creates apparent anomaly; terminal explanation & Rejection 11; notes 30 and terminal; K1/Q/K2 \\
+Repeat 3 / pair 4A & Incorrect concentration match followed by explicit withdrawal & Failures 9-11; note 25; final note 64; K1/Q08/K2 \\
+\end{longtable}\normalsize
+}
+
+The additional retrospective reading covers 105 existing sessions and 309 notes, 112 selected focal histories and 218 verified note quotations. These 105 are the current ninety plus fifteen research-opportunity sessions, not new experiments. Four selected sealed follow-ups add thirteen verified anchors. The new thirty sessions contain 67 focal histories and 365 verified anchors. Both readings include terminal revisions, use a single analysis workflow and do not claim independent rater agreement or an abduction prevalence estimate.
+
+\Needspace{9\baselineskip}\subsubsection{Failures and reproducibility}\label{failures-and-reproducibility}
+
+Source attempts: 1,901 = 1,893 committed + six rolled back + two validation failures. The 131 recovered tool failures are separately counted. The first launch has four startup failures, twenty-six unstarted sessions and zero scientific operations; the entire fixed block restarts after repair. Earlier physical-candidate and canary failures remain in the source record. No completed scientific outcome is replaced. The review archive supplies public histories, all 1,080 predictions, 360 separation rows, per-world/per-session quantitative summaries, semantic readings and resource accounting. Existing exact replay is preserved; compilation runs no new experiment.
 
 \subsection{Historical broad-study tables}\label{historical-broad-study-tables}
 
