@@ -165,10 +165,10 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         latex = latex.replace(r"\end{longtable}", r"\end{longtable}\normalsize")
     authorblock, pdfauthors = authors()
     notice = (
-        "图 1 为 ImageGen 概念图；所有定量图均由保留数据绘制或复用原生定量图。"  # noqa: RUF001 - Chinese prose punctuation
+        "全部插图为 ImageGen 预览；几何仅作示意，精确数值见保留证据。"  # noqa: RUF001 - Chinese prose punctuation
         if chinese
-        else "Figure 1 is an ImageGen concept. All quantitative figures use retained data "
-        "or original native quantitative artwork."
+        else "All figures are ImageGen previews. Geometry is illustrative; "
+        "exact values remain in the retained evidence."
     )
     if supplement:
         notice = (
@@ -211,9 +211,10 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
     return {
         "file": stem + ".pdf",
         "pages": pages,
-        "contains_imagegen_data_previews": False,
+        "contains_imagegen_data_previews": not supplement,
         "contains_imagegen_concept": not supplement,
-        "native_quantitative_main_figures": [] if supplement else [2, 3, 4, 5, 6],
+        "native_quantitative_main_figures": [],
+        "imagegen_preview_figures": 0 if supplement else 12,
     }
 
 

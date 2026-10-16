@@ -12,7 +12,8 @@
 - [完整补充材料](../../../output/pdf/chemworld-nature-supplement.pdf)
 - [重要历史版本及源稿标签](../../../output/pdf/archive/nature-inquiry-20261016/README.md)
 - [可复核证据包](../../../output/paper/chemworld-review-evidence.zip)、[数据说明](evidence/README.md)
-- [十二图来源](figures/integrated-20261016/README.md)
+- [十二张 ImageGen 预览与提示词](figures/imagegen-preview-20261016/README.md)、[全尺寸图库](figures/imagegen-preview-20261016/index.html)
+- [保留的原生定量图](figures/integrated-20261016/README.md)
 
 正文：[英文](article.md)、[中文](article_zh.md)。方法：[英文](methods.md)、[中文](methods_zh.md)。扩展图：[英文](extended_data.md)、[中文](extended_data_zh.md)。tex/由Markdown生成，不手工修改。
 
@@ -71,6 +72,8 @@ uv run --no-sync python paper/tools/build_nature_manuscripts.py
 
 第一步调用既有解释分析及build_matched_inquiry_evidence.py，同步新案例、两张图和证据包。既有六张派生数据图可用plot_abductive_evidence.py重建，本轮数值未改。日常只改文字时仅需重建PDF，不需重复实验。
 
-六主图、六扩展图：一张既有ImageGen框架图、三张原样NCS定量图、八张按保留数据及记录绘制的图。全部34张历史数值表保留。英文摘要155词，正文4,838词（不含摘要、标题、图注和方法）。四PDF为英文22页、行号40页、中文20页、补充31页。当前为可审阅稿，正式公共存档待落实，案例解释是单分析流程，不宣称独立第二编码者一致性。
+本轮按用户要求，将六张主图和六张扩展图全部重新设计为内置 ImageGen 预览。总框架强调研究行为与科学理解相互塑造；其余图保留目标比较、探索路径、前瞻检验、认识修订、研究后果、覆盖与物理对照的展示。数字标注依保留证据，点位、曲线、分布与轨迹几何仅作示意，不能据此读出精确数据或统计区间。双语图注、方法和首页均标明预览性质。
 
-最终四份PDF合计113页已渲染检查，英文与中文正文含六主图分别10页和9页。双语引用顺序、图源、新案例锚点、34张历史表、证据ZIP与构建脚本检查通过；三张NCS供体及四份历史归档保持原字节。
+原生定量图、全部34张历史数值表、证据ZIP、三张NCS供体及四份重要历史归档保留。没有新增科学实验或改变证据地位。科学正文仅同步图6的展示描述；摘要与整体论证不变。提交前须用保留数据替换示意定量几何。当前为内部预览稿，永久公开存档待落实，案例解释为单分析流程，不宣称独立第二编码者一致性。
+
+预览版 PDF 为英文22页、中文20页、英文行号版39页，共81页已渲染检查；正文含六主图分别为10页和9页。补充材料保持原31页。24处双语插图引用及构建脚本检查通过。

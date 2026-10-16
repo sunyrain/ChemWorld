@@ -1,6 +1,6 @@
-# Current manuscript figure sources
+# Retained native manuscript figure sources
 
-Six main figures and six Extended Data figures. Only main Figure 1 is an existing ImageGen concept; quantitative geometry is drawn from retained data.
+Six main figures and six Extended Data figures retained as scientific plotting sources. Main Figure 1 is an existing ImageGen concept; quantitative geometry is drawn from retained data. The current manuscript uses a separate [ImageGen preview set](../imagegen-preview-20261016/README.md) at the user's request. The assets in this directory remain unchanged.
 
 | Position | Asset | Source and status |
 | --- | --- | --- |
@@ -19,4 +19,4 @@ Six main figures and six Extended Data figures. Only main Figure 1 is an existin
 
 build_matched_inquiry_evidence.py produces main4/extended6 and source exports from the current binding. plot_abductive_evidence.py reproduces the other six derived figures. Paired PNGs are inspection derivatives; PDFs are vector. The new comparison diagrams summarize public records, not unobserved cognition. Selected cases do not estimate a population frequency; cohort boundaries and failures remain separate.
 
-NCS donors and sources remain unchanged. Older ImageGen quantitative previews are historical and not included in current PDFs. The important inquiry-version archive is unchanged.
+NCS donors and sources remain unchanged. The important inquiry-version archive is unchanged. New preview artwork is separate from these native sources and does not change the underlying evidence.
