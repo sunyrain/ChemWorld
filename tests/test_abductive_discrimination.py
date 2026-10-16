@@ -13,6 +13,7 @@ def restore_process_local_adapters(monkeypatch):
         (s.eq, ("POSTTEST_STAGES", "SYSTEM", "EqFreeResearchAgent", "run_posttest")),
         (s.eq.v1, ("SYSTEM", "K1", "Q_PROMPT", "K2")),
         (s.inquiry, ("public_context", "K1", "Q", "K2")),
+        (s.eq.provider_shared, ("build_command",)),
         (
             s.eq.shared,
             (
@@ -52,6 +53,18 @@ def test_matched_schedule_is_fixed_and_balanced():
     for left, right in zip(rows[::2], rows[1::2], strict=True):
         assert left["pair"] == right["pair"]
         assert left["mechanism"] != right["mechanism"]
+
+
+def test_thread_limits_cover_all_real_mcp_servers_without_duplicate_settings():
+    import json
+    import os
+
+    command = s.with_thread_limits(["codex", "exec"])
+    assert command == s.with_thread_limits(command)
+    for server in ("chemworld_lab", "research_notebook", "public_numerics"):
+        for key, value in s.WORKER_ENV.items():
+            assert f"mcp_servers.{server}.env.{key}={json.dumps(value)}" in command
+            assert os.environ[key] == value
 
 
 def test_prepare_has_three_sealed_stages_and_no_simulator_or_provider(tmp_path, monkeypatch):

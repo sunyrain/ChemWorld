@@ -6,17 +6,30 @@ replace a previous cohort or retry an unfavourable/incomplete participant.
 
 from __future__ import annotations
 
+# Native numerical libraries must see these limits before their first import.
+# ruff: noqa: E402
 import argparse
 import copy
 import csv
 import hashlib
 import json
+import os
 import subprocess
 import sys
 import threading
 import time
 from collections import Counter
 from pathlib import Path
+
+WORKER_ENV = {
+    "OPENBLAS_NUM_THREADS": "1",
+    "OMP_NUM_THREADS": "1",
+    "MKL_NUM_THREADS": "1",
+    "NUMEXPR_NUM_THREADS": "1",
+    "TOKIO_WORKER_THREADS": "2",
+    "RAYON_NUM_THREADS": "2",
+}
+os.environ.update(WORKER_ENV)
 
 import gymnasium as gym
 from scripts import run_inquiry_completion as inquiry
@@ -39,6 +52,27 @@ MEASUREMENT_DEFINITIONS = {
 BASE_SYSTEM = eq.v1.SYSTEM
 BASE_PUBLIC_CONTEXT = inquiry.public_context
 INITIAL_REFERENCE_OBSERVATIONS = None
+BASE_BUILD_COMMAND = eq.provider_shared.build_command
+
+
+def with_thread_limits(command):
+    command = list(command)
+    for server in ("chemworld_lab", "research_notebook", "public_numerics"):
+        for key, value in WORKER_ENV.items():
+            setting = f"mcp_servers.{server}.env.{key}={json.dumps(value)}"
+            if setting not in command:
+                command += ["-c", setting]
+    return command
+
+
+def bounded_build_command(*args, **kwargs):
+    return with_thread_limits(BASE_BUILD_COMMAND(*args, **kwargs))
+
+
+class BoundedResearchAgent(inquiry.ResearchAgent):
+    def _command(self, *, instructions_path, schema_path):
+        command = super()._command(instructions_path=instructions_path, schema_path=schema_path)
+        return with_thread_limits(command)
 
 
 def public_context(agent, current_packet):
@@ -101,8 +135,9 @@ def configure(config, initial_reference_observations=None):
     inquiry.K1, inquiry.Q, inquiry.K2 = K1 + definition_text, Q + definition_text, K2
     eq.POSTTEST_STAGES = STAGES
     eq.SYSTEM = BASE_SYSTEM + definition_text
+    eq.provider_shared.build_command = bounded_build_command
     eq.configure_provider_helpers(config)
-    eq.EqFreeResearchAgent = inquiry.ResearchAgent
+    eq.EqFreeResearchAgent = BoundedResearchAgent
     eq.run_posttest = posttest
 
 
@@ -238,6 +273,7 @@ def prepare(root, starter_root=None):
             "eq_config": config,
             "worker_module": "scripts.run_abductive_discrimination",
             "concurrency": 4,
+            "worker_and_mcp_thread_limits": WORKER_ENV,
             "planned_sources": 30,
             "planned_source_batches": 360,
             "posttest_stages": list(STAGES),
