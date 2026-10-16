@@ -131,3 +131,55 @@ budgets and missing required recommendations are not retry triggers. A recovered
 transport message inside an otherwise valid session is not a retry trigger either.
 Ambiguous failures require diagnosis before reclassification. Technical reruns
 follow the fixed unit order and never depend on scores or scientific direction.
+
+## Execution outcome and initial interpretation, 2026-10-16
+
+Execution ended at 23:07 Beijing after four service-only reruns, with no unresolved
+server interruption: 300/300 terminal units, 288 complete chains, 298 valid Q,
+3,379/3,420 source assays and 898/900 sealed stages. All 285 source replay records
+and 240 recommendation-retest replay records verify. The original RX8 runtime
+attempts and all interrupted service attempts remain separate; they do not enlarge
+the scientific denominator. The retained 150 sessions are still separate cohorts.
+
+Ten purification sessions exhausted their shared material allowance before all
+12 source assays; 41 discarded batch lifecycles account for the 41 missing assays.
+Their source turns ended normally, and all 45 purification Q responses are valid.
+Two RX Q stages are invalid: one exhausted its tool budget; one supplied four
+score-interval lower bounds outside the declared [0,1] range. Neither is a server
+failure or a reason to rerun. No unfavorable outcome was replaced.
+
+The [generated quantitative report](reports/unified-matrices-20261016/REPORT.md)
+provides session, world and repeat denominators. The accompanying
+[recommendation table](reports/unified-matrices-20261016/EC_RX_RECOMMENDATIONS.csv)
+contains all 180 EC/RX independent recommendation retests. The following initial
+contrasts average sessions within each world and then weight the five worlds
+equally; they are descriptive comparisons in these fixed worlds.
+
+- EC: discovery versus optimization recommendation scores are 0.4813 versus
+  0.5852, and target yields 0.1310 versus 0.4225. Held-out score MAE rises from
+  0.1539 to 0.1829, yield MAE from 0.0665 to 0.0781, and Faradaic-efficiency MAE
+  from 0.1677 to 0.2218. All three error directions hold in five of five worlds.
+  Operating gains and predictive accuracy can separate; this does not establish
+  that operating success causes misunderstanding. RX bounds this observation:
+  its optimization recommendation score is lower than discovery in all five worlds.
+- RX optimization: Opaque versus Aligned scores are 0.2735 versus 0.4429 and
+  yields 0.5502 versus 0.7116; risk MAE improves from 0.2389 to 0.1226, while
+  conversion MAE worsens from 0.0355 to 0.1595. Each direction holds in five of
+  five worlds, with 15/15 Q in both arms. This compares whole information packages,
+  not the isolated correctness of a temperature statement.
+- C: NoResearch versus Research MAE is 0.1385 versus 0.0166 for purity, 0.2362
+  versus 0.0764 for size index, 0.1353 versus 0.1158 for initial-charge recovery,
+  and 0.3768 versus 0.3011 for fines fraction. Fines interval score nevertheless
+  worsens from 1.4794 to 1.8047 (lower is better), in all five worlds. Research
+  improves point forecasts unevenly and does not ensure reliable uncertainty.
+  This is a research-opportunity package effect, not an isolated abduction effect.
+- PA: Aligned/Opaque/MisIndexed MAE is 0.0465/0.0562/0.0770; Aligned outperforms
+  MisIndexed in all five worlds. The two phase fractions are complementary,
+  not independent replications. P shows no universal information-arm ranking:
+  purity MAEs are similar, and MisIndexed has the lowest recovery MAE. Its evidence
+  amounts also differ after material exhaustion, requiring process interpretation.
+
+New-cohort notebook explanation histories have not yet been systematically
+interpreted. These quantitative findings do not establish an abduction success
+rate, a universal self-confirmation mechanism, or general model rankings. No new
+manuscript/PDF integration has been performed at this reporting stage.

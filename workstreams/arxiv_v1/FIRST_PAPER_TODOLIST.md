@@ -1,6 +1,6 @@
 # ChemWorld 第一篇精简 TODO —— 世界仪器发布
 
-W2-267 runtime update (2026-10-16): preparation540 passed; original30 started units drained. Windows MAX_PATH requires RX90 restart at D:/CW267/a2, retaining original RX8 and all22 non-RX units. Two P resource checks are posthoc canonicalization corrections only; no P rerun. Coverage and scientific inputs remain fixed. See the existing W2-267 note below.
+W2-267 execution complete (2026-10-16 23:07 Beijing), process analysis pending:300/300 terminal,288 full chains,298 validQ,3379/3420 assays,898/900 sealed stages; four service-only reruns resolved every server interruption. Preserve10 P batch shortfalls,2 RX Q protocol failures, original RX8 runtime attempts and all technical attempts. Source285/285 and recommendation240/240 replay receipts verify. [Quantitative report](../flagship_tasks/reports/unified-matrices-20261016/REPORT.md). New-cohort notebook histories still require systematic interpretation; no manuscript integration or new mechanism claim.
 
 Claim: Codex /root — W2-267 — DOING（2026-10-16）。用户批准六体系、四矩阵、新增300场，按最快可靠并行推进。固定EC90、RX90、PA45、P45、C研究机会30；已有150场保留来源与失败。并行实现270场研究适配、30场C对照、运行时复核；全局24进程上限、每30秒进度与ETA。先通过定向公共契约/覆盖/隔离/回放检查并记录稳定执行提交，再启动模型；无结果导向替换。见[固定实验说明](../flagship_tasks/WORK_II_UNIFIED_MATRICES_20261016.md)。
 
