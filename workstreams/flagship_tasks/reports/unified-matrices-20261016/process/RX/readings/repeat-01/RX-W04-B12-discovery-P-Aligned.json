@@ -1,0 +1,91 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-Aligned",
+    "cell": "RX-W04--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned水B4203300参考；发现目标自主检验温时、催化、溶剂和停止后继续反应。",
+  "expectations": "v1明确等待vsquench假说；v2在5批40操作后预告4204800会增by/deg而无Y收益，并预告1200s未淬灭延迟，记录温度变化混杂。",
+  "tests_and_observations": "96操作0回滚、12HPLC/12final、11quench。4201800/3300/4800 final X .8738/.9876/.9961，Y .7662/.7720/.7320，S .8457/.7991/.7088；长时预期兑现。4253300热risk .3452，乙腈4201800 .3661仍提交成功。最后4201800+wait1200温降117.05K，X .8904/Y .7575/S .8506，finalrisk .0956。",
+  "revisions": "v3把H3改unresolved，承认wait主要被动冷却而非保持热反应，K1/K2继续保留。温度先验分安全/选择性与产率：K2承认低温未有单调产率优势。",
+  "later_use": "选最后被动冷却point leader，K1同时保留立即quench替代。Q水长时关系迁乙腈，且把430控制上限当heat上限，四题近零X、温序两题等同。K2明确指出控制配置430不等于已经观察heat拒绝，承认区间窄，未真值后重测。推荐复测score .501917541。",
+  "unresolved": "顺序损失未唯一识别；纯并行稳定P不能产生真实绝对Y下降，跨批噪声仍可替代。wait存在实际化学进展但非恒温，不能归为quench化学效应。",
+  "histories": [
+    {
+      "topic": "前瞻长时检验",
+      "sequence": "v2短时数据提出4800预期→第6批检验→v3/K1局部过处理关系→Q跨溶剂应用",
+      "status": "prospective_qualitative_test_without_unique_mechanism"
+    },
+    {
+      "topic": "停止后反应假说限缩",
+      "sequence": "v1/v2 delayed wait预告→wait冷却117 K→v3 unresolved→K1/K2拒推热反应",
+      "status": "realized_history_revises_interpretation"
+    },
+    {
+      "topic": "操作边界混淆",
+      "sequence": "Q430配置上限误套heat→K2点出控制/heat差别但无重新预测",
+      "status": "acknowledged_extrapolation_without_feedback_correction"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "**Prediction made now:** 4800 s at the same setting will show still higher byproduct/degradation and no compelling yield benefit",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 40,
+        "last_event_id": "runner-operation-0040"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This does not isolate hot post-reaction chemistry: the wait was principally a passive cool-down.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "The public control configuration showed a 430 K ceiling, but the heat operation’s executable behavior at larger requested values was not experimentally observed."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 96,
+    "rollbacks": 0,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 11,
+    "Y_mae": 0.2682501456,
+    "X_mae": 0.3379159814,
+    "risk_mae": 0.1107469074,
+    "recommendation_score": 0.501917541,
+    "K1_Q_K2_valid": true,
+    "caution": "risk>.35非自动回滚；heat上限520而configure430。quench本身不推进化学；最后wait成功推进且自然冷却。"
+  }
+}

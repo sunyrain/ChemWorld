@@ -1,0 +1,98 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Aligned",
+    "cell": "RX-W05--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标，Aligned下温侧更安全的局部先验，水D/.003mol/.000525mol/.0075L/600rpm/420K3300s参考；三版笔记0/65/96。",
+  "expectations": "初始峰值/竞争/淬灭保护候选；v2在8批后明确预告D400K6000s不会按转换比例增产、A更热或更长可区分慢反应与上限、末批无催化剂区分是否需要催化。",
+  "tests_and_observations": "96事件全部提交、12HPLC/终检。D400K1800/3300/6000s X.788/.946/.993，Y.696/.761/.685，Sel.881/.785/.693，构成真实产率非单调。D400/420/430K3300s产率.761/.779/.765、热时风险.181/.290/.328；冷侧更安全但非越冷产率越高。400K3300s水中D/B/A/C转换/产率排序，A420K3300s产率.744、A400K6000s.729；无催化剂420K X.265/Y.0014/byproduct.256。全部有淬灭；B5额外600s冷却wait，再淬灭，最终与B1近似，但非精确重复。",
+  "revisions": "v2的三个判别计划真实完成，v3限制A慢反应可补偿但长期更差，D过处理并推荐A420K。无催化剂控制支持目标路径选择而非一般加速，不识别微观结构。淬灭降45K约5s大降即时风险，合理收窄为热控制；wait操作回传旧HPLC值不构成新组成测量，不能由未更新直接证明无反应。所有HPLC在热段后，不是热中途时间序列。",
+  "later_use": "推荐9复测Y.730398/score.499491。Q将水中局部网络向B乙腈/不同体积搅拌转移，组成误差相对小（Y MAE.068610，score.030884，score覆盖60/60），保留宽结构区间。Q淬灭只降风险不改组成；Q07/08风险.40/.16使用末态温度，化学顺序方向(.69/.66)未实验且K2承认。K2无真值反馈指出高转换窄界/全组结构不确定性。",
+  "unresolved": "未独立辨识连续产物损失与变分支/失活，无催化剂仅一个温度；D三个时间端点大差支持过处理但无精确重复。K2提3300+2700同锅HPLC判别未执行、两测额度须核查；小取样占2.67%体积且分段带来状态差。初始已预期峰值，K2由更多转换更多产品旧模型反转只是追述，不能抹去同期已有竞争预期。",
+  "histories": [
+    {
+      "name": "慢催化剂补偿和过处理的实际判别",
+      "sequence": "v2预告A热/长时、D长时、无催化剂→四个末批全部执行→v3保留条件性A较优与目标路径必要性→推荐9",
+      "evidence_status": "prospective_discrimination_and_recommendation_revision"
+    },
+    {
+      "name": "热控制证据进入新预测",
+      "sequence": "实际淬灭及冷却风险降低→收窄化学保护主张→Q配对组成相同而风险大降→保留跨溶剂未定",
+      "evidence_status": "observed_action_effect_used_with_scope_limits"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 3,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "extending catalyst D at 400 K to 6000 s should drive conversion closer to completion but not proportionally improve yield",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 65,
+        "last_event_id": "runner-operation-0065"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Use remaining batches to test A at higher/longer exposure, D at long exposure, and an uncatalyzed baseline.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 65,
+        "last_event_id": "runner-operation-0065"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The uncatalyzed 420 K control converted about 0.265 reagent but produced essentially no target",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "batch-0005 included a 600 s cooling wait"
+    },
+    {
+      "stage": "Q",
+      "quote": "the final low-temperature stage should cool the vessel and yield much lower terminal risk.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "The claim that Q07 would preserve more target than Q08 was a mechanistic guess, not an experimentally calibrated sequence effect."
+    }
+  ]
+}

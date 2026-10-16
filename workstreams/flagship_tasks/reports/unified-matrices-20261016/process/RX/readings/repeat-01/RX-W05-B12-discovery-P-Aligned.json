@@ -1,0 +1,127 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Aligned",
+    "cell": "RX-W05--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 108,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "finding": "材料与温时系列建立局部非单调关系；初始淬灭假说经真实比较后收窄为未解决",
+  "trajectory": [
+    "Aligned信息给C3/S0、420K3300s局部参考，预期低温侧更可靠。初始笔记提出410K较430K更安全、催化剂未必最优、立即淬灭可能保留选择性。源仅初末两版，不能把K2所述每次想法变化当成有中途记录。",
+    "108次操作全提交。所有批次0.003mol A/0.000525mol催化剂/0.0075L溶剂/600rpm，每批两段加热，中间一次HPLC并消耗0.0002L。C3/S0的400/410/420K3300s Y约 .7731/.7683/.7714，X .9372/.9694/.9854；410K1800/3300/5400s Y .7380/.7683/.6976，X .8395/.9694/.9930，支持该程序下局部非单调产率而非只看转换。",
+    "批6–8在400K3300s固定S0比较C0–2，批9–11固定C3比较S1–3，形成有范围的材料关系。批12重复批2前段，只将末尾quench替换600s wait；wait实际降温87.992K。末检Y .77308→.76009、S .82162→.81034、降解 .14431→.12500、risk .07515→.06696。变化小且方向不一，末笔记将强淬灭收益预期标为unresolved/narrowed，没有把近似结果当必然支持。",
+    "K1将结果表述为并行/连续竞争网络，明确P→D是有效表征，不是唯一机理；反应网首次见于末笔记/K1。K2承认源无精确重复、时间系列在410K而推荐在400K、双段加热带HPLC不能当单段3300s。",
+    "Q依C1/S0及C3/S2的两个单因素切片推断未采样的C1/S2，迁移到0.005L/400rpm以及370–460K；K2承认交互、阶段顺序与范围未知，未改变封存Q。"
+  ],
+  "later_use": "Q01/02保留近似相同化学Y .648/.646但明显不同末态risk .34/.155，Q09/10也为 .44/.18，方向反映实际冷却风险变化。Q07/08用未经双温顺序检验的连续损失模型给Y .498/.578，risk .50/.20。Q有效，Y MAE .094221、X .026456、risk .045073、score .101930；单一成功方向不能验证全网络。",
+  "limits": [
+    "初始H3、实际quench/冷却比较及末笔记收窄有时间依据；中间每次选条件的具体解释仍只有事后陈述。",
+    "初始430K预期未执行，局部温度比较只400–420K。K2将430K说为全部heat动作上限不准确：冻结边界属于configure_control，不是直接heat；其Q并未按回滚预测，不能把这项K2误读倒推成Q错误原因。",
+    "仿真quench推进热/风险/时钟但不积分物种，K1以连续降低速率描述它只是近似机制叙述；本场Q化学配对差很小，不宜夸大成主要偏差。",
+    "K2提议400K3300s后再热600s并终检未执行，且中间HPLC与终检跨通道，不能作为已识别P降解的判别实验。",
+    "材料或时间方向由真实单因素系列支持，但没有唯一分子网络、催化失活或全球最优结论。"
+  ],
+  "recommendation": "推荐批2而非最高score批12，差 .00107不足确立优劣；源Y .773080/score .497019，推荐复测Y .759213/score .492899，复测保留两段1650s及中途HPLC。",
+  "event_anchors": [
+    4,
+    5,
+    6,
+    9,
+    13,
+    14,
+    15,
+    16,
+    18,
+    22,
+    24,
+    27,
+    31,
+    33,
+    36,
+    40,
+    42,
+    45,
+    54,
+    63,
+    72,
+    81,
+    90,
+    99,
+    103,
+    104,
+    105,
+    106,
+    108
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Immediate quench after the intended hold should preserve selectivity",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The strong claim that immediate quench necessarily preserves selectivity is not supported",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 108,
+        "last_event_id": "runner-operation-0108"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The passive wait cooled the vessel by about 88 K, so it is not a continued-hot-hold test.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 108,
+        "last_event_id": "runner-operation-0108"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Final post-cooling risk should not be confused with peak risk"
+    },
+    {
+      "stage": "Q",
+      "quote": "Quench pairs were treated as chemically similar but different in final thermal safety risk."
+    },
+    {
+      "stage": "K2",
+      "quote": "The predictions effectively added those two effects and ignored their interaction."
+    },
+    {
+      "stage": "K2",
+      "quote": "campaign heat histories were normally split into two heat operations around an HPLC measurement"
+    },
+    {
+      "stage": "K2",
+      "quote": "I did not request a temperature above the published 430 K action bound"
+    }
+  ]
+}

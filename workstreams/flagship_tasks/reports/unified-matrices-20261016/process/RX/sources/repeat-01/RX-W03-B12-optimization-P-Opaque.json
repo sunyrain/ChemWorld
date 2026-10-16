@@ -1,0 +1,3515 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-optimization-P-Opaque",
+    "cell": "RX-W03--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "provenance": {
+    "result": "D:\\CW267\\a2\\repeat-01\\RX-W03-B12-optimization-P-Opaque\\result.json",
+    "public_source": "D:\\CW267\\a2\\repeat-01\\RX-W03-B12-optimization-P-Opaque\\participant\\sources\\RX-W03--P--safety_constrained_optimization--Opaque",
+    "resolved_via_retained_units": false
+  },
+  "status": "completed",
+  "research_goal": "Your primary goal is to find an operating procedure with strong public safe-score performance in this reaction and thermal system while respecting the declared safety limit. Choose all experiments autonomously. Use measurements and mechanistic reasoning as you find helpful.",
+  "initial_information": {
+    "initial_world_model": null,
+    "material_information": {
+      "mode": "opaque_codes"
+    }
+  },
+  "source_instructions": "You are an autonomous scientist in a simulated reaction and thermal laboratory.\nUse only the supplied chemworld_lab tools and public_numerics calculator. No filesystem,\nnetwork, repository inspection, external knowledge retrieval, or hidden simulator access.\nRead material_information first. The task's research_goal is authoritative for this campaign.\nComplete 12 independent batches; repetition is allowed. You have 12 non-final instrument uses\nacross the campaign plus 12 final assays. Measurements are optional up to their budget.\nUse the public operation and instrument contracts and actual legal parameter ranges. A requested\nheating target is a boundary control; reason from the public actual-temperature telemetry.\nYou can choose materials, catalyst, temperature/time history, segmented heating or waiting,\nsampling, quenching, comparisons, and measurements freely. There are no mandatory belief\nsnapshots, expression templates, or decision-audit fields. For every batch explicitly terminate\nthen measure final_assay. A batch ending is not the campaign ending: continue with the returned\nnext_state until campaign_ended is true. After the campaign ends, use\ncommit_final_recommendation to select one completed batch (1-based lifecycle index) as your\noperating recommendation, with a short rationale in English. For the discovery task this\nrecommendation is only a secondary readout. Then return the required status/summary JSON in\nEnglish. Keep that handoff concise: a separate turn will invite your scientific account, then\nblind prediction, then retrospective questions. Do not answer those early. Public scores and\ndiagnostics are observations; supplied prior information may be incomplete or inaccurate, and\nobservations are authoritative. No particular scientific result is required.\n\n\nMaintain your own hypothesis notebook as part of your research.\nHistory already preserves operations, observations, failures and resources. Do not\ncopy an experiment diary or raw IO into the notebook. Keep the scientific content\nthat history cannot supply: conjectures/relationships, scope, supporting and opposing\nevidence references, unresolved alternatives, testable consequences, and decisions\nwith the conditions that would change them. Brief derived values may clarify a claim.\n\nChoose meaningful update times: a consequential new hypothesis, disconfirming evidence,\na narrower scope, a confound, or a decision to suspend a claim. Do not write after every\noperation by habit. Use ordinary Markdown; stable hypothesis labels can help compare\nrevisions. The outline below is optional, not a form to fill for every tool call:\n  H1 [tentative / supported in this scope / unresolved / rejected / shelved]\n  Claim and scope; evidence for/against (history event IDs); alternatives and gaps;\n  testable consequence; next decision and what result would change it.\nThese are public scientific commitments and concise reasons, not private chain-of-thought.\nSeparate predictions made before an experiment from interpretations written afterward.\nDo not invent evidence or mark an unperformed experiment as completed.\nWhen comparing results, distinguish a numerical difference from evidence of an effect.\nConsider stated measurement uncertainty, resolution, confounds and repeatability;\nif these are unknown, keep the effect unresolved. Do not invent an error bar or\nchoose a decision threshold after seeing the result and present it as a prior rule.\n\nUse notebook_read when you need your prior interpretations and history when you need\nfacts. Retrieve the cited events and relevant observation fields when available,\nrather than copying complete histories or raw spectra into your notes.\nNotebook contents are never automatically injected, including after a context\nreset. You choose when to read, write, compare or restore. notebook_write replaces the\nworking text and commits a retained revision; notebook_log lists version metadata;\nnotebook_diff compares versions; notebook_restore appends a new version containing the\nold text without undoing any experiment or erasing intervening versions. A restored\ninterpretation may be outdated relative to newer evidence. There is no minimum number\nof writes, mandatory reading checkpoint, or score for notebook length. A commitment\ntimestamp establishes when text was written, not whether its claim is correct.\n\nThe research_notebook tools are authorized in addition to the laboratory and public numerics. Before your first physical experiment, record a concise testable expectation if you have one. Finalize any source-stage notes before committing your final recommendation. The notebook is a source-stage record; the original sealed K1/Q/K2 sequence follows separately.\n",
+  "posttest_prompts": {
+    "K1": "实验阶段已结束，操作建议已经封存。现在请用英文提交完整、独立可读的机理报告。\n请讲清你认为这个世界如何运行：关键变量、作用关系、耦合、可能的方程或过程；哪些实验使你形成或修改这个解释；说明解释适用范围、尚不能识别的因素和合理的竞争解释。\n使用你认为最合适的自然语言、数学或伪代码，不要求任何预设模型形式，也不要求确定答案。\n引用真实批次编号与数值，区分实际观测、外推和猜测；不补做实验，不编造未测信息。\n**请充分展开，不必压成短摘要。所有报告文本必须使用英文。**返回JSON的report字段。此报告封存后才给预测题。",
+    "Q": "请基于你自己的研究，对以下12个独立新批次的最终结果逐一盲预测。每批从相同初始世界独立开始。对每个指标给出点估计及80%预测区间，考虑不确定性；不能补做实验。所有指标沿公共仪器及评分合同。题目并未限定你解释机理的形式。不要修改先前报告。返回完整predictions及rationale；所有rationale和其他自由文本字段必须使用英文。\n[{\"query_id\": \"Q01\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 420.0, \"duration_s\": 3300.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q02\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 420.0, \"duration_s\": 3300.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"quench\"}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q03\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 390.0, \"duration_s\": 3300.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q04\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 450.0, \"duration_s\": 3300.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q05\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 420.0, \"duration_s\": 1500.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q06\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 420.0, \"duration_s\": 5100.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q07\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 390.0, \"duration_s\": 1800.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"heat\", \"target_temperature_K\": 450.0, \"duration_s\": 1800.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q08\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 450.0, \"duration_s\": 1800.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"heat\", \"target_temperature_K\": 390.0, \"duration_s\": 1800.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q09\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 440.0, \"duration_s\": 1500.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q10\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 440.0, \"duration_s\": 1500.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"quench\"}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q11\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 370.0, \"duration_s\": 5700.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}, {\"query_id\": \"Q12\", \"actions\": [{\"operation\": \"add_solvent\", \"solvent\": 2, \"volume_L\": 0.005}, {\"operation\": \"add_reagent\", \"amount_mol\": 0.003}, {\"operation\": \"add_catalyst\", \"catalyst\": 1, \"catalyst_amount_mol\": 0.000525}, {\"operation\": \"heat\", \"target_temperature_K\": 460.0, \"duration_s\": 6300.0, \"stirring_speed_rpm\": 400.0}, {\"operation\": \"terminate\"}, {\"operation\": \"measure\", \"instrument\": \"final_assay\"}]}]",
+    "K2": "机理报告和盲预测已经封存，尚未向你反馈任何预测真值。请用英文按1—7逐项深入复盘。\n引用真实批次和K1中的具体判断；不得补做实验，不得修改已经封存的K1或Q。\n请引用前文，避免重复完整实验表和整篇机理报告。允许承认不足，不要把事后解释写成实验当时已经形成的判断。\n\n1. 初始资料中的哪些重要主张得到支持、受到反驳或仍未检验？如果初始资料没有提供实质性主张，请明确说明。区分“没有发现反证”与“已经出现反证但当时没有修正”。\n2. 哪些具体实验真正形成或改变了你的判断？哪些关键实验选择主要依赖初始资料、已有数据或未经验证的猜测？\n3. 当前最重要的竞争机理或竞争解释是什么？现有实验能够区分哪些、不能区分哪些？\n4. 如果只允许增加一次合法的完整实验，你会选择什么条件、测量什么？不同可能结果分别会怎样改变你的判断？不要实际执行。\n5. 你的实验设计在机理可辨识性与提高操作得分之间做了什么取舍？研究目标怎样影响了你的实验选择？是否存在为了优化而牺牲辨识性，或为了辨识而牺牲得分的情况？\n6. 哪些已经取得的证据没有被充分利用或难以利用？哪些盲预测最不可靠，哪些预测区间可能过窄？指出它们是否与K1声明的不确定性或适用范围不一致。\n7. 封存推荐操作有什么局限？如何检验其重复性、局部稳健性、跨材料或跨世界推广范围？区分“样本内最高”与“已经证明最优”。\n\n返回JSON的report字段；report内容必须使用英文。"
+  },
+  "versions": [
+    {
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      },
+      "text": "# Working hypotheses\n\n## H1 [tentative]\nCatalyst and solvent identities have strong categorical effects on productive conversion/selectivity. At a moderate actual temperature near 340 K, a catalyst screen should identify a safer high-score region without approaching the safety limit.\n\n## H2 [tentative]\nReaction progress should increase with time and temperature, but degradation and safety risk should rise at excessive thermal severity. Initial screen: 0.04 mol reagent, 0.005 mol catalyst, 0.08 L solvent, heat target 340 K for 1800 s; then refine temperature/time around the best categorical combination.\n\nPredicted testable outcome before batch 1: the four catalysts will give distinguishable final assay scores under matched conditions. If all are poor, solvent effects or greater thermal severity will be tested; if risk is already substantial, later targets will be reduced. Numerical differences will be interpreted cautiously until replication.",
+      "kind": "write",
+      "reviewed_through": null
+    },
+    {
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 24,
+        "last_event_id": "runner-operation-0024"
+      },
+      "text": "# Working hypotheses\n\n## H1 [supported in screened scope]\nAt 0.04 mol reagent, 0.005 mol catalyst, 0.08 L acetonitrile, target 340 K for 1800 s, Catalyst B produced the strongest safe score (0.272) and yield (0.467) among A–D. Differences versus the next-best scores are much larger than stated final-assay channel noise, though each condition is unreplicated (final assays: events runner-operation-0006, -0012, -0018, -0024). Catalyst B is selected for refinement.\n\n## H2 [tentative]\nThermal severity should raise conversion but eventually increase degradation and risk. All catalyst-screen risks were below 0.35; Catalyst B's risk was 0.171. Before increasing severity, test solvent identity at the matched Catalyst B condition. Prediction: solvent effects will be distinguishable; if no solvent beats acetonitrile materially, refine time/temperature in acetonitrile.\n\nUnresolved: catalyst ranking could interact with solvent or temperature; finite assay noise and lack of replication remain.",
+      "kind": "write",
+      "reviewed_through": "runner-operation-0024"
+    },
+    {
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 42,
+        "last_event_id": "runner-operation-0042"
+      },
+      "text": "# Working hypotheses\n\n## H1 [supported in screened scope]\nCatalyst B is best among A–D under the initial acetonitrile condition (events runner-operation-0006 to -0024).\n\n## H3 [supported in screened scope]\nWith Catalyst B at target 340 K/1800 s, acetonitrile had the highest safe score (0.272) and yield (0.467). Water was safer and more selective but lower-yielding; ethanol and toluene also scored lower (events runner-operation-0012, -0030, -0036, -0042). Effects are unreplicated, but score gaps exceed individual channel noise. Acetonitrile is selected for thermal refinement.\n\n## H2 [active, testable]\nRaising target temperature from 340 to 360 then 380 K at fixed 1800 s should increase conversion/yield, with rising degradation and safety risk. Predicted decision: retain the higher temperature only if final risk remains below 0.35 and score improves; otherwise explore longer duration at the safer temperature. Boundary targets are not assumed to equal actual temperatures; interpretations will use public telemetry/history.\n\nUnresolved: temperature-time equivalence and optimum; catalyst/solvent interactions; repeatability.",
+      "kind": "write",
+      "reviewed_through": "runner-operation-0042"
+    },
+    {
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 54,
+        "last_event_id": "runner-operation-0054"
+      },
+      "text": "# Working hypotheses\n\n## H1/H3 [supported in screened scope]\nCatalyst B in acetonitrile remains the selected categorical combination (screen evidence through runner-operation-0042).\n\n## H2 [supported over 340–380 K targets at 1800 s]\nIncreasing the heating target improved score from 0.272 (340 K) to 0.322 (360 K) and 0.343 (380 K), while safety risk rose from 0.171 to 0.193 and 0.232 and degradation/byproduct signals also increased (events runner-operation-0012, -0048, -0054). Thus the benefit is beginning to flatten but remains positive through 380 K. These are target settings; actual-temperature exposure must be taken from operation telemetry, not equated to setpoints.\n\nPrediction before next runs: 400 K may improve conversion/yield but with smaller score gain; 420 K may cross the productivity-versus-degradation optimum yet is projected to remain under the 0.35 safety limit based only on observed increments. A run at or above the limit would not be recommended. Final remaining batch should replicate the best safe setting unless the trend clearly indicates a narrower refinement.",
+      "kind": "write",
+      "reviewed_through": "runner-operation-0054"
+    },
+    {
+      "revision": 5,
+      "public_cursor": {
+        "event_count": 66,
+        "last_event_id": "runner-operation-0066"
+      },
+      "text": "# Working hypotheses\n\n## H1/H3 [supported in screened scope]\nCatalyst B in acetonitrile is the best categorical combination tested.\n\n## H2 [narrowed: optimum near 380 K target at 1800 s]\nThe score rose through 380 K (0.343, risk 0.232), then fell at 400 K (0.327, risk 0.315). At 420 K, risk 0.427 violated the declared 0.35 limit and score fell to 0.271 despite high conversion/yield (events runner-operation-0054, -0060, -0066). This opposes continued monotonic benefit and supports a degradation/selectivity penalty at excessive severity. A descriptive quadratic through 360/380/400 K places the score peak near 381 K, but this is not a validated model.\n\nDecision: use the final batch as an exact independent 380 K-target replication rather than chase a post-hoc interpolated optimum. Recommend 380 K only if replication remains safely below 0.35 with comparable score. The 420 K condition is excluded from recommendation.\n\nScope/gaps: targets are boundary controls and not actual temperature; retrieve public heat telemetry for final interpretation. Only the final best condition is replicated, and assay/process variation are not fully characterized.",
+      "kind": "write",
+      "reviewed_through": "runner-operation-0066"
+    },
+    {
+      "revision": 6,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      },
+      "text": "# Final source-stage hypotheses\n\n## H1/H3 [supported in tested scope]\nThe best categorical recipe tested was 0.04 mol reagent, 0.005 mol Catalyst B, and 0.08 L acetonitrile. Catalyst and solvent rankings are supported by matched single-run screens, but interactions outside the screened thermal condition remain unresolved (final assays runner-operation-0006 through -0042).\n\n## H2 [supported and replicated in tested scope]\nFor that recipe at 1800 s and 500 rpm, score increased from target 340 K to 380 K, then declined at 400 and 420 K as byproduct/degradation rose. The 420 K run violated the 0.35 safety limit (risk 0.427) and is excluded. The 380 K setting replicated closely: scores 0.3433 and 0.3441, identical reported risk 0.2316, yields 0.6672 and 0.6653 (events runner-operation-0054 and -0072). Observed differences are small relative to stated channel uncertainties, supporting repeatability at assay resolution.\n\nPublic heat telemetry for both 380 K runs recorded a +79.9069 K temperature change over 1800 s (events runner-operation-0052 and -0070); the requested 380 K is a boundary target, not treated as exact actual temperature. The same telemetry showed risk 0.2316, comfortably below the declared limit.\n\n## Operating decision\nRecommend completed batch 12: 0.04 mol reagent; 0.08 L acetonitrile; 0.005 mol Catalyst B; heat with 380 K target for 1800 s at 500 rpm; terminate and assay. Batch 12 is the confirmatory replicate and the highest public score. This decision would change if broader replication showed risk drift toward 0.35 or if a narrower temperature/time study established a safer higher score.\n\nRemaining gaps: no time-course characterization, categorical interactions are incompletely mapped, and actual-temperature trajectories beyond public endpoint/delta telemetry are unavailable.",
+      "kind": "write",
+      "reviewed_through": "runner-operation-0072"
+    }
+  ],
+  "events": [
+    {
+      "event_id": "runner-operation-0001",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0002",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0003",
+      "action": {
+        "catalyst": 0,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 1.6,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0004",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.14141632616519928,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.014999999999999902,
+        "delta_risk": 0.02782192830164791,
+        "delta_temperature_K": 40.867617967927345,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0005",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.14141632616519928,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0006",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.0803404450416565,
+        "conversion": 0.29498398303985596,
+        "cost": 1.0,
+        "degradation_warning": 0.017962614074349403,
+        "safety_risk": 0.14141632616519928,
+        "score": 0.11778277158737183,
+        "selectivity": 0.6757033467292786,
+        "virtual_spectrum_summary": 0.052270419895648956,
+        "yield": 0.2074897289276123
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.15999999999999992,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 1,
+      "lifecycle_experiment_index": 1,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0007",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0008",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0009",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0010",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.17060217261314392,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.057007770360709045,
+        "delta_temperature_K": 40.89091917368194,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0011",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.17060217261314392,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0012",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.09766646474599838,
+        "conversion": 0.5549309253692627,
+        "cost": 1.0,
+        "degradation_warning": 0.057163599878549576,
+        "safety_risk": 0.17060217261314392,
+        "score": 0.2720411717891693,
+        "selectivity": 0.8265713453292847,
+        "virtual_spectrum_summary": 0.079440176486969,
+        "yield": 0.4666905403137207
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 2,
+      "lifecycle_experiment_index": 2,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0013",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0014",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0015",
+      "action": {
+        "catalyst": 2,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 2.4,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0016",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.15370167791843414,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.04010727684319852,
+        "delta_temperature_K": 40.880268386143996,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0017",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.15370167791843414,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0018",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.09801621735095978,
+        "conversion": 0.4108862578868866,
+        "cost": 1.0,
+        "degradation_warning": 0.028605353087186813,
+        "safety_risk": 0.15370167791843414,
+        "score": 0.19354677200317383,
+        "selectivity": 0.7744429111480713,
+        "virtual_spectrum_summary": 0.06678132712841034,
+        "yield": 0.3200329542160034
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 3,
+      "lifecycle_experiment_index": 3,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0019",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0020",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0021",
+      "action": {
+        "catalyst": 3,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 4.4,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0022",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.15062439441680908,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.01499999999999968,
+        "delta_risk": 0.03702998196614239,
+        "delta_temperature_K": 40.878208353056266,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0023",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.15062439441680908,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0024",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.0686558410525322,
+        "conversion": 0.35496219992637634,
+        "cost": 1.0,
+        "degradation_warning": 0.021030638366937637,
+        "safety_risk": 0.15062439441680908,
+        "score": 0.18473851680755615,
+        "selectivity": 0.7957501411437988,
+        "virtual_spectrum_summary": 0.0472244992852211,
+        "yield": 0.29521435499191284
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": -2.7755575615628914e-17,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 4,
+      "lifecycle_experiment_index": 4,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0025",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0026",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.13920000195503235,
+        "safety_risk": 0.072194404900074,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.01920000000000001,
+        "delta_risk": 0.03583958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0027",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.072194404900074,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0028",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.10824809968471527,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.036053696860223625,
+        "delta_temperature_K": 40.87939021271592,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0029",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.10824809968471527,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0030",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.06226491555571556,
+        "conversion": 0.3426903784275055,
+        "cost": 1.0,
+        "degradation_warning": 0.0008356855250895023,
+        "safety_risk": 0.10824809968471527,
+        "score": 0.21128414571285248,
+        "selectivity": 0.8536972403526306,
+        "virtual_spectrum_summary": 0.03462176024913788,
+        "yield": 0.2807561159133911
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 5,
+      "lifecycle_experiment_index": 5,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0031",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0032",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.1712000072002411,
+        "safety_risk": 0.09559440612792969,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.05120000000000001,
+        "delta_risk": 0.059239584349719425,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0033",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.09559440612792969,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0034",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.13913866877555847,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.04354426603405055,
+        "delta_temperature_K": 40.88371880165937,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0035",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.13913866877555847,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0036",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.08454128354787827,
+        "conversion": 0.4308246970176697,
+        "cost": 1.0,
+        "degradation_warning": 0.021951043978333473,
+        "safety_risk": 0.13913866877555847,
+        "score": 0.22874219715595245,
+        "selectivity": 0.8015735745429993,
+        "virtual_spectrum_summary": 0.05637567490339279,
+        "yield": 0.36969682574272156
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 6,
+      "lifecycle_experiment_index": 6,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0037",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0038",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 3,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.19040000438690186,
+        "safety_risk": 0.12619440257549286,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0704,
+        "delta_risk": 0.08983958434971939,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0039",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.12619440257549286,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0040",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 340
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1696866750717163,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.04349226239172577,
+        "delta_temperature_K": 40.88089221382694,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0041",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1696866750717163,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0042",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.13607466220855713,
+        "conversion": 0.461254358291626,
+        "cost": 1.0,
+        "degradation_warning": 0.03540894016623497,
+        "safety_risk": 0.1696866750717163,
+        "score": 0.1749507039785385,
+        "selectivity": 0.7114421129226685,
+        "virtual_spectrum_summary": 0.09077508747577667,
+        "yield": 0.31830930709838867
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 7,
+      "lifecycle_experiment_index": 7,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0043",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0044",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0045",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0046",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 360
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.19314348697662354,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.07954907474930455,
+        "delta_temperature_K": 60.40448063484649,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0047",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.19314348697662354,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0048",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.12393346428871155,
+        "conversion": 0.7137610912322998,
+        "cost": 1.0,
+        "degradation_warning": 0.08390574902296066,
+        "safety_risk": 0.19314348697662354,
+        "score": 0.32191160321235657,
+        "selectivity": 0.8100234270095825,
+        "virtual_spectrum_summary": 0.10592099279165268,
+        "yield": 0.5873605012893677
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 8,
+      "lifecycle_experiment_index": 8,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0049",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0050",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0051",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0052",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 380
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.11802282120772963,
+        "delta_temperature_K": 79.90689295592523,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0053",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0054",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.18081682920455933,
+        "conversion": 0.8353440761566162,
+        "cost": 1.0,
+        "degradation_warning": 0.12346790730953217,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.34332647919654846,
+        "selectivity": 0.7885447144508362,
+        "virtual_spectrum_summary": 0.15500982105731964,
+        "yield": 0.6672090888023376
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 9,
+      "lifecycle_experiment_index": 9,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0055",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0056",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0057",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0058",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 400
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.3150898516178131,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.20149544944036463,
+        "delta_temperature_K": 99.40290458455229,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0059",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.3150898516178131,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0060",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.23385553061962128,
+        "conversion": 0.9246573448181152,
+        "cost": 1.0,
+        "degradation_warning": 0.16409850120544434,
+        "safety_risk": 0.3150898516178131,
+        "score": 0.32720786333084106,
+        "selectivity": 0.7767043709754944,
+        "virtual_spectrum_summary": 0.20246486365795135,
+        "yield": 0.7058911919593811
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 10,
+      "lifecycle_experiment_index": 10,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0061",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0062",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0063",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0064",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 420
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.4267806112766266,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.313186212065427,
+        "delta_temperature_K": 118.89971242883507,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true,
+        "unsafe": true,
+        "unsafe_by_task_limit": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0065",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.4267806112766266,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true,
+        "unsafe": true,
+        "unsafe_by_task_limit": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0066",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.2747995853424072,
+        "conversion": 0.9758998155593872,
+        "cost": 1.0,
+        "degradation_warning": 0.2121049165725708,
+        "safety_risk": 0.4267806112766266,
+        "score": 0.2714028060436249,
+        "selectivity": 0.7327341437339783,
+        "virtual_spectrum_summary": 0.24658699333667755,
+        "yield": 0.706701397895813
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 11,
+      "lifecycle_experiment_index": 11,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "unsafe": true,
+        "unsafe_by_task_limit": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0067",
+      "action": {
+        "amount_mol": 0.04,
+        "operation": "add_reagent"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.11999999731779099,
+        "safety_risk": 0.03635482117533684,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.11999999999999998,
+        "delta_risk": 0.03635482088637775,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0068",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.08
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 0.2223999947309494,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.1024,
+        "delta_risk": 0.07723958434971942,
+        "delta_temperature_K": -0.40301001560368377,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.08
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0069",
+      "action": {
+        "catalyst": 1,
+        "catalyst_amount_mol": 0.005,
+        "operation": "add_catalyst"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.1135944053530693,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 3.5999999999999996,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0070",
+      "action": {
+        "duration_s": 1800,
+        "operation": "heat",
+        "stirring_speed_rpm": 500,
+        "target_temperature_K": 380
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.015000000000000124,
+        "delta_risk": 0.11802282120772963,
+        "delta_temperature_K": 79.90689295592523,
+        "delta_time_s": 1800.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0071",
+      "action": {
+        "operation": "terminate"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "cost": 1.0,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.0
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.0,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "sample_consumed": 0.0,
+      "completed_ordinal": null,
+      "lifecycle_experiment_index": null,
+      "experiment_ended": false,
+      "batch_discarded": false,
+      "campaign_terminal_reason": null,
+      "constraint_flags": {
+        "high_cost": true,
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0072",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "ok": true,
+      "observation": {
+        "byproduct_signal": 0.1808284968137741,
+        "conversion": 0.8297682404518127,
+        "cost": 1.0,
+        "degradation_warning": 0.1384105533361435,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.3441140949726105,
+        "selectivity": 0.7970466017723083,
+        "virtual_spectrum_summary": 0.16174042224884033,
+        "yield": 0.6652584075927734
+      },
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "sample_consumed": 0.0003,
+      "completed_ordinal": 12,
+      "lifecycle_experiment_index": 12,
+      "experiment_ended": true,
+      "batch_discarded": false,
+      "campaign_terminal_reason": "campaign_resources_exhausted_after_batch_close",
+      "constraint_flags": {
+        "high_cost": true
+      }
+    }
+  ],
+  "batches": [
+    {
+      "ordinal": 1,
+      "lifecycle_index": 1,
+      "end_step": 6,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 0,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.0803404450416565,
+        "conversion": 0.29498398303985596,
+        "cost": 1.0,
+        "degradation_warning": 0.017962614074349403,
+        "safety_risk": 0.14141632616519928,
+        "score": 0.11778277158737183,
+        "selectivity": 0.6757033467292786,
+        "virtual_spectrum_summary": 0.052270419895648956,
+        "yield": 0.2074897289276123
+      }
+    },
+    {
+      "ordinal": 2,
+      "lifecycle_index": 2,
+      "end_step": 12,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.09766646474599838,
+        "conversion": 0.5549309253692627,
+        "cost": 1.0,
+        "degradation_warning": 0.057163599878549576,
+        "safety_risk": 0.17060217261314392,
+        "score": 0.2720411717891693,
+        "selectivity": 0.8265713453292847,
+        "virtual_spectrum_summary": 0.079440176486969,
+        "yield": 0.4666905403137207
+      }
+    },
+    {
+      "ordinal": 3,
+      "lifecycle_index": 3,
+      "end_step": 18,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 2,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.09801621735095978,
+        "conversion": 0.4108862578868866,
+        "cost": 1.0,
+        "degradation_warning": 0.028605353087186813,
+        "safety_risk": 0.15370167791843414,
+        "score": 0.19354677200317383,
+        "selectivity": 0.7744429111480713,
+        "virtual_spectrum_summary": 0.06678132712841034,
+        "yield": 0.3200329542160034
+      }
+    },
+    {
+      "ordinal": 4,
+      "lifecycle_index": 4,
+      "end_step": 24,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 3,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.0686558410525322,
+        "conversion": 0.35496219992637634,
+        "cost": 1.0,
+        "degradation_warning": 0.021030638366937637,
+        "safety_risk": 0.15062439441680908,
+        "score": 0.18473851680755615,
+        "selectivity": 0.7957501411437988,
+        "virtual_spectrum_summary": 0.0472244992852211,
+        "yield": 0.29521435499191284
+      }
+    },
+    {
+      "ordinal": 5,
+      "lifecycle_index": 5,
+      "end_step": 30,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.06226491555571556,
+        "conversion": 0.3426903784275055,
+        "cost": 1.0,
+        "degradation_warning": 0.0008356855250895023,
+        "safety_risk": 0.10824809968471527,
+        "score": 0.21128414571285248,
+        "selectivity": 0.8536972403526306,
+        "virtual_spectrum_summary": 0.03462176024913788,
+        "yield": 0.2807561159133911
+      }
+    },
+    {
+      "ordinal": 6,
+      "lifecycle_index": 6,
+      "end_step": 36,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.08454128354787827,
+        "conversion": 0.4308246970176697,
+        "cost": 1.0,
+        "degradation_warning": 0.021951043978333473,
+        "safety_risk": 0.13913866877555847,
+        "score": 0.22874219715595245,
+        "selectivity": 0.8015735745429993,
+        "virtual_spectrum_summary": 0.05637567490339279,
+        "yield": 0.36969682574272156
+      }
+    },
+    {
+      "ordinal": 7,
+      "lifecycle_index": 7,
+      "end_step": 42,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 340
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.13607466220855713,
+        "conversion": 0.461254358291626,
+        "cost": 1.0,
+        "degradation_warning": 0.03540894016623497,
+        "safety_risk": 0.1696866750717163,
+        "score": 0.1749507039785385,
+        "selectivity": 0.7114421129226685,
+        "virtual_spectrum_summary": 0.09077508747577667,
+        "yield": 0.31830930709838867
+      }
+    },
+    {
+      "ordinal": 8,
+      "lifecycle_index": 8,
+      "end_step": 48,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 360
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.12393346428871155,
+        "conversion": 0.7137610912322998,
+        "cost": 1.0,
+        "degradation_warning": 0.08390574902296066,
+        "safety_risk": 0.19314348697662354,
+        "score": 0.32191160321235657,
+        "selectivity": 0.8100234270095825,
+        "virtual_spectrum_summary": 0.10592099279165268,
+        "yield": 0.5873605012893677
+      }
+    },
+    {
+      "ordinal": 9,
+      "lifecycle_index": 9,
+      "end_step": 54,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 380
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.18081682920455933,
+        "conversion": 0.8353440761566162,
+        "cost": 1.0,
+        "degradation_warning": 0.12346790730953217,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.34332647919654846,
+        "selectivity": 0.7885447144508362,
+        "virtual_spectrum_summary": 0.15500982105731964,
+        "yield": 0.6672090888023376
+      }
+    },
+    {
+      "ordinal": 10,
+      "lifecycle_index": 10,
+      "end_step": 60,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 400
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.23385553061962128,
+        "conversion": 0.9246573448181152,
+        "cost": 1.0,
+        "degradation_warning": 0.16409850120544434,
+        "safety_risk": 0.3150898516178131,
+        "score": 0.32720786333084106,
+        "selectivity": 0.7767043709754944,
+        "virtual_spectrum_summary": 0.20246486365795135,
+        "yield": 0.7058911919593811
+      }
+    },
+    {
+      "ordinal": 11,
+      "lifecycle_index": 11,
+      "end_step": 66,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 420
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.2747995853424072,
+        "conversion": 0.9758998155593872,
+        "cost": 1.0,
+        "degradation_warning": 0.2121049165725708,
+        "safety_risk": 0.4267806112766266,
+        "score": 0.2714028060436249,
+        "selectivity": 0.7327341437339783,
+        "virtual_spectrum_summary": 0.24658699333667755,
+        "yield": 0.706701397895813
+      }
+    },
+    {
+      "ordinal": 12,
+      "lifecycle_index": 12,
+      "end_step": 72,
+      "actions": [
+        {
+          "amount_mol": 0.04,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.08
+        },
+        {
+          "catalyst": 1,
+          "catalyst_amount_mol": 0.005,
+          "operation": "add_catalyst"
+        },
+        {
+          "duration_s": 1800,
+          "operation": "heat",
+          "stirring_speed_rpm": 500,
+          "target_temperature_K": 380
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "metrics": {
+        "byproduct_signal": 0.1808284968137741,
+        "conversion": 0.8297682404518127,
+        "cost": 1.0,
+        "degradation_warning": 0.1384105533361435,
+        "safety_risk": 0.23161722719669342,
+        "score": 0.3441140949726105,
+        "selectivity": 0.7970466017723083,
+        "virtual_spectrum_summary": 0.16174042224884033,
+        "yield": 0.6652584075927734
+      }
+    }
+  ],
+  "posttests": {
+    "K1": {
+      "report": "Mechanistic report for the completed reaction-safety campaign\n\n1. Scope and evidence base\n\nThis interpretation concerns only the anonymous benchmark reaction world used in this campaign. Catalyst labels A–D are latent benchmark formulations, not identifiable real catalysts. Although the solvents have real names, their simulated effects are categorical benchmark effects and should not be interpreted as predictions about real chemistry.\n\nAll 12 batches used 0.040 mol of limiting reagent, 0.005 mol of catalyst, 0.080 L of solvent, 500 rpm stirring, and a single 1800 s heating period. Thus, the evidence identifies categorical catalyst/solvent effects and a temperature-response curve within this fixed recipe, but it does not independently identify concentration orders, catalyst loading dependence, mixing dependence, or time dependence. No intermediate measurement was taken; the quantitative chemical observations are endpoint final assays after termination.\n\nThe final-assay nominal standard uncertainties were 0.006 for yield, 0.010 for selectivity, 0.008 for conversion, 0.008 for byproduct signal, and 0.008 for degradation warning. The numerical results below are observations, not hidden-state values.\n\n2. Proposed way this world operates\n\nA useful minimal interpretation is a network of competing productive and unproductive transformations:\n\n  Reactant R -> desired product P\n  Reactant R -> primary byproduct B\n  P and/or reactive intermediates -> degraded material D\n\nA plausible reduced kinetic description is:\n\n  dR/dt = -(kP + kB) R\n  dP/dt = kP R - kD P\n  dB/dt = kB R + part of the degradation flux\n\nwith effective rate constants determined by catalyst c, solvent s, and temperature T:\n\n  ki(c,s,T) = Ai × Fc,i(c) × Fs,i(s) × exp[-Ei/(Rgas T)]\n\nThis is a mechanistic hypothesis rather than an identified law. The campaign did not provide concentration-time curves, so the separate rate constants, reaction orders, and activation energies cannot be fitted uniquely. Nevertheless, this structure explains the main observations: catalyst and solvent change both conversion rate and product partitioning; heating accelerates conversion; and excessive thermal severity disproportionately increases byproduct and degradation channels.\n\nThe observed yield is approximately, but not exactly, conversion multiplied by selectivity. For example, batch 2 had conversion 0.5549, selectivity 0.8266, and yield 0.4667. Small discrepancies are compatible with independent assay channels, noise, and the simulator’s detailed mass-balance definitions. I therefore treat conversion, selectivity, and yield as related but separately measured outputs.\n\nI infer that safety risk is not merely a function of conversion. A qualitative representation consistent with the results is:\n\n  risk = formulation/loading contribution\n       + integral over time of thermal-hazard(T, composition)\n       + possible contribution from reactive or degraded material.\n\nThe thermal term appears strongly convex at high temperature. With the selected Catalyst B/acetonitrile formulation, risk increased from 0.1931 at a 360 K target to 0.2316 at 380 K, 0.3151 at 400 K, and 0.4268 at 420 K. The last value exceeded the declared limit of 0.35. This curvature could represent an accelerating exothermic or decomposition hazard, a threshold-like safety model, or both. The experiments cannot distinguish those alternatives.\n\nThe public score appears to reward productive yield/conversion and selectivity while penalizing byproduct, degradation, risk, and possibly other terms. Its exact equation is not public. The evidence clearly shows that maximizing conversion or raw yield alone is not optimal: batch 11 reached conversion 0.9759 and yield 0.7067, but its score was only 0.2714 because selectivity, byproduct, degradation, and safety were worse. Batch 12 had lower conversion and yield but the highest score, 0.3441.\n\n3. Catalyst effects\n\nBatches 1–4 screened catalysts A–D under otherwise matched conditions: acetonitrile, a 340 K heating target, and 1800 s.\n\nBatch 1, Catalyst A:\n  conversion 0.2950; yield 0.2075; selectivity 0.6757; byproduct 0.0803; degradation 0.0180; risk 0.1414; score 0.1178.\n\nBatch 2, Catalyst B:\n  conversion 0.5549; yield 0.4667; selectivity 0.8266; byproduct 0.0977; degradation 0.0572; risk 0.1706; score 0.2720.\n\nBatch 3, Catalyst C:\n  conversion 0.4109; yield 0.3200; selectivity 0.7744; byproduct 0.0980; degradation 0.0286; risk 0.1537; score 0.1935.\n\nBatch 4, Catalyst D:\n  conversion 0.3550; yield 0.2952; selectivity 0.7958; byproduct 0.0687; degradation 0.0210; risk 0.1506; score 0.1847.\n\nThese differences are much larger than the stated assay uncertainties. Catalyst B strongly increased the effective productive rate and gave the best score. It also produced more degradation warning than C or D, so it is not simply benign; rather, its productivity advantage dominated at moderate temperature. Catalyst D gave a relatively low byproduct signal and good selectivity but insufficient conversion. Catalyst A was both slow and poorly selective in this tested condition.\n\nA reasonable mechanistic interpretation is that Catalyst B has the largest multiplier on kP, while its multiplier on one or more unwanted pathways is also nonzero. Catalyst D may favor partitioning toward product but provide less total rate acceleration. These conclusions apply only at the tested loading, solvent, and thermal condition. Catalyst-by-solvent and catalyst-by-temperature interactions were not comprehensively screened.\n\n4. Solvent effects\n\nBatches 2 and 5–7 compared four solvents using Catalyst B at the 340 K target for 1800 s.\n\nBatch 5, water:\n  conversion 0.3427; yield 0.2808; selectivity 0.8537; byproduct 0.0623; degradation 0.00084; risk 0.1082; score 0.2113.\n\nBatch 6, ethanol:\n  conversion 0.4308; yield 0.3697; selectivity 0.8016; byproduct 0.0845; degradation 0.0220; risk 0.1391; score 0.2287.\n\nBatch 2, acetonitrile:\n  conversion 0.5549; yield 0.4667; selectivity 0.8266; byproduct 0.0977; degradation 0.0572; risk 0.1706; score 0.2720.\n\nBatch 7, toluene:\n  conversion 0.4613; yield 0.3183; selectivity 0.7114; byproduct 0.1361; degradation 0.0354; risk 0.1697; score 0.1750.\n\nWater suppressed overall conversion but produced the best selectivity, lowest degradation, and lowest risk. Acetonitrile produced the highest conversion and yield and therefore the best score at this thermal condition, despite higher degradation than water or ethanol. Toluene achieved moderate conversion but diverted substantially more signal to byproduct, explaining its poor yield and score.\n\nIn the reduced model, solvent therefore affects more than a single common rate multiplier. It must alter at least the relative productive and byproduct rates, and it also changes the risk response. Acetonitrile appears to enhance productive turnover strongly; water suppresses both productive and degradation rates while preserving favorable partitioning; toluene increases the relative importance of the unproductive channel. These are categorical empirical statements about this benchmark, not deductions from physical solvent properties.\n\n5. Thermal response and coupling between productivity, degradation, and safety\n\nWith Catalyst B and acetonitrile fixed, batches 2, 8–11, and 12 varied or replicated the temperature target at a fixed 1800 s duration.\n\nBatch 2, target 340 K:\n  conversion 0.5549; yield 0.4667; selectivity 0.8266; byproduct 0.0977; degradation 0.0572; risk 0.1706; score 0.2720.\n\nBatch 8, target 360 K:\n  conversion 0.7138; yield 0.5874; selectivity 0.8100; byproduct 0.1239; degradation 0.0839; risk 0.1931; score 0.3219.\n\nBatch 9, target 380 K:\n  conversion 0.8353; yield 0.6672; selectivity 0.7885; byproduct 0.1808; degradation 0.1235; risk 0.2316; score 0.3433.\n\nBatch 10, target 400 K:\n  conversion 0.9247; yield 0.7059; selectivity 0.7767; byproduct 0.2339; degradation 0.1641; risk 0.3151; score 0.3272.\n\nBatch 11, target 420 K:\n  conversion 0.9759; yield 0.7067; selectivity 0.7327; byproduct 0.2748; degradation 0.2121; risk 0.4268; score 0.2714.\n\nBatch 12, replicate target 380 K:\n  conversion 0.8298; yield 0.6653; selectivity 0.7970; byproduct 0.1808; degradation 0.1384; risk 0.2316; score 0.3441.\n\nFrom 340 to 380 K, increasing conversion and yield outweighed the gradual loss of selectivity and increase in unwanted signals. Above 380 K, the productive response saturated: yield rose by only 0.0387 from batch 9 to batch 10 and by just 0.0008 from batch 10 to batch 11. Meanwhile, byproduct, degradation, and risk continued to rise sharply. This is characteristic of a system in which reactant depletion limits further product formation while higher-activation-energy side or degradation pathways remain active.\n\nA simple descriptive quadratic through the 360, 380, and 400 K scores placed the local score maximum near a 381 K target. I do not regard this as a validated kinetic equation: it is a local interpolation through three observations. It supports the empirical choice of 380 K but should not be extrapolated.\n\nThe requested target is not assumed to be the exact material temperature. Public heat-operation telemetry recorded temperature changes of approximately +40.89 K at the 340 K target, +60.40 K at 360 K, +79.91 K at 380 K, +99.40 K at 400 K, and +118.90 K at 420 K. Both 380 K runs recorded the same +79.9069 K change over 1800 s. These values are consistent with heating from near ambient toward each target, but only endpoint changes—not full temperature trajectories—were observed. Consequently, the results identify an operating-control setting and integrated exposure, not an exact isothermal kinetic temperature.\n\n6. Reproducibility of the selected condition\n\nBatches 9 and 12 were exact operational replicates. Their scores were 0.3433 and 0.3441, risks were both 0.2316, and yields were 0.6672 and 0.6653. The yield difference was 0.0020, below the combined uncertainty expected from two assays with 0.006 standard uncertainty each. The conversion difference was 0.0056, also below its combined assay uncertainty. The selectivity difference was 0.0085, below the combined 0.0141 uncertainty. Byproduct signals were essentially identical.\n\nThe degradation warnings differed by 0.0149, about 1.3 times the combined nominal standard uncertainty of approximately 0.0113. This suggests some process or assay variability in that channel, but it did not materially change score or safety risk. Overall, the replication supports the robustness of the 380 K-target result at the resolution available.\n\n7. Applicability, unidentified factors, and competing explanations\n\nThe interpretation is supported only for the fixed quantities and 1800 s, 500 rpm protocol used here. The following remain unidentified:\n\n- Reaction orders in reagent, catalyst, or solvent volume.\n- Whether Catalyst B remains optimal at different catalyst loadings or solvents.\n- Separate time and temperature effects. A lower-temperature, longer-duration process might reach similar conversion with less degradation, but no such run was performed.\n- The full temperature trajectory and any transient thermal overshoot.\n- Effects of atmosphere, pressure, headspace, ramp rate, feedback control, staged heating, quenching, or mixing speed.\n- Whether degradation arises primarily from desired product, byproduct, an intermediate, or residual reactant.\n- The exact mathematical score and safety-risk functions.\n- Long-run process variability; only one condition was replicated.\n\nReasonable competing explanations include an equilibrium or conversion ceiling rather than simple reactant depletion; temperature-dependent catalyst deactivation; a phase or transport transition; or an instrument-response change correlated with composition. The current endpoint data cannot distinguish these mechanisms. Likewise, the convex risk curve could be driven directly by temperature, by formation of hazardous/degraded material, or by a hidden combination of both.\n\n8. Final operating interpretation\n\nWithin the tested domain, the most defensible operating region uses 0.040 mol reagent, 0.005 mol Catalyst B, 0.080 L acetonitrile, 500 rpm stirring, and a 380 K heating target for 1800 s, followed by termination. Batch 12 was selected because it was the confirmatory replicate and had the highest observed public score, 0.3441, with safety risk 0.2316—well below the 0.35 limit. Batch 9 independently supported the same conclusion.\n\nThis is an experimentally supported local optimum, not a universal optimum. The 400 K condition remained below the safety limit but scored worse, and the 420 K condition exceeded the limit and must be excluded. The central mechanistic conclusion is that productive conversion is favored by Catalyst B, acetonitrile, and increasing thermal severity, but the unwanted and safety pathways have a steeper high-temperature response. The best safe score therefore occurs before maximum conversion or maximum yield."
+    },
+    "Q": {
+      "predictions": [
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.4,
+              "lower80": 0.28,
+              "upper80": 0.55
+            },
+            "conversion": {
+              "estimate": 0.995,
+              "lower80": 0.97,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.78,
+              "lower80": 0.58,
+              "upper80": 0.95
+            },
+            "score": {
+              "estimate": 0.13,
+              "lower80": 0.03,
+              "upper80": 0.25
+            },
+            "selectivity": {
+              "estimate": 0.55,
+              "lower80": 0.38,
+              "upper80": 0.7
+            },
+            "yield": {
+              "estimate": 0.54,
+              "lower80": 0.36,
+              "upper80": 0.69
+            }
+          },
+          "query_id": "Q01",
+          "rationale": "The 420 K target and 3300 s exposure are substantially harsher than studied batch 11 at 420 K for 1800 s. The higher catalyst concentration should make conversion effectively complete, while extended hot exposure should reduce selectivity and increase byproduct formation and risk."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.39,
+              "lower80": 0.27,
+              "upper80": 0.54
+            },
+            "conversion": {
+              "estimate": 0.995,
+              "lower80": 0.97,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.34,
+              "lower80": 0.18,
+              "upper80": 0.65
+            },
+            "score": {
+              "estimate": 0.14,
+              "lower80": 0.04,
+              "upper80": 0.27
+            },
+            "selectivity": {
+              "estimate": 0.56,
+              "lower80": 0.39,
+              "upper80": 0.71
+            },
+            "yield": {
+              "estimate": 0.55,
+              "lower80": 0.37,
+              "upper80": 0.7
+            }
+          },
+          "query_id": "Q02",
+          "rationale": "Chemistry before quenching should resemble Q01. I predict that quenching rapidly lowers the terminal thermal hazard and slightly limits additional degradation, but the wide risk interval reflects uncertainty about whether the reported safety metric emphasizes terminal state or the preceding peak exposure."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.27,
+              "lower80": 0.18,
+              "upper80": 0.39
+            },
+            "conversion": {
+              "estimate": 0.985,
+              "lower80": 0.93,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.43,
+              "lower80": 0.3,
+              "upper80": 0.59
+            },
+            "score": {
+              "estimate": 0.27,
+              "lower80": 0.14,
+              "upper80": 0.38
+            },
+            "selectivity": {
+              "estimate": 0.7,
+              "lower80": 0.57,
+              "upper80": 0.81
+            },
+            "yield": {
+              "estimate": 0.69,
+              "lower80": 0.55,
+              "upper80": 0.8
+            }
+          },
+          "query_id": "Q03",
+          "rationale": "A 390 K target lies near the studied score optimum, but 3300 s is much longer than the 1800 s experiments. Conversion should approach completion, while the longer residence time should produce more degradation and lower selectivity than batches 9 and 12."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.6,
+              "lower80": 0.42,
+              "upper80": 0.78
+            },
+            "conversion": {
+              "estimate": 1.0,
+              "lower80": 0.99,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.98,
+              "lower80": 0.85,
+              "upper80": 1.0
+            },
+            "score": {
+              "estimate": 0.04,
+              "lower80": 0.0,
+              "upper80": 0.13
+            },
+            "selectivity": {
+              "estimate": 0.34,
+              "lower80": 0.16,
+              "upper80": 0.55
+            },
+            "yield": {
+              "estimate": 0.33,
+              "lower80": 0.14,
+              "upper80": 0.54
+            }
+          },
+          "query_id": "Q04",
+          "rationale": "This is a strong extrapolation beyond the highest studied target. Batch 11 already violated the safety limit at 420 K for 1800 s; 450 K for 3300 s should saturate conversion but strongly favor degradation and byproduct pathways, producing very high risk and a low score."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.28,
+              "lower80": 0.2,
+              "upper80": 0.39
+            },
+            "conversion": {
+              "estimate": 0.985,
+              "lower80": 0.94,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.42,
+              "lower80": 0.31,
+              "upper80": 0.57
+            },
+            "score": {
+              "estimate": 0.27,
+              "lower80": 0.16,
+              "upper80": 0.37
+            },
+            "selectivity": {
+              "estimate": 0.73,
+              "lower80": 0.62,
+              "upper80": 0.82
+            },
+            "yield": {
+              "estimate": 0.72,
+              "lower80": 0.6,
+              "upper80": 0.82
+            }
+          },
+          "query_id": "Q05",
+          "rationale": "The exposure is shorter than batch 11, partly offsetting the higher catalyst concentration. Conversion should still be very high, with better selectivity and less degradation than a 3300 s run, although the predicted risk remains near or above the declared limit."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.61,
+              "lower80": 0.43,
+              "upper80": 0.79
+            },
+            "conversion": {
+              "estimate": 1.0,
+              "lower80": 0.995,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.99,
+              "lower80": 0.87,
+              "upper80": 1.0
+            },
+            "score": {
+              "estimate": 0.03,
+              "lower80": 0.0,
+              "upper80": 0.12
+            },
+            "selectivity": {
+              "estimate": 0.35,
+              "lower80": 0.18,
+              "upper80": 0.55
+            },
+            "yield": {
+              "estimate": 0.34,
+              "lower80": 0.16,
+              "upper80": 0.54
+            }
+          },
+          "query_id": "Q06",
+          "rationale": "At 420 K for 5100 s, reactant conversion should saturate early, leaving a long period in which secondary degradation can dominate. The estimate therefore has poor selectivity, high byproduct signal, and near-saturated safety risk."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.51,
+              "lower80": 0.35,
+              "upper80": 0.69
+            },
+            "conversion": {
+              "estimate": 1.0,
+              "lower80": 0.99,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.96,
+              "lower80": 0.8,
+              "upper80": 1.0
+            },
+            "score": {
+              "estimate": 0.07,
+              "lower80": 0.0,
+              "upper80": 0.19
+            },
+            "selectivity": {
+              "estimate": 0.45,
+              "lower80": 0.27,
+              "upper80": 0.62
+            },
+            "yield": {
+              "estimate": 0.44,
+              "lower80": 0.25,
+              "upper80": 0.61
+            }
+          },
+          "query_id": "Q07",
+          "rationale": "The initial 390 K stage should form product with better branching selectivity than an immediate high-temperature stage, but the following 450 K exposure should substantially degrade that material. Conversion is predicted to be complete, while safety and byproduct penalties dominate the score."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.57,
+              "lower80": 0.39,
+              "upper80": 0.75
+            },
+            "conversion": {
+              "estimate": 1.0,
+              "lower80": 0.99,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.96,
+              "lower80": 0.8,
+              "upper80": 1.0
+            },
+            "score": {
+              "estimate": 0.05,
+              "lower80": 0.0,
+              "upper80": 0.16
+            },
+            "selectivity": {
+              "estimate": 0.39,
+              "lower80": 0.21,
+              "upper80": 0.58
+            },
+            "yield": {
+              "estimate": 0.38,
+              "lower80": 0.19,
+              "upper80": 0.57
+            }
+          },
+          "query_id": "Q08",
+          "rationale": "Starting at 450 K should cause most conversion under the less selective condition and expose newly formed product to prolonged high-temperature degradation. The subsequent 390 K stage cannot reverse those losses, so this ordering is predicted to be worse than Q07 despite similar integrated heating."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.36,
+              "lower80": 0.25,
+              "upper80": 0.5
+            },
+            "conversion": {
+              "estimate": 0.997,
+              "lower80": 0.97,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.64,
+              "lower80": 0.46,
+              "upper80": 0.82
+            },
+            "score": {
+              "estimate": 0.19,
+              "lower80": 0.08,
+              "upper80": 0.31
+            },
+            "selectivity": {
+              "estimate": 0.64,
+              "lower80": 0.5,
+              "upper80": 0.76
+            },
+            "yield": {
+              "estimate": 0.63,
+              "lower80": 0.48,
+              "upper80": 0.75
+            }
+          },
+          "query_id": "Q09",
+          "rationale": "Although the duration is shorter than the campaign experiments, 440 K is beyond the observed unsafe 420 K setting and the catalyst concentration is higher. Conversion should be nearly complete, but elevated byproduct formation and safety risk should suppress the score."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.35,
+              "lower80": 0.24,
+              "upper80": 0.49
+            },
+            "conversion": {
+              "estimate": 0.997,
+              "lower80": 0.97,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.31,
+              "lower80": 0.16,
+              "upper80": 0.58
+            },
+            "score": {
+              "estimate": 0.2,
+              "lower80": 0.08,
+              "upper80": 0.32
+            },
+            "selectivity": {
+              "estimate": 0.65,
+              "lower80": 0.51,
+              "upper80": 0.77
+            },
+            "yield": {
+              "estimate": 0.64,
+              "lower80": 0.49,
+              "upper80": 0.76
+            }
+          },
+          "query_id": "Q10",
+          "rationale": "The reaction composition should be close to Q09, with a small benefit from promptly quenching the hot mixture. The terminal safety estimate is markedly lower, but its interval is wide because the campaign did not determine whether final reported risk retains the full pre-quench peak."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.25,
+              "lower80": 0.16,
+              "upper80": 0.38
+            },
+            "conversion": {
+              "estimate": 0.99,
+              "lower80": 0.94,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 0.44,
+              "lower80": 0.3,
+              "upper80": 0.61
+            },
+            "score": {
+              "estimate": 0.29,
+              "lower80": 0.16,
+              "upper80": 0.4
+            },
+            "selectivity": {
+              "estimate": 0.72,
+              "lower80": 0.58,
+              "upper80": 0.83
+            },
+            "yield": {
+              "estimate": 0.71,
+              "lower80": 0.56,
+              "upper80": 0.82
+            }
+          },
+          "query_id": "Q11",
+          "rationale": "The lower 370 K target should preserve selectivity better than the hotter conditions, while 5700 s and the elevated catalyst concentration should still drive conversion close to completion. Long residence time adds degradation and accumulated risk, so this is not assumed to reproduce the favorable 1800 s optimum."
+        },
+        {
+          "metrics": {
+            "byproduct_signal": {
+              "estimate": 0.82,
+              "lower80": 0.62,
+              "upper80": 0.95
+            },
+            "conversion": {
+              "estimate": 1.0,
+              "lower80": 0.995,
+              "upper80": 1.0
+            },
+            "safety_risk": {
+              "estimate": 1.0,
+              "lower80": 0.95,
+              "upper80": 1.0
+            },
+            "score": {
+              "estimate": 0.005,
+              "lower80": 0.0,
+              "upper80": 0.05
+            },
+            "selectivity": {
+              "estimate": 0.08,
+              "lower80": 0.01,
+              "upper80": 0.25
+            },
+            "yield": {
+              "estimate": 0.07,
+              "lower80": 0.0,
+              "upper80": 0.24
+            }
+          },
+          "query_id": "Q12",
+          "rationale": "This extreme 460 K, 6300 s condition is far outside the studied safe region. Conversion should be complete very early, followed by extensive secondary degradation. I therefore predict near-saturated risk, dominant byproduct signal, and almost no remaining selective-product score."
+        }
+      ],
+      "rationale": "Predictions were extrapolated from the Catalyst B/acetonitrile series in batches 2, 8, 9, 10, 11, and 12. I modeled conversion as a saturating effective first-order process whose rate rises approximately exponentially with temperature and increases with catalyst concentration. Selectivity and yield were then reduced with increasing temperature and post-conversion residence time, reflecting the observed rise in byproduct and degradation signals above the 380 K region. Safety risk was treated as a convex function of thermal severity rather than a function of conversion alone. The new batches use a higher catalyst concentration and slightly higher reagent concentration than the research batches, so most predicted conversions are near unity. Intervals include assay uncertainty and, more importantly, structural uncertainty from extrapolating in time, concentration, staged temperature order, temperatures above 420 K, and the unmeasured effect of quenching. Quench-pair risk intervals are deliberately broad because the campaign did not establish whether the final safety channel principally reports terminal hazard or retains peak thermal hazard."
+    },
+    "K2": {
+      "report": "1. Assessment of the initial information and early claims\n\nThe initial public material information contained almost no substantive, task-specific mechanistic claim to test. It explicitly said that no nominal property dossier was supplied and that experimental evidence was authoritative. Catalyst A–D were described only as anonymous formulations with latent categorical activity profiles. Solvent identities were public, but the packet warned that their reaction effects were categorical benchmark effects rather than predictions from real solvent properties. Consequently, claims about polarity, boiling point, catalyst identity, or named chemistry could not legitimately be derived from the initial packet.\n\nThe broad claim that catalyst and solvent categories matter was supported empirically: batches 1–4 showed large catalyst-dependent differences, and batches 2 and 5–7 showed large solvent-dependent differences. This is still not an independently discovered molecular mechanism; it is consistent with the declared categorical coupling.\n\nMy own pre-experiment claims were more substantive than the supplied material information. Before batch 1, I proposed that catalyst and solvent identity would strongly affect conversion and selectivity and that increasing thermal severity would initially improve progress but eventually increase degradation and risk. The categorical-effect claim was supported by the screens. The thermal claim was also supported over the sampled range: score rose from batch 2 at a 340 K target to batch 9 at 380 K, then fell in batches 10 and 11 at 400 and 420 K while byproduct, degradation, and risk rose.\n\nThe early expectation that a 420 K target might remain below the 0.35 safety limit was directly refuted. Batch 11 produced risk 0.4268. I did revise the interpretation immediately afterward, excluded that condition, and used batch 12 to replicate 380 K. Thus, this was not contrary evidence that remained uncorrected, but it was a consequential failed extrapolation and an avoidable safety-design error.\n\nSeveral statements in K1 remain untested rather than supported. The proposed network R -> P, R -> B, and P or intermediates -> D was explicitly presented as a useful minimal interpretation, not an identified law. The experiments did not determine whether degradation consumes product, an intermediate, reactant, or byproduct. Arrhenius-like rate dependence, catalyst deactivation, reaction order, equilibrium behavior, and transport effects were not directly tested. Likewise, no evidence established that safety risk is literally the sum of a formulation term and an integrated thermal-hazard term; that was a qualitative representation consistent with the observations.\n\nThere was no clear case in which I observed strong contradictory evidence and silently retained the contradicted claim. A subtler issue is that K1 said the two 380 K batches supported repeatability “at the resolution available.” That wording was qualified, but it may still sound stronger than two replicates justify. The degradation warnings differed by 0.0149, about 1.3 times their combined nominal standard uncertainty. This did not refute overall reproducibility, but it was a warning that process variability was not fully characterized.\n\n2. Experiments that formed or changed the interpretation\n\nThe most influential experiments were:\n\n- Batch 2 versus batches 1, 3, and 4: Catalyst B produced the highest matched-condition score, conversion, and yield. This changed Catalyst B from one arbitrary screen member into the working catalyst for refinement. Batch 1 alone was only a baseline; the ranking required all four catalyst runs.\n- Batch 5 versus batches 2, 6, and 7: water showed low risk and degradation but limited conversion; acetonitrile gave the best score; toluene produced much more byproduct and poorer selectivity. These results changed the model from a possible common solvent rate multiplier to a solvent-dependent change in both overall rate and pathway partitioning.\n- Batches 8 and 9: increasing the target from 340 to 360 and 380 K improved score, initially supporting greater thermal severity.\n- Batch 10: conversion and yield increased further at 400 K, but score fell. This was the first direct evidence that maximum conversion or yield was not the same as maximum safe score.\n- Batch 11: the 420 K run both reduced score and violated the safety limit. It decisively refuted continued monotonic benefit and demonstrated strong curvature in risk.\n- Batch 12: the repeated 380 K condition closely reproduced batch 9 in score, risk, yield, conversion, and byproduct signal. It strengthened the operational recommendation, although it did not establish broad process capability.\n\nImportant experimental choices that relied on unverified guesses included the initial selection of acetonitrile, 340 K, 1800 s, maximum permitted reagent/catalyst/solvent additions, and 500 rpm. The material packet did not identify those as nominal conditions. They were pragmatic starting points chosen to obtain measurable conversion while remaining apparently moderate.\n\nThe one-factor-at-a-time sequence was driven by accumulated data: first catalyst at fixed solvent and temperature, then solvent using the best catalyst, then temperature using the best catalyst/solvent combination. That strategy was efficient for hill-climbing but assumed weak catalyst-solvent and catalyst-temperature interactions. This assumption was never tested.\n\nThe move from 380 to 400 K was a reasonable local refinement based on the rising score. The further move to 420 K depended on an unjustified extrapolation of observed risk increments. I predicted it would probably remain under 0.35; the experiment disproved that. In retrospect, an intermediate target near 390 or 405 K, or a deliberately conservative stopping rule based on the accelerating risk increments, would have better respected the primary safety objective.\n\n3. Principal competing mechanisms and what the data distinguish\n\nThe main mechanistic competition is between a parallel-pathway explanation and a consecutive-degradation explanation.\n\nParallel model:\n  R -> P and R -> B, with temperature changing the branching ratio.\n\nConsecutive model:\n  R -> P, followed by P -> D, possibly alongside R -> B.\n\nThe endpoint temperature series establishes that unwanted signals become more important at high thermal severity. It does not establish whether that happens because initial branching shifts toward B, because P subsequently degrades, or both. A product-degradation explanation is attractive because yield nearly plateaued from batches 10 to 11 while conversion continued toward unity and degradation increased, but endpoint data alone do not prove it.\n\nOther important competing explanations are:\n\n- Catalyst deactivation versus reactant depletion: the yield plateau may arise because reactant is exhausted, Catalyst B deactivates, or the system approaches an equilibrium or composition ceiling.\n- Intrinsic kinetics versus transport or phase behavior: solvent effects could reflect pathway-specific rate constants, but could also arise from mixing, phase partitioning, heat transfer, or concentration differences represented by the benchmark.\n- Arrhenius acceleration versus control-system exposure: requested target temperature may correlate with rate, but only endpoint temperature changes were observed. Different ramp histories or overshoot could produce the apparent curvature.\n- Direct thermal risk versus composition-mediated risk: risk may depend primarily on temperature and duration, on the buildup of hazardous intermediates or degradation products, or on both. The present runs cannot separate these contributions.\n- Catalyst-specific productive acceleration versus catalyst-specific suppression of side reactions: the catalyst screen shows different outcomes but cannot uniquely assign which elementary rate constant changed.\n- True local optimum versus noisy finite sampling: batches 9 and 12 support a high-score region near a 380 K target, while batch 10 is lower. However, the exact optimum could lie anywhere in a neighboring interval, and the descriptive 381 K quadratic in K1 was not a validated response model.\n\nThe experiments can distinguish gross categorical rankings at the tested condition and demonstrate a nonmonotonic score response over 340–420 K. They cannot identify elementary reaction orders, activation energies, causal degradation pathways, or interactions outside the tested slice.\n\n4. One additional complete experiment I would choose\n\nI would run the same formulation as batches 9 and 12—0.040 mol reagent, 0.080 L acetonitrile, and 0.005 mol Catalyst B at 500 rpm—but use a two-part 380 K-target exposure. I would heat for 1800 s, take an HPLC measurement, then continue heating at the same target for another 1800 s, terminate, and perform the required final assay.\n\nThe intermediate HPLC would measure conversion, yield, selectivity, and byproduct signal at the already replicated 1800 s point. The final assay at 3600 s would additionally measure degradation warning and terminal risk. This remains one complete experiment and would use a legal nonfinal measurement that the original campaign left unused.\n\nPossible outcomes and their implications would be:\n\n- If conversion increases materially from 1800 to 3600 s and yield also increases with only a small selectivity loss, the 1800 s process is kinetically incomplete. The recommendation may be conservative, and the score optimum might be improved through duration rather than temperature.\n- If conversion changes little but yield falls while byproduct and degradation rise, the consecutive P -> D interpretation would gain strong support. The 1800 s stopping time would then be mechanistically important rather than arbitrary.\n- If conversion, yield, selectivity, and degradation remain nearly unchanged, the system likely reaches a stable plateau by 1800 s. This would improve confidence in duration robustness and favor equilibrium, depletion, or deactivation explanations over continuing degradation.\n- If conversion or yield unexpectedly falls between measurements without corresponding degradation evidence, sampling, phase behavior, calibration, or unmodeled process variability would become more plausible.\n- If safety risk rises sharply during the second interval even when composition changes little, that would favor a direct cumulative thermal-hazard model. If risk tracks degradation instead, a composition-mediated hazard would become more plausible.\n\nThis experiment would not by itself identify a complete kinetic model, but it would address the largest evidential gap: the absence of time-resolved information.\n\n5. Tradeoff between mechanistic identifiability and operational score\n\nThe campaign strongly favored operational optimization. The sequential design spent four batches on a catalyst screen, four total solvent conditions, five temperature settings including a replicate, and then selected the highest safe observed score. This was sensible for the stated goal of finding a strong safe operating procedure within 12 batches.\n\nMechanistic identifiability was sacrificed in several ways:\n\n- Only one duration, catalyst loading, reagent amount, solvent volume, and stirring speed was used.\n- Catalyst-solvent and catalyst-temperature interactions were not tested.\n- No intermediate instrument use was consumed despite an allowance of 12 nonfinal measurements.\n- Temperature was varied only after fixing catalyst and solvent, so the response surface was reduced to a single slice.\n- Endpoint assays cannot separate parallel formation from consecutive degradation.\n\nThere were also experiments that sacrificed immediate score for information. Batches 1, 3, and 4 were necessary to compare catalysts even though they scored worse than batch 2. Batches 5–7 compared solvents and likewise included inferior conditions. Batches 10 and 11 mapped the upper-temperature decline; batch 11 was especially informative mechanistically, although it was a poor and unsafe operating result. Thus, not every run was simple exploitation.\n\nNevertheless, the balance tilted too far toward one-factor hill-climbing. A factorial subset—such as testing two catalysts in two solvents at two temperatures—would have improved interaction identifiability, but probably at the cost of fewer points near the best operating region and perhaps no replicate of the final condition. The research goal influenced the choice to retain batch 12 for replication rather than test duration or catalyst-solvent interaction. That improved confidence in the recommendation but left the mechanism underdetermined.\n\nThe 420 K run represents a poor tradeoff: it was intended to delimit the optimum and safety boundary, but the accelerating risk evidence already suggested caution. A less aggressive intermediate target could have provided nearly the same optimization information with lower violation risk.\n\n6. Underused evidence and weaknesses in the blind predictions\n\nSeveral available evidence sources were underused:\n\n- The campaign allowed nonfinal measurements, but none were taken. Time-resolved HPLC or GC evidence would have been more informative than relying entirely on endpoint assays.\n- The final-assay artifacts contained raw peaks and multichannel synthetic spectra. I used processed estimates and only a small amount of peak information; I did not inspect or model the full artifacts.\n- Operation history contained risk increments associated with individual additions and heating steps. I noted these qualitatively but did not build a careful formulation-versus-thermal risk model.\n- Heat telemetry gave endpoint temperature changes, but not trajectories. I used the changes late in the analysis and could not estimate ramp exposure or overshoot.\n- The visible cost was saturated at 1 and high-cost flags appeared, but cost structure was not analyzed because the objective emphasized safe score. This may have hidden differences relevant to broader process selection.\n- The two 380 K degradation measurements differed more than most other replicated channels. That channel deserved greater weight when defining predictive uncertainty.\n\nThe least reliable blind predictions are Q04, Q06, Q07, Q08, and Q12. They extrapolate to temperatures, durations, or staged histories well outside the research domain. Q12 at 460 K for 6300 s is the most extreme; its narrow predictions of score near zero and risk near one rely heavily on assumed saturation behavior that was never observed.\n\nQ07 and Q08 are especially uncertain because I predicted an ordering effect for 390 K then 450 K versus the reverse sequence. K1 explicitly stated that full temperature trajectories and consecutive pathways were unidentified. The directional claim that hot-first would be worse was plausible but not established by any campaign experiment.\n\nQ02 and Q10 are also weak because no quench was used during research. I predicted that quenching would substantially reduce terminal safety risk while leaving chemistry nearly unchanged, but K1 had already acknowledged that the exact safety-risk function was unknown. A peak-risk metric might not decrease after quenching at all. Although I gave broad intervals, their lower and upper limits may still fail to encompass both fundamentally different semantics adequately.\n\nConversion intervals for many predictions were probably too narrow. I extrapolated an effective first-order temperature trend and scaled rate using the higher catalyst concentration, leading to near-unity conversion estimates. K1 explicitly stated that catalyst-loading dependence, reaction order, concentration effects, and time dependence were unidentified. The lower bounds for Q01, Q03, Q05, Q09, and Q11 therefore conveyed more confidence than the evidence warranted.\n\nScore intervals may also be too narrow because the exact score equation was not public. At extreme degradation and risk, I assumed monotonic score collapse, but the quantitative mapping was inferred only from a small endpoint series.\n\nThese weaknesses are not contradictions of K1’s stated scope; K1 clearly limited the interpretation to fixed quantities and a 1800 s protocol. However, the blind predictions moved far outside that scope. Their rationale acknowledged structural uncertainty, but several numerical intervals did not fully reflect the magnitude of that extrapolation. In particular, the quench, staged-order, and concentration-scaling uncertainties should have produced wider intervals.\n\n7. Limitations of the sealed recommendation\n\nBatch 12 was the highest observed public score, not a proven global optimum. It was also one of two closely agreeing runs at the same nominal condition, which supports local repeatability only at a very preliminary level.\n\nThe recommendation is limited by:\n\n- Only two replicates at the selected setting.\n- No replication across days, control trajectories, vessels, or broader process variation.\n- No local temperature bracketing between 360, 380, and 400 K.\n- No duration study, so 1800 s may not be optimal or robust.\n- Fixed catalyst loading, concentration, volume, and stirring speed.\n- Unknown catalyst-solvent and catalyst-temperature interactions.\n- A target temperature rather than a fully characterized actual temperature trajectory.\n- A safety margin assessed under one scale and formulation sequence.\n\nTo test repeatability, I would run multiple independent batches at the sealed condition and estimate variation in score, risk, yield, and especially degradation warning. A useful acceptance criterion should be declared before observing those repeats and should include the probability of remaining below risk 0.35, not merely the mean risk.\n\nTo test local robustness, I would bracket temperature, duration, and mixing around the recommendation—for example, nearby targets on both sides of 380 K and modestly shorter and longer residence times. A robust operating window would require both high score and a safety margin across these perturbations. The current data show that 400 K is already substantially closer to the limit, so local asymmetry on the hot side is likely.\n\nTo test scale and formulation robustness, reagent concentration, catalyst loading, solvent volume, addition order, and vessel/headspace would need deliberate variation. The blind-prediction recipes demonstrate why this matters: they changed concentration and catalyst ratio enough that the campaign model could not confidently extrapolate.\n\nCross-material generalization would require repeating a structured subset with other catalyst and solvent categories. The current recommendation cannot be transferred to Catalyst A, C, or D, or to water, ethanol, or toluene, merely by changing labels. Cross-world generalization is even weaker because catalysts are anonymous benchmark formulations and solvent effects are explicitly world-specific categorical couplings. A new world would require recalibration rather than assuming the same ranking.\n\nAccordingly, the strongest defensible statement is: batch 12 was the sample-highest, replicated safe operating condition among the 12 tested batches. It was not proven globally optimal, was not proven optimal even within the continuous neighborhood around 380 K and 1800 s, and was not validated beyond this benchmark world and fixed recipe."
+    }
+  },
+  "posttest_validation": {
+    "K1": {
+      "valid": true,
+      "failure": null
+    },
+    "Q": {
+      "valid": true,
+      "failure": null
+    },
+    "K2": {
+      "valid": true,
+      "failure": null
+    }
+  },
+  "prediction_evaluation": {
+    "valid": true,
+    "metrics": {
+      "yield": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.07573677991827328,
+        "empirical_coverage80": 0.9166666666666666,
+        "mean_width80": 0.3075,
+        "mean_interval_score_alpha_0_2": 0.3668634277582169
+      },
+      "conversion": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.004173586487770081,
+        "empirical_coverage80": 0.9166666666666666,
+        "mean_width80": 0.02916666666666668,
+        "mean_interval_score_alpha_0_2": 0.03026080369949342
+      },
+      "selectivity": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.07217631166179973,
+        "empirical_coverage80": 0.9166666666666666,
+        "mean_width80": 0.29750000000000004,
+        "mean_interval_score_alpha_0_2": 0.37387801667054493
+      },
+      "byproduct_signal": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.07434581647316614,
+        "empirical_coverage80": 0.85,
+        "mean_width80": 0.2841666666666667,
+        "mean_interval_score_alpha_0_2": 0.41075601100921627
+      },
+      "safety_risk": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.3726326785981655,
+        "empirical_coverage80": 0.16666666666666666,
+        "mean_width80": 0.2675,
+        "mean_interval_score_alpha_0_2": 2.6805327845613163
+      },
+      "score": {
+        "query_count": 12,
+        "reference_observation_count": 60,
+        "mae_to_five_repeat_mean": 0.10101668539146581,
+        "empirical_coverage80": 0.6666666666666666,
+        "mean_width80": 0.18833333333333335,
+        "mean_interval_score_alpha_0_2": 0.3680778074264526
+      }
+    }
+  },
+  "recommendation": {
+    "selected_experiment_index": 12,
+    "selection_rationale": "Batch 12 is the confirmatory replicate of the best safe condition: Catalyst B in acetonitrile, 380 K target for 1800 s. It achieved the highest public score (0.3441) with safety risk 0.2316, well below the 0.35 limit, and closely reproduced batch 9."
+  },
+  "recommendation_retest": {
+    "batches": [
+      {
+        "ordinal": 1,
+        "lifecycle_index": 1,
+        "end_step": 6,
+        "actions": [
+          {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.08
+          },
+          {
+            "catalyst": 1,
+            "catalyst_amount_mol": 0.005,
+            "operation": "add_catalyst"
+          },
+          {
+            "duration_s": 1800,
+            "operation": "heat",
+            "stirring_speed_rpm": 500,
+            "target_temperature_K": 380
+          },
+          {
+            "operation": "terminate"
+          },
+          {
+            "instrument": "final_assay",
+            "operation": "measure"
+          }
+        ],
+        "metrics": {
+          "byproduct_signal": 0.1828959882259369,
+          "conversion": 0.8395184278488159,
+          "cost": 1.0,
+          "degradation_warning": 0.1324792355298996,
+          "safety_risk": 0.23161722719669342,
+          "score": 0.3458198010921478,
+          "selectivity": 0.7892415523529053,
+          "virtual_spectrum_summary": 0.16020844876766205,
+          "yield": 0.6719633340835571
+        }
+      }
+    ]
+  }
+}

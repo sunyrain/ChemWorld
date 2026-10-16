@@ -1,0 +1,6184 @@
+{
+  "key": "repeat-01/PA-W01-B12-discovery-E-Opaque",
+  "unit": {
+    "id": "PA-W01-B12-discovery-E-Opaque",
+    "cell": "PA-W01-B12-discovery-E-Opaque",
+    "system": "PA",
+    "world": "PA-W01",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "E",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "B",
+    "repeat": "repeat-01"
+  },
+  "status": "completed",
+  "source_path": "D:\\Projects\\ChemWorld-local-research\\20261016-unified-matrices\\attempt-01\\repeat-01\\PA-W01-B12-discovery-E-Opaque\\participant\\source",
+  "result_path": "D:\\Projects\\ChemWorld-local-research\\20261016-unified-matrices\\attempt-01\\repeat-01\\PA-W01-B12-discovery-E-Opaque\\result.json",
+  "material_information": {
+    "material_catalog": {
+      "catalog_version": "chemworld-public-partition-materials-1.0",
+      "extractants": [
+        {
+          "anonymous_material_id": "extractant-X0",
+          "display_name": "extractant-X0",
+          "identity_kind": "anonymous_benchmark_extractant",
+          "index": 0,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "extractant-X1",
+          "display_name": "extractant-X1",
+          "identity_kind": "anonymous_benchmark_extractant",
+          "index": 1,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "extractant-X2",
+          "display_name": "extractant-X2",
+          "identity_kind": "anonymous_benchmark_extractant",
+          "index": 2,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "extractant-X3",
+          "display_name": "extractant-X3",
+          "identity_kind": "anonymous_benchmark_extractant",
+          "index": 3,
+          "reference_status": "no_real_material_identity_claimed"
+        }
+      ],
+      "interpretation_policy": "Solvent S and extractant X are independent benchmark labels, not real substance identities. Equal indices across the two fields imply no shared identity or property. The catalog provides no material-property estimates.",
+      "presentation": "anonymous_material_ids",
+      "reagent": {
+        "canonical_id": "limiting_reagent",
+        "display_name": "Anonymous limiting reagent",
+        "identity_kind": "mechanism_role",
+        "reference_status": "mechanism_specific_not_a_real_identity"
+      },
+      "solvents": [
+        {
+          "anonymous_material_id": "solvent-S0",
+          "display_name": "solvent-S0",
+          "identity_kind": "anonymous_benchmark_solvent",
+          "index": 0,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "solvent-S1",
+          "display_name": "solvent-S1",
+          "identity_kind": "anonymous_benchmark_solvent",
+          "index": 1,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "solvent-S2",
+          "display_name": "solvent-S2",
+          "identity_kind": "anonymous_benchmark_solvent",
+          "index": 2,
+          "reference_status": "no_real_material_identity_claimed"
+        },
+        {
+          "anonymous_material_id": "solvent-S3",
+          "display_name": "solvent-S3",
+          "identity_kind": "anonymous_benchmark_solvent",
+          "index": 3,
+          "reference_status": "no_real_material_identity_claimed"
+        }
+      ]
+    },
+    "material_information": {
+      "availability": "opaque_identifiers_only",
+      "dossier": null,
+      "interpretation": "No task-specific nominal property dossier is supplied. Experimental evidence is authoritative."
+    },
+    "schema_version": "chemworld-env-owned-material-information-reference-0.1"
+  },
+  "initial_resources": {
+    "campaign_terminal": false,
+    "current_experiment": {
+      "experiment_index": 1,
+      "experiment_index_base": 1,
+      "vessel_started": false
+    },
+    "ledger_sha256": "51b80f1c021bf4aa228040cf0e7201820b447f12f4318afe44ab75a3d5615509",
+    "schema_version": "chemworld-public-campaign-resource-state-0.1",
+    "state": {
+      "closed_batches": 0,
+      "discarded_batches": 0,
+      "final_assays": 0,
+      "instrument_uses": {},
+      "nonfinal_instrument_uses": 0,
+      "operation_attempts": 0,
+      "operation_committed_counts": {},
+      "remaining": {
+        "final_assays": 12,
+        "nonfinal_instrument_uses": 12,
+        "operation_attempts": 360,
+        "operation_repeats": {},
+        "per_instrument": {},
+        "stocks": {
+          "extractant_L": 21.599999999999998,
+          "phase_liquid_L": 21.599999999999998,
+          "reagent_mol": 14.4,
+          "solvent_L": 28.8
+        },
+        "vessel_starts": 12
+      },
+      "report_only": {
+        "accumulated_risk": 0.0,
+        "peak_risk": 0.0,
+        "physical_cost": 0.0,
+        "process_time_s": 0.0,
+        "sample_consumed_L": 0.0
+      },
+      "stocks_used": {},
+      "vessel_starts": 0
+    }
+  },
+  "public_task": {
+    "description": "Discover and test a predictive explanation of target partition between the two phases, including material pairing, phase amounts and mixing. Choose twelve experiments freely. Explain evidence, alternatives and limits. Predict new conditions and phase-retention decisions after the campaign. Native score is not this task's objective. No best recipe, prescribed law, or belief checkpoints are required.",
+    "research_goal": "Discover and test a predictive explanation of target partition between the two phases, including material pairing, phase amounts and mixing. Choose twelve experiments freely. Explain evidence, alternatives and limits. Predict new conditions and phase-retention decisions after the campaign. Native score is not this task's objective. No best recipe, prescribed law, or belief checkpoints are required.",
+    "prediction_metrics": null,
+    "constraints": null
+  },
+  "notes": [
+    {
+      "revision": 1,
+      "text": "# Partition study notebook\n\n## Pre-experiment commitments\n\n**H1 [tentative].** Anonymous solvent and extractant categories may interact; equal numeric suffixes carry no expected advantage. Under fixed phase amounts and mixing, changing either category may change the organic/aqueous inventory fractions. A material effect will be treated as unresolved unless contrasts exceed stated measurement noise and/or recur in independent pairings.\n\n**H2 [tentative].** At a fixed material pair and sufficiently mixed/settled state, increasing the organic share should increase the fraction of the fixed initial target inventory observed in the organic phase, while possibly leaving an underlying concentration partition preference approximately stable. This is a prediction, not an assumption that an aqueous addition equals total aqueous volume.\n\n**H3 [tentative].** Mixing has a kinetic threshold: weak/short mixing may yield incomplete transfer, while beyond adequate contact additional mixing should have little effect. I will distinguish mixing speed/duration effects from phase-volume and material-pair effects.\n\n**Design decision.** Use HPLC before any phase removal in every batch so both phase inventory fractions are observed, then test a declared retention decision by separating a phase before termination/final assay. Spend all 12 HPLC uses and all 12 final assays. Include deliberate material-pair contrasts, phase-amount contrasts, mixing contrasts, and at least one repeat. Revisions will cite public history event IDs.",
+      "recorded_at": "2026-10-16T13:13:27.208840+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      },
+      "reviewed_through": null,
+      "message": "Pre-experiment hypotheses and design commitment",
+      "restored_from": null
+    },
+    {
+      "revision": 2,
+      "text": "# Partition study notebook\n\n## Pre-experiment commitments\n**H1 [tentative].** Anonymous solvent and extractant categories may interact; equal numeric suffixes carry no expected advantage.\n**H2 [tentative].** At fixed pairing and adequate equilibration, increasing organic share should increase organic inventory fraction.\n**H3 [tentative].** Mixing has a kinetic threshold; sufficiently strong contact should plateau.\n\n## Evidence update after batches 1–7\n**H1 [supported for screened baseline, interaction unresolved].** With S0 and nominal 0.02 L extractant, changing X produced large shifts in pre-removal organic inventory: X0 0.217 (event runner-operation-0007), X1 0.404 (0017), X2 0.291 (0027), X3 0.467 (0037), versus HPLC channel SD 0.015. Thus X category matters under this baseline. With X0, changing S also shifted organic inventory: S0 0.217 (0007), S1 0.392 (0047), S2 0.310 (0057), S3 0.429 (0067). These numerical contrasts are larger than single-reading noise, but no repeats yet and pair interactions remain possible. Equal suffixes are not privileged by the catalog and data do not justify ordinal interpretation.\n\nThe two pre-removal inventory fractions show imperfect closure (sampling/noise are known contributors), so I will not normalize away discrepancies or infer absent material as zero. Final assays after aqueous retention show the organic channel near zero as expected after actual removal, while aqueous recovery varies; final readings are not interchangeable with pre-removal partition measurements.\n\n**Next prediction (written before batches 8–12).** S1/X3 at baseline should give relatively high organic inventory if the favorable S1 and X3 tendencies are at least partly additive; a repeat will test reproducibility. At that same pair, raising extractant/organic volume from 0.01 to 0.06 L while holding total charged liquid near 0.10 L should monotonically raise organic phase ratio and organic target inventory. Weak contact (30 s, 100 rpm) should reduce organic transfer versus 300 s, 600 rpm if kinetics are limiting; no difference would support rapid equilibration over this range.\n\n**Decision rule.** Retain whichever phase has the larger pre-removal HPLC target inventory for that batch; record that this decision follows a two-phase measurement and that the final assay is post-removal.",
+      "recorded_at": "2026-10-16T13:16:09.660482+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 70,
+        "last_event_id": "runner-operation-0070"
+      },
+      "reviewed_through": "runner-operation-0070",
+      "message": "Material-screen interpretation and confirmatory design",
+      "restored_from": null
+    },
+    {
+      "revision": 3,
+      "text": "# Partition study notebook\n\n## Final source-stage interpretation\n\n**H1 [supported in the screened conditions; interactions unresolved].** Material categories materially affect partition at the baseline phase recipe and 300 s/600 rpm mixing. With S0, changing X shifted pre-removal organic inventory from 0.217 (X0, runner-operation-0007) through 0.291 (X2, 0027) and 0.404 (X1, 0017) to 0.467 (X3, 0037); HPLC channel SD was 0.015. With X0, S0/S1/S2/S3 gave 0.217/0.392/0.310/0.429 (0007/0047/0057/0067). These are category effects, not evidence that anonymous IDs are ordered or chemically identified.\n\nA simple additive “favorable S plus favorable X” interpretation is not secure: S1/X3 baseline gave 0.394 and 0.425 in two adequate-mix runs (0077, 0117), below S0/X3's 0.467 (0037), despite S1 exceeding S0 with X0. This is evidence for pairing dependence or uncontrolled run variability; the design does not separate those alternatives because most cells lack repeats.\n\n**H2 [supported for S1/X3 over tested phase amounts].** Organic phase ratios of 0.109, about 0.18–0.20, and 0.594 corresponded to organic target inventories 0.258 (runner-operation-0097), 0.394 and 0.425 (0077, 0117), and 0.764 (0087). The direction is monotonic and far exceeds measurement SD. Using both measured inventory fractions and measured organic/total phase ratio, the apparent concentration partition factor\n`D ≈ (O/A)(1-r)/r`\nwas approximately 2.80, 3.12, 2.92, and 2.40 across these runs (public-numerics calculation). Thus a constant-D phase-allocation relation is a useful first approximation, but the spread is larger than can be assigned solely to a known error model here, and the high-organic run also had higher impurity signal and lower purity. Phase ratio uses actual two-phase volumes; aqueous charge alone was never treated as total aqueous volume.\n\n**H3 [tentatively supported, not resolved].** Weak contact (30 s, 100 rpm) at S1/X3 gave organic inventory 0.341 (runner-operation-0107), versus 0.394 and 0.425 for independent 300 s/600 rpm runs (0077, 0117). The weak-to-adequate difference is larger than a single HPLC SD, but only one weak run was performed and phase-ratio readings also differed. This supports incomplete transfer under weak contact but does not identify whether duration, speed, or an interaction caused it. More replicated factorial mixing tests would change the confidence.\n\n**Phase-retention consequence.** The pre-removal HPLC reading was used to choose the larger target-inventory phase. Batches 1–8 and 10–12 retained aqueous; the high-organic batch 9 retained organic (separation events 0008 through 0118 as applicable). Final assays were after physical removal and termination, so their near-zero removed-phase channels corroborate retention/removal but are not substitute equilibrium partition observations. No missing channel was interpreted as zero. Imperfect pre-removal closure is consistent with declared sampling/noise and was preserved rather than forced to unity.\n\n**Limits and testable predictions.** Conclusions apply only to the anonymous categories, phase-ratio range about 0.11–0.59, and tested mixing/settling settings. Reagent and total charged liquid were mostly fixed, so their effects are unavailable. A new S1/X3 condition at intermediate measured phase ratio should approximately follow `O/(O+A) ≈ Dr/(1-r+Dr)` with D near 2.8 as a rough center, but pairing-specific D and impurity/purity changes remain plausible. Independent repeats across the full S×X matrix and separate duration/speed sweeps are needed to resolve interactions and kinetics.",
+      "recorded_at": "2026-10-16T13:17:51.149843+00:00",
+      "kind": "write",
+      "public_cursor": {
+        "event_count": 120,
+        "last_event_id": "runner-operation-0120"
+      },
+      "reviewed_through": "runner-operation-0120",
+      "message": "Final source-stage interpretation after all 12 batches",
+      "restored_from": null
+    }
+  ],
+  "events": [
+    {
+      "event_id": "runner-operation-0001",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.009600000455975533,
+        "safety_risk": 0.04764295741915703,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0002",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.09960000216960907,
+        "safety_risk": 0.17746634781360626,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0003",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.12860000133514404,
+        "safety_risk": 0.07348442822694778,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0004",
+      "action": {
+        "extractant": 0,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.1695999950170517,
+        "safety_risk": 0.06010494381189346,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0005",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.18084999918937683,
+        "safety_risk": 0.06010494381189346,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0006",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.1813499927520752,
+        "safety_risk": 0.06010494381189346,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0007",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.26135000586509705,
+        "impurity_signal": 0.006213836371898651,
+        "phase_ratio": 0.16925883293151855,
+        "product_in_aqueous": 0.7342745661735535,
+        "product_in_organic": 0.21749478578567505,
+        "purity": 0.9652412533760071,
+        "recovery": 0.24478787183761597,
+        "safety_risk": 0.06017143651843071,
+        "score": 0.09451723098754883
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0008",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.006213836371898651,
+        "phase_ratio": 0.16925883293151855,
+        "product_in_aqueous": 0.7342745661735535,
+        "product_in_organic": 0.21749478578567505,
+        "purity": 0.9652412533760071,
+        "recovery": 0.24478787183761597,
+        "safety_risk": 0.06941421329975128,
+        "score": 0.09451723098754883
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0009",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.006213836371898651,
+        "phase_ratio": 0.16925883293151855,
+        "product_in_aqueous": 0.7342745661735535,
+        "product_in_organic": 0.21749478578567505,
+        "purity": 0.9652412533760071,
+        "recovery": 0.24478787183761597,
+        "safety_risk": 0.06941421329975128,
+        "score": 0.09451723098754883
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 0,
+      "closed_batch_count": 0,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0010",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.19273345172405243,
+        "phase_ratio": 0.009452268481254578,
+        "product_in_aqueous": 0.7852712869644165,
+        "product_in_organic": 0.0012433052761480212,
+        "purity": 0.7923587560653687,
+        "recovery": 0.781625509262085,
+        "safety_risk": 0.06941421329975128,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 1,
+      "batch_id": "batch-0001",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 1,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0011",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.009600000455975533,
+        "safety_risk": 0.04764295741915703,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0012",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.09960000216960907,
+        "safety_risk": 0.17746634781360626,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0013",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.12860000133514404,
+        "safety_risk": 0.07348442822694778,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0014",
+      "action": {
+        "extractant": 1,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.1695999950170517,
+        "safety_risk": 0.0647849440574646,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0015",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.18084999918937683,
+        "safety_risk": 0.0647849440574646,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0016",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.1813499927520752,
+        "safety_risk": 0.0647849440574646,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0017",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.26135000586509705,
+        "impurity_signal": 0.007822106592357159,
+        "phase_ratio": 0.219411700963974,
+        "product_in_aqueous": 0.6274670362472534,
+        "product_in_organic": 0.40397849678993225,
+        "purity": 0.9383599758148193,
+        "recovery": 0.3929536044597626,
+        "safety_risk": 0.06480813771486282,
+        "score": 0.2586938440799713
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0018",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.007822106592357159,
+        "phase_ratio": 0.219411700963974,
+        "product_in_aqueous": 0.6274670362472534,
+        "product_in_organic": 0.40397849678993225,
+        "purity": 0.9383599758148193,
+        "recovery": 0.3929536044597626,
+        "safety_risk": 0.06825536489486694,
+        "score": 0.2586938440799713
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0019",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.007822106592357159,
+        "phase_ratio": 0.219411700963974,
+        "product_in_aqueous": 0.6274670362472534,
+        "product_in_organic": 0.40397849678993225,
+        "purity": 0.9383599758148193,
+        "recovery": 0.3929536044597626,
+        "safety_risk": 0.06825536489486694,
+        "score": 0.2586938440799713
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 1,
+      "closed_batch_count": 1,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0020",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.1787288933992386,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6325566172599792,
+        "product_in_organic": 0.008452002890408039,
+        "purity": 0.7690587043762207,
+        "recovery": 0.6043150424957275,
+        "safety_risk": 0.06825536489486694,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 2,
+      "batch_id": "batch-0002",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 2,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0021",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.009600000455975533,
+        "safety_risk": 0.04764295741915703,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0022",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.09960000216960907,
+        "safety_risk": 0.17746634781360626,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0023",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.12860000133514404,
+        "safety_risk": 0.07348442822694778,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0024",
+      "action": {
+        "extractant": 2,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.1695999950170517,
+        "safety_risk": 0.06838494539260864,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0025",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.18084999918937683,
+        "safety_risk": 0.06838494539260864,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0026",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.1813499927520752,
+        "safety_risk": 0.06838494539260864,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0027",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.26135000586509705,
+        "impurity_signal": 0.017462698742747307,
+        "phase_ratio": 0.20424553751945496,
+        "product_in_aqueous": 0.7043741345405579,
+        "product_in_organic": 0.290622740983963,
+        "purity": 0.9506421685218811,
+        "recovery": 0.30451899766921997,
+        "safety_risk": 0.06839233636856079,
+        "score": 0.15616735816001892
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0028",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.017462698742747307,
+        "phase_ratio": 0.20424553751945496,
+        "product_in_aqueous": 0.7043741345405579,
+        "product_in_organic": 0.290622740983963,
+        "purity": 0.9506421685218811,
+        "recovery": 0.30451899766921997,
+        "safety_risk": 0.07008618116378784,
+        "score": 0.15616735816001892
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0029",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.017462698742747307,
+        "phase_ratio": 0.20424553751945496,
+        "product_in_aqueous": 0.7043741345405579,
+        "product_in_organic": 0.290622740983963,
+        "purity": 0.9506421685218811,
+        "recovery": 0.30451899766921997,
+        "safety_risk": 0.07008618116378784,
+        "score": 0.15616735816001892
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 2,
+      "closed_batch_count": 2,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0030",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.18459442257881165,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6832287907600403,
+        "product_in_organic": 0.005547169595956802,
+        "purity": 0.7758536338806152,
+        "recovery": 0.681242048740387,
+        "safety_risk": 0.07008618116378784,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 3,
+      "batch_id": "batch-0003",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 3,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0031",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 0,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.009600000455975533,
+        "safety_risk": 0.04764295741915703,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0032",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.09960000216960907,
+        "safety_risk": 0.17746634781360626,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0033",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.12860000133514404,
+        "safety_risk": 0.07348442822694778,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0034",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.1695999950170517,
+        "safety_risk": 0.070904940366745,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0035",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.18084999918937683,
+        "safety_risk": 0.070904940366745,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0036",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.1813499927520752,
+        "safety_risk": 0.070904940366745,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0037",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.26135000586509705,
+        "impurity_signal": 0.01830580271780491,
+        "phase_ratio": 0.19413024187088013,
+        "product_in_aqueous": 0.5232157707214355,
+        "product_in_organic": 0.4674736559391022,
+        "purity": 0.9514063596725464,
+        "recovery": 0.46673792600631714,
+        "safety_risk": 0.07086792588233948,
+        "score": 0.3256179988384247
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0038",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.01830580271780491,
+        "phase_ratio": 0.19413024187088013,
+        "product_in_aqueous": 0.5232157707214355,
+        "product_in_organic": 0.4674736559391022,
+        "purity": 0.9514063596725464,
+        "recovery": 0.46673792600631714,
+        "safety_risk": 0.0667174831032753,
+        "score": 0.3256179988384247
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0039",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.2863500118255615,
+        "impurity_signal": 0.01830580271780491,
+        "phase_ratio": 0.19413024187088013,
+        "product_in_aqueous": 0.5232157707214355,
+        "product_in_organic": 0.4674736559391022,
+        "purity": 0.9514063596725464,
+        "recovery": 0.46673792600631714,
+        "safety_risk": 0.0667174831032753,
+        "score": 0.3256179988384247
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 3,
+      "closed_batch_count": 3,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0040",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.2063446193933487,
+        "phase_ratio": 0.009506937116384506,
+        "product_in_aqueous": 0.5454903244972229,
+        "product_in_organic": 0.0,
+        "purity": 0.7487098574638367,
+        "recovery": 0.5339179039001465,
+        "safety_risk": 0.0667174831032753,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 4,
+      "batch_id": "batch-0004",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 4,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0041",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.025599999353289604,
+        "safety_risk": 0.07104295492172241,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0042",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.11559999734163284,
+        "safety_risk": 0.20086635649204254,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0043",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.1446000039577484,
+        "safety_risk": 0.08518442511558533,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0044",
+      "action": {
+        "extractant": 0,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.18559999763965607,
+        "safety_risk": 0.06946494430303574,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0045",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.1968500018119812,
+        "safety_risk": 0.06946494430303574,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0046",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.19734999537467957,
+        "safety_risk": 0.06946494430303574,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0047",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2773500084877014,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.21757683157920837,
+        "product_in_aqueous": 0.6133716702461243,
+        "product_in_organic": 0.39239656925201416,
+        "purity": 0.9636586308479309,
+        "recovery": 0.3871418237686157,
+        "safety_risk": 0.06948898732662201,
+        "score": 0.250442236661911
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0048",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.21757683157920837,
+        "product_in_aqueous": 0.6133716702461243,
+        "product_in_organic": 0.39239656925201416,
+        "purity": 0.9636586308479309,
+        "recovery": 0.3871418237686157,
+        "safety_risk": 0.07303518056869507,
+        "score": 0.250442236661911
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0049",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.21757683157920837,
+        "product_in_aqueous": 0.6133716702461243,
+        "product_in_organic": 0.39239656925201416,
+        "purity": 0.9636586308479309,
+        "recovery": 0.3871418237686157,
+        "safety_risk": 0.07303518056869507,
+        "score": 0.250442236661911
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 4,
+      "closed_batch_count": 4,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0050",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.19855481386184692,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6063740253448486,
+        "product_in_organic": 0.0,
+        "purity": 0.7544183135032654,
+        "recovery": 0.6052252650260925,
+        "safety_risk": 0.07303518056869507,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 5,
+      "batch_id": "batch-0005",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 5,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0051",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 2,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.05119999870657921,
+        "safety_risk": 0.08904295414686203,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0052",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.1412000060081482,
+        "safety_risk": 0.21886634826660156,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0053",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.17020000517368317,
+        "safety_risk": 0.09418442845344543,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0054",
+      "action": {
+        "extractant": 0,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.21119999885559082,
+        "safety_risk": 0.07666493952274323,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0055",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.22245000302791595,
+        "safety_risk": 0.07666493952274323,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0056",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.22294999659061432,
+        "safety_risk": 0.07666493952274323,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0057",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.302949994802475,
+        "impurity_signal": 0.005056110676378012,
+        "phase_ratio": 0.2127634584903717,
+        "product_in_aqueous": 0.6662853360176086,
+        "product_in_organic": 0.3101591467857361,
+        "purity": 0.9416995048522949,
+        "recovery": 0.346187949180603,
+        "safety_risk": 0.07667502760887146,
+        "score": 0.1757304072380066
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0058",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.32795000076293945,
+        "impurity_signal": 0.005056110676378012,
+        "phase_ratio": 0.2127634584903717,
+        "product_in_aqueous": 0.6662853360176086,
+        "product_in_organic": 0.3101591467857361,
+        "purity": 0.9416995048522949,
+        "recovery": 0.346187949180603,
+        "safety_risk": 0.07867243140935898,
+        "score": 0.1757304072380066
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0059",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.32795000076293945,
+        "impurity_signal": 0.005056110676378012,
+        "phase_ratio": 0.2127634584903717,
+        "product_in_aqueous": 0.6662853360176086,
+        "product_in_organic": 0.3101591467857361,
+        "purity": 0.9416995048522949,
+        "recovery": 0.346187949180603,
+        "safety_risk": 0.07867243140935898,
+        "score": 0.1757304072380066
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 5,
+      "closed_batch_count": 5,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0060",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.48794999718666077,
+        "impurity_signal": 0.20504219830036163,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6941751837730408,
+        "product_in_organic": 0.0,
+        "purity": 0.770516037940979,
+        "recovery": 0.6792322993278503,
+        "safety_risk": 0.07867243140935898,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 6,
+      "batch_id": "batch-0006",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 6,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0061",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 3,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.03519999980926514,
+        "safety_risk": 0.10164295881986618,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0062",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.12520000338554382,
+        "safety_risk": 0.2314663529396057,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0063",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.1542000025510788,
+        "safety_risk": 0.10048443078994751,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0064",
+      "action": {
+        "extractant": 0,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.19519999623298645,
+        "safety_risk": 0.08170494437217712,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0065",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.20645000040531158,
+        "safety_risk": 0.08170494437217712,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0066",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.20694999396800995,
+        "safety_risk": 0.08170494437217712,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0067",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2869499921798706,
+        "impurity_signal": 0.03138330578804016,
+        "phase_ratio": 0.19278499484062195,
+        "product_in_aqueous": 0.5517306327819824,
+        "product_in_organic": 0.429255872964859,
+        "purity": 0.9570302963256836,
+        "recovery": 0.40157485008239746,
+        "safety_risk": 0.08168716728687286,
+        "score": 0.2904159426689148
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0068",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.3119499981403351,
+        "impurity_signal": 0.03138330578804016,
+        "phase_ratio": 0.19278499484062195,
+        "product_in_aqueous": 0.5517306327819824,
+        "product_in_organic": 0.429255872964859,
+        "purity": 0.9570302963256836,
+        "recovery": 0.40157485008239746,
+        "safety_risk": 0.07998740673065186,
+        "score": 0.2904159426689148
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0069",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3119499981403351,
+        "impurity_signal": 0.03138330578804016,
+        "phase_ratio": 0.19278499484062195,
+        "product_in_aqueous": 0.5517306327819824,
+        "product_in_organic": 0.429255872964859,
+        "purity": 0.9570302963256836,
+        "recovery": 0.40157485008239746,
+        "safety_risk": 0.07998740673065186,
+        "score": 0.2904159426689148
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 6,
+      "closed_batch_count": 6,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0070",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4719499945640564,
+        "impurity_signal": 0.1854168027639389,
+        "phase_ratio": 0.003050468396395445,
+        "product_in_aqueous": 0.586746096611023,
+        "product_in_organic": 0.0,
+        "purity": 0.7556695342063904,
+        "recovery": 0.5770232081413269,
+        "safety_risk": 0.07998740673065186,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 7,
+      "batch_id": "batch-0007",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 7,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0071",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.025599999353289604,
+        "safety_risk": 0.07104295492172241,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0072",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.11559999734163284,
+        "safety_risk": 0.20086635649204254,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0073",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.1446000039577484,
+        "safety_risk": 0.08518442511558533,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0074",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.18559999763965607,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0075",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.1968500018119812,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0076",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.19734999537467957,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0077",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2773500084877014,
+        "impurity_signal": 0.0056861345656216145,
+        "phase_ratio": 0.17794884741306305,
+        "product_in_aqueous": 0.5824007987976074,
+        "product_in_organic": 0.39375627040863037,
+        "purity": 0.9799922108650208,
+        "recovery": 0.3905905485153198,
+        "safety_risk": 0.08026294410228729,
+        "score": 0.258657842874527
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0078",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.0056861345656216145,
+        "phase_ratio": 0.17794884741306305,
+        "product_in_aqueous": 0.5824007987976074,
+        "product_in_organic": 0.39375627040863037,
+        "purity": 0.9799922108650208,
+        "recovery": 0.3905905485153198,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.258657842874527
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0079",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.0056861345656216145,
+        "phase_ratio": 0.17794884741306305,
+        "product_in_aqueous": 0.5824007987976074,
+        "product_in_organic": 0.39375627040863037,
+        "purity": 0.9799922108650208,
+        "recovery": 0.3905905485153198,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.258657842874527
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 7,
+      "closed_batch_count": 7,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0080",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.1858631670475006,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6345582604408264,
+        "product_in_organic": 0.0,
+        "purity": 0.7472093105316162,
+        "recovery": 0.6119842529296875,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 8,
+      "batch_id": "batch-0008",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 8,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0081",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.012799999676644802,
+        "safety_risk": 0.10093153268098831,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0082",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.10279999673366547,
+        "safety_risk": 0.2549838423728943,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0083",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.12479999661445618,
+        "safety_risk": 0.1891663521528244,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0084",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.06
+      },
+      "observation": {
+        "cost": 0.19779999554157257,
+        "safety_risk": 0.09718494117259979,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0085",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.2090499997138977,
+        "safety_risk": 0.09718494117259979,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0086",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.20954999327659607,
+        "safety_risk": 0.09718494117259979,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0087",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2895500063896179,
+        "impurity_signal": 0.08111133426427841,
+        "phase_ratio": 0.5935662388801575,
+        "product_in_aqueous": 0.2176799774169922,
+        "product_in_organic": 0.7638157606124878,
+        "purity": 0.885865330696106,
+        "recovery": 0.7737092971801758,
+        "safety_risk": 0.09722128510475159,
+        "score": 0.5681187510490417
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0088",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "organic"
+      },
+      "observation": {
+        "cost": 0.3145500123500824,
+        "impurity_signal": 0.08111133426427841,
+        "phase_ratio": 0.5935662388801575,
+        "product_in_aqueous": 0.2176799774169922,
+        "product_in_organic": 0.7638157606124878,
+        "purity": 0.885865330696106,
+        "recovery": 0.7737092971801758,
+        "safety_risk": 0.09087133407592773,
+        "score": 0.5681187510490417
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0089",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3145500123500824,
+        "impurity_signal": 0.08111133426427841,
+        "phase_ratio": 0.5935662388801575,
+        "product_in_aqueous": 0.2176799774169922,
+        "product_in_organic": 0.7638157606124878,
+        "purity": 0.885865330696106,
+        "recovery": 0.7737092971801758,
+        "safety_risk": 0.09087133407592773,
+        "score": 0.5681187510490417
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 8,
+      "closed_batch_count": 8,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0090",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4745500087738037,
+        "impurity_signal": 0.08827067911624908,
+        "phase_ratio": 1.0,
+        "product_in_aqueous": 0.0,
+        "product_in_organic": 0.7482194304466248,
+        "purity": 0.9063993096351624,
+        "recovery": 0.764470636844635,
+        "safety_risk": 0.09087133407592773,
+        "score": 0.5359864830970764
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 9,
+      "batch_id": "batch-0009",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 9,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0091",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.045
+      },
+      "observation": {
+        "cost": 0.02879999950528145,
+        "safety_risk": 0.06911587715148926,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0092",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.11879999935626984,
+        "safety_risk": 0.17833854258060455,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0093",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.045
+      },
+      "observation": {
+        "cost": 0.14955000579357147,
+        "safety_risk": 0.07725900411605835,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0094",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.01
+      },
+      "observation": {
+        "cost": 0.18254999816417694,
+        "safety_risk": 0.07603494077920914,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0095",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.19380000233650208,
+        "safety_risk": 0.07603494077920914,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0096",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.19429999589920044,
+        "safety_risk": 0.07603494077920914,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0097",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2743000090122223,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.10917916148900986,
+        "product_in_aqueous": 0.7528878450393677,
+        "product_in_organic": 0.25806528329849243,
+        "purity": 0.950485348701477,
+        "recovery": 0.22693970799446106,
+        "safety_risk": 0.07602467387914658,
+        "score": 0.13314878940582275
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0098",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.2992999851703644,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.10917916148900986,
+        "product_in_aqueous": 0.7528878450393677,
+        "product_in_organic": 0.25806528329849243,
+        "purity": 0.950485348701477,
+        "recovery": 0.22693970799446106,
+        "safety_risk": 0.0755477026104927,
+        "score": 0.13314878940582275
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0099",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.2992999851703644,
+        "impurity_signal": 0.0,
+        "phase_ratio": 0.10917916148900986,
+        "product_in_aqueous": 0.7528878450393677,
+        "product_in_organic": 0.25806528329849243,
+        "purity": 0.950485348701477,
+        "recovery": 0.22693970799446106,
+        "safety_risk": 0.0755477026104927,
+        "score": 0.13314878940582275
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 9,
+      "closed_batch_count": 9,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0100",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4593000113964081,
+        "impurity_signal": 0.21164043247699738,
+        "phase_ratio": 0.015568170696496964,
+        "product_in_aqueous": 0.7830083966255188,
+        "product_in_organic": 0.005932251922786236,
+        "purity": 0.8021870255470276,
+        "recovery": 0.7959908843040466,
+        "safety_risk": 0.0755477026104927,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 10,
+      "batch_id": "batch-0010",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 10,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0101",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.025599999353289604,
+        "safety_risk": 0.07104295492172241,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0102",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.11559999734163284,
+        "safety_risk": 0.20086635649204254,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0103",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.1446000039577484,
+        "safety_risk": 0.08518442511558533,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0104",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.18559999763965607,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0105",
+      "action": {
+        "duration_s": 30,
+        "operation": "mix",
+        "stirring_speed_rpm": 100
+      },
+      "observation": {
+        "cost": 0.1957249939441681,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0106",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.19622500240802765,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0107",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2762250006198883,
+        "impurity_signal": 0.005718195345252752,
+        "phase_ratio": 0.21320204436779022,
+        "product_in_aqueous": 0.6517356038093567,
+        "product_in_organic": 0.3411053419113159,
+        "purity": 0.94477379322052,
+        "recovery": 0.31459900736808777,
+        "safety_risk": 0.0802718847990036,
+        "score": 0.20344577729701996
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0108",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.3012250065803528,
+        "impurity_signal": 0.005718195345252752,
+        "phase_ratio": 0.21320204436779022,
+        "product_in_aqueous": 0.6517356038093567,
+        "product_in_organic": 0.3411053419113159,
+        "purity": 0.94477379322052,
+        "recovery": 0.31459900736808777,
+        "safety_risk": 0.08192063122987747,
+        "score": 0.20344577729701996
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0109",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3012250065803528,
+        "impurity_signal": 0.005718195345252752,
+        "phase_ratio": 0.21320204436779022,
+        "product_in_aqueous": 0.6517356038093567,
+        "product_in_organic": 0.3411053419113159,
+        "purity": 0.94477379322052,
+        "recovery": 0.31459900736808777,
+        "safety_risk": 0.08192063122987747,
+        "score": 0.20344577729701996
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 10,
+      "closed_batch_count": 10,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0110",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4612250030040741,
+        "impurity_signal": 0.2130707949399948,
+        "phase_ratio": 0.008578194305300713,
+        "product_in_aqueous": 0.6812686920166016,
+        "product_in_organic": 0.0011032409965991974,
+        "purity": 0.7821323275566101,
+        "recovery": 0.6908648610115051,
+        "safety_risk": 0.08192063122987747,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 11,
+      "batch_id": "batch-0011",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 11,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0111",
+      "action": {
+        "operation": "add_solvent",
+        "solvent": 1,
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.025599999353289604,
+        "safety_risk": 0.07104295492172241,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0112",
+      "action": {
+        "amount_mol": 0.03,
+        "operation": "add_reagent"
+      },
+      "observation": {
+        "cost": 0.11559999734163284,
+        "safety_risk": 0.20086635649204254,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0113",
+      "action": {
+        "operation": "add_phase",
+        "phase": "aqueous",
+        "volume_L": 0.04
+      },
+      "observation": {
+        "cost": 0.1446000039577484,
+        "safety_risk": 0.08518442511558533,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0114",
+      "action": {
+        "extractant": 3,
+        "operation": "add_extractant",
+        "volume_L": 0.02
+      },
+      "observation": {
+        "cost": 0.18559999763965607,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0115",
+      "action": {
+        "duration_s": 300,
+        "operation": "mix",
+        "stirring_speed_rpm": 600
+      },
+      "observation": {
+        "cost": 0.1968500018119812,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0116",
+      "action": {
+        "duration_s": 300,
+        "operation": "settle"
+      },
+      "observation": {
+        "cost": 0.19734999537467957,
+        "safety_risk": 0.08026494085788727,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0117",
+      "action": {
+        "instrument": "hplc",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.2773500084877014,
+        "impurity_signal": 0.01296041440218687,
+        "phase_ratio": 0.19523675739765167,
+        "product_in_aqueous": 0.6000088453292847,
+        "product_in_organic": 0.42508554458618164,
+        "purity": 0.927950918674469,
+        "recovery": 0.39965566992759705,
+        "safety_risk": 0.08026294410228729,
+        "score": 0.2817981541156769
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0002,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0118",
+      "action": {
+        "operation": "separate_phase",
+        "target_phase": "aqueous"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.01296041440218687,
+        "phase_ratio": 0.19523675739765167,
+        "product_in_aqueous": 0.6000088453292847,
+        "product_in_organic": 0.42508554458618164,
+        "purity": 0.927950918674469,
+        "recovery": 0.39965566992759705,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.2817981541156769
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0119",
+      "action": {
+        "operation": "terminate"
+      },
+      "observation": {
+        "cost": 0.3023500144481659,
+        "impurity_signal": 0.01296041440218687,
+        "phase_ratio": 0.19523675739765167,
+        "product_in_aqueous": 0.6000088453292847,
+        "product_in_organic": 0.42508554458618164,
+        "purity": 0.927950918674469,
+        "recovery": 0.39965566992759705,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.2817981541156769
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": null,
+      "batch_id": null,
+      "batch_discarded": false,
+      "experiment_ended": false,
+      "experiment_completed": true,
+      "completed_ordinal": null,
+      "completed_experiment_count": 11,
+      "closed_batch_count": 11,
+      "campaign_ended": false,
+      "campaign_terminal_reason": null,
+      "budget_exhausted": false,
+      "sample_consumed": 0.0,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    },
+    {
+      "event_id": "runner-operation-0120",
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "observation": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.19046814739704132,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6115186214447021,
+        "product_in_organic": 0.003923420328646898,
+        "purity": 0.757134735584259,
+        "recovery": 0.6175723671913147,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.0
+      },
+      "observed_keys": [
+        "purity",
+        "recovery",
+        "phase_ratio",
+        "product_in_organic",
+        "product_in_aqueous",
+        "impurity_signal",
+        "cost",
+        "safety_risk",
+        "score"
+      ],
+      "ok": true,
+      "error_message": null,
+      "transaction_status": "committed",
+      "lifecycle_experiment_index": 12,
+      "batch_id": "batch-0012",
+      "batch_discarded": false,
+      "experiment_ended": true,
+      "experiment_completed": true,
+      "completed_ordinal": 12,
+      "completed_experiment_count": 12,
+      "closed_batch_count": 12,
+      "campaign_ended": true,
+      "campaign_terminal_reason": "campaign_resources_exhausted_after_batch_close",
+      "budget_exhausted": false,
+      "sample_consumed": 0.00030000000000000003,
+      "constraint_flags": {
+        "low_selectivity": true
+      }
+    }
+  ],
+  "source_summary": {
+    "operations": 120,
+    "completed_batches": 12,
+    "failure": null,
+    "exact_replay": {
+      "checked_steps": 120,
+      "max_abs_error": 0.0,
+      "mismatches": [],
+      "verified": true
+    },
+    "resources": null
+  },
+  "source_batches": [
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 0,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 10,
+      "lifecycle_index": 1,
+      "metrics": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.19273345172405243,
+        "phase_ratio": 0.009452268481254578,
+        "product_in_aqueous": 0.7852712869644165,
+        "product_in_organic": 0.0012433052761480212,
+        "purity": 0.7923587560653687,
+        "recovery": 0.781625509262085,
+        "safety_risk": 0.06941421329975128,
+        "score": 0.0
+      },
+      "ordinal": 1
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 1,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 20,
+      "lifecycle_index": 2,
+      "metrics": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.1787288933992386,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6325566172599792,
+        "product_in_organic": 0.008452002890408039,
+        "purity": 0.7690587043762207,
+        "recovery": 0.6043150424957275,
+        "safety_risk": 0.06825536489486694,
+        "score": 0.0
+      },
+      "ordinal": 2
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 2,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 30,
+      "lifecycle_index": 3,
+      "metrics": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.18459442257881165,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6832287907600403,
+        "product_in_organic": 0.005547169595956802,
+        "purity": 0.7758536338806152,
+        "recovery": 0.681242048740387,
+        "safety_risk": 0.07008618116378784,
+        "score": 0.0
+      },
+      "ordinal": 3
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 0,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 40,
+      "lifecycle_index": 4,
+      "metrics": {
+        "cost": 0.44635000824928284,
+        "impurity_signal": 0.2063446193933487,
+        "phase_ratio": 0.009506937116384506,
+        "product_in_aqueous": 0.5454903244972229,
+        "product_in_organic": 0.0,
+        "purity": 0.7487098574638367,
+        "recovery": 0.5339179039001465,
+        "safety_risk": 0.0667174831032753,
+        "score": 0.0
+      },
+      "ordinal": 4
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 0,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 50,
+      "lifecycle_index": 5,
+      "metrics": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.19855481386184692,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6063740253448486,
+        "product_in_organic": 0.0,
+        "purity": 0.7544183135032654,
+        "recovery": 0.6052252650260925,
+        "safety_risk": 0.07303518056869507,
+        "score": 0.0
+      },
+      "ordinal": 5
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 2,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 0,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 60,
+      "lifecycle_index": 6,
+      "metrics": {
+        "cost": 0.48794999718666077,
+        "impurity_signal": 0.20504219830036163,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6941751837730408,
+        "product_in_organic": 0.0,
+        "purity": 0.770516037940979,
+        "recovery": 0.6792322993278503,
+        "safety_risk": 0.07867243140935898,
+        "score": 0.0
+      },
+      "ordinal": 6
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 3,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 0,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 70,
+      "lifecycle_index": 7,
+      "metrics": {
+        "cost": 0.4719499945640564,
+        "impurity_signal": 0.1854168027639389,
+        "phase_ratio": 0.003050468396395445,
+        "product_in_aqueous": 0.586746096611023,
+        "product_in_organic": 0.0,
+        "purity": 0.7556695342063904,
+        "recovery": 0.5770232081413269,
+        "safety_risk": 0.07998740673065186,
+        "score": 0.0
+      },
+      "ordinal": 7
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 80,
+      "lifecycle_index": 8,
+      "metrics": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.1858631670475006,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6345582604408264,
+        "product_in_organic": 0.0,
+        "purity": 0.7472093105316162,
+        "recovery": 0.6119842529296875,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.0
+      },
+      "ordinal": 8
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.02
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.02
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.06
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "organic"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 90,
+      "lifecycle_index": 9,
+      "metrics": {
+        "cost": 0.4745500087738037,
+        "impurity_signal": 0.08827067911624908,
+        "phase_ratio": 1.0,
+        "product_in_aqueous": 0.0,
+        "product_in_organic": 0.7482194304466248,
+        "purity": 0.9063993096351624,
+        "recovery": 0.764470636844635,
+        "safety_risk": 0.09087133407592773,
+        "score": 0.5359864830970764
+      },
+      "ordinal": 9
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.045
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.045
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.01
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 100,
+      "lifecycle_index": 10,
+      "metrics": {
+        "cost": 0.4593000113964081,
+        "impurity_signal": 0.21164043247699738,
+        "phase_ratio": 0.015568170696496964,
+        "product_in_aqueous": 0.7830083966255188,
+        "product_in_organic": 0.005932251922786236,
+        "purity": 0.8021870255470276,
+        "recovery": 0.7959908843040466,
+        "safety_risk": 0.0755477026104927,
+        "score": 0.0
+      },
+      "ordinal": 10
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 30,
+          "operation": "mix",
+          "stirring_speed_rpm": 100
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 110,
+      "lifecycle_index": 11,
+      "metrics": {
+        "cost": 0.4612250030040741,
+        "impurity_signal": 0.2130707949399948,
+        "phase_ratio": 0.008578194305300713,
+        "product_in_aqueous": 0.6812686920166016,
+        "product_in_organic": 0.0011032409965991974,
+        "purity": 0.7821323275566101,
+        "recovery": 0.6908648610115051,
+        "safety_risk": 0.08192063122987747,
+        "score": 0.0
+      },
+      "ordinal": 11
+    },
+    {
+      "actions": [
+        {
+          "operation": "add_solvent",
+          "solvent": 1,
+          "volume_L": 0.04
+        },
+        {
+          "amount_mol": 0.03,
+          "operation": "add_reagent"
+        },
+        {
+          "operation": "add_phase",
+          "phase": "aqueous",
+          "volume_L": 0.04
+        },
+        {
+          "extractant": 3,
+          "operation": "add_extractant",
+          "volume_L": 0.02
+        },
+        {
+          "duration_s": 300,
+          "operation": "mix",
+          "stirring_speed_rpm": 600
+        },
+        {
+          "duration_s": 300,
+          "operation": "settle"
+        },
+        {
+          "instrument": "hplc",
+          "operation": "measure"
+        },
+        {
+          "operation": "separate_phase",
+          "target_phase": "aqueous"
+        },
+        {
+          "operation": "terminate"
+        },
+        {
+          "instrument": "final_assay",
+          "operation": "measure"
+        }
+      ],
+      "end_step": 120,
+      "lifecycle_index": 12,
+      "metrics": {
+        "cost": 0.4623500108718872,
+        "impurity_signal": 0.19046814739704132,
+        "phase_ratio": 0.0,
+        "product_in_aqueous": 0.6115186214447021,
+        "product_in_organic": 0.003923420328646898,
+        "purity": 0.757134735584259,
+        "recovery": 0.6175723671913147,
+        "safety_risk": 0.08058049529790878,
+        "score": 0.0
+      },
+      "ordinal": 12
+    }
+  ],
+  "posttests": {
+    "K1": {
+      "payload": {
+        "report": "**Account of the behavior**\n\n**Supplied information.** The solvent labels S0–S3 and extractant labels X0–X3 are anonymous, independent benchmark categories; matching suffixes imply no shared identity or property. Consequently, the supplied material catalog supported no polarity-based or molecular explanation. The instrument specification did establish that HPLC measurements made before phase removal were the appropriate evidence for phase ratio and target inventory in each phase, with stated standard deviations of 0.018 for phase ratio and 0.015 for each phase-specific target channel. Final assays were performed only after separation and termination, so they tested what was retained rather than the original partition equilibrium.\n\n**Observations.** At the common baseline recipe and 300 s/600 rpm mixing, material choice produced large changes relative to HPLC uncertainty. With S0, changing X0, X1, X2, and X3 gave organic target inventories of 0.217, 0.404, 0.291, and 0.467 in batches 1–4 (runner-operation-0007, -0017, -0027, and -0037). With X0, changing S0, S1, S2, and S3 gave 0.217, 0.392, 0.310, and 0.429 in batches 1, 5, 6, and 7 (runner-operation-0007, -0047, -0057, and -0067). Thus both supplied-material fields affected partition, and the differences were generally much larger than the 0.015 channel SD.\n\nThe S1/X3 phase-amount series was especially diagnostic. The low-organic condition in batch 10 had measured phase ratio 0.109 and aqueous/organic target inventories 0.753/0.258 (runner-operation-0097). Baseline conditions in batches 8 and 12 had ratios 0.178 and 0.195 and inventories 0.582/0.394 and 0.600/0.425 (runner-operation-0077 and -0117). The high-organic condition in batch 9 had ratio 0.594 and inventories 0.218/0.764 (runner-operation-0087). This monotonic response is far larger than measurement uncertainty. Calculating an apparent concentration-partition factor from both inventories and measured phase ratio gives approximately 2.80, 3.12, 2.92, and 2.40 across these conditions.\n\nMixing evidence was weaker but directionally consistent with incomplete transfer at low contact intensity. Batch 11 used 30 s at 100 rpm and gave organic inventory 0.341 and aqueous inventory 0.652 (runner-operation-0107). The otherwise comparable 300 s/600 rpm batches 8 and 12 gave organic inventories 0.394 and 0.425. The difference exceeds one single-channel SD, although only one weak-mixing run was made and its measured phase ratio also differed.\n\nPhase retention followed the pre-removal measurement rather than a fixed rule. Batches 1–8 and 10–12 retained the aqueous phase because it contained more observed target; batch 9 retained the organic phase because its organic inventory was 0.764 versus 0.218 aqueous. Post-separation final assays corroborated physical removal: batch 9 reported organic target 0.748 and aqueous target 0 after organic retention (runner-operation-0090), while batch 10 reported aqueous target 0.783 and organic target 0.006 after aqueous retention (runner-operation-0100). These final assays do not independently measure the original two-phase partition.\n\n**Inference.** The simplest predictive representation is material-pair-specific preferential partition combined with phase-capacity allocation. For S1/X3, the target concentration appears roughly 2.5–3 times higher in the organic phase after adequate contact, so increasing organic phase share moves a progressively larger fraction of the inventory there. A constant-partition-factor model is a useful first approximation, not an exact law: the inferred factors span about 2.4–3.1. Material effects cannot be reduced safely to separate universal rankings. For example, S1 improved organic inventory relative to S0 when both used X0, but S1/X3 baseline results (0.394 and 0.425) were below S0/X3 (0.467). This suggests pairing dependence, although run variability remains an alternative.\n\nThe high-organic S1/X3 batch also showed higher HPLC impurity signal (0.081) and lower purity (0.886) than the low-organic and first baseline runs, which generally had purity near 0.95–0.98. This may indicate a phase-composition tradeoff, but phase amount, composition, and recovery changed together, so it is not established as a separate mechanism.\n\n**Conjecture and competing explanations.** The weak-mixing result may reflect kinetic limitation, but duration and stirring speed were changed simultaneously; altered phase-ratio realization or ordinary batch variability could also explain part of the shift. The apparent variation in partition factor could represent genuine concentration or material interactions, incomplete equilibration, phase-volume measurement error, or noise in two independently measured inventory channels. Imperfect closure of aqueous plus organic signals was retained rather than normalized away.\n\nScope is limited to these anonymous materials, measured phase ratios of roughly 0.11–0.59, a fixed reagent charge, nearly fixed total charged liquid, and mostly 300 s mixing followed by 300 s settling. Most material-pair cells were measured once, only S1/X3 baseline was repeated, and the full S×X matrix was not sampled. Separate replicated sweeps of mixing duration and speed, repeated material-pair cells, and intermediate phase ratios would be needed to distinguish equilibrium pairing interactions from kinetics and run variability. No real-substance identity or molecular mechanism can be inferred from the supplied anonymous labels."
+      },
+      "failure": null
+    },
+    "Q": {
+      "payload": {
+        "D1_phase": "aqueous",
+        "D2_query": "Q06",
+        "predictions": [
+          {
+            "product_in_aqueous": {
+              "estimate": 0.831,
+              "lower90": 0.75,
+              "upper90": 0.89
+            },
+            "product_in_organic": {
+              "estimate": 0.169,
+              "lower90": 0.11,
+              "upper90": 0.25
+            },
+            "query_id": "Q01"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.567,
+              "lower90": 0.47,
+              "upper90": 0.66
+            },
+            "product_in_organic": {
+              "estimate": 0.433,
+              "lower90": 0.34,
+              "upper90": 0.53
+            },
+            "query_id": "Q02"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.636,
+              "lower90": 0.53,
+              "upper90": 0.73
+            },
+            "product_in_organic": {
+              "estimate": 0.364,
+              "lower90": 0.27,
+              "upper90": 0.47
+            },
+            "query_id": "Q03"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.318,
+              "lower90": 0.23,
+              "upper90": 0.42
+            },
+            "product_in_organic": {
+              "estimate": 0.682,
+              "lower90": 0.58,
+              "upper90": 0.77
+            },
+            "query_id": "Q04"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.591,
+              "lower90": 0.5,
+              "upper90": 0.68
+            },
+            "product_in_organic": {
+              "estimate": 0.409,
+              "lower90": 0.32,
+              "upper90": 0.5
+            },
+            "query_id": "Q05"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.34,
+              "lower90": 0.25,
+              "upper90": 0.43
+            },
+            "product_in_organic": {
+              "estimate": 0.66,
+              "lower90": 0.57,
+              "upper90": 0.75
+            },
+            "query_id": "Q06"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.492,
+              "lower90": 0.4,
+              "upper90": 0.59
+            },
+            "product_in_organic": {
+              "estimate": 0.508,
+              "lower90": 0.41,
+              "upper90": 0.6
+            },
+            "query_id": "Q07"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.257,
+              "lower90": 0.12,
+              "upper90": 0.53
+            },
+            "product_in_organic": {
+              "estimate": 0.743,
+              "lower90": 0.47,
+              "upper90": 0.88
+            },
+            "query_id": "Q08"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.61,
+              "lower90": 0.51,
+              "upper90": 0.73
+            },
+            "product_in_organic": {
+              "estimate": 0.39,
+              "lower90": 0.27,
+              "upper90": 0.49
+            },
+            "query_id": "Q09"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.591,
+              "lower90": 0.5,
+              "upper90": 0.68
+            },
+            "product_in_organic": {
+              "estimate": 0.409,
+              "lower90": 0.32,
+              "upper90": 0.5
+            },
+            "query_id": "Q10"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.29,
+              "lower90": 0.13,
+              "upper90": 0.58
+            },
+            "product_in_organic": {
+              "estimate": 0.71,
+              "lower90": 0.42,
+              "upper90": 0.87
+            },
+            "query_id": "Q11"
+          },
+          {
+            "product_in_aqueous": {
+              "estimate": 0.257,
+              "lower90": 0.12,
+              "upper90": 0.53
+            },
+            "product_in_organic": {
+              "estimate": 0.743,
+              "lower90": 0.47,
+              "upper90": 0.88
+            },
+            "query_id": "Q12"
+          }
+        ],
+        "rationale": "I treated the two target fractions as complementary and used the campaign's pre-separation HPLC contrasts to infer material-pair-specific partition preferences, then adjusted allocation for extractant share. S0/X0 favored aqueous at the low Q01 organic volume, while replacing X0 with X3 consistently increased organic allocation, making Q06 exceed Q05. Mixing at 120–1200 s was projected to be near the adequate-contact regime; only a modest penalty was assigned to Q09 and Q11. Intervals are wider for the unmeasured S2/X3 pairing because the campaign showed that solvent–extractant effects were not reliably additive."
+      },
+      "failure": null
+    },
+    "K2": {
+      "payload": {
+        "report": "1. No instance prior or material-property prior was supplied; the catalog explicitly provided only anonymous labels and said equal suffixes had no shared meaning. The least-tested self-developed law is the transfer of a roughly constant partition factor across material pairs, especially the factorized extrapolation to the unmeasured S2/X3 pair. Batches 8 and 12 supported approximate repeatability for S1/X3, but comparison with batches 1, 4, and 5 showed that solvent and extractant effects were not simply additive. The assumption that all 120–1200 s prediction mixes were effectively equilibrated is also unresolved because batch 11 changed speed and duration together and supplied the only weak-contact result.\n\n2. I would run S2/X3 at the Q08/Q12 material amounts, use strong mixing (600–900 s at 1200 rpm), settle for 300 s, and measure both phase-specific target fractions by HPLC before any phase removal. The factorized partition explanation predicts an organic fraction near 0.74, whereas applying interaction suppression comparable to S1/X3 gives roughly 0.5–0.55. A result near 0.7–0.8 would strengthen transferable solvent/extractant main effects; a result near 0.5 would favor strong pair-specific interaction; a substantially lower or intermediate result would weaken both simple versions and motivate a pair-specific matrix rather than a general material law. One run would not fully distinguish interaction from batch variability, but the proposed predictions differ by much more than the stated HPLC channel noise.\n\n3. The measured phase-ratio channel was underused in the predictions: I largely converted charged volumes directly into phase share, even though the campaign showed variation in measured phase ratio. The paired aqueous and organic readings, their imperfect closure, and the impurity/purity changes—especially batch 9—could also have supported a fuller mass-balance model. Final assays were deliberately used only as retention checks because they occurred after phase removal; using them as equilibrium observations would have been incorrect. Data for X1, X2, and S3 were not relevant to the listed queries but could have informed a hierarchical estimate of between-material variability.\n\nQ08, Q11, and Q12 are least reliable because S2/X3 was never observed; their wide intervals reflect this, but their common high point estimates still rely on the questionable factorization. Q09 and Q11 are additionally weak because the campaign did not separately identify duration and stirring-speed effects. Q01–Q04 also extrapolate the phase-allocation relation beyond the directly observed phase ratio for those exact pairs. The stated 90% intervals were judgmental predictive intervals, not outputs of a fully identified probabilistic model.\n\nThere are two tensions between the sealed report and predictions. First, the report emphasized pair interactions, yet the S2/X3 point estimates used an essentially multiplicative main-effect extrapolation; the broad intervals acknowledged but did not eliminate that inconsistency. Second, the report called mixing kinetics unresolved, while the prediction rationale treated most new mixing schedules as near equilibrium and assigned only modest penalties. Finally, the report limited inference to experiments with a fixed reagent charge, whereas the prediction recipes omitted that addition. I did not explicitly propagate uncertainty from that covariate shift; if reagent presence affects partition rather than merely establishing inventory, all twelve predictions are less reliable than their intervals imply."
+      },
+      "failure": null
+    }
+  },
+  "prediction_evaluation": {
+    "decisions": {
+      "D1": {
+        "correct": true,
+        "submitted": "aqueous",
+        "truth": "aqueous"
+      },
+      "D2": {
+        "correct": true,
+        "submitted": "Q06",
+        "truth": "Q06"
+      }
+    },
+    "details": [
+      {
+        "absolute_error": 0.029587830918646058,
+        "estimate": 0.169,
+        "lower90": 0.11,
+        "metric": "product_in_organic",
+        "query_id": "Q01",
+        "truth": 0.19858783091864607,
+        "upper90": 0.25
+      },
+      {
+        "absolute_error": 0.04332807858294874,
+        "estimate": 0.433,
+        "lower90": 0.34,
+        "metric": "product_in_organic",
+        "query_id": "Q02",
+        "truth": 0.47632807858294873,
+        "upper90": 0.53
+      },
+      {
+        "absolute_error": 0.050481233387015656,
+        "estimate": 0.364,
+        "lower90": 0.27,
+        "metric": "product_in_organic",
+        "query_id": "Q03",
+        "truth": 0.41448123338701565,
+        "upper90": 0.47
+      },
+      {
+        "absolute_error": 0.03770764657700543,
+        "estimate": 0.682,
+        "lower90": 0.58,
+        "metric": "product_in_organic",
+        "query_id": "Q04",
+        "truth": 0.7197076465770055,
+        "upper90": 0.77
+      },
+      {
+        "absolute_error": 0.04312405850742462,
+        "estimate": 0.409,
+        "lower90": 0.32,
+        "metric": "product_in_organic",
+        "query_id": "Q05",
+        "truth": 0.4521240585074246,
+        "upper90": 0.5
+      },
+      {
+        "absolute_error": 0.04048316740391966,
+        "estimate": 0.66,
+        "lower90": 0.57,
+        "metric": "product_in_organic",
+        "query_id": "Q06",
+        "truth": 0.7004831674039197,
+        "upper90": 0.75
+      },
+      {
+        "absolute_error": 0.054297276612659595,
+        "estimate": 0.508,
+        "lower90": 0.41,
+        "metric": "product_in_organic",
+        "query_id": "Q07",
+        "truth": 0.5622972766126596,
+        "upper90": 0.6
+      },
+      {
+        "absolute_error": 0.08125265552648797,
+        "estimate": 0.743,
+        "lower90": 0.47,
+        "metric": "product_in_organic",
+        "query_id": "Q08",
+        "truth": 0.661747344473512,
+        "upper90": 0.88
+      },
+      {
+        "absolute_error": 0.04124253236815362,
+        "estimate": 0.39,
+        "lower90": 0.27,
+        "metric": "product_in_organic",
+        "query_id": "Q09",
+        "truth": 0.3487574676318464,
+        "upper90": 0.49
+      },
+      {
+        "absolute_error": 0.027271622927430295,
+        "estimate": 0.409,
+        "lower90": 0.32,
+        "metric": "product_in_organic",
+        "query_id": "Q10",
+        "truth": 0.43627162292743027,
+        "upper90": 0.5
+      },
+      {
+        "absolute_error": 0.10334461125404293,
+        "estimate": 0.71,
+        "lower90": 0.42,
+        "metric": "product_in_organic",
+        "query_id": "Q11",
+        "truth": 0.606655388745957,
+        "upper90": 0.87
+      },
+      {
+        "absolute_error": 0.09401512835176518,
+        "estimate": 0.743,
+        "lower90": 0.47,
+        "metric": "product_in_organic",
+        "query_id": "Q12",
+        "truth": 0.6489848716482348,
+        "upper90": 0.88
+      },
+      {
+        "absolute_error": 0.02958783091864603,
+        "estimate": 0.831,
+        "lower90": 0.75,
+        "metric": "product_in_aqueous",
+        "query_id": "Q01",
+        "truth": 0.8014121690813539,
+        "upper90": 0.89
+      },
+      {
+        "absolute_error": 0.04332807858294874,
+        "estimate": 0.567,
+        "lower90": 0.47,
+        "metric": "product_in_aqueous",
+        "query_id": "Q02",
+        "truth": 0.5236719214170512,
+        "upper90": 0.66
+      },
+      {
+        "absolute_error": 0.05048123338701571,
+        "estimate": 0.636,
+        "lower90": 0.53,
+        "metric": "product_in_aqueous",
+        "query_id": "Q03",
+        "truth": 0.5855187666129843,
+        "upper90": 0.73
+      },
+      {
+        "absolute_error": 0.03770764657700543,
+        "estimate": 0.318,
+        "lower90": 0.23,
+        "metric": "product_in_aqueous",
+        "query_id": "Q04",
+        "truth": 0.2802923534229946,
+        "upper90": 0.42
+      },
+      {
+        "absolute_error": 0.04312405850742451,
+        "estimate": 0.591,
+        "lower90": 0.5,
+        "metric": "product_in_aqueous",
+        "query_id": "Q05",
+        "truth": 0.5478759414925755,
+        "upper90": 0.68
+      },
+      {
+        "absolute_error": 0.04048316740391972,
+        "estimate": 0.34,
+        "lower90": 0.25,
+        "metric": "product_in_aqueous",
+        "query_id": "Q06",
+        "truth": 0.2995168325960803,
+        "upper90": 0.43
+      },
+      {
+        "absolute_error": 0.054297276612659595,
+        "estimate": 0.492,
+        "lower90": 0.4,
+        "metric": "product_in_aqueous",
+        "query_id": "Q07",
+        "truth": 0.4377027233873404,
+        "upper90": 0.59
+      },
+      {
+        "absolute_error": 0.08125265552648792,
+        "estimate": 0.257,
+        "lower90": 0.12,
+        "metric": "product_in_aqueous",
+        "query_id": "Q08",
+        "truth": 0.3382526555264879,
+        "upper90": 0.53
+      },
+      {
+        "absolute_error": 0.04124253236815356,
+        "estimate": 0.61,
+        "lower90": 0.51,
+        "metric": "product_in_aqueous",
+        "query_id": "Q09",
+        "truth": 0.6512425323681535,
+        "upper90": 0.73
+      },
+      {
+        "absolute_error": 0.02727162292743024,
+        "estimate": 0.591,
+        "lower90": 0.5,
+        "metric": "product_in_aqueous",
+        "query_id": "Q10",
+        "truth": 0.5637283770725697,
+        "upper90": 0.68
+      },
+      {
+        "absolute_error": 0.10334461125404298,
+        "estimate": 0.29,
+        "lower90": 0.13,
+        "metric": "product_in_aqueous",
+        "query_id": "Q11",
+        "truth": 0.39334461125404296,
+        "upper90": 0.58
+      },
+      {
+        "absolute_error": 0.09401512835176529,
+        "estimate": 0.257,
+        "lower90": 0.12,
+        "metric": "product_in_aqueous",
+        "query_id": "Q12",
+        "truth": 0.3510151283517653,
+        "upper90": 0.53
+      }
+    ],
+    "metrics": {
+      "product_in_aqueous": {
+        "coverage90": 1.0,
+        "interval_score90": 0.245,
+        "mae": 0.05384465353479164,
+        "mean_width90": 0.245,
+        "n": 12
+      },
+      "product_in_organic": {
+        "coverage90": 1.0,
+        "interval_score90": 0.245,
+        "mae": 0.05384465353479165,
+        "mean_width90": 0.245,
+        "n": 12
+      }
+    },
+    "valid": true
+  },
+  "recommendation": {},
+  "recommendation_retest": {
+    "passed": null,
+    "batches": null,
+    "failure": null,
+    "validation_checks": null
+  },
+  "semantic_reading_status": "pending; extraction does not imply close reading"
+}

@@ -1,0 +1,92 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-Opaque",
+    "cell": "RX-W02--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化目标；Opaque仅匿名材料边界，无定向配方。",
+  "expectations": "v1事前预测340 K/1200 s安全、材料差异、加热/延时增转化且高暴露有损失；后者时间部分未验证。v2在77动作后预告390 K插值，若不超380 K保留原推荐。",
+  "tests_and_observations": "84操作全提交；80 mL/.04mol/.005mol、500rpm、1200s固定，无淬灭，每批末HPLC。340 K四催化后B跨溶剂，B/水分数最佳；B/水340/360/380/400/420 K，转化与产率增但score380 K最高.13081；末批390 K .12226未超，v3按预告保留b9。",
+  "revisions": "局部成分与温度筛选支持转化不等于分数；390 K预期未满足后保留380 K而非继续宣称插值改善。K1未把拟议平行+降解ODE当唯一机制；明确固定1200 s未辨时间。",
+  "later_use": "推荐复测score .11824低于原.13081但风险仍.13226，未反馈给K2。Q从固定时长推累积hazard，风险点值最高1、窄.97–1；淬灭假设不消除累积风险且可能增加；温序假设P后继降解。X MAE .05084、覆盖1，而risk MAE .39588/覆盖.25，score MAE .16550。K2明确承认数字区间未遵守K1限度，未获真值。",
+  "unresolved": "全部源cost封顶1，未知成本效应；Q小尺度会改变成本。K1提出非线性safety gate/直接杂质罚与实际线性含cost式不同；不能把score所有误差归风险。所有source无时间/淬灭/温序对照。",
+  "histories": [
+    {
+      "topic": "预告插值与行动兑现",
+      "sequence": "高温score回落→v2预测390 K可能超380且写决策规则→390未超→v3选380→独立复测下降但仍安全",
+      "status": "完整事前预测—结果—后续决策链，支持局部探索但不证明连续最优"
+    },
+    {
+      "topic": "限定模型到高置信风险外推",
+      "sequence": "固定时长温度观察→K1累积hazard为候选→Q外加时长/温序并给风险饱和窄区间→大risk误差→K2无真值自述过窄",
+      "status": "同轨迹转化迁移较好而风险与分数差，不能整体二分成功/失败"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "if it does not exceed batch 9, I will retain batch 9 as the operating recommendation",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 77,
+        "last_event_id": "runner-operation-0077"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "the prespecified interpolation test did not surpass batch 9",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Cost was constant at the visible capped value"
+    },
+    {
+      "stage": "Q",
+      "quote": "it is not expected to erase the risk accumulated during heating",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "those intervals express unjustified confidence in the assumed bounded asymptote"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 84,
+    "failed": 0,
+    "hplc": 12,
+    "quench": 0,
+    "source_duration_s": 1200,
+    "source_cost_all_one": true,
+    "K2_has_query_truth": false,
+    "quench_duration_not_chemical_exposure": true
+  }
+}

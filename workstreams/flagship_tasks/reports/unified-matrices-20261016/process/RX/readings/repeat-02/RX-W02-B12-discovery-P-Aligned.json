@@ -1,0 +1,92 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-Aligned",
+    "cell": "RX-W02--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 86,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标；Aligned提供420 K参考及高温优势，v1提出温时系列与quench检验。",
+  "expectations": "v1局部420 K productive增加、过热/过久secondary损失、淬灭可能保中间最优；v2在56动作后承认430 K安全越界、quench未测，安排材料后末批分段检查。",
+  "tests_and_observations": "86动作全提交，12HPLC/12终检；5mL参考量1100rpm。420 K1200/3300/6000s X .5541/.8924/.9754，Y .4515/.6471/.6079，deg .0172/.0985/.2013，risk近.318。430 K最终risk .3572为完整不安全观测非rollback；乙腈/甲苯也越.35。末批1200s+HPLC+2100s+quench，45K冷却risk .3183→.1221，Y .6491与3300s reference接近。",
+  "revisions": "v3将延时最优与局部一阶转化明确化；正确区分淬灭风险改善和未证明化学增益。K1/2承认高温安全主张被缩小，但390 Kscore .3545已高于420 K .340，不能把高温提示称safe-score整体支持。",
+  "later_use": "Q用时间risk近恒与末态风险，quench对化学无变而risk大降；risk MAE .01447覆盖1，X .02315覆盖1，Y .04765。推荐分段quench复测Y .64753 score .42726。K2选择同器3300→6000两次HPLC检验P下降但未执行。",
+  "unresolved": "末批和reference同时改变分段与采样时点，非严格quench-only对照。K1/2纯平行时间变分支的替代可解释S降但不能解释稳定P绝对量下降；应核对固定分母/采样及噪声后才称等价机制。源跨批Y降.0392高于标称.006噪声但未重复，不证明唯一P→D。",
+  "histories": [
+    {
+      "topic": "时间证据形成损失候选",
+      "sequence": "事前延时损失预期→1200/3300/6000出现Y峰/X继续增→局部一阶+secondary loss→Q延时/温序外推→K2提出同器检验",
+      "status": "连续形成链；唯一通路未确证，纯稳定P平行路径不能直接涵盖绝对下降"
+    },
+    {
+      "topic": "淬灭由未测到可迁移操作关系",
+      "sequence": "v1/v2 quench未决→末批冷却风险骤降化学近参考→v3仅认risk改善→Q两配对同化学降risk→较低risk误差",
+      "status": "有源直接物理变化与后续使用；化学等效仍带分段/取样混杂"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Quench benefit remains untested",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "not a demonstrated chemical-yield enhancement",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 86,
+        "last_event_id": "runner-operation-0086"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "quench predictions use the strong risk reduction observed in Batch 12"
+    },
+    {
+      "stage": "K2",
+      "quote": "The key question is whether the already accumulated target proxy actually declines in the same vessel while conversion continues."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 86,
+    "failed": 0,
+    "hplc": 12,
+    "quench": 1,
+    "source_unsafe_batches": [
+      3,
+      10,
+      11
+    ],
+    "K2_has_query_truth": false,
+    "quench_clock_not_chemical_exposure": true,
+    "risk_limit_not_rollback": true,
+    "sampling_5mL_removes_4percent_per_HPLC": true
+  }
+}

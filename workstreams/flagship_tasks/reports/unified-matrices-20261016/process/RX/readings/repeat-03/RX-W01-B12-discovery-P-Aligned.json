@@ -1,0 +1,91 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Aligned",
+    "cell": "RX-W01--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned给低温侧可靠与B乙腈参照；目标机制与预测。初笔记420K预期平衡，先温度再时间类别和quench时机。",
+  "expectations": "v2在4批后预测缩短420K暴露可恢复选择性、长时恶化；v3在10批后明确1800s X .91–.95/sel .75–.78/yield约或高于.71，并预告延迟600s再quench应继续反应、损选择性，若噪声内则保留未定。",
+  "tests_and_observations": "97操作全committed，全部12批都有heat后HPLC、quench、final。前4批390/405/420/430K3300s产率 .6856/.6698/.6483/.6236；420K1200/2400/4800s产率 .7092/.7125/.5301；同1200s A/B/C/D产率 .5644/.7092/.5742/.6463。最后两批420K1800s，同HPLC前态；立即quench final yield .7424/sel .7948，wait600s降温约118K再quench final .7228/.7488，deg .1271→.1557。推荐立即quench复测yield .74126、score .44899。",
+  "revisions": "v3数值事前预测的X命中、yield上调；sel .7948高于给定.75–.78，K1承认不能全称命中。延迟对照有新终检支持一次成对差，但无重复，不建立精确冷却速率规律。K1承认风险瞬间越限，最终安全非全程。",
+  "later_use": "Q按hot/quenched末态区分同热史，Q07/08末态risk .477/.205而非同峰值；未观测440K以上但没有强制假设回滚。conversion MAE .00596、risk .01659、score .03477；Q11低温长时yield .75高估，极端Q12损失过强。Q02称direct procedural replicate不精确，源多HPLC动作。",
+  "unresolved": "K1/K2将稳定P纯支路变化当绝对yield下降的替代不充分；需损失/再分布或测量改变。HPLC/final非同仪器；wait后的旧HPLC未更新，不能用其平稳证明不反应。未测quench独立于降温的化学作用，无源精确重复；K2反思无真值。",
+  "histories": [
+    {
+      "topic": "事前插值检验",
+      "sequence": "v2短时方向→1200/2400/4800s→v3数值1800s预测→实测X命中、sel超预期→保留局部预测意义",
+      "status": "prospective_quantitative_interpolation_partially_matched"
+    },
+    {
+      "topic": "终止时机",
+      "sequence": "v3即时/延迟两种预期→相同热史前态→600s冷却再quench终检较差→Q按末态风险迁移",
+      "status": "single_matched_policy_contrast_not_unique_chemical_mechanism"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "predicted conversion roughly 0.91–0.95, selectivity 0.75–0.78, and yield near or slightly above 0.71.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 80,
+        "last_event_id": "runner-operation-0080"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "If results remain within assay-scale variation, quench timing will be unresolved rather than declared inert.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 80,
+        "last_event_id": "runner-operation-0080"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "selectivity of 0.795 was slightly above the proposed interval."
+    },
+    {
+      "stage": "K1",
+      "quote": "The final risks of the main terminal products were below 0.35, but that does not erase transient hot-state excursions."
+    },
+    {
+      "stage": "Q",
+      "quote": "Terminal risk is treated mainly as a function of the final hot or quenched temperature."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 12,
+    "all_source_batches_quenched": true,
+    "same_heat_immediate_delayed_quench_pair": true,
+    "source_recommendation_heat_risk": 0.3580288589000702,
+    "source_recommendation_final_risk": 0.1635139137506485,
+    "sealed_K2_has_Q_truth": false
+  }
+}

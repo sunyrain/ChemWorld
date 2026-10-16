@@ -1,0 +1,97 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-MisIndexed",
+    "cell": "RX-W04--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 106,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标；MisIndexed局部资料预期420K参考之上温度侧更安全平衡。初始H1却已包含内部最优/竞争损失，H2材料与无催化剂，H3淬灭。三版笔记游标0/89/106；v2在十批后、末两批前。",
+  "expectations": "v2明确指出所有成功批此前都淬灭、中途HPLC混杂继续加热与仪器；最后两批预告溶剂扰动和匹配不淬灭，预测若淬灭只热停止则化学组成相近，否则修订H3。此前长时与催化剂屏幕只有初始计划和终末归因，不能以K2倒填逐批解释形成时点。",
+  "tests_and_observations": "106操作，104提交、两次900sheat回滚（40/42），12HPLC/12终检。成功批均两段热处理且中途HPLC。390/405/420/430K共3300s的X .903247/.960235/.976279/.981422，S .830694/.814960/.788955/.777039，Y .735803/.779562/.772467/.774017；430K热态risk .361744超任务.35但确实commit，淬灭后 .148687。420K4800sY .732620、降解 .195348，与3300s .772467/.124568有真实末检时长比较。无催化剂X .256202、Y .008386、S .004908。乙醇Y .655548、S .636280。末批无quench与B1匹配，Y .773833 vs .772467、B .204173 vs .200276，risk .324594 vs .125098。",
+  "revisions": "v2和v3均明确排除两个回滚900s片段作为慢反应/诱导期证据，正确识别没形成热历史；不假装完成1800s动力学。v3按前瞻比较将H3收窄为风险控制成立、化学效应未解决。K1优先依靠匹配终检，不把中途/末测跨仪器差当精确动力学。K2承认高温先验反证但用390→405支持部分方向，这低于420参考，不能等价于检验参考之上的高温优势。",
+  "later_use": "Q风险主要按终温关系，淬灭 .34→.14、.39→.18，顺序 .43/.18。短1500s因真实900s回滚给宽区间但不直接断言必回滚。所有Q用未测乙腈；明确暂设比水更高选择性，Q01/02 Y .845/S .86，这个方向没有源证据，K2主动指出与K1范围声明不一致。X MAE .046625，Y .133875，S .161463，risk .028659且60/60覆盖，score .089968。推荐405K复测score .488621/Y .765256。",
+  "unresolved": "无精确重复，温度收益窄差近噪声；没有乙腈、顺序、催化剂载量对照。K2建议老化后追加试剂脉冲区分失活与产物降解，未执行，且浓度/观察通道混杂已承认。观测到不同催化剂X/S不自动唯一辨识所有速率比；反应网络是候选。",
+  "histories": [
+    {
+      "question": "淬灭是风险控制还是化学收益",
+      "chain": "v2发现现有比较不充分→明确末批预期→B12匹配无淬灭→v3收窄H3→Q基本保持化学而改变风险",
+      "support": "前瞻、实际执行、修订及后用完整，局部状态关系。"
+    },
+    {
+      "question": "短时无产物意味着什么",
+      "chain": "实际两个heat回滚→v2/v3排除慢化学含义→Q短时保留执行不确定",
+      "support": "与同类错误经历重建构成反例，不能说所有失败都被编成化学。"
+    },
+    {
+      "question": "未知乙腈如何进入预测",
+      "chain": "源仅水/乙醇→K1限域→Q采用乙腈优于水的方向→K2承认缺乏支持",
+      "support": "Q不得不外推，问题是所选方向及不确定性，未采样本身不是误认。"
+    }
+  ],
+  "measurement_and_failure_notes": "请求两900s不等于真实1800s；回滚无温度/时间变化。430K超任务风险并非操作回滚。中途测量确实在两段之间，与全段热后测量不同。K1积分quench化学暴露是候选而非冻结实现，quench实际不积分反应；没有把它当已识别化学效应。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "both 900 s heating operations rolled back",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 89,
+        "last_event_id": "runner-operation-0089"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The latter should match quenched final composition within assay variability",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 89,
+        "last_event_id": "runner-operation-0089"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "compositional effect not resolved",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 106,
+        "last_event_id": "runner-operation-0106"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "a satisfactory post-quench risk does not imply that the entire preceding trajectory was safe."
+    },
+    {
+      "stage": "Q",
+      "quote": "assume acetonitrile gives somewhat better branching than water",
+      "query_id": "Q01"
+    },
+    {
+      "stage": "K2",
+      "quote": "No prediction truth has been supplied at this stage"
+    }
+  ]
+}

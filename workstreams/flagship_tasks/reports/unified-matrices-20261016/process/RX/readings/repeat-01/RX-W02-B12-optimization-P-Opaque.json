@@ -1,0 +1,85 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-Opaque",
+    "cell": "RX-W02--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque、optimization；无参考配方，v1自行采用大装料.04/.005mol/.08L、335K1800s400rpm，类别screen后升温。",
+  "expectations": "v1材料差异和升温/长时增加转化但增加风险；时间只提出未检验。v2在11批后预告395K最终局部细化，按已完成最佳推荐。",
+  "tests_and_observations": "84操作全部提交，12终检+12HPLC，全部无淬灭、所有时间1800s。335K水中B score.0949>C .0878>A .0669/D .0702；B非水转化高但score低。B水335/355/375/395/400/410K转化.176/.248/.328/.404/.444/.482、risk.090/.102/.129/.199/.226/.286、score.0949/.1332/.1584/.1585/.1635/.1464。395未超过400，差.00495无重复。",
+  "revisions": "v2/3认识到材料和温度的转化—风险收益分离；K1局部平行网络/温度增长给现象组织，risk采用累积hazard猜想但单一时长无法分离温度和时间。形成机制的转变只在11批后笔记/K1可见，不把事后叙述当逐批同期更新。",
+  "later_use": "Q把本地转化/选择性关系向不同尺度、催化比、时间和热段顺序外推；风险随停留时长增加，虽淬灭未试仍预测大降且宽区间。风险MAE.168795、80覆盖.5；X.048290、Y.064810、score.095582。K2无真值承认risk memory、时间、淬灭未识别，提出900+900s HPLC方案未执行；推荐400K复测Y.319649、score.153728。",
+  "unresolved": "全部定时且无冷却，无法从source判断risk是累积还是当前状态，K1提供累积式只是候选；操作级risk和初始增量实际上可用，并非仅末态读数。无机制判别实验，仅局部优化和类别效应。氮气在v1提及但无configure实际执行。全source cost截断1，不识别尺度变化后的成本项。",
+  "histories": [
+    {
+      "topic": "局部得分最优与风险",
+      "sequence": "v1温度权衡→温度系列→v2预告395细化→v3保留400为样本最佳→K1有限域解释",
+      "status": "prospective_local_refinement_not_unique_mechanism"
+    },
+    {
+      "topic": "无时间证据的风险解释",
+      "sequence": "固定1800s source→K1累积hazard候选→Q对3300/5100s风险.48/.61并对极端.96→K2承认记忆结构未识别",
+      "status": "untested_mechanistic_extrapolation"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A final 395 K/1800 s run will test the neighborhood",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 77,
+        "last_event_id": "runner-operation-0077"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "A suitable qualitative model is an accumulated hazard functional:"
+    },
+    {
+      "stage": "Q",
+      "quote": "Safety risk was extrapolated as a strongly convex function of temperature, solvent category, and residence time."
+    },
+    {
+      "stage": "K2",
+      "quote": "Residence-time dependence, however, remained untested because every research heat treatment lasted 1,800 s."
+    },
+    {
+      "stage": "K2",
+      "quote": "I would not actually execute this experiment, as the campaign is sealed."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "failures": [],
+    "source_quenches": 0,
+    "source_durations_s": [
+      1800
+    ],
+    "source_all_cost": 1,
+    "stages_valid": true
+  }
+}

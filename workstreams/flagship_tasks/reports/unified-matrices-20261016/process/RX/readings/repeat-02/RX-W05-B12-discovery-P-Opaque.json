@@ -1,0 +1,113 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Opaque",
+    "cell": "RX-W05--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标，Opaque，无世界模型或材料性质包。固定0.03mol试剂、0.002mol催化剂、0.05L溶剂、500rpm，先材料筛选再C3热历程，4版笔记cursor0/28/70/85。",
+  "expectations": "起始H1有限时间/温度最优、H2催化剂/溶剂影响活性与选择性、H3淬灭保护产物。v2依据340K筛选选择C3，但明确温度/时长最优未检验。v3在末两批前明确淬灭化学效果可能未辨、只降低风险；预告匹配380K1800s淬灭与水/乙腈比较。",
+  "tests_and_observations": "85操作全部提交，12次HPLC及12终检。340K1800s C0/1/2/3产率0.1768/0.2389/0.1299/0.2920。C3/S2 1800s的320/340/360/380/420K产率0.1883/0.2920/0.4020/0.5143/0.6782，420K风险0.4134超过限值但实际执行。380K900/1800/3600s转换0.366/0.621/0.860、产率0.337/0.514/0.645、选择性0.890/0.842/0.752，最长仍未出现产率下降。匹配淬灭B11对B7产率0.5017/0.5143、选择性0.8524/0.8419，quench实际降45K、风险0.2129→0.1772；小化学差异未定。最后水对乙腈同温同时间产率0.4083/0.5143、风险0.1619/0.2129。",
+  "revisions": "v3已经收窄H1：有限产率最大尚未被观察，温度/时间促进转换并伴副产物增长；v4不把淬灭小化学差异当保护证据，只确认操作风险降低；催化剂排序限定在340K。K1反应网络/Arrhenius表达为事后现象学模型，未识别路径、失活或参数；K2所谓从清洁单路径转向竞争路径是回顾，起始H1已包含竞争，不应写成原信念完全被推翻。",
+  "later_use": "推荐B9 380K3600s，评价者复测Y0.63836、score0.32612。Q按2.625倍催化剂/试剂比、C1近低温筛选及C3热映射向新条件推断；转换MAE0.01066、覆盖60/60，但产率MAE0.18294、风险0.25583、分数0.21037（覆盖5/60），说明一种响应准确不等于网络/风险均可靠。Q01/02和Q09/10保留淬灭主要风险作用，也给未经支持的小化学收益；Q07/08未测温序而给0.359/0.429产率及0.88/0.84风险。Q及K2宣称恢复固定截距-0.1分数公式，源终检cost全部1，未识别真正的-0.1cost，迁移到小规模Q时不足；这是评分关系的范围问题。",
+  "unresolved": "仅C3有热/时间图，C1温度响应、剂量标度、双段顺序未检验；科学Q被要求外推，不能把外推本身当错误。K2提出7200s延长并3600s中测的判别实验，未执行。quench时钟推进不等于化学积分；此场局部化学未定的处理恰当，K1泛化伪代码中的连续冷却积分不当作实证。HPLC多为最终前测量，不是时间序列；约0.4%体积取样，保留测量操作差异。",
+  "histories": [
+    {
+      "name": "产率最大预期经真实映射被收窄",
+      "sequence": "初始有限最优预期→温度及三时长执行→最长仍增长→v3/v4明确最大未定位→K2建议更长时检验",
+      "evidence_status": "prospective_expectation_narrowed_by_observations"
+    },
+    {
+      "name": "淬灭化学与风险效应分开",
+      "sequence": "初始保护预期→v3预告匹配试验及可否证条件→B11比较→v4只保留风险效应→Q使用但更高温幅度未测",
+      "evidence_status": "prospective_test_revision_and_bounded_transfer"
+    },
+    {
+      "name": "源条件固定成本关系被当作一般分数公式",
+      "sequence": "源所有cost1→Q恢复常数截距→在不同尺度新条件使用→K2重复称精确",
+      "evidence_status": "local_scoring_fit_transferred_without_identifying_cost_dependence"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 4,
+    "recommendation_retest_score": 0.3261195719242096,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A matched 380 K/1800 s quenched replicate is next",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 70,
+        "last_event_id": "runner-operation-0070"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Yield has not yet visibly declined by 3600 s",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 70,
+        "last_event_id": "runner-operation-0070"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "These single-batch differences are comparable to combined assay/process variability and do not establish a chemical quench effect.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "These are examples of claims with no discovered counterevidence, not claims established across their intended range."
+    },
+    {
+      "stage": "Q",
+      "quote": "The predicted order advantage over Q07 is mechanistic extrapolation and therefore has a broad interval.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "Q",
+      "quote": "clip(-0.10 + 0.40·yield + 0.25·selectivity + 0.10·conversion - 0.45·safety_risk, 0, 1)"
+    },
+    {
+      "stage": "K2",
+      "quote": "The stronger initial claim of a demonstrated finite yield optimum was not supported."
+    },
+    {
+      "stage": "K2",
+      "quote": "The inconsistency lies not in making the extrapolations, but in allowing some intervals"
+    }
+  ]
+}

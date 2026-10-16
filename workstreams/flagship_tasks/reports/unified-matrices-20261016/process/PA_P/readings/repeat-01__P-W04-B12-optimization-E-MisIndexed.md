@@ -1,0 +1,47 @@
+# 受控溶剂筛选形成可用上游认识，容量和分相顺序限制后续纯化证据
+
+`repeat-01/P-W04-B12-optimization-E-MisIndexed`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2，读取已有推荐复测；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-01__P-W04-B12-optimization-E-MisIndexed.json)
+
+## 问题与先验
+
+错配资料赋予X0最高选择性，初批用它提纯却回收为零。随后七批多为直接反应终检，区分上游生成与后处理；C1固定380K/3600s、同0.060L体积的四溶剂切片是较干净的局部设计。
+
+## 预期与实验
+
+v2/cursor61因S3回收最高0.300而选C1/S3继续，明确下一步变温时再施加X0萃取。随后360K/7200s与380K/7200s、再重复后者三次并尝试纯化，形成可追踪的局部学习—选择—后续检验。
+
+## 实际证据
+
+同C1条件S0/S1/S2/S3终态回收0.187/0.241/0.250/0.300。C1/S3同380K由3600延7200s回收0.300→0.412、纯度0.645→0.612；batch9—12反应HPLC回收0.410/0.396/0.392/0.392。batch10/11浓缩先于建立相系统被拒，后加0.05L萃取剂又超容量被拒，选有机遂为空相，补溶剂后的终检回收零。batch12先建水相再浓缩、成功加X0，终态纯度0.539/回收0.08795。
+
+## 修订
+
+v3区分已形成的上游重复性、失败工作流和真正完成但不合格的X0处理。K1准确重建两次拒绝原因，不将零回收写成上游反应失败。其初始选择性先验被降为该实现中未验证，并保留相量、基质、错配和损失等原因；不主张所有X0流程无效。
+
+## 后续采用
+
+推荐直接反应batch9，明确不满足纯度门槛；已有复测0.6098/0.4029亦不合规。Q03仍以错配资料给X0高于未测X2的纯度/回收0.84/0.012对0.80/0.009，虽已承认名义分配在反应基质下失效。K2提出时间序列区分并行反应、后继降解和平衡，仅为建议。
+
+## 未解决问题及解释限制
+
+局部溶剂与温时认识得到真实支持，但催化剂比较温时混杂；有效反应区不等于纯化问题解决。v3简略称drying导致损失不够准确，K1详细重建及公开事件显示萃取剂根本未成功加入。K2称十二题都依赖X2也不准确，Q03使用X0；以实际问卷为准。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 61, 'last_event_id': 'runner-operation-0061'}
+
+> With C1/S3, vary thermal duration/temperature, then apply X0 extraction to the best reaction.
+
+事件：runner-operation-0066, runner-operation-0073, runner-operation-0080
+
+K1
+
+> The extractant addition was therefore not committed.
+
+Q
+
+> The nominal X0 dossier favors product more strongly than X2, so Q03 is assigned slightly higher purity and recovery than Q04

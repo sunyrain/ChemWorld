@@ -1,0 +1,83 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-optimization-P-MisIndexed",
+    "cell": "RX-W03--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed偏高温参考，优化safe-score。v1暂采420附近/略高温可能更优，失败或>.35将否定相应条件。",
+  "expectations": "v2在完成11批后否定高温方向并预告410K2700将从420时长权衡迁移得益；决策规则预设若降分保留3300。",
+  "tests_and_observations": "72操作全部提交，无HPLC/quench/重复。420/410/430同3300，430risk .3583超阈值但未回滚。420的2400/3300/4200 Y .7938/.7696/.7205、S持续降；410四催化四溶剂。最后4102700score .4370略高3300 .4302，risk均.267。",
+  "revisions": "v2/v3公开拒绝高温方向；420时长系列支持晚期损失，迁移到410早停单点成功，小.0068差保留噪声限制。K1风险近乎不依时间却未区分峰与末态。",
+  "later_use": "Q固定温时risk一致，Q07/08都.49以峰值解释；Q02/10却预测quench大降，体现同一risk语义不确定的不同采纳。X MAE .03702/risk .05469。K2主动指出未测quench与分段，提出1800+HPLC+900复推荐并取中点，未执行。",
+  "unresolved": "420系列Y实降大于噪声，纯稳定P并行只解释S下降不能直接解释绝对Y下降；候选模型尚未区分。没有低于410源数据，Q11X .79外推不足；无Q真值不当反思为纠正。",
+  "histories": [
+    {
+      "topic": "温度先验修订与时间迁移检验",
+      "sequence": "高温预期→410比420优且430越阈→420时长Y降→v2预告4102700→实际略升分→v3局部支持",
+      "status": "事前预测—实际试验—限定结论链完整"
+    },
+    {
+      "topic": "risk模式未辨别",
+      "sequence": "420多时risk同→K1峰/状态候选→Q温序按峰不降却quench大降→K2指出未测操作不应确证",
+      "status": "未识别变量进入迁移，没有实测纠错"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A score below the 3300 s result would favor retaining batch 2 as the recommendation.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 66,
+        "last_event_id": "runner-operation-0066"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The numerical improvement is small relative to untested process repeatability",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "No rollback was observed in my campaign, including at 430 K."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 72,
+    "rolled_back": 0,
+    "nonfinal_assays": 0,
+    "final_assays": 12,
+    "conversion_mae": 0.037016917,
+    "risk_mae": 0.054694774,
+    "recommendation_retest_score": 0.4368699491,
+    "K2_received_Q_truth": false
+  }
+}

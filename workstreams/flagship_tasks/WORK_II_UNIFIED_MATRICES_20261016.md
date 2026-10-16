@@ -179,7 +179,25 @@ equally; they are descriptive comparisons in these fixed worlds.
   purity MAEs are similar, and MisIndexed has the lowest recovery MAE. Its evidence
   amounts also differ after material exhaustion, requiring process interpretation.
 
-New-cohort notebook explanation histories have not yet been systematically
-interpreted. These quantitative findings do not establish an abduction success
+At the initial quantitative reporting stage, new-cohort notebook explanation
+histories had not yet been systematically interpreted. These findings do not establish an abduction success
 rate, a universal self-confirmation mechanism, or general model rankings. No new
 manuscript/PDF integration has been performed at this reporting stage.
+
+## Process analysis completed, 2026-10-17
+
+All300 effective sessions have now been semantically read, including873 notebook
+versions,31922 public operation records and899 available sealed payloads. One of
+those payloads is an invalid Q; the other missing Q has no payload, so valid sealed
+stages remain898/900 and valid Q remains298/300. All1363 selected quotations verify
+against their public records and version/stage anchors. Extraction and semantic
+reading are recorded separately; this is AI-assisted analysis, not independent
+human coding or a cohort-wide abduction success rate.
+
+The [complete process synthesis](reports/unified-matrices-20261016/PROCESS_REVIEW.md)
+organizes prospective testing, bounded local relations, revision, later use and
+mistaken reconstruction across systems, with counterexamples and actual execution
+semantics retained. It identifies conditional experiments for stronger causal
+claims but does not require another coverage matrix for the present process claim.
+No new participant or simulator call, outcome replacement or manuscript edit was
+made during this analysis. Existing150 remain separate evidence cohorts.

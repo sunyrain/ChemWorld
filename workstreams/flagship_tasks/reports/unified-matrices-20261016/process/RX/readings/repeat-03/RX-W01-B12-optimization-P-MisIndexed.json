@@ -1,0 +1,96 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-MisIndexed",
+    "cell": "RX-W01--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed高温侧可靠先验与B乙腈参考，初始额外推420K应低于安全限；目标优化。",
+  "expectations": "v1温度/时间tradeoff；v2在六批后明确拒高温方向，并预言更低温若score下降可夹定最优；v3按370/360K下降改宽窗口。",
+  "tests_and_observations": "84操作全committed、12近终点HPLC与12final；固定材料仅变温度/时间。420/410/418/400/390/380/370/360K3300s score .2915/.3306/.3010/.3682/.3902/.4047/.3994/.3909；418 risk .3484、420 .3581但均提交。380K2700/4200/2400/2700s得分.4081/.3845/.4121/.4023。重复2700s差.0057，大于2400比首次2700领先.0040；推荐2400s复测score .39921。",
+  "revisions": "v2真正在Q前拒先验，继续低温却score降低后避免换成另一单调信念；时间扫描支持长时增加副产/降解。分配后半预算为固定配方时间精修，没有承诺的类别screen；最终如实保留未识别。",
+  "later_use": "Q保留已测420/390K锚点，未把risk超限当回滚；无quench源记录而将Q02/10 risk保持.358/.515，Q07/08同.61，峰值假说未辨识。Q04/07/08/12的score lower80负数，正式prediction_evaluation invalid_prediction_interval；不把该场悄然排除或手工修复成有效MAE。",
+  "unresolved": "K2无真值承认负score区间为边界不确定，但未修改封存Q。文本说高温区间允许rollback，X区间仍近1；候选网络非唯一。所有HPLC与final几乎同时间，非动力学时序。复测最优分数下降需保留。",
+  "histories": [
+    {
+      "topic": "先验到有界局部关系",
+      "sequence": "初始高温方向→前六批同步拒绝→预期再降温可能夹定→370/360下降→时长重复限制精确最优",
+      "status": "contemporaneous_conditional_revision"
+    },
+    {
+      "topic": "输出契约失效",
+      "sequence": "高温未知score→负lower80→整个Q正式无效→K2承认但不改sealed",
+      "status": "invalid_forecast_preserved_not_silent_repair"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A substantial score decrease at the next lower temperature would bracket the optimum.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 42,
+        "last_event_id": "runner-operation-0042"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Two 2700 s batches scored 0.4081 and 0.4023",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "assume the reported risk retains the preceding thermal hazard",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "The paired HPLC and final assay occurred at essentially the same reaction time"
+    },
+    {
+      "stage": "K2",
+      "quote": "I also allowed negative lower score bounds in several extrapolations"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 12,
+    "all_hplc_near_final": true,
+    "prediction_evaluation_valid": false,
+    "prediction_failure": "invalid_prediction_interval",
+    "negative_score_intervals": [
+      "Q04",
+      "Q07",
+      "Q08",
+      "Q12"
+    ],
+    "sealed_K2_has_Q_truth": false
+  }
+}

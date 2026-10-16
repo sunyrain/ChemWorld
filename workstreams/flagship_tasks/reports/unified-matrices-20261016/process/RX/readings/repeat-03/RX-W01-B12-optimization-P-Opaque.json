@@ -1,0 +1,78 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-Opaque",
+    "cell": "RX-W01--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque自主选择最大.04mol试剂/.005mol催化/.08L溶剂、400rpm；无先验配方，认为大稀释共同尺度实用但未比较。",
+  "expectations": "仅起止两笔记；v1预期中等热剂量最佳、先筛类别再升温；中途解释变更来自K1/K2回顾，不能当同期记录。",
+  "tests_and_observations": "84操作全committed、12近终点HPLC、12final。首四批多因子screen，后补B四溶剂370K3600s匹配：水/乙醇/乙腈/甲苯score .2062/.2419/.2952/.2576；B/C在乙腈、B/D在甲苯有匹配对照，A热史不同。B乙腈370/375/385/400K3600s score .2952/.2891/.2900/.2664，385K延至5400s yield .5987→.5772、X .8691→.9459、score .2624。380K3000s .2935近leader .2952；推荐复测.29240。",
+  "revisions": "K1/终笔记保留宽窗口和无精确重复，承认初始类别混杂；说明HPLC不推进时间，不能把近终点HPLC/final差视为继续反应。K1尚称score方程未识别，Q形成明确代数映射。",
+  "later_use": "Q按催化浓度变化提高X，conversion MAE .00969；高温损失和风险外推偏大，risk MAE .22319、score .16797。未测quench却假设风险不能消除甚至加handling；Q07/08累计risk同.86。Q声称从12源行exactly recovered score=-.1+.4yield+.25sel+.1X-.45risk，确实残差<2.1e-8，但源cost全部显示1，冻结真实式是-.1*cost，固定截距不可迁移到Q小尺度。",
+  "unresolved": "精确拟合不等于识别一般score法则，尤其constant cost造成截距混同；不把全部score错归此单因素。末段局部失败可来自化学、风险、成本域迁移不同环节。无quench、分段、载量对照、源重复；K2无真值提出时间测量未执行。",
+  "histories": [
+    {
+      "topic": "混杂设计补充",
+      "sequence": "多因子类别搜索→B固定四溶剂→部分催化匹配→局部热史窗口",
+      "status": "partial_control_repair_without_full_factorial"
+    },
+    {
+      "topic": "精确局部式与域迁移",
+      "sequence": "K1 score未知→Q在cost恒1的源样本拟合精确式→直接用常数-.1预测新尺度→遗漏变化的cost语义",
+      "status": "exact_local_empirical_relation_not_identified_global_law"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Catalyst and solvent effects are partly confounded in the initial four-pair screen.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Because measurement did not advance the simulated chemistry, these differences are best attributed to independent instrument noise"
+    },
+    {
+      "stage": "Q",
+      "quote": "Scores used the empirical relationship recovered exactly from the completed batches:"
+    },
+    {
+      "stage": "K2",
+      "quote": "The exact empirical score relationship was identified only when preparing the blind predictions:"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 12,
+    "all_source_costs_clipped_one": true,
+    "source_exact_repeats": false,
+    "sealed_K2_has_Q_truth": false
+  }
+}

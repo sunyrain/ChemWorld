@@ -1,0 +1,88 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-MisIndexed",
+    "cell": "RX-W02--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 93,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标；MisIndexed低温安全方向及420 K参考；不默认经验错误。",
+  "expectations": "v1候选分支/降解/失活，计划中测与quench；v2四催化后承认跨仪器混杂并预告温度/短时/淬灭。",
+  "tests_and_observations": "93操作全提交、12HPLC/12终检。前7批1650+1650s夹HPLC，X/Y增S降；400–430 K Y继续升.598→.674、score.360→.339、risk.209→.357，不出现Y峰。b8/b9同410K2475s+HPLC，b8直接终止，b9quench+825s wait；risk .265→.1095，末Y .58036 vs .57501小差。",
+  "revisions": "K1明确未观察Y峰；区分低温safe-score与高温yield。v3写wait保留读数不变，K1进一步明说不是新化学观测，故不能用wait返回原HPLC当实时证明停止；终检可支持无大损失。",
+  "later_use": "Q采用淬灭化学近不变、risk下降，短时risk仍高，温序Q08更差S但冷后risk下降。X MAE .01056、risk .02253、score .03249；推荐复测score .39152/Y .57038/risk .10950。K2选催化中加干预但未执行，承认冷却heat与quench不可等价直接推。",
+  "unresolved": "没有完整唯一机制识别；绝对Y未降，平行变分支候选合理。K2称460K超原合法heat范围是接口范围混淆（direct heat250–520，configure250–430），但Q未据此预测rollback，不能混同前例造成预测崩溃。quench对照含后wait，且中HPLC取4%体积；冻结quench是明确停化学标志并非单纯慢速。",
+  "histories": [
+    {
+      "topic": "淬灭前后证据状态辨认",
+      "sequence": "匹配短时源对照→quench直接risk下降→wait返回旧读数→K1明确旧测量→后终检近参照→Q转移操作关系",
+      "status": "物理risk有直接证据；单步wait不含新化学证据"
+    },
+    {
+      "topic": "未出现内峰后的修订",
+      "sequence": "事前有限温时最优候选→温度yield一直增/score降→K1分离kinetic optimum与安全最优→仍作局部推荐",
+      "status": "反对强行把不安全或score降解释成yield降"
+    },
+    {
+      "topic": "反省本身引入接口误述",
+      "sequence": "Q高温预测正常高X→K2称Q12超合法范围→核对实际heat上限520K",
+      "status": "K2自评不是验证或真值，不把后出的误述归作先前预测原因"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "K1",
+      "quote": "The HPLC readout displayed during the subsequent wait was a retained prior measurement, not a new chemical observation."
+    },
+    {
+      "stage": "K1",
+      "quote": "There was no observed yield maximum through 430 K"
+    },
+    {
+      "stage": "Q",
+      "quote": "most thermal risk arose during the initial ramp",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "K2",
+      "quote": "even above the original legal heating range"
+    },
+    {
+      "stage": "K2",
+      "quote": "no ordinary cooling-stage experiment"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 93,
+    "failed": 0,
+    "hplc": 12,
+    "quench": 1,
+    "postquench_wait_s": 825,
+    "unsafe_batch": 7,
+    "K2_has_query_truth": false,
+    "quench_is_stop_flag_and_clock_not_exposure": true,
+    "controller_range_not_direct_heat_range": true
+  }
+}

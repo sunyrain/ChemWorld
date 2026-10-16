@@ -1,0 +1,84 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-Opaque",
+    "cell": "RX-W03--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "无过程先验；发现机制任务，自选.04mol/.08L/.005mol和500rpm，以乙腈350K1800s四催化起步。",
+  "expectations": "v1预期热激活与长热降解、催化/溶剂交互及淬灭保留，声称计划重复；v2由B领先安排热/时扫描及未淬灭等待。",
+  "tests_and_observations": "96操作全提交，12HPLC/12final，11quench，零精确重复。乙腈B330/350/370/390K1800 Y .395/.509/.633/.693，无所测峰；350K600成功且X .280/Y .240。350K3600后HPLC X .852/Y .620/S .697，成功wait1800降37.6K，final .942/.578/.619，by .234→.363。随后350K四溶剂同条件；所有final cost1。",
+  "revisions": "v3正确把温度峰留未定位；由真实未淬灭wait提出持续转化/选择性损失，注明跨仪器和无匹配quench限制。K2进一步区分未反证淬灭与已证明淬灭。K1/K2也误把23.57s quench账面时长解释为可能化学进展，冻结实现实际不推进ODE。",
+  "later_use": "Q高热高loading预测X近饱和，MAE .00467；P→D机制进入Q07/08次序效应但源无分段。Q淬灭微小化学变化沿用错误quench语义；risk外推MAE .12253。K2建议匹配350K3600立即quench，未执行、无Q真值；建议能补wait因果控制而非已完成纠错。",
+  "unresolved": "等待确实成功推进与冷却，不等恒温；跨仪器变化大且一致支持定性持续演化，缺匹配同仪器不定量归因。无重复、无交互，单点材料排序不能扩到其他温度。",
+  "histories": [
+    {
+      "topic": "热峰与边界",
+      "sequence": "初始中间峰预期→330–390Y持续增→v3明确peak unresolved→K1仅预期范围外峰→Q按损失机制外推",
+      "status": "未预设见峰，范围自限后仍有远距外推"
+    },
+    {
+      "topic": "未淬灭等待解释",
+      "sequence": "v1终止假设→350K3600+HPLC→成功wait1800→final明显X升/S降→v3/K1持续反应解释→K2提出匹配立即quench",
+      "status": "有同期操作与解释；因果定量仍待匹配对照"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "H1 [supported in tested range; peak unresolved]",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "A truly matched 3600 s immediate-quench control was not run"
+    },
+    {
+      "stage": "K2",
+      "quote": "I would not perform it now; this is only the proposed design."
+    },
+    {
+      "stage": "Q",
+      "quote": "This ordering effect is mechanistic extrapolation",
+      "query_id": "Q08"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 96,
+    "rolled_back": 0,
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "conversion_mae": 0.0046735865,
+    "risk_mae": 0.1225348022,
+    "recommendation_retest_score": 0.3658302426,
+    "quench_time_is_not_ODE_time": true,
+    "K2_received_Q_truth": false
+  }
+}

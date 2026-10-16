@@ -1,0 +1,106 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Opaque",
+    "cell": "RX-W01--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "public_operations": 88,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现任务，Opaque无世界模型。自主固定水0.08 L、试剂0.04 mol、催化剂0.005 mol、500 rpm；任务提示涉及淬灭/终止，但未提供其结果。",
+  "expectations": "v1已提出淬灭可能停止反应；v2在4催化剂筛选后写温度/时间预期；v3提出即时淬灭与未淬灭等待；v4在batch11显示冷却仍反应后，事前预测batch12淬灭后等长等待若停止反应则conversion约0.42而非0.62。",
+  "tests_and_observations": "88动作全提交。四催化剂360K1800s同条件；B水330/390/420K1800s；390K600/3600s；390K1800s即时淬灭；同加热后等待1800s；淬灭后等待1800s。笔记cursor0/28/63/79/88。直接终止batch6 conversion0.41718/yield0.31666/deg0.01414；未淬灭等待batch11冷却44.31K，conversion0.61847/yield0.41778/deg0.05233；即时淬灭batch10 conversion0.41832/yield0.29303；淬灭后等待batch12 conversion0.42724/yield0.30652/deg0.01561。淬灭45K降温约55s，且后续wait温度不变。",
+  "revisions": "v4由未淬灭冷却仍继续反应更新热历史解释；下一批在事前预测后验证淬灭等待基本保持化学终点，v5把淬灭操作下的反应抑制列为强支持。K1仍保留并行支路、产物降解、催化失活等候选，承认尚无目标产物随时间下降的直接证据。",
+  "later_use": "Q把淬灭后末态风险降低及化学基本不变迁移到乙腈小体积新条件，并预计Q07/Q08末态风险差异0.67/0.20；参考0.4353/0.2050。源从未采乙腈，Q总体仍有yield MAE0.18893、conversion MAE0.10561、risk MAE0.11767。推荐batch11等待方案，复测score0.23177、yield0.41031。形成局部关系并不保证域外数值准确。",
+  "unresolved": "淬灭前后的温度轨迹未严格匹配；batch12与11同时改变淬灭状态和冷却轨迹，所以参与者所称不只是冷却的唯一解释并未被此设计完全识别。可以说操作性抑制后续变化获得支持，不能把完全非热的化学停止机制定为已证明。v4有同期预期，但不应借其自称preregistered误称研究者正式预注册。",
+  "histories": [
+    {
+      "name": "停止加热不等于停止反应",
+      "sequence": "热时间解释→matched直接终止vs冷却等待→降温44K仍明显反应→改为完整热历史",
+      "evidence_status": "supported_local_relationship"
+    },
+    {
+      "name": "前瞻性淬灭等待判别",
+      "sequence": "v4预期0.42 vs0.62→第12批淬灭等待→实际0.427→v5支持反应抑制→Q采用于新操作",
+      "evidence_status": "prospective_test_supports_operation_level_relation_not_unique_nonthermal_mechanism"
+    },
+    {
+      "name": "清楚的局部解释与域外误差并存",
+      "sequence": "水中受控终止/等待→K1明确材料边界→Q移至未校准乙腈/尺度/载量→较宽区间仍漏真值",
+      "evidence_status": "successful_local_inference_with_limited_transfer"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "If quench arrests chemistry, final conversion should remain near the quenched/direct-termination region (~0.42) rather than the unquenched-wait value (~0.62), and degradation should remain low.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 79,
+        "last_event_id": "runner-operation-0079"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Thus quench arrests the reactive network in this scope rather than merely providing equivalent passive cooling.",
+      "revision": 5,
+      "public_cursor": {
+        "event_count": 88,
+        "last_event_id": "runner-operation-0088"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Because temperature and elapsed cooling time changed together, the experiment does not locate the precise temperature window responsible for this conversion."
+    },
+    {
+      "stage": "K1",
+      "quote": "Therefore, quenching changes more than the thermal trajectory: operationally, it suppresses the reactive network to nearly zero on the timescale tested."
+    },
+    {
+      "stage": "Q",
+      "quote": "Ending at 390 K should give a much lower terminal safety-risk reading than ending at 450 K.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "Yield continued to rise through Batch 9, so there was no direct observation of P decreasing with time."
+    },
+    {
+      "stage": "K2",
+      "quote": "The point model effectively assumed that these changes caused only moderate kinetic scaling and did not reverse selectivity trends. That assumption had no direct experimental support."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "K2_has_truth_feedback": false,
+    "source_solvents_tested": [
+      "water"
+    ],
+    "posttest_solvent": "acetonitrile"
+  }
+}

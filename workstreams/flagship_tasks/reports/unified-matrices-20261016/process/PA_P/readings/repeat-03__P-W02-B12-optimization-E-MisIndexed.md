@@ -1,0 +1,51 @@
+# 达标局部流程形成后，库存拒绝却被解释为S2材料不稳定并持续进入Q
+
+`repeat-03/P-W02-B12-optimization-E-MisIndexed`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-03__P-W02-B12-optimization-E-MisIndexed.json)
+
+## 问题与先验
+
+错配资料偏好X0。前五批两份原料导致库存额外消耗；上游HPLC在额外后续热处理之前，催化剂筛选的测量阶段是350K1800s，不能混用终检热历史。
+
+## 预期与实验
+
+C3S1无额外component的1800s流程达到纯度0.861/回收0.0334；3600s上游产率0.198高于0.122，但减半洗量后的终检0.727/0.0585。v2/cursor116计划测试S2/S3并进一步优化S1。
+
+## 实际证据
+
+第8批事件0117初始原料已stock_limit拒绝，0120加热has_material拒绝，0121近空白HPLC发生于没有反应物的容器；不是S2加热后物料损失。随后连续终检失败最终丢弃，后四批也空白。
+
+## 修订
+
+v3同时承认共享库存耗尽，又写S2在350K3600s不能保留物料并标disconfirmed/unsafe scope。K1进一步把它纳入温度×溶剂保留耦合、挥发/分解候选，K2坚持该失败限制跨溶剂迁移，未消除内部矛盾。
+
+## 后续采用
+
+Q明确因only campaign S2 batch lost terminable material放宽所有S2查询不确定性；K2仍说batch8给出S2损失的具体担忧。错误从操作失败进入材料解释和后续判断，非单句笔误。有效C3S1达标流程仍可作为局部正向成果。
+
+## 未解决问题及解释限制
+
+C3S1上游时长对照是真实的，洗量比较与时间混杂，未隔离洗涤法则。推荐未重复，不代表全局最优。K2补component实验把同种原料命令继续视为特殊成分，需与已知执行语义区分；该提案未执行。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 116, 'last_event_id': 'runner-operation-0116'}
+
+> Screen S2 and S3 with C3/no added component at 3600 s
+
+事件：runner-operation-0117, runner-operation-0120, runner-operation-0121
+
+v3 / cursor {'event_count': 154, 'last_event_id': 'runner-operation-0154'}
+
+> S2 at 350 K for 3600 s did not preserve terminable material
+
+Q
+
+> the only campaign S2 batch lost terminable material
+
+K2
+
+> batch 8 gives a concrete reason to fear material loss in S2.

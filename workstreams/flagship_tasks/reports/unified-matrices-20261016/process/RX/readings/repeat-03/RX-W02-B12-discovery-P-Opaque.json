@@ -1,0 +1,111 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-Opaque",
+    "cell": "RX-W02--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque无材料规律先验；解释为主、safe score为次。自主选A/乙腈360K1800s基线，40mmol/80mL/5mmol催化、500rpm；目标区分温时、材料与淬灭关系。",
+  "expectations": "首记提出热活化、晚期竞争、材料效应与quench保全，未把目标下降或失活当已知。三点时序与温度序列用于建立局部速率，随后据材料屏选B继续。",
+  "tests_and_observations": "85操作全提交、12HPLC/12终检。A/乙腈360K600/1800/3600s X .1103/.3200/.5301，对应k约1.95/2.14/2.10e-4；Y继续增加而S下降，未见绝对P下降。340/360/380K1800s X .2332/.3200/.4155，Y仍增加。匹配四催化B最高X/Y、C最高S；B360K3600s水/乙醇/甲苯Y .3283/.3268/.3364、水S .6785最高。b12重复水+B并quench，预淬灭HPLC已与b9不同，终检Y .3091 vs .3283；risk .12346降.11218。",
+  "revisions": "v2将峰值标为未定位、按B较优转溶剂比较；v3/K1将quench化学收益降为未决，正确注意预淬灭批间差和缺少B乙腈3600匹配。但又把quench的58s记账时长视为化学暴露混杂，冻结语义不支持。K2明确S下降不证明P分解，稳定k不证明全局无失活，补提同批两时点追踪未执行。",
+  "later_use": "K1局部一阶关系进入全部Q，X MAE .01829且coverage1。Q把340–380K局部heat风险外推为强温度/平方根时间关系、quench降幅极小，risk MAE .23302、score .10883；未直接测试高温小尺度。推荐水/B360K3600s无quench，复测score .18630/risk .12346。K2无新真值却承认K1限域与Q部分窄区间不一致。",
+  "unresolved": "不同材料同时间不同X/S不充分排除公共反应时钟；源时序未见P下降，平行与顺序仍未辨。只在K2提出更具判别力的同批长时测量，不计为已执行。K2不构成验证后纠错。",
+  "histories": [
+    {
+      "topic": "局部动力学与未定位峰",
+      "sequence": "事前时温设计→三时点k近恒/Y递增→v2不认定峰或失活→K1局部一阶→Q跨温度/尺度转化较准，K2重申范围",
+      "status": "支持局部关系，后测准确不等于唯一机制识别"
+    },
+    {
+      "topic": "淬灭与证据范围",
+      "sequence": "预期保全→b9/b12预淬灭已不同→v3/K1不归因化学增损→明确风险降低→K2同时引入未被运行语义支持的冷却化学暴露",
+      "status": "主动限缩与时钟语义误解并存"
+    },
+    {
+      "topic": "风险形式外推",
+      "sequence": "340–380K源risk→Q强温度和平方根时长外推→risk较大误差→K2承认未拟合且区间脆弱",
+      "status": "终点反思无新反馈；未证实纠错"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "does not yet locate a yield maximum",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Pre-quench HPLC values also differed between batches",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Acetonitrile was not tested with Catalyst B at 3600 s"
+    },
+    {
+      "stage": "K1",
+      "quote": "The apparent quench effect is confounded by pre-quench batch variation and finite cooling time."
+    },
+    {
+      "stage": "Q",
+      "quote": "Safety estimates extrapolate the steep temperature and square-root-like duration dependence seen in the heat operations."
+    },
+    {
+      "stage": "K2",
+      "quote": "the campaign did not directly show an absolute decline in target amount during a hold."
+    },
+    {
+      "stage": "K2",
+      "quote": "That is a calibration failure in the predictions, not a change to the sealed K1 account."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 85,
+    "committed": 85,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 1,
+    "failure_count": 0,
+    "quench_semantics": "58.21s/cost不是化学ODE暴露；quench降45K，停止后续反应。",
+    "Q": "12题全读，全协议有效；无真值反馈给K2",
+    "prediction_mae": {
+      "conversion": 0.0182903,
+      "yield": 0.0631027,
+      "selectivity": 0.0561976,
+      "risk": 0.2330223,
+      "score": 0.1088316
+    }
+  }
+}

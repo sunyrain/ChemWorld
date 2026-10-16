@@ -1,0 +1,82 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-MisIndexed",
+    "cell": "RX-W03--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "高温侧更平衡的MisIndexed水B420K3300先验；机制优先，以热/时、四催化、无催化和溶剂对照为计划。",
+  "expectations": "v1预期400或1800欠转化、430/6000增损；v2经温度和短热失败修订，安排较安全400K长时和材料筛选，提出早停quench后果。",
+  "tests_and_observations": "95次操作93提交2回滚；12HPLC/12final。首3批1650+HPLC+1650成功，430risk .3582越任务阈值但提交。第4批900s两heat(0028/0030)均回滚、未进时温；v2/v3剔除动力学。400K3000HPLC Y.7559继续到6000 final .6804；无催化无失败add，X .2231/Y0。乙腈400K3300 Y.6144低水.7622。最后2400+quench Y.7637/S.8681/risk.1046。",
+  "revisions": "高温先验被实证否定；成功热历史与失败命令分离保持到K1/K2。解释由长时产物损失进入提前结束候选。但最后短时+quench同时改变，K1称quench保存化学过强，源并未单独隔离淬灭效应；risk下降可直接核对。",
+  "later_use": "Q以乙腈400点和水热时系列外推；没有把430超阈值当自动回滚，risk Q01/05/06同.36、温序末温定risk，X MAE .00561/risk .04975。Q07/08机制次序尚无直接源测试。K2提出3000s final+quench以同仪器补时间对照，未执行。",
+  "unresolved": "纯并行/连续路径未唯一定义；HPLC/终检同指标不同噪声，不应机械视不同标定偏差。化学早停收益与quench并未分离，K2也承认未复制/未相邻括定。",
+  "histories": [
+    {
+      "topic": "失败热操作正确归类",
+      "sequence": "900s两次回滚无时温推进→v2明确非1800s动力学→更长可行时长→v3/K1/K2坚持此边界",
+      "status": "完整正向执行语义解释，与误认诱导期轨迹可对照"
+    },
+    {
+      "topic": "损失解释指导早停试验",
+      "sequence": "长时Y降低/S下降→v2提较早quench→最后2400s+quench→局部Y近等但S/risk提升→K1采用操作规则",
+      "status": "联合策略预测获得部分支持；不能分离quench化学效应"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "that batch is a boundary-control failure, not kinetic evidence at 1800 s.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Quenching simultaneously improved chemical preservation and safety in Batch 12."
+    },
+    {
+      "stage": "K2",
+      "quote": "The original choice of two 900 s segments was based on an unvalidated assumption"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 95,
+    "rolled_back": 2,
+    "rollback_ids": [
+      "runner-operation-0028",
+      "runner-operation-0030"
+    ],
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "conversion_mae": 0.00561313,
+    "risk_mae": 0.04974782,
+    "recommendation_retest_score": 0.4925979972,
+    "K2_received_Q_truth": false
+  }
+}

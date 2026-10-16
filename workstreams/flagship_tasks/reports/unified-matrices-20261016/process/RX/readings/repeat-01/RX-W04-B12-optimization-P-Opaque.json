@@ -1,0 +1,86 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-Opaque",
+    "cell": "RX-W04--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque无专门动力学包；自主选择满量80mL/.04mol/.005mol、氮气常压控制、330 K分类筛选，再在甲苯/B升温延时优化。",
+  "expectations": "v1预期中温优极端且需风险余量；v2在7批后明确甲苯和乙腈近并列未定，仍按point best走甲苯；v3终点为best observed而非确定温峰。",
+  "tests_and_observations": "84操作全提交；12configure+heat+final，0HPLC/quench/重复。水3301800匹配A/B/C/D，B最好；B四溶剂乙腈/甲苯score .2032/.2063。甲苯330/350/3701800 Y .3485/.4961/.6044；3501800→3600 Y .4961→.6254而S .8067→.7625，不能据此证明绝对P损失；3702700最后score .3548。",
+  "revisions": "K1由分类差异提出活性与分支两维、并行+连续模型并明确未拟合；K2承认中温最优尚未看到下降侧、hotter-shorter混温时，乙腈近并列却未再测。",
+  "later_use": "Q把P损失模型迁移温序预测Q08 Y .34 > Q07 .20；未测quench却给Q02/10小risk增加(.39>.37,.38>.36)，与真实降温方向相反。K2明确说这些推断无证据，且近1的X区间没充分体现尺度/控制变化。推荐复测score .3477924466。",
+  "unresolved": "没有直接的绝对产物下降或顺序对照；热/时间/scale未统一；K2建议甲苯→乙腈3702700+HPLC不是已执行。",
+  "histories": [
+    {
+      "topic": "近并列结果组织后续资源",
+      "sequence": "两溶剂近并列被v2明说→仅甲苯继续五批→K1限域→K2承认弱排序决定路线",
+      "status": "documented_selection_with_acknowledged_uncertainty"
+    },
+    {
+      "topic": "候选机制数值化",
+      "sequence": "endpoint time trends→未鉴别P损失模型→Q温序/极端预测→K2承认置信过窄",
+      "status": "unvalidated_mechanistic_transfer"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Because the score difference is small relative to assay uncertainty and lacks repeats, the solvent-2/3 ranking is unresolved.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 49,
+        "last_event_id": "runner-operation-0049"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "I nevertheless selected toluene for subsequent optimization because its point score was slightly higher."
+    },
+    {
+      "stage": "Q",
+      "quote": "I assign a small additional handling-risk and score penalty",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "No studied condition revealed the descending side of a temperature optimum."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 84,
+    "rollbacks": 0,
+    "hplc": 0,
+    "final_assays": 12,
+    "quench": 0,
+    "Y_mae": 0.2227043982,
+    "X_mae": 0.0068772495,
+    "risk_mae": 0.1390081825,
+    "recommendation_score": 0.3477924466,
+    "K1_Q_K2_valid": true,
+    "caution": "configure_control后使用heat，非advance_control；所有初始控制字段及80mL尺度与Q不同；K2未知真值。"
+  }
+}

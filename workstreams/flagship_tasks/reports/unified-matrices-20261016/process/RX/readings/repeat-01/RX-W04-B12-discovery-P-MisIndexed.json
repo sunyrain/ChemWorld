@@ -1,0 +1,92 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-MisIndexed",
+    "cell": "RX-W04--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 87,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "高温有利先验及水B4203300参考，发现目标自主分温时、催化、溶剂、终止史。",
+  "expectations": "v1明确quench可防延迟损失；v2五批后看到4206000 Y跌并限高温安全；v3十批后预告最后4103300立即vs1200wait后quench，明确若wait快速冷却或差小就未决。",
+  "tests_and_observations": "87操作全提交，12HPLC/final、仅末两批quench。4201500/3300/6000 X .8136/.9763/.9978，Y .7141/.7725/.6782；4303300risk .3618、乙腈4203300risk .3659仍成功提交。最后两4103300中点HPLC Y .7685/.7769、S .8238/.7917已不同；立即quench vs wait1200降107.8K再quench，finalY .7884/.7550、S .7923/.7649。",
+  "revisions": "v4及K1承认温史和中点差使quench化学未隔离；实际高温先验拆为转化收益与安全反例，不全盘保留。局部晚期Y损失支持时变机制但不唯一P→D。",
+  "later_use": "Q01近匹配乙腈源，Q02复制化学并用水410risk降.161外推；Q温序用末温risk .47/.21。未误套430法律上限。Q risk MAE .01903、score .04577、Y .07839；K2承认跨溶剂quench幅度及温序未直接验证。推荐复测score .4889745712。",
+  "unresolved": "末两批是实际不同停止过程对照，但不能把变化只归quench；K2下一实验3300+2700同釜未执行。risk threshold任务失败≠transaction failure；本场无回滚。",
+  "histories": [
+    {
+      "topic": "先验拆分与修改",
+      "sequence": "热先验→430提高X/Y却unsafe→v2/v3限域→K1/K2拒hotter完整主张",
+      "status": "empirical_qualification"
+    },
+    {
+      "topic": "前瞻终止历史检验",
+      "sequence": "v3明确预期和否定条件→末两批匹配热史+中点→wait快速降温→v4/K1承认因果不洁净",
+      "status": "prospective_test_with_realized_confound"
+    },
+    {
+      "topic": "后续风险应用",
+      "sequence": "420异时近同risk及quench下降→Q末温/淬灭预测→K2识别跨溶剂幅度不确定",
+      "status": "bounded_response_transfer_not_global_mechanism"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "If the matched final difference is within uncertainty or the wait cools too rapidly, the quench-timing claim will remain unresolved.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 70,
+        "last_event_id": "runner-operation-0070"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "the wait cooled by about 108 K (0084); therefore this does not isolate a hot-hold kinetic constant.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 87,
+        "last_event_id": "runner-operation-0087"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "It was not demonstrated to be globally optimal, locally stationary, statistically superior after replication, or portable across materials and worlds."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 87,
+    "rollbacks": 0,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 2,
+    "Y_mae": 0.0783925082,
+    "X_mae": 0.0268341644,
+    "risk_mae": 0.0190328708,
+    "recommendation_score": 0.4889745712,
+    "K1_Q_K2_valid": true,
+    "caution": "全部成功；风险阈值超限保留。末两批HPLC后quench不改species；成功wait推进且冷却。"
+  }
+}

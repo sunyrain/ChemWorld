@@ -1,0 +1,115 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Opaque",
+    "cell": "RX-W05--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "finding": "局部动力学与淬灭延迟对照形成有效关系，但封存预测超出源实验范围",
+  "trajectory": [
+    "初始笔记先提出热暴露可能提高转换并引入副反应、产率或有内部最优，以及即时淬灭相对于延迟可能保留组成；同时计划催化剂筛选与重复。源实验先比较四催化剂，再以C3比较四溶剂。版本2在事件56后把材料排名限定于360K/1800s，明确安排温时与淬灭时机检验。",
+    "事件60/68/76/84分别实际执行360K600s、360K3600s、330K1800s、390K1800s；加上原批4构成局部温时系列。全部97次操作提交，12次HPLC与12次终检存在。批11/12相同材料与390K1800s，批12在HPLC后增加900s wait再quench，wait实际降温45.089K。末检X .790225→.877345、Y .665546→.705514、S .864734→.801539、副产物 .122024→.198016、降解 .064587→.129242。",
+    "末笔记据该匹配末检支持冷却延迟仍有反应及产率/质量权衡，明确HPLC与终检不是同一校准通道，不能把单批数值差作为动力学曲线。初始计划的精确重复没有实施；K2明确承认，不把12场当重复支持。",
+    "K1首次给出反应网络与近一阶消失关系：360K三点表观k约4.8/5.2/5.2×10^-4 s^-1，并保留并行转化、连续降解、催化剂状态及传质等替代解释。该数学形式不能倒填为源阶段事前拟合。源范围内没有产率下降，K2明确收窄最初内部产率最优的预期。",
+    "Q明确沿用一阶/Arrhenius式、材料与热历史解释，转移至C1、更高催化比例及浓度、370–460K和最长6300s。K2在无真值反馈下主动指出温度范围和热阶段顺序均未经直接检验，区间可能过窄；这只是后测自检，没有改动已封存Q。"
+  ],
+  "later_use": "Q07/08分别给Y .45/.39、风险 .56/.29，以先生成产物的额外暴露与末温解释顺序差；源研究只有热后冷却延迟，没有反向双高温阶段对照。Q12预测近完全转换、Y .10、风险 .75。Q01/02和Q09/10将quench期间继续化学转为Y及S下降：实际冻结quench只更新热/风险/时钟并停止反应，不改变物种量，因此这部分迁移包含操作语义误读。对应有效Q转换MAE .005849、产率 .155774、风险 .100115、分数 .149866，不能由转换准确推定网络或顺序机理已识别。",
+  "limits": [
+    "实际匹配处理是900s被动等待的有无，支持该等待期间继续反应，不能隔离微观反应网络。冻结primitive_services.py:243–294的quench不积分反应、不替换物种量，虽推进时钟却立刻停止反应；K1关于quench期间持续化学的说法不成立。见measurement-semantics/quench-time-not-chemical-exposure.json。",
+    "K1将转换与选择性受不同材料影响解释为至少多通道作用，具有局部经验基础；分子结构、唯一拓扑、催化失活和传质仍未识别。",
+    "终态和热段风险均低于限额，相关安全叙述对本场记录成立；不能外推到450–460K一定安全或必然回滚。",
+    "K2提出先淬灭再等待900s的新增对照未执行，不能作为已有判别结果。"
+  ],
+  "recommendation": "选择批11而非Y与score最高的批12，依据选择性与降解权衡；源Y .665546/score .373488，独立推荐复测Y .678655/score .376958。它是偏好的局部已试点，不是全局最优。",
+  "event_anchors": [
+    4,
+    8,
+    16,
+    24,
+    32,
+    40,
+    48,
+    56,
+    60,
+    64,
+    68,
+    72,
+    76,
+    80,
+    84,
+    88,
+    92,
+    93,
+    94,
+    95,
+    97
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prompt quenching should preserve the composition at termination",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Prompt-quench versus delayed/unquenched handling remains to be tested.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "the matched final-assay comparison carries the interpretation.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "It does not prove an elementary first-order molecular step"
+    },
+    {
+      "stage": "K2",
+      "quote": "My later K1 report appropriately emphasized a yield–quality Pareto tradeoff, but it did not explicitly state strongly enough that the original interior-yield expectation had been weakened."
+    },
+    {
+      "stage": "Q",
+      "quote": "temperature dependence was transferred cautiously from the catalyst-D time and temperature series."
+    },
+    {
+      "stage": "K2",
+      "quote": "This is in tension with K1’s explicit statement that behavior outside 330–390 K and 600–3600 s was unsupported."
+    }
+  ]
+}

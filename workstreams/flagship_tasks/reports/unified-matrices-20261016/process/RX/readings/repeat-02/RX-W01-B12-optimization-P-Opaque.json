@@ -1,0 +1,84 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-Opaque",
+    "cell": "RX-W01--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque只提供匿名类别与平台范围；自主选0.04mol/0.08L、500rpm大尺度，在risk .35约束下最大化score。",
+  "expectations": "v1先筛类别，较高温预期增转化但可能损选择性；v2明确早期B高加载与其他类别混杂，提出匹配低加载B；v3预告390 K若不胜370 K则回退。",
+  "tests_and_observations": "72操作全部committed、12终检、无中间仪器。batch1水/A .005mol330K1800s；其余350K3600s屏蔽类别后，batch9补齐B .0005mol乙腈，使A/B/C/D与四溶剂得到匹配比较。B乙腈 .0005/.00075/.001mol yield .0946/.1442/.1725，selectivity .3392/.4205/.4759；B .001mol350/370/390K yield .1725/.2276/.2892，score .0581/.0814/.0991，risk .144/.1661/.2212。推荐390K复测score .10082。",
+  "revisions": "v2承认混杂后确实用batch9补齐，修订为类别改变支路分配而非单一活性；高温未损选择性，修订早期可能下降预期。K1并列并行、共同中间体、顺序损失，终点比值支持组成分配但不识别拓扑。风险K1提出温度积分形式却无时长对照。",
+  "later_use": "Q跨到0.003mol/0.005L/.000525mol，即大幅改变催化剂比例和尺度；虽然文字承认，数值仍基于旧尺度中等转化，conversion MAE .31088、yield .36810且yield coverage0/60；byproduct MAE .05405、coverage60/60。Q07/08设顺序差，Q02/10设淬灭收益，未直接检验；风险按温度-时间累计，MAE .144。",
+  "unresolved": "K2无真值反馈识别尺度/催化浓度未定、区间未落实结构不确定性，提390K分段HPLC未执行。无精确重复、时间梯度或quench。公开成本1是显示截断，非实际执行成本硬上限。批次4与9 B/D差小，不宣称全局类别排序。",
+  "histories": [
+    {
+      "topic": "混杂后的对照补全",
+      "sequence": "B高加载领先→v2承认类别与载量混杂→补B低载量→匹配类别/溶剂比较",
+      "status": "prospective_control_completion"
+    },
+    {
+      "topic": "尺度迁移",
+      "sequence": "局部加载与温度关系建立→K1界定适用域→Q文本承认尺度改变但数值仍低转化→K2自认未分清绝对量与浓度",
+      "status": "local_structure_not_calibrated_cross_scale"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Catalyst loading is confounded with the identity comparison",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 48,
+        "last_event_id": "runner-operation-0048"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "A 390 K target for 3600 s should further raise conversion/yield",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 66,
+        "last_event_id": "runner-operation-0066"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "It cannot be represented merely as a scalar acceleration applied equally to all pathways."
+    },
+    {
+      "stage": "K2",
+      "quote": "I effectively treated absolute catalyst amount and thermal exposure as dominant without knowing whether activity scales with catalyst concentration, catalyst fraction, or absolute amount."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 0,
+    "source_replicates": 0,
+    "sealed_K2_has_Q_truth": false
+  }
+}

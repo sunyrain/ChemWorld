@@ -1,0 +1,96 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-Opaque",
+    "cell": "RX-W02--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 107,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标；Opaque无世界方向/配方，初始计划材料、温时、无催化、分段中测。",
+  "expectations": "v1提出Y可能内峰；v2四催化后选B并预期温时增X但损失S；v3明确修订330–370K未到Y最优；v4拟合局部一阶与S(X)。",
+  "tests_and_observations": "107操作全提交、每批中点HPLC与终检，无quench；.04mol/80mL/.005mol600rpm。B乙腈350K1200/3600/7200s X .2076/.5077/.7525，Y .143/.2888/.3437，S .6726/.5614/.4573，k1.94/1.97/1.94e-4；330/350/370K Y .225/.289/.360，S约.572/.561/.571。无催化X .1823 Y0，证明背景耗料并非目标形成。水低X高S且Y近不变。",
+  "revisions": "事前内峰预期未出现，笔记真实缩小；非把每次增长都认作验证。局部一阶与S=.757−.394X来自后验，范围明确；Y仍增，纯平行变分支/催化失活为可行替代，不应因别场绝对Y下降而排除本场。",
+  "later_use": "Q沿一阶Arrhenius并未测催化比例调整，X MAE .01579覆盖1；风险因小尺度被大幅降低，Q01risk .065/Q04 .13，risk MAE .22394覆盖.25；quench猜微增risk。Q07/08方向又假设早期失活，比其他场反向，文本承认未辨。推荐水批复测Y .28560 score .16892/risk .10970。K2指出高温S惩罚未在源观测到，建议催化补加但未执行。",
+  "unresolved": "局部经验方程的X迁移好不证明机制唯一；HPLC与终检跨仪器噪声、取样0.25%。未测quench/温序/加载，规模risk外推无依据；K2称Q引入1.3 multiplier，公开Q总理由只说上调，不把K2自述作已记录计算。",
+  "histories": [
+    {
+      "topic": "起始内峰假说被限缩",
+      "sequence": "v1 Y内峰候选→温时Y一直增S降→v3承认未达到→v4局部量化关系→Q总X良好迁移但risk差",
+      "status": "有过程修订与关系层面的不同迁移结果"
+    },
+    {
+      "topic": "催化作用的解释形成",
+      "sequence": "四催化筛选B高Y→用B组织后续实验→无催化仍耗料但Y近零→分离背景耗料和催化目标通路",
+      "status": "有源对照，不等于识别分子机制"
+    },
+    {
+      "topic": "同一转换中的选择性解释",
+      "sequence": "温时联合数据→S(X)局部式→Q高温另加S惩罚与温序记忆→K2承认高温S趋势未见",
+      "status": "明确区分可用局部关系与假设性外推"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "The initially proposed yield optimum was not reached in this temperature interval",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The catalyst-free control still converted reactant",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 107,
+        "last_event_id": "runner-operation-0107"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "S approximately equals 0.757 - 0.394 X"
+    },
+    {
+      "stage": "Q",
+      "quote": "Safety risk accounts qualitatively for temperature, duration, the much smaller material scale"
+    },
+    {
+      "stage": "K2",
+      "quote": "that was an extrapolative assumption, not an observed continuation."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 107,
+    "failed": 0,
+    "hplc": 12,
+    "quench": 0,
+    "no_catalyst_control": 12,
+    "K2_has_query_truth": false,
+    "source_cost_catalyzed_all_one": true
+  }
+}

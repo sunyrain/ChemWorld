@@ -1,0 +1,93 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-Aligned",
+    "cell": "RX-W04--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标，Aligned给出420 K/3300 s邻域低温侧更可靠的局部先验及观察到温度回滚时的解释规则。起始H1已包含有限最优与竞争/损失候选，H2比较催化剂，H3匹配淬灭。四版笔记游标0/21/56/85。",
+  "expectations": "v2在三个温度批之后事前预测410 K缩至1800 s降低转化/副产物，延至5000 s转化收益小、选择性/降解恶化，并明确反证条件。v3保留淬灭候选并安排材料筛选和匹配测试。",
+  "tests_and_observations": "85操作全部提交，12批/12HPLC/12终检，无回滚。水/C1/3300s的390/410/420K：X .908784/.970664/.971273，S .822652/.808475/.803173，Y .739675/.767428/.774529，risk .168133/.272708/.324624。410K的1800/3300/5000s：X .821292/.970664/.993988，S .861013/.808475/.721202，Y .715457/.767428/.746427，降解 .044946/.105200/.176805，risk .271907/.272708/.272784。共同410K/3300s催化剂筛选以及390K/3300s溶剂筛选实际执行。末批重复参考并加quench，risk .272708→.112125，末Y .773531/S .819701，源score .489459。",
+  "revisions": "时长预期由后续B4/B5支持，v3明确并行/串行损失仍不可区分；v4将淬灭从可能化学收益收窄为风险控制有支持、化学停止未识别。K1正确从相近时长风险识别即时状态而非累计风险，正确不将跨仪器X倒退解释为真实逆反应。催化剂改变选择性是真实观察，但不同催化剂的转化也不同，尚不能据此唯一排除共同速率倍增的串行网络；其机制断言比观察更强。",
+  "later_use": "Q转移乙腈390K锚点、水温时关系与淬灭状态关系。风险配对 .367→.17、.47→.25；同420K时长1500/3300/5100s风险 .365/.367/.368，顺序风险 .53/.21。X MAE .019003，Y .059975，S .047916，risk .039700，score .041331；分数覆盖60/60，风险55/60。未测440–460K仍预测高转化而非必然回滚。K2无真值反馈提出区间或未体现回滚可能，不能把这自述当成实际发生回滚或应当改低转化的证据。推荐复测score .494350、Y .780234。",
+  "unresolved": "只有一组水410K淬灭对照，无纯重复、动力学曲线、催化剂加载和顺序比较。网络、范围迁移与顺序的化学预期仍是候选。K2建议410K2400s中途HPLC再至5000s后quench，明确仪器及取样混杂；未执行。把总体12次非终检预算描述为每批一次限制，需与实际预算区别。",
+  "histories": [
+    {
+      "question": "有限温度观察能否形成可检验时长解释",
+      "chain": "v2预期短时低转化/长时损失→B4/B5实际比较→v3局部网络候选→Q时长外推",
+      "support": "前瞻与修订真实，未唯一识别网络。"
+    },
+    {
+      "question": "淬灭作用属于何种关系",
+      "chain": "v1/v3候选→B12匹配B1加quench→v4限于风险而保留化学未知→Q采用末态风险",
+      "support": "真实执行与后续使用，风险关系有支持。"
+    }
+  ],
+  "measurement_and_failure_notes": "无温度回滚。HPLC全在整段heat后；终检之前除末批quench无额外反应操作，不把仪器差当动力学。quench更新时钟但不积分化学。Q03相近源B10却转速350→400且无HPLC，成本不同。初始已有有限最优，K1不是从纯单调假设首次发现竞争。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prediction before duration tests",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 21,
+        "last_event_id": "runner-operation-0021"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "these data do not uniquely distinguish the topology",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "supported for safety; chemical arrest unresolved",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "dominated by instantaneous thermal/material state"
+    },
+    {
+      "stage": "Q",
+      "quote": "Batch 12 showed that quenching largely preserved chemical performance",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "The rollback claim remained untested during the campaign."
+    }
+  ]
+}

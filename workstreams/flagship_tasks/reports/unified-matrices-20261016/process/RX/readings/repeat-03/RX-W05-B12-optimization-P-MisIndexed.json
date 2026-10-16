@@ -1,0 +1,128 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-optimization-P-MisIndexed",
+    "cell": "RX-W05--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化目标MisIndexed，同420K高温侧安全平衡偏好及处理已观察rollback提醒；四版笔记0/35/70/84。固定.003mol/.0075L/.000525mol、600rpm。",
+  "expectations": "v1要求比较高温是否较冷更好；v2在380–420K扫描后明确撤回高温偏好，预告390K2400s减分而4200s增转换但可能增副产；v3根据匹配催化剂结果预告D溶剂筛选，后续两批完成乙醇与乙腈。",
+  "tests_and_observations": "84动作全部提交、12HPLC/终检；没有quench、温度回滚、真实热中途测量或精确重复。D水3300s按380/390/400/410/420K分数.4585/.4617/.4493/.4288/.3986，风险.1047/.1353/.1813/.2372/.2898。390K2400/3300/4200s X.8116/.9061/.9398、Y.7146/.7469/.7520、Sel.8704/.8292/.7784，score.4506/.4617/.4536；风险仅.1348–.1355。390K3300s水催化剂D/B/A/C分数.4617/.4324/.4291/.3235；D水/乙醇/乙腈.4617/.4052/.4229，甲苯未测。",
+  "revisions": "这是过程内真实撤回错误先验并调整下一行动的强例：v2在event35直接标rejected，随后时间判别结果和末段材料筛选进入v3/v4/K1，局部最优仍未定。终点网络R→P/R→B/P→D为现象候选，产率随时间未下降，不唯一辨识产物损失。K1/K2宣称统一速率倍乘不可能导致转换/选择性同变过强：在含后继反应的网络中同倍速相当于时间重标度，同样可改变两者；不能把该候选排除当确证。",
+  "later_use": "推荐4评价复测Y.745320/score.463472。Q04/09/10/12将440–460K heat视作超430K硬边界回滚，Y.003/X.005、很窄区间；Q07/08都删除450K段。这与保留公共契约不符：本场trajectory step4 agent_view公开heat最高470K，configure_control才是430K。不是亲见失败，也不是研究与Q协议换界，具体表现为跨操作边界混用。Q02对淬灭前后risk都.315，将末态risk当峰值，未做淬灭源对照；Q一般混合B水与D乙腈，交互未测。Y MAE.256637、X.390563、score.129434。K2无真值反馈承认回滚条件化区间太窄，但仍未识别heat/configure_control的差别。",
+  "unresolved": "局部有效撤回与后续操作契约误用在同一研究并存；不能把所有后测误差归为错误化学机理或未探索高温。Q是要求做外推，范围之外本身不是失误；此处具体问题是可用操作边界被错配及区间把假定当确定。K2提完全重复4而不是改成时间序列，明确分段取样会改变程序，但该提议未执行；评价者复测不是agent后来获得的证据。",
+  "histories": [
+    {
+      "name": "方向先验的实时撤回和后续研究重定向",
+      "sequence": "v1高温条件性预期→固定3300s温度扫描→v2标rejected并预测390时长→实际两时长→v3材料计划→执行与v4限域推荐",
+      "evidence_status": "prospective_disconfirmation_revision_and_later_action"
+    },
+    {
+      "name": "另一操作的边界替代了可用heat契约",
+      "sequence": "公共heat470/configure_control430→源无rollback→Q错误称heat430并预测近零组成→K2承认未测试但未修正契约错配",
+      "evidence_status": "public_contract_misassignment_controls_blind_predictions"
+    },
+    {
+      "name": "风险受温度主导被扩大为峰值风险",
+      "sequence": "390K时间改变量小、温度变量大→K1候选risk温度主导→Q02未因淬灭降低最终risk",
+      "evidence_status": "unidentified_state_semantics_used_in_forecast"
+    }
+  ],
+  "public_contract_readback": {
+    "retained_file": "trajectory.jsonl",
+    "step": 4,
+    "public_path": "agent_view.tool_json.available_actions[*].schema.fields[target_temperature_K]",
+    "heat_bounds_K": [
+      250,
+      470
+    ],
+    "configure_control_bounds_K": [
+      250,
+      430
+    ],
+    "no_new_simulation": true
+  },
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 4,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "## H1 [rejected in tested scope]",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 35,
+        "last_event_id": "runner-operation-0035"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "at 390 K, 2400 s should reduce yield/score, while 4200 s may raise conversion but could worsen byproduct",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 35,
+        "last_event_id": "runner-operation-0035"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Next I will hold D and screen solvents",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 70,
+        "last_event_id": "runner-operation-0070"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Toluene was not tested, so the solvent conclusion is limited to the three screened solvents.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "The public operating contract bounded heat targets at 430 K",
+      "query_id": "Q04"
+    },
+    {
+      "stage": "Q",
+      "quote": "so it should not undo accumulated conversion or peak safety risk.",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "That interval represented uncertainty conditional on rejection, not uncertainty over the operational semantics themselves."
+    }
+  ]
+}

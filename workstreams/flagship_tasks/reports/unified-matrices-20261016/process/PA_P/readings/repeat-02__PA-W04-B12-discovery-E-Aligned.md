@@ -1,0 +1,49 @@
+# 资料指引的交叉筛选发现配对差异，重复和过程扰动限定了可迁移关系
+
+`repeat-02/PA-W04-B12-discovery-E-Aligned`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-02__PA-W04-B12-discovery-E-Aligned.json)
+
+## 问题与先验
+
+正确但仅含边际信息的资料促使从S2/X0–X3及X2/S0、S1、S3开始。S2/X2并非资料边际优势简单叠加，份额0.493，低于S2/X3的0.615和S3/X2的0.608；这支持测试范围内配对重要，但稀疏七格不足以完整识别交互表。
+
+## 预期与实验
+
+v2/cursor70选择S2/X3为敏感参照，并在实验前列出名义重复/相反保留、相量高低、混合高低。第8批重复有机份额0.600，与原0.615接近，保留水相后最终0.426；低/高相量有机份额0.434/0.797，弱/强混合0.504/0.714。全部后续操作与计划对应，形成了局部知识引导下一行动的可见链条。
+
+## 实际证据
+
+相率低/中/高约0.094/0.178–0.194/0.409，表观系数约7.68/6.80–7.38/5.37，不能以一个常数解释；弱混合、标准重复、强混合显著递增，标准条件未达到已证实平台。速度与时长共同变化，因而只能识别联合效应。高有机量同时杂质增加、纯度下降，已见证据不只是目标份额。
+
+## 修订
+
+v3把相量方向与混合效应保留为支持关系，撤销恒定系数和平台的强解释；还把强混合表观系数称为混合依赖值。K1保留传质、随时间化学变化、非理想性等候选，没有把配对反例简单解释为资料必然错配。
+
+## 后续采用
+
+Q在同一模型中采用相量响应与混合插值，确实让较强混合提高预测；对未测S0/X0和S0/X3仍借助边际资料，并据此选择Q06。K2承认这些边际外推与已发现配对作用有张力；Q所有配方还改变溶剂量并省略研究期加料，故非直接复现。D1选水相，与小有机相份额的判断一致。
+
+## 未解决问题及解释限制
+
+正向发现包括重复支持的局部配对响应、相量方向、标准混合不足及物理保留语义。尚未得到全局相分配定律或解耦速度/时长；K2提出1800 s但100 rpm的鉴别实验尚未执行。该案例不能仅以最终误差替代其已形成的局部认识，也不能把数值插值当普遍定律。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 70, 'last_event_id': 'runner-operation-0070'}
+
+> Use S2–X3 as a sensitive reference pairing for process perturbations, not as a recommendation.
+
+事件：runner-operation-0077, runner-operation-0087, runner-operation-0097
+
+v3 / cursor {'event_count': 120, 'last_event_id': 'runner-operation-0120'}
+
+> the nominal condition had not reached a demonstrated plateau.
+
+事件：runner-operation-0107, runner-operation-0117
+
+K2
+
+> the point estimates—especially the Q06-over-Q05 decision—were pragmatic extrapolations rather than direct consequences of a validated law.

@@ -1,0 +1,100 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-MisIndexed",
+    "cell": "RX-W01--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化任务，与Aligned同配方，但方向称高温侧更可靠。v1将其标为tentative，允许模型偏移，risk越0.35则不推荐。",
+  "expectations": "事前计划固定组成扫描温度/时长再筛物料。仅起始和终末2版笔记，K2中途动因只能作与动作相符的回顾。",
+  "tests_and_observations": "84动作全部提交。420 K/3300 s风险0.35810；410 K/2400 s风险0.30529；第三批420 K/2400 s风险0.35816，形成匹配温度对照。再410 K做3000、1800、1200 s；四时长风险约0.3044–0.3053不变，转化0.7905→0.9839、选择性0.8524→0.7099。第5批1800 s最佳score0.37803，之后固定条件筛三催化剂/三溶剂。12个HPLC均为加热后终检前，无源重复。",
+  "revisions": "终末笔记否定先验高温方向。K1由跨批时长对照区分化学变化与风险近时长不变，反对简单时间累计、提出峰值/状态候选，承认峰值、压力、挥发性和操作公式未区分。",
+  "later_use": "推荐第5批，复测score0.37147。Q按等效反应严重度外推，conversion MAE0.007664；风险按不可逆峰值，淬灭不减风险、Q07/Q08同为0.63。参考Q07≈0.4353/Q08≈0.2050，Q01≈0.3581/Q02≈0.1636，说明源恒温时长不变尚不能识别峰值与当前状态。risk MAE0.14978。",
+  "unresolved": "错误先验被修订且时长关系有用，但完整机制未识别。物料同钟表时间比较不等于各自最优。源无顺序或淬灭区分峰值/末态；K2承认无真值反馈，提出415 K实验但未执行。",
+  "histories": [
+    {
+      "name": "错误方向在匹配对照后被拒绝",
+      "sequence": "420 K参考起始→阈值越界→同时降温缩时→420 K匹配时长→终末拒绝方向→较低温推荐",
+      "evidence_status": "supported_revision_with_retrospective_intermediate_timing"
+    },
+    {
+      "name": "时长不变关系扩展为峰值模型",
+      "sequence": "四时长risk近恒定→K1反对累计但保留候选→Q采用峰值解释淬灭/顺序→参考显示末态差异",
+      "evidence_status": "supported_local_relation_but_unidentified_state_memory_generalization"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "the higher-temperature side is predicted to preserve safe balanced performance better than the lower-temperature side, but the model may be shifted.",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The supplied expectation that the higher-temperature side would preserve safe balanced performance was not supported.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The near-independence from duration argues against a simple cumulative form proportional to temperature multiplied by time."
+    },
+    {
+      "stage": "K1",
+      "quote": "Those alternatives cannot be distinguished because pressure, headspace, atmosphere, and heat-release telemetry were not varied or directly observed."
+    },
+    {
+      "stage": "Q",
+      "quote": "A post-heating quench should stop further chemistry but should not reverse conversion, degradation, or accumulated peak risk before immediate termination",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "The proposed R-to-P/B plus P-to-D mechanism was not used prospectively to select the earliest experiments; it emerged after the duration series."
+    },
+    {
+      "stage": "K2",
+      "quote": "No prediction truth has been supplied, so this is an assessment of evidential support, not an accuracy-based retrospective."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "source_risk_above_0_35_batches": [
+      1,
+      3
+    ],
+    "valid_Q": true,
+    "conversion_MAE": 0.0076643066406249976,
+    "risk_MAE": 0.14978079947829245,
+    "K2_has_truth_feedback": false
+  }
+}

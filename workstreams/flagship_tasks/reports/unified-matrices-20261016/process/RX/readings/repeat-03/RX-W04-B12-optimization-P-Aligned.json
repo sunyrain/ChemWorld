@@ -1,0 +1,89 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-Aligned",
+    "cell": "RX-W04--P--safety_constrained_optimization--Aligned",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Aligned",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned提供420K参考低温侧更可靠；仅0/84两版笔记，不能定位中途形成具体反应网络的时间。",
+  "expectations": "v1预测390–410K保留选择性和安全；430K可能增加转换但恶化风险，实际未测430K。拟筛选催化剂/溶剂、热条件并有预算则重复。",
+  "tests_and_observations": "84请求，83提交/1回滚：事件7重复final_assay在新空生命周期前提失败，未增加测定，成本罚.03进入下一批。12终检、11HPLC，无quench或精确重复。水/C1/3300s400/410/420K分数.43745/.41538/.40629，风险.21587/.27271/.32462。410K水中C1优于C0/2/3；C1水优于S1/2/3，均真对照。410K2400/3300/4200s转换.89493/.96450/.98454、产率.76909/.76629/.75085、风险.27240/.27271/.27279。405K3900s两因素共同改变，分数.42503。",
+  "revisions": "终末限定低温方向为本地支持，推荐B9；K1由时长结果提出并行/连续损失解释，承认网络未唯一识别。风险时间几乎不变支持弱时间效应，但无法只凭这些数据区分峰值与末态。K1声称未有回滚若理解为所有回滚不准确：事件7是终检前提失败，确无温度回滚。",
+  "later_use": "Q转移水的温度/时间关系到乙腈；Q01/02风险均.368，认为quench不消峰值；Q05/01/06风险.368/.368/.369。更主要Q04/09/10/12因将430K控制器范围用到heat而预测回滚、转换.02；Q07/08均.74来自只保留390K段。K2承认未验证并给该假设过高权重。Q转换MAE .38813、产率.23296、风险.12229、分数.11435；转换区间宽至[0,1]等，覆盖.86667不能说明点估计可靠。B9复测分数.43934、产率.76136。",
+  "unresolved": "K2建议400K2400s补局部2×2缺格，未执行；承认没有重复和quench、溶剂热交互未知。操作成功、有效局部关系和错误边界解释并存，不能全归于化学反绎失败。",
+  "histories": [
+    {
+      "topic": "先验低温方向得到局部支持",
+      "before": "v1低温侧预期",
+      "test": "固定3300s水/C1三温及410K三时间",
+      "after": "v2/K1局部支持和时间损失候选",
+      "later": "Q外推溶剂/边界；K2承认回滚假设过强",
+      "limit": "仅初末记录，无中途机制时间锚"
+    }
+  ],
+  "measurement_and_failure_notes": "B1无HPLC，其他批有；额外HPLC成本.08会影响分数，B1与其余终检虽化学可比，分数不是严格同操作成本对照。事件7罚款进入B2成本也应保留。风险超限≠必定回滚，控制器上界≠直接加热上界。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "the lower-temperature side (about 390–410 K) is predicted to preserve selectivity",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This supports a local safety/selectivity advantage below 420 K, not a general temperature law.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "changing the duration from 2400 to 4200 s barely changed final risk"
+    },
+    {
+      "stage": "Q",
+      "quote": "I expect little difference from Q01 and assume the safety metric retains the peak thermal burden",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "Q",
+      "quote": "The 450 K request is above the public 430 K control range.",
+      "query_id": "Q04"
+    },
+    {
+      "stage": "K2",
+      "quote": "It was an inference from the public control range, and I gave it too much weight in the point predictions."
+    },
+    {
+      "stage": "K2",
+      "quote": "proposed 400 K/2400 s: missing cell"
+    }
+  ]
+}

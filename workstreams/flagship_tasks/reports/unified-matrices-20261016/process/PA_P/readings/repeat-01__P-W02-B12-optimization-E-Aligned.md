@@ -1,0 +1,47 @@
+# 局部成功保持决策约束，资料解释退回未验证先验
+
+`repeat-01/P-W02-B12-optimization-E-Aligned`
+
+阅读覆盖：同一分析智能体阅读三版完整笔记/差异、全部公开操作与观测、K1/Q/K2及既有复测；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-01__P-W02-B12-optimization-E-Aligned.json)
+
+## 问题与先验
+
+初始资料提示X2较高目标回收、X0可能较纯；计划催化剂筛选及萃取剂比较。第一批C0双段加热、较大投料，后续正确不纳入C1—C3的共同条件排序。
+
+## 预期与实验
+
+v2/cursor70由同S0、350K、3600s的C1/C2/C3比较选择C3作为工作催化剂，随后预告减少洗液、改变反应条件和溶剂提高回收，同时保留纯度优先决策规则。后八批实际围绕C3展开，而非重复整套催化剂筛选。
+
+## 实际证据
+
+C1/C2/C3纯度0.7948/0.5410/0.8395，对应回收0.0391/0.0268/0.0428。后续S1/S2反应收率较高但终纯度均未过0.80；S2批9回收0.0969却纯度0.6652。两次洗涤批10下降至0.6086/0.0579。X0批8与S1/X2批7比纯度更低0.4878vs0.5742，且洗液0.04vs0.03L，不能确定独立萃取剂效应。
+
+## 修订
+
+v3把资料作为普遍流程判断的地位降低，承认增加反应产物或反复洗涤未保证合格。最终返回早期唯一明显合格的批4；既有复测0.8243/0.0387仍合格。研究后半未超过最早成功不等于后半无认识：排除了若干实际流程能救回纯度的预期。
+
+## 后续采用
+
+Q仍借未被直接验证的X0拒杂倾向预测Q03纯度0.82高于X2的Q04 0.71，并降低其回收。文本明确写比较有混杂、区间宽；低投料Q07—Q12又依赖未测催化剂比例尺度。K2建议同源分样辨别上游杂质与后处理限制，该分样未执行。
+
+## 未解决问题及解释限制
+
+可确认同期C3局部成功改变后续研究分配，纯度门槛又使更高回收结果没有替代已有推荐。不能将C0排序、独立温度效应或洗涤必然降纯度当作确定结论；正确资料同样需要在本流程条件下检验。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 70, 'last_event_id': 'runner-operation-0070'}
+
+> Current provisional choice is batch 4; replace it if a later batch passes purity and has materially higher observed recovery.
+
+事件：runner-operation-0070, runner-operation-0155, runner-operation-0207
+
+v3 / cursor {'event_count': 207, 'last_event_id': 'runner-operation-0207'}
+
+> extractant rankings beyond these tested combinations remain unresolved.
+
+Q
+
+> the campaign’s single confounded X0 comparison did not verify this, so the intervals overlap widely.

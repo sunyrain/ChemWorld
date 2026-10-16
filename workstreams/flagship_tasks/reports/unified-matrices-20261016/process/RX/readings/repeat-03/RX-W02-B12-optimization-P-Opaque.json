@@ -1,0 +1,79 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-Opaque",
+    "cell": "RX-W02--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化Opaque；无名义参考，初始猜330–350K20–40min有中间safe-score优势。",
+  "expectations": "仅初始与最终两版笔记，没有中期同期解释，K1/2的调整叙述属于事后重建。",
+  "tests_and_observations": "72操作全提交、无HPLC/无quench。初始A水335K1800s500rpm .068；后B/C/D水360K3600s700rpm .191/.174/.155；A未匹配。B跨溶剂水score优；水B360/380/390/400K3600s score .191/.2304/.2313/.2301，X/Y一直增；380K延时5400s Y .458 S .607、risk .1733，相对3600s Y .4225 S .6898/risk .1623。末385K4500s score .23398最高但和前批仅.00103。",
+  "revisions": "最终与K1正确指出A比较混杂，不能完整四催化排序；只把380–400K认作宽平台不精确最优。初始未直接做无热/极热比较，K2坦承预期未按原样测试。",
+  "later_use": "Q引入高温凸风险、微弱时间贡献、peak/accumulated不被quench逆转，Q12risk .99，risk MAE .20301；score .12383且覆盖.1667；X .04660。推荐复测score .23099/risk .18446。K2提议同器分段HPLC但未执行，明确未用12次中测。",
+  "unresolved": "Y未下降，纯平行时间变分支/失活仍可解释S降；K1对consecutive仅候选。全部cost1，Q小尺度成本改，score错误不全归hazard。预测区间未完全兑现K1范围。",
+  "histories": [
+    {
+      "topic": "材料比较范围限制",
+      "sequence": "A温和初试低分→B换温/时/搅拌后较高→C/D匹配对照→最终明确A未匹配不可排名",
+      "status": "正向范围辨认，不能改写为完整四材料筛选发现B普遍最好"
+    },
+    {
+      "topic": "平台与风险外推",
+      "sequence": "局部温度score平台+一个时长对照→K1凸风险积分/峰值候选→Q高温及quench峰值记忆→risk/score迁移差→K2承认未辨",
+      "status": "局部有效操作关系与解释范围超出并存"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Catalyst A was only tested under the milder first procedure",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Catalyst A cannot be ranked fairly against B–D."
+    },
+    {
+      "stage": "Q",
+      "quote": "Quenching after heating was assumed not to reverse accumulated conversion or risk."
+    },
+    {
+      "stage": "K2",
+      "quote": "The choice to use all twelve final assays while leaving the twelve permitted nonfinal instrument uses unused"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 72,
+    "failed": 0,
+    "hplc": 0,
+    "quench": 0,
+    "source_cost_all_one": true,
+    "K2_has_query_truth": false
+  }
+}

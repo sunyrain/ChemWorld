@@ -1,0 +1,147 @@
+{
+  "scope": "repeat-02 RX-W01 discovery Aligned and MisIndexed",
+  "records": [
+    {
+      "session": {
+        "id": "RX-W01-B12-discovery-P-Aligned",
+        "cell": "RX-W01--P--mechanism_discovery--Aligned",
+        "system": "RX",
+        "world": "RX-W01",
+        "arm": "Aligned",
+        "goal": "discovery",
+        "locus": "P",
+        "model": "gpt-5.6-sol",
+        "batches": 12,
+        "matrix": "A",
+        "repeat": "repeat-02"
+      },
+      "public_source_prompt": "D:\\CW267\\a2\\repeat-02\\RX-W01-B12-discovery-P-Aligned\\participant\\sources\\RX-W01--P--mechanism_discovery--Aligned\\source-prompt.txt",
+      "public_operation_parameter_entries": [
+        {
+          "atmosphere": {
+            "choice_labels": {
+              "0": "nitrogen",
+              "1": "argon",
+              "2": "air"
+            },
+            "choices": [
+              0,
+              1,
+              2
+            ],
+            "unit": "categorical"
+          },
+          "control_interval_s": {
+            "range": [
+              1.0,
+              60.0
+            ],
+            "unit": "s"
+          },
+          "headspace_L": {
+            "range": [
+              0.001,
+              0.1
+            ],
+            "unit": "L"
+          },
+          "operation": "configure_control",
+          "pressure_Pa": {
+            "range": [
+              50000.0,
+              400000.0
+            ],
+            "unit": "Pa"
+          },
+          "ramp_rate_K_s": {
+            "range": [
+              0.001,
+              1.0
+            ],
+            "unit": "K/s"
+          },
+          "target_temperature_K": {
+            "range": [
+              250.0,
+              430.0
+            ],
+            "unit": "K"
+          }
+        }
+      ],
+      "interpretation": "430 K is published under configure_control; direct heat is not listed in this initial parameter-range table. This is not a 430 K direct-heat bound."
+    },
+    {
+      "session": {
+        "id": "RX-W01-B12-discovery-P-MisIndexed",
+        "cell": "RX-W01--P--mechanism_discovery--MisIndexed",
+        "system": "RX",
+        "world": "RX-W01",
+        "arm": "MisIndexed",
+        "goal": "discovery",
+        "locus": "P",
+        "model": "gpt-5.6-sol",
+        "batches": 12,
+        "matrix": "A",
+        "repeat": "repeat-02"
+      },
+      "public_source_prompt": "D:\\CW267\\a2\\repeat-02\\RX-W01-B12-discovery-P-MisIndexed\\participant\\sources\\RX-W01--P--mechanism_discovery--MisIndexed\\source-prompt.txt",
+      "public_operation_parameter_entries": [
+        {
+          "atmosphere": {
+            "choice_labels": {
+              "0": "nitrogen",
+              "1": "argon",
+              "2": "air"
+            },
+            "choices": [
+              0,
+              1,
+              2
+            ],
+            "unit": "categorical"
+          },
+          "control_interval_s": {
+            "range": [
+              1.0,
+              60.0
+            ],
+            "unit": "s"
+          },
+          "headspace_L": {
+            "range": [
+              0.001,
+              0.1
+            ],
+            "unit": "L"
+          },
+          "operation": "configure_control",
+          "pressure_Pa": {
+            "range": [
+              50000.0,
+              400000.0
+            ],
+            "unit": "Pa"
+          },
+          "ramp_rate_K_s": {
+            "range": [
+              0.001,
+              1.0
+            ],
+            "unit": "K/s"
+          },
+          "target_temperature_K": {
+            "range": [
+              250.0,
+              430.0
+            ],
+            "unit": "K"
+          }
+        }
+      ],
+      "interpretation": "430 K is published under configure_control; direct heat is not listed in this initial parameter-range table. This is not a 430 K direct-heat bound."
+    }
+  ],
+  "frozen_heat_implementation_reference": "d2b05e98fd35f19e42772f40f1095457b0090ec0:src/chemworld/runtime/reaction_thermal_services.py",
+  "interpretation_limit": "This checks public initial range attachment, not why the participant chose its interpretation. Short-duration rollback does not establish a high-temperature heat boundary."
+}

@@ -1,0 +1,89 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-optimization-P-Opaque",
+    "cell": "RX-W05--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化目标Opaque；三版笔记0/49/84；固定.04mol/.08L/.005mol催化剂、500rpm、每批单段1800s。",
+  "expectations": "先催化剂/溶剂筛选；v2根据D乙腈最好明确预告350/360K提高转换但可能损失选择性，继而调时间。实际最后五批全是温度变化，未执行时间计划。",
+  "tests_and_observations": "84事件全部提交，12HPLC/终检，所有源风险<.35。水340K催化剂D/B/A/C分数.222/.186/.146/.086；D四溶剂乙腈最好。D乙腈340/350/360/380/400/390K同1800s产率.378/.447/.517/.638/.715/.671，风险.161/.171/.183/.223/.310/.259；最高三分数.33946/.34345/.33951近似平台。HPLC均在热操作后、终止前，无真实中途时间系列。",
+  "revisions": "v3与K1/K2正确将最大单次分数与精确最优分开，认为380–400K高表现区未能区分，380K具有更大风险余量。催化剂水中、溶剂D条件下范围保留。K1后继反应/风险积分只是候选；起始已包含选择性影响，K2从仅速率模型改变的叙述无同期旧信念证据。",
+  "later_use": "推荐400K的11复测Y.710828/score.340885。Q使用从未实验的B乙腈、较高催化剂比、小规模/长时间与温序；双淬灭配对组成相同，风险降低推测未有实际淬灭源证据。Q12风险1[.95,1]、Q07/08风险.98/.91体现累计高温解释超出源单时长设计；K2无真值反馈即承认窄区间不符限制。转换MAE.009598（59/60覆盖）而风险MAE.416662（5/60）、scoreMAE.248616（8/60）。准确转换不足以验证其全网理解。",
+  "unresolved": "无重复/时长/淬灭/温序/剂量/交叉组合；K2提出400K900+900s两次HPLC，未执行，也不是原单段/一次HPLC的精确复制且须核对测量额度。实际风险系末态，不能把高温曾经过等同持续累积；分数没有直接按副产物独立扣分，K1说byproduct/degradation惩罚是间接关联。",
+  "histories": [
+    {
+      "name": "温度探索得到局部平台与更窄推荐",
+      "sequence": "v2预告小幅升温→350/360改善→继续380/400并补390→末笔记拒绝精确优胜",
+      "evidence_status": "prospective_trend_test_and_qualified_recommendation"
+    },
+    {
+      "name": "未识别的风险机制被数值强采用",
+      "sequence": "单时长升温风险上升→风险积分候选→新时长温序极高风险→K2公开承认积累/终点未区分",
+      "evidence_status": "unidentified_mechanism_used_in_out_of_domain_prediction"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 3,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Test 350 and 360 K at 1800 s, then tune duration near the better point.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 49,
+        "last_event_id": "runner-operation-0049"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The small score differences among batches 10–12 are not established as repeatable effects",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "the campaign did not include cooling, quenching, or reversed thermal stages"
+    },
+    {
+      "stage": "Q",
+      "quote": "Safety risk and byproduct signal should approach their upper bounds",
+      "query_id": "Q12"
+    },
+    {
+      "stage": "K2",
+      "quote": "No prediction truth has been supplied, so these criticisms concern calibration and logical support, not hindsight about prediction errors."
+    }
+  ]
+}

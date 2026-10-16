@@ -1,0 +1,104 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Aligned",
+    "cell": "RX-W01--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现任务要求解释/预测反应热系统、催化剂/失活、热历程和终止/淬灭，score为次要。与优化Aligned同参考配方及低温方向。",
+  "expectations": "v1提出过长暴露降低选择性、身份排序可能随条件变、淬灭可能保留中间最佳；v2筛身份后选择A但保留A/C排序不定；v3在无淬灭对照前明确两分支：立即终止冻结则只改风险，若热停留则更多降解。",
+  "tests_and_observations": "95动作全提交。12批为B/A/C/D420 K3300 s；A400/410/430 K3300 s；A410 K1800 s；A410 K3300 s取HPLC后再2700 s；A410 K3300 s无淬灭；无催化剂；高A载量0.0015。四版笔记cursor0/32/73/95。A1800/3300/6000 s转化0.810/0.951/0.993、yield0.608/0.655/0.583。淬灭后风险下降0.10–0.21；匹配终检risk0.15147/0.30470，yield0.65519/0.64436，单次化学差异无一致方向。无催化剂转化0.343但yield0.00524；高载量yield0.75956。",
+  "revisions": "v2从B参考转向A减少降解；v3细化先验：高温风险/降解上升但yield浅平台，不把低温等同高产。v3明确淬灭区分预期，v4仅确认风险效果，化学保护仍未定。K1保留平行/顺序/催化状态候选，不声称已识别失活。",
+  "later_use": "推荐高A载量第12批，复测score0.45229、yield0.76475、risk0.15230。Q将淬灭作用转为末态风险：Q01/Q02=0.358/0.164，Q09/Q10=0.43/0.21；进一步用于未直接测的顺序Q07/Q08=0.46/0.20，参考0.4353/0.2050。risk MAE0.010646、80%区间覆盖60/60参考观测。化学从A迁移B仍不确定，conversion MAE0.02126、yield MAE0.07523。",
+  "unresolved": "同世界同Aligned先验的优化场未淬灭且误接边界，构成路径对照，单对不能归因目标。第9批有中途HPLC与不同仪器终检，不能说所有测量在终点，也非无扰动同仪器时间序列；HPLC消耗4%体积。多个热态risk越界，即使终态回落也不能称全程安全。",
+  "histories": [
+    {
+      "name": "淬灭保护假设被收窄并迁移为末态风险",
+      "sequence": "保护假设→多次风险下降→v3明确对照预期→无淬灭对照→v4只确认风险作用→Q迁移淬灭对和顺序末态",
+      "evidence_status": "prospectively_discriminated_local_relation_used_in_transfer"
+    },
+    {
+      "name": "催化解释超出单纯活性排序",
+      "sequence": "相近转化不同产物→选择A→无催化剂消耗却无目标→高载量改善目标支路→候选网络",
+      "evidence_status": "supported_pathway_relation_without_unique_microkinetics"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "if termination itself instantaneously freezes chemistry, omission of quench will change risk but not final composition; if hot hold persists through closeout, unquenched composition will show more degradation.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 73,
+        "last_event_id": "runner-operation-0073"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Operationally, quench is warranted for thermal safety; do not claim it materially improves yield from this comparison.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This narrows the supplied prior: higher temperature is clearly less safe and somewhat more degrading, but not demonstrably lower-yield",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 73,
+        "last_event_id": "runner-operation-0073"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The data do not require deactivation, however: the late loss of yield can already be explained by target degradation or a competing pathway whose importance grows after reagent conversion becomes high."
+    },
+    {
+      "stage": "Q",
+      "quote": "Applying the high-temperature stage first and finishing at 390 K should reduce late high-temperature degradation and leave a much lower terminal risk.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "Q",
+      "quote": "Based on the observed quenches from 400-430 K, cooling from 440 K should reduce risk to roughly 0.21.",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "The no-catalyst control in batch 11 had essentially zero score but was one of the most mechanistically informative batches."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "risk_MAE": 0.010646225223938625,
+    "risk_coverage80": 1.0,
+    "K2_has_truth_feedback": false
+  }
+}

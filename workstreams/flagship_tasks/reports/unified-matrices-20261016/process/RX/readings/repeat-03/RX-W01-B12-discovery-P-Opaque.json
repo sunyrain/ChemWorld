@@ -1,0 +1,104 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Opaque",
+    "cell": "RX-W01--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "无任务机制材料；discovery目标。相同0.04mol底物/0.005mol催化剂/0.08L溶剂/600rpm类别筛选，随后温时系列与淬灭对照。真实溶剂名不代表真实化学机理。",
+  "expectations": "v1平行形成与强暴露选择性损失；v3事前预期短/低温降转化、长/高温增转化，并用平台和降解信号区分完全失活与继续反应；v4在无淬灭批前预测测量/终止瞬时，省淬灭主要影响末态热风险。",
+  "tests_and_observations": "95次操作全部committed，12批/12次HPLC。B催化剂局部产率/选择性.483/.740；乙腈局部产率最高但甲苯转化略高。350K 1800/3600/7200s转化.426/.669/.901、产率.320/.483/.531、选择性.766/.740/.588。325/350/375K转化.479/.669/.832。有无淬灭产率.482714/.482172、HPLC选择性.716/.706、末态风险.172185/.179288。",
+  "revisions": "v4削弱一小时完全失活；v5限制淬灭为冷却/风险，组成作用未定。K1一阶总转化与表观Ea20.4kJ/mol形成局部关系，表观R→P、R→B、P→D参数不唯一。总产率未下降，变化主支路仍可解释，尚未识别P降解。",
+  "later_use": "Q将k/Arrhenius外推到小尺度、高催化比例、低转速、390–460K和不同顺序；两对淬灭Q保留源组成近同判断。转化MAE.011208、产率.099014、风险.108651。K2无真值下承认加载缩放、温区和顺序未经检验；同容器长时建议未执行。",
+  "unresolved": "局部可解释性非唯一识别。Q顺序方向超过未做分段实验的支持；风险外推未完整拟合状态增量。三封存阶段有效，K2自我批评不是验证后纠错。",
+  "histories": [
+    {
+      "topic": "暴露系列排除完全失活",
+      "sequence": "v3竞争结果→温时实验→v4/5新增转化削弱完全失活→K1总转化拟合→Q跨条件使用",
+      "status": "prospective_test_and_scoped_revision_with_extrapolation"
+    },
+    {
+      "topic": "淬灭组成与风险分离",
+      "sequence": "v4预期→第12批匹配第2批→v5不确立组成效应→Q保留近同化学/不同风险",
+      "status": "prospective_control_followed_by_later_use"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Predictions committed before thermal series",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Large additional conversion between 3600 and 7200 s argues against complete catalyst deactivation by 1 h.",
+      "revision": 5,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "a compositional quench effect is unresolved rather than established.",
+      "revision": 5,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "These are not uniquely identified elementary constants."
+    },
+    {
+      "stage": "Q",
+      "quote": "Chemical outcomes should be close to Q01 because prior matched batches showed little resolved compositional quench effect.",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "Target yield had not actually declined by 7200 s; it increased from about 0.483 to 0.531 while approaching a plateau."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "failures": [],
+    "source_range_K": [
+      325,
+      375
+    ],
+    "source_cost_constant": 1.0,
+    "retest_yield": 0.5803464651107788,
+    "retest_score": 0.3000650405883789,
+    "cross_instrument": "HPLC/final同定义有噪声；不把小差当淬灭动力学；每次HPLC消耗0.0002L；旧观测非新样本。"
+  }
+}

@@ -1,0 +1,59 @@
+{
+  "action": {
+    "duration_s": 3300.0,
+    "operation": "heat",
+    "stirring_speed_rpm": 400.0,
+    "target_temperature_K": 420.0
+  },
+  "transaction_status": "committed",
+  "constraint_flags": {
+    "constitution_failed": false,
+    "degradation_detected": false,
+    "high_cost": false,
+    "low_selectivity": true,
+    "phase_mass_balance_failed": false,
+    "precondition_failed": false,
+    "unsafe": true,
+    "unsafe_by_task_limit": true
+  },
+  "rollback_reason": null,
+  "safety_limit": 0.35,
+  "state_delta_summary": {
+    "delta_cost": 0.02749999999999997,
+    "delta_risk": 0.2277465602913637,
+    "delta_temperature_K": 118.3440988783367,
+    "delta_time_s": 3300.0,
+    "delta_volume_L": 0.0
+  },
+  "constitution_checks": [
+    {
+      "message": "",
+      "name": "vessel_volume_bound",
+      "passed": true,
+      "tolerance": null,
+      "value": null
+    },
+    {
+      "message": "",
+      "name": "vessel_temperature_bound",
+      "passed": true,
+      "tolerance": null,
+      "value": null
+    },
+    {
+      "message": "",
+      "name": "vessel_pressure_bound",
+      "passed": true,
+      "tolerance": null,
+      "value": null
+    }
+  ],
+  "reference_path": "D:\\CW267\\a2\\references\\research\\RX\\reference-truth\\RX-W01\\P\\Q01\\replicate-01\\trajectory.jsonl",
+  "source_commit": "d2b05e98fd35f19e42772f40f1095457b0090ec0",
+  "interpretation": "Public safety_limit=0.35 is a task penalty/unsafe label, not the vessel-temperature rollback threshold. Retained evaluator Q01 heat 420 K/3300 s commits with unsafe=true and constitution_failed=false. Participant source had no rollback; later Q equated these distinct conditions without a boundary observation.",
+  "semantic_code_locations": [
+    "src/chemworld/envs/reports.py:429",
+    "src/chemworld/foundation/constitution_state_checks.py:103",
+    "src/chemworld/runtime/reaction_thermal_services.py:279"
+  ]
+}

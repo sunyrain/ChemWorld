@@ -1,0 +1,102 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-Opaque",
+    "cell": "RX-W01--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 73,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化任务，Opaque无初始世界模型。自主固定0.04 mol/0.08 L，起始A0.005 mol、水330 K/1800 s。与Aligned参考配方不同，信息比较包含配方锚定而不仅方向文字。",
+  "expectations": "只有v1事前笔记预期温和加热安全且有可测转化，先筛物料再优化；没有中途笔记，K1/K2解释变化动因属回顾性。",
+  "tests_and_observations": "73动作全部提交。仅第1批有紧邻终检的HPLC。B0.001 mol/水360 K与四催化剂0.00025 mol比较；再B高载量筛三其他溶剂；乙腈360→390→410→400 K。低载量A转化0.2996但选择性0.0482，B转化0.2129、选择性0.1689。B加量使yield0.0416→0.1081、选择性0.1689→0.3668。甲苯转化最高，乙腈选择性/score最高。390 K score0.10009，400 K0.09458，410 K0.07771，无源重复。",
+  "revisions": "终末笔记与K1给有范围的催化剂排序及390–400 K宽窗口，承认高低载量A比较混杂温度、时长和搅拌。用支路竞争解释转化与选择性排序不同，但平行/顺序未唯一识别。",
+  "later_use": "推荐第10批，复测score0.10168。Q用B两载量关系外推小体积高浓度：conversion MAE0.01198，risk MAE0.17850。Q假设风险随时间累积、阈值压零score、淬灭稍增风险；没有像Aligned首场一样假设回滚。",
+  "unresolved": "正确转化预测不等于掌握唯一机制。风险/淬灭仍错配；K2承认无公开乘法安全gate却给近零score。只有起止两版笔记，不能精确定位解释中途形成时点。K2未再提交Q，不是改善结果。",
+  "histories": [
+    {
+      "name": "加载与身份的局部分离",
+      "sequence": "高载量A起步→低载量四身份筛选→匹配B两载量→支路竞争候选→选择B/乙腈温度研究",
+      "evidence_status": "local_relation_supported_timing_only_retrospective"
+    },
+    {
+      "name": "未直接采样的小体积外推",
+      "sequence": "B两载量选择性上升→按浓度/比例推快转化→转化准确但风险/淬灭未识别",
+      "evidence_status": "useful_prediction_without_unique_mechanism_identification"
+    },
+    {
+      "name": "评价门槛被猜测为score压零",
+      "sequence": "源风险均低于阈值→Q高温越界推score近零→K2承认无显式乘法gate",
+      "evidence_status": "unverified_evaluator_model_in_prediction"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "I will first screen catalyst/solvent combinations at conservative thermal exposure, then refine the best public safe-score region.",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The campaign did not replicate the optimum or independently vary time near 390 K.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 73,
+        "last_event_id": "runner-operation-0073"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "A plausible explanation is competition between a background undesired pathway and a catalyst-dependent desired pathway."
+    },
+    {
+      "stage": "K1",
+      "quote": "The exponents n and m cannot be estimated from only two loadings."
+    },
+    {
+      "stage": "Q",
+      "quote": "The catalyst-to-reagent ratio and catalyst concentration are much higher than in the source campaign, so I expect nearly complete conversion and better desired-path capture than in batch 11.",
+      "query_id": "Q01"
+    },
+    {
+      "stage": "Q",
+      "quote": "This order effect is speculative; a purely parallel, time-integrated kinetic model would make Q07 and Q08 nearly identical.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "Predicting near-zero scores above the safety limit was reasonable for the safe objective, but the public scoring contract did not reveal an explicit multiplicative safety gate."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "conversion_MAE": 0.011978877385457378,
+    "risk_MAE": 0.17850355878472327,
+    "K2_has_truth_feedback": false
+  }
+}

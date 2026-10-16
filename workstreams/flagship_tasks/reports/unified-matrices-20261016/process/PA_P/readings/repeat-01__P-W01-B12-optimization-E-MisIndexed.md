@@ -1,0 +1,53 @@
+# 错配X0资料组织了有效局部优化，但未经比较的萃取剂排序继续进入新条件预测
+
+`repeat-01/P-W01-B12-optimization-E-MisIndexed`
+
+阅读覆盖：两版全文、12批精确操作差异及180条公开事件测量、K1/K2全文及Q全部预测与推荐复测；单分析者精读
+
+[完整公开记录](../sessions/repeat-01__P-W01-B12-optimization-E-MisIndexed.json)
+
+## 问题与先验
+
+错配资料把最高产品分配与选择性放在X0，v1据此选X0并保留可能错配的警告。全场目标按.80纯度约束选择最高回收。
+
+## 预期与实验
+
+12批全部使用X0，先在S0筛催化剂，再以C2筛S1–S3，随后围绕S2重筛C0/C1/C3，最后在C1/S2比无洗涤与.005L洗涤。每批HPLC均在淬灭前，实际有反应阶段信息；没有材料超额消耗或弃置。只有初始和最终两版笔记，过程中的注意力转移主要由实际试验次序与K2事后说明连接，缺少中途同步解释。
+
+## 实际证据
+
+C2/S2的反应选择性.6025、纯度.5651优于同温时C2/S1及S3，最终.861/.0163。C1/S2最终.8477/.0228，被选为最高合格回收；复测.8453/.0133保留纯度但回收优势缩小。相同C1/S2的无洗涤/.005L/.02L洗涤终态纯度.7969/.8202/.8477，而回收也.0152/.0170/.0228递增，违背简单单调洗涤损失期待。上游已存在变化且终态近噪声尺度，不能把此排序当洗涤增加产品的证据。
+
+## 修订
+
+最终笔记保留局部工作流程有效，明确洗涤回收单调性未确定、反应HPLC与选定相终检不可混同。K1承认X1–X3完全没测，资料数值常数未验证；没有从局部成功直接声称X0最优已证。
+
+## 后续采用
+
+Q03（X0）预测纯度.86/回收.091，Q04（X2）为.82/.078，理由明确引用资料所称X0两个指标更高。因此这是一条可核对的‘未验证比较先验继续进入新预测’路径；与此同时研究在其余维度确实建立了局部有用关系。K2再次标明Q03/04依赖未经验证的资料，提出的是淬灭后时序检测而非执行萃取剂比较。
+
+## 未解决问题及解释限制
+
+不能把局部成功写成已证明自我确认，也不能因MisIndexed组整体回收MAE较低就说错配资料有益。该场保留不确定措辞，却把未经本场比较的资料方向用于定量输出；这是使用范围问题。C1/S2相对优势与洗涤效应都需考虑单次终态和上游波动，模型提出的连续反应网络未被唯一识别。
+
+## 已核验引文与事件锚点
+
+v1 / cursor {'event_count': 0, 'last_event_id': None}
+
+> The dossier predicts X0 gives the largest product organic fraction and selectivity among the stated single-contact conditions.
+
+K1
+
+> Likewise, only X0 was experimentally used, so the relative merits of X1–X3 remain untested despite their dossier values.
+
+事件：runner-operation-0008, runner-operation-0136
+
+Q
+
+> From the public partition dossier, X0 has higher product partitioning and product/impurity selectivity than X2, so Q03 is predicted above Q04 in both metrics.
+
+v2 / cursor {'event_count': 180, 'last_event_id': 'runner-operation-0180'}
+
+> wash-volume causality remains unresolved.
+
+事件：runner-operation-0136, runner-operation-0165, runner-operation-0180

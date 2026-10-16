@@ -1,0 +1,107 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-optimization-P-Opaque",
+    "cell": "RX-W05--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "finding": "真实局部优化及范围限定，与终态风险被当作峰值风险的外推并存",
+  "trajectory": [
+    "初始笔记预期催化剂、溶剂、温度、时间共同影响转换/选择性；明确先330K1800s筛选、在风险余量内升温。只有首尾两版笔记，不能把每一步终末机制叙述倒填为事前解释。",
+    "84次操作全部提交，12次HPLC和12次末检。批1–4固定S2/330K1800s比较C0–3，批4–7固定C3比较S0–3；随后保留C3/S2，在1800s比较360/390/405K，再回到390K比较2400/2700s。源研究未使用quench、wait或双段加热。",
+    "批9/10升温390→405K时Y .677887→.736318，但risk .259401→.339519、score .347276→.335235；回到390K后2400s给score .360299、2700s .350891。末笔记形成局部非单调操作窗口并推荐批11，明确改变推荐需要重复支持。",
+    "K1把共同趋势组织为R→P、R→B、P→D候选，并明确不是拟合律或唯一机制；终末笔记/K1/K2反复保留未重复、材料交互、尺度、催化剂量和搅拌未知。K1/K2自述推翻早先最大转换即最大表现，但初始笔记已经强调联合控制和风险，没有记录这个更强原命题。",
+    "Q把C3热历史/风险趋势转移至只在330K试过的C1及新尺度，用峰值/累计风险解释末态risk，给quench前后几乎相同风险，并将450–460K下score预测至近零。K2承认未测试quench、双段顺序及尺度，指出过窄区间但没有修改已封存结果。"
+  ],
+  "later_use": "Q01/02风险 .43/.42、Q09/10 .68/.66；其理由明确是quench不能消除峰值风险。实际查询的是最终风险，冻结quench改变热/风险状态并停止化学，不是只报告历史峰值。Q07/08风险 .92/.91同样把双段最高/累计严重性当主依据。Q转换MAE .005302，风险 .285516、score .259400，score80%覆盖0/60个参考读数。这是同场不同判断分化，不能由一阶转换成功推断全面理解。",
+  "limits": [
+    "真实局部优化无须以独立发现分子机制为前提；源实验也不能确定2700s比2400s总是更差，源score差 .0094缺少重复。",
+    "真实筛选结果引出后续实验从动作顺序可见，但只有初末笔记，对具体解释介入时间的主张必须有限。",
+    "安全阈值是本场选条件准则，不能据此反推出世界评分必在.35处发生非线性门控；K1所谓接近限额强惩罚仍是未辨识评分解释。",
+    "K2计划拆成1800+600s并中途HPLC，不是原单段2400s精确重复，取样和热历史都可能变化；而且该计划未执行。",
+    "本场初末自述之间的认识转变不应全部采信，尤其未在初始笔记出现的最大转换命题。"
+  ],
+  "recommendation": "批11源Y .717557/score .360299，独立推荐复测Y .713835/score .357733；证明可重新执行并获得相近局部结果，不证明精确最优或跨条件稳健。",
+  "event_anchors": [
+    7,
+    14,
+    21,
+    28,
+    35,
+    42,
+    49,
+    53,
+    56,
+    60,
+    63,
+    67,
+    70,
+    74,
+    77,
+    81,
+    84
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A catalyst/solvent combination giving higher assay score at similar risk will be prioritized",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This choice would change if replay/repetition shows its advantage over 1800 or 2700 s is not reproducible.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "This form is a plausible extrapolative model, not a fitted law."
+    },
+    {
+      "stage": "K1",
+      "quote": "caused me to modify the initial interpretation that maximizing conversion would maximize performance."
+    },
+    {
+      "stage": "Q",
+      "quote": "with nearly the same peak safety burden as Q01.",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "No campaign batch used quenching."
+    },
+    {
+      "stage": "K2",
+      "quote": "some remained inconsistent with the severity of that extrapolation."
+    }
+  ]
+}

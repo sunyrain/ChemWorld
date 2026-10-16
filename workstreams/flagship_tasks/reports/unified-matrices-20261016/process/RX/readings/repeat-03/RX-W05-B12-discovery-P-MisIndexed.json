@@ -1,0 +1,99 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-MisIndexed",
+    "cell": "RX-W05--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标MisIndexed：420K参考附近高温侧更安全平衡的方向先验；同水D/.003mol/.000525mol/.0075L/600rpm。三版笔记0/33/96。",
+  "expectations": "v1同时保留高温/久时损失和催化剂失活候选，预告实际温度、时间、材料、淬灭检验。v2在四批后保留竞争/后继未分，并预告420K1650s四催化剂和高温短时；随后均执行。",
+  "tests_and_observations": "96动作全提交、12HPLC/终检。B1真实1650s中途HPLC X.8656/Y.7446/Sel.8848，续1650s最终X.9805/Y.7706/Sel.7929；B2单1650s与B3单2400s最终X.8625/.9448、Y.7416/.7878；三点支持局部一阶反应物消失关系而非唯一网络。400K3300s Y.7578风险.0752；430K1200/2000s Y.7240/.7989风险.1144/.1153。420K1650s匹配催化剂D/B/A/C产率.7416/.6841/.5837/.4517。410K2400s两淬灭批Y.7838/.7719、风险.081382，无淬灭Y.7751、风险.236961；匹配化学值相近、热风险明显不同。",
+  "revisions": "v2将400K3300与420K2400的不同时间比较称高温先验方向一致，不能据此证明高温更安全；v3与K1保留温度—时间—风险折衷，改选410K2400淬灭并限定重复/最佳未定，K2明确承认原方向被修订。v2催化剂和热短时计划有后续实作；410K淬灭对照的目的主要由K2追述，不能假装存在该组之前的明确笔记预告。v3局部ln k拟合、K1的分子网络均保留适用范围与非唯一性。",
+  "later_use": "推荐10复测Y.766307、score.498587。Q将B单点速率与D温度系数组合到未测乙腈/小体积/低搅拌，所有12题都有跨材料条件。Q成对淬灭同组成异风险来自真实有/无淬灭证据；Q07/08化学顺序效应未测、明确作为推断并保留重叠区间。Y MAE.074778、score.040154，覆盖58/60和60/60；宽区间不等于机制识别。Q12同时声称可能回滚却将X区间设.85–1，K2无真值反馈即指出逻辑不一致。",
+  "unresolved": "先验在过程中被局部修订、真实匹配控制与有效预测共存；不能从本场推断MisIndexed普遍有益。B1中途取样占初始体积2.67%、分段推进，三点并非完全同一单段程序；拟合关系是操作层面的经验近似。v3低端温度398.35与K1399.35有1K转写差。淬灭改变热态而不积分化学，matched assay不能证明独立的化学停止机制。后继/并行/失活未唯一辨识；K2的乙腈B1650+1650s是未执行的提议。",
+  "histories": [
+    {
+      "name": "可检验的局部关系形成并进入材料与温度推断",
+      "sequence": "v1竞争候选→真实中途HPLC与三个时间端点→v2预告催化剂/热短时→完成→v3局部一阶及未识别网络→Q组合外推",
+      "evidence_status": "prospective_local_characterization_and_qualified_transfer"
+    },
+    {
+      "name": "高温方向被温度时间风险折衷替换",
+      "sequence": "v2局部称初始高温偏好一致→后续430短时、410匹配淬灭/无淬灭/重复→v3推荐较冷区域→K1/K2承认高温快但风险高",
+      "evidence_status": "public_revision_with_later_recommendation_not_unique_causal_mediation"
+    },
+    {
+      "name": "匹配淬灭证据保留到后测",
+      "sequence": "410K2400相同加料加热的淬灭/不淬灭结果→化学差未识别、末态风险差明确→Q两对组成相同而风险变化",
+      "evidence_status": "matched_control_and_later_use"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "genuine_mid_heating_hplc": 1,
+    "notebook_versions": 3,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Next compare all four catalyst identities at a fixed 420 K, 1650 s exposure.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 33,
+        "last_event_id": "runner-operation-0033"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "no quench-induced chemical effect is resolved.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "This is an explanatory model rather than a uniquely identified mechanism."
+    },
+    {
+      "stage": "K2",
+      "quote": "My early notebook update after Batch 4 called the supplied high-temperature preference “directionally consistent” in a limited comparison."
+    },
+    {
+      "stage": "Q",
+      "quote": "The chemical intervals overlap Q07 because this order effect is inferred rather than directly established.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "If rollback can prevent most heating, that interval is plainly too narrow and inconsistent with my own stated discrete uncertainty."
+    }
+  ]
+}

@@ -1,0 +1,119 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-MisIndexed",
+    "cell": "RX-W05--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标、MisIndexed高温侧先验。C3/S0参考配方、600rpm；三版笔记cursor0/56/97。多数批次两段heat，中间HPLC，最终终检。",
+  "expectations": "v1提出固定配方温度系列、匹配催化剂、长时产物损失及淬灭预期。v2在第8批之前前瞻1200/2400/3300/4500s时间图及匹配2400s淬灭，明示长时若损失应更低选择性、更高降解。诱导期候选并非事前预测，只在终末v3出现。",
+  "tests_and_observations": "97请求中95提交、2回滚；12批均终检、12HPLC。420/390/405/430K均1650+1650s，产率0.77061/0.73795/0.76996/0.75712，风险0.28981/0.13526/0.20872/0.32848；C0/1/2同405K3300s产率0.68399/0.72823/0.54341，C3约0.77。第8批两次600s heat（事件60/62）都constitution_failed回滚，公开delta_temperature_K=0、delta_time_s=0，仅成本/风险罚项变化，故终检转换0.00340/产率0.00082不是实际405K1200s化学结果。B9两1200s确实提交，中测转换0.69284/产率0.61085，终测0.88515/0.76125；B10相同程序加quench产率0.77169、risk0.20837→0.07755；B11两2250s转换0.99820/产率0.74346/降解0.18953。B12精确重复B3，产率0.77117vs0.76996。",
+  "revisions": "v2/v3将高温方向收窄为中等窗口，实际温度/材料比较及长时关系有内容；B3/B12重复支持局部产率，淬灭化学差异保持未定。但v3将回滚的第8批写为真实1200s无转化，提出诱导/非线性热史候选；K1进一步说必需活动/连续段历史变量，K2继续沿用分段异常，未将两次实际回滚纳入解释。候选有多个不代表其共同经验前提成立：公开操作已说明没有这两段热暴露。外层ok=true/experiment_completed=true与transaction_status=rolled_back并存，须以提交状态和物理变化核对，不能凭成功标记判已执行。",
+  "later_use": "Q05明确引用600+600s不反应，给1500s转换0.69与宽区间0.38–0.90；Q09再次援引短时启动/历史不确定，转换0.82。K2以此异常为最重要缺口，提出单1200s、HPLC后终检以判分段/仪器/诱导，尚未执行。这是错误经验表述→机制候选→数值预测→未来实验提案的可追踪链；v3仅终末，不证明它指导了第9–12批源动作。另一方面，Q真实沿用淬灭终态风险收益，risk MAE0.06826、score0.03363覆盖60/60、yield0.06610、conversion0.08866；低误差不能消除虚构热暴露前提。推荐B10复测Y0.75420、score0.49461。",
+  "unresolved": "不能称已经发现化学诱导、反应时间重置或真实短段历史效应；两次回滚没有检验这些解释。温度高侧经验支持局部权衡而非完全响应面；未变溶剂、浓度、载量、搅拌。因Q所有题都更换水至乙腈且跨C1，误差不可归于诱导解释单一原因。同一研究有有效前瞻时间/淬灭比较、真实重复及错误经验重建。取样后继续加热的HPLC不是无扰动终点重复，续热后沿用观测值不是新测量。",
+  "histories": [
+    {
+      "name": "失败操作被转为化学异常并参与解释及预测",
+      "sequence": "v2计划短时映射→事件60/62回滚且温度/时间零推进→v3写作1200s无反应→K1加入活化/历史变量→Q05/Q09及K2新实验提案采用",
+      "evidence_status": "terminal_false_experience_reconstruction_with_later_use"
+    },
+    {
+      "name": "有效局部研究与错误前提并存",
+      "sequence": "前瞻长时/淬灭预期→2400/3300/4500s有效比较与3300s精确重复→淬灭风险确认、化学限定→推荐与Q采用",
+      "evidence_status": "executed_local_tests_and_repeatability_without_unique_kinetic_mechanism"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": false,
+    "attempted_operations": 97,
+    "committed_operations": 95,
+    "rolled_back_operations": 2,
+    "rollback_event_ids": [
+      "runner-operation-0060",
+      "runner-operation-0062"
+    ],
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 3,
+    "exact_source_repeat_pair": [
+      3,
+      12
+    ],
+    "recommendation_retest_score": 0.49460893869400024,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prediction committed before these tests: conversion should rise with time",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "1200 s gave essentially no final conversion",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "A model omitting prior activity or control-segment history would fail to explain Batch 8 versus Batch 9."
+    },
+    {
+      "stage": "K2",
+      "quote": "No tested operation produced such a rollback."
+    },
+    {
+      "stage": "Q",
+      "quote": "unlike the interrupted 600+600 s program, but the observed onset/history effect makes conversion particularly uncertain.",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "Q",
+      "quote": "The onset/history uncertainty remains important at 1500 s.",
+      "query_id": "Q09"
+    },
+    {
+      "stage": "K2",
+      "quote": "I would run the original Catalyst D/water recipe at 405 K with one uninterrupted 1200 s heat segment"
+    },
+    {
+      "stage": "notebook",
+      "quote": "a chemical preservation effect remains unresolved.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    }
+  ]
+}

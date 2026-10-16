@@ -1,0 +1,90 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-MisIndexed",
+    "cell": "RX-W02--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed低温侧更可靠方向，A/水小尺度/1100rpm参考配方；optimization。v1从390K开始，预告保守条件若欠转化可升温/延时。",
+  "expectations": "v1材料screen和温时权衡；v2第6批后明确下一溶剂screen及其入选判据，并称剩余将含最佳确认。最终无exact重复，v3承认确认留待未来。",
+  "tests_and_observations": "72次操作全提交，12终检、无非终检/无淬灭，先reagent再solvent。390/405/415K3300s风险.163/.237/.293、score.363/.367/.356，未运行420或以上。405K四催化与四溶剂screen；400K3900/4500/5100s X.847/.898/.922但Y约.618平台，risk约.210不随时长明显增加。",
+  "revisions": "v2将低温先验限为局部安全并采用A进行溶剂screen；v3形成400K时间平台和样本最佳4500s、承认与5100s差.00027不具统计分辨。K1并列平行支路、降解、平衡和催化状态，因产率平台而非真实下降，不应强制解释为P消耗。",
+  "later_use": "Q近似叠加B与乙腈并改400rpm；Q01/05/06同420K风险均.37保留弱时间效应；Q07/08风险均.54把最大温度当末态风险，但Q02/10又假设quench移除可逆贡献。X MAE.039252、risk.075689、score.069016。K2承认峰值/末态未识别、区间不覆盖无淬灭效应可能；三段1500s内测建议未执行。推荐复测400K4500sY.610105、score.376473。",
+  "unresolved": "低温方向的安全分量可得支持，不能把MisIndexed标签本身当其经验错误；本场从未测试高侧，支持范围只是390–415K。无冷却source不能区分峰值/末态，Q对不同降温操作的语义转移未验证。笔记承认cost差异，但K1 score式漏cost、K2将cost排除为已证实惩罚；真实式含cost。",
+  "histories": [
+    {
+      "topic": "低温先验的局部确认与优化转向",
+      "sequence": "v1保守390K→390/405/415K→v2中间score更好→400K长时→v3平台推荐4500s",
+      "status": "local_relation_with_untested_high_side"
+    },
+    {
+      "topic": "风险时间关系与峰值外推",
+      "sequence": "400K时间风险不变→K1峰值候选未识别→Q07/08峰值同risk→K2承认末态解释不确定",
+      "status": "supported_duration_relation_extended_to_unidentified_memory"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "remaining batches will refine time/temperature and include a confirmation of the best procedure.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 36,
+        "last_event_id": "runner-operation-0036"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The numerical 4500-versus-5100 s score difference is too small to claim a resolved effect",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "but similar peak-related risk.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "I did not run 420 K itself, any temperature above 415 K"
+    },
+    {
+      "stage": "K2",
+      "quote": "I appropriately avoided treating cost as a proven score penalty"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "failures": [],
+    "source_quenches": 0,
+    "intermediate_assays": 0,
+    "stages_valid": true,
+    "Q07_Q08_risk": 0.54,
+    "K2_truth_feedback": false
+  }
+}

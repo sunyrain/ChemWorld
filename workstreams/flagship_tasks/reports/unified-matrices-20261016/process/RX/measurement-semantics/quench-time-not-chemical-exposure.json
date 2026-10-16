@@ -1,0 +1,15 @@
+{
+  "frozen_commit": "d2b05e98fd35f19e42772f40f1095457b0090ec0",
+  "checked_by": "git show frozen source; no simulator or participant run",
+  "source": "src/chemworld/runtime/primitive_services.py:243",
+  "function": "quench",
+  "facts": [
+    "目标温度max(298.15,T-45)，冷却时长由热量/250决定并至少1s。",
+    "account_temperature_transition计算热/能量；ledger推进time与cost。",
+    "返回状态只替换温度、quenched、ledger、equipment、process、metadata，不改变species_amounts。",
+    "没有反应ODE调用；reaction_chemistry_stopped=True。"
+  ],
+  "interpretation": "quench有物理时钟和冷却费用，但其动作不产生额外反应化学暴露。延迟quench前的wait若提交则推进反应；两者不能等同。",
+  "evidence_scope": "这是评价者冻结代码语义，不是participant从观测唯一识别出的机制。对其保留quench化学作用未定的谨慎表达照实记录；不得写成实测化学效应。",
+  "companion_source": "src/chemworld/runtime/reaction_thermal_services.py:196 (_quenched_thermal_hold明确不推进反应化学)"
+}

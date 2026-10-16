@@ -1,0 +1,95 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-Opaque",
+    "cell": "RX-W04--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 108,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque无动力学参考，发现目标自选80mL/.04mol/.005mol、configure+heat、350K乙腈分类筛选。",
+  "expectations": "v2四催化后预告溶剂；v3八批后预告甲苯330/370温对照再两时长；v4终点才拟合k及3.5ks峰，不是先拟合再验证。",
+  "tests_and_observations": "108操作全提交，12HPLC/quench/final。一组乙腈B3501800精确重复Y .4682/.4674、X .5964/.5759。甲苯3501800单批Y .4877；370900/1800/3600 X .4833/.7306/.9430，Y .4022/.5994/.6848仍上升，S .8435/.8123/.7252。",
+  "revisions": "v4/K1拟合X指数与S衰减，生成3.5ks最佳假说，K1明确同三数据拟合非独立验证；K2限定温度升高未单调降S。v4错把水Y记成.350（实为甲苯330结果，水.2656），K1表和文本恢复正确。v4以quench返回不变读数支持arrest，K1/K2改为可能缓存不能证明。",
+  "later_use": "Q沿经验模型外推，X MAE .00260但Y .17459，Q07/08 Y .40/.37因不同P暴露顺序；K2承认未经温序检验。Q/K2声称确切评分式截距-.1，源全部cost=1，只识别该切片；转到Q低cost未保留-.1*cost。推荐复测score .3535871804。",
+  "unresolved": "三点拟合有限时最优、P损失和机制都未唯一确认；时间Y持续增不能作绝对P损失实证。成本常量使通用评分律不可识别，这与动力学拟合的限域表述形成不同认知地位。K2无真值反馈，下一实验未执行。",
+  "histories": [
+    {
+      "topic": "局部经验律的构建",
+      "sequence": "分类筛选及一次重复→v3前瞻温时矩阵→v4拟合→K1限域→Q外推",
+      "status": "observed_regularities_and_posthoc_model_not_unique_mechanism"
+    },
+    {
+      "topic": "缓存观测再解释",
+      "sequence": "v4不变quench读数支持arrest→K1指出可能carried-forward→K2保留限缩",
+      "status": "natural_qualification_without_new_experiment"
+    },
+    {
+      "topic": "固定cost切片被当通用评分式",
+      "sequence": "源cost全1→Q-.1公式→K2exact empirical relation→没有处理Q成本变化",
+      "status": "scope_extension_not_identified_global_law"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "final yield 0.488 at event 0072 versus 0.350 water",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 108,
+        "last_event_id": "runner-operation-0108"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "those values may simply be carried-forward observations rather than a fresh analysis"
+    },
+    {
+      "stage": "K1",
+      "quote": "That is an interpolation from the measured 900, 1800, and 3600 s data, not an independently tested optimum."
+    },
+    {
+      "stage": "Q",
+      "quote": "score=clip(-0.1+0.4*yield+0.25*selectivity+0.1*conversion-0.45*safety_risk,0,1)"
+    },
+    {
+      "stage": "K2",
+      "quote": "Thus, score uncertainty was mainly inherited from chemistry and risk rather than uncertainty about the scoring equation itself."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 108,
+    "rollbacks": 0,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 12,
+    "Y_mae": 0.174589004,
+    "X_mae": 0.0026009789,
+    "risk_mae": 0.0837238773,
+    "recommendation_score": 0.3535871804,
+    "K1_Q_K2_valid": true,
+    "caution": "quench时间账面不进ODE，非measure是缓存。真实score含-.1*cost；所有源cost1只识别常量截距。"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-discovery-P-Opaque",
+    "cell": "RX-W04--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque发现目标，自选80mL/.04mol/.005mol、先reagent后solvent、600 rpm direct heat；不配configure_control。",
+  "expectations": "v1预期热强度内点最优、先分类后温时；v2四批后预告B乙腈温时检验；v3九批后承认1800s最高温Y仍增，预告溶剂/延迟停止，稳定Y将弱化P-loss。",
+  "tests_and_observations": "96操作全提交，12HPLC/final、11quench。B乙腈410600/1800/3600 X .5377/.9171/.9994、Y .4725/.7130/.6037、S .8446/.7653/.6168。第12批4101800 HPLC X .9431/Y .6978/S .7532→未quench wait1800降62.11K→final .9946/.6358/.6370；非同仪器且后续进样会改变体积。",
+  "revisions": "v3/v4/K1将温度最高点未见峰与时间内点峰分别处理，提出P→D等候选；v4保留跨仪器/单批差混杂。K1推荐b7只称finalrisk<.35，K2才强调热阶段.3748曾超限；事实上b7也热risk .3748，b9 .3762，b12 .3748，不能只说另场相似程序风险。",
+  "later_use": "Q payload缺失（tool_budget_exceeded，9 tool events，exit1），不存在12题有效数值或MAE；K2虽谈Q各条件与泛化局限，不可据其文字补造Q答卷。推荐复测score .3676487505。",
+  "unresolved": "全部12源批完成但会话总体failed因sealed_stages/prediction；保留K1/K2与源轨迹。K2建议同仪器前后采样未执行。直接P损失未唯一，稳定P纯并行并不能独立解释真实绝对Y下降。",
+  "histories": [
+    {
+      "topic": "温度与时间认识分化",
+      "sequence": "初始harshness内点预期→1800温度Y持续增→v3明确温峰未定→410时长非单调→形成时间局部关系",
+      "status": "documented_revision_and_local_relation"
+    },
+    {
+      "topic": "热尾证据与适用范围",
+      "sequence": "v3延迟预期→同釜wait冷却伴Y/S下降→v4/K1附仪器混杂→K2提出同方法检验",
+      "status": "observed_postheat_evolution_not_unique_mechanism"
+    },
+    {
+      "topic": "终点安全概括修订",
+      "sequence": "v4/K1推荐只据finalrisk→K2指出热峰超限→未更换密封推荐",
+      "status": "retrospective_qualification_not_retested_correction"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "The yield maximum has not been established beyond 407 K.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "A result with stable yield/selectivity after a hot delay would weaken the P-loss/quench hypothesis.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "This is a proposed experiment only; it was not performed."
+    },
+    {
+      "stage": "K2",
+      "quote": "Final endpoint safety alone may conceal operational risk."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 96,
+    "rollbacks": 0,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 11,
+    "Q_valid": false,
+    "Q_failure": "tool_budget_exceeded; missing_payload",
+    "K1_valid": true,
+    "K2_valid": true,
+    "recommendation_score": 0.3676487505,
+    "caution": "无Q数值，不根据K2补造。quench不推进ODE，wait成功有真实时温/化学演化；热峰超.35均未回滚。"
+  }
+}

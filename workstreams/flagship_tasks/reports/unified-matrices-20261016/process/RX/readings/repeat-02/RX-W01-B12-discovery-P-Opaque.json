@@ -1,0 +1,85 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Opaque",
+    "cell": "RX-W01--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "无任务先验，独立选择乙腈0.05L/.02mol/.001mol、500rpm；从催化背景、热暴露、quench识别形成与损失。",
+  "expectations": "v1提出可能产率峰、催化差异及quench；v2在匹配催化screen后保留峰未检验，预计提高暴露先增产、极高暴露可能转折。",
+  "tests_and_observations": "84操作全committed，12批各末段HPLC后final，没有真正中途再加热时间序列。340K1800s A/B/C/D终检yield .0785/.1185/.0819/.0904；无催化X .0903、yield0。B340K600/1800/3600s yield .0536/.1185/.2018；1800s310/340/370K yield .0511/.1185/.2108；3600s340/370/400K .2018/.2974/.4169。最高点加quench对照yield .4102、risk从.2414→.1374。推荐复测yield .40943、score .21238。",
+  "revisions": "v3主动将峰假说缩小为未观测的可能性，不把by/deg上升自动当产率损失。背景转化无目标支持催化改变产物分配，不唯一识别平行拓扑。quench改善risk、化学分布未见实质差异，明确无化学增益。",
+  "later_use": "Q明确把催化/反应物比从.05→.175并提高转化，conversion MAE .02865、coverage59/60，优于同repeat optimization Opaque的跨尺度低估路径；但催化依赖未测，近饱和正确不能算识别浓度定律。高温risk严重高估：Q04 .88/Q12 .99，risk MAE .18799；源安全范围外score近零假说使score MAE .18922。quench降低末态风险和段序末态差被保留。",
+  "unresolved": "无精确程序重复（batch11/12差quench）、无post-quench wait、无溶剂或加载对照。K2指出尾部区间及风险score关系未确定；提同仪器延时两测未执行。风险小幅随时间变化不唯一证明累计危险，组分状态也可影响。",
+  "histories": [
+    {
+      "topic": "否定预期峰值",
+      "sequence": "v1可能峰→v2未检验→时间与温度对照仍单调→v3明确不支持窗口内峰",
+      "status": "scope_revision_instead_of_confirmation"
+    },
+    {
+      "topic": "quench效果边界",
+      "sequence": "H3可能保护→相同热史淬灭/不淬灭终检近同而risk下降→推荐有风险收益不宣称产率收益→Q沿用",
+      "status": "supported_local_risk_relation_not_chemical_arrest_proof"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "the initial peak hypothesis is therefore narrowed to an unobserved higher exposure, not confirmed.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "a chemical-yield benefit is unresolved.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "The new batches have 3.5 times the studied catalyst-to-reagent ratio and higher concentrations"
+    },
+    {
+      "stage": "K2",
+      "quote": "batches 11 and 12 were not exact procedural replicates because only batch 12 was quenched."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 12,
+    "same_heat_quench_control": true,
+    "post_quench_wait_test": false,
+    "source_scale_differs_Q": true,
+    "sealed_K2_has_Q_truth": false
+  }
+}

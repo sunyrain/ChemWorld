@@ -1,0 +1,79 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-Aligned",
+    "cell": "RX-W03--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "解释与预测优先；Aligned给水B420K3300参考、低温更安全的局部方向。v1候选包含热严重度、催化分流与淬灭保留。",
+  "expectations": "v2根据温度/催化扫描安排390K变时以辨别较冷更久能否恢复X；淬灭假设预先待检，要求匹配重复。",
+  "tests_and_observations": "85操作全提交，12HPLC+12终检。390/405/420/425扫描risk .165/.239/.320/.341；390K1800/3300/5000 Y .668/.757/.733且X升、S降，3300重复Y .759。同条件催化A/B/C/D、另乙醇单点；淬灭对照risk .165→.101，化学差在噪声内。",
+  "revisions": "v3将H3从保留产物限缩为明确risk收益、化学不定；3300重复支持时间峰局部可重复。K1风险近乎不依时而依温的判断受到实际变时支持。并行/连续候选保留，但把稳定P纯并行也说成能解释绝对Y下降存在模型逻辑缺口；跨批有限重复尚不证明唯一连接。",
+  "later_use": "Q将.35任务阈值升级为自动rollback：440–460预报近未反应，450分段只留下低温段；源从未回滚，K2明确承认。乙腈从未测，Q仍给水/乙醇外推窄区间，S/by coverage0。K2提出乙腈390两时点下一实验，未执行。",
+  "unresolved": "正向淬灭解释限缩与新形成边界错误并存；rollback错误不是从真实失败学来。K2无真值，只反思区间未覆盖热步骤成功的另一结果。",
+  "histories": [
+    {
+      "topic": "淬灭的化学/风险作用分离",
+      "sequence": "v1预期化学保留→匹配390/3300淬灭加无淬灭重复→v3限缩化学效应→K1/Q采用主要风险降低",
+      "status": "同期预期、检验、修订、后续使用完整"
+    },
+    {
+      "topic": "未观察边界成为确定预测",
+      "sequence": "425K risk.341可接受且源零回滚→Q按>.35热步骤自动回滚→Q04/09/10/12近零化学与Q07/08单低温→K2承认未测试仍无新验证",
+      "status": "真实操作经验加任务语义形成过强边界推断"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "H3 [quench primarily a safety intervention; chemical preservation unresolved]",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "Requested temperatures of 440 K or above are predicted to exceed the public safety boundary and roll back;"
+    },
+    {
+      "stage": "K2",
+      "quote": "I never actually observed such a rollback during the campaign:"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 85,
+    "rolled_back": 0,
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "conversion_mae": 0.3739737384,
+    "selectivity_coverage": 0,
+    "byproduct_coverage": 0,
+    "recommendation_retest_score": 0.4871043265,
+    "K2_received_Q_truth": false
+  }
+}

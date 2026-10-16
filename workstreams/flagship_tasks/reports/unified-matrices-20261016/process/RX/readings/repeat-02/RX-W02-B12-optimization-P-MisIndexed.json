@@ -1,0 +1,91 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-MisIndexed",
+    "cell": "RX-W02--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化；MisIndexed低温侧更可靠并给420 K参考，不因arm名而预判实际局部方向错。",
+  "expectations": "v1预期390–410 K内折衷；v2材料screen后预测温度系列；v3 66动作时预告5100 s或不优，除非明确改善否则留4500 s。",
+  "tests_and_observations": "72动作全提交、12终检、无HPLC无quench；5mL参考加载、1100rpm固定。400 K材料筛选A/水score最高但A/B/C小差；390/400/410/420 K risk .1634/.2095/.2657/.3184，score .3675/.3644/.3604/.3492。390 K3300/4500/5100 s X .7487/.8561/.8859、risk .1634/.1639/.1641、score .3675/.3874/.3909。",
+  "revisions": "时间对照支持风险近恒、总转化近指数（k4.19/4.31/4.26e-4），K1明确为后验局部拟合不是真实反应级数。v4承认末两分数差.0035不可辨，却选择最高单点5100 s，未严格执行v3需要明显改善的准则。",
+  "later_use": "Q确实采用时间risk不累积、温序末态风险；X MAE .02077/risk .04275/score .03684；终态解释比另两optimization场累积hazard迁移好但无quench实测不能唯一机制认证。推荐复测score .38546、risk .16409。K2承认候选路径未辨、组合/搅拌/温序外推、复测必要；无真值反馈。",
+  "unresolved": "duration selectivity下降但Y仍增不鉴别产物降解与时间变化旁路；无时间中测、无温序、无quench。不把P-MisIndexed标签等同于该场经验判断错。cost参与score，K1成本作用未定。",
+  "histories": [
+    {
+      "topic": "时间对照限制风险解释",
+      "sequence": "低温score优势→固定390 K延时→X增risk近恒→K1偏温度/峰值→Q保持时长风险近恒但另外假设冷却解除→迁移误差有限",
+      "status": "有证据约束的一部分关系；冷却与峰值仍未辨"
+    },
+    {
+      "topic": "选择规则与小差",
+      "sequence": "事前只有明确增益才换5100 s→末批仅高.0035→最终承认差不显著仍选最高样本",
+      "status": "可观察决策张力，不等于宣称唯一最优；K1始终说4500–5100平台"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "I will retain 4500 s unless the final batch clearly improves compliant score",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 66,
+        "last_event_id": "runner-operation-0066"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The 5100 s advantage over 4500 s is only 0.0035",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "rather than being a simple integral of exposure time"
+    },
+    {
+      "stage": "Q",
+      "quote": "I do not expect the shorter duration to remove most of the 420 K hazard",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "K2",
+      "quote": "that relationship was recognized only after obtaining those results"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 72,
+    "failed": 0,
+    "hplc": 0,
+    "quench": 0,
+    "K2_has_query_truth": false,
+    "cost_contributes_to_score": true
+  }
+}

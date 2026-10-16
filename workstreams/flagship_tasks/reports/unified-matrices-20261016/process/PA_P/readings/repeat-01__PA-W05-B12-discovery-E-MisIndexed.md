@@ -1,0 +1,47 @@
+# 边际资料被局部切片限定，体积和混合解释在未测配对前保持不确定
+
+`repeat-01/PA-W05-B12-discovery-E-MisIndexed`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-01__PA-W05-B12-discovery-E-MisIndexed.json)
+
+## 问题与先验
+
+错配资料偏向S2/X0，源研究以X0的四溶剂及S2的四萃取剂切片、再加S1/X2组织八点设计。每批0.020mol reagent；保留相交替，使分配库存与分离后纯度各有公开证据。
+
+## 预期与实验
+
+v2/cursor80指出S2并未在X0切片中最好，预告S2/X0相量扩大应提高有机库存、变换后的D应更稳定，以及短慢混合较低。四个后续批确实改变萃取剂相量和混合，未做严格重复。
+
+## 实际证据
+
+X0配S0/S1/S2/S3有机0.136/0.297/0.201/0.323；S2配X0/X1/X2/X3为0.201/0.252/0.206/0.307。低/中/高相比例0.094/0.204/0.409，对应有机0.125/0.201/0.449，表观D1.42/0.99/1.16。短/标准/长混合0.186/0.201/0.269，端点分离较强、短标准差距较弱。
+
+## 修订
+
+v3把相量效应与是否恒D分开：低相比例噪声传播和无重复不足以拒绝恒D，而非每次系数不同都宣称新化学。混合增益为局部趋势，平台未示。材料结果限定资料边际用途；其交互语言强于本场S1/S2×X0/X2窄差异所能稳健识别，宜以条件化材料响应描述。
+
+## 后续采用
+
+Q用共享混合乘子迁移到S0/X0与S2/X3，D2保留uncertain而未强选资料X0。K2明确提出同器皿先弱后强混合以分开批间波动，且需校正测量消耗；未执行。另准确识别源批有reagent、问卷无，以及溶剂量与沉降时长变化这些未检验迁移。
+
+## 未解决问题及解释限制
+
+有事前可检验预测、结果约束与合理的不确定决策，不能归为错配资料必然形成错误确信。可验证材料、相量和混合现象并不自动识别分子机制；K2补充遗漏假定是后测反思，不能倒置为Q封存前已充分考虑。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 80, 'last_event_id': 'runner-operation-0080'}
+
+> The transformed apparent distribution ratio should remain more stable than raw organic fraction if phase volume alone explains the effect.
+
+事件：runner-operation-0087, runner-operation-0097
+
+v3 / cursor {'event_count': 120, 'last_event_id': 'runner-operation-0120'}
+
+> this does not establish volume-dependent chemistry or refute a constant-ratio allocation model.
+
+K2
+
+> The reagent omission and exact-complementarity assumption were not emphasized sufficiently in the sealed prediction rationale.

@@ -1,0 +1,45 @@
+# 四版同期记录先建立有范围的体积关系，再撤回混合平台，而配对迁移仍依赖未测结构
+
+`repeat-02/PA-W02-B12-discovery-E-Aligned`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-02__PA-W02-B12-discovery-E-Aligned.json)
+
+## 问题与先验
+
+资料使S2/X2起手，六批S2行和X2列显示S2/X3较X2更高，边际排序未决定局部配对。v2/cursor60将后六批分配给相量与混合。
+
+## 预期与实验
+
+v2预告体积单调关系；四批后v3/cursor100已形成K约3的限定插值，随后在混合极端出现前明确：若300s/600rpm已接近平衡，强混合应相似。最后两批实际检验1s/100rpm及1200s/1200rpm。
+
+## 实际证据
+
+S2/X2低相量0.078对应有机0.242、高相量0.393对应0.626；三中相量0.169/0.194/0.209对应0.395/0.428/0.433，K约2.6–3.8。后两个中相量配方交换溶剂/水而总非有机量固定，不是精确重复。弱混合0.340、强0.505，标准原配方0.395。
+
+## 修订
+
+v4承认无平台与独立时间/rpm效应；体积式保留为S2/X2中混合范围的近似关系。对液量交换的相量/库存相近仅称有限组成证据，不能将单次无差异提升为普遍不变。
+
+## 后续采用
+
+Q09→Q10有机0.555→0.625、Q11→Q12为0.690→0.740，保留混合方向；但独立时间/速度均调整而源研究共变。X0全未试，S0/X3亦未试，D2仍选Q06，以S2上X3优势移到S0。K2准确指出该主效应外推及重叠区间，建议固定700rpm的同样品时间进程，未执行。
+
+## 未解决问题及解释限制
+
+不是只有终点声明：v2体积预期、v3依据体积结果限定公式及预告平台、v4撤回平台构成连续认识演化。Q为新点给数不自动等于确信普遍定律，但实际采用的独立混合与配对模型仍强于已建立关系。无精确重复，K1开头统一300s描述不取代实际动作。
+
+## 已核验引文与事件锚点
+
+v3 / cursor {'event_count': 100, 'last_event_id': 'runner-operation-0100'}
+
+> Treat K≈3 only as a compact interpolation for S2–X2 under these conditions, not a universal coefficient.
+
+v3 / cursor {'event_count': 100, 'last_event_id': 'runner-operation-0100'}
+
+> if 300 s/600 rpm is near equilibrium
+
+K2
+
+> The categorical Q06-over-Q05 decision therefore rests on an uncertain transfer of the X3 advantage from S2 to S0

@@ -1,0 +1,69 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-MisIndexed",
+    "cell": "RX-W01--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed给420K附近较高温更可靠与B参考配方；目标安全score。初始H1接受高温方向，但以实际终检决定搜索。",
+  "expectations": "只有起止两版笔记；中途因果理由来自K1/K2事后解释，不能伪装成同期预测。起始承诺420K锚点、较冷较短与类别对照。",
+  "tests_and_observations": "84操作全部committed、12批12次HPLC均在热处理结束紧接terminate/final。420K3300s B: risk .3581且提交、X .9997、score .2915。410K3000s A/C/D/B匹配screen得分.3497/.3468/.2969/.3442；A四溶剂乙腈最高。A410与415K3000s score .3497/.3417、risk .3046/.3323。A410K2400/2700/3000/3300s score .3420/.3564/.3497/.3491，risk几乎不变，by/deg随时间总体增加。推荐2700s复测score .34350，未恢复样本最大值。",
+  "revisions": "最终笔记仍写moderate high-temperature preferable但实际下移420→410；K1/K2明确反证高温安全平衡先验，依据matched 410/415温度对照补强。支路与损失模型有候选但不唯一；时长小分数差承认未重复。risk时长近恒被概括成peak-state，数据也兼容末态。",
+  "later_use": "Q01复用参考热史有实测锚点，但源含额外HPLC，非全动作一致；Q02/10无淬灭源证据仍预测降risk，方向正确；Q07/08把两段顺序同risk .52，峰值语义偏差。Q11低温长时X .6低估。整体conversion MAE .05175、risk .06618、yield .12829。",
+  "unresolved": "12 HPLC耗尽池却全近终点，未产生过程时间证据；无rollback、quench、分段热史或精确重复。K2提出半程HPLC复测未执行、无真值。推荐复测下降不删除。",
+  "histories": [
+    {
+      "topic": "先验修订",
+      "sequence": "高温可靠先验→420K虽提交但risk超限→410/415匹配对照→下移410、短时优化",
+      "status": "prior_revision_supported_by_actions_but_sparse_contemporaneous_record"
+    },
+    {
+      "topic": "安全风险含义",
+      "sequence": "单温度时长近恒→K1峰值风险猜测→Q对quench给末态降低但分段顺序仍同峰值",
+      "status": "partially_inconsistent_transfer"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "K1",
+      "quote": "Thus, in the explored range, the public risk metric is dominated by peak thermal/material conditions rather than time-integrated exposure."
+    },
+    {
+      "stage": "K2",
+      "quote": "The initial instruction to treat an observed temperature-bound rollback as evidence against the setting was not tested because I did not observe such a rollback."
+    },
+    {
+      "stage": "K2",
+      "quote": "I measured HPLC only near the terminal state before termination, so it largely duplicated the subsequent final assay rather than producing a time course."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_operations_committed": true,
+    "nonfinal_instrument_uses": 12,
+    "all_hplc_after_heat_before_termination": true,
+    "source_safety_limit_exceeded_but_no_rollback": true,
+    "sealed_K2_has_Q_truth": false
+  }
+}

@@ -1,0 +1,49 @@
+# 正确的分配资料未解决完整混合物：反应局部重复、下游损失与后测先验并存
+
+`repeat-03/P-W05-B12-optimization-E-Aligned`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-03__P-W05-B12-optimization-E-Aligned.json)
+
+## 问题与先验
+
+初始笔记依资料预测X2兼顾产品转移与选择性，并计划催化剂/溶剂筛选后优化纯化。全场只有首末两版笔记；K1对中间选择变化的回顾不能替代同期时间证据。
+
+## 预期与实验
+
+S2、330K、7200s、0.005mol催化剂的C1/C0/C3上游比较确实匹配，HPLC纯度0.570/0.472/0.486、回收0.205/0.170/0.144。批10–12改0.001mol C1后同上游重复，HPLC纯度0.599/0.598/0.602、回收0.221/0.217/0.217，形成可信的窄域稳定关系。
+
+## 实际证据
+
+批10与11仅改低体积X2/X0，终态纯度0.4875/0.4888、回收0.0504/0.0433，不能确立萃取剂差异。批12改较大X2量、保留水相并取消干燥，纯度0.581/回收0.1095，不能单归因为相别。批6三次0.04L洗后纯度0.197/回收0.0144，但对照批7换了催化剂；全12批无达标。
+
+## 修订
+
+末笔记把X2资料的完整流程收益改为不支持，保留基质/测定基准等替代解释。K1/K2准确区分反应前HPLC与选相后终检：有机相近1转化不代表全反应转化，且明确洗涤、干燥、浓缩效应未完全识别。正确资料只覆盖部分成分及条件，其未兑现不等于资料本身错误。
+
+## 后续采用
+
+Q仍用温和先验给X0更高纯度、X2更高回收，并把低试剂浓度与高催化剂比例推为更高分数回收；洗涤在新域中又被预测提升纯度，虽然源末报告强调洗涤相关损失。K2准确标出这些未检验的迁移与分步洗涤/浓缩假定，提出测两相和洗液物料衡算，区分分配、反萃与干燥浓缩损失。
+
+## 未解决问题及解释限制
+
+低催化剂三次是上游重复，非下游完整重复；高催化剂仅一次，尚非加载量普遍定律。批1早HPLC后又400K加热再分相，终态差异不能单证热降解。K1的洗涤因果措辞偶强于其自己声明的混杂；K2实验未执行。推荐批2最高纯度0.729、回收0.0298，只是明确不达标的fallback。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 190, 'last_event_id': 'runner-operation-0190'}
+
+> This numerical consistency across three batches supports repeatability in that narrow scope
+
+K1
+
+> a final conversion near 1 in an organic isolate does not prove whole-batch conversion near 1
+
+K2
+
+> wash effects were never tested with an otherwise identical no-wash control.
+
+Q
+
+> The extraction estimates use the nominal partition structure only as a tempered prior

@@ -1,0 +1,90 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-Opaque",
+    "cell": "RX-W03--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 107,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "无过程先验，机制任务；自选.04mol/.08L/.005mol500rpm，用A乙腈温度系列再催化、溶剂、早停。",
+  "expectations": "v1热剂量峰、催化失活、淬灭保留皆候选；v2正确指出420只有900s不能据低Y判温峰，并预告早停B可保S、补溶剂。",
+  "tests_and_observations": "107操作全提交、12HPLC/12final、全12quench。A330/360/390均900+900；3001800+1800、420450+450。420 HPLC risk .3589，第二heat另+.01971使峰约.3786，final .182；未rollback。B390900中点重复X .6545/.6561 Y .5592/.5641；900终检Y .5675/S .8675对1800 .6942/.7772，早停牺牲Y而保S。四催化/四溶剂共条件。",
+  "revisions": "v3/K1明确没有峰、没有唯一quench因果；中点重复为早期轨迹支持。K2进一步指出A390中到末S升，限缩普适晚期S降论。最后仍推荐1800高Y而非早停，符合目标权衡。",
+  "later_use": "Q近一阶饱和X MAE .00398，Y/S MAE约.054，risk .08979；风险按末温、quench，源有直接冷却risk。K2建议B3901800+HPLC+1800看绝对产物是否下降，未执行；其声称每批仅一次非终检错误，实际12总预算可重分配。",
+  "unresolved": "B源Y持续升并未见真产物下降，P→D只候选；时温异配不可定位峰。全部quench无法隔离其相对立即终止化学效力，risk可直接见。淬灭不推进ODE，Q微小化学修正无相应真语义。",
+  "histories": [
+    {
+      "topic": "没有强求温度峰",
+      "sequence": "初始峰假设→420较短且risk超阈→v2拒用低Y定峰→转390B与材料→保留未定位",
+      "status": "预期受设计边界约束"
+    },
+    {
+      "topic": "早停假设与结果权衡",
+      "sequence": "v2预测B早停保S/竞争Y→末900重复中点再quench→S高但Y低→最终推荐1800，保留900为选择性方案",
+      "status": "同期预测、执行、结果限制完整"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "The 420 K experiment used only 900 s",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "at the cost of lower yield",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 107,
+        "last_event_id": "runner-operation-0107"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "only one nonfinal instrument use and one final assay were available per completed batch."
+    },
+    {
+      "stage": "K2",
+      "quote": "Catalyst A in batch 4 had HPLC selectivity 0.7204 at 900 s and final-assay selectivity 0.7474 at 1800 s."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 107,
+    "rolled_back": 0,
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "quench_batches": 12,
+    "campaign_nonfinal_budget_not_per_batch": true,
+    "batch5_peak_risk_approx": 0.3786,
+    "conversion_mae": 0.003979012,
+    "risk_mae": 0.089790497,
+    "recommendation_retest_score": 0.3658531606,
+    "K2_received_Q_truth": false
+  }
+}

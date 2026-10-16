@@ -1,0 +1,47 @@
+# 从资料指引的S2/X0得到重复和体积关系，未受控类别比较仍成为确定决策依据
+
+`repeat-02/PA-W05-B12-discovery-E-MisIndexed`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-02__PA-W05-B12-discovery-E-MisIndexed.json)
+
+## 问题与先验
+
+错配边际资料选S2/X0起点。本场不加reagent，直接在固定初始混合物中加液体和萃取剂，不能将其他PA场的加料视为共同存在。首四批先标准/弱/强/强混合，并在强条件分别保留有机和水相；提供可追踪的操作与库存对应。
+
+## 预期与实验
+
+v1提出相量、配对和混合假设；v2/cursor54在六批后说需要额外交叉，后续确有S2/X2、S3/X3、S0/X3、S3/X0高混合比较和S2/X0高低相量。标准份额0.190、弱0.169、强重复0.222/0.257；末高低相率0.613/0.095对应份额0.612/0.153。
+
+## 实际证据
+
+高低相量及强条件重复的表观D约1.01–1.66，足够支持相量方向，却不足以确立恒D。高相量杂质0.107、纯度0.827，低相量杂质0.002、纯度0.899，组成共同变化。第3/4批强条件前分相近重复，最终分别保有机0.254和水相0.758，说明选择保留相决定可回收库存。
+
+## 修订
+
+v3保留局部相量和暂定混合关系，明确无平台或完整类别排名。配对交叉在长混合下扩充了资料未确定的信息；‘已支持交互’仍比稀疏单点设计能唯一识别的范围强，应写为配对差异及交互候选。
+
+## 后续采用
+
+Q采用有体积意识的模型并宽化未测S2/X3区间，确实使用研究中相量及混合方向。D2选Q06依据S0/X3的0.383大于S0/X0的0.138，但两批分别1200 s/1200 rpm和300 s/600 rpm，类别与混合未匹配。K2主动指出其确定性不如标签直观，属于证据部分支持而非干净X对照。
+
+## 未解决问题及解释限制
+
+强混合重复差0.035、相率噪声和时间/速度共同变化，使精确动力学未辨识；K2提出同器固定rpm延时测量，尚未执行。研究仍有正向关系和操作理解，不能全归为错配先验被维持，也不能把精确互补预测视作已测全库存守恒。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 54, 'last_event_id': 'runner-operation-0054'}
+
+> Additional cross-pairs are needed.
+
+事件：runner-operation-0060, runner-operation-0069, runner-operation-0078, runner-operation-0087
+
+v3 / cursor {'event_count': 108, 'last_event_id': 'runner-operation-0108'}
+
+> no plateau or separate speed effect was resolved.
+
+K2
+
+> those source batches used different mixing intensities, so its certainty is less direct than the decision label alone suggests.

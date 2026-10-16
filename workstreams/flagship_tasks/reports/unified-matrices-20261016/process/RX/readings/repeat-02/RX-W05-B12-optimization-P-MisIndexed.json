@@ -1,0 +1,98 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-optimization-P-MisIndexed",
+    "cell": "RX-W05--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed给出420K参考区高温侧更可靠的方向。仅初始与终末两版笔记(0/96)，不能将K2事后解释倒填为中途同期理由。",
+  "expectations": "v1预期410K安全、420K附近强于明显低温；若风险近阈值则向低温短时移动。实际前3批410/420/430K后转400/390K。",
+  "tests_and_observations": "96操作全部提交，12HPLC/12终检；固定投料/体积/转速、控制后加热、HPLC、终止、终检，无quench/重复。水/C3/3300s温度410/420/430/400/390K分数.43247/.40256/.38185/.45193/.46149，风险.22907/.28092/.31885/.17383/.12859。390K时长2400/3300/4200s产率.70903/.74847/.75748，分数.44621/.46149/.46407；后两者差.00258不支持尖锐最优。390K4200s催化剂C0/C1/C2相对C3及水/乙醇/乙腈有真实单因素比较，甲苯未测。全部风险低于.35。",
+  "revisions": "v2/K1撤回高温更优，限定390–400K局部安全折衷；时长保留3300–4200宽窗口。K1才提出反应网络与替代解释，未唯一辨识；不能声称方程指导源研究。K1每批仅1次中测可用之说不准确：12次是研究总额度，本场自行每批分配1次。",
+  "later_use": "Q使用饱和转换、时间副反应和温度风险：420K短中长风险均.32；未测quench仍预测.32→.09、.37→.10且同步增分，并说明是假设。温序Q07/08产率.47/.52、风险均.41，未区分末态。转换MAE .02249、风险.06012、分数.06653、产率.13661；覆盖54/60、55/60、55/60、29/60。推荐B6复测分数.46182产率.74733。",
+  "unresolved": "K2坦承未测quench、温序、浓度、搅拌交互，极端转换区间过窄；建议精确重复B6尚未执行，评价者复测不反馈研究者。局部证据有效不等于每项外推可靠。",
+  "histories": [
+    {
+      "topic": "高温先验撤回",
+      "before": "v1高温侧预期",
+      "test": "B1–5固定时间温度序列",
+      "after": "v2撤回并限定低温窗口",
+      "later": "Q转换与风险分开推断",
+      "limit": "无中途笔记，逐步决策原因只有事后说明"
+    }
+  ],
+  "measurement_and_failure_notes": "全部操作提交。HPLC与终检的通道、噪声、成本不同，不是同仪器重复；无新反应时间，不把差值当动力学。K1风险峰值/末态未分清，K2承认。无新实验。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "I predict a 410 K baseline will remain below the 0.35 safety limit",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This contradicts the supplied expectation that the higher-temperature side would retain balanced performance more reliably.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "duration superiority is unresolved; 4200 s is retained only as the observed best.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The experiments caused me to reverse that expectation."
+    },
+    {
+      "stage": "Q",
+      "quote": "The campaign indicated that safety risk was dominated by attained temperature rather than duration",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "Q",
+      "quote": "Because no quench was used in the research campaign, the extent of risk relief is a major unresolved uncertainty.",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "The correct reconciliation is that the point predictions were mechanistic guesses required by the prediction task"
+    },
+    {
+      "stage": "K2",
+      "quote": "If exactly one additional legal experiment were available, I would repeat the complete Batch 6 procedure"
+    }
+  ]
+}

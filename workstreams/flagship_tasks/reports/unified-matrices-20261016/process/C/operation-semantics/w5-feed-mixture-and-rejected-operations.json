@@ -1,0 +1,253 @@
+{
+  "scope": "Retained-record and frozen-code interpretation only; no participant or simulator run.",
+  "source_commit": "d2b05e98",
+  "frozen_semantics": {
+    "mechanism": "configs/scenarios/mechanism_scenarios.yaml: simple_batch_reaction initial noncatalytic feed A only",
+    "feed": "src/chemworld/runtime/species.py reagent_charge_amounts; src/chemworld/runtime/primitive_services.py add_reagent and add_component both route to _add_feed; initial amount ledger updated",
+    "mixture": "src/chemworld/runtime/primitive_services.py _solvent_addition_phases adds SolventInventory.pure; src/chemworld/world/mixtures.py uses inventory-weighted properties",
+    "seed": "Each C batch cumulative seed limit 0.05g; rejected additions do not alter inventory"
+  },
+  "sessions": [
+    {
+      "key": "repeat-02/C-W05-Opportunity-Research",
+      "source_result": "D:\\CW267\\a2\\repeat-02\\C-W05-Opportunity-Research\\result.json",
+      "total_committed_A_mol_by_batch": {
+        "1": 0.08,
+        "2": 0.036,
+        "3": 0.036,
+        "4": 0.036,
+        "5": 0.0365,
+        "6": 0.0365,
+        "7": 0.0365,
+        "8": 0.0365,
+        "9": 0.0365,
+        "10": 0.0365,
+        "11": 0.0365,
+        "12": 0.0365
+      },
+      "selected_public_events": [
+        {
+          "cursor": 1,
+          "batch": 1,
+          "action": {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 2,
+          "batch": 1,
+          "action": {
+            "amount_mol": 0.04,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 15,
+          "batch": 2,
+          "action": {
+            "amount_mol": 0.018,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 16,
+          "batch": 2,
+          "action": {
+            "amount_mol": 0.018,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 66,
+          "batch": 5,
+          "action": {
+            "amount_mol": 0.01825,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 67,
+          "batch": 5,
+          "action": {
+            "amount_mol": 0.01825,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 203,
+          "batch": 12,
+          "action": {
+            "amount_mol": 0.01825,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 204,
+          "batch": 12,
+          "action": {
+            "amount_mol": 0.01825,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        }
+      ]
+    },
+    {
+      "key": "repeat-03/C-W05-Opportunity-Research",
+      "source_result": "D:\\CW267\\a2\\repeat-03\\C-W05-Opportunity-Research\\result.json",
+      "total_committed_A_mol_by_batch": {
+        "1": 0.08,
+        "2": 0.036,
+        "3": 0.036,
+        "4": 0.036,
+        "5": 0.036,
+        "6": 0.036,
+        "7": 0.036,
+        "8": 0.036,
+        "9": 0.036,
+        "10": 0.036,
+        "11": 0.036,
+        "12": 0.04
+      },
+      "selected_public_events": [
+        {
+          "cursor": 1,
+          "batch": 1,
+          "action": {
+            "amount_mol": 0.04,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 2,
+          "batch": 1,
+          "action": {
+            "amount_mol": 0.04,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 14,
+          "batch": 2,
+          "action": {
+            "amount_mol": 0.018,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 15,
+          "batch": 2,
+          "action": {
+            "amount_mol": 0.018,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 121,
+          "batch": 8,
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 0,
+            "volume_L": 0.06
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 122,
+          "batch": 8,
+          "action": {
+            "operation": "add_solvent",
+            "solvent": 2,
+            "volume_L": 0.02
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 167,
+          "batch": 10,
+          "action": {
+            "operation": "seed_crystals",
+            "seed_mass_g": 0.05
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 168,
+          "batch": 10,
+          "action": {
+            "operation": "seed_crystals",
+            "seed_mass_g": 0.05
+          },
+          "transaction_status": "validation_failed",
+          "observations": {}
+        },
+        {
+          "cursor": 190,
+          "batch": 11,
+          "action": {
+            "duration_s": 7200,
+            "operation": "cool_crystallize",
+            "target_temperature_K": 325
+          },
+          "transaction_status": "validation_failed",
+          "observations": {}
+        },
+        {
+          "cursor": 203,
+          "batch": 12,
+          "action": {
+            "amount_mol": 0.02,
+            "operation": "add_reagent"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        },
+        {
+          "cursor": 204,
+          "batch": 12,
+          "action": {
+            "amount_mol": 0.02,
+            "component": 0,
+            "operation": "add_component"
+          },
+          "transaction_status": "committed",
+          "observations": {}
+        }
+      ]
+    }
+  ],
+  "interpretation": "R3 W5 B9/B10 are actual near repeats with identical 0.05g seed, not doubled-seed comparison. B11 also lacks rejected 325K/7200s crystallization segment, so reaction-temperature/time is not the only changed physical history. R2/R3 W5 Q omission of component-0 changes total A charge, not the number of required species."
+}

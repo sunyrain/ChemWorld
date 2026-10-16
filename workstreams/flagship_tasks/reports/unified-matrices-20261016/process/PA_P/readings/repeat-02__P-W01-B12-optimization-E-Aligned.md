@@ -1,0 +1,51 @@
+# 低回收引出遗漏组分假设，新增投料消耗共同库存，使后续温度探索没有形成有效证据
+
+`repeat-02/P-W01-B12-optimization-E-Aligned`
+
+阅读覆盖：逐版全文/完整差异、207条公开操作测量、K1/K2全文及Q全部预测与推荐复测；单分析者精读
+
+[完整公开记录](../sessions/repeat-02__P-W01-B12-optimization-E-Aligned.json)
+
+## 问题与先验
+
+资料支持暂选X2；初始计划固定.04mol试剂及.005mol催化剂筛材料。实际每批HPLC都放在萃取、洗涤、干燥、浓缩之后，故前四批已无直接反应阶段测量，低回收无法定位于生成不足或后处理损失。
+
+## 预期与实验
+
+v2/cursor64将前四批低回收和近1的最终转化解释为可能遗漏component-0，承诺余下批次加入.04mol component-0重新筛查。事件65/66起实际同时add_reagent .04与add_component .04；四批各耗.08mol，连前四批.16mol恰耗完.48mol共享库存。这是有同期承诺和执行对齐的解释—行动链，但组分角色未先被证明。
+
+## 实际证据
+
+前四批终检回收0–.0112；加入component后第五至八批回收仍0–.00868。批7C2/S2最终纯度.8453及相邻HPLC .8427支持该终态纯度，却不能证明component改善或C2独立效应。133/134首次明确stock_limit拒绝；随后320/335/345/350K四组计划都没有成功热处理。直到201才关闭生命周期9，因此147/164/181/198四次HPLC来自未闭合的无有效反应样品，不能当四个独立温度批。201/203/205/207完成四次弃置。
+
+## 修订
+
+v3承认组分操作共享试剂库存且原比较混杂，撤销对后四批的温度响应解释。其H3标题写disconfirmed temperature extrapolation，但正文实际上说没有有效实验，分析应编码为未检验而非温度假说被反证。K1将component假说保留未解决，未把唯一合格终态提升为一般组分效应。
+
+## 后续采用
+
+仍按可见终态选择批7，原推荐复测.8545/.00771，支持高纯低回收共存。Q在全新400K/C1S2/低催化剂量条件给回收.103–.392，远高于源终态，却明确使用定性反应先验及宽区间；K2把所有绝对回收列为最弱预测，并提出在萃取前加HPLC区分生成不足与后处理损失。这一方案尚未执行。
+
+## 未解决问题及解释限制
+
+8/12有效终检与12个已关闭生命周期必须分别报告；本场缺测源于物料与操作语义，不是服务故障、时间预算耗尽或自由提前收束。解释确实改变了投料并缩减可获得证据，但不能断言该假说是错误化学机制：新增组分效应仍混于总投料、材料搭配与未观测上游。无中间测量导致的识别缺口不能靠事后完整反应方程弥补。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 64, 'last_event_id': 'runner-operation-0064'}
+
+> I will add 0.040 mol component-0 in all remaining batches and rescreen categories. The claim would change if target yield remains near zero with component present.
+
+事件：runner-operation-0065, runner-operation-0066, runner-operation-0082, runner-operation-0083
+
+v3 / cursor {'event_count': 207, 'last_event_id': 'runner-operation-0207'}
+
+> those rejected/blank operations must not be interpreted as temperature-response evidence.
+
+事件：runner-operation-0137, runner-operation-0154, runner-operation-0171, runner-operation-0188
+
+K2
+
+> That choice helped assess threshold compliance but left upstream formation and downstream loss confounded.
+
+事件：runner-operation-0013, runner-operation-0014, runner-operation-0112, runner-operation-0113

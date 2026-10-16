@@ -1,0 +1,91 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-optimization-P-MisIndexed",
+    "cell": "RX-W03--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed高温更安全均衡，B水420K3300s150rpm参考；优化目标。",
+  "expectations": "v1预期高温方向，实际从420逐步410/400/390；v2明确反对原方向并预告溶剂屏与更冷/时间微调。",
+  "tests_and_observations": "84操作全部提交、12HPLC/终检、无失败/quench。固定3300s420→390 score .3919/.4222/.4518/.4634而risk .3197→.1652。B水390胜其他催化；D最高S .8584。水390胜三溶剂；380/385 score .463514/.463533与390几乎同。",
+  "revisions": "v2/3主动反对高温先验；v3限定380–390无法定位唯一最优，385为中点。所有源在风险阈下。K1有“robust central point”措辞但K2明确未证重复/稳健；12HPLC临终重复未形成时间信息。",
+  "later_use": "Q以乙腈390为局部锚，未直接预测高温heat全rollback，但Q04/12口称区间含rollback同时X下界.98/.97，不包含该竞争结果。风险未测时长与peak记忆外推；X MAE .01236/risk .12084/Y .08423。推荐复测score .46339。K2承认范围文字与Q数值不一致，提同批两时间测量未执行。",
+  "unresolved": "430“合法setup”仍被错误扩大为heat限制，只影响不确定性表述而非本场Q近零点估；不得与Aligned近零rollback预测合并。公共反应时钟仍可竞争，未唯一识别材料改变分支。",
+  "histories": [
+    {
+      "topic": "方向修订与平台识别",
+      "sequence": "高温先验→降温连续提高score→v2反对先验→380/385/390近同→v3选择中央点而非唯一最优",
+      "status": "源内修订及限域成立"
+    },
+    {
+      "topic": "文字竞争与数值区间",
+      "sequence": "Q04/12称可能rollback→仍近完全转化窄区间→K2承认不能覆盖操作不确定性",
+      "status": "公开表述与量化承诺分离"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "the supplied higher-temperature directional prior is opposed over 390–420 K.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 49,
+        "last_event_id": "runner-operation-0049"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "385 K is a pragmatic central choice rather than a proven unique optimum.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "The wide intervals represent possible temperature-bound rollback or other protective behavior.",
+      "query_id": "Q04"
+    },
+    {
+      "stage": "K2",
+      "quote": "This reveals a genuine inconsistency between the caution in K1 and the numerical precision of parts of Q."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 84,
+    "committed": 84,
+    "hplc": 12,
+    "final_assays": 12,
+    "failure_count": 0,
+    "Q": "全部已读，有效",
+    "prediction_mae": {
+      "conversion": 0.012364011,
+      "risk": 0.120840666,
+      "yield": 0.084233757
+    }
+  }
+}

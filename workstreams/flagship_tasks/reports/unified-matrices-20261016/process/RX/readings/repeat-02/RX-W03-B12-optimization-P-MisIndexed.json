@@ -1,0 +1,73 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-optimization-P-MisIndexed",
+    "cell": "RX-W03--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化safe-score；初始B/水420K3300s参考及偏高温方向，研究者以该配方起步。",
+  "expectations": "v1暂采高温更佳预期但允许非单调；v2由420/400/380/360扫描改为中间窗口并安排材料筛选与375/385细化。",
+  "tests_and_observations": "72次操作全提交，12终检，无中间测量、淬灭、变时或精确重复。固定3300s/.003mol/.005L/.000475mol/150rpm，水B从420降380使score .3999→.4789，360下降.4449，375/385 .4682/.4715。380下四催化与四溶剂单因素比较使B和水在所测条件领先。",
+  "revisions": "v2明确推翻高温方向；K1/K2认中间局部最大、近邻优势仅.0074且未复测，不把380当精确全局最优。固定时间/终检只支持条件性效应，保留纯并行、连续降解及潜在severity等解释。",
+  "later_use": "Q从水温度扫描迁移到乙腈、高温、长时和两段次序；没有误将430控制上限当heat上限。Q07/08由未鉴别P→D提出次序效应，Q02/10只小幅降risk，借累积/峰值风险猜测。K2主动指出分段及淬灭预测缺直接支持，建议1650+HPLC+1650的后续时间轨迹；未实际执行。",
+  "unresolved": "初始方向修订成立，但时间、热次序及risk语义未识别。K2的退让未获得Q真值且不改已封存数值。推荐380复测score .47120较源.4789低，与近邻小差和测量噪声一致。",
+  "histories": [
+    {
+      "topic": "高温方向→内点条件关系",
+      "sequence": "先验420高温侧有利→420/400/380/360单因素扫描→v2否定高温方向→375/385局部细化→K1保留局部/噪声边界",
+      "status": "有同期改判与实际后续检验；未精确复制"
+    },
+    {
+      "topic": "未鉴别机制进入预测",
+      "sequence": "固定3300终检无法区分parallel/consecutive→K1并列候选→Q07/08仍按P→D排序；未测quench→Q仅微降risk→K2承认数值区分过强",
+      "status": "候选解释在推断中的使用；没有新实验纠正"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "Q",
+      "quote": "especially large uncertainty for 450–460 K or long-duration cases"
+    },
+    {
+      "stage": "K2",
+      "quote": "I also left the entire nonfinal-instrument budget unused."
+    },
+    {
+      "stage": "K2",
+      "quote": "The numerical separation between those predictions may therefore be overconfident."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 72,
+    "rolled_back": 0,
+    "nonfinal_assays": 0,
+    "final_assays": 12,
+    "conversion_mae": 0.0105169173,
+    "risk_mae": 0.1542014689,
+    "recommendation_retest_score": 0.471201539,
+    "K2_received_Q_truth": false
+  }
+}

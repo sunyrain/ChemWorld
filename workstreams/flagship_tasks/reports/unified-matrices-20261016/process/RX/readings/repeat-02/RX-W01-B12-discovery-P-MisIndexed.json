@@ -1,0 +1,100 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-MisIndexed",
+    "cell": "RX-W01--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed先验420K高温侧更可靠，B乙腈参考尺度；目标解释，温度/时间/催化/溶剂多轴探索。",
+  "expectations": "v1预计先形成后损失，待验证高温安全平衡方向；v2在10批后明确否定长时高温先验并计划quench应保留更近中间HPLC分布；v3报告最后实验结果。",
+  "tests_and_observations": "97动作中93committed、300s与900s heat各两次rolled_back，零时间。B380/400/420/430K均1650s HPLC+1650s终检；中间yield .601/.694/.733/.755，终检 .680/.676/.647/.631，risk .175/.250/.358/.397。420K6000s在3000s HPLC yield .663→final .461，X .992近恒。A/C/D420K3300s终检yield .663/.658/.575；水替乙腈终检yield .650、X .907。最终420K1650s后HPLC、quench、wait1650s，yield .7394、risk .16343、score .44174；复测yield .73719、score .43796。",
+  "revisions": "将高温更好缩小为早期较快形成，长时选择性/产率下降；接受只对committed exposure推动力学。v2→quench终检形成可追踪预测-测试链，但未做同短时direct termination或匹配降温，不唯一识别quench化学必要性。K2正确说稳定P的纯并行模型不足解释绝对产率下降。",
+  "later_use": "Q01/03/06用近域温度时间锚点，quench不逆转既有损失；Q04/09/10/12将430K controller范围当direct heat硬上限，X .003，Q07/08删除450K段而同值，conversion MAE .35487。Q05在失败900与成功1650间猜1500刚可提交，未纳rollback分支。K2无真值回看主动指出边界泛化不充分。",
+  "unresolved": "最高源430K仍committed，不说明更高温必拒。推荐仅末态risk低，420K加热期间risk .35795已越.35，不能写全程安全；K1所谓remained below不准确。quench/wait显示旧HPLC不变不是连续新观测，末端证据来自final。无精确同条件源重复。",
+  "histories": [
+    {
+      "topic": "温度时间关系",
+      "sequence": "高温可靠先验→中段高温产率高但末段低→v2按时间条件拒先验→quench保留早期分布→推荐",
+      "status": "conditional_prior_revision_and_prospective_test"
+    },
+    {
+      "topic": "真实回滚范围被扩张",
+      "sequence": "300/900s真回滚正确排除→Q因430K文档范围泛化更高温必回滚→与高温实际参考冲突→K2承认无验证",
+      "status": "unsupported_control_boundary_transfer"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "H2 [rejected in tested range]",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 80,
+        "last_event_id": "runner-operation-0080"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "A quench that freezes chemistry should preserve a profile nearer the pre-quench HPLC than the continued-heating baseline.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 80,
+        "last_event_id": "runner-operation-0080"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Termination itself was not separately compared with quench at the same intermediate state."
+    },
+    {
+      "stage": "Q",
+      "quote": "The requested 450 K target exceeds the published 430 K control range.",
+      "query_id": "Q04"
+    },
+    {
+      "stage": "K2",
+      "quote": "It therefore distinguishes against a model containing only irreversible parallel formation with stable P."
+    },
+    {
+      "stage": "K2",
+      "quote": "That assumed the blind executor would roll back those heat actions rather than reject, clip, or execute them under a different heat-specific bound."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 93,
+    "rolled_back": 4,
+    "rollback_event_ids": [
+      "runner-operation-0036",
+      "runner-operation-0038",
+      "runner-operation-0044",
+      "runner-operation-0046"
+    ],
+    "nonfinal_instrument_uses": 12,
+    "source_recommendation_heat_risk": 0.3579510450363159,
+    "source_recommendation_final_risk": 0.16343435645103455,
+    "sealed_K2_has_Q_truth": false
+  }
+}

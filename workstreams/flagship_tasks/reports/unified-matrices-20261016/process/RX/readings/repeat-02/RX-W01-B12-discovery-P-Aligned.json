@@ -1,0 +1,103 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-Aligned",
+    "cell": "RX-W01--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 91,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned先验低温侧更可靠、B乙腈参考配方；目标解释反应与热史，拟温度/时间/催化/淬灭对照。",
+  "expectations": "v1预期390–420K长时间可能损失；v2在前4批后预测410K1650s应比3300s保留产率，超3300s继续恶化；v3在最后一批之前写quench后wait应保留短时分布，若大幅掉落则否定有效停止。",
+  "tests_and_observations": "91动作：89committed、两次825s heat rolled_back且时间零，agent排除batch5动力学。前四批B390/400/410/420K均1650s HPLC后再1650s终检；410K1650/3300/4950s终检yield .7185/.6628/.5468，X .8874/.9879/1，deg .1024/.2566/.3731。无催化yield .0019，A/C/D匹配1650s yield .5889/.5927/.6685。batch12按v3执行410K1650s、HPLC、quench、wait1650s，终检yield .7176、risk .15171，推荐复测yield .72275、score .44103。",
+  "revisions": "v2将热史解释为形成后损失；v3/v4使用独立短时/长时终检补强，quench后终检保留短时分布。局部降温与化学不可逆停止仍不可分；仅失活或后续支路变化若无既有P损失不能解释绝对yield下降，K2列为替代过宽。",
+  "later_use": "Q化学在已测390/420温区锚点较准，淬灭不恢复既有损失的解释合理；但把公共controller的430K范围及真实825s回滚迁移为所有440–460K direct heat必回滚，Q04/09/10/12预测X .006，Q07/08仅保留390K段且两者同值。参考实际高温执行，conversion MAE .35890、yield .22576。局部解释链与操作接口边界误推可共存，非简单科学能力高低。",
+  "unresolved": "K2无真值已指出duration回滚不支持温度回滚，controller范围未证明direct heat共享上限，承认窄区间错场景。提出quench再加热可区分冷却暂停/不可逆改变但未执行。quench/wait过程中保持的旧HPLC不是新测，证据应依赖末次终检与独立短时终检。source中温度最高420，risk .358仍committed。",
+  "histories": [
+    {
+      "topic": "形成与损失到有效停止",
+      "sequence": "分段HPLC发现高产率→v2事前短时/超长时预测→独立时间终检支持→v3 quench+wait两种预期→v4终检支持保留",
+      "status": "prospective_multistep_explanation_test_chain_with_cooling_confound"
+    },
+    {
+      "topic": "操作边界外推",
+      "sequence": "真实825s回滚→正确排除其动力学意义→Q把controller范围误迁移direct heat温度边界→高温零转化预测→K2无真值自行承认证据不够",
+      "status": "real_failure_misapplied_to_different_control_axis"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prediction before next time tests:",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 32,
+        "last_event_id": "runner-operation-0032"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "A large yield/selectivity fall after quench would reject effective kinetic arrest.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 82,
+        "last_event_id": "runner-operation-0082"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "both 825 s heat attempts rolled back with zero elapsed process time.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 91,
+        "last_event_id": "runner-operation-0091"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "Targets above the observed public 430 K controller boundary are treated as rolled-back operations"
+    },
+    {
+      "stage": "K2",
+      "quote": "those failures concerned the duration boundary, not a high-temperature boundary."
+    },
+    {
+      "stage": "K2",
+      "quote": "neither established that the direct heat operation shared the same bound."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 89,
+    "rolled_back": 2,
+    "rollback_event_ids": [
+      "runner-operation-0036",
+      "runner-operation-0038"
+    ],
+    "nonfinal_instrument_uses": 12,
+    "hplc_stale_on_heat_wait_quench": true,
+    "quench_temperature_matched_control": false,
+    "sealed_K2_has_Q_truth": false
+  }
+}

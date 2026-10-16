@@ -1,0 +1,604 @@
+{
+  "key": "repeat-01/C-W05-Opportunity-NoResearch",
+  "unit": {
+    "matrix": "C",
+    "repeat": "repeat-01",
+    "id": "C-W05-Opportunity-NoResearch",
+    "system": "C",
+    "world": "W05",
+    "world_seed": 4,
+    "arm": "Opaque",
+    "opportunity": "NoResearch",
+    "cell": "C-W05-B12-E-Opaque",
+    "model": "gpt-5.6-sol",
+    "batches": 0
+  },
+  "source_result": "D:\\CW267\\a2\\repeat-01\\C-W05-Opportunity-NoResearch\\result.json",
+  "status": "completed",
+  "notes": [],
+  "events": [],
+  "stages": {
+    "K1": {
+      "report": "Scientific account\n\nEvidence status\nNo laboratory experiments, instrument readings, completed batches, or actual process observations are available in this conversation. Consequently, there are no observed batch values to cite, no empirically supported material ranking, and no demonstrated feasible process. The statements below distinguish declared public facts from inference or conjecture.\n\nPublic background\n• Materials are anonymous benchmark entities: catalysts C0–C3 and solvents S0–S3. Their indices disclose no chemical properties or real-world identities. The limiting reagent is likewise anonymous, and the mechanism-to-species mapping is hidden.\n• The objective is to maximize seed-excluded crystal recovery while requiring crystal purity ≥0.80 and number fraction below 20 µm ≤0.50. Recovery 0.10 is only an initial feasibility target, not a ceiling.\n• Seed-excluded crystal yield is defined as\n  Ycryst = n(target in recovered crystals, excluding seed) / n(initial limiting reagent),\n  clipped to [0,1]. Thus added seed cannot directly inflate recovery, although it may affect nucleation, growth, impurity incorporation, and product isolation.\n• The reported crystal-size index is min(d50/250 µm,1), where d50 is number-weighted. It is not itself a diameter. Fines fraction is the number fraction below 20 µm.\n• Declared native-score weights are 0.25 reaction score, 0.25 crystal yield, 0.20 crystal purity, 0.10 crystal size, 0.20 CSD quality, and −0.10 fines fraction. The scientific objective and hard quality constraints take precedence over that composite score.\n• Up to 12 independent batches, 12 final assays, and 12 additional HPLC/particle-size measurements are available. Every completed batch requires termination followed by final assay.\n• Public setup ranges include reagent 0–0.04 mol, solvent 0–0.08 L, catalyst 0–0.005 mol, temperature 250–430 K, pressure 50–400 kPa, and ramp rate 0.001–1 K/s. These are legal domains, not evidence that every setting is safe or effective. Campaign totals are 0.48 mol reagent, 0.96 L solvent, 0.06 mol catalyst, and 12 g seed.\n\nMaterial effects\nActual material effects are completely unresolved. There is no public basis for claiming that any catalyst improves conversion or selectivity, or that any solvent favors reaction performance, target solubility, crystal purity, recovery, size, or reduced fines. Catalyst and solvent choices may also interact; a solvent favorable for reaction kinetics could be unfavorable for crystallization, while a crystallization-selective solvent might suppress reaction or promote impurities. These are hypotheses only.\n\nReaction–crystallization coupling\nA useful conceptual decomposition, under a simple one-target/one-limiting-reagent stoichiometry, is\n  Ycryst ≈ X × S × Frecovery,\nwhere X is reaction conversion, S is target selectivity, and Frecovery is the fraction of generated target ultimately isolated as seed-excluded crystals. This is an inference framework rather than a supplied simulator equation: hidden stoichiometry, degradation, dissolved product, sampling, and phase behavior could invalidate a literal product decomposition.\n\nThe overall crystal yield can therefore be limited either upstream by incomplete or unselective reaction, or downstream by retained dissolved target, poor nucleation/growth, filtration losses, or degradation during thermal processing. High apparent reaction yield need not produce high crystal recovery. Conversely, aggressive supersaturation might raise recovery but can plausibly increase nucleation, fines, occluded mother liquor, and impurity incorporation. No such coupling has been observed here.\n\nProcess-history dependence\nThe public protocol explicitly allows seeding, cooling, holding, reheating/redissolution, recooling, filtration, and resuspension, so the world is potentially path-dependent rather than determined only by its final temperature. Generic crystallization reasoning suggests:\n• rapid or deep cooling may increase supersaturation and nucleation, potentially increasing recovery and fines;\n• controlled seeding and slower cooling may favor growth on existing crystals and reduce uncontrolled nucleation;\n• warm holds or partial reheating may dissolve smaller particles and permit ripening;\n• long hot exposure may improve reaction conversion but could also increase byproducts or degradation;\n• filtration timing can trade additional growth/recovery against degradation or secondary nucleation.\nThese are conjectures, not observations. The anonymous benchmark could depart from ordinary qualitative expectations, so none should be treated as an operating rule without data.\n\nMeasurement and uncertainty\nHPLC can estimate conversion, reaction yield, selectivity, byproduct signal, and crystal purity but is destructive and consumes 0.0002 L. Particle sizing is nondestructive and reports size, CSD quality, and fines after crystals exist. Final assay is destructive, consumes 0.0003 L, and is available only after termination.\n\nDeclared one-measurement noise scales include approximately 0.01 for final-assay crystal yield and purity, 0.025 for final-assay crystal size, and 0.018 for final-assay CSD quality and fines. Particle-size noise is 0.015 on each reported metric; HPLC uncertainty is generally larger for selectivity and crystal purity than final assay. Process variability is additional. Accordingly, a result barely above purity 0.80 or barely below fines 0.50 would not establish robust compliance; replicated or margin-separated results would be preferable. No replicate evidence exists.\n\nSupported ranges and unresolved tradeoffs\nOnly action and instrument ranges are publicly supported. No performance response surface, kinetic range, solubility curve, metastable-zone width, seed-dose response, or safe high-performing thermal history has been established. In particular, it remains unknown whether the 0.10 recovery feasibility target is attainable, whether any process meets both quality constraints, and how much recovery must be sacrificed to control purity or fines.\n\nPlausible alternatives include reaction-first optimization followed by crystallization optimization, joint catalyst–solvent screening, seeded slow cooling, unseeded cooling, staged cooling with holds, and heat-cycle ripening. With no observations, none can be preferred scientifically. Likewise, there is no evidence to choose among C0–C3 or S0–S3.\n\nConclusion\nThis conversation supplies a well-defined objective, constraints, operational domains, and measurement models but no empirical evidence about the world’s response. Material effects, reaction mechanism, crystallization behavior, process-history effects, feasibility, and the recovery–purity–fines tradeoff all remain unresolved. No operating recommendation was previously established, and the available information does not justify inventing one."
+    },
+    "Q": {
+      "predictions": [
+        {
+          "query_id": "Q01",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.56,
+            "lower80": 0.2,
+            "upper80": 0.82
+          },
+          "crystal_purity": {
+            "estimate": 0.86,
+            "lower80": 0.69,
+            "upper80": 0.97
+          },
+          "crystal_size": {
+            "estimate": 0.27,
+            "lower80": 0.1,
+            "upper80": 0.48
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.29,
+            "lower80": 0.1,
+            "upper80": 0.57
+          }
+        },
+        {
+          "query_id": "Q02",
+          "particles_present": true,
+          "quality_feasible": false,
+          "crystal_yield": {
+            "estimate": 0.43,
+            "lower80": 0.1,
+            "upper80": 0.76
+          },
+          "crystal_purity": {
+            "estimate": 0.78,
+            "lower80": 0.58,
+            "upper80": 0.94
+          },
+          "crystal_size": {
+            "estimate": 0.24,
+            "lower80": 0.08,
+            "upper80": 0.46
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.36,
+            "lower80": 0.13,
+            "upper80": 0.66
+          }
+        },
+        {
+          "query_id": "Q03",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.58,
+            "lower80": 0.27,
+            "upper80": 0.81
+          },
+          "crystal_purity": {
+            "estimate": 0.89,
+            "lower80": 0.75,
+            "upper80": 0.97
+          },
+          "crystal_size": {
+            "estimate": 0.38,
+            "lower80": 0.17,
+            "upper80": 0.63
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.42,
+            "lower80": 0.17,
+            "upper80": 0.7
+          }
+        },
+        {
+          "query_id": "Q04",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.66,
+            "lower80": 0.36,
+            "upper80": 0.86
+          },
+          "crystal_purity": {
+            "estimate": 0.9,
+            "lower80": 0.77,
+            "upper80": 0.98
+          },
+          "crystal_size": {
+            "estimate": 0.3,
+            "lower80": 0.14,
+            "upper80": 0.51
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.23,
+            "lower80": 0.07,
+            "upper80": 0.48
+          }
+        },
+        {
+          "query_id": "Q05",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.68,
+            "lower80": 0.39,
+            "upper80": 0.87
+          },
+          "crystal_purity": {
+            "estimate": 0.91,
+            "lower80": 0.79,
+            "upper80": 0.98
+          },
+          "crystal_size": {
+            "estimate": 0.33,
+            "lower80": 0.16,
+            "upper80": 0.55
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.18,
+            "lower80": 0.05,
+            "upper80": 0.41
+          }
+        },
+        {
+          "query_id": "Q06",
+          "particles_present": true,
+          "quality_feasible": false,
+          "crystal_yield": {
+            "estimate": 0.7,
+            "lower80": 0.39,
+            "upper80": 0.9
+          },
+          "crystal_purity": {
+            "estimate": 0.87,
+            "lower80": 0.72,
+            "upper80": 0.97
+          },
+          "crystal_size": {
+            "estimate": 0.18,
+            "lower80": 0.06,
+            "upper80": 0.38
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.62,
+            "lower80": 0.34,
+            "upper80": 0.84
+          }
+        },
+        {
+          "query_id": "Q07",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.69,
+            "lower80": 0.4,
+            "upper80": 0.88
+          },
+          "crystal_purity": {
+            "estimate": 0.92,
+            "lower80": 0.8,
+            "upper80": 0.98
+          },
+          "crystal_size": {
+            "estimate": 0.36,
+            "lower80": 0.18,
+            "upper80": 0.59
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.16,
+            "lower80": 0.04,
+            "upper80": 0.38
+          }
+        },
+        {
+          "query_id": "Q08",
+          "particles_present": true,
+          "quality_feasible": false,
+          "crystal_yield": {
+            "estimate": 0.56,
+            "lower80": 0.24,
+            "upper80": 0.82
+          },
+          "crystal_purity": {
+            "estimate": 0.94,
+            "lower80": 0.81,
+            "upper80": 0.99
+          },
+          "crystal_size": {
+            "estimate": 0.19,
+            "lower80": 0.06,
+            "upper80": 0.42
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.58,
+            "lower80": 0.28,
+            "upper80": 0.83
+          }
+        },
+        {
+          "query_id": "Q09",
+          "particles_present": true,
+          "quality_feasible": false,
+          "crystal_yield": {
+            "estimate": 0.03,
+            "lower80": 0.0,
+            "upper80": 0.16
+          },
+          "crystal_purity": {
+            "estimate": 0.93,
+            "lower80": 0.75,
+            "upper80": 0.99
+          },
+          "crystal_size": {
+            "estimate": 0.08,
+            "lower80": 0.02,
+            "upper80": 0.22
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.68,
+            "lower80": 0.39,
+            "upper80": 0.9
+          }
+        },
+        {
+          "query_id": "Q10",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.19,
+            "lower80": 0.04,
+            "upper80": 0.44
+          },
+          "crystal_purity": {
+            "estimate": 0.92,
+            "lower80": 0.76,
+            "upper80": 0.99
+          },
+          "crystal_size": {
+            "estimate": 0.18,
+            "lower80": 0.06,
+            "upper80": 0.37
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.43,
+            "lower80": 0.19,
+            "upper80": 0.7
+          }
+        },
+        {
+          "query_id": "Q11",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.67,
+            "lower80": 0.37,
+            "upper80": 0.87
+          },
+          "crystal_purity": {
+            "estimate": 0.91,
+            "lower80": 0.78,
+            "upper80": 0.98
+          },
+          "crystal_size": {
+            "estimate": 0.32,
+            "lower80": 0.15,
+            "upper80": 0.54
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.19,
+            "lower80": 0.05,
+            "upper80": 0.43
+          }
+        },
+        {
+          "query_id": "Q12",
+          "particles_present": true,
+          "quality_feasible": true,
+          "crystal_yield": {
+            "estimate": 0.72,
+            "lower80": 0.38,
+            "upper80": 0.91
+          },
+          "crystal_purity": {
+            "estimate": 0.85,
+            "lower80": 0.67,
+            "upper80": 0.96
+          },
+          "crystal_size": {
+            "estimate": 0.22,
+            "lower80": 0.08,
+            "upper80": 0.44
+          },
+          "crystal_fines_fraction": {
+            "estimate": 0.42,
+            "lower80": 0.17,
+            "upper80": 0.72
+          }
+        }
+      ],
+      "rationale": "There are no observations, so these are broad, low-confidence mechanistic forecasts rather than fitted predictions. Q01–Q02 assigns S1 a modest advantage over S3, but this comparison is especially uncertain because solvent identities are opaque. Q03–Q04 assumes more seed surface improves recovery and suppresses secondary fines, while the very low seed dose permits larger crystals but less reliable nucleation. Q05–Q06 predicts gradual cooling gives larger particles and fewer fines than an immediate temperature drop; the crash may give slightly greater recovery but fail the fines limit. Q07–Q08 predicts the late 315 K excursion partly redissolves product and rapid recooling generates fines, with improved purity but reduced recovery. Q09–Q10 predicts that continuing at 292 K raises seed-excluded recovery and permits growth relative to filtering after 60 seconds. Q11–Q12 predicts doubled reagent concentration raises supersaturation and recovery but worsens purity, size, and fines. Every recipe adds seed and subsequently cools, so particles are expected in all cases. Feasibility flags use point estimates only; several 80% intervals cross the purity or fines thresholds, reflecting unresolved material, solubility, kinetic, and history effects."
+    },
+    "K2": {
+      "report": "1. Evidence status and claim audit\n\nNo laboratory observations were available: no batch was executed, no instrument result was supplied, and no prediction truth or score was revealed. Therefore, no batch can be cited as observed.\n\nSupported by the public contract:\n• The definitions of seed-excluded crystal yield, normalized crystal size, purity, and fines.\n• The feasibility thresholds: purity ≥0.80, fines ≤0.50, with particles present.\n• The anonymity of catalysts and solvents, the permitted operations and ranges, the campaign limits, and the declared instrument-noise scales.\n• The recipes’ stated differences in solvent, seed dose, cooling history, thermal cycle, growth time, and reagent loading.\n\nUntested in this world:\n• Every claimed material ranking, including the forecast that S1 outperforms S3.\n• The proposed effects of seed dose, gradual versus crash cooling, reheating, continued growth, and doubled reagent concentration.\n• The approximate decomposition of crystal yield into conversion, selectivity, and isolation factors.\n• All numerical predictions, intervals, feasibility classifications, and even the expectation that seed survives sufficiently to give particles at final assessment.\n\nContradicted claims:\nNone can be identified from actual process evidence, because there are no observations. The earlier predictions must not be treated as supporting evidence for themselves. Their qualitative directions came from generic crystallization reasoning, not demonstrated behavior of the anonymous benchmark.\n\n2. Next legal experiment\n\nI would choose Q06 exactly as specified: the seeded rapid drop to 278.15 K followed by the long isothermal aging period, filtration, termination, and final assay. I would not claim that it has been run.\n\nThis is informative because my earlier forecast assumed that the initial cooling path remains important despite the long low-temperature hold. It distinguishes three explanations, although a later matched Q05 observation would ultimately be needed for a clean causal comparison:\n• Nucleation-memory explanation: the rapid drop creates a persistent excess of small particles. Expected outcome: particles present, high fines—potentially above 0.50—and a smaller size index, even after aging.\n• Equilibration/ripening explanation: the long hold largely erases the initial cooling-rate effect. Expected outcome: lower fines and larger particles than forecast, approaching the behavior expected from gradual cooling, with similar recovery.\n• Poor-crystallization or material-specific explanation: solvent S0, catalyst C1, or the reaction conditions provide little target solid regardless of cooling history. Expected outcome: low seed-excluded yield; particle measurements could then be dominated by surviving seed and would say little about product crystallization.\n\nThe final assay would quantify recovery and purity, but a particle-size measurement before filtration would make the nucleation-versus-equilibration distinction substantially stronger if an extra instrument use were permitted.\n\n3. Weakly used evidence and least reliable prediction\n\nThe account used the exact time structure least effectively. In particular, Q06 is not merely a rapid-cooling experiment: it includes roughly the same long total low-temperature exposure as Q05. My forecast emphasized the initial crash without adequately allowing prolonged aging, growth, agglomeration, or ripening to erase that history. The public instrument uncertainties were also available, but they describe measurement noise rather than the much larger epistemic uncertainty caused by having no response data.\n\nQ01–Q02 is the least reliable held-out comparison, and Q02 is the least reliable individual feasibility prediction. S1 and S3 are opaque labels with no disclosed solubility, kinetic, selectivity, or impurity-partitioning information. Assigning S1 an advantage and placing Q02 below the purity threshold was essentially an unsupported symmetry-breaking judgment. Its interval therefore cannot be interpreted as empirically calibrated.\n\nGeneralization is severely limited: all recipes use C1 and closely related reaction conditions, most crystallization comparisons use S0, seed properties are unknown, and there is no observed conversion, solubility curve, induction time, crystal-size distribution, or degradation behavior. The forecasts express plausible qualitative hypotheses, not learned world-specific relationships."
+    }
+  },
+  "batches": [],
+  "batch_actions_scope": "Native actions include rejected requests; consult event status.",
+  "execution_summary": [],
+  "recommendation": null,
+  "prediction_evaluation": {
+    "valid": true,
+    "failures": [],
+    "metrics": {
+      "crystal_yield": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.3082653234111732,
+        "coverage80": 0.4166666666666667,
+        "interval_width": 0.49666666666666665,
+        "interval_score80": 1.1009071324542772
+      },
+      "crystal_purity": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.09528228461961134,
+        "coverage80": 0.16666666666666666,
+        "interval_width": 0.2358333333333333,
+        "interval_score80": 0.35408930123620946
+      },
+      "crystal_size": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.1866195420038924,
+        "coverage80": 0.08333333333333333,
+        "interval_width": 0.36083333333333334,
+        "interval_score80": 0.7455645466879829
+      },
+      "crystal_fines_fraction": {
+        "n": 12,
+        "planned": 12,
+        "mae": 0.3171113804386931,
+        "coverage80": 0.4166666666666667,
+        "interval_width": 0.47,
+        "interval_score80": 1.6402215786515137
+      }
+    },
+    "quality": {
+      "true_positive": 5,
+      "false_positive": 3,
+      "true_negative": 4,
+      "false_negative": 0,
+      "balanced_accuracy": 0.7857142857142857
+    },
+    "contrasts": [
+      {
+        "factor": "solvent",
+        "metric": "crystal_yield",
+        "true_delta": -0.20869371386700555,
+        "predicted_delta": -0.13000000000000006,
+        "absolute_delta_error": 0.0786937138670055,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_purity",
+        "true_delta": -0.0004617660612327157,
+        "predicted_delta": -0.07999999999999996,
+        "absolute_delta_error": 0.07953823393876724,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_size",
+        "true_delta": 0.010482263174512965,
+        "predicted_delta": -0.030000000000000027,
+        "absolute_delta_error": 0.04048226317451299,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "solvent",
+        "metric": "crystal_fines_fraction",
+        "true_delta": -0.3377521752182331,
+        "predicted_delta": 0.07,
+        "absolute_delta_error": 0.4077521752182331,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_yield",
+        "true_delta": -9.176350160811086e-05,
+        "predicted_delta": 0.08000000000000007,
+        "absolute_delta_error": 0.08009176350160818,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_purity",
+        "true_delta": 0.00882807532775487,
+        "predicted_delta": 0.010000000000000009,
+        "absolute_delta_error": 0.0011719246722451393,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_size",
+        "true_delta": 0.00035451836776191625,
+        "predicted_delta": -0.08000000000000002,
+        "absolute_delta_error": 0.08035451836776193,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "seed",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.0565448823207535,
+        "predicted_delta": -0.18999999999999997,
+        "absolute_delta_error": 0.24654488232075347,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_yield",
+        "true_delta": 0.0003576525488723781,
+        "predicted_delta": 0.019999999999999907,
+        "absolute_delta_error": 0.01964234745112753,
+        "resolved": false,
+        "direction_correct": true
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_purity",
+        "true_delta": -0.004189231531232185,
+        "predicted_delta": -0.040000000000000036,
+        "absolute_delta_error": 0.03581076846876785,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_size",
+        "true_delta": -0.047205512293235274,
+        "predicted_delta": -0.15000000000000002,
+        "absolute_delta_error": 0.10279448770676475,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "cooling_history",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7083270687426846,
+        "predicted_delta": 0.44,
+        "absolute_delta_error": 0.2683270687426846,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_yield",
+        "true_delta": 0.04233852502071933,
+        "predicted_delta": -0.1299999999999999,
+        "absolute_delta_error": 0.17233852502071922,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_purity",
+        "true_delta": -0.010016446934802303,
+        "predicted_delta": 0.019999999999999907,
+        "absolute_delta_error": 0.03001644693480221,
+        "resolved": true,
+        "direction_correct": false
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_size",
+        "true_delta": -0.04121967603644259,
+        "predicted_delta": -0.16999999999999998,
+        "absolute_delta_error": 0.1287803239635574,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "thermal_history",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7385454747856766,
+        "predicted_delta": 0.41999999999999993,
+        "absolute_delta_error": 0.31854547478567663,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_yield",
+        "true_delta": 0.12169500841438634,
+        "predicted_delta": 0.16,
+        "absolute_delta_error": 0.038304991585613665,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_purity",
+        "true_delta": -0.013084082632255578,
+        "predicted_delta": -0.010000000000000009,
+        "absolute_delta_error": 0.0030840826322555692,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_size",
+        "true_delta": 0.012901434344551745,
+        "predicted_delta": 0.09999999999999999,
+        "absolute_delta_error": 0.08709856565544824,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "continue_growth",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.029228596629776504,
+        "predicted_delta": -0.25000000000000006,
+        "absolute_delta_error": 0.27922859662977656,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_yield",
+        "true_delta": 0.014870567204968876,
+        "predicted_delta": 0.04999999999999993,
+        "absolute_delta_error": 0.03512943279503106,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_purity",
+        "true_delta": -0.005284247297569933,
+        "predicted_delta": -0.06000000000000005,
+        "absolute_delta_error": 0.05471575270243012,
+        "resolved": false,
+        "direction_correct": false
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_size",
+        "true_delta": -0.033847769567501684,
+        "predicted_delta": -0.1,
+        "absolute_delta_error": 0.06615223043249832,
+        "resolved": true,
+        "direction_correct": true
+      },
+      {
+        "factor": "upstream_loading",
+        "metric": "crystal_fines_fraction",
+        "true_delta": 0.7068133664492169,
+        "predicted_delta": 0.22999999999999998,
+        "absolute_delta_error": 0.4768133664492169,
+        "resolved": true,
+        "direction_correct": true
+      }
+    ],
+    "resolved_direction_n": 14,
+    "resolved_direction_correct": 10,
+    "tie_n": 10,
+    "tie_correct": 1
+  }
+}

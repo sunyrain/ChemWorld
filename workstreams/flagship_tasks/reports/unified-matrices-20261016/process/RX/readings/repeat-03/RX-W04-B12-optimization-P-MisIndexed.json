@@ -1,0 +1,89 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-MisIndexed",
+    "cell": "RX-W04--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed给定相对420K3300s参考区高温侧更可靠。仅0/96初末两版笔记；末尾称先验局部支持，实际需要区分400→415K低于参考的上升与420K以上方向。",
+  "expectations": "v1先410K3000s，若安全裕度大则更热/久，否则更冷/短；材料筛选拟匹配条件，数值单次差保持暂定。",
+  "tests_and_observations": "96操作全提交，12HPLC/12终检，全部HPLC后quench，无不淬灭终检或精确重复。水/C1/3000s400/410/415K分数.47554/.48289/.49180，420K3300s .48160同时变温变时。410K3000s催化剂C1优于C0/2/3，水优于S1/2/3。410K2400s分数.48946优于3000s .48289，而415K2400s .48218低于3000s .49180，小差异未复测。热/淬灭风险400K .21577→.10503、410K .27264→.11206、415K .30008→.11757、420K .32462→.12513，全部热阶段亦低于.35。",
+  "revisions": "v2/K1限定中间操作窗口和时间最优未定，正确区分热阶段与末态风险。K1网络仅候选，K2承认平行与连续不可区分。声称高温先验局部有用需谨慎：真实400→415K递增在420K参考下侧，未测试420K以上；420K比较又混杂时间。不能以此确认原先验方向。",
+  "later_use": "Q直接引用乙腈淬灭前后风险.314/.154，预测420K对.37→.17、440K对.48→.19，并随风险下降提高分数。温序Q07/08风险.53/.21与最后温度区别，化学产率.57/.61是未测顺序机制外推。420K短/中/长风险均.37。转换MAE .00692、产率.06485、风险.03849、分数.05555；推荐B11复测分数.48773、产率.77585。真实风险观察进入后测，不能据此唯一识别全部危险模型。",
+  "unresolved": "K2建议精确重复B11尚未执行；承认无重复、全淬灭/跨仪器限制和未测试搅拌、交互。K1将quench时钟视为可能继续化学，冻结实现并不积分反应；不能把HPLC/终检差解释为化学进程。",
+  "histories": [
+    {
+      "topic": "热阶段与末态风险区分及使用",
+      "before": "v1风险约束引导操作；无专门淬灭判别预期",
+      "test": "每批实际热/HPLC/quench/终检，温度-45K且风险下降",
+      "after": "K1明确峰值/末态不同",
+      "later": "Q以实测风险落差预测淬灭与温序差",
+      "limit": "化学淬灭效应及温序未直接实验，形成时间只见终末"
+    }
+  ],
+  "measurement_and_failure_notes": "全提交，无服务或科学操作失败。HPLC/最终测定不同仪器且采样破坏体积，跨阶段差不能独立识别quench化学。quench有限时间不等于反应暴露。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "the higher-temperature side may outperform lower temperatures",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "thus the supplied higher-temperature directional prior was only locally supported up to an intermediate optimum",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The terminal safety risks should not be mistaken for peak risks."
+    },
+    {
+      "stage": "K1",
+      "quote": "Quenching consumed process time and may have allowed limited additional or altered chemistry."
+    },
+    {
+      "stage": "Q",
+      "quote": "Batch 7 showed this behavior directly: acetonitrile at 410 K fell from a heated-state risk of 0.314 to a quenched terminal risk of 0.154.",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "Q",
+      "quote": "the final 390 K stage leaves the vessel at much lower terminal risk.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "Its conversion interval of 0.995–1.000 was particularly narrow."
+    }
+  ]
+}

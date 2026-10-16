@@ -1,0 +1,88 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-MisIndexed",
+    "cell": "RX-W04--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "误定向高温先验、水B4203300参考；优化目标下逐步检验温度与材料并选择安全方案。",
+  "expectations": "v1先验预期420优低温；第二批410比420score高、risk低，v2即时写not supported并预告降低；v4在8批后预告400与时长检验，最后实际延伸390/380及3904200，没有完成预告的精确重复。",
+  "tests_and_observations": "84操作全提交，12HPLC/12final、0quench/重复。420/410/400/390/380 K同3300 s score .3896/.4174/.4299/.4519/.4488；3904200 score .4422，X升而Y .7451→.7443近不变/S降。水410匹配四催化B胜、B410四溶剂水胜。",
+  "revisions": "v2在14操作后否定高温局部先验→v5/K1限到380–390窗口，拒断言.0032差显著。K1正确说明测量/terminate不推进化学，HPLC/final差异不能当反应。纯并行可解释X升Y平台而S降，P→D仍候选。",
+  "later_use": "Q却把configure_control的430 K上限用于heat，Q04/09/10/12近零X，Q07/08都认为450失败而只剩3901800；源研究没有任何失败/超420实验。K2继续称published legal maximum430，仅反思分支区间窄，没有纠正边界语义。推荐复测score .4471718967。",
+  "unresolved": "局部修订成功与未测操作边界误用共存。不能把Q错误归为局部高温先验自我确认；先验事实上被否定。K2建议精确重复未执行，无真值反馈。",
+  "histories": [
+    {
+      "topic": "方向先验自然修订",
+      "sequence": "v1高温预期→410匹配反例→v2not supported→后续温度下降→v5/K1局部窗口",
+      "status": "prospective_contradiction_and_executed_revision"
+    },
+    {
+      "topic": "合法范围错误跨操作迁移",
+      "sequence": "源无回滚→Q声称heat上限430→四题近零与温序等同→K2保留该前提",
+      "status": "contract_misinterpretation_not_experimentally_supported"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "This opposes the supplied directional prior in this tested interval",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 14,
+        "last_event_id": "runner-operation-0014"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Measurement and termination do not intentionally advance chemistry in this benchmark"
+    },
+    {
+      "stage": "Q",
+      "quote": "The requested 450 K boundary is outside the published legal heat range of 250–430 K.",
+      "query_id": "Q04"
+    },
+    {
+      "stage": "K2",
+      "quote": "That reliance was contract-based, not experimentally validated."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "events": 84,
+    "rollbacks": 0,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 0,
+    "Y_mae": 0.2327651912,
+    "X_mae": 0.378459705,
+    "risk_mae": 0.1084716776,
+    "recommendation_score": 0.4471718967,
+    "K1_Q_K2_valid": true,
+    "caution": "冻结代码direct heat允许250–520 K；430只属configure_control。Q的约束前提错误，非真实回滚证据。"
+  }
+}

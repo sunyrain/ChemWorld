@@ -1,0 +1,102 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-Opaque",
+    "cell": "RX-W04--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque优化，5版笔记0/28/56/77/84，可连续定位类别筛选、热细化与重复。初始已预期过强暴露有损，K1事后所谓从单调模型转向窗口不可照收。",
+  "expectations": "v2预告至少一种非水溶剂在350K3600s胜水且安全；v3预告370K可能增转换但分数收益递减；v4在B12之前给重复分数.33–.37，低则削弱推荐。",
+  "tests_and_observations": "84操作全提交，12HPLC/终检，无quench。C0只测330K1800s，C1/2/3水350K3600s分数.25878/.13141/.18655，笔记始终承认C0不公平。C1乙醇/乙腈/甲苯.20964/.31131/.32554支持v2。甲苯350→360K分数.32554→.34983；370K .34527、362.5K .34382、360K5400s .32762。长时转换.94941高但Y.64979低于3600s .67640，副产物.31564对.22571；实际B12精确重复B8分数.34779/风险同.217668，落在v4预期内。",
+  "revisions": "v3–5形成受限360K/3600窗口，拒绝精确峰值，实际重复加强推荐。K1候选网络承认平行/连续不可辨；仅C1做溶剂筛选，不足建立统计交互，其所谓强催化剂–溶剂交互应降为条件性响应。K1有物料风险就称累积也非唯一支持。",
+  "later_use": "Q把局部时间损失放大到乙腈高温/小尺度：Q12产率.02、选择性.04、副产物.97、分数0。转换MAE .00345/覆盖59/60，却Y .31812/9/60、S .30187/9/60、副产物.28615/10/60、分数.21601/0/60。无quench仍猜终态风险下降，Q01/02 .36→.24、Q09/10 .41→.25；温序风险.48/.31，风险MAE .06498。推荐B8复测.34079/Y.66698。局部真实损失关系与极强外推分开。",
+  "unresolved": "K2承认quench/温序/尺度完全未验证、部分区间过窄；提出1800+1800分段中测尚未执行。K2批次数和已获关系可以核对，但不作为额外前瞻记录。",
+  "histories": [
+    {
+      "topic": "连续预测与重复",
+      "before": "v2溶剂胜水；v3热收益递减；v4 .33–.37重复区间",
+      "test": "实际溶剂/热/时间比较及B12重复",
+      "after": "v5局部窗口/重复成立",
+      "later": "推荐保持；Q时间损失迁移过强",
+      "limit": "局部关系非唯一网络、无全局因果链"
+    }
+  ],
+  "measurement_and_failure_notes": "全部提交，全部HPLC在整段热后，为端点复测非时间序列；HPLC和final不同噪声。无新增实验，无以Q误差删除有效源成果。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "at least one non-water solvent will raise score above batch 2",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 28,
+        "last_event_id": "runner-operation-0028"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "370 K/3600 s may further increase conversion/yield but will have diminishing score benefit",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "an exact repeat of batch 8 will retain strong performance (roughly score 0.33–0.37)",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 77,
+        "last_event_id": "runner-operation-0077"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Exact batch 12 replication gave score 0.348",
+      "revision": 5,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "The long 420 K hold should maximize conversion but also strongly amplify the time-dependent selectivity loss",
+      "query_id": "Q06"
+    },
+    {
+      "stage": "Q",
+      "quote": "almost complete diversion or degradation of target",
+      "query_id": "Q12"
+    },
+    {
+      "stage": "K2",
+      "quote": "My assumption that quenching mainly lowers terminal risk while leaving accumulated chemistry unchanged was reasonable but wholly unvalidated."
+    }
+  ]
+}

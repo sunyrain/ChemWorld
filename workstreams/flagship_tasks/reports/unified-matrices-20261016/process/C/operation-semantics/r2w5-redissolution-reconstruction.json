@@ -1,0 +1,188 @@
+{
+  "session": "repeat-02/C-W05-Opportunity-Research",
+  "source_result": "D:/CW267/a2/repeat-02/C-W05-Opportunity-Research/result.json",
+  "events": [
+    {
+      "action": {
+        "operation": "quench"
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.05390523387764112,
+        "delta_risk": -0.0169394809803336,
+        "delta_temperature_K": -45.0,
+        "delta_time_s": 24.205992382760996,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 72,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 1e-06
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.012000200000000127,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 73,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 300
+      },
+      "transaction_status": "rolled_back",
+      "rollback_reason": "precondition_failed",
+      "state_delta_summary": {
+        "delta_cost": 0.029999999999999805,
+        "delta_risk": 0.07999999999999999,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 74,
+      "failed_preconditions": {
+        "cool_crystallize_seed_population_effective": false
+      }
+    },
+    {
+      "action": {
+        "duration_s": 14400,
+        "operation": "wait",
+        "stirring_speed_rpm": 100
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.16541349895637314,
+        "delta_risk": -0.07999999999999999,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 14400.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 75,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "duration_s": 2400,
+        "operation": "heat",
+        "stirring_speed_rpm": 100,
+        "target_temperature_K": 308
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.022467140035257405,
+        "delta_risk": -0.00041051848499654153,
+        "delta_temperature_K": -15.858396740179899,
+        "delta_time_s": 2400.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 76,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 292
+      },
+      "transaction_status": "rolled_back",
+      "rollback_reason": "precondition_failed",
+      "state_delta_summary": {
+        "delta_cost": 0.029999999999999805,
+        "delta_risk": 0.08000000000000002,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 77,
+      "failed_preconditions": {
+        "cool_crystallize_seed_population_effective": false
+      }
+    },
+    {
+      "action": {
+        "instrument": "particle_size",
+        "operation": "measure"
+      },
+      "transaction_status": "rolled_back",
+      "rollback_reason": "precondition_failed",
+      "state_delta_summary": {
+        "delta_cost": 0.029999999999999805,
+        "delta_risk": 0.08000000000000002,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 80,
+      "failed_preconditions": {
+        "particle_population_available": false
+      }
+    },
+    {
+      "action": {
+        "operation": "seed_crystals",
+        "seed_mass_g": 0.001
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.012199999999999989,
+        "delta_risk": -0.32000000000000006,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 84,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "duration_s": 14400,
+        "operation": "cool_crystallize",
+        "target_temperature_K": 292
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.09282215743156108,
+        "delta_risk": 0.007293615790135016,
+        "delta_temperature_K": -16.0,
+        "delta_time_s": 14400.0,
+        "delta_volume_L": 0.0
+      },
+      "cursor": 85,
+      "failed_preconditions": {}
+    },
+    {
+      "action": {
+        "instrument": "final_assay",
+        "operation": "measure"
+      },
+      "transaction_status": "committed",
+      "rollback_reason": null,
+      "state_delta_summary": {
+        "delta_cost": 0.16000000000000014,
+        "delta_risk": 0.0,
+        "delta_temperature_K": 0.0,
+        "delta_time_s": 0.0,
+        "delta_volume_L": -0.0002999999999999947
+      },
+      "cursor": 90,
+      "failed_preconditions": {}
+    }
+  ],
+  "interpretation": "The first cooling was already rolled back for ineffective seed; the subsequent 308 K heat action decreased temperature. These events do not establish redissolution of a previously grown population. This is a retained-record inspection, not a new experiment."
+}

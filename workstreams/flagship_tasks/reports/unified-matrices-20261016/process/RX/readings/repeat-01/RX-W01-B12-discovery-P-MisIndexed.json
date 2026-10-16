@@ -1,0 +1,102 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-MisIndexed",
+    "cell": "RX-W01--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现任务，MisIndexed提供相同B/乙腈参考配方及高温方向。v1未单纯接受高温更安全，先提出非单调热暴露与物料作用候选。",
+  "expectations": "v1计划身份/溶剂/时长/淬灭；v2在cursor49承认B未在匹配条件测过，催化剂排序不完整，下一步补B并以长时间降低选择性/升降解作为更新依据。",
+  "tests_and_observations": "85动作全提交。B420K3300s参考risk0.35810；400K2400s先A/C/D与B水/乙醇/甲苯，batch8补B乙腈；B380K2400s、430K1800s；400K900s和4800s末批淬灭。三版笔记cursor0/49/85。B400K900/2400/4800s终检yield0.55060/0.70952/0.59083，conversion0.63387/0.93146/0.99395；末批有淬灭，但2400vs4800s淬灭前同仪器HPLC yield0.71508→0.59173、selectivity0.76643→0.59097，支持下降并非仅不同终止流程。最后一次淬灭risk0.249797→0.145824，dT=-45K、dt1.392s；操作返回的组成是沿用此前HPLC。",
+  "revisions": "v2暂不完整排序→匹配B后v3补全身份比较。K1将高温收益拆为生产更快与安全更差，修订先验方向。长时同仪器产率下降支持目标损失类解释；仍存在归一化、可逆性、观测等竞争假设。纯失活加侧反应若无目标损失只能使目标平台，不能直接解释目标下降，K1末尾也指出此区别。",
+  "later_use": "推荐380K2400s第9批，复测score0.40470/yield0.66862。Q将最后一次淬灭的末态风险改变用于Q01/Q02与Q09/Q10及两段温度顺序；risk MAE0.02763、conversion0.006724、score0.03002。末态风险判断较准确，极端Q12化学过度损失预测仍有偏差。",
+  "unresolved": "未做匹配的4800s无淬灭、淬灭后等待或中间重新测量，因此K1称支持reaction arrest超出直接证据；沿用HPLC数值不变不是新组成观测。K2说若campaign允许把非终检集中在少数容器会更好；公开预算是全活动12次，未见每批仅1次硬限，应区分习惯安排与真实资源限制。所有比较无源重复。",
+  "histories": [
+    {
+      "name": "补齐缺少的匹配对照后才完成物料排序",
+      "sequence": "先筛A/C/D与其他溶剂→v2明确B条件缺失→batch8补B→v3更新完整排序",
+      "evidence_status": "recognized_evidence_gap_then_completed_comparison"
+    },
+    {
+      "name": "跨批同仪器目标下降约束解释",
+      "sequence": "400K短时/中时/长时→淬灭前HPLC显示高转化而yield下降→K1目标损失候选→Q外推更高暴露",
+      "evidence_status": "supported_loss_relation_not_unique_mechanism"
+    },
+    {
+      "name": "风险观测与化学携带值须分开",
+      "sequence": "quench返回新risk及旧HPLC→解释风险减少、并声称化学停止→Q采用末态风险关系",
+      "evidence_status": "risk_relation_observed_chemical_arrest_not_identified_here"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Because Catalyst B was not yet tested at the exact matched condition, the catalyst ranking remains incomplete.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 49,
+        "last_event_id": "runner-operation-0049"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Final-assay differences afterward are cross-instrument and within a different observation model, so they do not establish an instantaneous chemical effect.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "However, the substantial fall in target yield from 2400 to 4800 s, rather than merely a plateau, makes explicit P loss more natural unless assay normalization or mass-balance effects account for the decline."
+    },
+    {
+      "stage": "K1",
+      "quote": "The carried composition estimates did not change during the quench operation."
+    },
+    {
+      "stage": "K1",
+      "quote": "Thus the evidence supports risk reduction and reaction arrest, but does not identify an instantaneous chemical transformation caused by the quench."
+    },
+    {
+      "stage": "Q",
+      "quote": "Rapid cooling should substantially lower residual risk and improve the safe score, although the risk estimate is uncertain because quenching was directly observed only from 400 K.",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "The same resource might have been used more strategically for within-batch staged measurements if the campaign structure had allowed repeated nonfinal measurements in fewer vessels."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "risk_MAE": 0.027630348195632298,
+    "K2_has_truth_feedback": false,
+    "only_one_quench": true
+  }
+}

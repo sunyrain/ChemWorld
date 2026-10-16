@@ -1,0 +1,111 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Aligned",
+    "cell": "RX-W05--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标、Aligned；公开参考C3/S0 420K3300s及低温侧更安全平衡的局部模型。0.003mol试剂、0.000525mol催化剂、0.0075L、600rpm。四版笔记cursor0/42/77/85。",
+  "expectations": "初始已有竞争/顺序损失与中等暴露窗口预期。v2根据时间/温度图提出390K约3000–4000s窗口，并前瞻匹配催化剂筛选。v3在最后批之前明确405K3300s淬灭应与未淬灭组成相近；较大变化才支持化学/结束阶段演化。",
+  "tests_and_observations": "85操作全部提交，12HPLC/终检。390K1800/3300/6000s产率0.64287/0.74381/0.72101、转换0.72408/0.91225/0.99151、副产物0.08542/0.18443/0.30439。3300s 360/390/405/420K产率0.63281/0.74381/0.76995/0.77745，风险0.07715/0.13530/0.20875/0.28982。390K3300s C0/1/2/3产率0.63256/0.68799/0.48501/0.74381；水/乙醇/乙腈产率0.74381/0.68238/0.71721。B12复用405K3300s加淬灭，Y0.77229vs未淬灭B3的0.76995，风险0.20875→0.07794。B12先quench再HPLC；B3加热后HPLC终止。无源失败或风险超限。",
+  "revisions": "v2/v4支持暴露与副产物/选择性损失关系，6000s低于3300s提供跨批产率下降，未证明单器皿P→D。K1声称改掉初始'更多暴露更多产物'，但v1已预期中间最优，不可照单全收。低温先验被细化为安全与副反应优势，而非降低温度总提高产率。淬灭前瞻比较后限定为末态风险下降，组成无可辨别改善。v4的400–410K、3000–4000s窗口为网格插值，未唯一识别。",
+  "later_use": "推荐B12，复测Y0.76395、score0.49330。源390K1800/3300/6000s风险几乎不变、quench明显下降，K1因此将风险视为当前温度/配方状态；Q据此给420K1500/3300/5100s风险0.31/0.32/0.32、Q01/02风险0.32/0.17、Q09/10为0.43/0.22，Q07/08末温不同风险0.49/0.18。risk MAE0.03871、80%覆盖60/60，score MAE0.06235覆盖59/60，yield MAE0.08366、conversion0.03841。支持具体关系从源比较进入新判断；双热阶段化学顺序仍为未经直接检验的顺序损失推断。",
+  "unresolved": "催化剂仅水、溶剂仅C3，Q C1/S2未直接交叉，浓度与转速也不同。v3说120s quench但实际仅5.1418s；K2承认未调和计时，不能把120s视为真实反应暴露，冻结quench本就不积分化学。K2提出同器皿3300/6000s两HPLC的下一实验未执行，不能据此升级路径识别。仅一次淬灭对，无独立精确重复，且取样相对quench顺序不同。",
+  "histories": [
+    {
+      "name": "形成并迁移末态风险关系",
+      "sequence": "同温不同时长几乎不改风险→前瞻淬灭比较→组成近似但风险下降→K1状态风险模型→Q时间/淬灭/温序采用",
+      "evidence_status": "observed_relations_integrated_into_later_predictions"
+    },
+    {
+      "name": "先验经多因素研究成为有限局部窗口",
+      "sequence": "低温侧参考→时间曲线与温度图→匹配材料比较→淬灭检验→推荐局部条件并承认微观路径不唯一",
+      "evidence_status": "supported_local_account_not_unique_mechanism"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 4,
+    "quench_elapsed_s": 5.141798,
+    "proposed_notebook_quench_duration_s": 120,
+    "recommendation_retest_score": 0.4932997226715088,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Next matched runs at 390 K/3300 s will compare A–C with D.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 42,
+        "last_event_id": "runner-operation-0042"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Prediction made before execution: if the 120 s quench arrests chemistry without material loss",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 77,
+        "last_event_id": "runner-operation-0077"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "there is no evidence that quench changes composition materially.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "This suggests that the reported risk is dominated by current thermal and formulation state rather than cumulative reaction time."
+    },
+    {
+      "stage": "Q",
+      "quote": "Risk is expected to depend mainly on the hot endpoint rather than duration, as it did in the campaign.",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "Q",
+      "quote": "This order effect is mechanistic extrapolation rather than a directly measured comparison.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "Separate endpoint batches at 3300 and 6000 s show that yield is lower at the later endpoint, but between-batch variability and measurement differences prevent direct observation of a target pool declining within one vessel."
+    },
+    {
+      "stage": "K2",
+      "quote": "That assumption later entered the blind predictions but was never directly tested as a full factorial interaction."
+    }
+  ]
+}

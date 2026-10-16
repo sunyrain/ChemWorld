@@ -1,0 +1,18 @@
+{
+  "key": "repeat-01/P-W01-B12-optimization-E-Opaque",
+  "read_coverage": {"notebook_revisions": 2, "public_events": 186, "sealed_stages": ["K1", "Q", "K2"], "method": "两版全文、186条公开操作测量、完整K1/K2/Q及推荐复测；单分析者精读"},
+  "title": "未达到纯度门槛，却形成反应选择性与回收损失的有范围解释",
+  "question_and_prior": "无物性资料。v1预期先筛催化剂/溶剂/温度，再用萃取及洗涤提高纯度至.80；每批一份中间HPLC用于区分反应与后处理。",
+  "expectation_and_test": "12批均有终检，0.04mol×12恰用完.48mol预算；没有共享材料提前耗尽。首批0.06L溶剂+.04L水几乎占满容器，只有.0002L萃取剂，浓缩后无法终检，补溶剂后才关闭；后续改为.03L溶剂。前半段广筛，后半段在C1/S0、370K/3600s的共同上游下比较X0–X3；另作水相保留及其他温时条件。",
+  "evidence": "严苛C0/S3、430K/14400s的HPLC转化1.0但纯度.0757、副产物.6201，终检纯度.0491。共同C1/S0上游重复HPLC纯度约.478–.497；X1终检纯度.6925/回收.0277，X2为.6603/.0633。三次大洗涤批6回收仅.00927，但其进料本来较差。所有终检均未达.80。推荐批8复测纯度.6765、回收.0392，仍未达门槛。",
+  "revision": "最终笔记明确不把热处理越强、转化越高等同更好过程，承认无法分辨单因素因果；推荐从‘可行最优’退为纯度优先但不合规的fallback。仅有实验前和全部结束后两版，K1所谓哪些批‘改变解释’属于事后自述，不能据此定位中途哪一次修订驱动了下一批。",
+  "subsequent_use": "K1提出反应产率×萃取保留×洗涤保留×操作保留的串联模型，并区分选定相的近1转化与全流程回收。Q把源催化剂/试剂比例差异纳入：Q01–06回收.006–.023，低载量Q07–12为.075–.14；保留洗涤纯度/回收权衡并对浓缩仅给小处理损失。K2承认新C1/S2、400K区间及等总量分次洗涤未测，提出同瓶时间系列；未执行。",
+  "unresolved_and_limits": "有实质局部比较和明确目标未达，不能只称失败案例。温度/时间/材料同时变动不能确立严格非单调热效应；批9有机相有洗涤而批11水相无洗涤，保留相对比并非完全匹配。反应区域有重复，但完整最终工作流程大多单次；参数方程是可行解释而非识别出的定律。",
+  "anchors": [
+    {"revision": 1, "quote": "A complete organic extraction followed by washing may raise purity above 0.80 at some recovery cost."},
+    {"revision": 2, "quote": "No completed assay met the required purity >=0.80; therefore the campaign does not establish a constraint-satisfying optimum.", "events": ["runner-operation-0127", "runner-operation-0142"]},
+    {"stage": "K1", "quote": "The sealed batch-8 recommendation is a noncompliant, purity-oriented fallback, not evidence that the research goal was achieved."},
+    {"stage": "K2", "quote": "That optimization focus reduced the opportunity for clean factorial reaction experiments, replicated final assays, time courses, and paired phase measurements."}
+  ],
+  "event_anchors": ["runner-operation-0016", "runner-operation-0021", "runner-operation-0071", "runner-operation-0081", "runner-operation-0098", "runner-operation-0127", "runner-operation-0142", "runner-operation-0168", "runner-operation-0171"]
+}

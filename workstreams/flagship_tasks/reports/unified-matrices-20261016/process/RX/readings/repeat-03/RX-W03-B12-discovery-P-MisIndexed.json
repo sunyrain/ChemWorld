@@ -1,0 +1,91 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-MisIndexed",
+    "cell": "RX-W03--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "高温侧先验；机制任务，预期温时窗口、催化分流、匹配quench化学/风险分离。",
+  "expectations": "v2由1800/3300/4800设过处理候选，选择1800未饱和点筛催化；v3在最后批前明确1650中点应较低X较高S，再1650将趋饱和/S约.78-.82，若S不变则削弱模型。",
+  "tests_and_observations": "95操作全提交、12HPLC/12final，11quench。水B4201800/3300/4800 Y .7776/.7699/.6953，末X近1而Y降。无催化X .1576/Y0；仅乙醇非水。1800匹配quench/无quenchY .7776/.7785，risk .123/.3192。末1650+HPLC+1650兑现X .873→.990、S .863→.797。",
+  "revisions": "v4拟合局部k_app .00125/.00123/.00131，明确经验一阶非基本律，过处理候选获前瞻性检验。淬灭化学效应未分辨但风险强降。v4称无quench .3192为unsafe/necessary for safe endpoint不符合.35阈值，两组都达任务安全线，应该仅说更低风险。",
+  "later_use": "Q保持quench化学近同、风险降低，然而又把440–460必回滚，源零回滚。X MAE .37772/by coverage0；乙腈未试，水关系转入新类别仍宽度不足。K2直言把解释规则+近边risk升级确定操作阈值；无Q真值。提出二次reagent pulse测试催化持续性，未执行。",
+  "unresolved": "K2对rollback的反思准确但不是证据驱动纠错；固定P稳定并行只能解释S降，无法独自解释强绝对Y降。预测最后实验得到了支持但未唯一鉴别机制。",
+  "histories": [
+    {
+      "topic": "解释形成→可反驳预测→再检验",
+      "sequence": "420时间系列损S/晚Y降→v2选1800催化比较→v3预告1650+1650及失败条件→实际兑现→v4局部k_app总结",
+      "status": "本场具有清晰完整前瞻性过程链"
+    },
+    {
+      "topic": "淬灭匹配证据与安全标签扩张",
+      "sequence": "匹配两批化学近同/risk .319→.123→正确限缩化学效应→v4却把仍低于.35的无quench称unsafe",
+      "status": "风险收益真实，二分安全结论超出合同"
+    },
+    {
+      "topic": "未观察回滚的外推",
+      "sequence": "近阈risk与先验回滚解释规则→Q高温近零→K2承认将规则变阈值",
+      "status": "源无失败，未得Q真值"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Failure—especially unchanged selectivity with rising conversion—would weaken",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 86,
+        "last_event_id": "runner-operation-0086"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Batch 11 chemically replicates its yield without quench but is operationally unsafe at termination.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "K2",
+      "quote": "I converted an interpretation rule from the initial packet and a near-boundary risk observation into a confident operational threshold."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 95,
+    "rolled_back": 0,
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "quench_batches": 11,
+    "unquenched_risk_below_task_threshold": true,
+    "conversion_mae": 0.3777237384,
+    "byproduct_coverage": 0,
+    "recommendation_retest_score": 0.4982490242,
+    "K2_received_Q_truth": false
+  }
+}

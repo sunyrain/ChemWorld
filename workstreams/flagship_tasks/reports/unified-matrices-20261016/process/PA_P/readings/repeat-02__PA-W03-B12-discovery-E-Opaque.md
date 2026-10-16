@@ -1,0 +1,49 @@
+# 真实局部重复与相量插值形成，同时强混合预期在事后被缩窄为方向命中
+
+`repeat-02/PA-W03-B12-discovery-E-Opaque`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-02__PA-W03-B12-discovery-E-Opaque.json)
+
+## 问题与先验
+
+无资料，首四批S0萃取剂差异后v2/cursor40明确下一步固定X3换溶剂、再混合与重复。随后执行X3列、S0/X3重复、相量高低及弱混合，v3/cursor110在最后强混合前再次预告。
+
+## 预期与实验
+
+v3原预期不是仅高于弱混合，而是1200s/1200rpm应回到标准范围。实际强混合显著超过标准；v4/K1将支持部分表述为高于弱值，同时另承认超过标准、未建立平台。应保存这两层，而不能照末记录把原预期全部计为命中。
+
+## 实际证据
+
+S0四X有机0.152/0.315/0.211/0.375；S0/X3分离前重复0.360，其余X3溶剂0.295–0.308。相量0.109、0.178–0.194、0.594对应0.232、0.360–0.375、0.746，D约2.16–2.70；弱0.301、标准0.360/0.375、强0.452。
+
+## 修订
+
+v4将体积式限定为S0/X3的近似插值，混合方向受支持、平台和独立因子未解决。材料与相量正向关系有真实重复/跨度支撑；报告对前瞻预期的回顾则弱化了原先近标准范围这一限定。
+
+## 后续采用
+
+Q选有直接S0材料证据的Q06，Q09→10为0.275→0.334，Q11→12为0.486→0.547，保留非平台方向。S2/X0从未测却需分离材料效应，Q07给宽0.12–0.48区间。K2识别这一未知交互、名义液量替代未来实测相量及强制双相和1的简化，提出同样品弱→强→重复强的检验，未执行。
+
+## 未解决问题及解释限制
+
+有同期路径支持认识形成，但没有直接读取内部推理；不能由方向性命中掩盖更精确预期未兑现。水相保留与有机保留发生在相同S0/X3上游条件，可支持保留语义；该语义不识别唯一分配机制。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 40, 'last_event_id': 'runner-operation-0040'}
+
+> Next test: hold X3 and vary solvent categories
+
+v3 / cursor {'event_count': 110, 'last_event_id': 'runner-operation-0110'}
+
+> should return near the standard-mix range rather than remain at the weak-mix value
+
+v4 / cursor {'event_count': 120, 'last_event_id': 'runner-operation-0120'}
+
+> The precommitted strong-mix prediction (return above the weak result) was supported
+
+K2
+
+> Those were simplifying predictive assumptions rather than findings established by the campaign.

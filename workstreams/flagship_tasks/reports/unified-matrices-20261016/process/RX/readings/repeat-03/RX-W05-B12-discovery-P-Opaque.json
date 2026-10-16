@@ -1,0 +1,99 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-Opaque",
+    "cell": "RX-W05--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现目标、Opaque；四版笔记事件0/23/63/96；固定.04mol试剂/.08L溶剂/.005mol催化剂、400rpm。",
+  "expectations": "起始竞争/后继损失与有限产率最大只是候选；v2已有A水中短/长时证据，预告变温/催化剂；v3根据水中D较优安排D跨溶剂及末批延时/淬灭。",
+  "tests_and_observations": "全部96动作提交，12终检和12HPLC。A水340K3600s的B1单段与B2双段产率.3081/.3084，但操作/取样时点不同，不是精确重复。A水7200s产率.4824、320K7200s.3498、360K3600s.4218；同水340K3600s D/B/A/C产率.4626/.3995/.3084/.2212。D同温时间乙腈/乙醇/水/甲苯.5692/.4705/.4626/.3924，乙醇水近差未解。末批D乙腈7200s加淬灭，X.8978/Y.6304/Sel.6997，高于3600s转换而选择性降。淬灭实际降温40.8306K、风险.199367→.194525，未积分化学。",
+  "revisions": "v2/v3没有把未观察到产率峰值当已发现；v4保留催化剂排序仅水、溶剂排序仅D，拒绝无匹配长时控制下的淬灭化学收益。K1/K2后继降解为候选，绝对产率未下降不能唯一辨识；中间HPLC给实际时点，但不同仪器误差须保留。K1/K2称B1/B2重复只是总条件层面，不能估纯重复变异。",
+  "later_use": "推荐12复测Y.632358/score.331933。Q所有温度高于源360K，B乙腈未实验，仍将D乙腈晚期选择性下降迁移为高温降解和Q07低→高比Q08高→低更差；Q12选择性中心.08上界.25，K2无真值反馈即承认区间过窄及顺序效应未证。淬灭两配对Q组成完全相同、风险小降，符合本场有限证据，但风险温度依赖幅度未标定。yield MAE.211607，score MAE.179950、覆盖0/60，不能用准确转换（MAE.037993）代替理解。",
+  "unresolved": "源所有cost1，Q把-0.10常数截距当一般公式，未识别成本项在小尺度条件的变化；属于评分关系迁移。温序风险为末态，不是历史峰值。K2提出14.4ks及7.2ks中测，未执行。反绎候选被提出并用于新条件，不等于机制唯一建立；合法外推任务本身不算错误。",
+  "histories": [
+    {
+      "name": "局部材料关系引导后续研究",
+      "sequence": "水中催化剂比较→v3选D并预告溶剂筛选→实际四溶剂→选择D乙腈延时→限域关系与推荐",
+      "evidence_status": "prospective_local_relationship_and_later_action"
+    },
+    {
+      "name": "有限晚期证据进入过强高温预测",
+      "sequence": "D乙腈3600/7200s选择性下降→后继损失候选→未测高温/温序Q→K2自行指出数值区间过窄",
+      "evidence_status": "qualified_explanation_extended_into_unobserved_domain"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "intermediate_hplc": 12,
+    "notebook_versions": 4,
+    "K2_has_truth_feedback": false
+  },
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "a yield maximum has not yet been located.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 23,
+        "last_event_id": "runner-operation-0023"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Next decision: use Catalyst D at matched 340 K/3.6 ks across the other solvents",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 63,
+        "last_event_id": "runner-operation-0063"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "There is no matched 7.2 ks acetonitrile/D nonquenched control, so a compositional quench advantage cannot be claimed.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "Under the proposed consecutive/parallel account, this ordering makes late high-temperature degradation particularly damaging",
+      "query_id": "Q07"
+    },
+    {
+      "stage": "K2",
+      "quote": "Q12's selectivity interval of 0–0.25 committed strongly to catastrophic degradation without direct evidence in that temperature range."
+    },
+    {
+      "stage": "K2",
+      "quote": "The prediction task forced extrapolation, but consistency with K1 would have favored intervals spanning much more of the feasible range"
+    }
+  ]
+}

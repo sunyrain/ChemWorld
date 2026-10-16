@@ -1,0 +1,51 @@
+# 末端洗涤关系真实形成，同时把相内近一转化解释成上游快速消耗并带入剂量预测
+
+`repeat-02/P-W04-B12-optimization-E-MisIndexed`
+
+阅读覆盖：同一分析智能体完整阅读笔记/差异、全部公开操作测量及K1/Q/K2；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-02__P-W04-B12-optimization-E-MisIndexed.json)
+
+## 问题与先验
+
+错配资料使全程使用X0。首批两项各0.04 mol加料，后续各0.018 mol，使12批均有终测。所有HPLC都位于萃取/分相/洗涤之后，研究期没有反应混合物的前处理测量；这是判断认识来源的核心，而不能因仪器名为HPLC就称其上游证据。
+
+## 预期与实验
+
+v2/cursor63从末端近一转化、低产率提出形成选择性不足，转向C1并预测较温和条件提高回收。300 K/1800 s、不同S的终纯度0.827/0.873/0.812高于350 K配方，但回收0/0.0056/0.0028未清晰提高；后又同时改温度、时长、相量。预测的纯度相关方向有实例支持，回收改善未被噪声尺度以上证据支持。
+
+## 实际证据
+
+最后第10–12批上游和相量完全相同，仅洗量0.040/0/0.010 L不同，终纯度0.859/0.755/0.809，HPLC亦同序；这是有操作依据的局部洗涤纯度关系。三者回收都零，不识别洗涤损失量。选第9批纯度0.829、回收0.00939，且正确承认与其他批回收差低于0.01误差。
+
+## 修订
+
+v3保留温和处理与高末端纯度相关、确认洗涤有用，但仍说完整转化代表消耗。K1虽知道末端为保留相，却把这些同域读数写为‘Reaction-stage evidence’，据以称主反应将试剂消耗为非目标。这超出记录：相选择本身可使残余反应物少，且缺少反应前段表征。K2承认没有任何前萃取分析，提出把HPLC前移以区别上游生成与下游富集，但未完全撤回此前反应解释。
+
+## 后续采用
+
+Q以较低催化剂能避免所见低选择性为新假设，给出回收0.16–0.42，远高于研究末端0–0.0123；未曾改变催化剂剂量，也无上游证据支持该解释。X0优于未测X2的判断继续由错配资料支撑。洗涤提高纯度的方向则有末三批真实支持，不过迁移到400 K、小投料和其他X仍未直接验证。
+
+## 未解决问题及解释限制
+
+可同时呈现正向与限制：同一研究确立了局部洗量—纯度关系，却把相域变化误用为反应解释，并让解释影响新条件预测。不是所有低回收都证明化学选择性差，也不能把宽预测区间视为已经解决归因。尚无独立催化剂、温度、投料、X类别或预处理/后处理分段比较。
+
+## 已核验引文与事件锚点
+
+K1
+
+> Thus the dominant reaction pathway under the tested conditions appears to consume reagent into non-target material.
+
+Q
+
+> The points assume that lower catalyst loading avoids the severe low-selectivity behavior seen with 0.005 mol catalyst
+
+K2
+
+> No pre-extraction reaction mixture was analytically characterized.
+
+v3 / cursor {'event_count': 182, 'last_event_id': 'runner-operation-0182'}
+
+> no wash failed the purity threshold
+
+事件：runner-operation-0153, runner-operation-0167, runner-operation-0182

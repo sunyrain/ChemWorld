@@ -1,0 +1,106 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-MisIndexed",
+    "cell": "RX-W03--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed高温优的参考B水4203300；解释目标，原拟温时/材料/终止测试。",
+  "expectations": "v1预测高温收益，v2在400/420/430后明确反对单调安全收益并预告长短时；v3事前预测600s未淬灭延迟Y不高/副产上升。",
+  "tests_and_observations": "97操作全提交，12HPLC/终检/quench。430热risk .3583后冷.1452，乙腈420热.3611、甲苯.3731也越阈值。420K1800/3300/6000s Y .7776/.7699/.6340，X .8911/.9867/.9957、S .8795/.7843/.6357。以1800作材料屏，B最高Y且S .8795也高于D .8680；v3/4误称D最高，K1表与叙述改成B后最高。末wait600降114K，Y .7837 vs prompt .7776差仅.0061。",
+  "revisions": "v2拒高温方向；v4明确延迟不增Y的预测未获支持，识别被动冷却而非恒温热延迟，小Y/by差与噪声同量；保留机制解释为暂定。长时真实Y下降支持P损失但纯稳定P失活/并行不能单独解释，网络未唯一。",
+  "later_use": "Q以真实乙腈4201800为锚，未认定高温heat必回滚；risk终态/段序区分准确较好，MAE .02492且coverage1；X .01047，Y .08799/S .09297。Q02/10仍让quench时长导致少量化学，语义不支持。推荐delay复测score .50744/Y .76668，源Y优势未稳健。K2无Q真值，批评过窄数值并提同批延时实验未执行。",
+  "unresolved": "同测批不充分证明每材料路径独立倍数；v3材料排名误述与K1纠正要并列。没有将高温risk越阈值当rollback；K2最后才泛提潜在防护未知，不影响Q点估。",
+  "histories": [
+    {
+      "topic": "先验方向修订",
+      "sequence": "高温先验→400/420/430结果/热risk越限→v2拒绝→采用短时420作材料屏",
+      "status": "方向修订后实际选择改变"
+    },
+    {
+      "topic": "延迟冷却前瞻反证",
+      "sequence": "v3预测延迟不增Y→wait600冷却→Y微增但未显著→v4未支持原方向→K1/K2保留不确定→推荐更低终风险",
+      "status": "可见前瞻检验与限缩，非确证冷却收益"
+    },
+    {
+      "topic": "局部材料排名修正",
+      "sequence": "v3/4称D最高S→终检B .8795>D .8680→K1改为D after B",
+      "status": "公开笔记误述后报告部分修正"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "H1 [rejected as stated; revised]",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 24,
+        "last_event_id": "runner-operation-0024"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "an added 600 s unquenched wait should leave final yield no higher",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 88,
+        "last_event_id": "runner-operation-0088"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "H3 [unresolved; initial directional prediction not supported]",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Catalyst D gave the lowest byproduct signal and the highest selectivity after B"
+    },
+    {
+      "stage": "K2",
+      "quote": "No truth feedback is available, so this is a prospective uncertainty critique, not a post hoc correction."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 97,
+    "committed": 97,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 12,
+    "failure_count": 0,
+    "Q": "全部已读/有效",
+    "prediction_mae": {
+      "conversion": 0.010469614,
+      "risk": 0.024922014,
+      "yield": 0.08798897
+    }
+  }
+}

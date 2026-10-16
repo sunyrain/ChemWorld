@@ -1,0 +1,81 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-optimization-P-Opaque",
+    "cell": "RX-W03--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "无过程先验，优化safe-score；自选最大量.04mol/.08L/.005mol、乙腈340K，使用configure_control+advance_control，非direct heat。",
+  "expectations": "v1预告340K安全有转化；v2 B领先后预告其余溶剂；v3承认未括住峰，预测400仍安全且可能提高score，计划末三场括定温/时权衡。",
+  "tests_and_observations": "84操作全提交，12final，0HPLC/quench/重复。四催化340及B四溶剂后升360/380/400；400risk .305仍安全但score .3329低380 .3424；后390 .3454，末3802700比1800X .918/.810、Y .665/.655、S .721/.799。全部cost1。",
+  "revisions": "v4识别score局部峰而Y仍随温升；明确390对380仅.0031无重复。K1用时长对支持时间依赖分流但保留无P损失候选，因为Y未降。risk峰值/末态未分清。",
+  "later_use": "Q从-log(1-X)和loading外推近饱和，X MAE .002925；Q07/08 risk .78/.77依据峰值保留、高温次序却无实际测试，risk MAE .22263。虽全用configure_control，未错将430上限套Q direct heat。K2主动指出无中间测量与quench，提出3801800+HPLC+900下一实验，未执行。",
+  "unresolved": "控制模式与Q direct heat不同；K2主要聚焦浓度与时间但未清楚拆开模式迁移。小score差未复制，推荐复测 .34297；候选机理不是唯一识别。",
+  "histories": [
+    {
+      "topic": "预期增温改善到局部权衡",
+      "sequence": "v3预告400可能升分且安全→400安全但降分→390细化及380延时→v4有限区间推荐",
+      "status": "同期预期与实际调整，未宣称精确最优"
+    },
+    {
+      "topic": "局部动力学与风险迁移分化",
+      "sequence": "1800/2700转换支持近一阶饱和→Q转换成功；峰/末态未判→Q热序risk几乎同且偏高",
+      "status": "不同关系获得不同支持与预测后果"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "A 400 K, 30 min condition should remain below risk 0.35 and may improve score",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 63,
+        "last_event_id": "runner-operation-0063"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The numerical score advantage of batch 11 over batch 9 was only about 0.0031"
+    },
+    {
+      "stage": "K2",
+      "quote": "All twelve permitted nonfinal measurements remained unused."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 84,
+    "rolled_back": 0,
+    "nonfinal_assays": 0,
+    "final_assays": 12,
+    "source_control_mode": "configure_control+advance_control",
+    "query_control_mode": "direct_heat",
+    "conversion_mae": 0.002924528,
+    "risk_mae": 0.2226326786,
+    "recommendation_retest_score": 0.342965126,
+    "K2_received_Q_truth": false
+  }
+}

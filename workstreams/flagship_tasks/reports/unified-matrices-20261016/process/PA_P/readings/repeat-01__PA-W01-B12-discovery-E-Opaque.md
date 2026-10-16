@@ -1,0 +1,49 @@
+# 从匿名材料筛查到局部相分配关系；认识到配对作用后仍使用主效应外推
+
+`repeat-01/PA-W01-B12-discovery-E-Opaque`
+
+阅读覆盖：逐版全文/完整差异、120条公开操作与测量、K1/K2全文及Q全部预测；单分析者精读，无独立编码
+
+[完整公开记录](../sessions/repeat-01__PA-W01-B12-discovery-E-Opaque.json)
+
+## 问题与先验
+
+未提供材料性质先验；v1在任何实验前提出材料配对、相容量与混合阈值三个可检验预期，并声明编号不代表物性顺序。目标是解释两相分配，非追求终点分数。
+
+## 预期与实验
+
+先以S0筛X0–X3，再以X0筛S1–S3。v2/cursor70在后五批之前预告S1/X3的有利主效应可能相加，并计划相体积对比、弱接触与重复。实际批8/12为S1/X3基准，批9/10改变相份额，批11同时降低时长和转速。
+
+## 实际证据
+
+前七批HPLC有机库存为S0/X0 .217、S0/X3 .467、S1/X0 .392。S1/X3基准两批却为.394/.425，未超过S0/X3。该配对低/中/高有机相份额的库存为.258、.394/.425、.764，支持所测范围内的容量关系。弱混合.341低于两次充分混合，但时长与转速同时改变。所有批先测双相再按较大库存选择保留相；只有高有机相批9改保留organic，执行记录吻合。
+
+## 修订
+
+v3将简单相加缩窄为配对依赖或运行变异未区分，给出表观D约2.4–3.1并只称局部近似。对混合明确未区分时长、转速和相体积波动；保留质量闭合误差而不把移除相终检当平衡证据。
+
+## 后续采用
+
+K1继续保留局部范围与配对疑点。Q对未观察S2/X3仍给Q08/Q12有机分数.743、Q11 .710，主要依据因子化主效应；区间加宽但点值继续采用该外推。K2自行指出报告强调配对作用而预测采用近乘法外推，并提出S2/X3强混合下.74与.5–.55的可区分预期；这是事后未执行的试验建议，不能计入已检验发现。
+
+## 未解决问题及解释限制
+
+相份额关系有直接系列与重复支持，材料配对及混合机制尚未唯一确定。K2还指出Q省略源实验的试剂加入和用投料量代替实测相份额的迁移问题；不能把这些自述当已验证的错误原因。该场展示局部认识与外推张力共存，而非一条自我确认闭环。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 70, 'last_event_id': 'runner-operation-0070'}
+
+> S1/X3 at baseline should give relatively high organic inventory if the favorable S1 and X3 tendencies are at least partly additive; a repeat will test reproducibility.
+
+事件：runner-operation-0077, runner-operation-0117
+
+v3 / cursor {'event_count': 120, 'last_event_id': 'runner-operation-0120'}
+
+> This is evidence for pairing dependence or uncontrolled run variability; the design does not separate those alternatives because most cells lack repeats.
+
+事件：runner-operation-0037, runner-operation-0077, runner-operation-0117
+
+K2
+
+> First, the report emphasized pair interactions, yet the S2/X3 point estimates used an essentially multiplicative main-effect extrapolation; the broad intervals acknowledged but did not eliminate that inconsistency.

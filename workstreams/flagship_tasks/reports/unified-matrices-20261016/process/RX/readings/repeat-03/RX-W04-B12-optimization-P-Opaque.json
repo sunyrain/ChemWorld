@@ -1,0 +1,96 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-Opaque",
+    "cell": "RX-W04--P--safety_constrained_optimization--Opaque",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "Opaque",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 72,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque，优化安全分数。4版笔记0/24/66/72；真实先验为温度/时长初增后风险/损失占优，而非只追转换。",
+  "expectations": "v2预告固定C1/340K/3600s溶剂改变分数；v3明确在最后重复360K3600s前预告应接近360–370K分数簇且安全，若失败则削弱推荐。",
+  "tests_and_observations": "72操作全部提交，12终检，零中测。固定.04mol/.005mol/.08L/600rpm/3600s，先水中C0–3，C1分数.23527优于.12715/.11273/.16657；C1溶剂S1/2/3分数.18823/.29419/.30671；S3温度340/350/360/370/380K分数.30671/.33057/.34997/.34509/.33682，风险.19910/.20831/.21850/.23195/.25266。B12精确重复B8取得.34793/风险.21850，支持事前重复预期。全部固定3600s，无quench与时长检验。",
+  "revisions": "v4明确局部360–370K宽窗口而非精确最优，重复结果进入推荐。K1解释生产/竞争/降解网络但保持平行与连续不可区分。安全风险引入累积暴露项虽时长未变，缺乏此因素数据。成本全1，K1正确拒绝恢复唯一分数方程。",
+  "later_use": "Q化学以C1/乙腈340K及甲苯温度序列作锚，跨材料/尺度/载量/时间。Q01/02风险.390/.395、Q09/10 .350/.355，未测quench却视为几乎不改变或增加风险；420K1500/3300/5100s风险.28/.39/.49表示累积风险推断。温序产率.39/.46和近同风险.52/.51亦未实测。转换MAE .00779但风险.14818、产率.12467、分数.13184；推荐B8复测.34093/产率.66956。",
+  "unresolved": "K2准确承认时长/尺度/温序/淬灭未识别，反思部分区间过窄；下一3600+3600中测方案未执行。真实局部重复链不能证明全局反应机制，也不能用K2权衡自述推定所有决策当时原因。",
+  "histories": [
+    {
+      "topic": "局部操作关系的前瞻重复",
+      "before": "v3事件66预测360K重复应在局部高分簇",
+      "test": "事件67–72实际精确重复B8",
+      "after": "v4支持局部重复性并保留360/370峰值未定",
+      "later": "推荐B8，Q跨多个未测因素",
+      "limit": "重复支持操作关系，未唯一识别网络"
+    }
+  ],
+  "measurement_and_failure_notes": "所有操作提交/全部终检，未执行中测及quench。冻结quench不积分化学；Q允许quench中反应只是未验证解释。风险是末态量，不能与累积暴露同义。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prediction before solvent screen: holding Catalyst B and thermal history fixed, solvent identity will materially shift score",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 24,
+        "last_event_id": "runner-operation-0024"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Prediction before the final replicate: repeating the 360 K boundary target, 3600 s condition should produce a score near the 360–370 K cluster",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 66,
+        "last_event_id": "runner-operation-0066"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The final 360 K replicate scored 0.348 with risk 0.219",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 72,
+        "last_event_id": "runner-operation-0072"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "where r_thermal increases nonlinearly with temperature and accumulated exposure."
+    },
+    {
+      "stage": "Q",
+      "quote": "It instead increases cumulative degradation, byproduct formation, and risk",
+      "query_id": "Q06"
+    },
+    {
+      "stage": "Q",
+      "quote": "The small downward shift in selectivity and score allows for chemistry or thermal stress during quench",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "K1 had explicitly said that consecutive and parallel mechanisms were not distinguished."
+    }
+  ]
+}

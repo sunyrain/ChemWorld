@@ -1,0 +1,97 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-Opaque",
+    "cell": "RX-W02--P--mechanism_discovery--Opaque",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Opaque",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 85,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Opaque、discovery，自选.04mol底物/.005mol催化/.08L/500rpm；350K1800s乙腈催化screen再B溶剂/水热系列。",
+  "expectations": "v1提出有限热窗口、催化/溶剂差异和quench保选择性；v2第7批后预告水/B温时及quench。没有拟合常数在实验前的承诺；一阶关系v3最终笔记形成。",
+  "tests_and_observations": "85操作全committed，12批+12HPLC；1–11无quench，12有。水/B350K600/1800/3600s X.093/.221/.402，k_app1.63/1.39/1.43e-4；Y.063/.173/.273持续上升，S.721/.701/.654。320/350/380K1800s X.129/.221/.360、S.659/.701/.737，升温并未损选择性。380K配对末态无/有quench risk.141619/.105910、Y.268963/.249678；小单对照不足判化学作用。",
+  "revisions": "v3/K1形成局部一阶暴露并明确非洁净等温常数，拒绝在本温域宣布产率最大值。温度和时间对选择性不同，修订简单高温有害预期。有限迟发支路或P损失均仍可能，因绝对Y不降，不能强制目标降解。",
+  "later_use": "Q使用转化拟合向小尺度/更高催化比例/乙腈和390–460K延伸，转化MAE.012564且80覆盖1.0；同场强烈高温损失/风险外推导致Y MAE.172546、S.182031、risk.183883、score.136748，Y/S覆盖各.4。两对quench保留组成作用未定的小变化和risk下降。K2无真值承认损失、风险和顺序未识别，提350K1800中测再续未执行。推荐复测Y.266772、score.173039。",
+  "unresolved": "单场同时能迁移总转化近似且错误外推目标损失/风险，不可一票定义反绎成功/失败。K2同仪器第二HPLC建议对预算有误疑：公开为campaign12池，非固定一批一次。源全部cost1，评分与规模外推仍未识别。",
+  "histories": [
+    {
+      "topic": "温时分化与局部转化关系",
+      "sequence": "v1热窗口→v2预告温时→温度升S而时间降S→v3一阶总X/选择性迟发损失→Q总X较准但损失大偏",
+      "status": "scoped_relation_and_metric_specific_transfer"
+    },
+    {
+      "topic": "quench风险与化学区分",
+      "sequence": "v2预告→batch12对比9→v3/K1只确立risk下降→Q沿用化学近同与风险降",
+      "status": "limited_control_with_uncertain_chemistry"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "no yield maximum was reached within the tested temperature range.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "this is an exposure model rather than a clean isothermal Arrhenius estimate.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 85,
+        "last_event_id": "runner-operation-0085"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "This temperature trend differs from the duration trend."
+    },
+    {
+      "stage": "Q",
+      "quote": "the chemical quench effect is deliberately kept small because it was unresolved experimentally."
+    },
+    {
+      "stage": "K2",
+      "quote": "The proposed finite yield optimum was not demonstrated"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "failures": [],
+    "source_quench_batches": [
+      12
+    ],
+    "source_temperature_range_K": [
+      320,
+      380
+    ],
+    "source_duration_range_s": [
+      600,
+      3600
+    ],
+    "stages_valid": true,
+    "K2_has_truth": false
+  }
+}

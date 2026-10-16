@@ -1,0 +1,82 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-Aligned",
+    "cell": "RX-W03--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 96,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned低温安全参考，机制任务；起始规划温时、催化/溶剂、中点与quench。只有开始/终点2版笔记，无中途认知表述。",
+  "expectations": "v1预期热/时窗口，拟重复与quench；最终v2声称2400高Y状态可保持并提出更快溶剂应更早停止。中间行动次序可见但不能把K2追述当同期计划。",
+  "tests_and_observations": "96操作全提交，12HPLC/12final，410900s两段成功，与420900失败非同动作条件。4101800/3300/4800 finalY .7478/.7712/.7085。batch6与12的2400 HPLC Y .79264/.79260近同，分别继续hot2400与quench，final .7085/.7829。三溶剂1650HPLC到3300final提示乙醇/乙腈提前达高Y，催化四类同410。",
+  "revisions": "最终解释为局部产物窗口和更快材料提前过冲，K1明确无2400不淬灭终止所以quench化学效应未分离；但v2将quench返回缓存HPLC当保留证据，且写410最高S与390 .8107>410 .8021不符（K1表有正确数）。",
+  "later_use": "Q因乙腈410risk .308加水温斜率，推420起>.35自动回滚，8题近未反应、温序仅低温。源零rollback，X MAE .66783/Y .41463；K2主动承认极窄区间没涵盖成功热反应，但无真值或重新预测。建议quench后wait2400稳定性实验未执行。",
+  "unresolved": "局部时间损失证据、部分中点重复与操作建议确有支持；不能由此推定对执行约束理解正确。温时数据并未验证峰值在恰2400；2版笔记不能定位中途解释形成时点。",
+  "histories": [
+    {
+      "topic": "局部高Y状态与早停",
+      "sequence": "4101800/3300/4800及2400中点→最后重复2400中点后quench→最终解释早停保留",
+      "status": "操作与终点解释相符；缺中途表述，无单独quench化学效应"
+    },
+    {
+      "topic": "真实risk斜率变成回滚机制",
+      "sequence": "水热risk梯度+乙腈410risk .308→Q推420起原子回滚→近零化学→K2承认未见rollback且区间遗漏成功路径",
+      "status": "证据概括跨越到未经建立的执行规则"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "while preserving the pre-quench HPLC observables at the quench event",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 96,
+        "last_event_id": "runner-operation-0096"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "there was no separate batch that was simply terminated at 2400 s without quenching"
+    },
+    {
+      "stage": "Q",
+      "quote": "this makes 420 K and higher acetonitrile heat operations likely to be rejected atomically"
+    },
+    {
+      "stage": "K2",
+      "quote": "No campaign experiment observed that rollback."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 96,
+    "rolled_back": 0,
+    "nonfinal_assays": 12,
+    "final_assays": 12,
+    "conversion_mae": 0.667826452,
+    "yield_mae": 0.414634234,
+    "recommendation_retest_score": 0.4986923039,
+    "quench_output_chemical_values_cached": true,
+    "K2_received_Q_truth": false
+  }
+}

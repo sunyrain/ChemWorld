@@ -1,0 +1,90 @@
+{
+  "unit": {
+    "id": "RX-W04-B12-optimization-P-MisIndexed",
+    "cell": "RX-W04--P--safety_constrained_optimization--MisIndexed",
+    "system": "RX",
+    "world": "RX-W04",
+    "arm": "MisIndexed",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化目标；MisIndexed资料将高温侧参考420 K/3300 s作为起点。初始计划温度/时长夹逼后比较材料，但实际全部保持3300 s，无时长比较、淬灭或精确重复。",
+  "expectations": "初始笔记预期420 K及略高温度可能改善。只有初始/终末两版笔记；最终H1虽标supported，正文已逆转高温方向。K2明确承认B2/B3后没有同期书面修订，不能倒填即时解释转变。",
+  "tests_and_observations": "84次操作全部提交；12次HPLC与12次终检。水/C1的420/410/400/390/380 K分数依次0.389637/0.417366/0.441493/0.448329/0.448391，风险0.324624/0.272708/0.215871/0.168133/0.136028，转化0.977506/0.945372/0.938626/0.891292/0.841455，产率0.766529/0.771518/0.765730/0.742960/0.706635。385 K中点分数0.441704、风险0.150130、产率0.718013；380/390分数差仅0.000062，支持宽局部窗口。390 K水/C1优于C0/C2/C3，水也优于乙醇、乙腈、甲苯。",
+  "revisions": "终末与K1明确由高温偏好改为380–390 K局部安全分数窗口，承认分数权衡。完整反应网络和累计风险说法在K1才形成；固定时长设计不能辨识时间积分风险。",
+  "later_use": "Q将未检验累计风险用于420 K短/中/长时段，风险0.25/0.40/0.58；未测淬灭配对0.40→0.39、0.33→0.32，顺序风险0.57/0.56。转化MAE0.005942，覆盖59/60；风险MAE0.154842，覆盖30/60；产率MAE0.109108，分数MAE0.098519。推荐B5独立复测分数0.444684、产率0.700217。不同响应的有效迁移与未经识别的解释并存。",
+  "unresolved": "K2建议380 K分段1650+1650 s并中途HPLC，明确分段本身可能改变结果；这项实验未执行。源研究无时长、淬灭、顺序判别，也无精确重复；不得据最终网络叙述声称已识别机制。",
+  "histories": [
+    {
+      "question": "高温参考是否适合安全分数",
+      "chain": "初始高温偏好→实际向低温序列比较→380–390 K局部窗口→推荐及后续Q",
+      "support": "温度序列与终末修订有真实证据；中途解释变化的时间缺失。"
+    },
+    {
+      "question": "风险是否随暴露时间累积",
+      "chain": "源固定3300 s→K1累计风险解释→Q不同时间风险递增",
+      "support": "源数据没有时间判别，不能把合理候选当作源实验已建立关系。"
+    }
+  ],
+  "measurement_and_failure_notes": "无回滚或拒绝。HPLC在整段加热之后，随后终检未增加化学反应时间，仪器差异不能当作动力学。Q03与源乙腈390 K接近但转速350→400 rpm且省去HPLC，分数的测量成本不同，不是完全同协议复现。没有温度边界失败证据。",
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "modestly higher temperature may improve it",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "reducing requested temperature from 420 K toward 380–390 K improved the safe-score",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Batches 2–5 then progressively contradicted the proposed directional preference"
+    },
+    {
+      "stage": "Q",
+      "quote": "accumulated temperature- and solvent-dependent risk"
+    },
+    {
+      "stage": "Q",
+      "quote": "Post-hold quenching is expected to provide only a small benefit",
+      "query_id": "Q10"
+    },
+    {
+      "stage": "K2",
+      "quote": "The explicit written correction appeared only in the final synthesis and K1."
+    },
+    {
+      "stage": "K2",
+      "quote": "If splitting the heat operation itself changed the final outcome"
+    }
+  ]
+}

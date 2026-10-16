@@ -1,0 +1,118 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-optimization-P-Aligned",
+    "cell": "RX-W01--P--safety_constrained_optimization--Aligned",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "Aligned",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化任务：在风险阈值0.35内提高综合分。Aligned给出B/乙腈、420 K、3300 s完整参考配方及低温侧更可靠的方向；通用警告只要求把已观测温度回滚当成反对设置的证据，并未说风险阈值等于回滚边界。",
+  "expectations": "v1事前预计410 K安全有效，如回滚或接近风险上限则降温。v3事前预测第12批精确重复380 K应得分约0.407，若显著下降则削弱稳健性。",
+  "tests_and_observations": "12批均3300 s/400 rpm：B/乙腈扫描410、390、380、400、370 K；固定380 K筛A/C/D与水/乙醇/甲苯；最后重复380 K。84次操作全部提交，无回滚。全部HPLC紧邻终检，没有时间序列。380 K两次score0.406932/0.405526、risk均0.175138。HPLC取样占初始体积4%，不能当作完全无扰动。",
+  "revisions": "v2从温度序列提出局部峰值并要求重复；v3保留物料排序的单次局限；v4以重复支持best-tested，不声称全局最优。K1提出平行/顺序候选，承认固定时长不能区分且高温风险为外推。",
+  "later_use": "推荐第3批，独立复测score0.405882。Q把外推风险超过0.35转化为必然原子回滚：七条件conversion点估计0.004或0.005、区间上限0.02或0.025；Q07/Q08也假设高温段回滚。K2无真值反馈，自己指出该确定性不被源证据支持。",
+  "unresolved": "不能据此认定Aligned导致该错误或RX普遍如此。局部操作结论有重复支持。源无边界检验，K2为预测后限定而非纠错后表现改善。风险是合成过程/程序惩罚而非真实危险概率。",
+  "histories": [
+    {
+      "name": "局部最优的提出、重复和采用",
+      "sequence": "低温方向先验→五点温度序列→候选380 K→事前重复预期→第12批复现→推荐复测成功",
+      "evidence_status": "supported_local_operating_relation"
+    },
+    {
+      "name": "未识别边界语义用于确定性预测",
+      "sequence": "高温风险递增→K1仍保留外推不确定→Q将阈值视为原子回滚→七项近零转化预测→K2自我限定",
+      "evidence_status": "unsupported_scope_extension_in_sealed_prediction",
+      "reference_conversion_means": {
+        "Q01": 0.9949967622756958,
+        "Q02": 0.9959072828292846,
+        "Q04": 0.9989183187484741,
+        "Q06": 0.9909172892570496,
+        "Q09": 0.9545043587684632,
+        "Q10": 0.9628113150596619,
+        "Q12": 0.9941574096679687
+      },
+      "reference_path": "D:/CW267/a2/references/research/RX/truth.json",
+      "reference_note": "七条件五次参考均明显反应；这是参与者不可见的评价者证据。"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "An observed rollback or assay risk near the limit will cause lower-temperature follow-up.",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "A materially lower repeat would weaken the claim that this is a robust optimum; a similar repeat will justify recommending this procedure over unreplicated alternatives.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 77,
+        "last_event_id": "runner-operation-0077"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "the claim is a best-tested procedure rather than a global optimum.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "Because all runs had the same duration and only endpoint cumulative risk was observed, temperature and exposure-time effects cannot be separately identified."
+    },
+    {
+      "stage": "Q",
+      "quote": "Extrapolating that local trend to 420 K for 3300 s places cumulative risk above the 0.35 limit, so I predict an atomic temperature-bound rollback.",
+      "query_id": "Q01"
+    },
+    {
+      "stage": "Q",
+      "quote": "Under atomic rollback semantics, Q08 should therefore closely match Q07 despite the reversed order.",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "K2",
+      "quote": "The blind predictions then converted one plausible safety model into a near-deterministic rollback rule. That was not justified by the sealed evidence."
+    },
+    {
+      "stage": "K2",
+      "quote": "The twelve nonfinal HPLC measurements were poorly positioned for mechanistic identifiability: they were taken immediately before termination and were therefore largely redundant with the final assays."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "all_source_operations_committed": true,
+    "valid_Q": true,
+    "conversion_MAE": 0.6005548930168152,
+    "K2_has_truth_feedback": false
+  }
+}

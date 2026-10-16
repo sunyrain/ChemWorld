@@ -1,0 +1,93 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-MisIndexed",
+    "cell": "RX-W02--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed低温安全平衡方向，A/水小尺度/1100rpm；discovery。初始计划分段热史、中点HPLC、材料与无催化，淬灭/加载计划未完成。",
+  "expectations": "v1预期410比430安全、短时欠转化；v2第5批后已正确剔除两次825s未执行的短时点，预告催化/溶剂与无催化判据。",
+  "tests_and_observations": "95动作含两次rolled_back(0028,0030)，其余93提交；12批/12HPLC，无quench。一般两段1650s、HPLC在中间；长时2×2500s。410/420/430K3300s X.857/.905/.937、Y.625/.649/.671，risk.266/.318/.357。420K5000s X.960/Y.649形成产率平台而非显著下降。无催化X.285/Y.001，四催化/四溶剂完成；高risk从未自动rollback。",
+  "revisions": "v2从请求时长转向已提交热史，K1明确只知825失败、1650成功而阈值/原因不明。局部催化目标通道及背景、时间选择性损失形成；低温方向在本地无quench评分下受支持，不因MisIndexed标签而否认。",
+  "later_use": "Q把825s失败扩展为升温速率边界，预测440K1500s Q09/10主要rollback、X.01/.012；450K1800s先热Q08主情景rollback，X.45，对照顺序Q07 X.95。全Q X MAE.214457、Y.145069、risk.079937、score.076567。K2承认边界概率未识别但保持解释；催化补加建议未执行。推荐410K2×1650s复测Y.614975、score.347624。",
+  "unresolved": "观察真实失败后提出可检验控制边界是合理，但两类时长不能识别跨温度/材料/转速阈值。Q05称区间包括完全回滚但X下界.15、Y.08不包括源近零；Q09/10虽宽上界X.6仍不是完整成功情景。该转移是操作动力学/可行性推断，不能只写化学知识失败。本场中点采样0.0002L占4%，热史分段与Q单段不同，源排名非Q精确重复。",
+  "histories": [
+    {
+      "topic": "真实失败形成控制解释并迁移",
+      "sequence": "两次825s回滚→v2/K1从动力学剔除→Q推断跨温度最小升温时长并决定Q08–10主情景→K2仍称概率未识别",
+      "status": "correct_source_failure_interpretation_then_unidentified_boundary_extrapolation"
+    },
+    {
+      "topic": "无催化背景",
+      "sequence": "v1/v2预告→末批真实未加催化并两热段提交→v3/K1目标通道与热背景",
+      "status": "prospective_control_supports_scoped_explanation"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Two requested 825 s heat segments did not advance time or temperature",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 40,
+        "last_event_id": "runner-operation-0040"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "It does not identify the exact feasibility threshold or whether the rollback was caused by ramp requirements, a validator, or another control rule."
+    },
+    {
+      "stage": "Q",
+      "quote": "rollback is the leading prediction.",
+      "query_id": "Q09"
+    },
+    {
+      "stage": "Q",
+      "quote": "The point estimate assumes rollback of that stage followed by a feasible 390 K stage",
+      "query_id": "Q08"
+    },
+    {
+      "stage": "Q",
+      "quote": "the wide interval includes partial or complete control rollback.",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "K2",
+      "quote": "Those broad intervals were appropriate in direction, but the exact probabilities were not identified."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "rollback_events": [
+      "runner-operation-0028",
+      "runner-operation-0030"
+    ],
+    "stages_valid": true,
+    "source_quenches": 0,
+    "HPLC_fraction_of_initial_volume": 0.04,
+    "sampling_occurs_mid_reaction": true
+  }
+}

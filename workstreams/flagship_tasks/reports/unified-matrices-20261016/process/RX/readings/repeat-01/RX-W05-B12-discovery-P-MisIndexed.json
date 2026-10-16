@@ -1,0 +1,124 @@
+{
+  "unit": {
+    "id": "RX-W05-B12-discovery-P-MisIndexed",
+    "cell": "RX-W05--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W05",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 87,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "finding": "不利温度提示被局部证据限制，前瞻淬灭判别得到实际执行与后续使用",
+  "trajectory": [
+    "MisIndexed提示在C3/S0参考420K3300s附近高温侧更可靠。初始笔记明确说需检验，同时提出过热/过长可能带来竞争损失、淬灭应阻止变化。版本2在事件28后保留催化剂筛选关系，并预告固定C3做温时、重复与淬灭比较。",
+    "87次操作均提交，12次HPLC及末检。先420K3300s比较C0–3，再固定C3比较400/430K；400/420/430K的score .443619/.400084/.376341，Y .760759/.770612/.764243，risk .181271/.289824/.328487。400–430K并非严格等产率，但没有高温更平衡的证据。",
+    "420K1800/3300/4500s系列X .864029/.980545/.998399而Y .766484/.770612/.720774，长时副产物/降解增加；版本3/cursor56将产率与转换区分，保留并行与连续损失未决，并明确预告：若wait只改变未淬灭批，则支持淬灭阻止变化。",
+    "批9确实精确重复1800s即终止批7，Y .767793对 .766484。批10在相同1800s后不淬灭wait1500s，真实温降118.256K、X .925068、Y .774633、副产物 .160597；批11先quench再wait1500s，X .894380、Y .769503、副产物 .123746，更接近即终止重复。两种wait的物理热史不同，quench后wait无继续降温，且物种停止推进，报告正确停留在功能性阻止而非唯一淬灭机制。",
+    "批12将催化剂量减半，在同1800s下X .717499、Y .596482，末笔记保留催化剂量敏感而非精确反应级数。K1描述局部温时关系、失活未证明；K2明确指出高温更平衡先验被局部反驳，并承认K1没有直接标记拒绝原命题。",
+    "Q把淬灭阻止变化及终态风险关系用于配对，化学相同、risk/score改变；将未采样溶剂与尺度视为不确定扰动，K2承认这部分数值范围可能仍偏窄。"
+  ],
+  "later_use": "Q01/02同Y .76、risk .29/.10、score .41/.50；Q09/10同Y .70、risk .37/.17、score .31/.43。Q01/Q05/Q06的risk均 .29，延续源420K不同时间risk近恒的观察；Q07/08末态risk .41/.13但化学小差且宽重叠。Y MAE .062626、score .052086，80%区间均覆盖60/60参考读数；risk MAE .057074但区间只覆盖25/60，不能称各关系均充分校准。",
+  "limits": [
+    "这是具体的事前判别预期—实际处理—终末修订/采用链，不只终点解释。却不能证明P→D唯一拓扑，或quench单靠温度作用；冻结quench本身设反应停止标记。",
+    "原先高温更平衡主张被不同响应拆开：转换加速可以成立，平衡表现更好被否定；无需将整个初始参考视为错误，也不代表MisIndexed一般改善研究。",
+    "源没有溶剂对照，Q全换S2、体积与转速；后测精确度不能反证源已发现可迁移溶剂律。",
+    "HPLC在批7/9为heat后即测，在批10/11为等待后测；等待对照有相同终检但取样时点不同。相较新鲜对照设计仍须保留该程序差异，不称完全隔离每个细节。",
+    "K2两次同仪器采样的3300→4500s新增实验未执行；不能把其判别能力写成已有结果。"
+  ],
+  "recommendation": "选批10因最高score与低末态risk，源Y .774633/score .511491，复测 .757143/.502765；Y相对其他约.77的优势不稳健，score收益主要包含终态冷却风险降低，不能写成大幅化学产率改善。",
+  "event_anchors": [
+    7,
+    14,
+    21,
+    28,
+    32,
+    35,
+    39,
+    42,
+    46,
+    49,
+    53,
+    56,
+    60,
+    63,
+    67,
+    68,
+    69,
+    71,
+    75,
+    76,
+    77,
+    78,
+    80,
+    83,
+    84,
+    87
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "but this requires testing.",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "If post-heat waiting changes the unquenched batch but not the quenched batch, quench arrest is supported",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "This supports the quench arresting subsequent chemistry",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 87,
+        "last_event_id": "runner-operation-0087"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "The quench comparison does not establish whether arrest occurs solely through cooling"
+    },
+    {
+      "stage": "K2",
+      "quote": "That claim was not supported by my temperature series and was locally contradicted."
+    },
+    {
+      "stage": "Q",
+      "quote": "terminal thermal risk is expected to depend mainly on temperature rather than duration.",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "K2",
+      "quote": "The major score advantage of Batch 10 may also depend on the scoring contract rewarding low terminal risk after cooling."
+    }
+  ]
+}

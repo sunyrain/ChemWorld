@@ -1,0 +1,47 @@
+# 承认混合平台未定，却仍将平台作为预测近似
+
+`repeat-01/PA-W02-B12-discovery-E-Opaque`
+
+阅读覆盖：同一分析智能体逐版阅读全部笔记及完整差异、全部公开操作与测量、K1/Q/K2；非人类独立编码。
+
+[完整公开记录](../sessions/repeat-01__PA-W02-B12-discovery-E-Opaque.json)
+
+## 问题与先验
+
+无材料性质资料时，先沿S0比较四种萃取剂，再沿X0比较四种溶剂，考察配对、相量、混合及保留相。初始方案将混合增强趋近平台作为待检验假设。
+
+## 预期与实验
+
+v2/cursor70在七批筛选后安排S3/X3对角组合、S0/X1的相量变化、弱混合与标准重复，以及一次水相保留。这是依据先前局部结果确定后续辨别实验的同期证据。
+
+## 实际证据
+
+S0/X3有机份额0.558、S3/X0为0.521，而S3/X3仅0.466（事件77），不支持将单因素优势简单相加。S0/X1标准两次0.497/0.512，弱混合0.405；高萃取剂量0.827且相比例0.609，高水相/低溶剂量0.496且相比例0.194。实际相比例而非名义加液比更接近观测变化。水相保留后有机份额约0.004、水相0.524，说明保留语义与预分离分配是不同读数。v3将两个相量条件近似写成0.818/0.505，与原始0.827/0.496有小的转录出入；K1采用原始值。
+
+## 修订
+
+v3收缩可加性，并明确只有两档混合，不能证明平衡平台或分离时长和转速作用。K1还保留亲和力、相体积、传质和静置等替代解释，不宣称已识别唯一机制。这些限制与实际覆盖相符。
+
+## 后续采用
+
+Q仍把更长或更快混合视为已观察到的充分混合平台附近，并以精确互补的两相份额预测；未测S2/X3的四个条件大体取0.69—0.76。K2指出S3/X3已反对简单相加，承认S2/X3外推与有效分配模型只是简化，建议追加强混合配对检验但未实际执行。封闭预测未被K2改写。
+
+## 未解决问题及解释限制
+
+本场支持局部配对差异、混合变化及相量关系的形成，也呈现文字边界与定量采用之间的张力；不能据此断言智能体确信普遍平台或有意回避反证。其相量对比还改变溶剂/水相组成，不能唯一归因于相体积。
+
+## 已核验引文与事件锚点
+
+v3 / cursor {'event_count': 120, 'last_event_id': 'runner-operation-0120'}
+
+> Only two mixing regimes were tested, so kinetics, rpm-duration tradeoff, and true equilibrium plateau remain unresolved.
+
+事件：runner-operation-0017, runner-operation-0107, runner-operation-0117
+
+Q
+
+> Longer or faster mixing is treated as near the observed well-mixed plateau.
+
+K2
+
+> These are modeling simplifications, not changes to the sealed outputs, and they make the prediction points appear more definite than the evidence warrants.

@@ -1,0 +1,82 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-optimization-P-Aligned",
+    "cell": "RX-W02--P--safety_constrained_optimization--Aligned",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Aligned",
+    "goal": "optimization",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-02"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "优化目标；Aligned 提供420 K/3300 s水/A参考及高温侧更可靠的局部判断。",
+  "expectations": "v1提出温度、材料、时间、加载及重复；只有v2最终更新，过程性修订的具体时点不能由K2追认。",
+  "tests_and_observations": "84次全部提交；12批均3300 s、1100 rpm、先试剂后水后催化，每批末点HPLC+终检，无淬灭。420→410→400 K分数.34025→.34951→.35537；400 K筛四催化、四溶剂，A/水分数最高；395 K两次.36115/.36278、risk均.18459，405 K .35643。",
+  "revisions": "最终笔记与K1明确拒绝初始高温方向在本区间safe-score意义；支持反证修订而非固定确认。温度使转化增加与分数下降同时成立。局部风险线性式仅395–420 K，426 K阈值明确未验证。",
+  "later_use": "推荐复测395 K得score .36888、risk .18459。Q组合未测B+乙腈、400 rpm、反顺序，承认可组合性未知；却把时间视作风险累积，淬灭增加风险，两个温序risk相同。X MAE .05646、risk .12708、score .03478。K2承认风险机制与组合效应未辨、区间可能过窄，并建议半时长新实验但未执行。",
+  "unresolved": "所有源同一时长且无淬灭/分段温度，不能据此识别时间hazard与温序。平行/串联/失活均候选；材料分数差含成本，不可只归化学。",
+  "histories": [
+    {
+      "topic": "方向提示的局部修订",
+      "sequence": "高温提示→420/410/400对照→395复核→最终明确拒绝提示在safe-score上的方向→低温推荐复测有效",
+      "status": "有源对照和最终公开修订；缺中期笔记定位确切修订时点"
+    },
+    {
+      "topic": "风险局部关系的迁移",
+      "sequence": "同3300s温度系列→范围限定的局部risk式→Q外加时间累积及淬灭微增→风险误差高→K2承认未辨",
+      "status": "局部合理经验不自动支持时间/操作迁移"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Thus the supplied claim favoring the higher-temperature side is not supported for safe-score across this tested interval",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "risk(T) ≈ 0.1846 + 0.00535 × (T - 395)"
+    },
+    {
+      "stage": "Q",
+      "quote": "Quenching was assumed to have little effect after the specified heating interval"
+    },
+    {
+      "stage": "K2",
+      "quote": "Cost differences were recorded but not integrated into the explanatory model"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "committed": 84,
+    "failed": 0,
+    "hplc": 12,
+    "quench": 0,
+    "source_duration_s": 3300,
+    "model_seed_controlled": false,
+    "K2_has_query_truth": false,
+    "risk_task_threshold_is_not_rollback": true,
+    "cost_contributes_to_score": true
+  }
+}

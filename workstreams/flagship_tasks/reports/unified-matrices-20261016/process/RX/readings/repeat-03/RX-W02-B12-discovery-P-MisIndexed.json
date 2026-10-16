@@ -1,0 +1,106 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-MisIndexed",
+    "cell": "RX-W02--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 84,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed低温更可靠的局部方向、420K3300s水/A参考与rollback解释提示。解释为主，自主设计四催化、无催化、温度、时间、溶剂及quench近复测。",
+  "expectations": "v1预测420比冷短转化高、430/延时可能降低S增risk；v2在已看到催化/温度对照后事前提出1800较低、5400边际Y小而降解高。",
+  "tests_and_observations": "84操作全提交，12HPLC/终检。无催化X .2722而Y .0087/S0；A/B/C/D水420K3300s Y .6491/.6374/.6210/.5832，区分转换与目标生成。400/420/430K Y .5948/.6491/.6741，risk .2095/.3184/.3572；430执行未回滚。420K1800/3300/5400s Y .5530/.6491/.6280，X继续增、S .7613/.7174/.6361。乙醇/乙腈X高而Y低于水；乙腈risk .3598。末水quench风险 .3184→.1222、Y .6497与基线近同。",
+  "revisions": "v2保留A并以420为已测安全最高温；v3/K1支持局部竞争路径、承认小催化排名与quench化学效应未辨。K1将P损失与催化失活并列，但稳定P纯平行网络只能产生平台或S下降，不能产生真实P下降；K2适当说明.021跨批下降尚难超出噪声，未唯一识别。对先验低温safe score方向只支持局部，不把reliably当已证重复性。",
+  "later_use": "局部一阶/材料分支与终态risk用于全部Q：淬灭化学量不变、risk下降、段序终温差；未据risk>.35预测rollback。X MAE .00878/risk .02311/score .04042，Y .05753。推荐420K3300水/A后quench复测score .42241/risk .12222。K2明确峰风险不会被quench擦除，并提出催化补加判别但未执行。",
+  "unresolved": "K2无Q真值；提出补加催化同时改变总loading且用历史对照，本人承认非决定性。未测反应阶数、完整热轨迹、B×乙腈×400rpm；近复测不等于完整配方重复。",
+  "histories": [
+    {
+      "topic": "催化与目标路径",
+      "sequence": "未假定催化排名→匹配四催化及无催化→无催化仍转化但近零目标→v2/K1区分总体转化与目标形成→Q采用材料效应",
+      "status": "局部有依据，机制非唯一"
+    },
+    {
+      "topic": "时间竞争",
+      "sequence": "v2事前短/长时预期→1800/3300/5400支持中间Y高且X继续增→v3/K1竞争网络→K2识别跨批噪声并提补加检验",
+      "status": "有前瞻验证，P损失与失活未辨"
+    },
+    {
+      "topic": "淬灭风险",
+      "sequence": "末匹配基线加quench→Y近同/risk下降→不声称化学增益→Q保留化学并降risk→K2区分峰与终态",
+      "status": "证据范围清晰、后测使用可见"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "Prediction before the time series:",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 48,
+        "last_event_id": "runner-operation-0048"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "there is no resolved yield effect",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 84,
+        "last_event_id": "runner-operation-0084"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "it did not erase the peak risk already reached during heating."
+    },
+    {
+      "stage": "Q",
+      "quote": "The quench is predicted to leave composition essentially unchanged while lowering terminal temperature and current safety risk.",
+      "query_id": "Q02"
+    },
+    {
+      "stage": "K2",
+      "quote": "The approximately 0.021 yield difference is also not enormously larger than combined process and instrument uncertainty."
+    },
+    {
+      "stage": "K2",
+      "quote": "Doubling catalyst loading introduces its own concentration effect"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 84,
+    "committed": 84,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 1,
+    "failure_count": 0,
+    "risk_threshold": "430K水与420K乙腈越任务阈值均执行，不是平台拒绝。",
+    "Q": "全部12题与两封存报告读完，三阶段有效",
+    "prediction_mae": {
+      "conversion": 0.008780826,
+      "risk": 0.023114096,
+      "score": 0.04042131
+    }
+  }
+}

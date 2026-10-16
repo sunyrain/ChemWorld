@@ -1,0 +1,45 @@
+# 由低回收转向水相的探索，形成样品域解释但未获得正交相选择证据
+
+`repeat-01/P-W04-B12-optimization-E-Opaque`
+
+阅读覆盖：同一分析智能体完整阅读两版笔记、全部公开操作测量及K1/Q/K2，读取已有推荐复测；非独立双人编码。
+
+[完整公开记录](../sessions/repeat-01__P-W04-B12-optimization-E-Opaque.json)
+
+## 问题与先验
+
+无资料，v1预期材料和温时控制反应产率、保留有机及洗涤可能提纯；以纯度0.80为门槛寻求回收。首五批同时改变多种上游条件、萃取剂及后处理，随后在有机与水相流程间交替。
+
+## 预期与实验
+
+只有开场与全部168事件后的两版笔记，没有中途公开修订时点。实际batch6开始保留水相，末四批形成C0/S1/X1和C1/S2/X2各370K与350K的近匹配温度对照；K1称低有机回收促使转向水相，是与轨迹相容的事后解释，不能当作已封存事前承诺。
+
+## 实际证据
+
+batch2反应HPLC转化0.243、回收0.106，分有机并干燥后转化1.000、回收0.0446，支持测量样品域改变的解释。C1/S2/X2水相370/350K终态纯度0.622/0.589、回收0.1275/0.1098；C0/S1/X1有机同温度对比纯度0.395/0.432、回收0.0534/0.0334。batch5三次大洗后纯度0.123/回收0.0126，但其反应条件与其他批不同。
+
+## 修订
+
+v2撤回普遍有机优先及洗涤可靠提纯预期，明确相选择、反应和萃取类别混杂。K1区分反应生成与分离后读数，提出反应—分配—洗涤的分层解释，但反应网络和Arrhenius式仅概念模型。无一批达门槛；推荐batch8作为不合规折衷，既有复测纯度0.606/回收0.139仍不合规。
+
+## 后续采用
+
+Q仍因低投料、相同催化剂比例推断稀释抑制副反应，令Q07—12纯度0.77—0.89、回收0.35—0.40，远高于源实验回收；Q洗涤继续作一般提纯推断。K2准确指出低浓度、低催化剂载量、萃取剂比较和洗涤效应均未建立，并建议双相物料衡算分辨真实降解与分配；该建议未执行。
+
+## 未解决问题及解释限制
+
+可支持的是局部温度比较和样品域解释进展，不是保留水相的独立因果优势。水相组集中C1、无匹配有机/水相、洗涤强度亦混杂。公开文本从事后总结到后测预测存在有用解释与未测迁移共存，不能补写中途认识形成的精确时间。
+
+## 已核验引文与事件锚点
+
+v2 / cursor {'event_count': 168, 'last_event_id': 'runner-operation-0168'}
+
+> This does not isolate a causal wash penalty because reaction severity and phase choice differed.
+
+K1
+
+> I therefore regard final conversion as a selected-phase diagnostic, not a direct estimate of whole-reactor conversion.
+
+K2
+
+> My relatively high predicted recoveries and purities depend on an unverified conjecture that dilution suppresses competing chemistry.

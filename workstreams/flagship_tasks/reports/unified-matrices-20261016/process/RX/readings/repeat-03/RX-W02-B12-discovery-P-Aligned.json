@@ -1,0 +1,110 @@
+{
+  "unit": {
+    "id": "RX-W02-B12-discovery-P-Aligned",
+    "cell": "RX-W02--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W02",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3
+    ],
+    "public_operations": 97,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "发现Aligned；参考水/A420K3300s，初始明确温时/催化/淬灭与重复计划。",
+  "expectations": "v2在64操作后识别两900s未产生时间/温升，写明不能作动力学；事前预测410K插值、2600s低X高S，并安排quench及未淬灭基线重复。",
+  "tests_and_observations": "97操作，其中95提交/2回滚（0028、0030，每次费用.03保留）；12HPLC/12终检。失败批未热X0；成功2600s两1300段X.835/S.761/Y.634，较3300→5000保S；410K插值X/risk位于400与420间。末两批quench和unquenched重复：Y .642 vs .647/.649；S .720 vs .719/.721；quench risk .318→.122。430K完整不安全risk .357。",
+  "revisions": "同期失败解释明确且后续改选有效1300段；局部一阶X与线性S(t)只在测试范围内，温时损失不唯一识别；quench化学效应在重复散布内收缩为未辨/小，未强讲增益。",
+  "later_use": "Q保留失败接受条件但1500s判可行，不把900回滚外推为高温全部失败；X MAE .02104/risk .03612。全部源只水，Q移到乙腈使S MAE .11562/Y .08856，区间较宽；推荐复测Y .64753 score .42724。K2提出B匹配转化时间检验是否只是公共反应时钟，未执行。",
+  "unresolved": "原“不同催化必非单纯速率乘子”仅同时间不同X不能充分排除公共时钟，K2匹配转化提议正补此点。未溶剂/搅拌/加载；HPLC取4%影响后段。失败成本保留、失败所得近零不作短时反应率。",
+  "histories": [
+    {
+      "topic": "失败触发有效实验修订",
+      "sequence": "两900s请求回滚→v2剔除kinetic证据并改1300段→2600s实际形成→验证短时X/S折衷→Q1500正常推进预测",
+      "status": "公开时序完整，不将所有错误归认知自我确认"
+    },
+    {
+      "topic": "重复帮助约束淬灭解释",
+      "sequence": "v2预告quench与baseline复核→同程序两unquenched加一quench→最终只认风险降/化学小或未辨→Q用操作关系",
+      "status": "三源匹配采样与分段较完整，仍仅一quenched源"
+    },
+    {
+      "topic": "候选催化机制的鉴别限制",
+      "sequence": "同时间B更快且副作用高→K1偏不同productive/destructive率→K2承认需匹配转化排公共时钟",
+      "status": "反省提出待检验辨别，不是已证实机制"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "The 1800 s program is **not kinetic evidence**",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 64,
+        "last_event_id": "runner-operation-0064"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The 410 K endpoint conversion and risk interpolate between 400 and 420 K as predicted.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "there is no resolved chemical quench effect",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 97,
+        "last_event_id": "runner-operation-0097"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "A 1500 s stage should be long enough to avoid the 900 s constitution failure",
+      "query_id": "Q05"
+    },
+    {
+      "stage": "K2",
+      "quote": "This is a matched-conversion discrimination experiment:"
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 97,
+    "committed": 95,
+    "rolled_back": 2,
+    "rollback_events": [
+      "0028",
+      "0030"
+    ],
+    "hplc": 12,
+    "quench": 1,
+    "unsafe_batch": 3,
+    "replicate_batches": [
+      1,
+      12
+    ],
+    "quench_compare_batch": 11,
+    "K2_has_query_truth": false
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "unit": {
+    "id": "RX-W01-B12-discovery-P-MisIndexed",
+    "cell": "RX-W01--P--mechanism_discovery--MisIndexed",
+    "system": "RX",
+    "world": "RX-W01",
+    "arm": "MisIndexed",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-03"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 94,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "MisIndexed给定B/乙腈小尺度参考配方及高温侧更安全平衡的错误方向，要求discovery。v1明确将方向作为可检验预期。",
+  "expectations": "v1预告温时、催化剂、无催化和淬灭；v2在前4批后提出早形成/后损失，预告900/1800/4800s和竞争判据；v3预告380K无淬灭对照及若化学近同则主要热风险。",
+  "tests_and_observations": "94操作、12终检、12HPLC；900s heat0036真实rollback，零热时推进；余提交。380→430K相同3300s选择性.721→.620、by.245→.376、deg.175→.304，热risk.175→.397。420K 1800/3300/4800s Y.738/.647/.539、X.939/.998/.992。380K无催化X.253、Y0，B的Y.677优于A/C/D .584/.589/.614。380K有/无淬灭Y.67694/.68050、风险.14029/.17514。",
+  "revisions": "v2拒绝高温安全平衡先验并保留380/400K产率差未定；v3正确剔除rollback为900s动力学点，转移催化screen至380K；v4局部时间斜率注明不可外推。K1提出催化目标+无催化背景+热损失混合网络。",
+  "later_use": "Q正确区分热态/淬灭末态风险，未把440–460K默认为失败；近匹配Q01/02复用源观测，Q03插值，其他热时/顺序外推。MAE Y.035487、X.009583、risk.013544、score.024584。推荐380K3300s而非更高产但热risk>.35的420K1800s；复测Y.678306、score.414667。K2无真值反省Q早时和顺序不确定性，400K容器内两时点建议未执行。",
+  "unresolved": "K1/K2将纯平行变化支路视作绝对产率下降的等价解释仍有守恒缺口：稳定已有P仅后续支路或纯失活不能使已有P下降；不能把谨慎列候选等同完整解释。只有一套温时、无目标物直接保持/降解实验，无法唯一识别具体路径。K2承认近匹配Q省略HPLC，初始风险提示不是观测到温度边界rollback。",
+  "histories": [
+    {
+      "topic": "错误温度先验的前瞻反证",
+      "sequence": "v1高侧预期→四温匹配系列→v2拒绝方向→v3将催化对照移380K→推荐380K/Q据实外推",
+      "status": "prospective_test_revision_and_later_use"
+    },
+    {
+      "topic": "无催化背景与目标通道",
+      "sequence": "v1预告无催化→第11批X.253但Y0→v4/K1加入催化依赖目标与热背景分支",
+      "status": "prospective_control_supports_scoped_channel_distinction"
+    },
+    {
+      "topic": "真实失败正确限界",
+      "sequence": "900s rollback→v3/K1不作为900s化学→Q05仍预测1500s但扩大区间→K2承认失败外推不确定性",
+      "status": "execution_failure_preserved_not_chemical_null"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "this is treated as testable rather than authoritative.",
+      "revision": 1,
+      "public_cursor": {
+        "event_count": 0,
+        "last_event_id": null
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "Thus the supplied high-side prior fails in this formulation/schedule.",
+      "revision": 2,
+      "public_cursor": {
+        "event_count": 32,
+        "last_event_id": "runner-operation-0032"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The intended 900 s test did **not** execute",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 56,
+        "last_event_id": "runner-operation-0056"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "The no-catalyst control still converts about 0.253 but gives zero detected target yield",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 94,
+        "last_event_id": "runner-operation-0094"
+      }
+    },
+    {
+      "stage": "Q",
+      "quote": "Safety risk follows the realized terminal thermal state"
+    },
+    {
+      "stage": "K2",
+      "quote": "No clear temperature-bound rollback occurred."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "rollback_events": [
+      "runner-operation-0036"
+    ],
+    "stages_valid": true,
+    "source_quench_control": "HPLC/终检噪声与0.0002L抽样保留；无淬灭近同非绝对零反应",
+    "peak_risk_vs_terminal": "区分良好，不将risk>.35当rollback",
+    "K2_feedback": "无Q真值"
+  }
+}

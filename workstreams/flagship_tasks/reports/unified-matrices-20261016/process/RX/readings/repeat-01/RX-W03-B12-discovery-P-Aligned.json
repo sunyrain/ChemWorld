@@ -1,0 +1,97 @@
+{
+  "unit": {
+    "id": "RX-W03-B12-discovery-P-Aligned",
+    "cell": "RX-W03--P--mechanism_discovery--Aligned",
+    "system": "RX",
+    "world": "RX-W03",
+    "arm": "Aligned",
+    "goal": "discovery",
+    "locus": "P",
+    "model": "gpt-5.6-sol",
+    "batches": 12,
+    "matrix": "A",
+    "repeat": "repeat-01"
+  },
+  "review_scope": {
+    "status": "full_public_record_close_reading",
+    "notebook_revisions": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "public_operations": 95,
+    "source_batches": 12,
+    "sealed_stages": [
+      "K1",
+      "Q",
+      "K2"
+    ],
+    "kind": "internal_AI_assisted_semantic_reading_not_independent_human_validation"
+  },
+  "question_and_initial_information": "Aligned低温先验/B水参考，解释主目标；自主温时矩阵、四催化、无催化、乙醇及延迟冷却。",
+  "expectations": "v1预测内部Y峰、催化控制与quench保全；v2温度初证但峰未定；v3时序后预告延迟quench应降低Y/S并安排末批。",
+  "tests_and_observations": "95操作全提交，12HPLC/终检、11quench。410K1800/3300/4800s终检Y .7478/.7718/.7085，HPLC .7599/.7862/.7216；X趋饱和/S降。无催化X .2407/Y .0092。四催化B较高Y、D较高S。末4103300后不quench而wait1200，降109K/risk .2671→.0958，终Y .7526/deg .1809；prompt基线Y .7718/deg .1413。",
+  "revisions": "v3基于时序形成“生成后损失”，v4发现wait是被动冷却而非恒温热延迟，收缩为提示性差异、未唯一quench化学收益。K1正确说明纯惰性失活不必破坏已有P，但仍将纯稳定P并行/选择性切换当能解释真实绝对Y下降；必须限定跨批噪声或另加P消耗。quench返回旧HPLC并非新化学测量。",
+  "later_use": "Q正确保留quench降终风险，但错误把430控制限套heat：Q04/09/10/12近未反应、Q07/08仅390段。未试乙腈却以水规律估乙腈S，S/by coverage均0；X MAE .40697/Y .29684。推荐复测score .49004。K2明确无Q真值，指出窄区间取决于操作语义，提三时点同批HPLC未执行。",
+  "unresolved": "源无rollback；较完整前瞻时序仍不保证后测运行语义或材料外推。末wait与quench有真实不同反应暴露，但仅1对且无同处理重复，不能归因唯一化学保护。",
+  "histories": [
+    {
+      "topic": "时间形成-损失解释",
+      "sequence": "v1内部峰预测→三个时点双仪器峰→v3安排延迟检验→末wait实为冷却→v4限缩→K1/K2候选解释",
+      "status": "前瞻检验与局部修订，网络非唯一"
+    },
+    {
+      "topic": "错误边界后测",
+      "sequence": "源无失败→Q430上限全回滚→高误差→K2承认语义假设无经验支撑",
+      "status": "局部科学过程与运行语义偏差并存"
+    }
+  ],
+  "anchors": [
+    {
+      "stage": "notebook",
+      "quote": "delaying quench after ~3300 s should lower selectivity/yield.",
+      "revision": 3,
+      "public_cursor": {
+        "event_count": 79,
+        "last_event_id": "runner-operation-0079"
+      }
+    },
+    {
+      "stage": "notebook",
+      "quote": "the wait changed temperature continuously rather than holding 410 K.",
+      "revision": 4,
+      "public_cursor": {
+        "event_count": 95,
+        "last_event_id": "runner-operation-0095"
+      }
+    },
+    {
+      "stage": "K1",
+      "quote": "pure catalyst deactivation mainly causes conversion to plateau without necessarily destroying accumulated P"
+    },
+    {
+      "stage": "Q",
+      "quote": "For requested temperatures above the published 430 K action range, I apply the public transactional temperature-bound rollback rule"
+    },
+    {
+      "stage": "K2",
+      "quote": "Since no prediction truth has been disclosed, it remains unresolved whether that interpretation matches the blind replay semantics."
+    }
+  ],
+  "measurement_and_failure_notes": {
+    "operations": 95,
+    "committed": 95,
+    "hplc": 12,
+    "final_assays": 12,
+    "quench": 11,
+    "failure_count": 0,
+    "Q": "全部已读/三阶段有效",
+    "prediction_mae": {
+      "conversion": 0.406973738,
+      "yield": 0.296839039,
+      "selectivity": 0.368597517,
+      "risk": 0.136533988
+    }
+  }
+}
