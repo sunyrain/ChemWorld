@@ -554,7 +554,7 @@ def main():
                 ],
                 [
                     "Equilibrium study A: opportunity world 1, Research repeat 1",
-                    "Initial trend revised; component tests; dilute forecast",
+                    "Initial trend revised; same-species command comparison; dilute forecast",
                     "Bounded local relation weighted in unresolved extrapolation",
                 ],
                 [

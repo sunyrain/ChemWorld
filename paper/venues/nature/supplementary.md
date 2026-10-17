@@ -1042,7 +1042,7 @@ The following are checked public quotations, not analyst reconstructions of priv
 | Seed case C: corrected C, 03/A/3 | Rejected seed additions described as a 1 g test | Negative evidence lacks the claimed intervention |
 | Corrected C, 04/A/2 | 430 K test follows claimed 440 K boundary | Earlier cold-target requests were rejected |
 | Corrected C, 01/M/3 | Noise acknowledged; 310 K recipe repeated | Uncertainty awareness and recommendation failure coexist |
-| Equilibrium study A: opportunity world 1, Research repeat 1 | Initial trend revised; component tests; dilute forecast | Bounded local relation weighted in unresolved extrapolation |
+| Equilibrium study A: opportunity world 1, Research repeat 1 | Initial trend revised; same-species command comparison; dilute forecast | Bounded local relation weighted in unresolved extrapolation |
 | Opportunity, world 2, Research repeats 1 and 2 | Plateau research followed by different dilute forecasts | Accurate extrapolation need not directly sample the target region |
 
 The exact opportunity quote is: “The point estimate still favors the experimentally supported fixed acidic background”. The world-1 Research repeat-1 dilute estimate is 0.085 [0.035, 0.350], versus reference mean 0.716032; the corresponding NoResearch estimate is 0.569 [0.040, 0.980]. The researcher acknowledges the untested boundary. This is the new opportunity-comparison case, not the historical case with prediction 0.092 and reference 0.51730. The archive preserves both matched study-A sessions with full notes, operations and assessments. Neither the single trajectory nor its matched outcome establishes a self-confirmation cycle.
