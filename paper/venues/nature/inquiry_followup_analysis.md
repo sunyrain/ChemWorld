@@ -10,7 +10,35 @@ This post hoc analysis uses all thirty matched-world sessions and 1,080 retained
 | Free dissociation | 48/57 | 3 | 10/10 | 0.002945 |
 | Precipitation | 39/39 | 21 | 27/27 | 0.002368 |
 
-The forecasts retain substantial world differences. This does not establish unique mechanism identification or isolate a gain caused by research: the block has no NoResearch arm, and starter observations are close but not identical. Prediction sensitivity and explanation content are separate outcomes. Full contrasts, query actions and original session forecasts are included in the portable archive.
+Magnitude accuracy uses the mean absolute error between forecast and reference B-minus-A differences, including all sixty contrasts for each response. Identical forecasts in the two worlds give a zero contrast, whose error is the mean absolute reference difference. The reduction below is one minus the ratio of aggregate errors; individual queries are never divided by a potentially near-zero reference gap.
+
+| Response | Forecast MAE | Zero-gap MAE | Error reduction | Pairs better |
+| --- | --- | --- | --- | --- |
+| Normalized pH | 0.002256 | 0.026007 | 91.3% | 5/5 |
+| Free dissociation | 0.002945 | 0.007239 | 59.3% | 5/5 |
+| Precipitation | 0.002368 | 0.024840 | 90.5% | 5/5 |
+
+The forecasts reflect both the direction and magnitude of world differences. Each response improves on the zero-gap reference in all five parameter pairs. These results describe three-session mean forecasts in the fixed worlds. The block has no NoResearch arm and supplied starter observations are close but not identical, so the comparison does not isolate research gain or unique mechanism identification. Pair-level values expose variation across the five parameter pairs:
+
+| Response | Pair | Contrasts | Forecast MAE | Zero-gap MAE |
+| --- | --- | --- | --- | --- |
+| Normalized pH | P01 | 12 | 0.002370 | 0.018919 |
+| Normalized pH | P02 | 12 | 0.003559 | 0.022265 |
+| Normalized pH | P03 | 12 | 0.002754 | 0.026278 |
+| Normalized pH | P04 | 12 | 0.001149 | 0.029706 |
+| Normalized pH | P05 | 12 | 0.001447 | 0.032868 |
+| Free dissociation | P01 | 12 | 0.003317 | 0.009372 |
+| Free dissociation | P02 | 12 | 0.004439 | 0.008300 |
+| Free dissociation | P03 | 12 | 0.002977 | 0.007327 |
+| Free dissociation | P04 | 12 | 0.002052 | 0.006170 |
+| Free dissociation | P05 | 12 | 0.001939 | 0.005027 |
+| Precipitation | P01 | 12 | 0.002583 | 0.037827 |
+| Precipitation | P02 | 12 | 0.001966 | 0.031747 |
+| Precipitation | P03 | 12 | 0.002329 | 0.024030 |
+| Precipitation | P04 | 12 | 0.001651 | 0.017830 |
+| Precipitation | P05 | 12 | 0.003314 | 0.012767 |
+
+Full contrasts, pair summaries, query actions and original session forecasts are included in the portable archive.
 
 ### Internal scientific review of seven core histories
 

@@ -422,16 +422,36 @@ def fig4():
     ax.grid(alpha=0.12)
     ax = fig.add_subplot(gs[1, 2])
     ax.axis("off")
-    ax.set_title("e  What these comparisons establish", loc="left", weight="bold")
+    ax.set_title("e  Difference magnitude", loc="left", weight="bold")
+    contrasts = read(EVIDENCE / "matched_world_forecast_contrasts.json")["summary"]
+    magnitude_table = ax.table(
+        cellText=[
+            [
+                label,
+                f"{row['mean_absolute_contrast_error']:.5f}",
+                f"{row['zero_difference_mae']:.5f}",
+            ]
+            for label, row in zip(["pH", "Dissociation", "Precipitation"], contrasts, strict=True)
+        ],
+        colLabels=["Response", "Forecast", "Zero gap"],
+        cellLoc="center",
+        bbox=[0, 0.44, 1, 0.42],
+        colWidths=[0.42, 0.29, 0.29],
+    )
+    magnitude_table.auto_set_font_size(False)
+    magnitude_table.set_fontsize(8)
+    for (row, _), cell in magnitude_table.get_celld().items():
+        cell.set_edgecolor("#ccd6df")
+        if row == 0:
+            cell.set_facecolor("#e9eff5")
+            cell.set_text_props(weight="bold")
+    ax.text(0, 0.96, "Mean absolute contrast error", va="top", fontsize=9)
     ax.text(
         0,
-        0.94,
-        "Physical information\n30/30 studies acquired a separating\nassay in"
-        " ≥2 response channels.\n\nWorld-specific forecasts\nAll 180 "
-        "pair-query-response\ncontrasts are shown above.\n\nLocal "
-        "relationship\nStudy A uses the observed response\nin later "
-        "forecasts; no fitted curve\nis imposed on panel d.\n\nNo "
-        "mechanism-identification rate\nNo NoResearch arm in this block.",
+        0.36,
+        "Lower forecast error in all five\nworld pairs for each response.\n\n"
+        "Zero gap: identical predictions\nfor both worlds.\n\n"
+        "All zero and small gaps retained.",
         va="top",
         fontsize=9,
         linespacing=1.35,

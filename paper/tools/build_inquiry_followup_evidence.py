@@ -92,9 +92,30 @@ def paired_contrasts(binding):
         )
     assert len(contrasts) == 180
     summary = []
+    pair_summary = []
     for response, (label, _) in RESPONSES.items():
         rows = [r for r in contrasts if r["response"] == response]
         large = [r for r in rows if r["reference_gap_at_least_3_assay_sd"]]
+        error = fmean(r["absolute_contrast_error"] for r in rows)
+        zero_error = fmean(abs(r["reference_B_minus_A"]) for r in rows)
+        response_pairs = []
+        for pair in sorted({r["pair"] for r in rows}):
+            selected = [r for r in rows if r["pair"] == pair]
+            pair_error = fmean(r["absolute_contrast_error"] for r in selected)
+            pair_zero = fmean(abs(r["reference_B_minus_A"]) for r in selected)
+            response_pairs.append(
+                {
+                    "pair": pair,
+                    "response": response,
+                    "label": label,
+                    "contrasts": len(selected),
+                    "mean_absolute_contrast_error": pair_error,
+                    "zero_difference_mae": pair_zero,
+                    "mae_reduction_vs_zero": pair_zero - pair_error,
+                    "better_than_zero": pair_error < pair_zero,
+                }
+            )
+        pair_summary.extend(response_pairs)
         summary.append(
             {
                 "response": response,
@@ -105,13 +126,16 @@ def paired_contrasts(binding):
                 "direction_agrees_all": sum(r["direction_agrees"] for r in rows),
                 "large_gap_contrasts": len(large),
                 "direction_agrees_large_gap": sum(r["direction_agrees"] for r in large),
-                "mean_absolute_reference_contrast": fmean(
-                    abs(r["reference_B_minus_A"]) for r in rows
-                ),
-                "mean_absolute_contrast_error": fmean(r["absolute_contrast_error"] for r in rows),
+                "mean_absolute_reference_contrast": zero_error,
+                "mean_absolute_contrast_error": error,
+                "zero_difference_mae": zero_error,
+                "relative_mae_reduction_vs_zero": 1 - error / zero_error if zero_error else None,
+                "pairs_better_than_zero": sum(r["better_than_zero"] for r in response_pairs),
+                "pairs": len(response_pairs),
             }
         )
     write_csv(DEST / "matched_world_forecast_contrasts.csv", contrasts)
+    write_csv(DEST / "matched_world_contrast_pairs.csv", pair_summary)
     dump(
         "matched_world_forecast_contrasts.json",
         {
@@ -130,6 +154,11 @@ def paired_contrasts(binding):
             "physical scale; not a significance test. All 180 contrasts "
             "retained.",
             "summary": summary,
+            "amplitude_definition": "MAE of forecast B-A minus reference B-A over all 60 "
+            "contrasts per response. Identical predictions in both worlds imply zero contrast; "
+            "its MAE is the mean absolute reference contrast. Relative reduction uses the "
+            "ratio of aggregate MAEs, never per-query division by reference gaps.",
+            "pair_summary": pair_summary,
         },
     )
     dump("matched_world_query_actions.json", queries)
@@ -377,12 +406,48 @@ def main():
             ],
         ),
         "",
-        "The forecasts retain substantial world differences. This does not"
-        " establish unique mechanism "
-        "identification or isolate a gain caused by research: the block has no NoResearch arm, and "
-        "starter observations are close but not identical. Prediction sensitivity and explanation "
-        "content are separate outcomes. Full contrasts, query actions and "
-        "original session forecasts "
+        "Magnitude accuracy uses the mean absolute error between forecast and reference "
+        "B-minus-A differences, including all sixty contrasts for each response. Identical "
+        "forecasts in the two worlds give a zero contrast, whose error is the mean absolute "
+        "reference difference. The reduction below is one minus the ratio of aggregate errors; "
+        "individual queries are never divided by a potentially near-zero reference gap.",
+        "",
+        table(
+            ["Response", "Forecast MAE", "Zero-gap MAE", "Error reduction", "Pairs better"],
+            [
+                [
+                    s["label"],
+                    f"{s['mean_absolute_contrast_error']:.6f}",
+                    f"{s['zero_difference_mae']:.6f}",
+                    f"{100 * s['relative_mae_reduction_vs_zero']:.1f}%",
+                    f"{s['pairs_better_than_zero']}/{s['pairs']}",
+                ]
+                for s in summary
+            ],
+        ),
+        "",
+        "The forecasts reflect both the direction and magnitude of world differences. "
+        "Each response improves on the zero-gap reference in all five parameter pairs. "
+        "These results describe three-session mean forecasts in the fixed worlds. "
+        "The block has no NoResearch arm and supplied starter observations are close but not "
+        "identical, so the comparison does not isolate research gain or unique mechanism "
+        "identification. Pair-level values expose variation across the five parameter pairs:",
+        "",
+        table(
+            ["Response", "Pair", "Contrasts", "Forecast MAE", "Zero-gap MAE"],
+            [
+                [
+                    r["label"],
+                    r["pair"],
+                    r["contrasts"],
+                    f"{r['mean_absolute_contrast_error']:.6f}",
+                    f"{r['zero_difference_mae']:.6f}",
+                ]
+                for r in read(DEST / "matched_world_forecast_contrasts.json")["pair_summary"]
+            ],
+        ),
+        "",
+        "Full contrasts, pair summaries, query actions and original session forecasts "
         "are included in the portable archive.",
         "",
         "### Internal scientific review of seven core histories",
