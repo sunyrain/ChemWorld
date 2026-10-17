@@ -62,20 +62,22 @@
 {\sffamily\footnotesize All figures are ImageGen previews with illustrative geometry; exact numerical evidence is retained separately.\par}
 \vspace{8pt}
 
-\textbf{As AI scientists and autonomous laboratories move towards sustained research cycles, machines are evolving from experimental executors into autonomous organizers of scientific inquiry. Yet how scientific understanding forms within autonomous research and guides its continuation remains poorly understood. Here we introduce ChemWorld, programmable chemical worlds governed by thermodynamic, kinetic and coupled physicochemical laws, with independent control of scientific laws and supplied information. Across six chemical systems, repeated investigations, continuous records and controlled comparisons connect research goals and prior knowledge to experimental choices and evolving judgments. Agents turn expectations into tests, revise explanations and establish useful relationships. Predictions in matched worlds also retain differences in their actual chemical responses. However, more effective experimental procedures need not yield more accurate predictions. Crystallization research improves prediction, but agents and a simple mean of the same observations have different advantages across responses. In equilibrium, overall predictive gains coexist with worse judgments under extreme dilution. These findings connect useful knowledge formation to the organization of autonomous inquiry, while showing that evidence acquisition, relationship formation and subsequent application can advance unevenly. ChemWorld brings these processes into controlled empirical study, advancing understanding of how machines generate, revise and use scientific knowledge through autonomous exploration.}
+\textbf{As AI scientists and autonomous laboratories organize sustained investigations, how scientific understanding forms through experiments that machines choose themselves and shapes further inquiry remains poorly understood. Here we introduce ChemWorld, programmable chemical worlds governed by thermodynamic, kinetic and coupled physicochemical laws, combining autonomous experimentation with independent control of world laws and supplied information. Across six chemical systems, repeated investigations, continuous records and controlled comparisons trace how goals and prior knowledge shape exploration and evolving judgments. Agents turn expectations into tests, revise relationships and use developing judgments to guide further exploration. Predictions in matched worlds retain actual chemical response differences. Yet more effective procedures need not yield more accurate predictions. Crystallization research improves prediction, while agents and a simple mean of the same observations have different advantages across responses. In equilibrium, overall predictive gains coexist with worse judgments under prespecified extreme dilution. These findings connect the establishment of useful relationships with uneven subsequent application, revealing multiple paths through which inquiry and understanding develop together. By connecting experimental choices, acquired evidence and evolving judgments within a controlled framework, ChemWorld advances the empirical study of how machines form, revise and use scientific knowledge.}
 
 
 \vspace{8pt}]
 
 
 
-AI scientists and autonomous laboratories are moving from executing prescribed operations towards planning experiments, testing hypotheses and adapting research to results\textsuperscript{1,2}. Robot scientists, automated laboratories and language-model agents have demonstrated materials discovery, reaction optimization and sustained experimental exploration\textsuperscript{3--8}. Yet experimental autonomy leaves open what scientific understanding machines develop through their investigations. Effective procedures and accurate predictions alone cannot show what knowledge was established, what evidence supports it or how it guides further inquiry\textsuperscript{9,10}. The central question is how scientific understanding forms within autonomous research and influences its continuation.
+We learn about the world through experiments, yet must choose each new experiment with an incomplete understanding of it. The world's laws do not depend on the investigator, but what the investigator learns depends partly on how they explore. Existing judgments guide experimental choices; new observations can revise those judgments and redirect subsequent inquiry\textsuperscript{1--3}. As AI scientists and autonomous laboratories take on the planning, execution and adaptation of sustained investigations, machines increasingly organize this process\textsuperscript{4,5}.
 
-Autonomous researchers help produce the evidence from which they form judgments. Research goals and prior knowledge influence which experiments are conducted; these choices determine which phenomena become visible and change sample states and subsequent research opportunities. New observations can support, qualify or challenge existing judgments and redirect attention to unresolved relationships\textsuperscript{11--13}. Scientific understanding thus serves both as an outcome of research and as a basis for organizing its continuation. Understanding this process requires tracing experimental choices, acquired evidence, emerging judgments and their use in further inquiry.
+Robot scientists, automated laboratories and language-model agents have demonstrated hypothesis testing, materials discovery and reaction optimization\textsuperscript{6--11}. These capabilities leave open what scientific understanding develops through such research. A procedure can succeed while its scope remains unresolved; a prediction can be accurate without direct observation of the target conditions. Conversely, a failed expectation can advance understanding through a warranted revision. Final outcomes alone cannot reveal how judgments formed, what supports them or how they guide further inquiry\textsuperscript{12,13}. How does scientific understanding develop through research that machines organize themselves, and how does it shape further exploration?
 
-We introduce ChemWorld, a collection of programmable chemical worlds driven by thermodynamic, kinetic and coupled physicochemical models. Agents autonomously organize experiments and measurements, while an evaluator independently controls world laws and supplied information and inspects executed operations and withheld reference responses. Repeated investigations across six chemical systems combine continuous records and controlled comparisons. We examine how goals and prior knowledge organize exploration, how scientific relationships form and change through experiments, and how they inform subsequent actions and predictions.
+Answering this question requires connecting judgments to the experiments that produced their evidence. We need to trace what researchers expected, which interventions they executed, what they observed and how they used those observations. Experimental choice must remain autonomous, while world laws and supplied information are independently controlled and operations and their consequences can be checked. Linking these records distinguishes proposed explanations, relationships supported by experiments and questions that remain open.
 
-Agents derive testable expectations from observations, conduct new comparisons and revise relationships when results challenge earlier judgments. In matched worlds with different underlying chemistry and similar starting observations, post-research predictions also reflect actual response differences. Yet these advances do not extend uniformly to subsequent judgments. Equilibrium research improves overall prediction while worsening judgments under extreme dilution; in crystallization, agents and a simple mean of the same observations have different advantages across responses. Autonomous research can therefore establish useful relationships while leaving their scope and reliable application unresolved. By linking experimental choices, acquired evidence and evolving judgments, ChemWorld makes the formation, revision and continued influence of scientific understanding traceable and experimentally comparable.
+We introduce ChemWorld, programmable chemical worlds driven by thermodynamic, kinetic and coupled physicochemical models. Agents combine materials, operations and measurements into continuing investigations, with sample states and resource use carrying consequences for subsequent experiments. An evaluator controls world laws and supplied information and inspects executed interventions and withheld reference responses. Across six chemical systems, repeated investigations, continuous records and controlled comparisons examine how goals and prior knowledge organize exploration, how experiments establish and revise scientific relationships, and how those relationships inform subsequent actions and predictions.
+
+Agents derive testable expectations from observations, establish or revise useful relationships and use developing judgments to organize further experiments. Predictions in matched worlds with similar starting observations reflect differences in the underlying chemistry. Yet establishing knowledge does not ensure its reliable application. Equilibrium research improves overall prediction while worsening judgments under extreme dilution; in crystallization, agents and a mean of the same observations have different advantages across responses. These findings show how useful knowledge and limits to its application emerge within continuing investigations, making autonomous inquiry itself an object of controlled empirical study.
 
 \subsection{Making autonomous scientific inquiry experimentally tractable}\label{making-autonomous-scientific-inquiry-experimentally-tractable}
 
@@ -165,13 +167,13 @@ The preceding histories locate progress in establishing relationships, revising 
 
 The crystallization comparison establishes substantial benefits (Fig. 5a). All thirty sessions provide valid forecasts. Relative to no research, world-equal mean absolute error falls from 0.13853 to 0.01661 for purity and from 0.23619 to 0.07641 for size index. Recovery error falls from 0.13532 to 0.11579 and fines error from 0.37683 to 0.30110. For purity, nominal 80\% interval coverage rises from 0.46667 to 0.98333 while width contracts from 0.44744 to 0.09743. Research experience produces more accurate predictions and narrower intervals that cover more reference outcomes.
 
-A second comparison asks what predictions can be obtained from these same research histories (Fig. 5b). For the fifteen Research sessions, a source-observation mean has purity error 0.00450 and size error 0.01786, below the agent's 0.01661 and 0.07641 in all fifteen sessions. The pattern reverses for recovery: the agent's 0.11579 improves on the reference's 0.18828, with an advantage in fourteen sessions. This alternative prediction rule uses only each session's public source observations, receives no target outcomes for fitting and is scored on the same targets. A constant reference captures stable responses effectively, whereas the agent makes better recovery predictions. Research is valuable, and how its observations are used determines further response-specific advantages. The earlier corrected-crystallization cohort provides a separate supporting comparison (Extended Data Fig. 3).
-
 \begin{figure*}[t]
 \centering
 \pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/imagegen-inquiry-focus-20261017/fig05_opportunity-v2.png}}
 \caption{Figure 5 \textbar{} Acquiring evidence, using observations and expressing uncertainty. a, Crystallization Research and NoResearch point errors, fifteen valid forecasts per arm. b, Research forecasts compared with a constant reference calculated from the same fifteen source histories and scored on the same targets; this is an alternative prediction rule, not a third experimental arm. c, Fines scores for nominal 80\% prediction intervals (lower is better). d, The separate retained equilibrium comparison, overall and in the prespecified extreme-dilution region: fourteen Research and fifteen NoResearch forecasts. World three has two available Research repetitions; missing outcomes are not zero. Summary labels follow retained results. ImageGen preview; generated session dots and world-connection lines are illustrative, not exact numerical marks, within-agent learning or confidence intervals. Exact values remain in Supplementary Information.}
 \end{figure*}
+
+A second comparison asks what predictions can be obtained from these same research histories (Fig. 5b). For the fifteen Research sessions, a source-observation mean has purity error 0.00450 and size error 0.01786, below the agent's 0.01661 and 0.07641 in all fifteen sessions. The pattern reverses for recovery: the agent's 0.11579 improves on the reference's 0.18828, with an advantage in fourteen sessions. This alternative prediction rule uses only each session's public source observations, receives no target outcomes for fitting and is scored on the same targets. A constant reference captures stable responses effectively, whereas the agent makes better recovery predictions. Research is valuable, and how its observations are used determines further response-specific advantages. The earlier corrected-crystallization cohort provides a separate supporting comparison (Extended Data Fig. 3).
 
 The same cohort distinguishes better point prediction from better uncertainty estimates (Fig. 5c). For fines, coverage falls from 0.42778 to 0.35556 as interval width contracts from 0.68500 to 0.38450. The interval score, which penalizes width and missed outcomes, worsens from 1.4794 to 1.8047 in the world-equal mean, with worsening in every world. Research reduces average fines prediction error, but the resulting intervals express more certainty than their performance warrants. The benefit and the limitation concern the same response in the same comparison.
 
@@ -188,7 +190,7 @@ In autonomous science, agents interpret experimental results and, through their 
 
 These investigations reveal several substantive forms of progress in understanding. Researchers formulate prospective expectations from observations and obtain support through new experiments. They actively test the boundaries of existing relationships and revise overly categorical judgments into more accurate empirical statements. They also establish local knowledge that guides further inference while microscopic mechanisms remain unresolved. Post-research predictions in matched chemical worlds preserve differences in their actual responses, showing that the judgments formed can reflect different properties of the worlds explored. Discovering a phenomenon, establishing a useful relationship, revising an expectation and making a supported inference thus constitute distinct scientific advances, each leaving different questions open.
 
-Forming useful knowledge does not ensure its reliable application in every subsequent judgment. Controlled comparisons show that research can substantially improve predictive accuracy, but its benefits depend on the response and conditions examined. In crystallization, the same experimental history supports recovery predictions that outperform a simple observation mean, yet predictions of more stable responses fall short of that reference. In equilibrium, an overall predictive gain coexists with worse judgment in a particular region; better point predictions also need not bring more reliable uncertainty estimates\textsuperscript{10,22,23}. Establishing useful relationships, judging their scope and continuing to ground subsequent judgments in evidence can therefore progress to different degrees, or even in different directions. An investigation can establish reliable local knowledge while departing from its evidential support in later generalization and application.
+Forming useful knowledge does not ensure its reliable application in every subsequent judgment. Controlled comparisons show that research can substantially improve predictive accuracy, but its benefits depend on the response and conditions examined. In crystallization, the same experimental history supports recovery predictions that outperform a simple observation mean, yet predictions of more stable responses fall short of that reference. In equilibrium, an overall predictive gain coexists with worse judgment in a particular region; better point predictions also need not bring more reliable uncertainty estimates\textsuperscript{13,22,23}. Establishing useful relationships, judging their scope and continuing to ground subsequent judgments in evidence can therefore progress to different degrees, or even in different directions. An investigation can establish reliable local knowledge while departing from its evidential support in later generalization and application.
 
 Controlled comparisons and continuous records together connect knowledge formation to the conditions of research. The comparisons examine the consequences of research goals, supplied information or access to experimentation; the records trace when judgments are proposed, which observations lead to revisions and how those judgments enter subsequent actions. Matched worlds allow the information actually acquired to be considered alongside final predictions, testing whether scientific judgments reflect differences in world laws. The repeated matrices concern one model configuration in fixed programmable worlds, and the process analysis draws on public judgments and executed operations. Extending this work to other models and physical laboratories, and intervening on candidate explanations during ongoing inquiry, would test the generality of these processes and the influence of particular judgments on subsequent research choices.
 
@@ -205,57 +207,57 @@ This work was supported by the Shenzhen Science and Technology Program (AI202600
 
 \protect\phantomsection\label{refs}
 \begin{CSLReferences}{0}{1}
-\hypertarget{ref-tom2024selfdriving}{}
-\CSLLeftMargin{1. }%
-\CSLRightInline{G. Tom et al. {Self-Driving Laboratories for Chemistry and Materials Science}. \emph{Chemical Reviews} \textbf{124} 9633--9732 (2024). https://doi.org/\href{https://doi.org/10.1021/acs.chemrev.4c00055}{10.1021/acs.chemrev.4c00055}.}
-
-\hypertarget{ref-boiko2023autonomous}{}
-\CSLLeftMargin{2. }%
-\CSLRightInline{D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. \emph{Nature} \textbf{624} 570--578 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06792-0}{10.1038/s41586-023-06792-0}.}
-
-\hypertarget{ref-king2009automation}{}
-\CSLLeftMargin{3. }%
-\CSLRightInline{R. D. King et al. {The Automation of Science}. \emph{Science} \textbf{324} 85--89 (2009). https://doi.org/\href{https://doi.org/10.1126/science.1165620}{10.1126/science.1165620}.}
-
-\hypertarget{ref-burger2020mobile}{}
-\CSLLeftMargin{4. }%
-\CSLRightInline{B. Burger et al. {A mobile robotic chemist}. \emph{Nature} \textbf{583} 237--241 (2020). https://doi.org/\href{https://doi.org/10.1038/s41586-020-2442-2}{10.1038/s41586-020-2442-2}.}
-
-\hypertarget{ref-macleod2020selfdriving}{}
-\CSLLeftMargin{5. }%
-\CSLRightInline{B. P. MacLeod et al. {Self-driving laboratory for accelerated discovery of thin-film materials}. \emph{Science Advances} \textbf{6} eaaz8867 (2020). https://doi.org/\href{https://doi.org/10.1126/sciadv.aaz8867}{10.1126/sciadv.aaz8867}.}
-
-\hypertarget{ref-szymanski2023alab}{}
-\CSLLeftMargin{6. }%
-\CSLRightInline{{N. J. Szymanski et al.} An autonomous laboratory for the accelerated synthesis of inorganic materials. \emph{Nature} \textbf{624} 86--91 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06734-w}{10.1038/s41586-023-06734-w}.}
-
-\hypertarget{ref-bran2024augmenting}{}
-\CSLLeftMargin{7. }%
-\CSLRightInline{A. M. Bran et al. Augmenting large language models with chemistry tools. \emph{Nature Machine Intelligence} \textbf{6} 525--535 (2024). https://doi.org/\href{https://doi.org/10.1038/s42256-024-00832-8}{10.1038/s42256-024-00832-8}.}
-
-\hypertarget{ref-dai2024mobile}{}
-\CSLLeftMargin{8. }%
-\CSLRightInline{T. Dai et al. {Autonomous mobile robots for exploratory synthetic chemistry}. \emph{Nature} \textbf{635} 890--897 (2024). https://doi.org/\href{https://doi.org/10.1038/s41586-024-08173-7}{10.1038/s41586-024-08173-7}.}
-
-\hypertarget{ref-elmachtoub2022spo}{}
-\CSLLeftMargin{9. }%
-\CSLRightInline{A. N. Elmachtoub and P. Grigas. Smart {Predict, then Optimize}. \emph{Management Science} \textbf{68} 9--26 (2022). https://doi.org/\href{https://doi.org/10.1287/mnsc.2020.3922}{10.1287/mnsc.2020.3922}.}
-
-\hypertarget{ref-shmueli2010explain}{}
-\CSLLeftMargin{10. }%
-\CSLRightInline{G. Shmueli. {To Explain or to Predict?} \emph{Statistical Science} \textbf{25} 289--310 (2010). https://doi.org/\href{https://doi.org/10.1214/10-sts330}{10.1214/10-sts330}.}
-
 \hypertarget{ref-platt1964inference}{}
-\CSLLeftMargin{11. }%
+\CSLLeftMargin{1. }%
 \CSLRightInline{J. R. Platt. {Strong Inference}. \emph{Science} \textbf{146} 347--353 (1964). https://doi.org/\href{https://doi.org/10.1126/science.146.3642.347}{10.1126/science.146.3642.347}.}
 
 \hypertarget{ref-lindley1956information}{}
-\CSLLeftMargin{12. }%
+\CSLLeftMargin{2. }%
 \CSLRightInline{D. V. Lindley. {On a Measure of the Information Provided by an Experiment}. \emph{The Annals of Mathematical Statistics} \textbf{27} 986--1005 (1956). https://doi.org/\href{https://doi.org/10.1214/aoms/1177728069}{10.1214/aoms/1177728069}.}
 
 \hypertarget{ref-chaloner1995design}{}
-\CSLLeftMargin{13. }%
+\CSLLeftMargin{3. }%
 \CSLRightInline{K. Chaloner and I. Verdinelli. {Bayesian Experimental Design: A Review}. \emph{Statistical Science} \textbf{10} 273--304 (1995). https://doi.org/\href{https://doi.org/10.1214/ss/1177009939}{10.1214/ss/1177009939}.}
+
+\hypertarget{ref-tom2024selfdriving}{}
+\CSLLeftMargin{4. }%
+\CSLRightInline{G. Tom et al. {Self-Driving Laboratories for Chemistry and Materials Science}. \emph{Chemical Reviews} \textbf{124} 9633--9732 (2024). https://doi.org/\href{https://doi.org/10.1021/acs.chemrev.4c00055}{10.1021/acs.chemrev.4c00055}.}
+
+\hypertarget{ref-boiko2023autonomous}{}
+\CSLLeftMargin{5. }%
+\CSLRightInline{D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. \emph{Nature} \textbf{624} 570--578 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06792-0}{10.1038/s41586-023-06792-0}.}
+
+\hypertarget{ref-king2009automation}{}
+\CSLLeftMargin{6. }%
+\CSLRightInline{R. D. King et al. {The Automation of Science}. \emph{Science} \textbf{324} 85--89 (2009). https://doi.org/\href{https://doi.org/10.1126/science.1165620}{10.1126/science.1165620}.}
+
+\hypertarget{ref-burger2020mobile}{}
+\CSLLeftMargin{7. }%
+\CSLRightInline{B. Burger et al. {A mobile robotic chemist}. \emph{Nature} \textbf{583} 237--241 (2020). https://doi.org/\href{https://doi.org/10.1038/s41586-020-2442-2}{10.1038/s41586-020-2442-2}.}
+
+\hypertarget{ref-macleod2020selfdriving}{}
+\CSLLeftMargin{8. }%
+\CSLRightInline{B. P. MacLeod et al. {Self-driving laboratory for accelerated discovery of thin-film materials}. \emph{Science Advances} \textbf{6} eaaz8867 (2020). https://doi.org/\href{https://doi.org/10.1126/sciadv.aaz8867}{10.1126/sciadv.aaz8867}.}
+
+\hypertarget{ref-szymanski2023alab}{}
+\CSLLeftMargin{9. }%
+\CSLRightInline{{N. J. Szymanski et al.} An autonomous laboratory for the accelerated synthesis of inorganic materials. \emph{Nature} \textbf{624} 86--91 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06734-w}{10.1038/s41586-023-06734-w}.}
+
+\hypertarget{ref-bran2024augmenting}{}
+\CSLLeftMargin{10. }%
+\CSLRightInline{A. M. Bran et al. Augmenting large language models with chemistry tools. \emph{Nature Machine Intelligence} \textbf{6} 525--535 (2024). https://doi.org/\href{https://doi.org/10.1038/s42256-024-00832-8}{10.1038/s42256-024-00832-8}.}
+
+\hypertarget{ref-dai2024mobile}{}
+\CSLLeftMargin{11. }%
+\CSLRightInline{T. Dai et al. {Autonomous mobile robots for exploratory synthetic chemistry}. \emph{Nature} \textbf{635} 890--897 (2024). https://doi.org/\href{https://doi.org/10.1038/s41586-024-08173-7}{10.1038/s41586-024-08173-7}.}
+
+\hypertarget{ref-elmachtoub2022spo}{}
+\CSLLeftMargin{12. }%
+\CSLRightInline{A. N. Elmachtoub and P. Grigas. Smart {Predict, then Optimize}. \emph{Management Science} \textbf{68} 9--26 (2022). https://doi.org/\href{https://doi.org/10.1287/mnsc.2020.3922}{10.1287/mnsc.2020.3922}.}
+
+\hypertarget{ref-shmueli2010explain}{}
+\CSLLeftMargin{13. }%
+\CSLRightInline{G. Shmueli. {To Explain or to Predict?} \emph{Statistical Science} \textbf{25} 289--310 (2010). https://doi.org/\href{https://doi.org/10.1214/10-sts330}{10.1214/10-sts330}.}
 
 \hypertarget{ref-mirza2025chembench}{}
 \CSLLeftMargin{14. }%

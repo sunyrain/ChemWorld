@@ -66,20 +66,22 @@
 {\sffamily\footnotesize 全部插图为ImageGen预览，点位与几何仅作示意；精确数值见补充材料。\par}
 \vspace{8pt}
 
-\textbf{随着AI Scientist与自主实验室迈向持续运行的科研闭环，机器正从实验执行者发展为自主组织科学探索的研究主体。然而，科学认识如何在自主研究中形成，并引导研究的继续展开，仍缺乏系统理解。我们提出ChemWorld，一组由热力学、动力学及耦合物理化学规律驱动的可编程化学世界，允许独立控制科学规律与信息供给。通过六个化学体系的重复研究、连续记录与受控比较，我们连接研究目标、已有知识、实验选择与不断发展的科学判断。智能体能够将预期转化为实际检验、修订解释并建立有用的关系；匹配世界中的预测也保留了实际化学响应的差异。然而，更有效的实验方案未必带来更准确的预测。结晶研究改善了预测，但智能体与同一批观察的简单均值在不同响应上各有优势；平衡研究的整体预测收益则与极稀条件下的判断恶化并存。这些发现将有用认识的形成与自主探索的组织联系起来，同时表明证据获取、关系形成与后续应用可以取得不同程度的进展。ChemWorld将这些过程纳入受控实证研究，推进了对机器如何通过自主探索产生、修订和运用科学知识的理解。}
+\textbf{随着AI Scientist与自主实验室开始组织持续研究，科学认识如何从机器自己选择的实验中形成，并进一步塑造探索，仍缺乏系统的实证理解。我们提出ChemWorld，一组由热力学、动力学及耦合物理化学规律驱动的可编程化学世界，将自主实验与底层规律、信息条件的独立控制相结合。通过六个化学体系的重复研究、连续记录与受控比较，我们追踪研究目标与已有知识如何塑造探索及不断发展的判断。智能体能够将预期转化为检验、修订科学关系，并依据发展中的判断组织进一步探索；匹配世界中的预测也保留了实际化学响应的差异。然而，更有效的实验方案未必带来更准确的预测。结晶研究改善了预测，但智能体与同一批观察的简单均值在不同响应上各有优势；平衡研究的整体预测收益则与预先指定的极稀条件下的判断恶化并存。这些发现将有用科学关系的建立与后续应用的分化联系起来，揭示了探索与认识共同发展的多种路径。ChemWorld将实验选择、所获证据与判断演化纳入同一受控框架，推进了对机器如何形成、修订和运用科学知识的实证研究。}
 
 
 \vspace{8pt}]
 
 
 
-AI Scientist与自主实验室正从执行既定操作，发展为能够自主规划实验、检验假说并根据结果调整研究的科学系统\textsuperscript{1,2}。机器人科学家、自动化实验室和语言模型智能体，已经展示了材料发现、反应优化与持续实验探索等能力\textsuperscript{3--8}。然而，能够自主开展实验，并不意味着我们已经理解机器从实验中形成了什么科学认识。有效方案与准确预测，不能单独说明研究建立了哪些认识、这些认识得到什么证据支持，以及它们如何指导进一步探究\textsuperscript{9,10}。核心问题因此是：科学认识如何在自主研究中形成，又如何影响后续探索？
+我们依靠实验认识世界，却必须凭借尚不完整的认识，决定下一场实验。世界的规律不会因研究者而改变，但研究者能够认识世界的哪些方面，也取决于如何探索。已有判断引导实验选择，新观察又可能修订这些判断，并改变后续研究方向\textsuperscript{1--3}。随着AI Scientist与自主实验室开始承担持续研究的规划、执行和调整，这一认识过程也日益由机器自主组织\textsuperscript{4,5}。
 
-自主科研的特殊性在于，研究者通过选择实验参与决定自己能够获得什么证据，并据此形成判断。研究目标和已有知识影响哪些实验被开展，实验选择决定哪些现象变得可见，并改变样品状态与后续研究机会。新的观察又可能支持、限定或挑战已有判断，使尚未解决的关系成为进一步研究的问题\textsuperscript{11--13}。科学认识因此既是自主研究的产物，也能够成为进一步组织研究的依据。理解这一过程，需要追踪实验选择、获得的证据、形成的判断及其在后续探索中的运用。
+机器人科学家、自动化实验室和语言模型智能体，已经展示了假说检验、材料发现和反应优化等能力\textsuperscript{6--11}。这些实验能力如何转化为科学认识，仍有待理解。一个方案可以取得良好结果，而其适用范围仍未厘清；准确预测也可以来自对尚未直接观察条件的推断。反之，未实现的预期也可能通过有依据的修订推进认识。最终结果无法单独揭示判断如何形成、获得了什么支持，以及怎样指导后续探究\textsuperscript{12,13}。当机器自主组织研究时，科学认识如何在探索中形成与发展，又如何反过来塑造进一步探索？
 
-为此，我们提出ChemWorld，一组由热力学、动力学及耦合物理化学模型驱动的可编程化学世界。智能体自主组织实验与测量，评价者则独立控制底层规律与信息供给，并检查实际执行的操作及未公开的参考响应。跨六个化学体系的重复研究，将连续过程记录与受控比较相结合。我们考察研究目标与已有知识如何组织探索，科学关系如何在实验中形成与修订，以及这些认识如何进入后续行动和预测。
+回答这一问题，需要将科学判断与产生其证据的实验联系起来：研究者当时提出了什么预期，实际执行了哪些干预，观察到了什么，又如何使用这些观察。这要求在保留自主实验选择的同时，独立控制世界规律与信息条件，并核查操作及其后果。将这些记录连接起来，才能区分研究者提出的解释、实验已经支持的关系，以及仍然有待检验的问题。
 
-研究显示，智能体能够依据观察提出可检验的预期、开展新的比较，并在结果不支持原有判断时修订科学关系。在底层化学不同、起始观察接近的匹配世界中，研究后的预测也反映了实际响应差异。然而，这些进展并不会均匀延伸到后续判断。平衡研究改善了整体预测，却使极稀条件下的判断变差；在结晶研究中，智能体与同一批观察的简单均值，在不同响应的预测上各有优势。自主研究因而能够建立有用的关系，同时留下其适用范围与可靠应用的未决问题。通过连接实验选择、实际获得的证据与不断发展的判断，ChemWorld使科学认识如何形成、修订并继续影响探索，能够得到连续追踪与受控比较。
+为此，我们提出ChemWorld，一组由热力学、动力学及耦合物理化学模型驱动的可编程化学世界。智能体将材料、操作与测量组织为持续研究，样品状态与资源消耗使每次实验的选择影响后续研究机会。评价者控制底层规律与信息供给，核查实际干预及未向研究者公开的参考响应。通过六个化学体系的重复研究、连续记录与受控比较，我们考察研究目标与已有知识如何组织探索，科学关系如何在实验中建立与修订，以及这些关系如何进入后续行动和预测。
+
+研究显示，智能体能够依据观察提出可检验的预期，建立或修订有用的科学关系，并让发展中的判断参与后续实验的组织。在起始观察接近的匹配世界中，研究后的预测也反映了底层化学的实际差异。然而，认识的建立并不保证其后续应用同样可靠。平衡研究改善了整体预测，却使极稀条件下的判断变差；在结晶研究中，智能体与同一批观察的简单均值在不同响应上各有优势。这些发现揭示了有用认识及其应用局限如何在持续研究中共同出现，使自主科研本身成为能够开展受控实证研究的科学对象。
 
 \subsection{使自主科学探索成为实验研究对象}\label{ux4f7fux81eaux4e3bux79d1ux5b66ux63a2ux7d22ux6210ux4e3aux5b9eux9a8cux7814ux7a76ux5bf9ux8c61}
 
@@ -169,13 +171,13 @@ Opaque提供任务与操作合同，不附加实例资料；Aligned提供正确�
 
 结晶比较确立了明显的研究收益（图5a）。三十场均有有效预测。相较无研究，世界等权MAE在纯度上从0.13853降至0.01661，在粒径指数上从0.23619降至0.07641；回收误差从0.13532降至0.11579，细粉误差从0.37683降至0.30110。纯度的名义80\%区间覆盖从0.46667升至0.98333，宽度从0.44744缩至0.09743。研究经历带来更准确的预测，也形成了覆盖更多参照结果的更窄区间。
 
-第二层比较考察同一批研究历史还能够支持怎样的预测（图5b）。十五场Research会话中，源观测均值参考在纯度、粒径上的误差为0.00450、0.01786，均低于智能体的0.01661、0.07641，且两项均见于全部十五场。回收的方向相反：智能体0.11579优于参考0.18828，十五场中十四场更好。这一替代预测规则只使用本场公开源观测，拟合时不接收目标真值，并在相同目标上评分。常数参考有效捕捉了稳定响应，智能体则作出了更好的回收预测。研究具有价值，而如何使用这些观察又带来随响应变化的优势。较早修正版结晶队列提供了独立的支持性比较（扩展数据图3）。
-
 \begin{figure*}[t]
 \centering
 \pandocbounded{\includegraphics[width=\linewidth,height=.68\textheight,keepaspectratio]{../figures/imagegen-inquiry-focus-20261017/fig05_opportunity-v2.png}}
 \caption{图5 \textbar{} 获取证据、使用观察与表达不确定性。a，结晶Research与NoResearch点误差，每组十五份有效预测。b，Research预测与由同一十五场源历史计算、在相同目标上评分的常数参考比较；这是另一种预测规则，不是第三个实验组。c，细粉名义80\%预测区间评分，越低越好。d，独立保留的平衡机会比较，分别为全部查询与事前指定极稀区域；Research十四份、NoResearch十五份，第三世界Research有两次可用重复，缺失值不记为零。汇总数值标签依据保留结果。ImageGen预览，生成的会话点与世界连线仅作示意，不表示精确数值、同一智能体的学习过程或置信区间；精确数值见补充材料。}
 \end{figure*}
+
+第二层比较考察同一批研究历史还能够支持怎样的预测（图5b）。十五场Research会话中，源观测均值参考在纯度、粒径上的误差为0.00450、0.01786，均低于智能体的0.01661、0.07641，且两项均见于全部十五场。回收的方向相反：智能体0.11579优于参考0.18828，十五场中十四场更好。这一替代预测规则只使用本场公开源观测，拟合时不接收目标真值，并在相同目标上评分。常数参考有效捕捉了稳定响应，智能体则作出了更好的回收预测。研究具有价值，而如何使用这些观察又带来随响应变化的优势。较早修正版结晶队列提供了独立的支持性比较（扩展数据图3）。
 
 同一队列也区分了更好的点预测与更好的不确定性估计（图5c）。细粉区间宽度从0.68500缩至0.38450，覆盖却从0.42778降至0.35556。兼顾宽度与漏覆盖惩罚的区间评分，世界等权均值从1.4794恶化至1.8047，全部五个世界均恶化。研究降低了细粉的平均点预测误差，但形成的区间表现出超出其实际表现所支持的确定性。收益与局限属于同一比较中的同一响应。
 
@@ -192,7 +194,7 @@ Opaque提供任务与操作合同，不附加实例资料；Aligned提供正确�
 
 这些研究展示了多种具有实际内容的认识进展。研究者能够从观察中形成前瞻性预期，并通过新的实验获得支持；能够主动检验原有关系的边界，将过于绝对的判断修订为更准确的经验关系；也能够在微观机制尚未解决时建立指导后续推断的局部认识。匹配化学世界中的研究后预测进一步保留了不同世界的实际响应差异，表明研究者形成的判断可以反映其所探索世界的不同性质。发现新现象、建立有效关系、修订原有预期和作出有根据的推断，因而构成不同形式的科学进展，也各自留下不同的未决问题。
 
-形成有用认识，并不意味着这些认识能够在所有后续判断中得到可靠应用。受控比较表明，研究可以大幅提高预测准确性，但其收益依赖所考察的响应和条件。在结晶研究中，同一实验历史可以支持优于简单观测均值的回收率预测，也可以在较稳定的响应上不及这一参照。平衡研究则表明，整体预测收益可以与特定区域的判断恶化并存；更好的点预测也不必然伴随更可靠的不确定性表达\textsuperscript{10,22,23}。这些结果表明，建立有用关系、判断其适用范围，以及在后续研究中持续依据证据作出判断，可以取得不同程度、甚至不同方向的进展。一项研究能够建立可靠的局部认识，同时在随后的概括和应用中出现偏离。
+形成有用认识，并不意味着这些认识能够在所有后续判断中得到可靠应用。受控比较表明，研究可以大幅提高预测准确性，但其收益依赖所考察的响应和条件。在结晶研究中，同一实验历史可以支持优于简单观测均值的回收率预测，也可以在较稳定的响应上不及这一参照。平衡研究则表明，整体预测收益可以与特定区域的判断恶化并存；更好的点预测也不必然伴随更可靠的不确定性表达\textsuperscript{13,22,23}。这些结果表明，建立有用关系、判断其适用范围，以及在后续研究中持续依据证据作出判断，可以取得不同程度、甚至不同方向的进展。一项研究能够建立可靠的局部认识，同时在随后的概括和应用中出现偏离。
 
 受控比较与连续记录共同连接了认识的形成及其研究条件。前者检验研究目标、信息供给或实验机会带来的后果，后者追踪判断何时提出、依据哪些观察修订，以及如何进入后续行动。匹配世界则允许对照实际获得的信息与最终预测，检查科学判断是否反映世界规律的差异。当前重复矩阵集中于固定可编程世界中的一种模型配置，过程分析依据公开判断和实际操作。将这一研究扩展到其他模型与真实实验室，并在持续探索中干预候选解释，可以进一步检验这些过程的普遍性，以及具体认识对后续研究选择的作用。
 
@@ -205,57 +207,57 @@ ChemWorld将研究者如何获得证据、实验实际上建立了什么认识�
 
 \protect\phantomsection\label{refs}
 \begin{CSLReferences}{0}{1}
-\hypertarget{ref-tom2024selfdriving}{}
-\CSLLeftMargin{1. }%
-\CSLRightInline{G. Tom et al. {Self-Driving Laboratories for Chemistry and Materials Science}. \emph{Chemical Reviews} \textbf{124} 9633--9732 (2024). https://doi.org/\href{https://doi.org/10.1021/acs.chemrev.4c00055}{10.1021/acs.chemrev.4c00055}.}
-
-\hypertarget{ref-boiko2023autonomous}{}
-\CSLLeftMargin{2. }%
-\CSLRightInline{D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. \emph{Nature} \textbf{624} 570--578 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06792-0}{10.1038/s41586-023-06792-0}.}
-
-\hypertarget{ref-king2009automation}{}
-\CSLLeftMargin{3. }%
-\CSLRightInline{R. D. King et al. {The Automation of Science}. \emph{Science} \textbf{324} 85--89 (2009). https://doi.org/\href{https://doi.org/10.1126/science.1165620}{10.1126/science.1165620}.}
-
-\hypertarget{ref-burger2020mobile}{}
-\CSLLeftMargin{4. }%
-\CSLRightInline{B. Burger et al. {A mobile robotic chemist}. \emph{Nature} \textbf{583} 237--241 (2020). https://doi.org/\href{https://doi.org/10.1038/s41586-020-2442-2}{10.1038/s41586-020-2442-2}.}
-
-\hypertarget{ref-macleod2020selfdriving}{}
-\CSLLeftMargin{5. }%
-\CSLRightInline{B. P. MacLeod et al. {Self-driving laboratory for accelerated discovery of thin-film materials}. \emph{Science Advances} \textbf{6} eaaz8867 (2020). https://doi.org/\href{https://doi.org/10.1126/sciadv.aaz8867}{10.1126/sciadv.aaz8867}.}
-
-\hypertarget{ref-szymanski2023alab}{}
-\CSLLeftMargin{6. }%
-\CSLRightInline{{N. J. Szymanski et al.} An autonomous laboratory for the accelerated synthesis of inorganic materials. \emph{Nature} \textbf{624} 86--91 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06734-w}{10.1038/s41586-023-06734-w}.}
-
-\hypertarget{ref-bran2024augmenting}{}
-\CSLLeftMargin{7. }%
-\CSLRightInline{A. M. Bran et al. Augmenting large language models with chemistry tools. \emph{Nature Machine Intelligence} \textbf{6} 525--535 (2024). https://doi.org/\href{https://doi.org/10.1038/s42256-024-00832-8}{10.1038/s42256-024-00832-8}.}
-
-\hypertarget{ref-dai2024mobile}{}
-\CSLLeftMargin{8. }%
-\CSLRightInline{T. Dai et al. {Autonomous mobile robots for exploratory synthetic chemistry}. \emph{Nature} \textbf{635} 890--897 (2024). https://doi.org/\href{https://doi.org/10.1038/s41586-024-08173-7}{10.1038/s41586-024-08173-7}.}
-
-\hypertarget{ref-elmachtoub2022spo}{}
-\CSLLeftMargin{9. }%
-\CSLRightInline{A. N. Elmachtoub and P. Grigas. Smart {Predict, then Optimize}. \emph{Management Science} \textbf{68} 9--26 (2022). https://doi.org/\href{https://doi.org/10.1287/mnsc.2020.3922}{10.1287/mnsc.2020.3922}.}
-
-\hypertarget{ref-shmueli2010explain}{}
-\CSLLeftMargin{10. }%
-\CSLRightInline{G. Shmueli. {To Explain or to Predict?} \emph{Statistical Science} \textbf{25} 289--310 (2010). https://doi.org/\href{https://doi.org/10.1214/10-sts330}{10.1214/10-sts330}.}
-
 \hypertarget{ref-platt1964inference}{}
-\CSLLeftMargin{11. }%
+\CSLLeftMargin{1. }%
 \CSLRightInline{J. R. Platt. {Strong Inference}. \emph{Science} \textbf{146} 347--353 (1964). https://doi.org/\href{https://doi.org/10.1126/science.146.3642.347}{10.1126/science.146.3642.347}.}
 
 \hypertarget{ref-lindley1956information}{}
-\CSLLeftMargin{12. }%
+\CSLLeftMargin{2. }%
 \CSLRightInline{D. V. Lindley. {On a Measure of the Information Provided by an Experiment}. \emph{The Annals of Mathematical Statistics} \textbf{27} 986--1005 (1956). https://doi.org/\href{https://doi.org/10.1214/aoms/1177728069}{10.1214/aoms/1177728069}.}
 
 \hypertarget{ref-chaloner1995design}{}
-\CSLLeftMargin{13. }%
+\CSLLeftMargin{3. }%
 \CSLRightInline{K. Chaloner and I. Verdinelli. {Bayesian Experimental Design: A Review}. \emph{Statistical Science} \textbf{10} 273--304 (1995). https://doi.org/\href{https://doi.org/10.1214/ss/1177009939}{10.1214/ss/1177009939}.}
+
+\hypertarget{ref-tom2024selfdriving}{}
+\CSLLeftMargin{4. }%
+\CSLRightInline{G. Tom et al. {Self-Driving Laboratories for Chemistry and Materials Science}. \emph{Chemical Reviews} \textbf{124} 9633--9732 (2024). https://doi.org/\href{https://doi.org/10.1021/acs.chemrev.4c00055}{10.1021/acs.chemrev.4c00055}.}
+
+\hypertarget{ref-boiko2023autonomous}{}
+\CSLLeftMargin{5. }%
+\CSLRightInline{D. A. Boiko, R. MacKnight, B. Kline, and G. Gomes. Autonomous chemical research with large language models. \emph{Nature} \textbf{624} 570--578 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06792-0}{10.1038/s41586-023-06792-0}.}
+
+\hypertarget{ref-king2009automation}{}
+\CSLLeftMargin{6. }%
+\CSLRightInline{R. D. King et al. {The Automation of Science}. \emph{Science} \textbf{324} 85--89 (2009). https://doi.org/\href{https://doi.org/10.1126/science.1165620}{10.1126/science.1165620}.}
+
+\hypertarget{ref-burger2020mobile}{}
+\CSLLeftMargin{7. }%
+\CSLRightInline{B. Burger et al. {A mobile robotic chemist}. \emph{Nature} \textbf{583} 237--241 (2020). https://doi.org/\href{https://doi.org/10.1038/s41586-020-2442-2}{10.1038/s41586-020-2442-2}.}
+
+\hypertarget{ref-macleod2020selfdriving}{}
+\CSLLeftMargin{8. }%
+\CSLRightInline{B. P. MacLeod et al. {Self-driving laboratory for accelerated discovery of thin-film materials}. \emph{Science Advances} \textbf{6} eaaz8867 (2020). https://doi.org/\href{https://doi.org/10.1126/sciadv.aaz8867}{10.1126/sciadv.aaz8867}.}
+
+\hypertarget{ref-szymanski2023alab}{}
+\CSLLeftMargin{9. }%
+\CSLRightInline{{N. J. Szymanski et al.} An autonomous laboratory for the accelerated synthesis of inorganic materials. \emph{Nature} \textbf{624} 86--91 (2023). https://doi.org/\href{https://doi.org/10.1038/s41586-023-06734-w}{10.1038/s41586-023-06734-w}.}
+
+\hypertarget{ref-bran2024augmenting}{}
+\CSLLeftMargin{10. }%
+\CSLRightInline{A. M. Bran et al. Augmenting large language models with chemistry tools. \emph{Nature Machine Intelligence} \textbf{6} 525--535 (2024). https://doi.org/\href{https://doi.org/10.1038/s42256-024-00832-8}{10.1038/s42256-024-00832-8}.}
+
+\hypertarget{ref-dai2024mobile}{}
+\CSLLeftMargin{11. }%
+\CSLRightInline{T. Dai et al. {Autonomous mobile robots for exploratory synthetic chemistry}. \emph{Nature} \textbf{635} 890--897 (2024). https://doi.org/\href{https://doi.org/10.1038/s41586-024-08173-7}{10.1038/s41586-024-08173-7}.}
+
+\hypertarget{ref-elmachtoub2022spo}{}
+\CSLLeftMargin{12. }%
+\CSLRightInline{A. N. Elmachtoub and P. Grigas. Smart {Predict, then Optimize}. \emph{Management Science} \textbf{68} 9--26 (2022). https://doi.org/\href{https://doi.org/10.1287/mnsc.2020.3922}{10.1287/mnsc.2020.3922}.}
+
+\hypertarget{ref-shmueli2010explain}{}
+\CSLLeftMargin{13. }%
+\CSLRightInline{G. Shmueli. {To Explain or to Predict?} \emph{Statistical Science} \textbf{25} 289--310 (2010). https://doi.org/\href{https://doi.org/10.1214/10-sts330}{10.1214/10-sts330}.}
 
 \hypertarget{ref-mirza2025chembench}{}
 \CSLLeftMargin{14. }%
