@@ -105,7 +105,12 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         funding_heading = "\n## " + ("资助" if chinese else "Funding") + "\n"
         if funding_heading in methods:
             methods, funding = methods.split(funding_heading, 1)
-            body += "\n" + funding_heading + funding
+            # Keep the short Chinese funding note with back matter so it does not
+            # occupy an otherwise empty page after the two-column discussion.
+            if chinese:
+                methods += "\n" + funding_heading + funding
+            else:
+                body += "\n" + funding_heading + funding
         refs = "参考文献" if chinese else "References"
         text = opening + "\n\n\\MainStart\n\n" + body
         text += "\n\n\\clearpage\n\\onecolumn\n\n# " + refs + "\n\n::: {#refs}\n:::\n\n"
@@ -165,10 +170,10 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         latex = latex.replace(r"\end{longtable}", r"\end{longtable}\normalsize")
     authorblock, pdfauthors = authors()
     notice = (
-        "全部插图为 ImageGen 预览；几何仅作示意，精确数值见保留证据。"  # noqa: RUF001 - Chinese prose punctuation
+        "全部插图为ImageGen预览，点位与几何仅作示意；精确数值见补充材料。"  # noqa: RUF001 - Chinese prose punctuation
         if chinese
-        else "All figures are ImageGen previews. Geometry is illustrative; "
-        "exact values remain in the retained evidence."
+        else "All figures are ImageGen previews with illustrative geometry; "
+        "exact numerical evidence is retained separately."
     )
     if supplement:
         notice = (
@@ -214,7 +219,9 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         "contains_imagegen_data_previews": not supplement,
         "contains_imagegen_concept": not supplement,
         "native_quantitative_main_figures": [],
-        "imagegen_preview_figures": 0 if supplement else len(re.findall(r"^!\[", text, re.M)),
+        "imagegen_preview_figures": 0
+        if supplement
+        else len(re.findall(r"^!\[.*\]\(figures/imagegen-", text, re.M)),
     }
 
 

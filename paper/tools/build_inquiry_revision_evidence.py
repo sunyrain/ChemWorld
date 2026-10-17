@@ -332,7 +332,7 @@ def main():
         "valid query forecasts. Of 180 assays, 179 have all four required numeric responses; "
         "one incomplete response record in world 1, repetition 3 is excluded from the references "
         "by the original eligibility rule, leaving eleven training assays in that session. "
-        "The constant reference uses the mean of that session's eligible public "
+        "The constant reference uses the mean of that session's response-complete public "
         "final-assay responses; the nearest-neighbour reference uses the existing public-recipe "
         "feature distance and one observed final assay. Neither fits to query truth. Both are "
         "scored against the same noiseless preassay targets as the agent. The references are "
@@ -394,7 +394,7 @@ def main():
         "",
     ]
     lines += [
-        "### Exact world-level contrasts for the quantitative previews",
+        "### Exact world-level contrasts for the quantitative figures",
         "",
         "Values average available sessions within the fixed world; lines connect different "
         "conditions, not successive states of one researcher. No confidence interval or "

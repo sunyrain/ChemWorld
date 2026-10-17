@@ -20,7 +20,7 @@ Full archive paths and record selectors are retained in `core_history_index.json
 
 ### Source-only references in the new crystallization opportunity cohort
 
-This post hoc summary exposes reference errors already stored with the completed experiment. All fifteen Research sessions have twelve final source assays and twelve valid query forecasts. Of 180 assays, 179 have all four required numeric responses; one incomplete response record in world 1, repetition 3 is excluded from the references by the original eligibility rule, leaving eleven training assays in that session. The constant reference uses the mean of that session's eligible public final-assay responses; the nearest-neighbour reference uses the existing public-recipe feature distance and one observed final assay. Neither fits to query truth. Both are scored against the same noiseless preassay targets as the agent. The references are diagnostics of available information, not alternative autonomous researchers or NoResearch arms. They produce point forecasts only. Means below weight worlds equally after averaging the three sessions within each world. No model or simulator was run.
+This post hoc summary exposes reference errors already stored with the completed experiment. All fifteen Research sessions have twelve final source assays and twelve valid query forecasts. Of 180 assays, 179 have all four required numeric responses; one incomplete response record in world 1, repetition 3 is excluded from the references by the original eligibility rule, leaving eleven training assays in that session. The constant reference uses the mean of that session's response-complete public final-assay responses; the nearest-neighbour reference uses the existing public-recipe feature distance and one observed final assay. Neither fits to query truth. Both are scored against the same noiseless preassay targets as the agent. The references are diagnostics of available information, not alternative autonomous researchers or NoResearch arms. They produce point forecasts only. Means below weight worlds equally after averaging the three sessions within each world. No model or simulator was run.
 
 \Needspace{8\baselineskip}
 
@@ -100,7 +100,7 @@ The public reaction record contains two 600 s requests with outer `ok: true` and
 
 The supporting execution-state source is also located by `core_history_index.json` in the portable evidence archive.
 
-### Exact world-level contrasts for the quantitative previews
+### Exact world-level contrasts for the quantitative figures
 
 Values average available sessions within the fixed world; lines connect different conditions, not successive states of one researcher. No confidence interval or population significance estimate is inferred from five worlds.
 

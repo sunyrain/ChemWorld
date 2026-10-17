@@ -12,9 +12,11 @@ from statistics import fmean
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from build_abductive_evidence import main as build_explanation_evidence
+from build_inquiry_followup_evidence import main as build_inquiry_followup
 from build_inquiry_revision_evidence import main as build_inquiry_revision
 from build_matched_inquiry_evidence import main as build_matched_evidence
 from build_unified_manuscript_evidence import main as build_unified_evidence
+from plot_inquiry_followup import main as plot_inquiry_followup
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT))
@@ -374,14 +376,18 @@ def main():
         "corrected_c_session_responses.csv and corrected_c_distribution_summary.json. "
         "These are retrospective, single-analyst derived analyses, not new experiments "
         "or full-cohort explanatory coding. Run plot_abductive_evidence.py for the six "
-        "retained data-derived figures. All current main and Extended Data artwork is "
-        "explicitly labelled ImageGen preview; new matrices are governed by their exact tables.\n",
+        "retained data-derived figures. All current manuscript artwork remains "
+        "explicitly labelled ImageGen preview per user instruction; data-derived plots "
+        "for main figures 2, 4 and 5 are separate checking references. "
+        "Exact numerical tables remain available.\n",
         encoding="utf-8",
     )
     build_explanation_evidence()
     build_matched_evidence()
     build_unified_evidence()
     build_inquiry_revision()
+    build_inquiry_followup()
+    plot_inquiry_followup()
     unified = read(ROOT / "configs/current.json")["work_ii"]["w2_267_unified_matrices"]
     unified_root = ROOT / unified["report_root"]
     with (DEST / "README.md").open("a", encoding="utf-8") as stream:
@@ -403,10 +409,15 @@ def main():
             "Repository source: ../../../../" + unified["report_root"] + "/PROCESS_REVIEW.md. "
             "Compilation does not rerun experiments or change evidence status.\n"
             "The new_c_source_references CSV/JSON expose existing source-only references "
-            "for the same fifteen crystallization Research sessions (179 eligible response "
+            "for the same fifteen crystallization Research sessions (179 response-complete "
             "records among 180 assays). core_history_index.json maps the main study labels "
             "to trajectories and critical times. These are retrospective evidence summaries, "
             "not additional sessions or independent human validation.\n"
+            "matched_world_forecast_contrasts.csv/json retain all 180 paired forecast "
+            "contrasts; matched_world_query_actions.json exposes the twelve common "
+            "queries. core_history_review.json and core_history_review_sources.json "
+            "provide the seven-history internal review and public source packet, "
+            "without claiming independence or blinding.\n"
         )
     archive = ROOT / "output/paper/chemworld-review-evidence.zip"
     archive.parent.mkdir(parents=True, exist_ok=True)

@@ -785,6 +785,8 @@ def main():
         + (DEST / "unified_matrices_analysis.md").read_text(encoding="utf-8")
         + "\n\n"
         + (DEST / "inquiry_revision_analysis.md").read_text(encoding="utf-8")
+        + "\n\n"
+        + (DEST / "inquiry_followup_analysis.md").read_text(encoding="utf-8")
         + "\n\n",
         1,
     )
