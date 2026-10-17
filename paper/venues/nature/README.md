@@ -1,6 +1,6 @@
 # 自主研究如何塑造科学理解
 
-**How autonomous research shapes scientific understanding**。中心问题是科学认识如何在自主研究中形成，发展中的认识又如何改变后续探索。2026-10-18修订W2-281：以“依靠实验认识世界，却凭借不完整认识选择实验”开场，双语引言按科学张力、机器科研问题、方法需求、ChemWorld设计、实证发现五段推进。摘要直接进入研究问题与发现；认识的建立和后续应用分化共同呈现。结果、讨论、方法与全部证据沿用；爱因斯坦与反绎继续暂时移出当前叙述。
+**How autonomous research shapes scientific understanding**。中心问题是科学认识如何在自主研究中形成，发展中的认识又如何改变后续探索。2026-10-18修订W2-282：沿用已整合的认识—探索开场和五段引言，重做五张主图与扩展图5、6、8，以自主选择、证据获取、关系修订和后续应用组织视觉叙述。摘要、正文、方法与全部实验证据保持；双语图注随新图调整。爱因斯坦与反绎继续暂时移出当前叙述。
 
 ## 阅读入口
 
@@ -74,7 +74,7 @@
 
 ## 图稿与构建
 
-按用户要求，五张主图及八张扩展图全部使用ImageGen预览。[主图与提示词](figures/imagegen-inquiry-focus-20261017/README.md)中，图3保留事前否定判据，图4保留预测差异误差与零差异参照，图5保留同队列源观测参照。生成点位、连线与分布不代表精确数据。八张扩展图沿用[前次预览](figures/imagegen-preview-20261016/README.md)及[最近更新](figures/imagegen-preview-20261017/README.md)。已有[目标与信息](figures/data-inquiry-20261017/fig02_conditions.pdf)、[匹配世界](figures/data-inquiry-20261017/fig04_matched.pdf)、[研究机会与参照](figures/data-inquiry-20261017/fig05_opportunity.pdf)数据图仅作核对底稿，各有PNG与SVG，通过`paper/tools/plot_inquiry_followup.py`复现。[旧原生定量图](figures/integrated-20261016/README.md)仍对应旧队列，不替代新表；原预览文件保留。
+按用户要求，五张主图及八张扩展图全部使用ImageGen预览。[本轮八张新图与提示词](figures/imagegen-inquiry-20261018/README.md)包括全部主图及扩展图5、6、8。图1连接持续世界、独立控制与认识发展；图2分开展示操作收益和预测后果；图3连接事前预期、实际检验与后续判断；图4结合匹配世界差异与局部采样；图5区分研究机会、同历史证据使用及判断边界。扩展图5、6、8分别呈现局部证据的后续应用、实验经历重建和检验带来的修订。数值标签依照保留结果，生成的点位、图形点数、柱长与分布仅作示意。其余扩展图保留[早期预览](figures/imagegen-preview-20261016/README.md)与[覆盖图](figures/imagegen-preview-20261017/README.md)。已有[目标与信息](figures/data-inquiry-20261017/fig02_conditions.pdf)、[匹配世界](figures/data-inquiry-20261017/fig04_matched.pdf)、[研究机会与参照](figures/data-inquiry-20261017/fig05_opportunity.pdf)数据图仅作核对底稿，各有PNG与SVG，通过`paper/tools/plot_inquiry_followup.py`复现。[旧原生定量图](figures/integrated-20261016/README.md)仍对应旧队列；原预览与重要历史归档保留。
 
 ```powershell
 uv run --no-sync python -X utf8 paper/tools/build_nature_review_evidence.py
@@ -86,4 +86,4 @@ uv run --no-sync python -X utf8 paper/tools/build_nature_manuscripts.py
 
 仅修改正文时，可直接运行第三步并用`--only en`、`--only review`、`--only zh`选择输出，无需重建证据或未改动的补充材料。
 
-W2-281已同步中文22页、英文24页、英文行号版42页，共88页完成渲染与页面检查。英文摘要190词、引言421词（不含引用标记）；23条参考文献沿用，编号随引言的首次引用顺序更新，双语顺序一致。图5移至首次讨论段落之后，消除英文整栏空白；结果、讨论及图注文字保持。摘要与引言导出、排版日志及标准PDF与构建文件一致性核对通过，未发现溢出、缺字或未解析引用。方法、证据、预览图内容、历史归档及43页补充材料沿用。独立领域复核与永久公开存档仍待完成。
+W2-282已同步中文22页、英文24页、英文行号版42页，共88页完成渲染与页面检查。八张新ImageGen资产在三个输出中均已插入；主图与扩展图的双语图注对应新版面板。全文正文保持，英文摘要190词、引言421词，23条参考文献的双语顺序一致。图源、正文一致性、摘要与引言导出、排版日志及标准PDF与构建文件一致性核对通过，未发现溢出、缺字或未解析引用。图5继续位于首次讨论段落之后；方法、证据、历史归档及43页补充材料沿用。独立领域复核与永久公开存档仍待完成。
