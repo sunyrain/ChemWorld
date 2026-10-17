@@ -236,7 +236,7 @@ Both arms have three valid sessions in each world. Interval scores use alpha = 0
 | Partitioning and purification | 90 | 262 | 13253 | 299 |
 | Crystallization | 30 | 50 | 3105 | 122 |
 
-All 300 histories are read. The 899 nonempty sealed payloads include one invalid forecast; 898 stages are valid and one forecast payload is absent. Counts refer to recording coverage, not discovery, hypothesis quality or abductive success. Cases are retrospective selections within full reading, with no independent human second-rater estimate. The older 92 action-linked windows retain their separate selection definition. Missing intermediate statements are not filled by later accounts.
+All 300 histories are read. The 899 nonempty sealed payloads include one invalid forecast; 898 stages are valid and one forecast payload is absent. Counts refer to recording coverage, not discovery or hypothesis quality. Cases are retrospective selections within full reading, with no independent human second-rater estimate. The older 92 action-linked windows retain their separate selection definition. Missing intermediate statements are not filled by later accounts.
 
 The main text uses four forms of positive evidence: an explicit expectation followed by its test; a relationship narrowed by a counterexample; an unsuccessful experiment producing a warranted withdrawal; and a judgment changing the next actual action. It separately traces unsupported extension and mistaken reconstruction of executed history. A session can support claims in more than one category. Neither successful recipes nor accurate numerical predictions are automatically counted as established explanations.
 

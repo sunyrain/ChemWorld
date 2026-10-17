@@ -214,7 +214,7 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         "contains_imagegen_data_previews": not supplement,
         "contains_imagegen_concept": not supplement,
         "native_quantitative_main_figures": [],
-        "imagegen_preview_figures": 0 if supplement else 12,
+        "imagegen_preview_figures": 0 if supplement else len(re.findall(r"^!\[", text, re.M)),
     }
 
 

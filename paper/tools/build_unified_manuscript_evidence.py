@@ -336,7 +336,7 @@ def main():
         "one invalid forecast; "
         "898 stages are valid and one forecast payload is absent. Counts refer "
         "to recording coverage, "
-        "not discovery, hypothesis quality or abductive success. Cases are "
+        "not discovery or hypothesis quality. Cases are "
         "retrospective selections "
         "within full reading, with no independent human second-rater estimate. "
         "The older 92 action-linked "

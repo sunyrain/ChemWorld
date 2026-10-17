@@ -310,8 +310,8 @@ def main():
         "## Evidence organization and units",
         "",
         "The main manuscript connects the organization of inquiry to the formation, testing, "
-        "revision and application of scientific explanations. Abduction is an interpretive "
-        "framework; the retained process counts are not rates of abductive success. "
+        "revision and application of scientific judgments within complete research histories. "
+        "Retained process counts describe recording coverage, not discovery frequencies. "
         "Tables below use retained machine "
         "summaries. Current process evidence combines original equilibrium (45) and "
         "corrected-recovery crystallization (45), not old plus new crystallization. "
@@ -783,6 +783,8 @@ def main():
         "# Supplementary Information\n\n",
         "# Supplementary Information\n\n"
         + (DEST / "unified_matrices_analysis.md").read_text(encoding="utf-8")
+        + "\n\n"
+        + (DEST / "inquiry_revision_analysis.md").read_text(encoding="utf-8")
         + "\n\n",
         1,
     )
