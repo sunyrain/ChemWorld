@@ -105,9 +105,9 @@ def build(language: str, review: bool = False, supplement: bool = False) -> dict
         funding_heading = "\n## " + ("资助" if chinese else "Funding") + "\n"
         if funding_heading in methods:
             methods, funding = methods.split(funding_heading, 1)
-            # Keep the short Chinese funding note with back matter so it does not
-            # occupy an otherwise empty page after the two-column discussion.
-            if chinese:
+            # Keep short funding notes with back matter in Chinese and review
+            # layouts, where they otherwise occupy a nearly empty page.
+            if chinese or review:
                 methods += "\n" + funding_heading + funding
             else:
                 body += "\n" + funding_heading + funding
